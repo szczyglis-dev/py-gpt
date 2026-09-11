@@ -14,7 +14,7 @@ from typing import List, Dict, Any, Optional
 from PySide6.QtGui import QAction
 
 from pygpt_net.core.types import (
-    MODE_AGENT, MODE_AUDIO,
+    MODE_AGENT, MODE_AUDIO, MODE_EXPERT,
 )
 from pygpt_net.controller.plugins.presets import Presets
 from pygpt_net.controller.plugins.settings import Settings
@@ -188,12 +188,23 @@ class Plugins:
 
     def is_enabled(self, id: str) -> bool:
         """
-        Check if plugin is enabled
+        Check if plugin is enabled.
+
+        Experts is also the built-in executor for expert_call. It is therefore
+        implicitly active in dedicated Experts and legacy Agent modes while still
+        remaining user-toggleable as an inline plugin in ordinary Chat modes.
 
         :param id: plugin id
         :return: True if enabled
         """
-        return self.window.core.plugins.is_registered(id) and self.enabled.get(id, False)
+        registered = self.window.core.plugins.is_registered(id)
+        if not registered:
+            return False
+        if id == "experts":
+            mode = self.window.core.config.get("mode")
+            if mode in (MODE_AGENT, MODE_EXPERT):
+                return bool(self.window.core.experts.get_experts())
+        return self.enabled.get(id, False)
 
     def toggle(self, id: str):
         """

@@ -21,7 +21,6 @@ from pygpt_net.core.types import (
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
     MODE_ASSISTANT,
-    MODE_EXPERT,
     MODE_LLAMA_INDEX,
 )
 from pygpt_net.core.events import KernelEvent, RenderEvent, BaseEvent, RealtimeEvent, Event
@@ -81,12 +80,12 @@ class Kernel:
             KernelEvent.AGENT_V2_END,
         )
     )
-    _STACK_ADD_EVENTS = frozenset((KernelEvent.TOOL_CALL, KernelEvent.AGENT_CONTINUE, KernelEvent.AGENT_CALL))
+    _STACK_ADD_EVENTS = frozenset((KernelEvent.TOOL_CALL, KernelEvent.AGENT_CONTINUE))
     _CALL_EVENTS = frozenset((KernelEvent.CALL, KernelEvent.FORCE_CALL))
     _QUEUE_EVENTS_ALL = _REQUEST_EVENTS | _OUTPUT_EVENTS | _STACK_ADD_EVENTS | _CALL_EVENTS
 
     _ASYNC_DISABLED_MODES = frozenset(
-        (MODE_ASSISTANT, MODE_AGENT, MODE_EXPERT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2, MODE_LLAMA_INDEX)
+        (MODE_ASSISTANT, MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2, MODE_LLAMA_INDEX)
     )
     _THREADED_MODES = frozenset((MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2))
 
@@ -435,7 +434,7 @@ class Kernel:
             return False
         controller = self.window.controller
         agent = controller.agent
-        if agent.legacy.enabled() or agent.experts.enabled():
+        if agent.legacy.enabled():
             return False
         return True
 

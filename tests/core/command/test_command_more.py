@@ -221,27 +221,32 @@ def test_get_functions_merges_native_and_user(monkeypatch):
 
 def test_as_native_functions_dispatch_and_agent_expert_calls(monkeypatch):
     window = make_window()
+    window.core.config["cmd"] = True
     def dispatch(event):
-        if event.type == Event.CMD_SYNTAX:
-            event.data["cmd"] = [{"cmd": "plugin_cmd", "instruction": "p"}]
-        elif event.type == Event.CMD_SYNTAX_INLINE:
+        if event.name == Event.CMD_SYNTAX:
+            event.data["cmd"] = [
+                {"cmd": "plugin_cmd", "instruction": "p"},
+                {"cmd": "expert_cmd", "instruction": "e"},
+            ]
+        elif event.name == Event.CMD_SYNTAX_INLINE:
             event.data["cmd"] = [{"cmd": "inline_cmd", "instruction": "i"}]
     window.dispatch = dispatch
     window.controller.agent.legacy = SimpleNamespace(enabled=lambda check_inline=True: True, get_functions=lambda: [{"cmd": "agent_cmd", "instruction": "a"}])
-    window.controller.agent.experts = SimpleNamespace(enabled=lambda: False)
-    window.core.experts = SimpleNamespace(get_functions=lambda: [{"cmd": "expert_cmd", "instruction": "e"}])
     command = Command(window)
     def fake_cmds_to_functions(cmds):
+        names = []
         if any(c.get("cmd") == "plugin_cmd" for c in cmds):
-            return [{"name": "plugin"}]
-        if any(c.get("cmd") == "agent_cmd" for c in cmds):
-            return [{"name": "agent"}]
+            names.append({"name": "plugin"})
         if any(c.get("cmd") == "expert_cmd" for c in cmds):
-            return [{"name": "expert"}]
-        return []
+            names.append({"name": "expert"})
+        if any(c.get("cmd") == "agent_cmd" for c in cmds):
+            names.append({"name": "agent"})
+        return names
     monkeypatch.setattr(command, "cmds_to_functions", fake_cmds_to_functions)
     out = command.as_native_functions(all=False, parent_id=None)
-    assert {"name": "agent"} in out and {"name": "expert"} in out
+    assert {"name": "plugin"} in out
+    assert {"name": "expert"} in out
+    assert {"name": "agent"} in out
 
 
 def test_cmds_to_functions_and_extract_params_behavior():

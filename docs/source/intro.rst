@@ -53,6 +53,7 @@ Features
 * Includes simple painter / drawing tool.
 * Includes a node-based Agents Builder.
 * Includes Chat with Agents, a multi-agent mode with Chat, Orchestrator, and Swarm workflows for direct agent interaction, controlled background delegation, or large parallel worker groups.
+* Includes Experts as reusable specialized agents powered by the same Agents v2 runtime and exposed to conversations through the regular ``expert_call`` tool.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
 * Fully configurable.

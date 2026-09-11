@@ -6,627 +6,100 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 21:45:00                  #
+# Updated Date: 2026.09.11 23:55:00                  #
 # ================================================== #
 
-import json
 from typing import Dict, List, Optional
 
-from PySide6.QtCore import Slot
-
-from pygpt_net.core.experts.worker import ExpertWorker
 from pygpt_net.core.types import (
     MODE_AGENT,
-    MODE_CHAT,
-    MODE_COMPLETION,
     MODE_EXPERT,
-    MODE_LLAMA_INDEX,
-    MODE_VISION,
-    MODE_AUDIO,
-    MODE_RESEARCH,
     TOOL_EXPERT_CALL_NAME,
     TOOL_EXPERT_CALL_DESCRIPTION,
     TOOL_EXPERT_CALL_PARAM_ID_DESCRIPTION,
     TOOL_EXPERT_CALL_PARAM_INSTRUCTION_DESCRIPTION,
     TOOL_EXPERT_CALL_PARAM_SYSTEM_PROMPT_DESCRIPTION,
-    TOOL_QUERY_ENGINE_NAME,
-    TOOL_QUERY_ENGINE_DESCRIPTION,
-    TOOL_QUERY_ENGINE_PARAM_QUERY_DESCRIPTION,
 )
-from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.events import Event, KernelEvent, RenderEvent
-from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.preset import PresetItem
-from pygpt_net.utils import trans
+
 
 class Experts:
+    """Expert preset registry and expert_call tool definition.
+
+    Expert execution itself is handled by the regular Experts plugin/tool flow.
+    This core class intentionally contains no reply/worker orchestration.
+    """
+
     def __init__(self, window=None):
-        """
-        Experts core
-
-        :param window: Window instance
-        """
         self.window = window
-        self.allowed_modes = [
-            MODE_CHAT,
-            MODE_COMPLETION,
-            # MODE_VISION,
-            # MODE_LANGCHAIN,
-            MODE_LLAMA_INDEX,
-            MODE_AUDIO,
-            MODE_RESEARCH,
-        ]
-        self.allowed_cmds = [TOOL_EXPERT_CALL_NAME]
-        self.worker = None
-        self.last_expert_id = None  # last expert id used in call
-        self.last_idx = None  # last index used in call
-        self.master_ctx = None  # master meta for expert calls
-
-    def get_mode(self) -> str:
-        """
-        Get sub-mode to use internally
-
-        :return: sub-mode
-        """
-        mode = MODE_CHAT
-        current = self.window.core.config.get("experts.mode")
-        if current is not None and current in self.allowed_modes:
-            mode = current
-        return mode
-
-    def stopped(self) -> bool:
-        """
-        Check if experts are stopped
-
-        :return: True if stopped
-        """
-        return self.window.controller.kernel.stopped()
 
     def agent_enabled(self) -> bool:
-        """
-        Check if agent is enabled
-
-        :return: True if enabled
-        """
+        """Return True when legacy Agent mode owns the available expert list."""
         return self.window.controller.agent.legacy.enabled()
 
     def exists(self, id: str) -> bool:
-        """
-        Check if expert exists
-
-        :param id: expert id
-        :return: True if exists
-        """
+        """Check if an Expert preset exists."""
         return self.window.core.presets.has(MODE_EXPERT, id)
 
-    def get_expert(self, id: str) -> PresetItem:
-        """
-        Get expert by id
-
-        :param id: expert id
-        :return: expert item (preset)
-        """
+    def get_expert(self, id: str) -> Optional[PresetItem]:
+        """Return an Expert preset by ID."""
         return self.window.core.presets.get_by_id(MODE_EXPERT, id)
 
     def get_experts(self) -> Dict[str, PresetItem]:
-        """
-        Get experts names with keys
-
-        :return: experts dict
-        """
+        """Return Experts currently available to the active manager/agent."""
         experts = {}
         core = self.window.core
         presets = core.presets.get_by_mode(MODE_EXPERT)
 
-        # mode: agent
         if self.agent_enabled():
             agents = core.presets.get_by_mode(MODE_AGENT)
-            agent = core.config.get('preset')
-            if agent is not None:
-                if agent in agents:
-                    for uuid in agents[agent].experts:
-                        expert = core.presets.get_by_uuid(uuid)
-                        if expert is not None:
-                            id = expert.filename
-                            experts[id] = expert
-        # mode: expert
+            agent = core.config.get("preset")
+            if agent is not None and agent in agents:
+                for uuid in agents[agent].experts:
+                    expert = core.presets.get_by_uuid(uuid)
+                    if expert is not None:
+                        experts[expert.filename] = expert
         else:
-            for k in presets:
-                if k.startswith("current."):  # skip current
+            for key, expert in presets.items():
+                if key.startswith("current."):
                     continue
-                if not presets[k].enabled:  # skip disabled experts
+                if not expert.enabled:
                     continue
-                experts[k] = presets[k]
+                experts[key] = expert
         return experts
 
     def get_expert_name_by_id(self, id: str) -> Optional[str]:
-        """
-        Get expert name by id
-
-        :param id: expert id
-        :return: expert name or None if not found
-        """
-        experts = self.get_experts()
-        if id in experts:
-            return experts[id].name
+        """Return display name for an available Expert ID."""
+        expert = self.get_experts().get(id)
+        return expert.name if expert is not None else None
 
     def count_experts(self, uuid: str) -> int:
-        """
-        Count experts in agent
-
-        :param uuid: agent uuid
-        :return: number of experts
-        """
-        i = 0
+        """Count Experts assigned to a legacy Agent preset."""
+        count = 0
         core = self.window.core
         agents = core.presets.get_by_mode(MODE_AGENT)
         if uuid in agents:
             for expert_uuid in agents[uuid].experts:
-                expert = core.presets.get_by_uuid(expert_uuid)
-                if expert is not None:
-                    i += 1
-        return i
+                if core.presets.get_by_uuid(expert_uuid) is not None:
+                    count += 1
+        return count
 
     def get_prompt(self) -> str:
-        """
-        Get prompt for handle experts
-
-        :return: prompt with list of experts appended
-        """
-        prompt = self.window.core.config.get('prompt.expert')
-        experts = self.get_experts()
+        """Build the manager prompt with the currently available Expert list."""
+        prompt = self.window.core.config.get("prompt.expert") or ""
         experts_list = []
-        for k in experts:
-            if k.startswith("current."):  # skip current presets
+        for key, expert in self.get_experts().items():
+            if key.startswith("current."):
                 continue
-            if experts[k].description.strip() == "":
-                experts_list.append(f" - {k}: {experts[k].name}")
+            description = str(expert.description or "").strip()
+            if description:
+                experts_list.append(f" - {key}: {expert.name} ({description})")
             else:
-                experts_list.append(f" - {k}: {experts[k].name} ({experts[k].description})")
+                experts_list.append(f" - {key}: {expert.name}")
         return prompt.replace("{presets}", "\n".join(experts_list))
 
-    def extract_calls(
-            self,
-            ctx: CtxItem,
-            prepared: bool = False,
-    ) -> Dict[str, Dict[str, str]]:
-        """
-        Extract expert calls from context output/prepared tool commands.
-
-        ``chat.output.handle_after()`` normalizes legacy ``<tool>{...}</tool>``
-        blocks before post-processing: it stores the parsed commands in
-        ``ctx.cmds_before`` and strips the protocol markup from visible output.
-        Expert dispatch happens afterwards, so the prepared commands must be used
-        there or the expert call disappears before it can be executed.
-
-        :param ctx: context item
-        :param prepared: prefer commands already normalized by the chat output layer
-        :return: dict with calls
-        """
-        core = self.window.core
-        ids = self.get_experts().keys()
-        if not ids:  # abort if no experts
-            return {}
-
-        cmds = []
-        if prepared:
-            cmds = list(getattr(ctx, "cmds_before", None) or [])
-            if not cmds and getattr(ctx, "tool_calls", None):
-                try:
-                    cmds = core.command.tool_calls_to_cmds(ctx.tool_calls)
-                except Exception as e:
-                    core.debug.log(e)
-
-        if not cmds:
-            cmds = core.command.extract_cmds(ctx.output)
-
-        if len(cmds) > 0:
-            ctx.cmds = cmds  # append commands to ctx
-        else:  # abort if no cmds
-            return {}
-        commands = core.command.from_commands(cmds)  # pack to execution list
-        is_cmd = False
-        my_commands = []
-        calls = {}
-        for item in commands:
-            if item["cmd"] in self.allowed_cmds:
-                my_commands.append(item)
-                is_cmd = True
-        if not is_cmd:  # abort if no expert calls
-            return {}
-        for item in my_commands:
-            try:
-                if item["cmd"] == TOOL_EXPERT_CALL_NAME:
-                    if "params" not in item:
-                        continue
-                    if "id" not in item["params"]:
-                        continue
-                    id = item["params"]["id"]
-                    if id not in ids:
-                        continue
-                    # `query` is accepted only for compatibility with pre-2.8.16
-                    # saved/provider-shaped calls. New tool definitions require
-                    # the clearer `instruction` field.
-                    instruction = item["params"].get("instruction")
-                    if instruction in (None, ""):
-                        instruction = item["params"].get("query")
-                    if instruction in (None, ""):
-                        continue
-                    calls[id] = {
-                        "instruction": str(instruction),
-                        "system_prompt": str(item["params"].get("system_prompt") or ""),
-                    }
-            except Exception as e:
-                core.debug.log(e)
-                return {}
-        return calls
-
-    def extract_tool_calls(self, ctx: CtxItem):
-        """
-        Extract tool calls from expert
-
-        :param ctx: context item
-        """
-        for call in ctx.tool_calls:
-            if (call["type"] == "function"
-                    and "function" in call
-                    and call["function"]["name"] == TOOL_QUERY_ENGINE_NAME):
-                ctx.force_call = True  # force call if query engine tool is used
-                ctx.cmds_before = [
-                    {
-                        "cmd": TOOL_QUERY_ENGINE_NAME,
-                        "params": {
-                            "query": call["function"]["arguments"]["query"],
-                            "idx": self.last_idx,
-                        },
-                    }
-                ]
-                break
-
-    def reply(self, ctx: CtxItem):
-        """
-        Re-send response from commands to master expert
-
-        If command has been called by expert then response for command is send here to parent
-
-        :param ctx: context item
-        """
-        if self.stopped():
-            return
-
-        # master meta is here, ctx.meta = MASTER META ID here!
-
-        # make copy of ctx for reply, and change input name to expert name
-        reply_ctx = CtxItem()
-        reply_ctx.from_dict(ctx.to_dict())
-        expert_id = self.last_expert_id
-        expert_name = ""
-        if expert_id:
-            expert_name = self.get_expert_name_by_id(expert_id)
-
-        # reply ctx has no meta here!!!!
-        reply_ctx.input_name = expert_name
-        reply_ctx.output_name = ""
-        reply_ctx.sub_call = True  # this flag is not copied in to_dict
-
-        if ctx.output.strip() != "":
-            response = reply_ctx.output
-        else:
-            response = reply_ctx.input
-
-        context = BridgeContext()
-        context.ctx = reply_ctx
-        result = {
-            "expert_id": expert_id,
-            "result": str(response),
-        }
-        context.prompt = str(response)
-        if ctx.sub_reply:
-            reply_ctx.extra["sub_reply"] = True  # mark as sub-reply
-            context.prompt = json.dumps(result, ensure_ascii=False, indent=2)  # to master
-
-        self.window.dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
-            'context': context,
-            'extra': {
-                "force": True,
-                "reply": True,
-                "internal": self.agent_enabled(),
-            },
-        }))
-
-    def call(
-            self,
-            master_ctx: CtxItem,
-            expert_id: str,
-            request=None,
-            query=None,
-    ):
-        """
-        Call the expert
-
-        :param master_ctx: master context
-        :param expert_id: expert id (preset ID)
-        :param request: expert request with required instruction and optional system prompt
-        """
-        if self.stopped():
-            return
-        if request is None:
-            request = query  # compatibility with pre-2.8.16 callers
-
-        worker = ExpertWorker(
-            window=self.window,
-            master_ctx=master_ctx,
-            expert_id=expert_id,
-            request=request,
-        )
-        worker.signals.response.connect(self.handle_response)  # connect to finished signal
-        worker.signals.finished.connect(self.handle_finished)  # connect to finished signal
-        worker.signals.error.connect(self.handle_error)  # connect to error signal
-        worker.signals.event.connect(self.handle_event)  # connect to event signal
-        worker.signals.output.connect(self.handle_output)  # connect to output signal
-        worker.signals.lock_input.connect(self.handle_input_locked)  # connect to lock input signal
-        worker.signals.cmd.connect(self.handle_cmd)  # connect to cmd signal
-
-        # start worker in threadpool
-        self.worker = worker
-        self.last_expert_id = expert_id  # store last expert id
-        self.master_ctx = master_ctx
-        name = self.get_expert_name_by_id(expert_id)
-        event = KernelEvent(KernelEvent.STATE_BUSY, {
-            "msg": f"{trans('expert.wait.status')} ({name})",
-        })
-        self.window.dispatch(event)  # dispatch busy event
-        self.window.threadpool.start(self.worker)
-
-    @Slot(CtxItem, str)
-    def handle_output(self, ctx: CtxItem, mode: str):
-        """
-        Handle output from worker
-
-        :param ctx: CtxItem
-        :param mode: mode of operation
-        """
-        if self.stopped():
-            return
-
-        self.window.controller.chat.output.handle(
-            ctx=ctx,
-            mode=mode,
-            stream=False,
-        )
-
-    @Slot(CtxItem, CtxItem, str, str, str)
-    def handle_cmd(
-            self,
-            ctx: CtxItem,
-            master_ctx: CtxItem,
-            expert_id: str,
-            expert_name: str,
-            result: str
-    ):
-        """
-        Handle command from worker
-
-        :param ctx: CtxItem
-        :param master_ctx: master context item
-        :param expert_id: expert id
-        :param expert_name: expert name
-        :param result: result of command execution
-        """
-        if self.stopped():
-            return
-
-        core = self.window.core
-        update_status = self.window.update_status
-
-        # extract native tool calls if provided
-        if ctx.tool_calls:
-            # if not internal commands in a text body then append tool calls as commands (prevent double commands)
-            if not core.command.has_cmds(ctx.output):
-                core.command.append_tool_calls(ctx)  # append tool calls as commands
-                if not isinstance(ctx.extra, dict):
-                    ctx.extra = {}
-                ctx.extra["tool_calls"] = ctx.tool_calls
-
-        # if 'get_context' tool is used then force call, and append idx
-        self.extract_tool_calls(ctx)  # extract tool calls from ctx
-        self.window.controller.chat.command.handle(ctx, internal=True)  # handle cmds sync
-
-        if ctx.reply:
-            update_status("")  # clear status
-            # prepare data to send as reply
-            tool_data = json.dumps(ctx.results)
-            # if "tool_output" in ctx.extra and ctx.extra["tool_output"]:
-               # tool_data = str(ctx.extra["tool_output"])
-
-            core.ctx.update_item(ctx)  # update context in db
-            update_status('...')
-            ctx.output = f"<tool>{ctx.cmds}</tool>"
-            core.ctx.update_item(ctx)  # update ctx in DB
-            self.handle_finished()
-            self.call(
-                master_ctx=self.master_ctx,
-                expert_id=self.last_expert_id,
-                request={"instruction": tool_data},
-            )
-            return
-
-        # ----- no cmd reply ------ #
-
-        # make copy of ctx for reply, and change input name to expert name
-        reply_ctx = CtxItem()
-        reply_ctx.from_dict(ctx.to_dict())
-        reply_ctx.meta = master_ctx.meta
-
-        # assign expert output
-        reply_ctx.output = result
-        reply_ctx.input_name = expert_name
-        reply_ctx.output_name = ""
-        reply_ctx.cmds = []  # clear cmds
-        reply_ctx.sub_call = True  # this flag is not copied in to_dict
-
-        # reply to main thread
-        # send to reply()
-        # input: something (no tool results here)
-        # output: ... (call the master)
-        self.handle_response(reply_ctx, str(expert_id))
-
-    @Slot()
-    def handle_input_locked(self):
-        """
-        Handle input locked signal from worker
-
-        This is used to lock input in UI while worker is processing.
-        """
-        if self.stopped():
-            return
-        self.window.controller.chat.common.lock_input()
-
-    @Slot(Event)
-    def handle_event(self, event: Event):
-        """
-        Handle event from worker
-
-        :param event: Event instance
-        """
-        if self.stopped():
-            return
-        self.window.dispatch(event)
-
-    @Slot(str)
-    def handle_error(self, error: str):
-        """
-        Handle worker error
-
-        :param error: error message
-        """
-        dispatch = self.window.dispatch
-
-        if self.stopped():
-            dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
-            return
-
-        # Complete the pending UI task as a failed expert result as well. Without
-        # this the master turn would keep a permanent "Using tool" placeholder.
-        failed_result = f"{trans('expert.wait.failed')}: {error}"
-        expert_id = self.last_expert_id
-        if expert_id and self.complete_call_task(str(expert_id), failed_result):
-            dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
-                "meta": getattr(self.master_ctx, "meta", None),
-                "ctx": self.master_ctx,
-            }))
-            dispatch(RenderEvent(RenderEvent.RELOAD, {
-                "meta": getattr(self.master_ctx, "meta", None),
-                "ctx": self.master_ctx,
-            }))
-
-        # handle error from worker
-        context = BridgeContext()
-        context.prompt = failed_result
-        dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
-            'context': context,
-            'extra': {
-                "force": True,
-                "reply": False,
-                "internal": False,
-            },
-        }))  # reply to master
-        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
-
-    @Slot()
-    def handle_finished(self):
-        """Handle worker finished signal"""
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
-
-    def complete_call_task(self, expert_id: str, result: str) -> bool:
-        """Complete the UI task representing an expert-as-tool invocation."""
-        master_ctx = self.master_ctx
-        if master_ctx is None:
-            return False
-
-        part = master_ctx.get_active_part()
-        if part is None:
-            return False
-
-        for task in list(getattr(part, "tasks", None) or []):
-            extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
-            if str(extra.get("tool_name") or task.task_name or task.name or "") != TOOL_EXPERT_CALL_NAME:
-                continue
-            if extra.get("status") == "completed":
-                continue
-
-            params = task.tool_input if isinstance(task.tool_input, dict) else {}
-            task_expert_id = params.get("id")
-            if task_expert_id is not None and str(task_expert_id) != str(expert_id):
-                continue
-
-            response = {
-                "request": {
-                    "cmd": TOOL_EXPERT_CALL_NAME,
-                    "params": dict(params),
-                },
-                "result": str(result),
-            }
-            task.set_result(response, output=str(result))
-            task.mark_ui_ready(True)
-            self.window.core.ctx.update_part_task(task)
-            self.window.core.ctx.update_part(master_ctx, part, sync_item=True)
-            return True
-
-        return False
-
-    @Slot(CtxItem, str)
-    def handle_response(self, ctx: CtxItem, expert_id: str):
-        """
-        Handle response expert call
-
-        :param ctx: CtxItem
-        :param expert_id: expert id
-        """
-        dispatch = self.window.dispatch
-
-        if self.stopped():
-            dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
-            return
-
-        # Promote the pending expert_call placeholder to the same durable Tool
-        # accordion used by ordinary/native calls. This task is UI-only; the
-        # historical Experts reply protocol remains unchanged.
-        if self.complete_call_task(expert_id, str(ctx.output)):
-            dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
-                "meta": getattr(self.master_ctx, "meta", None),
-                "ctx": self.master_ctx,
-            }))
-            dispatch(RenderEvent(RenderEvent.RELOAD, {
-                "meta": getattr(self.master_ctx, "meta", None),
-                "ctx": self.master_ctx,
-            }))
-
-        # handle reply from worker
-        context = BridgeContext()
-        context.ctx = ctx
-        result = {
-            "expert_id": expert_id,
-            "result": str(ctx.output),
-        }
-        # TODO: clear ctx.output here?
-        context.prompt = json.dumps(result, ensure_ascii=False, indent=2)  # prepare prompt for reply
-        dispatch(KernelEvent(KernelEvent.INPUT_SYSTEM, {
-            'context': context,
-            'extra': {
-                "force": True,
-                "reply": True,
-                "internal": False,
-            },
-        }))  # reply to master
-        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {}))  # dispatch idle event
-
-    def get_functions(self) -> List[Dict[str, str]]:
-        """
-        Append call the expert commands
-
-        :return: call the expert commands
-        """
+    def get_functions(self) -> List[Dict[str, object]]:
+        """Return the standard expert_call tool definition."""
         return [
             {
                 "cmd": TOOL_EXPERT_CALL_NAME,
@@ -649,42 +122,7 @@ class Experts:
                         "description": TOOL_EXPERT_CALL_PARAM_SYSTEM_PROMPT_DESCRIPTION,
                         "required": False,
                         "type": "str",
-                    }
-                ]
+                    },
+                ],
             }
         ]
-
-    def get_retriever_tool(self) -> Dict[str, str]:
-        """
-        Get retriever tool for additional context retrieval
-
-        :return: retriever tool definition
-        """
-        return {
-            "cmd": TOOL_QUERY_ENGINE_NAME,
-            "instruction": TOOL_QUERY_ENGINE_DESCRIPTION,
-            "params": [
-                {
-                    "name": "query",
-                    "description": TOOL_QUERY_ENGINE_PARAM_QUERY_DESCRIPTION,
-                    "required": True,
-                    "type": "str",
-                }
-            ]
-        }
-
-    def has_calls(self, ctx: CtxItem) -> bool:
-        """
-        Check if context has expert calls
-
-        :param ctx: CtxItem
-        :return: True if expert calls found
-        """
-        if not ctx.sub_reply and not ctx.reply:
-            mentions = self.extract_calls(ctx)
-            if mentions:
-                for expert_id in mentions:
-                    if not self.exists(expert_id):
-                        continue
-                    return True
-        return False

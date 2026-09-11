@@ -1,486 +1,236 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
-# ================================================== #
 
-import json
 import pytest
 from unittest.mock import MagicMock
 
 from pygpt_net.core.experts import Experts
-from pygpt_net.core.experts.worker import ExpertWorker, WorkerSignals
-from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.experts.worker import ExpertWorker
+from pygpt_net.core.agents_v2.expert import ExpertAgentBridge
+from pygpt_net.core.types import MODE_AGENT, MODE_EXPERT, TOOL_EXPERT_CALL_NAME
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.preset import PresetItem
-from pygpt_net.core.events import KernelEvent, RenderEvent, Event
-from pygpt_net.core.types import (
-    MODE_AGENT,
-    MODE_CHAT,
-    MODE_COMPLETION,
-    MODE_EXPERT,
-    MODE_LLAMA_INDEX,
-    MODE_VISION,
-    MODE_AUDIO,
-    MODE_RESEARCH,
-)
-from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
 
-# fixture for a fake window that mimics the nested structure needed
 @pytest.fixture
 def fake_window():
     win = MagicMock()
-
-    # setup config.get to return default values as needed.
     config_values = {
-        "experts.mode": None,
         "prompt.expert": "Default prompt with presets {presets}",
         "preset": None,
-        "mode": MODE_CHAT,
-        "max_output_tokens": 100,
-        "stream": True,
-        "agent.llama.verbose": False,
+        "mode": "chat",
         "assistant": "Assistant",
         "llama.idx.mode": "default",
-        "cmd": True,
-        "experts.use_agent": False,
+        "max_output_tokens": 100,
     }
     win.core.config.get.side_effect = lambda key, default=None: config_values.get(key, default)
-
-    # presets mocks
-    win.core.presets.has = MagicMock(return_value=False)
-    win.core.presets.get_by_id = MagicMock(return_value=MagicMock(filename="exp1", name="Expert 1"))
-    win.core.presets.get_by_mode = MagicMock(return_value={})
-    win.core.presets.get_by_uuid = MagicMock(return_value=None)
-
-    # command mocks
-    win.core.command.is_native_enabled = MagicMock(return_value=False)
-    win.core.command.extract_cmds = MagicMock(return_value=[])
-    win.core.command.is_cmd = MagicMock(return_value=True)
-
-    # controller mocks
-    win.controller.kernel.stopped = MagicMock(return_value=False)
-    win.controller.agent.legacy.enabled = MagicMock(return_value=False)
-    win.controller.chat.output.handle = MagicMock()
-    win.controller.chat.common.lock_input = MagicMock()
-    win.controller.chat.command.handle = MagicMock()
-    win.controller.kernel.stack.handle = MagicMock()
-
-    # core ctx update
-    win.core.ctx.update_item = MagicMock()
-    win.dispatch = MagicMock()
-    win.threadpool.start = MagicMock()
-
-    # set up agents (needed for ExpertWorker.call_agent)
-    win.core.agents = MagicMock()
-    win.core.agents.memory.prepare = MagicMock(return_value=[])
-    provider = MagicMock()
-    provider.get_agent = MagicMock(return_value=MagicMock())
-    win.core.agents.provider = MagicMock(get=MagicMock(return_value=provider))
-    win.core.agents.runner = MagicMock(run_plan_once=MagicMock(return_value=None))
-    win.core.models = MagicMock(get=MagicMock(return_value="model_data"))
-    # set up idx so that ExpertWorker.run can obtain a chat index and LLM
-    chat_index = MagicMock()
-    chat_index.get_index = MagicMock(return_value=("index", "llm"))
-    win.core.idx.chat = chat_index
-    win.core.idx.llm = MagicMock(get=MagicMock(return_value="llm"))
-    # prepare sys_prompt
-    win.core.prompt = MagicMock(
-        prepare_sys_prompt=MagicMock(
-            side_effect=lambda mode, model_data, sys_prompt, ctx, reply, internal, is_expert: sys_prompt + " prepared"
-        )
-    )
-    # debug log
+    win.core.presets.has.return_value = False
+    win.core.presets.get_by_id.return_value = None
+    win.core.presets.get_by_mode.return_value = {}
+    win.core.presets.get_by_uuid.return_value = None
+    win.controller.agent.legacy.enabled.return_value = False
+    win.controller.kernel.stopped.return_value = False
     win.core.debug.log = MagicMock()
-
     return win
 
 
-# ---------- Experts ----------
-
-def test_get_mode_default(fake_window):
-    # when there is no custom expert mode configured, default to MODE_CHAT.
-    fake_window.core.config.get.side_effect = lambda key, default=None: {
-        "experts.mode": None,
-        "prompt.expert": "Default prompt with presets {presets}",
-        "preset": None,
-        "mode": MODE_CHAT,
-        "max_output_tokens": 100,
-        "stream": True,
-        "agent.llama.verbose": False,
-        "assistant": "Assistant",
-        "llama.idx.mode": "default",
-        "cmd": True,
-        "experts.use_agent": False,
-    }.get(key, default)
-    experts = Experts(window=fake_window)
-    mode = experts.get_mode()
-    assert mode == MODE_CHAT
-
-
-def test_get_mode_custom(fake_window):
-    # when a valid allowed mode is configured, it should be returned.
-    fake_window.core.config.get.side_effect = lambda key, default=None: {
-        "experts.mode": MODE_COMPLETION,
-        "prompt.expert": "Custom prompt with presets {presets}",
-        "preset": None,
-        "mode": MODE_CHAT,
-        "max_output_tokens": 100,
-        "stream": True,
-        "agent.llama.verbose": False,
-        "assistant": "Assistant",
-        "llama.idx.mode": "default",
-        "cmd": True,
-        "experts.use_agent": False,
-    }.get(key, default)
-    experts = Experts(window=fake_window)
-    mode = experts.get_mode()
-    assert mode == MODE_COMPLETION
-
-
-def test_stopped(fake_window):
-    fake_window.controller.kernel.stopped.return_value = True
-    experts = Experts(window=fake_window)
-    assert experts.stopped() is True
-    fake_window.controller.kernel.stopped.return_value = False
-    assert experts.stopped() is False
-
-
 def test_agent_enabled(fake_window):
-    fake_window.controller.agent.legacy.enabled.return_value = True
     experts = Experts(window=fake_window)
+    fake_window.controller.agent.legacy.enabled.return_value = True
     assert experts.agent_enabled() is True
     fake_window.controller.agent.legacy.enabled.return_value = False
     assert experts.agent_enabled() is False
 
 
 def test_exists(fake_window):
-    fake_window.core.presets.has.return_value = True
     experts = Experts(window=fake_window)
+    fake_window.core.presets.has.return_value = True
     assert experts.exists("exp1") is True
-    fake_window.core.presets.has.return_value = False
-    assert experts.exists("exp2") is False
+    fake_window.core.presets.has.assert_called_with(MODE_EXPERT, "exp1")
 
 
 def test_get_expert(fake_window):
-    dummy_preset = PresetItem()
-    dummy_preset.filename = "exp1"
-    dummy_preset.name="Expert 1"
-    fake_window.core.presets.get_by_id.return_value = dummy_preset
+    preset = PresetItem()
+    preset.filename = "exp1"
+    preset.name = "Expert 1"
+    fake_window.core.presets.get_by_id.return_value = preset
+
     experts = Experts(window=fake_window)
-    preset = experts.get_expert("exp1")
-    assert preset.filename == "exp1"
-    assert preset.name == "Expert 1"
+    assert experts.get_expert("exp1") is preset
+    fake_window.core.presets.get_by_id.assert_called_once_with(MODE_EXPERT, "exp1")
 
 
 def test_get_experts_agent_branch(fake_window):
-    # simulate agent mode by setting agent_enabled to True.
     fake_window.controller.agent.legacy.enabled.return_value = True
-    # setup agent preset: an agent which has a list of experts.
-    agent_obj = MagicMock()
-    agent_obj.experts = ["uuid1"]
+    agent = MagicMock(experts=["uuid1"])
     fake_window.core.presets.get_by_mode.side_effect = lambda mode: {
-        MODE_AGENT: {"agent1": agent_obj},
-        MODE_EXPERT: {}
+        MODE_AGENT: {"agent1": agent},
+        MODE_EXPERT: {},
     }.get(mode, {})
-    fake_window.core.config.get.side_effect = lambda key, default=None: {
-        "preset": "agent1",
-        "experts.mode": None,
-        "prompt.expert": "Prompt {presets}",
-        "mode": MODE_CHAT,
-        "max_output_tokens": 100,
-        "stream": True,
-        "agent.llama.verbose": False,
-        "assistant": "Assistant",
-        "llama.idx.mode": "default",
-        "cmd": True,
-        "experts.use_agent": False,
-    }.get(key, default)
-    expert_obj = PresetItem()
-    expert_obj.filename = "expA"
-    expert_obj.name="Expert A"
-    fake_window.core.presets.get_by_uuid.return_value = expert_obj
-    experts = Experts(window=fake_window)
-    result = experts.get_experts()
-    assert result == {"expA": expert_obj}
+    fake_window.core.config.get.side_effect = lambda key, default=None: (
+        "agent1" if key == "preset" else default
+    )
+
+    expert = PresetItem()
+    expert.filename = "expA"
+    expert.name = "Expert A"
+    fake_window.core.presets.get_by_uuid.return_value = expert
+
+    assert Experts(window=fake_window).get_experts() == {"expA": expert}
 
 
-def test_get_experts_expert_branch(fake_window):
-    # simulate non-agent mode so the expert branch is used.
-    fake_window.controller.agent.legacy.enabled.return_value = False
-    # setup expert presets – skip disabled experts and keys starting with "current."
-    expert_enabled = MagicMock(enabled=True, name="Expert B")
-    expert_disabled = MagicMock(enabled=False, name="Expert Disabled")
-    expert_current = MagicMock(enabled=True, name="Current Expert")
+def test_get_experts_filters_disabled_and_current_presets(fake_window):
+    enabled = PresetItem()
+    enabled.enabled = True
+    enabled.name = "Expert B"
 
-    expert_enabled = PresetItem()
-    expert_enabled.enabled = True
-    expert_enabled.name = "Expert B"
+    disabled = PresetItem()
+    disabled.enabled = False
+    disabled.name = "Expert Disabled"
 
-    expert_disabled = PresetItem()
-    expert_disabled.enabled = False
-    expert_disabled.name = "Expert Disabled"
-
-    expert_current = PresetItem()
-    expert_current.enabled = True
-    expert_current.name = "Current Expert"
+    current = PresetItem()
+    current.enabled = True
+    current.name = "Current Expert"
 
     presets = {
-        "expB": expert_enabled,
-        "expDisabled": expert_disabled,
-        "current.expC": expert_current,
+        "expB": enabled,
+        "expDisabled": disabled,
+        "current.expC": current,
     }
-    fake_window.core.presets.get_by_mode.side_effect = lambda mode: {MODE_EXPERT: presets}.get(mode, {})
-    experts = Experts(window=fake_window)
-    result = experts.get_experts()
-    # only "expB" should be returned.
-    assert result == {"expB": expert_enabled}
+    fake_window.core.presets.get_by_mode.side_effect = lambda mode: (
+        presets if mode == MODE_EXPERT else {}
+    )
+
+    assert Experts(window=fake_window).get_experts() == {"expB": enabled}
 
 
 def test_get_expert_name_by_id(fake_window):
     expert = PresetItem()
     expert.enabled = True
     expert.name = "Expert X"
-    expert_dict = {"expX": expert}
     experts = Experts(window=fake_window)
-    # override get_experts to return our dummy dict.
-    experts.get_experts = MagicMock(return_value=expert_dict)
-    name = experts.get_expert_name_by_id("expX")
-    assert name == "Expert X"
+    experts.get_experts = MagicMock(return_value={"expX": expert})
+
+    assert experts.get_expert_name_by_id("expX") == "Expert X"
+    assert experts.get_expert_name_by_id("missing") is None
 
 
 def test_count_experts(fake_window):
-    # prepare an agent preset with two expert UUIDs.
-    agent_obj = MagicMock()
-    agent_obj.experts = ["uuid1", "uuid2"]
-    fake_window.core.presets.get_by_mode.side_effect = lambda mode: {MODE_AGENT: {"agent1": agent_obj}}.get(mode, {})
-    # setup get_by_uuid to return non-None for each expert.
-    fake_expert1 = MagicMock()
-    fake_expert2 = MagicMock()
-    calls = {"uuid1": fake_expert1, "uuid2": fake_expert2}
-    fake_window.core.presets.get_by_uuid.side_effect = lambda uuid: calls.get(uuid)
-    experts = Experts(window=fake_window)
-    count = experts.count_experts("agent1")
-    assert count == 2
+    agent = MagicMock(experts=["uuid1", "uuid2", "missing"])
+    fake_window.core.presets.get_by_mode.side_effect = lambda mode: (
+        {"agent1": agent} if mode == MODE_AGENT else {}
+    )
+    fake_window.core.presets.get_by_uuid.side_effect = lambda uuid: (
+        object() if uuid in {"uuid1", "uuid2"} else None
+    )
+
+    assert Experts(window=fake_window).count_experts("agent1") == 2
+    assert Experts(window=fake_window).count_experts("missing") == 0
 
 
 def test_get_prompt(fake_window):
-    # force native command enabled so the multiline expert prompt is used.
-    fake_window.core.command.is_native_enabled.return_value = True
-    # setup a preset so that get_experts returns one expert.
-    expert_obj = PresetItem()
-    expert_obj.enabled = True
-    expert_obj.name = "Expert Prompt"
+    described = PresetItem()
+    described.enabled = True
+    described.name = "Expert Prompt"
+    described.description = "Does useful work"
 
-    presets = {"expP": expert_obj}
-    fake_window.core.presets.get_by_mode.side_effect = lambda mode: {MODE_EXPERT: presets}.get(mode, {})
+    plain = PresetItem()
+    plain.enabled = True
+    plain.name = "Plain Expert"
+    plain.description = ""
+
     experts = Experts(window=fake_window)
+    experts.get_experts = MagicMock(return_value={"expP": described, "expQ": plain})
+
     prompt = experts.get_prompt()
-    # check that the replaced {presets} part contains the expert details.
-    assert "expP: Expert Prompt" in prompt
+    assert "expP: Expert Prompt (Does useful work)" in prompt
+    assert "expQ: Plain Expert" in prompt
+    assert "{presets}" not in prompt
 
 
-def test_extract_calls(fake_window):
-    # prepare a preset so that "exp4" exists.
-    expert_obj = MagicMock(enabled=True, name="Expert 4")
-    fake_window.core.presets.get_by_mode.side_effect = lambda mode: {MODE_EXPERT: {"exp4": expert_obj}}.get(mode, {})
-    # create a dummy command that should be extracted.
-    cmd = {"cmd": "expert_call", "params": {"id": "exp4", "query": "Hello Expert"}}
-    fake_window.core.command.extract_cmds.return_value = [cmd]
-    fake_window.core.command.from_commands.return_value = [cmd]
-    ctx = CtxItem()
-    ctx.output = "dummy output"
-    experts = Experts(window=fake_window)
-    calls = experts.extract_calls(ctx)
-    assert calls == {"exp4": "Hello Expert"}
-    # test when no commands are found.
-    fake_window.core.command.extract_cmds.return_value = []
-    calls = experts.extract_calls(ctx)
-    assert calls == {}
+def test_get_functions_exposes_standard_expert_call_schema(fake_window):
+    funcs = Experts(window=fake_window).get_functions()
 
-
-def test_reply(fake_window):
-    # set up the context so that experts.reply sends a response.
-    fake_window.controller.kernel.stopped.return_value = False
-    fake_window.controller.agent.legacy.enabled.return_value = False
-    ctx = CtxItem()
-    ctx.output = "Expert response"
-    ctx.meta = MagicMock(preset="expReply")
-    ctx.sub_reply = False
-    # dummy implementations for to_dict and from_dict
-#    ctx.to_dict = lambda: {"output": ctx.output, "meta": ctx.meta, "input": "Expert input"}
-#   ctx.from_dict = lambda data: None
-
-    experts = Experts(window=fake_window)
-    experts.reply(ctx)
-    # we check that dispatch was called with an kernel.input.system event (as a string check)
-    calls = fake_window.dispatch.call_args_list
-    # TODO: slots, no dict
-
-
-def test_call(fake_window):
-    fake_window.controller.kernel.stopped.return_value = False
-    experts = Experts(window=fake_window)
-    master_ctx = CtxItem()
-    experts.call(master_ctx, "expCall", "Hello")
-    # check that a worker was created and threadpool.start was called.
-    fake_window.threadpool.start.assert_called_once()
-    assert experts.worker is not None
-
-
-def test_handle_output(fake_window):
-    experts = Experts(window=fake_window)
-    ctx = CtxItem()
-    experts.handle_output(ctx, "test_mode")
-    fake_window.controller.chat.output.handle.assert_called_with(ctx=ctx, mode="test_mode", stream=False)
-
-
-def test_handle_cmd(fake_window):
-    fake_window.controller.kernel.stopped.return_value = False
-    experts = Experts(window=fake_window)
-    # create dummy context objects.
-    ctx = CtxItem()
-    master_ctx = CtxItem()
-    ctx.reply = False
-    ctx.output = "cmd result"
-    ctx.input = "input text"
-    ctx.cmds = []
-#    ctx.from_previous = lambda: None
-#   ctx.to_dict = lambda: {"output": ctx.output, "input": ctx.input}
-    # override handle_response to capture the call.
-    experts.handle_response = MagicMock()
-    experts.handle_cmd(ctx, master_ctx, "expCmd", "Expert Cmd", "cmd result")
- #   fake_window.controller.chat.command.handle.assert_called_with(ctx)
- #   fake_window.controller.kernel.stack.handle.assert_called()
- #   fake_window.core.ctx.update_item.assert_called_with(ctx)
- #   experts.handle_response.assert_called()
-
-
-def test_handle_input_locked(fake_window):
-    experts = Experts(window=fake_window)
-    fake_window.controller.kernel.stopped.return_value = False
-    experts.handle_input_locked()
-    fake_window.controller.chat.common.lock_input.assert_called_once()
-
-
-def test_handle_event(fake_window):
-    experts = Experts(window=fake_window)
-    dummy_event = Event("dummy", {"key": "value"})
-    fake_window.controller.kernel.stopped.return_value = False
-    experts.handle_event(dummy_event)
-    fake_window.dispatch.assert_called_with(dummy_event)
-
-
-def test_handle_error_not_stopped(fake_window):
-    fake_window.controller.kernel.stopped.return_value = False
-    experts = Experts(window=fake_window)
-    experts.handle_error("Error occurred")
-    calls = fake_window.dispatch.call_args_list
-    input_system_called = any(
-        isinstance(call[0][0], KernelEvent) and call[0][0].name == KernelEvent.INPUT_SYSTEM
-        for call in calls
-    )
-    idle_called = any(
-        isinstance(call[0][0], KernelEvent) and call[0][0].name == KernelEvent.STATE_IDLE
-        for call in calls
-    )
-    assert input_system_called
-    assert idle_called
-
-
-def test_handle_error_stopped(fake_window):
-    fake_window.controller.kernel.stopped.return_value = True
-    experts = Experts(window=fake_window)
-    experts.handle_error("Error occurred")
-    # if stopped, only an idle event is dispatched.
-    calls = fake_window.dispatch.call_args_list
-    idle_called = any(
-        isinstance(call[0][0], KernelEvent) and call[0][0].name == KernelEvent.STATE_IDLE
-        for call in calls
-    )
-    assert idle_called
-
-
-def test_handle_finished(fake_window):
-    experts = Experts(window=fake_window)
-    experts.handle_finished()
-    calls = fake_window.dispatch.call_args_list
-    idle_called = any(
-        isinstance(call[0][0], KernelEvent) and call[0][0].name == KernelEvent.STATE_IDLE
-        for call in calls
-    )
-    assert idle_called
-
-
-def test_handle_response(fake_window):
-    fake_window.controller.kernel.stopped.return_value = False
-    experts = Experts(window=fake_window)
-    ctx = CtxItem()
-    ctx.output = "Response Text"
-    experts.handle_response(ctx, "expResponse")
-    calls = fake_window.dispatch.call_args_list
-    input_system_called = any(
-        isinstance(call[0][0], KernelEvent) and call[0][0].name == KernelEvent.INPUT_SYSTEM
-        for call in calls
-    )
-    idle_called = any(
-        isinstance(call[0][0], KernelEvent) and call[0][0].name == KernelEvent.STATE_IDLE
-        for call in calls
-    )
-    assert input_system_called
-    assert idle_called
-
-
-def test_get_functions(fake_window):
-    experts = Experts(window=fake_window)
-    funcs = experts.get_functions()
-    assert isinstance(funcs, list)
     assert len(funcs) == 1
-    assert funcs[0]["cmd"] == "expert_call"
+    func = funcs[0]
+    assert func["cmd"] == TOOL_EXPERT_CALL_NAME
+    params = {item["name"]: item for item in func["params"]}
+    assert params["id"]["required"] is True
+    assert params["instruction"]["required"] is True
+    assert params["system_prompt"]["required"] is False
 
 
-def test_has_calls(fake_window):
-    experts = Experts(window=fake_window)
-    # when sub_reply or reply is True, it should return False.
-    ctx = CtxItem()
-    ctx.sub_reply = True
-    ctx.reply = False
-    assert experts.has_calls(ctx) is False
-    ctx.sub_reply = False
-    ctx.reply = True
-    assert experts.has_calls(ctx) is False
-    # normal case: simulate that extract_calls returns a command.
-    ctx.sub_reply = False
-    ctx.reply = False
-    experts.extract_calls = MagicMock()
-    experts.extract_calls.return_value = {"expH": "Query H"}
-    experts.exists = MagicMock()
-    experts.exists.side_effect = lambda nid: True if nid == "expH" else False
-    result = experts.has_calls(ctx)
-    assert result is True
-    # when extract_calls returns empty, has_calls should return False.
-    experts.extract_calls.return_value = {}
-    result = experts.has_calls(ctx)
-    assert result is False
+def test_expert_agent_bridge_composes_optional_system_prompt():
+    assert ExpertAgentBridge.compose_system_prompt("Preset prompt") == "Preset prompt"
+    assert ExpertAgentBridge.compose_system_prompt("", "Caller prompt") == "Caller prompt"
+    assert ExpertAgentBridge.compose_system_prompt("Preset prompt", "Caller prompt") == (
+        "Caller prompt\n\n<additional_user_system_instruction>\n"
+        "Preset prompt\n</additional_user_system_instruction>"
+    )
 
 
-# ---------- ExpertWorker ----------
+def test_expert_worker_run_collects_regular_tool_response(fake_window):
+    worker = ExpertWorker()
+    worker.window = fake_window
+    worker.ctx = CtxItem()
+    worker.cmds = [
+        {
+            "cmd": TOOL_EXPERT_CALL_NAME,
+            "params": {"id": "exp1", "instruction": "Do it"},
+        }
+    ]
+    worker._call_expert = MagicMock(return_value="Expert result")
+    worker.reply_more = MagicMock()
 
-def test_expert_worker_run_error(fake_window):
-    # force an exception within run() by making get_or_create_slave_meta raise an Exception.
-    fake_window.core.ctx.get_or_create_slave_meta = MagicMock(side_effect=Exception("Test error"))
-    fake_window.core.debug.log = MagicMock()
-    master_ctx = CtxItem()
-    worker = ExpertWorker(window=fake_window, master_ctx=master_ctx, expert_id="expError", query="error query")
-    worker.signals = MagicMock()
-    worker.signals.error.emit = MagicMock()
-    worker.signals.finished.emit = MagicMock()
-    worker.signals.response.emit = MagicMock()
     worker.run()
-    assert worker.signals is None # after cleanup
+
+    worker._call_expert.assert_called_once_with({"id": "exp1", "instruction": "Do it"})
+    responses = worker.reply_more.call_args.args[0]
+    assert responses == [
+        {
+            "request": {
+                "cmd": TOOL_EXPERT_CALL_NAME,
+                "params": {"id": "exp1", "instruction": "Do it"},
+            },
+            "result": "Expert result",
+        }
+    ]
+    assert worker.signals is None
+
+
+def test_expert_worker_run_converts_expert_error_to_tool_result(fake_window):
+    worker = ExpertWorker()
+    worker.window = fake_window
+    worker.ctx = CtxItem()
+    worker.cmds = [
+        {
+            "cmd": TOOL_EXPERT_CALL_NAME,
+            "params": {"id": "expError", "instruction": "Fail"},
+        }
+    ]
+    worker._call_expert = MagicMock(side_effect=RuntimeError("Test error"))
+    worker.reply_more = MagicMock()
+
+    worker.run()
+
+    fake_window.core.debug.log.assert_called_once()
+    responses = worker.reply_more.call_args.args[0]
+    assert len(responses) == 1
+    assert responses[0]["request"]["params"]["id"] == "expError"
+    assert "Test error" in responses[0]["result"]
+    assert worker.signals is None
+
+
+def test_expert_worker_skips_non_expert_commands(fake_window):
+    worker = ExpertWorker()
+    worker.window = fake_window
+    worker.ctx = CtxItem()
+    worker.cmds = [{"cmd": "other", "params": {}}]
+    worker._call_expert = MagicMock()
+    worker.reply_more = MagicMock()
+
+    worker.run()
+
+    worker._call_expert.assert_not_called()
+    worker.reply_more.assert_not_called()
+    assert worker.signals is None

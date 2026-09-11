@@ -448,7 +448,6 @@ class Command:
         """
         func_plugins = []
         func_agent = []
-        func_experts = []
         data = {
             'syntax': [],
             'cmd': [],
@@ -465,11 +464,7 @@ class Command:
         func_plugins = self.cmds_to_functions(cmds)
         if self.window.controller.agent.legacy.enabled():
             func_agent = self.cmds_to_functions(self.window.controller.agent.legacy.get_functions())
-        if (self.window.controller.agent.experts.enabled()
-                or self.window.controller.agent.legacy.enabled(check_inline=False)):
-            if parent_id is None:
-                func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())
-        return func_plugins + func_agent + func_experts
+        return func_plugins + func_agent
 
     def cmds_to_functions(
             self,
@@ -612,9 +607,6 @@ class Command:
 
             if self.window.controller.agent.legacy.enabled():
                 return self.window.core.config.get('agent.func_call.native', False)
-            if self.window.controller.agent.experts.enabled():
-                return self.window.core.config.get('experts.func_call.native', False)
-
         return self.window.core.config.get('func_call.native', False)
 
     def is_cmd(self, inline: bool = True) -> bool:

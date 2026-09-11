@@ -381,7 +381,7 @@ Prompts
 
 * ``Autonomous mode: goal update``: Defines how the legacy autonomous agent should report and update progress toward its current goal. PyGPT uses this prompt when maintaining the goal state between iterations.
 
-* ``Expert - system prompt``: Defines the system instruction that tells the current model how to delegate tasks to available Experts. Each Expert still receives the system prompt and tool/RAG configuration from its own preset.
+* ``Expert - system prompt``: Defines the instruction that tells the current model how and when to delegate tasks through the regular ``expert_call`` tool. The prompt applies to the caller; each selected Expert is executed as a regular agent by the shared Chat with Agents / Agents v2 runtime and receives the model, system prompt, tool permissions and optional RAG configuration from its own preset.
 
 * ``Image generation``: Defines the instruction given to the prompt-enhancement LLM before an image-generation request when raw prompt mode is not used. It controls how the user's request is expanded or reformulated for the image model.
 

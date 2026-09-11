@@ -687,11 +687,19 @@ class Patch:
                         del data[key]
                         updated = True
 
-                # Experts are always executed through the Agents v2 runtime now,
-                # so the old implementation toggle no longer has any effect.
-                if "experts.use_agent" in data:
-                    del data["experts.use_agent"]
-                    updated = True
+                # Experts now use the common Chat/tool lifecycle. The manager is
+                # always Chat-backed and Expert instances run through Agents v2,
+                # so all historical Experts transport/sub-mode switches are dead.
+                for key in (
+                    "experts.use_agent",
+                    "experts.mode",
+                    "experts.func_call.native",
+                    "experts.api_use_responses",
+                    "experts.internal.api_use_responses",
+                ):
+                    if key in data:
+                        del data[key]
+                        updated = True
 
                 # expert_call changed from {id, query} to {id, instruction,
                 # system_prompt?}. Reset the manager prompt so existing profiles

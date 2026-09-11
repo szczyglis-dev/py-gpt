@@ -775,20 +775,9 @@ class Responses:
                         if not self.window.core.config.get('agent.api_use_responses', False):
                             allowed = False
 
-                    # experts
-                    if self.window.controller.agent.experts.enabled():
-                        if not self.window.core.config.get('experts.api_use_responses', False):
-                            allowed = False
-
-                    # expert instance call
-                    if is_expert_call:
-                        if self.window.core.config.get('experts.internal.api_use_responses', False):
-                            allowed = True
-                        else:
-                            allowed = False
-                            if preset:
-                                # check if any remote tools enabled
-                                if len(preset.remote_tools) > 0:
-                                    allowed = True  # force enable
+                    # Expert manager requests use the same global Responses
+                    # setting as Chat. Headless Expert instances are executed by
+                    # the Agents v2 LLM runtime and no longer have separate API
+                    # transport configuration here.
         return allowed
 

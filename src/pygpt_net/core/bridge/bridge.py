@@ -81,14 +81,15 @@ class Bridge:
         base_mode = mode
         context.parent_mode = base_mode  # store base mode
 
-        # get agent or expert internal sub-mode
+        # Legacy Agent remains configurable as a virtual mode. Experts is now a
+        # Chat-backed manager with one additional regular tool (expert_call), so
+        # it always uses the same provider path as Chat.
         if base_mode in (MODE_AGENT, MODE_EXPERT):
             is_virtual = True
-            sub_mode = None  # inline switch to sub-mode, because agent is a virtual mode only
             if base_mode == MODE_AGENT:
                 sub_mode = self.window.core.agents.legacy.get_mode()
-            elif base_mode == MODE_EXPERT:
-                sub_mode = self.window.core.experts.get_mode()
+            else:
+                sub_mode = MODE_CHAT
             if sub_mode is not None and sub_mode != "_":
                 mode = sub_mode
 

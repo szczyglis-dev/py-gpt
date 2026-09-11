@@ -216,10 +216,6 @@ class Common:
         if (self.window.controller.agent.legacy.enabled() and
                 (not self.window.controller.agent.legacy.finished or self.window.controller.agent.legacy.stop)):
             unlock = False
-        if ((self.window.controller.agent.experts.enabled()
-             or self.window.controller.agent.legacy.enabled(check_inline=False)) and
-                self.window.core.experts.has_calls(ctx)):
-            unlock = False
         if self.window.controller.kernel.stack.waiting():
             unlock = False
         if ctx.has_commands():

@@ -235,33 +235,21 @@ class Output:
         controller = self.window.controller
         dispatch = self.window.dispatch
 
-        # if commands enabled: post-execute commands (not assistant mode)
+        # Post-execute tools through one common lifecycle. expert_call is a regular
+        # plugin tool now, so it is recorded, executed and returned exactly like
+        # every other local command.
         pending = False
         if mode != MODE_ASSISTANT:
             ctx.clear_reply()  # reset results
-            expert_calls = controller.agent.experts.handle(ctx)
-            if expert_calls > 0:
-                # Expert-as-tool calls are an intermediate state exactly like a
-                # regular tool request. Do not finalize/reload this response here:
-                # doing so drops the transient "Using tool" row and marks the turn
-                # final before the ExpertWorker has even started. Execute the
-                # queued EXPERT_CALL now and keep the request open until the expert
-                # returns its result.
-                pending = True
-            else:
-                pending = bool(controller.chat.command.handle(ctx))
+            pending = bool(controller.chat.command.handle(ctx))
 
             ctx.from_previous()
             core.ctx.update_item(ctx)
 
         if pending:
-            # TOOL_CALL/EXPERT_CALL is intentionally queued in kernel.stack. The
-            # old lifecycle executed it from handle_end(), but intermediate tool
-            # states must remain open so their waiting status is not cleared by a
-            # finalizing reload. Execute the queued reply context explicitly.
-            #
-            # Safety-confirmed/internal force calls may already execute inline and
-            # therefore leave the stack empty; handle() is a no-op in that case.
+            # TOOL_CALL is queued in kernel.stack. Safety-confirmed/internal force
+            # calls may already execute inline and leave the stack empty; handle()
+            # is a no-op in that case.
             controller.kernel.stack.handle()
             return False
 

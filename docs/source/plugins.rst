@@ -18,7 +18,7 @@ The following plugins are currently available:
 * ``Context history (calendar, inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 * ``Crontab / Task scheduler`` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
 * ``Custom commands`` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
-* ``Experts (inline)`` - makes enabled expert presets available from standard chat modes so the current model can delegate specialized tasks to them.
+* ``Experts (inline)`` - exposes enabled Expert presets through the regular ``expert_call`` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Chat with Agents.
 * ``Facebook`` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
 * ``Files I/O`` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
 * ``GitHub`` - connects to GitHub for repository, file, issue, pull request, code search, and account operations.
@@ -1052,7 +1052,9 @@ With the setup above, every time you ask model to generate a song for you and sa
 Experts (inline)
 -----------------
 
-The plugin allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
+The plugin makes enabled Expert presets available in supported chat modes through the regular ``expert_call`` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Chat with Agents**, and its final response is returned directly as the tool result.
+
+Use **Experts** mode to define, configure, enable, or disable Expert presets. Once an Expert is enabled, you can simply ask for it by name in the conversation, for example: ``Ask the Python programmer expert to review this code.`` The model can then call ``expert_call`` automatically.
 
 See the ``Work modes -> Experts`` section for more details.
 

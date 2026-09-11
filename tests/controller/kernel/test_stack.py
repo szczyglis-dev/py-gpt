@@ -73,11 +73,14 @@ def test_lock_unlock(dummy_window):
     assert not stack.is_locked()
 
 
-def test_execute_expert_call(dummy_window):
+def test_execute_legacy_expert_call_is_ignored(dummy_window):
     stack = Stack(dummy_window)
     dummy_ctx = DummyReplyContext(ReplyContext.EXPERT_CALL, ctx="ctx_val", input="query", parent_id="exp_id")
     stack.execute(dummy_ctx)
-    dummy_window.core.experts.call.assert_called_once_with("ctx_val", "exp_id", "query")
+    dummy_window.core.experts.call.assert_not_called()
+    dummy_window.controller.plugins.apply_cmds.assert_not_called()
+    dummy_window.controller.plugins.apply_cmds_inline.assert_not_called()
+    dummy_window.dispatch.assert_not_called()
 
 
 def test_execute_cmd_execute(dummy_window):

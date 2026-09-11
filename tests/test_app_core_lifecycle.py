@@ -32,7 +32,6 @@ _COMPONENTS = {
     "dispatcher": ("pygpt_net.core.dispatcher", "Dispatcher"),
     "experts": ("pygpt_net.core.experts", "Experts"),
     "filesystem": ("pygpt_net.core.filesystem", "Filesystem"),
-    "history": ("pygpt_net.core.history", "History"),
     "idx": ("pygpt_net.core.idx", "Idx"),
     "image": ("pygpt_net.core.image", "Image"),
     "installer": ("pygpt_net.core.installer", "Installer"),

@@ -62,15 +62,8 @@ class Stack:
         if context is None:
             return
 
-        # expert call
-        if context.type == ReplyContext.EXPERT_CALL:
-            self.window.core.experts.call(
-                context.ctx,  # master ctx
-                context.parent_id,  # expert id
-                context.input,  # query
-            )
         # cmd execute
-        elif context.type == ReplyContext.CMD_EXECUTE:
+        if context.type == ReplyContext.CMD_EXECUTE:
             self.window.controller.plugins.apply_cmds(
                 context.ctx,  # current ctx
                 context.cmds,  # commands

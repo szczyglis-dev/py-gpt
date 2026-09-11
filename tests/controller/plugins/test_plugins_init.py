@@ -232,6 +232,7 @@ def test_update_info(mock_window):
     plugin.name = 'test'
     mock_window.core.plugins.get_ids = MagicMock(return_value=['test'])
     mock_window.core.plugins.get = MagicMock(return_value=plugin)
+    mock_window.core.plugins.get_name = MagicMock(return_value='test')
     plugins.is_enabled = MagicMock(return_value=True)
     plugins.window.ui.nodes['chat.plugins'] = MagicMock()
     plugins.update_info()

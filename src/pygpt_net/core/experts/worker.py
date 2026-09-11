@@ -6,102 +6,136 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 21:45:00                  #
+# Updated Date: 2026.09.11 23:55:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QRunnable, QObject, Signal, Slot
+import copy
+import threading
+
+from PySide6.QtCore import Signal, Slot
 
 from pygpt_net.core.agents_v2.expert import ExpertAgentBridge
-from pygpt_net.core.types import MODE_EXPERT
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.events import Event, RenderEvent
+from pygpt_net.core.events import Event
+from pygpt_net.core.types import MODE_EXPERT, TOOL_EXPERT_CALL_NAME
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.plugin.base.signals import BaseSignals
+from pygpt_net.plugin.base.worker import BaseWorker
+from pygpt_net.utils import trans
 
 
-class WorkerSignals(QObject):
-    """Signals for worker to communicate with main thread."""
-    finished = Signal()
-    response = Signal(object, str)
-    error = Signal(str)
+class ExpertWorkerSignals(BaseSignals):
+    """Base plugin signals plus Qt-thread event forwarding for Agents v2 tools."""
+
     event = Signal(object)
-    output = Signal(object, str)
-    lock_input = Signal()
-    cmd = Signal(object, object, str, str, str)
+    event_sync = Signal(object, object)
 
 
-class ExpertWorker(QRunnable):
-    """Run an Expert preset as a headless Agents v2 agent."""
+class ExpertWorker(BaseWorker):
+    """Execute expert_call commands as ordinary plugin tool calls."""
 
-    def __init__(self, window, master_ctx: CtxItem, expert_id: str, request=None, query=None):
-        super().__init__()
-        self.window = window
-        self.master_ctx = master_ctx
-        self.expert_id = expert_id
-        if request is None:
-            request = query  # compatibility with pre-2.8.16 direct callers/tests
-        if isinstance(request, dict):
-            self.instruction = str(request.get("instruction") or request.get("query") or "").strip()
-            self.system_prompt = str(request.get("system_prompt") or "").strip()
-        else:
-            self.instruction = str(request or "").strip()
-            self.system_prompt = ""
-        self.query = self.instruction  # legacy attribute kept for compatibility
-        self.signals = WorkerSignals()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.signals = ExpertWorkerSignals()
 
     @Slot()
     def run(self):
-        master_ctx = self.master_ctx
-        expert_id = self.expert_id
-        instruction = self.instruction
+        responses = []
+        try:
+            for item in list(self.cmds or []):
+                if self.window.controller.kernel.stopped():
+                    break
+                if item.get("cmd") != TOOL_EXPERT_CALL_NAME:
+                    continue
+
+                params = item.get("params") if isinstance(item.get("params"), dict) else {}
+                request = {
+                    "cmd": TOOL_EXPERT_CALL_NAME,
+                    "params": copy.deepcopy(params),
+                }
+                try:
+                    result = self._call_expert(params)
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    result = f"{trans('expert.wait.failed')}: {e}"
+
+                responses.append({
+                    "request": request,
+                    "result": str(result),
+                })
+
+            if responses and not self.window.controller.kernel.stopped():
+                self.reply_more(responses)
+        finally:
+            self.cleanup()
+
+    def _dispatch_sync(self, event):
+        """Dispatch a prompt hook on the Qt thread and wait for mutations."""
+        if self.window.controller.kernel.is_main_thread():
+            self.window.dispatch(event)
+            return
+        done = threading.Event()
+        self.signals.event_sync.emit(event, done)
+        done.wait()
+
+    def _call_expert(self, params: dict) -> str:
+        master_ctx = self.ctx
+        if master_ctx is None:
+            raise RuntimeError("Missing master context for expert_call.")
+
+        expert_id = str(params.get("id") or "").strip()
+        instruction = str(params.get("instruction") or params.get("query") or "").strip()
+        system_prompt_extra = str(params.get("system_prompt") or "").strip()
+        if not expert_id:
+            raise ValueError("Expert ID is empty.")
+        if not instruction:
+            raise ValueError("Expert instruction is empty.")
+
+        available = self.window.core.experts.get_experts()
+        expert = available.get(expert_id)
+        if expert is None:
+            raise RuntimeError(f"Expert preset is not available: {expert_id}")
+
+        model = expert.model
+        model_data = self.window.core.models.get(model)
+        if model_data is None:
+            raise RuntimeError(f"Expert model is not configured: {model}")
+
+        name = str(expert.name or expert_id)
+        self.status(f"{trans('expert.wait.status')} ({name})")
+
+        # Persistent Expert memory is kept only in the hidden slave meta. Nothing
+        # from this context is inserted into the visible master conversation.
+        slave = self.window.core.ctx.get_or_create_slave_meta(master_ctx, expert_id)
+        ctx = CtxItem()
+        ctx.meta = slave
+        ctx.internal = False
+        ctx.hidden = True
+        ctx.current = True
+        ctx.mode = MODE_EXPERT
+        ctx.model = model
+        ctx.set_input(instruction, "")
+        ctx.set_output(None, name)
+        ctx.sub_call = True
+        ctx.agent_call = True
+        ctx.use_agent_final_response = True
+        ctx.pid = master_ctx.pid
+        self.window.core.ctx.provider.append_item(slave, ctx)
 
         try:
-            slave = self.window.core.ctx.get_or_create_slave_meta(master_ctx, expert_id)
-            expert = self.window.core.experts.get_expert(expert_id)
-            if expert is None:
-                raise RuntimeError(f"Expert preset not found: {expert_id}")
-            # Expert memory lives only in the child/slave meta and is not rendered
-            # as a regular conversation turn in the main context.
-            hidden = True
-            base_mode = self.window.core.config.get("mode")
-            model = expert.model
-            expert_name = expert.name
-            model_data = self.window.core.models.get(model)
-            if model_data is None:
-                raise RuntimeError(f"Expert model is not configured: {model}")
-            if not instruction:
-                raise ValueError("Expert instruction is empty.")
-
-            ctx = CtxItem()
-            ctx.meta = slave
-            ctx.internal = False
-            ctx.hidden = hidden
-            ctx.current = True
-            ctx.mode = MODE_EXPERT
-            ctx.model = model
-            ctx.set_input(instruction, "")
-            ctx.set_output(None, expert_name)
-            ctx.sub_call = True
-            ctx.agent_call = True
-            ctx.use_agent_final_response = True
-            ctx.pid = master_ctx.pid
-
-            event = RenderEvent(RenderEvent.BEGIN, {
-                "meta": ctx.meta,
-                "ctx": ctx,
-                "stream": False,
-            })
-            self.signals.event.emit(event)
-            self.window.core.ctx.provider.append_item(slave, ctx)
-
             bridge = ExpertAgentBridge(self.window, self.signals)
-            raw_system_prompt = bridge.compose_system_prompt(expert.prompt, self.system_prompt)
+            raw_system_prompt = bridge.compose_system_prompt(expert.prompt, system_prompt_extra)
+
+            # Keep the same prompt extension hooks used by the rest of the app.
             event = Event(Event.PRE_PROMPT, {
                 "mode": MODE_EXPERT,
                 "value": raw_system_prompt,
                 "is_expert": True,
             })
-            self.signals.event.emit(event)
+            event.ctx = ctx
+            self._dispatch_sync(event)
             raw_system_prompt = event.data["value"]
+
             system_prompt = self.window.core.prompt.prepare_sys_prompt(
                 MODE_EXPERT,
                 model_data,
@@ -112,9 +146,6 @@ class ExpertWorker(QRunnable):
                 is_expert=True,
             )
 
-            # Match the final prompt stages used by BridgeWorker/Chat with Agents.
-            # Plugins such as Real Time and Files I/O append runtime-only context
-            # here; Experts must receive the same additions before Agents v2 starts.
             for event_name in (Event.POST_PROMPT_ASYNC, Event.POST_PROMPT_END):
                 event = Event(event_name, {
                     "mode": MODE_EXPERT,
@@ -122,14 +153,11 @@ class ExpertWorker(QRunnable):
                     "value": system_prompt,
                 })
                 event.ctx = ctx
-                self.window.dispatch(event)
+                self._dispatch_sync(event)
                 system_prompt = event.data["value"]
 
             db_idx = expert.idx
-            if self.window.core.idx.is_valid(db_idx):
-                self.window.core.experts.last_idx = db_idx
-            else:
-                self.window.core.experts.last_idx = None
+            if not self.window.core.idx.is_valid(db_idx):
                 db_idx = None
 
             history = self.window.core.ctx.all(meta_id=slave.id)
@@ -137,7 +165,7 @@ class ExpertWorker(QRunnable):
                 ctx=ctx,
                 history=history,
                 mode=MODE_EXPERT,
-                parent_mode=base_mode,
+                parent_mode=getattr(master_ctx, "mode", None) or self.window.core.config.get("mode"),
                 model=model_data,
                 system_prompt=system_prompt,
                 system_prompt_raw=raw_system_prompt,
@@ -155,40 +183,14 @@ class ExpertWorker(QRunnable):
                 preset=expert,
             )
 
-            self.signals.lock_input.emit()
             result = bridge.call(bridge_context, instruction)
             if not result:
-                self.signals.error.emit("No response from expert.")
-                return
+                raise RuntimeError("No response from expert.")
 
+            ctx.output = str(result)
+            return str(result)
+        finally:
             ctx.current = False
-            ctx.output = result
             ctx.reply = False
             self.window.core.ctx.update_item(ctx)
-
-            reply_ctx = CtxItem()
-            reply_ctx.from_dict(ctx.to_dict())
-            reply_ctx.meta = master_ctx.meta
-            reply_ctx.output = result
-            reply_ctx.input_name = expert_name
-            reply_ctx.output_name = ""
-            reply_ctx.cmds = []
-            reply_ctx.sub_call = True
-            self.signals.response.emit(reply_ctx, str(expert_id))
-
-        except Exception as e:
-            self.window.core.debug.log(e)
-            self.signals.error.emit(str(e))
-        finally:
-            self.signals.finished.emit()
-            self.cleanup()
-
-    def cleanup(self):
-        """Cleanup resources after worker execution."""
-        sig = self.signals
-        self.signals = None
-        if sig is not None:
-            try:
-                sig.deleteLater()
-            except RuntimeError:
-                pass
+            self.status("")
