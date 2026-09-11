@@ -565,16 +565,22 @@ You can change the environment in which the navigation mode operates by using th
 * Windows
 * Mac
 
-You can run this mode in Sandbox (using ``Playwright`` browsers) - to do it, just enable the ``Sandbox`` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
+You can run this mode in a browser sandbox powered by ``Playwright``. The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
 
 .. code-block:: ini
 
    pip install playwright
-   playwright install <chromium|firefox|webkit>
+   playwright install chromium
 
-After that, set the path to directory with installed browsers in ``Mouse and Keyborad`` plugin settings option: ``Sandbox / Browsers directory``.
+You can install another supported engine instead with ``playwright install firefox`` or ``playwright install webkit``.
 
-Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
+Then open ``Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)`` and configure the sandbox:
+
+* set ``Engine`` to the installed browser engine, for example ``chromium``;
+* leave ``Browsers directory`` empty when using Playwright's default browser location, or set it to the custom directory where the Playwright browsers are installed;
+* optionally configure ``Headless mode``, browser arguments, home URL and viewport size.
+
+Finally, enable the ``Sandbox`` switch in the Computer use toolbox when you want Computer use to run inside the Playwright browser sandbox.
 
 .. tip::
    **DO NOT** enable the ``Mouse and keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.

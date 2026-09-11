@@ -2050,16 +2050,22 @@ Allows ``keyboard_type`` command execution. *Default:* `True`
 - ``Viewport width`` *sandbox_viewport_w* - viewport width in pixels. *Default:* ``1440``
 - ``Viewport height`` *sandbox_viewport_h* - viewport height in pixels. *Default:* ``900``
 
-You can run this mode in Sandbox (using ``Playwright`` - https://playwright.dev/) - to do it, just enable the ``Sandbox`` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
+The sandbox uses ``Playwright`` (https://playwright.dev/). The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
 
 .. code-block:: ini
 
    pip install playwright
-   playwright install <chromium|firefox|webkit>
+   playwright install chromium
 
-After that, set the path to directory with installed browsers in ``Mouse and keyboard`` plugin settings option: ``Sandbox (Playwright) / Browsers directory``.
+You can install another supported engine instead with ``playwright install firefox`` or ``playwright install webkit``.
 
-Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
+Configure the sandbox in ``Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)``:
+
+* set ``Engine`` to the installed browser engine, for example ``chromium``;
+* leave ``Browsers directory`` empty to use Playwright's default browser location, or set it when the browsers are installed in a custom directory;
+* configure ``Headless mode``, browser arguments, home URL and viewport size as needed.
+
+When using Computer use, enable the ``Sandbox`` switch in the Computer use toolbox to run browser interaction through this configured Playwright sandbox.
 
 OpenStreetMap
 -------------
