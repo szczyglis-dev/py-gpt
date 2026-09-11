@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 17:58:00                  #
+# Updated Date: 2026.09.11 14:00:00                  #
 # ================================================== #
 
 import os.path
@@ -22,6 +22,7 @@ from pygpt_net.core.types import (
     MODEL_DEFAULT_MINI, MODE_CHAT, MODE_COMPLETION,
 )
 from pygpt_net.item.model import ModelItem
+from pygpt_net.core.provider.llm import LlamaIndexLLMProxy
 
 
 class Llm:
@@ -35,6 +36,7 @@ class Llm:
         self.default_model = MODEL_DEFAULT_MINI
         self.default_embed = "openai"
         self.initialized = False
+        self.provider_proxy = LlamaIndexLLMProxy(window)
 
     def init(self):
         """Init base ENV vars"""
@@ -71,6 +73,7 @@ class Llm:
             provider = model.get_provider()
             llm_provider = self.window.core.llm.get(provider)
             if llm_provider is not None:
+                self.provider_proxy.prepare(model)
                 # init env vars
                 llm_provider.init(
                     window=self.window,
@@ -124,6 +127,7 @@ class Llm:
             provider = model.get_provider()
             llm_provider = self.window.core.llm.get(provider)
             if llm_provider is not None:
+                self.provider_proxy.prepare(model)
                 llm_provider.init(
                     window=self.window,
                     model=model,
@@ -170,6 +174,7 @@ class Llm:
             provider = model.get_provider()
             llm_provider = self.window.core.llm.get(provider)
             if llm_provider is not None:
+                self.provider_proxy.prepare(model)
                 # LlamaIndex provider settings/env are still the source of the
                 # model credentials for agent workflows.
                 llm_provider.init(
