@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.11 11:00:00                  #
+# ================================================== #
 
 from __future__ import annotations
 
@@ -29,7 +37,8 @@ class Runner:
             asyncio.run(self._run(context, extra, signals, emitter))
             return True
         except asyncio.CancelledError:
-            # Cancellation is a normal control path (Stop/workflow_finish), not an error.
+            # Cancellation is a normal control path (Stop, or Orchestrator
+            # workflow_finish), not an error.
             try:
                 emitter.clear_status()
                 emitter.finish()
@@ -41,7 +50,7 @@ class Runner:
             self.window.core.debug.log(exc)
             try:
                 emitter.clear_status()
-                emitter.finish(f"Agents v2: {exc}")
+                emitter.finish(f"Chat with Agents: {exc}")
             except Exception:
                 pass
             return True
@@ -59,12 +68,11 @@ class Runner:
             model=context.model,
             current_input=current_input,
         )
-        runtime.verbose_log("ORCHESTRATOR HISTORY", history)
+        runtime.verbose_log(runtime.main_event("HISTORY"), history)
 
-        # Persist the user side of this orchestrator turn immediately after the
-        # previous history has been loaded.  If the user stops Agents v2 while a
-        # tool is running, this input-only memory row survives and is available in
-        # chat_history on the next turn instead of losing the interrupted request.
+        # Persist the user side immediately after previous history is loaded. If
+        # execution is interrupted while a tool is running, the input-only memory
+        # row survives and is available on the next turn.
         memory_turn = runtime.memory_store.begin_turn(
             context.ctx,
             context.preset,
@@ -73,21 +81,21 @@ class Runner:
         runtime.verbose_log("MEMORY BEGIN", {
             "input": current_input,
             "memory_item_id": getattr(memory_turn, "id", None),
+            "agent_mode": runtime.agent_mode.value,
         })
 
-        # Match the existing Agents/Chat with Files RAG behavior: when an index is
-        # selected and agent.idx.auto_retrieve is enabled, retrieve a relevant chunk
-        # before the first Orchestrator call. The runtime injects it into both the
-        # Orchestrator and every subsequently created worker system prompt.
+        # Match Agents/Chat with Files RAG behavior: retrieve relevant context
+        # before the first main-agent call and inject it into both the main agent
+        # and subsequently created workers/specialists.
         rag_query = str(context.prompt or current_input)
         runtime.prefetch_rag_context(rag_query)
-        llm = runtime.get_llm(stream=True)
-        orchestrator = runtime.build_agent(
-            name="Orchestrator",
-            description="Main orchestrator agent",
+        llm = runtime.get_llm(stream=True, actor_id="orchestrator")
+        main_agent = runtime.build_agent(
+            name=runtime.main_agent_name,
+            description=runtime.main_agent_description,
             llm=llm,
-            system_prompt=runtime.orchestrator_prompt(),
-            tools=runtime.orchestrator_tools(),
+            system_prompt=runtime.main_agent_prompt(),
+            tools=runtime.main_agent_tools(),
         )
 
         handler = None
@@ -100,12 +108,12 @@ class Runner:
                     "Use shared_context for extracted text/manifest. Current image attachments are also supplied "
                     "as native image blocks when the selected model supports image input.\n</turn_context>"
                 )
-            orchestrator_input = runtime.build_user_message(str(context.prompt or "") + shared)
-            runtime.verbose_log("ORCHESTRATOR INPUT", orchestrator_input)
-            handler = orchestrator.run(
-                user_msg=orchestrator_input,
+            main_input = runtime.build_user_message(str(context.prompt or "") + shared)
+            runtime.verbose_log(runtime.main_event("INPUT"), main_input)
+            handler = main_agent.run(
+                user_msg=main_input,
                 chat_history=history,
-                max_iterations=48,
+                max_iterations=4096 if runtime.is_swarm_mode else 48,
                 early_stopping_method="generate",
             )
 
@@ -139,9 +147,10 @@ class Runner:
                         pass
                     break
 
-                # workflow_finish is authoritative. Stop immediately instead of letting
-                # the model emit another tool call/text after declaring completion.
-                if runtime.finished:
+                # Orchestrator and Swarm modes use workflow_finish as the
+                # authoritative finalizer. Primary Agent finalizes from its
+                # terminal response instead.
+                if runtime.uses_workflow_finish and runtime.finished:
                     try:
                         await handler.cancel_run()
                     except asyncio.CancelledError:
@@ -151,10 +160,8 @@ class Runner:
                     break
 
                 if isinstance(event, (ToolCall, ToolCallResult)):
-                    # A tool roundtrip ends one orchestrator LLM pass. The next
-                    # user-visible text belongs to a new paragraph, while remaining
-                    # inside the same response/message. Multiple tool events collapse
-                    # into one pending boundary.
+                    # A tool roundtrip ends one main-agent LLM pass. The next
+                    # user-visible prose belongs to a new partial in the same turn.
                     emitter.mark_block_boundary()
                     continue
 
@@ -168,27 +175,45 @@ class Runner:
                 if not runtime.finished:
                     result = await handler
                     fallback = runtime._result_text(result)
-                    runtime.verbose_text("ORCHESTRATOR RESULT", fallback)
-                    last_output = runtime.last_orchestrator_output()
-                    runtime.final_answer = fallback or last_output or "OK"
-                    runtime.finished = True
-                    # LlamaIndex's terminal handler result commonly repeats the
-                    # exact AgentStream prose that was already persisted. Reuse
-                    # that partial instead of writing/replaying the same output a
-                    # second time. If the terminal result is genuinely new text,
-                    # it receives its own final partial as expected.
-                    if last_output and runtime.final_answer.strip() == last_output.strip():
-                        runtime.mark_current_part_final()
-                        emitter.accept_streamed_final()
+                    runtime.verbose_text(runtime.main_event("RESULT"), fallback)
+
+                    if runtime.uses_workflow_finish:
+                        # Managed-worker modes normally finalize via
+                        # workflow_finish. Keep the historical fallback when a
+                        # provider ends normally without calling the tool.
+                        last_output = runtime.last_orchestrator_output()
+                        runtime.final_answer = fallback or last_output or "OK"
+                        runtime.finished = True
+                        if last_output and runtime.final_answer.strip() == last_output.strip():
+                            runtime.mark_current_part_final()
+                            emitter.accept_streamed_final()
+                        else:
+                            final_part = runtime._prepare_final_part()
+                            emitter.start_final(
+                                runtime.final_answer,
+                                part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+                            )
                     else:
-                        final_part = runtime._prepare_final_part()
-                        emitter.start_final(
-                            runtime.final_answer,
-                            part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
-                        )
+                        # Primary Agent finalizes from the terminal response. The
+                        # resolver removes already-streamed pre-tool prose and
+                        # understands provider-native hosted-tool boundaries.
+                        runtime.final_answer = runtime.resolve_primary_final_output(fallback) or "OK"
+                        runtime.verbose_text("PRIMARY AGENT RESOLVED FINAL", runtime.final_answer)
+                        runtime.detach_primary_final_suffix(runtime.final_answer)
+                        last_output = runtime.last_orchestrator_output()
+                        runtime.finished = True
+                        if last_output and runtime.final_answer.strip() == last_output.strip():
+                            runtime.mark_current_part_final()
+                            emitter.accept_streamed_final()
+                        else:
+                            final_part = runtime._prepare_final_part()
+                            emitter.start_final(
+                                runtime.final_answer,
+                                part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+                            )
 
                 final_text = runtime.final_answer or runtime.last_orchestrator_output()
-                runtime.verbose_text("ORCHESTRATOR FINAL TEXT", final_text)
+                runtime.verbose_text(runtime.main_event("FINAL TEXT"), final_text)
                 memory_output = runtime.orchestrator_memory_output(final_text)
                 runtime.memory_store.complete_turn(memory_turn, memory_output)
                 runtime.verbose_log("MEMORY COMPLETE", {
@@ -196,15 +221,19 @@ class Runner:
                     "final_output": final_text,
                     "assistant_output": memory_output,
                     "memory_item_id": getattr(memory_turn, "id", None),
+                    "agent_mode": runtime.agent_mode.value,
                 })
         finally:
-            runtime.verbose_log("RUNNER FINALIZE BEGIN", {"finished": runtime.finished, "stopped": runtime.is_stopped()})
+            runtime.verbose_log("RUNNER FINALIZE BEGIN", {
+                "finished": runtime.finished,
+                "stopped": runtime.is_stopped(),
+                "agent_mode": runtime.agent_mode.value,
+            })
             if stop_task is not None:
                 stop_task.cancel()
                 await asyncio.gather(stop_task, return_exceptions=True)
             # Provider-native hosted tools bypass local plugin CtxItems. Drain
-            # their captured metadata (e.g. OpenAI web-search source URLs) before
-            # the runtime is cleaned up and the final message is committed.
+            # their captured metadata before the runtime is cleaned up.
             runtime.collect_llm_artifacts(llm)
             await runtime.cleanup()
             runtime.export_tool_calls_to_main_ctx()
@@ -212,4 +241,7 @@ class Runner:
             final_part = runtime._actor_part("orchestrator", create=False)
             final_part_uuid = getattr(final_part, "uuid", None) if final_part is not None else None
             emitter.finish(runtime.final_answer, part_uuid=final_part_uuid)
-            runtime.verbose_log("RUNNER FINALIZE END", {"final_answer": runtime.final_answer})
+            runtime.verbose_log("RUNNER FINALIZE END", {
+                "final_answer": runtime.final_answer,
+                "agent_mode": runtime.agent_mode.value,
+            })

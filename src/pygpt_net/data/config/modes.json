@@ -16,10 +16,10 @@
             "name": "Index (LlamaIndex)",
             "label": "mode.llama_index",
             "default": false
-        },             
+        },
         "agent_v2": {
             "id": "agent_v2",
-            "name": "Agents v2",
+            "name": "Chat with Agents",
             "label": "mode.agent_v2",
             "default": false
         },
@@ -34,7 +34,7 @@
             "name": "research",
             "label": "mode.research",
             "default": false
-        },   
+        },
         "completion": {
             "id": "completion",
             "name": "completion",
@@ -80,6 +80,6 @@
             "label": "mode.expert",
             "default": false,
             "legacy": true
-        }        
+        }
     }
 }

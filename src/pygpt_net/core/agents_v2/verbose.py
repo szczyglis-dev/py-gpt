@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 14:10:00                  #
+# Updated Date: 2026.09.11 11:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -39,11 +39,15 @@ class AgentsV2VerboseLogger:
     _orchestration_tools = {
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
+        "delegate_task", "swarm_start", "swarm_status",
     }
 
-    def __init__(self, window=None, run_id: str = ""):
+    def __init__(self, window=None, run_id: str = "", agent_mode=None):
         self.window = window
         self.run_id = str(run_id or "-")
+        self.agent_mode = str(getattr(agent_mode, "value", agent_mode) or "primary_agent").strip().lower()
+        self.is_orchestrator_mode = self.agent_mode in ("orchestrator", "swarm")
+        self.is_swarm_mode = self.agent_mode == "swarm"
         try:
             config = window.core.config
             self.enabled = bool(config.get("agent.v2.verbose", False))
@@ -244,8 +248,38 @@ class AgentsV2VerboseLogger:
                 self._workflow_write(f"RAG skipped: {self._single_line(data, 240)}", actor)
             elif name == "RAG PREFETCH ERROR":
                 self._workflow_write(f"RAG error: {self._single_line(data, 320)}", actor)
+            elif name == "PRIMARY AGENT INPUT":
+                self._workflow_write("running primary agent", actor)
             elif name == "ORCHESTRATOR INPUT":
                 self._workflow_write("running orchestrator", actor)
+            elif name == "SWARM INPUT":
+                self._workflow_write("running swarm orchestrator", actor)
+            elif name == "SWARM START":
+                self._workflow_write(
+                    f"swarm declared agents={self._data_get(data, 'agent_count') or '-'}", actor
+                )
+            elif name in {"SWARM STATUS", "SWARM STATUS AUTO"}:
+                self._workflow_write(
+                    "swarm status "
+                    f"created={self._data_get(data, 'created') or 0}/"
+                    f"{self._data_get(data, 'declared') or 0} "
+                    f"running={self._data_get(data, 'running') or 0} "
+                    f"completed={self._data_get(data, 'completed') or 0} "
+                    f"failed={self._data_get(data, 'failed') or 0}",
+                    actor,
+                )
+            elif name == "DELEGATE TASK REQUEST":
+                self._workflow_write(
+                    f"delegating to specialist name={self._quote(self._data_get(data, 'name') or 'Specialist', 80)} "
+                    f"task={self._quote(self._data_get(data, 'task'), 360)}",
+                    actor,
+                )
+            elif name == "DELEGATE TASK RESULT":
+                self._workflow_write(
+                    f"specialist result name={self._quote(self._data_get(data, 'name') or actor, 80)} "
+                    f"status={self._data_get(data, 'status') or '-'}",
+                    actor,
+                )
             elif name == "STOP REQUESTED":
                 self._workflow_write("stop requested", actor)
             elif name == "TOOL CALL":
@@ -279,6 +313,8 @@ class AgentsV2VerboseLogger:
                 if status:
                     self._workflow_write(f"status: {self._quote(status, 260)}", actor)
             elif name == "AGENT CREATE REQUEST":
+                if not self.is_orchestrator_mode:
+                    return
                 parts = [f"creating agent name={self._quote(self._data_get(data, 'name') or 'Worker', 80)}"]
                 instruction = self._data_get(data, "instruction")
                 task = self._data_get(data, "task")
@@ -288,68 +324,81 @@ class AgentsV2VerboseLogger:
                     parts.append(f"task={self._quote(task, 260)}")
                 self._workflow_write(" ".join(parts), actor)
             elif name == "AGENT CREATE REJECTED":
-                self._workflow_write(f"agent creation rejected: {self._quote(data, 300)}", actor)
+                if self.is_orchestrator_mode:
+                    self._workflow_write(f"agent creation rejected: {self._quote(data, 300)}", actor)
             elif name == "AGENT CREATED":
-                self._workflow_write(
-                    f"agent created id={self._data_get(data, 'id') or actor} "
-                    f"name={self._quote(self._data_get(data, 'name') or 'Worker', 80)}",
-                    actor,
-                )
+                if self.is_orchestrator_mode:
+                    self._workflow_write(
+                        f"agent created id={self._data_get(data, 'id') or actor} "
+                        f"name={self._quote(self._data_get(data, 'name') or 'Worker', 80)}",
+                        actor,
+                    )
             elif name == "AGENT UPDATE REQUEST":
-                fields = []
-                for key in ("name", "instruction", "language"):
-                    value = self._data_get(data, key)
-                    if value:
-                        fields.append(f"{key}={self._quote(value, 180)}")
-                self._workflow_write(f"updating agent id={self._data_get(data, 'agent_id') or actor}" + (" " + " ".join(fields) if fields else ""), actor)
+                if self.is_orchestrator_mode:
+                    fields = []
+                    for key in ("name", "instruction", "language"):
+                        value = self._data_get(data, key)
+                        if value:
+                            fields.append(f"{key}={self._quote(value, 180)}")
+                    self._workflow_write(
+                        f"updating agent id={self._data_get(data, 'agent_id') or actor}"
+                        + (" " + " ".join(fields) if fields else ""), actor
+                    )
             elif name == "AGENT UPDATED":
-                self._workflow_write(f"agent updated id={self._data_get(data, 'id') or actor}", actor)
+                if self.is_orchestrator_mode:
+                    self._workflow_write(f"agent updated id={self._data_get(data, 'id') or actor}", actor)
             elif name == "AGENT RUN REQUEST":
-                self._workflow_write(
-                    f"running agent id={self._data_get(data, 'agent_id') or actor} "
-                    f"task={self._quote(self._data_get(data, 'task'), 360)}",
-                    actor,
-                )
+                if self.is_orchestrator_mode:
+                    self._workflow_write(
+                        f"running agent id={self._data_get(data, 'agent_id') or actor} "
+                        f"task={self._quote(self._data_get(data, 'task'), 360)}", actor
+                    )
             elif name == "WORKER CANCELLED":
                 self._workflow_write(f"agent stopped id={self._data_get(data, 'id') or actor}", actor)
             elif name == "WORKER ERROR":
                 self._workflow_write(f"agent failed: {self._quote(self._data_get(data, 'error') or data, 360)}", actor)
             elif name == "AGENT STOP REQUEST":
-                self._workflow_write(f"stopping agent id={self._data_get(data, 'agent_id') or actor}", actor)
+                if self.is_orchestrator_mode:
+                    self._workflow_write(f"stopping agent id={self._data_get(data, 'agent_id') or actor}", actor)
             elif name == "AGENT STOPPED":
-                self._workflow_write(f"agent stopped id={self._data_get(data, 'id') or actor}", actor)
+                if self.is_orchestrator_mode:
+                    self._workflow_write(f"agent stopped id={self._data_get(data, 'id') or actor}", actor)
             elif name == "AGENT REMOVE REQUEST":
-                self._workflow_write(f"removing agent id={self._data_get(data, 'agent_id') or actor}", actor)
+                if self.is_orchestrator_mode:
+                    self._workflow_write(f"removing agent id={self._data_get(data, 'agent_id') or actor}", actor)
             elif name == "AGENT REMOVED":
-                self._workflow_write(f"agent removed id={self._data_get(data, 'id') or actor}", actor)
+                if self.is_orchestrator_mode:
+                    self._workflow_write(f"agent removed id={self._data_get(data, 'id') or actor}", actor)
             elif name == "AGENT STATUS":
-                self._workflow_write(
-                    f"agent status id={self._data_get(data, 'id') or actor} "
-                    f"status={self._data_get(data, 'status') or '-'}",
-                    actor,
-                )
+                if self.is_orchestrator_mode:
+                    self._workflow_write(
+                        f"agent status id={self._data_get(data, 'id') or actor} "
+                        f"status={self._data_get(data, 'status') or '-'}", actor
+                    )
             elif name == "AGENT LIST":
-                states = data if isinstance(data, list) else []
-                summary = ", ".join(
-                    f"{item.get('id', '?')}={item.get('status', '?')}"
-                    for item in states if isinstance(item, dict)
-                )
-                self._workflow_write(f"agents: {summary or 'none'}", actor)
+                if self.is_orchestrator_mode:
+                    states = data if isinstance(data, list) else []
+                    summary = ", ".join(
+                        f"{item.get('id', '?')}={item.get('status', '?')}"
+                        for item in states if isinstance(item, dict)
+                    )
+                    self._workflow_write(f"agents: {summary or 'none'}", actor)
             elif name == "AGENT WAIT REQUEST":
-                ids = self._data_get(data, "agent_ids") or "all"
-                self._workflow_write(
-                    f"waiting for agents ids={ids} mode={self._data_get(data, 'wait_for') or 'all'} "
-                    f"timeout={self._data_get(data, 'timeout_seconds') or 60}s",
-                    actor,
-                )
+                if self.is_orchestrator_mode:
+                    ids = self._data_get(data, "agent_ids") or "all"
+                    self._workflow_write(
+                        f"waiting for agents ids={ids} mode={self._data_get(data, 'wait_for') or 'all'} "
+                        f"timeout={self._data_get(data, 'timeout_seconds') or 60}s", actor
+                    )
             elif name == "AGENT WAIT RESULT":
-                workers = self._data_get(data, "workers", []) or []
-                summary = ", ".join(
-                    f"{item.get('id', '?')}={item.get('status', '?')}"
-                    for item in workers if isinstance(item, dict)
-                )
-                self._workflow_write(f"wait completed: {summary or 'no matching agents'}", actor)
-            elif name == "ORCHESTRATOR STATUS":
+                if self.is_orchestrator_mode:
+                    workers = self._data_get(data, "workers", []) or []
+                    summary = ", ".join(
+                        f"{item.get('id', '?')}={item.get('status', '?')}"
+                        for item in workers if isinstance(item, dict)
+                    )
+                    self._workflow_write(f"wait completed: {summary or 'no matching agents'}", actor)
+            elif name in {"PRIMARY AGENT STATUS", "ORCHESTRATOR STATUS", "SWARM STATUS"}:
                 status = self._data_get(data, "status")
                 if status:
                     self._workflow_write(f"status: {self._quote(status, 260)}", actor)
@@ -398,10 +447,11 @@ class AgentsV2VerboseLogger:
             elif name == "FINAL ANSWER":
                 self._workflow_write(f"final response: {self._quote(text, 700)}", actor)
                 self._workflow_final_logged = True
-            elif name == "ORCHESTRATOR RESULT":
+            elif name in {"PRIMARY AGENT RESULT", "ORCHESTRATOR RESULT"}:
                 if text:
-                    self._workflow_write(f"orchestrator response received: {self._quote(text, 600)}", actor)
-            elif name == "ORCHESTRATOR FINAL TEXT":
+                    label = "orchestrator" if name == "ORCHESTRATOR RESULT" else "primary agent"
+                    self._workflow_write(f"{label} response received: {self._quote(text, 600)}", actor)
+            elif name in {"PRIMARY AGENT FINAL TEXT", "ORCHESTRATOR FINAL TEXT"}:
                 if not self._workflow_final_logged:
                     self._workflow_write(f"final response: {self._quote(text, 700)}", actor)
                     self._workflow_final_logged = True

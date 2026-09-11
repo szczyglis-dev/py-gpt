@@ -15,7 +15,7 @@ from pygpt_net.core.types import MODE_AGENT_V2
 
 
 class OrchestratorMemoryStore:
-    """Persist only orchestrator-facing turns in a hidden child context."""
+    """Persist only Primary-Agent-facing turns in a hidden child context."""
 
     PREFIX = "agents_v2.memory:"
 
@@ -99,11 +99,11 @@ class OrchestratorMemoryStore:
         return f'<worker_context="{name}">\n{output}\n</worker_context>'
 
     def _compose_source_history(self, source: Optional[CtxItem]) -> str:
-        """Rebuild exactly the Orchestrator-facing prose/worker chronology.
+        """Rebuild exactly the Primary-Agent-facing prose/specialist chronology.
 
         This projection is model-only.  ``worker_context`` lives in partial.extra
         and is never appended to CtxItem.output, so the chat renderer continues to
-        display only the normal orchestrator partials/tool UI.
+        display only the normal Primary Agent partials/tool UI.
         """
         if source is None:
             return ""
@@ -140,7 +140,7 @@ class OrchestratorMemoryStore:
         return "\n\n".join(chunks).strip()
 
     def _history_output(self, item: CtxItem) -> str:
-        """Return enriched assistant history for one hidden orchestrator turn."""
+        """Return enriched assistant history for one hidden Primary Agent turn."""
         extra = item.extra if isinstance(getattr(item, "extra", None), dict) else {}
         source_id = extra.get("agents_v2_source_item_id")
         if source_id not in (None, ""):
@@ -158,13 +158,13 @@ class OrchestratorMemoryStore:
         return output.strip()
 
     def load_history(self, master_ctx: CtxItem, preset, model=None, current_input: str = "") -> List[ChatMessage]:
-        """Load Orchestrator history, including persisted worker finals by partial.
+        """Load Primary Agent history, including persisted specialist finals by partial.
 
         Hidden memory rows still define which preset-specific user turns belong to
-        this Orchestrator.  For rows created by current Agents v2 versions the
+        this Primary Agent.  For rows created by current Agents v2 versions the
         assistant side is projected from the source CtxItem partials so reload
-        restores the same chronology the Orchestrator saw during the live run:
-        orchestrator prose -> worker_context -> following orchestrator prose.
+        restores the same chronology the Primary Agent saw during the live run:
+        Primary Agent prose -> worker_context -> following Primary Agent prose.
         """
         meta = self.get_meta(master_ctx, preset)
         stored_items = self.window.core.ctx.provider.load(meta.id) if meta and meta.id is not None else []
@@ -212,7 +212,7 @@ class OrchestratorMemoryStore:
 
     @staticmethod
     def compose_turn_output(master_ctx: CtxItem, final_answer: str = "") -> str:
-        """Return the compact fallback for one completed orchestrator turn.
+        """Return the compact fallback for one completed Primary Agent turn.
 
         The full restore trace is reconstructed from the durable source CtxItem
         partials and their ``worker_context`` metadata.  The hidden memory row only
@@ -231,13 +231,13 @@ class OrchestratorMemoryStore:
         return str(value or "").strip()
 
     def begin_turn(self, master_ctx: CtxItem, preset, user_input: str):
-        """Persist the user side of an orchestrator turn before execution starts.
+        """Persist the user side of a Primary Agent turn before execution starts.
 
-        Agents v2 can be stopped while the orchestrator is inside a tool call.  The
+        Agents v2 can be stopped while the Primary Agent is inside a tool call.  The
         main conversation CtxItem already contains the user's input at that point,
-        but historically the hidden orchestrator memory row was created only after
+        but historically the hidden Primary Agent memory row was created only after
         a successful final answer.  A stopped turn therefore disappeared from the
-        orchestrator chat history entirely.
+        Primary Agent chat history entirely.
 
         Create the memory row after the previous history has been loaded, but before
         the new workflow starts doing any real work.  If the run is interrupted this
@@ -284,3 +284,11 @@ class OrchestratorMemoryStore:
         item = self.begin_turn(master_ctx, preset, user_input)
         self.complete_turn(item, assistant_output)
         return item
+
+
+# Semantic name for the new Primary Agent flow; keep the old class name for compatibility.
+PrimaryAgentMemoryStore = OrchestratorMemoryStore
+
+
+# Mode-neutral alias used by the merged Agents v2 runtime.
+AgentsV2MemoryStore = OrchestratorMemoryStore

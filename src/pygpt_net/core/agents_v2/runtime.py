@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:00:00                  #
+# Updated Date: 2026.09.11 11:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -28,21 +28,40 @@ from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import is_image, trans
 
-from .memory import OrchestratorMemoryStore
-from .prompts import ORCHESTRATOR_BASE_PROMPT, WORKER_BASE_PROMPT
+from .delegation import AgentDelegateBridge
+from .memory import AgentsV2MemoryStore
+from .mode import AGENT_MODE, AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
+from .prompts import (
+    ORCHESTRATOR_BASE_PROMPT,
+    ORCHESTRATOR_WORKER_BASE_PROMPT,
+    PRIMARY_AGENT_BASE_PROMPT,
+    PRIMARY_AGENT_WORKER_BASE_PROMPT,
+    SWARM_BASE_PROMPT,
+    SWARM_WORKER_BASE_PROMPT,
+)
 from .state import WorkerState, WorkerStatus
 from .tools import WorkerToolFactory
 from .verbose import AgentsV2VerboseLogger
 
 
 class AgentsV2Runtime:
-    """One isolated orchestration runtime bound to a single user turn."""
+    """One isolated Agents v2 runtime bound to a single user turn.
+
+    The top-level execution strategy is selected by :class:`AgentMode`. Worker
+    execution, tool bridging, persistence and artifact propagation are shared.
+    """
 
     MAX_WORKERS = 16
 
-    # Code-level switch only (not exposed in presets/UI). Set to False to show
-    # worker statuses without the "[Agent name]" prefix.
+    # Code-level switch only (not exposed in presets/UI). Swarm mode always
+    # prefixes worker statuses with the numbered agent identity; other modes use
+    # this fallback switch.
     SHOW_AGENT_NAME_IN_STATUS = False
+
+    # Automatic aggregate Swarm status cadence. Individual worker updates may
+    # trigger an earlier aggregate refresh, but the reporter never emits more
+    # often than this interval unless explicitly requested through swarm_status.
+    SWARM_STATUS_INTERVAL = 4.0
 
     # Fallback default for the Settings option ``agent.v2.show_tool_chain``.
     # When enabled, normal tool calls made anywhere in the Agents v2 flow are
@@ -54,7 +73,7 @@ class AgentsV2Runtime:
     _TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX = {
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
-        "report_status", "shared_context",
+        "delegate_task", "report_status", "shared_context", "swarm_start", "swarm_status",
     }
 
     def __init__(self, window, context, extra, signals, emitter):
@@ -63,6 +82,17 @@ class AgentsV2Runtime:
         self.extra = extra
         self.signals = signals
         self.emitter = emitter
+        requested_mode = None
+        if isinstance(extra, dict):
+            requested_mode = extra.get("agent_v2_mode")
+        if requested_mode in (None, ""):
+            requested_mode = getattr(context, "agent_v2_mode", None)
+        if requested_mode in (None, ""):
+            requested_mode = self.window.core.config.get(
+                AGENT_MODE_CONFIG_KEY,
+                AGENT_MODE_CONFIG_DEFAULT,
+            )
+        self.agent_mode = AgentMode.coerce(requested_mode or AGENT_MODE)
         self.model = context.model
         self.preset = context.preset
         self.workers: Dict[str, WorkerState] = {}
@@ -70,15 +100,31 @@ class AgentsV2Runtime:
         self.finished = False
         self.final_answer = ""
         self.run_id = uuid.uuid4().hex[:12]
-        self.verbose = AgentsV2VerboseLogger(window, self.run_id)
+        self.verbose = AgentsV2VerboseLogger(window, self.run_id, agent_mode=self.agent_mode)
         self.status_events: List[Dict[str, Any]] = []
         self._status_seq = 0
+        self.swarm_expected_workers: Optional[int] = None
+        self.swarm_created_workers = 0
+        self.swarm_launched_workers = 0
+        self._swarm_worker_numbers: Dict[str, int] = {}
+        self._swarm_reporter_task: Optional[asyncio.Task] = None
+        self._last_swarm_status_at = 0.0
         self._main_tool_calls: List[Dict[str, Any]] = []
         self._main_tool_call_seq = 0
         self._local_plugin_tool_names = set()
         self._actor_parts = {}
         self._actor_needs_new_part = {}
         self._actor_part_seq = {}
+        # Keep a runtime-side copy of Primary Agent prose boundaries. Durable
+        # CtxItemPart rows are updated on the Qt thread, so they are not a safe
+        # source for deciding which streamed LLM pass is the final answer while
+        # the run is still active. Provider-native hosted tools (OpenAI/xAI
+        # web/file search, code interpreter, etc.) also bypass LlamaIndex
+        # ToolCall/ToolCallResult events, so the adapter reports those boundaries
+        # explicitly through note_provider_tool_activity().
+        self._primary_stream_current = ""
+        self._primary_stream_completed: List[str] = []
+        self._primary_tool_activity_seen = False
         self._persisted_tool_tasks = {}
         # Workers keep their own agent Memory strictly in RAM. For persistence
         # we only remember which orchestrator partial launched the current worker
@@ -92,7 +138,7 @@ class AgentsV2Runtime:
                 self.RETURN_TOOL_CALLS_TO_MAIN_CTX,
             )
         )
-        self.memory_store = OrchestratorMemoryStore(window)
+        self.memory_store = AgentsV2MemoryStore(window)
         self.allow_local_tools = bool(getattr(self.preset, "agent_v2_allow_local_tools", True))
         self.allow_remote_tools = bool(getattr(self.preset, "agent_v2_allow_remote_tools", True))
         self.index_id = (getattr(self.preset, "idx", None) if self.preset is not None else None) or context.idx
@@ -122,19 +168,26 @@ class AgentsV2Runtime:
         if main_ctx is not None and isinstance(getattr(main_ctx, "extra", None), dict):
             main_ctx.extra.pop("agents_v2_filesystem_context", None)
         self.tool_factory = WorkerToolFactory(self)
+        # Primary Agent exposes this bridge as delegate_task(); Orchestrator keeps
+        # the explicit worker lifecycle tools. The worker runtime itself is shared.
+        self.delegate_bridge = AgentDelegateBridge(self)
         self._artifact_seen = {
             "files": set(), "images": set(), "urls": set(), "attachments": set()
         }
         self._seed_artifact_seen()
-        self.orchestrator_actor = SimpleNamespace(
+        self.primary_actor = SimpleNamespace(
+            # Keep the historical actor id for persisted-part/UI compatibility.
             id="orchestrator",
-            name="Orchestrator",
+            name=self.main_agent_name,
             progress="",
             stop_requested=False,
             tool_ctx=self._make_tool_ctx("orchestrator"),
             artifacts={"files": [], "images": [], "urls": [], "attachments": []},
         )
-        # Keep the Orchestrator's tool context private. Local PyGPT plugins set
+        # Compatibility alias for integrations written against the pre-2.8.x
+        # manager/orchestrator runtime surface.
+        self.orchestrator_actor = self.primary_actor
+        # Keep the Primary Agent's tool context private. Local PyGPT plugins set
         # ctx.reply/results as part of the legacy chat tool pipeline; using the
         # user-visible CtxItem here would feed a plugin result back through
         # KernelEvent.REPLY_RETURN and accidentally start a second Agents v2 run.
@@ -142,8 +195,9 @@ class AgentsV2Runtime:
             str(getattr(self.context.ctx, "input", "") or self.context.prompt or ""),
             "orchestrator",
         )
-        self.orchestrator_actor.tool_ctx.set_output("", "Orchestrator")
+        self.orchestrator_actor.tool_ctx.set_output("", self.main_agent_name)
         self.verbose.log("RUNTIME INIT", {
+            "agent_mode": self.agent_mode.value,
             "model": getattr(self.model, "id", None),
             "provider": getattr(self.model, "provider", None) if self.model is not None else None,
             "preset": getattr(self.preset, "name", None) or getattr(self.preset, "id", None),
@@ -154,8 +208,49 @@ class AgentsV2Runtime:
             "shared_context": self.shared_context_text,
             "runtime_system_context": self.runtime_system_context,
             "bridge_system_prompt": self.bridge_system_prompt,
-            "max_workers": self.MAX_WORKERS,
+            "max_workers": "user_defined" if self.is_swarm_mode else self.MAX_WORKERS,
         })
+
+    @property
+    def is_orchestrator_mode(self) -> bool:
+        return self.agent_mode == AgentMode.ORCHESTRATOR
+
+    @property
+    def is_primary_agent_mode(self) -> bool:
+        return self.agent_mode == AgentMode.PRIMARY_AGENT
+
+    @property
+    def is_swarm_mode(self) -> bool:
+        return self.agent_mode == AgentMode.SWARM
+
+    @property
+    def uses_workflow_finish(self) -> bool:
+        return self.agent_mode in (AgentMode.ORCHESTRATOR, AgentMode.SWARM)
+
+    @property
+    def main_agent_name(self) -> str:
+        if self.is_orchestrator_mode:
+            return "Orchestrator"
+        if self.is_swarm_mode:
+            return "Swarm Orchestrator"
+        return "Primary Agent"
+
+    @property
+    def main_agent_description(self) -> str:
+        if self.is_orchestrator_mode:
+            return "Main orchestrator agent"
+        if self.is_swarm_mode:
+            return "Main swarm orchestrator agent"
+        return "Main user-facing agent"
+
+    def main_event(self, suffix: str) -> str:
+        if self.is_orchestrator_mode:
+            prefix = "ORCHESTRATOR"
+        elif self.is_swarm_mode:
+            prefix = "SWARM"
+        else:
+            prefix = "PRIMARY AGENT"
+        return f"{prefix} {str(suffix or '').strip()}".strip()
 
     def verbose_log(self, event: str, data: Any = None, actor: str = "orchestrator"):
         self.verbose.log(event, data, actor=actor)
@@ -163,8 +258,65 @@ class AgentsV2Runtime:
     def verbose_text(self, event: str, text: Any, actor: str = "orchestrator"):
         self.verbose.text(event, text, actor=actor)
 
+    def _close_primary_stream_segment(self):
+        """Close the current streamed Primary Agent prose segment, if any."""
+        value = str(self._primary_stream_current or "")
+        if value.strip():
+            self._primary_stream_completed.append(value)
+        self._primary_stream_current = ""
+
+    def note_provider_tool_activity(
+            self,
+            tool_name: str,
+            actor: str = "orchestrator",
+            call_id: str = "",
+    ):
+        """Bridge a provider-native hosted tool boundary into the Agents v2 timeline.
+
+        Hosted tools execute inside the provider Responses/GenerateContent call and
+        therefore never become LlamaIndex ``ToolCall`` / ``ToolCallResult`` events.
+        Without this callback, prose emitted before the hosted tool and the final
+        answer emitted after it are appended to one CtxItemPart and later look like
+        one synthetic final response.
+        """
+        actor = str(actor or "orchestrator")
+        tool = str(tool_name or "remote_tool").strip() or "remote_tool"
+        self.verbose.log("PROVIDER TOOL ACTIVITY", {
+            "tool": tool,
+            "call_id": str(call_id or ""),
+        }, actor=actor)
+
+        if actor != "orchestrator":
+            worker = self.workers.get(actor)
+            if worker is not None:
+                self.emit_worker_status(
+                    worker,
+                    self.translated_status("status.agent_v2.tool", tool=tool),
+                )
+            return
+
+        self._primary_tool_activity_seen = True
+        had_prose = bool(str(self._primary_stream_current or "").strip())
+        self._close_primary_stream_segment()
+        if had_prose:
+            # Flush the already streamed pre-tool prose and arm a durable partial
+            # rotation. The next real AgentStream delta becomes a new sub-turn.
+            self.emitter.mark_block_boundary()
+            self._actor_needs_new_part["orchestrator"] = True
+        self.emit_runtime_status("status.agent_v2.tool", tool=tool)
+
+    def primary_stream_final_output(self) -> str:
+        """Return only prose streamed after the most recent tool boundary."""
+        return str(self._primary_stream_current or "").strip()
+
     def verbose_event(self, event: Any, actor: str = "orchestrator"):
+        actor = str(actor or "orchestrator")
         if isinstance(event, ToolCall):
+            # A local/function tool call is also a Primary Agent prose boundary.
+            # Keep this runtime-side segmentation independent of DB/UI timing.
+            if actor == "orchestrator":
+                self._primary_tool_activity_seen = True
+                self._close_primary_stream_segment()
             # A tool-only model pass stays in the current partial. The previous
             # result has nevertheless been consumed, so expose completed tasks
             # before persisting the next call under that same partial.
@@ -173,7 +325,7 @@ class AgentsV2Runtime:
             self.verbose.log("TOOL CALL", event, actor=actor)
         elif isinstance(event, ToolCallResult):
             self.record_tool_result(event, actor=actor)
-            if str(actor or "orchestrator") == "orchestrator":
+            if actor == "orchestrator":
                 self._actor_needs_new_part["orchestrator"] = True
             self.verbose.log("TOOL RESULT", event, actor=actor)
         elif isinstance(event, AgentStream):
@@ -183,6 +335,8 @@ class AgentsV2Runtime:
                 # bookkeeping events must not create DB rows.
                 self._prepare_actor_response_part(actor)
                 self._promote_actor_tasks(actor)
+                if actor == "orchestrator":
+                    self._primary_stream_current += str(delta)
                 self.verbose.text("STREAM", delta, actor=actor)
             else:
                 self.verbose.log("AGENT STREAM", event, actor=actor)
@@ -267,7 +421,7 @@ class AgentsV2Runtime:
     def _actor_metadata(self, actor: str):
         actor = str(actor or "orchestrator")
         if actor == "orchestrator":
-            return "orchestrator", "Orchestrator", ""
+            return "orchestrator", self.main_agent_name, ""
         state = self.workers.get(actor)
         if state is None:
             return actor, actor, ""
@@ -711,7 +865,7 @@ class AgentsV2Runtime:
         return self.rag_context_text
 
     def _rag_prompt_context(self) -> str:
-        """Build prompt guidance shared by the Orchestrator and all workers."""
+        """Build prompt guidance shared by the selected main agent and all workers."""
         if not self.has_rag_index():
             return ""
         parts = [
@@ -782,7 +936,7 @@ class AgentsV2Runtime:
         except Exception:
             return False
 
-    def get_llm(self, stream: bool = False):
+    def get_llm(self, stream: bool = False, actor_id: str = "orchestrator"):
         """Return provider LLM with native remote tools attached when enabled."""
         llm = self.window.core.idx.llm.get_agent(
             model=self.model,
@@ -794,9 +948,19 @@ class AgentsV2Runtime:
         # Keep this opt-in so normal LlamaIndex providers remain untouched.
         binder = getattr(llm, "bind_agents_v2_runtime", None)
         if callable(binder):
-            binder(self)
+            try:
+                binder(self, actor_id=actor_id)
+            except TypeError:
+                # Backward compatibility with provider adapters that only accept
+                # the runtime. They can still participate in Agents v2; only the
+                # optional provider-tool boundary callback stays Primary-only.
+                binder(self)
+        actor_binder = getattr(llm, "bind_agents_v2_actor", None)
+        if callable(actor_binder):
+            actor_binder(actor_id)
         self.verbose.log("LLM CREATED", {
             "stream": stream,
+            "actor_id": actor_id,
             "allow_remote_tools": self.allow_remote_tools,
             "class": llm.__class__.__name__ if llm is not None else None,
         })
@@ -819,7 +983,7 @@ class AgentsV2Runtime:
         # themselves can still execute concurrently.
         if cls is FunctionAgent and self.model is not None and self.model.is_ollama():
             kwargs["allow_parallel_tool_calls"] = False
-        actor = "orchestrator" if str(name).lower() == "orchestrator" else str(name)
+        actor = "orchestrator" if str(name).lower() in {"orchestrator", "primary agent"} else str(name)
         self.verbose.log("AGENT BUILD", {
             "name": name,
             "description": description,
@@ -920,6 +1084,144 @@ class AgentsV2Runtime:
         self.sequence += 1
         return f"w{self.sequence:02d}_{uuid.uuid4().hex[:6]}"
 
+    @staticmethod
+    def _short_status_text(value: str, limit: int = 72) -> str:
+        text = " ".join(str(value or "").split())
+        if len(text) <= limit:
+            return text
+        return text[:max(1, limit - 3)].rstrip() + "..."
+
+    def _swarm_worker_name(self, name: str, number: int) -> str:
+        """Return a stable numbered identity for a Swarm worker."""
+        base = str(name or "Worker").strip() or "Worker"
+        number = max(1, int(number or 1))
+        lowered = base.lower()
+        known_prefixes = (
+            f"agent {number}", f"agent #{number}", f"#{number}",
+            f"worker {number}", f"worker #{number}",
+        )
+        if lowered.startswith(known_prefixes):
+            return base[:80]
+        prefix = f"Agent {number} — "
+        return (prefix + base)[:80]
+
+    def _swarm_worker_number(self, worker_id: str) -> int:
+        if worker_id in self._swarm_worker_numbers:
+            return self._swarm_worker_numbers[worker_id]
+        value = str(worker_id or "")
+        head = value.split("_", 1)[0]
+        if head.startswith("w"):
+            try:
+                return max(1, int(head[1:]))
+            except (TypeError, ValueError):
+                pass
+        return 1
+
+    def _swarm_snapshot(self) -> Dict[str, Any]:
+        workers = list(self.workers.values())
+        running = [w for w in workers if w.status in (WorkerStatus.RUNNING, WorkerStatus.STOPPING)]
+        completed = [w for w in workers if w.status == WorkerStatus.COMPLETED]
+        failed = [w for w in workers if w.status == WorkerStatus.FAILED]
+        stopped = [w for w in workers if w.status in (WorkerStatus.STOPPED, WorkerStatus.REMOVED)]
+        pending = [w for w in workers if w.status == WorkerStatus.CREATED and w.generation == 0]
+        activities = []
+        for worker in workers:
+            activity = worker.progress or worker.current_task or worker.status.value
+            activities.append({
+                "id": worker.id,
+                "name": worker.name,
+                "status": worker.status.value,
+                "activity": self._short_status_text(activity, 180),
+            })
+        return {
+            "mode": "swarm",
+            "declared": self.swarm_expected_workers,
+            "created": self.swarm_created_workers,
+            "launched": self.swarm_launched_workers,
+            "running": len(running),
+            "completed": len(completed),
+            "failed": len(failed),
+            "stopped": len(stopped),
+            "pending": len(pending),
+            "activities": activities,
+        }
+
+    def _swarm_status_text(self) -> str:
+        snapshot = self._swarm_snapshot()
+        active = [
+            item for item in snapshot["activities"]
+            if item.get("status") in (WorkerStatus.RUNNING.value, WorkerStatus.STOPPING.value)
+        ]
+        shown = active[:6]
+        activity_text = "; ".join(
+            f"[{item['name']}] {self._short_status_text(item.get('activity'), 64)}"
+            for item in shown
+        )
+        if len(active) > len(shown):
+            activity_text += ("; " if activity_text else "") + f"+{len(active) - len(shown)}"
+        if activity_text:
+            activity_text = " | " + activity_text
+        template = self.translated_status(
+            "status.agent_v2.swarm.summary",
+            declared=snapshot["declared"] or 0,
+            created=snapshot["created"],
+            launched=snapshot["launched"],
+            running=snapshot["running"],
+            completed=snapshot["completed"],
+            failed=snapshot["failed"],
+            stopped=snapshot["stopped"],
+            pending=snapshot["pending"],
+            activities=activity_text,
+        )
+        # If the locale does not yet know the new key, keep the status useful.
+        if template == "status.agent_v2.swarm.summary":
+            template = (
+                f"Swarm: {snapshot['running']}/{snapshot['declared'] or 0} running, "
+                f"{snapshot['launched']} launched, {snapshot['completed']} completed, "
+                f"{snapshot['failed']} failed, {snapshot['stopped']} stopped{activity_text}"
+            )
+        return template
+
+    def _emit_swarm_status(self, force: bool = False):
+        if not self.is_swarm_mode or self.swarm_expected_workers is None:
+            return
+        now = time.monotonic()
+        if not force and now - self._last_swarm_status_at < self.SWARM_STATUS_INTERVAL:
+            return
+        self._last_swarm_status_at = now
+        text = self._swarm_status_text()
+        self.verbose.log("SWARM STATUS AUTO", self._swarm_snapshot())
+        self.emitter.status(text, source="orchestrator")
+
+    def _ensure_swarm_reporter(self):
+        if not self.is_swarm_mode or self.finished:
+            return
+        if self._swarm_reporter_task is not None and not self._swarm_reporter_task.done():
+            return
+        try:
+            self._swarm_reporter_task = asyncio.create_task(
+                self._swarm_reporter_loop(),
+                name="agents-v2:swarm-status",
+            )
+        except RuntimeError:
+            # No running loop (for example in isolated unit construction). The
+            # explicit swarm_status tool still provides the same snapshot.
+            self._swarm_reporter_task = None
+
+    async def _swarm_reporter_loop(self):
+        try:
+            while self.is_swarm_mode and not self.finished and not self.is_stopped():
+                await asyncio.sleep(self.SWARM_STATUS_INTERVAL)
+                if self.finished or self.is_stopped():
+                    break
+                snapshot = self._swarm_snapshot()
+                if snapshot["running"] or snapshot["created"] < (snapshot["declared"] or 0):
+                    self._emit_swarm_status(force=True)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+
     def emit_worker_status(self, worker: WorkerState, text: str):
         worker.progress = str(text or "").strip()[:240]
         if worker.progress:
@@ -931,11 +1233,11 @@ class AgentsV2Runtime:
                 "status": worker.progress,
             })
             # Bound memory even for very chatty workers. The current state remains
-            # available through agent_status, while recent events are returned by agent_wait.
+            # retained for diagnostics while this delegated specialist is running.
             if len(self.status_events) > 256:
                 del self.status_events[:-256]
             display = worker.progress
-            if self.SHOW_AGENT_NAME_IN_STATUS and worker.name:
+            if (self.is_swarm_mode or self.SHOW_AGENT_NAME_IN_STATUS) and worker.name:
                 display = f"[{worker.name}] {display}"
             self.verbose.log("WORKER STATUS", {
                 "id": worker.id,
@@ -945,6 +1247,8 @@ class AgentsV2Runtime:
                 "generation": worker.generation,
             }, actor=worker.id)
             self.emitter.status(display, source=worker.id)
+            if self.is_swarm_mode:
+                self._emit_swarm_status(force=worker.terminal)
 
     @staticmethod
     def translated_status(key: str, **kwargs) -> str:
@@ -960,7 +1264,7 @@ class AgentsV2Runtime:
         if worker is not None:
             self.emit_worker_status(worker, text)
         else:
-            self.verbose.log("ORCHESTRATOR STATUS", {"key": key, "status": text, "args": kwargs})
+            self.verbose.log(self.main_event("STATUS"), {"key": key, "status": text, "args": kwargs})
             self.emitter.status(text, source="orchestrator")
 
     def collect_llm_artifacts(self, llm, worker: Optional[WorkerState] = None):
@@ -1097,8 +1401,17 @@ class AgentsV2Runtime:
         runtime_block = ""
         if runtime_context and runtime_context not in bridge_prompt:
             runtime_block = f"<runtime_environment>\n{runtime_context}\n</runtime_environment>"
+        if self.is_swarm_mode:
+            worker_base_prompt = SWARM_WORKER_BASE_PROMPT
+            controller_tag = "swarm_orchestrator_system_instruction"
+        elif self.is_orchestrator_mode:
+            worker_base_prompt = ORCHESTRATOR_WORKER_BASE_PROMPT
+            controller_tag = "orchestrator_system_instruction"
+        else:
+            worker_base_prompt = PRIMARY_AGENT_WORKER_BASE_PROMPT
+            controller_tag = "primary_agent_system_instruction"
         return "\n\n".join(filter(None, [
-            WORKER_BASE_PROMPT,
+            worker_base_prompt,
             f"<workflow_language>\n{language}\n</workflow_language>",
             f"<worker_identity>\nname={name}\nrole_instruction={instruction}\n</worker_identity>",
             (
@@ -1108,10 +1421,15 @@ class AgentsV2Runtime:
             runtime_block,
             self._rag_prompt_context(),
             (
-                f"<orchestrator_system_instruction>\n{system_prompt}\n</orchestrator_system_instruction>"
+                f"<{controller_tag}>\n{system_prompt}\n</{controller_tag}>"
                 if system_prompt else ""
             ),
         ])).strip()
+
+    # INTERNAL WORKER LIFECYCLE -------------------------------------------------
+    # These methods remain as a runtime/compatibility surface for bridges and
+    # future integrations. They are deliberately NOT registered as Primary Agent
+    # tools. The model sees only delegate_task().
 
     async def create_worker(
             self,
@@ -1128,12 +1446,27 @@ class AgentsV2Runtime:
             "system_prompt": system_prompt,
             "task": task,
         })
-        if len(self.workers) >= self.MAX_WORKERS:
+        if self.is_swarm_mode:
+            if self.swarm_expected_workers is None:
+                result = json.dumps({
+                    "error": "Swarm size is not declared.",
+                    "action": "Call swarm_start(agent_count=N) before creating workers.",
+                }, ensure_ascii=False)
+                self.verbose.log("AGENT CREATE REJECTED", result)
+                return result
+            if self.swarm_created_workers >= self.swarm_expected_workers:
+                result = json.dumps({
+                    "error": "Declared swarm size has already been reached.",
+                    "declared": self.swarm_expected_workers,
+                    "created": self.swarm_created_workers,
+                }, ensure_ascii=False)
+                self.verbose.log("AGENT CREATE REJECTED", result)
+                return result
+        elif len(self.workers) >= self.MAX_WORKERS:
             result = json.dumps({"error": f"Maximum workers reached ({self.MAX_WORKERS})."})
             self.verbose.log("AGENT CREATE REJECTED", result)
             return result
-        wid = self._worker_id()
-        name = (name or "Worker").strip()[:80]
+        raw_name = (name or "Worker").strip()[:80]
         instruction = (instruction or "General specialist").strip()
         language = str(language or "").strip()
         if not language:
@@ -1141,6 +1474,9 @@ class AgentsV2Runtime:
                 "error": "Worker language is required.",
                 "action": "Pass the language of the current end-user request (for example: Polish, English, German).",
             }, ensure_ascii=False)
+        wid = self._worker_id()
+        swarm_number = self.swarm_created_workers + 1 if self.is_swarm_mode else 0
+        name = self._swarm_worker_name(raw_name, swarm_number) if self.is_swarm_mode else raw_name
         state = WorkerState(
             id=wid,
             name=name,
@@ -1154,7 +1490,7 @@ class AgentsV2Runtime:
             ),
             tool_ctx=self._make_worker_ctx(wid),
         )
-        llm = self.get_llm(stream=False)
+        llm = self.get_llm(stream=False, actor_id=wid)
         state.agent = self.build_agent(
             name=name,
             description=instruction[:512],
@@ -1163,6 +1499,10 @@ class AgentsV2Runtime:
             tools=self.tool_factory.build(state),
         )
         self.workers[wid] = state
+        if self.is_swarm_mode:
+            self._swarm_worker_numbers[wid] = swarm_number
+            self.swarm_created_workers += 1
+            self._emit_swarm_status(force=self.swarm_created_workers == self.swarm_expected_workers)
         self.verbose.log("AGENT CREATED", state.public_dict(), actor=wid)
         if task:
             await self.start_worker(wid, task)
@@ -1191,7 +1531,14 @@ class AgentsV2Runtime:
         if state.busy:
             return json.dumps({"error": "Worker is running; stop/wait before updating it.", "id": agent_id})
         if name is not None and name.strip():
-            state.name = name.strip()[:80]
+            requested_name = name.strip()[:80]
+            if self.is_swarm_mode:
+                state.name = self._swarm_worker_name(
+                    requested_name,
+                    self._swarm_worker_number(state.id),
+                )
+            else:
+                state.name = requested_name
         if instruction is not None and instruction.strip():
             state.instruction = instruction.strip()
         if language is not None and language.strip():
@@ -1200,7 +1547,7 @@ class AgentsV2Runtime:
             state.system_prompt = system_prompt.strip()
 
         # Rebuild the agent definition while deliberately preserving Memory.
-        llm = self.get_llm(stream=False)
+        llm = self.get_llm(stream=False, actor_id=state.id)
         state.agent = self.build_agent(
             name=state.name,
             description=state.instruction[:512],
@@ -1234,12 +1581,17 @@ class AgentsV2Runtime:
         state.tool_ctx.set_output("", state.name)
         state.error = ""
         state.last_result = ""
+        if self.is_swarm_mode and state.generation == 0:
+            self.swarm_launched_workers += 1
         state.generation += 1
         # Worker conversation state remains in-memory only. Remember the current
         # orchestrator partial as the durable origin for this run; worker tool
         # task rows and the final worker_context record are attached there.
         self._worker_parent_parts[state.id] = self._actor_part("orchestrator", create=True)
         self.emit_runtime_status("status.agent_v2.starting", worker=state)
+        if self.is_swarm_mode:
+            self._ensure_swarm_reporter()
+            self._emit_swarm_status(force=False)
         self.verbose.log("AGENT RUNNING", state.public_dict(include_result=False), actor=agent_id)
         state.task = asyncio.create_task(
             self._worker_loop(state, state.current_task),
@@ -1258,7 +1610,7 @@ class AgentsV2Runtime:
                     "\n\nThis workflow has shared user attachments/context. Use shared_context for extracted text/manifest; "
                     "image inputs from the current turn are also attached to this task when the selected model supports them."
                 )
-            worker_input = self.build_user_message(f"Task from Orchestrator:\n{task}{shared_hint}")
+            worker_input = self.build_user_message(f"Task from {self.main_agent_name}:\n{task}{shared_hint}")
             self.verbose.log("WORKER INPUT", worker_input, actor=state.id)
             handler = state.agent.run(
                 user_msg=worker_input,
@@ -1344,7 +1696,7 @@ class AgentsV2Runtime:
         """Persist one worker final as orchestrator-only restore context.
 
         Workers keep their private LlamaIndex Memory in RAM.  What must survive a
-        reload is only what the Orchestrator learned from a worker during this
+        reload is only what the Primary Agent learned from a specialist during this
         turn.  Store that compact payload on the orchestrator partial which
         launched the run; when history is rebuilt it is inserted immediately
         after that partial's prose and before the following partial.
@@ -1435,6 +1787,133 @@ class AgentsV2Runtime:
                 return value
         return ""
 
+    def primary_response_boundary_pending(self) -> bool:
+        """Return True when the last completed tool round has no streamed prose yet.
+
+        ``ToolCallResult`` arms this boundary and the first following ``AgentStream``
+        delta consumes it by rotating to a fresh partial.  At handler completion a
+        still-pending boundary therefore means that the terminal handler result is
+        the only place where the post-tool final answer can exist.
+        """
+        return bool(self._actor_needs_new_part.get("orchestrator"))
+
+    def _primary_prose_outputs(self) -> list[str]:
+        """Return persisted Primary Agent prose in chronological order.
+
+        Tool-only rows and worker-private data are intentionally ignored.  This is
+        used only to de-aggregate terminal LlamaIndex results; it does not change
+        what is kept in durable partial history.
+        """
+        main = getattr(self.context, "ctx", None)
+        if main is None:
+            return []
+        values = []
+        for part in getattr(main, "parts", None) or []:
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("agents_v2_worker") is True or extra.get("provider_history") is False:
+                continue
+            actor_id = str(getattr(part, "agent_id", "") or extra.get("agents_v2_actor", "") or "")
+            if actor_id and actor_id != "orchestrator":
+                continue
+            value = str(getattr(part, "output", None) or "").strip()
+            if value:
+                values.append(value)
+        return values
+
+    def _strip_primary_prose_prefix(self, terminal_text: str) -> str:
+        """Remove already-streamed Primary Agent prose from an aggregate result.
+
+        Some LlamaIndex agent/provider combinations return ``handler``'s terminal
+        ``response.content`` as the concatenation of every assistant text pass in
+        the run (progress prose before tools + the actual final answer).  Those
+        earlier passes are already stored as separate ``CtxItemPart`` records.
+        Persisting the aggregate as the final part duplicates them in both
+        ``ctx_item.output`` and the restored conversation.
+
+        Only exact chronological prefixes are removed.  If the terminal result is
+        already just the final answer, it is left untouched.
+        """
+        original = str(terminal_text or "").strip()
+        if not original:
+            return ""
+        remaining = original
+        removed = False
+        for value in self._primary_prose_outputs():
+            prefix = str(value or "").strip()
+            if not prefix:
+                continue
+            candidate = remaining.lstrip()
+            if not candidate.startswith(prefix):
+                break
+            tail = candidate[len(prefix):].lstrip()
+            # Never turn a valid terminal result into an empty answer.  This also
+            # covers providers whose handler result is exactly the already-streamed
+            # final prose.
+            if not tail:
+                break
+            remaining = tail
+            removed = True
+        return remaining.strip() if removed and remaining.strip() else original
+
+    def resolve_primary_final_output(self, terminal_text: str = "") -> str:
+        """Choose the authoritative final answer for the Primary Agent turn.
+
+        The runtime-side stream buffer is preferred because it is segmented at
+        both ordinary LlamaIndex tool calls and provider-native hosted-tool
+        boundaries. This avoids depending on the asynchronously persisted parent
+        CtxItem, whose current output may temporarily be the full working trace.
+        """
+        terminal = str(terminal_text or "").strip()
+        streamed = self.primary_stream_final_output()
+        if streamed:
+            return streamed
+
+        last_output = self.last_orchestrator_output()
+        if last_output and not self.primary_response_boundary_pending():
+            return last_output
+
+        if terminal:
+            resolved = self._strip_primary_prose_prefix(terminal)
+            if resolved:
+                return resolved
+
+        return last_output or terminal
+
+    def detach_primary_final_suffix(self, final_answer: str) -> bool:
+        """Repair a mixed last partial that already contains progress + final text.
+
+        This is a defensive fallback for provider/event-order edge cases. If a
+        hosted-tool boundary arrived too late for the live renderer, the final
+        answer may already be the suffix of the current partial. Remove only that
+        exact suffix so _prepare_final_part() can persist/replay it as its own
+        authoritative final segment.
+        """
+        final = str(final_answer or "").strip()
+        if not final:
+            return False
+        main = getattr(self.context, "ctx", None)
+        part = self._actor_part("orchestrator", create=False)
+        if main is None or part is None:
+            return False
+        current = str(getattr(part, "output", None) or "")
+        stripped = current.strip()
+        if not stripped or stripped == final or not stripped.endswith(final):
+            return False
+        prefix = stripped[:-len(final)].rstrip()
+        if not prefix:
+            return False
+        part.set_output(prefix)
+        if not isinstance(part.extra, dict):
+            part.extra = {}
+        part.extra.pop("agents_v2_final", None)
+        self.window.core.ctx.update_part(main, part, sync_item=False)
+        self.verbose.log("PRIMARY AGENT MIXED PART REPAIRED", {
+            "part_uuid": getattr(part, "uuid", None),
+            "progress_chars": len(prefix),
+            "final_chars": len(final),
+        })
+        return True
+
     def mark_current_part_final(self):
         """Mark the current orchestrator partial as the authoritative final one."""
         main = getattr(self.context, "ctx", None)
@@ -1483,8 +1962,14 @@ class AgentsV2Runtime:
             return json.dumps({"error": "Worker not found", "id": agent_id})
         if state.busy:
             await self.stop_worker(agent_id)
+        if self.is_swarm_mode and state.generation == 0 and self.swarm_created_workers > 0:
+            # An unlaunched slot can be replaced while still honoring the exact
+            # user-requested swarm size. Launched agents always count permanently.
+            self.swarm_created_workers -= 1
         state.status = WorkerStatus.REMOVED
         self.workers.pop(agent_id, None)
+        self._swarm_worker_numbers.pop(agent_id, None)
+        self._worker_parent_parts.pop(agent_id, None)
         result = {"id": agent_id, "removed": True}
         self.verbose.log("AGENT REMOVED", result, actor=agent_id)
         return json.dumps(result)
@@ -1550,11 +2035,40 @@ class AgentsV2Runtime:
         return "Status updated."
 
     async def finish_workflow(self, final_answer: str) -> str:
-        """Finalize only after the orchestration graph has reached a stable state."""
+        """Legacy compatibility finalizer; not exposed to the Primary Agent."""
         self.verbose_text("WORKFLOW FINISH REQUEST", final_answer)
         if self.finished:
             self.verbose.log("WORKFLOW FINISH REJECTED", "Workflow is already finished.")
             return "Workflow is already finished."
+
+        if self.is_swarm_mode:
+            if self.swarm_expected_workers is None:
+                payload = {
+                    "error": "Swarm workflow cannot finish before its size is declared.",
+                    "action": "Call swarm_start(agent_count=N), launch exactly N workers, then finish the workflow.",
+                }
+                self.verbose.log("WORKFLOW FINISH REJECTED", payload)
+                return json.dumps(payload, ensure_ascii=False)
+            if self.swarm_created_workers != self.swarm_expected_workers:
+                payload = {
+                    "error": "Swarm workflow cannot finish before the declared number of workers has been launched.",
+                    "declared": self.swarm_expected_workers,
+                    "created": self.swarm_created_workers,
+                    "remaining": max(0, self.swarm_expected_workers - self.swarm_created_workers),
+                    "action": "Create/start the remaining workers before calling workflow_finish again.",
+                }
+                self.verbose.log("WORKFLOW FINISH REJECTED", payload)
+                return json.dumps(payload, ensure_ascii=False)
+            if self.swarm_launched_workers != self.swarm_expected_workers:
+                payload = {
+                    "error": "Swarm workflow cannot finish before every declared worker has actually been started.",
+                    "declared": self.swarm_expected_workers,
+                    "launched": self.swarm_launched_workers,
+                    "remaining": max(0, self.swarm_expected_workers - self.swarm_launched_workers),
+                    "action": "Start the remaining created workers before calling workflow_finish again.",
+                }
+                self.verbose.log("WORKFLOW FINISH REJECTED", payload)
+                return json.dumps(payload, ensure_ascii=False)
 
         running = [w for w in self.workers.values() if w.busy]
         never_started = [
@@ -1588,7 +2102,90 @@ class AgentsV2Runtime:
         )
         return "Workflow marked as finished. The runtime will stop the orchestrator now."
 
+    async def start_swarm(self, agent_count: int) -> str:
+        """Declare the exact user-requested Swarm size before worker creation."""
+        if not self.is_swarm_mode:
+            return json.dumps({"error": "swarm_start is available only in Swarm mode."})
+        try:
+            count = int(agent_count)
+        except (TypeError, ValueError):
+            count = 0
+        if count < 1:
+            return json.dumps({
+                "error": "agent_count must be a positive integer.",
+                "action": "Ask the user for a concrete swarm size if it was not specified.",
+            }, ensure_ascii=False)
+        if self.swarm_created_workers:
+            return json.dumps({
+                "error": "Swarm size must be declared before creating workers.",
+                "created": self.swarm_created_workers,
+            }, ensure_ascii=False)
+        if self.swarm_expected_workers is not None and self.swarm_expected_workers != count:
+            return json.dumps({
+                "error": "Swarm size is already declared for this run.",
+                "declared": self.swarm_expected_workers,
+                "requested": count,
+            }, ensure_ascii=False)
+        self.swarm_expected_workers = count
+        self.verbose.log("SWARM START", {"agent_count": count})
+        self._ensure_swarm_reporter()
+        self._emit_swarm_status(force=True)
+        return json.dumps({
+            "mode": "swarm",
+            "declared": count,
+            "created": self.swarm_created_workers,
+            "launched": self.swarm_launched_workers,
+            "message": f"Swarm declared with {count} agents. Create and start exactly {count} numbered workers.",
+        }, ensure_ascii=False)
+
+    async def swarm_status(self) -> str:
+        """Emit and return the current aggregate Swarm snapshot."""
+        if not self.is_swarm_mode:
+            return json.dumps({"error": "swarm_status is available only in Swarm mode."})
+        payload = self._swarm_snapshot()
+        self._emit_swarm_status(force=True)
+        self.verbose.log("SWARM STATUS", payload)
+        return json.dumps(payload, ensure_ascii=False, default=str)
+
+    async def delegate_task(
+            self,
+            task: str,
+            name: str = "Specialist",
+            instruction: str = "",
+            system_prompt: str = "",
+            language: str = "",
+    ) -> str:
+        """Delegate one self-contained task through the reusable agent-as-tool bridge."""
+        return await self.delegate_bridge.delegate_task(
+            task=task,
+            name=name,
+            instruction=instruction,
+            system_prompt=system_prompt,
+            language=language,
+        )
+
+    def primary_agent_tools(self) -> List[FunctionTool]:
+        """Build the Primary Agent surface: normal tools + one agent-as-tool bridge."""
+        tools: List[FunctionTool] = list(
+            self.tool_factory.build_orchestrator(self.primary_actor)
+        )
+        tools.append(FunctionTool.from_defaults(
+            async_fn=self.delegate_task,
+            name="delegate_task",
+            description=(
+                "Delegate one substantial, self-contained subtask to an ephemeral specialist agent. "
+                "The runtime automatically creates the specialist, runs the task, waits for completion, "
+                "returns its final work product/artifacts, and cleans it up. Use this only when separate "
+                "specialist focus, independent review, context isolation, or parallelizable work materially "
+                "improves the result; use normal tools directly for routine execution. Parameters: task "
+                "(required), optional name, instruction, system_prompt and language. language may be omitted "
+                "to inherit the current user-language contract."
+            ),
+        ))
+        return tools
+
     def orchestrator_tools(self) -> List[FunctionTool]:
+        """Build the legacy Orchestrator surface with explicit worker lifecycle tools."""
         tools: List[FunctionTool] = [
             FunctionTool.from_defaults(
                 async_fn=self.create_worker,
@@ -1651,11 +2248,44 @@ class AgentsV2Runtime:
                 ),
             ),
         ]
-        # Orchestrator remains a full PyGPT actor; delegation is a strategy, not a capability boundary.
+        # The Orchestrator remains a full PyGPT actor; delegation is a strategy,
+        # not a capability boundary.
         tools.extend(self.tool_factory.build_orchestrator(self.orchestrator_actor))
         return tools
 
-    def orchestrator_prompt(self) -> str:
+    def swarm_tools(self) -> List[FunctionTool]:
+        """Build Swarm surface: explicit lifecycle plus swarm declaration/status tools."""
+        tools = self.orchestrator_tools()
+        # Insert Swarm-specific controls before the generic lifecycle tools to
+        # make the required declaration/status contract prominent to the model.
+        tools.insert(0, FunctionTool.from_defaults(
+            async_fn=self.swarm_status,
+            name="swarm_status",
+            description=(
+                "Emit and return an aggregate swarm snapshot: declared/created/running/completed/failed/stopped counts "
+                "plus numbered worker activity. Call after launch and at meaningful checkpoints while the swarm runs."
+            ),
+        ))
+        tools.insert(0, FunctionTool.from_defaults(
+            async_fn=self.start_swarm,
+            name="swarm_start",
+            description=(
+                "Declare the exact positive number of workers requested by the user. REQUIRED before any agent_create "
+                "call in Swarm mode. There is no fixed global worker cap; the declared user-requested count becomes "
+                "the exact size of this swarm for the run."
+            ),
+        ))
+        return tools
+
+    def main_agent_tools(self) -> List[FunctionTool]:
+        """Return the tool surface for the selected top-level Agents v2 strategy."""
+        if self.is_swarm_mode:
+            return self.swarm_tools()
+        if self.is_orchestrator_mode:
+            return self.orchestrator_tools()
+        return self.primary_agent_tools()
+
+    def _compose_main_agent_prompt(self, base_prompt: str) -> str:
         # ``context.system_prompt`` is already the final PyGPT system prompt after
         # PRE/POST/POST_PROMPT_END processing. Prefer it over preset.prompt so
         # plugin additions are not lost and the base preset is not duplicated.
@@ -1663,12 +2293,14 @@ class AgentsV2Runtime:
         if not additional and self.preset is not None:
             additional = str(getattr(self.preset, "prompt", "") or "").strip()
         capabilities = [
+            f"agent_mode={self.agent_mode.value}",
             f"selected_model={getattr(self.model, 'id', '')}",
             f"allow_local_tools={self.allow_local_tools}",
+            f"allow_remote_tools={self.allow_remote_tools}",
             f"rag_index={self.index_id or 'none'}",
             f"rag_prefetched_context={'yes' if self.rag_context_text else 'no'}",
             f"shared_attachment_context={'yes' if self.shared_context_text else 'no'}",
-            f"max_parallel_workers={self.MAX_WORKERS}",
+            f"max_parallel_workers={'user_defined_unbounded' if self.is_swarm_mode else self.MAX_WORKERS}",
         ]
         runtime_environment = ""
         if self.runtime_system_context and self.runtime_system_context not in additional:
@@ -1680,17 +2312,37 @@ class AgentsV2Runtime:
         rag_context = self._rag_prompt_context()
         if rag_context:
             rag_context = "\n\n" + rag_context
-        prompt = (
-            ORCHESTRATOR_BASE_PROMPT
+        return (
+            base_prompt
             + "\n\n<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
             + runtime_environment
             + rag_context
             + "\n\n<additional_system_prompt>\n" + additional + "\n</additional_system_prompt>"
         )
-        return prompt
+
+    def primary_agent_prompt(self) -> str:
+        return self._compose_main_agent_prompt(PRIMARY_AGENT_BASE_PROMPT)
+
+    def orchestrator_prompt(self) -> str:
+        return self._compose_main_agent_prompt(ORCHESTRATOR_BASE_PROMPT)
+
+    def swarm_prompt(self) -> str:
+        return self._compose_main_agent_prompt(SWARM_BASE_PROMPT)
+
+    def main_agent_prompt(self) -> str:
+        """Return the system prompt for the selected top-level strategy."""
+        if self.is_swarm_mode:
+            return self.swarm_prompt()
+        if self.is_orchestrator_mode:
+            return self.orchestrator_prompt()
+        return self.primary_agent_prompt()
 
     async def cleanup(self):
         self.verbose.log("CLEANUP BEGIN", [w.public_dict() for w in self.workers.values()])
+        if self._swarm_reporter_task is not None:
+            self._swarm_reporter_task.cancel()
+            await asyncio.gather(self._swarm_reporter_task, return_exceptions=True)
+            self._swarm_reporter_task = None
         for state in list(self.workers.values()):
             if state.task and not state.task.done():
                 state.stop_requested = True
@@ -1699,6 +2351,7 @@ class AgentsV2Runtime:
         if pending:
             await asyncio.gather(*pending, return_exceptions=True)
         self.workers.clear()
+        self._swarm_worker_numbers.clear()
         self._worker_parent_parts.clear()
         self._stored_worker_context_runs.clear()
         self.verbose.log("CLEANUP END", {"workers": 0, "finished": self.finished})

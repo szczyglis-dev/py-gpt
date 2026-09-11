@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 19:25:00
+# Updated Date: 2026.09.11 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -26,6 +26,10 @@ from pygpt_net.core.types import (
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
+
+
+AGENT_V2_MODE_CONFIG_KEY = "agent.v2.mode"
+AGENT_V2_MODE_DEFAULT = "chat"
 
 
 class Mode:
@@ -62,6 +66,28 @@ class Mode:
         is_audio = mode == MODE_AUDIO
 
         ctrl.ui.hide_input_extra()
+
+        # Agents v2 strategy selector lives below the system prompt. Keep it
+        # hidden in every other app mode and re-sync it from config whenever the
+        # toolbox mode is refreshed (e.g. after profile/config changes).
+        agent_v2_mode_widget = ui_nodes.get('agent.v2.mode.widget')
+        agent_v2_mode_combo = ui_nodes.get('agent.v2.mode')
+        if agent_v2_mode_widget is not None:
+            agent_v2_mode_widget.setVisible(is_agent_v2)
+        if is_agent_v2 and agent_v2_mode_combo is not None:
+            configured_agent_mode = str(
+                self.window.core.config.get(AGENT_V2_MODE_CONFIG_KEY, AGENT_V2_MODE_DEFAULT)
+                or AGENT_V2_MODE_DEFAULT
+            ).strip().lower()
+            if configured_agent_mode in ("primary", "primary_agent", "primary-agent"):
+                configured_agent_mode = "chat"
+            idx = agent_v2_mode_combo.findData(configured_agent_mode)
+            if idx < 0:
+                idx = agent_v2_mode_combo.findData(AGENT_V2_MODE_DEFAULT)
+            if idx >= 0 and idx != agent_v2_mode_combo.currentIndex():
+                blocked = agent_v2_mode_combo.blockSignals(True)
+                agent_v2_mode_combo.setCurrentIndex(idx)
+                agent_v2_mode_combo.blockSignals(blocked)
 
         # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
         if not is_agent_openai and not is_agent_llama:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:00:00                  #
+# Updated Date: 2026.09.11 11:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ class WorkerToolFactory:
     RESERVED = {
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
-        "report_status", "shared_context", "query_index",
+        "delegate_task", "report_status", "shared_context", "query_index", "swarm_start", "swarm_status",
     }
 
     def __init__(self, runtime):
@@ -54,9 +54,10 @@ class WorkerToolFactory:
             async_fn=report_status,
             name="report_status",
             description=(
-                "Report a short INTERMEDIATE activity/progress status to the Orchestrator and the user's transient "
-                "status line. Use this before meaningful or potentially long phases. Do not use report_status to "
-                "announce final completion; when work is complete, return the final worker response directly."
+                f"Report a short INTERMEDIATE activity/progress status to the {self.runtime.main_agent_name} "
+                "and the user's transient status line. Use this before meaningful or potentially long phases. "
+                "Do not use report_status to announce final completion; when work is complete, return the final "
+                "worker response directly."
             ),
         ))
         tools.append(FunctionTool.from_defaults(
@@ -75,7 +76,7 @@ class WorkerToolFactory:
         return tools
 
     def build_orchestrator(self, actor) -> List[BaseTool]:
-        """Expose normal PyGPT capabilities to the orchestrator; delegation remains optional."""
+        """Expose normal PyGPT capabilities directly to the selected main agent."""
         tools: List[BaseTool] = []
         if self.runtime.allow_local_tools and self.window.core.command.is_cmd(inline=False):
             tools.extend(self._plugin_tools(actor))

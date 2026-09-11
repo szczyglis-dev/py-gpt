@@ -44,11 +44,10 @@ class RuntimeEmitter:
         self._stream_emit_interval = 0.04
         self._stream_emit_chars = 512
         self._stream_flush_handle = None
-        # ``workflow_finish`` receives the complete final answer as a tool
-        # argument, so there are no provider token deltas left to forward at
-        # that point. When UI streaming is enabled, replay that authoritative
-        # final text through the normal AGENT_V2_APPEND stream in small chunks
-        # instead of emitting one monolithic append.
+        # Fallback finalization may receive an already-materialized final answer
+        # (for example when a provider does not expose usable stream deltas).
+        # When UI streaming is enabled, replay that authoritative text through
+        # AGENT_V2_APPEND in small chunks instead of one monolithic append.
         self._final_stream_enabled = bool(getattr(context, "stream", False))
         self._final_stream_chunk_chars = 24
         self._final_stream_delay = 0.015
@@ -162,7 +161,7 @@ class RuntimeEmitter:
         self.text = ""
         self.final_started = True
 
-        # Explicit UI barrier: clear the working orchestrator draft and all
+        # Explicit UI barrier: clear the working Primary Agent draft and all
         # transient status rows before any final-answer text is emitted. The
         # corresponding main-thread handler also drops renderer micro-buffers.
         self._emit(getattr(KernelEvent, "AGENT_V2_FINAL_BEGIN", "kernel.agent_v2.final_begin"))
@@ -205,10 +204,9 @@ class RuntimeEmitter:
     async def stream_final(self, text: Optional[str], part_uuid: Optional[str] = None):
         """Emit the authoritative final answer incrementally when streaming is enabled.
 
-        ``workflow_finish`` receives a complete final-answer tool argument, so the
-        provider has already finished producing that argument. This method keeps
-        the user-facing Agents v2 contract consistent with Chat streaming by
-        forwarding the final answer through the same live append pipeline in
+        This is the fallback path for an already-materialized authoritative final
+        answer. It keeps the user-facing Agents v2 contract consistent with Chat
+        streaming by forwarding the text through the same live append pipeline in
         ordered Markdown-safe chunks.
         """
         final = self._begin_final(text)

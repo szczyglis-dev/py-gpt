@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 11:36:00
+# Updated Date: 2026.09.11 11:00:00                  #
 # ================================================== #
 
 import copy
@@ -650,6 +650,13 @@ class Patch:
                 print("Migrating config from < 2.8.14...")
                 patch_css('style.light.css', True)
                 updated = True
+
+            # < 2.8.15
+            if old < parse_version("2.8.15"):
+                print("Migrating config from < 2.8.15...")
+                if "agent.v2.mode" not in data:
+                    data["agent.v2.mode"] = cfg_get_base("agent.v2.mode")
+                    updated = True
 
         # update file
         migrated = False

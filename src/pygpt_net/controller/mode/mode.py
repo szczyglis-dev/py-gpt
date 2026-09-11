@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 21:40:00
+# Updated Date: 2026.09.11 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
@@ -19,7 +19,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-AGENTS2_IS_BETA = True
+AGENTS2_IS_BETA = False
 
 
 class Mode:

@@ -37,15 +37,23 @@ class AgentOpenAIResponses(OpenAIResponses):
 
     _pygpt_urls: list[str] = PrivateAttr(default_factory=list)
     _pygpt_runtime: Any = PrivateAttr(default=None)
+    _pygpt_actor_id: str = PrivateAttr(default="orchestrator")
+    _pygpt_remote_call_keys: set[str] = PrivateAttr(default_factory=set)
 
     def bind_computer_runtime(self, runtime):
         """Bind a PyGPT runtime that can execute provider-native Computer Use."""
         self._pygpt_runtime = runtime
         return self
 
-    def bind_agents_v2_runtime(self, runtime):
-        """Backward-compatible Agents v2 binder."""
-        return self.bind_computer_runtime(runtime)
+    def bind_agents_v2_actor(self, actor_id: str = "orchestrator"):
+        self._pygpt_actor_id = str(actor_id or "orchestrator")
+        return self
+
+    def bind_agents_v2_runtime(self, runtime, actor_id: str = "orchestrator"):
+        """Bind Agents v2 runtime and the logical actor owning this LLM."""
+        self.bind_computer_runtime(runtime)
+        self.bind_agents_v2_actor(actor_id)
+        return self
 
     @staticmethod
     def _get(value: Any, key: str, default=None):
@@ -146,9 +154,83 @@ class AgentOpenAIResponses(OpenAIResponses):
             # URL capture is metadata-only and must never break agent execution.
             pass
 
+    @classmethod
+    def _provider_tool_from_item(cls, item: Any) -> tuple[str, str]:
+        """Return (tool_name, stable_call_key) for a provider-native Responses item."""
+        if item is None:
+            return "", ""
+        item_type = str(cls._get(item, "type", "") or "").strip().lower()
+        if not item_type or item_type == "function_call":
+            return "", ""
+
+        # Hosted/provider-side calls use *_call item types. Keep this future-safe
+        # while excluding ordinary local function calls handled by FunctionAgent.
+        hosted = (
+            item_type.endswith("_call")
+            or item_type in {"mcp_call", "computer_call"}
+        )
+        if not hosted:
+            return "", ""
+
+        tool_name = item_type[:-5] if item_type.endswith("_call") else item_type
+        aliases = {
+            "web_search": "web_search",
+            "file_search": "file_search",
+            "code_interpreter": "code_interpreter",
+            "image_generation": "image_generation",
+            "computer": "computer_use",
+            "mcp": "mcp",
+        }
+        tool_name = aliases.get(tool_name, tool_name or "remote_tool")
+        call_id = (
+            cls._get(item, "call_id", "")
+            or cls._get(item, "id", "")
+            or cls._get(item, "output_index", "")
+        )
+        key = f"{item_type}:{call_id}" if call_id not in (None, "") else item_type
+        return tool_name, str(key)
+
+    def _capture_provider_tool_boundary(self, response: ChatResponse) -> None:
+        """Report hosted-tool boundaries that LlamaIndex does not emit as ToolCall events.
+
+        The Responses stream exposes provider-native tools as raw output-item
+        events/additional metadata. FunctionAgent only emits ToolCall for local
+        functions, so Agents v2 otherwise cannot split pre-tool progress prose
+        from the post-tool final answer.
+        """
+        runtime = self._pygpt_runtime
+        if runtime is None:
+            return
+
+        candidates = []
+        raw = getattr(response, "raw", None)
+        raw_item = self._get(raw, "item", None)
+        if raw_item is not None:
+            candidates.append(raw_item)
+
+        # Non-streaming/fallback responses expose completed hosted calls here.
+        for value in (getattr(response, "additional_kwargs", None) or {}).get(
+                "built_in_tool_calls", []
+        ) or []:
+            candidates.append(self._get(value, "item", value))
+
+        for item in candidates:
+            tool_name, key = self._provider_tool_from_item(item)
+            if not tool_name or not key or key in self._pygpt_remote_call_keys:
+                continue
+            self._pygpt_remote_call_keys.add(key)
+            callback = getattr(runtime, "note_provider_tool_activity", None)
+            if callable(callback):
+                callback(
+                    tool_name,
+                    actor=self._pygpt_actor_id,
+                    call_id=key,
+                )
+
     def _prepare_response(self, response: ChatResponse) -> ChatResponse:
         raw = getattr(response, "raw", None)
         self._capture_raw_urls(raw)
+        self._capture_provider_tool_boundary(response)
 
         try:
             from pygpt_net.provider.api.openai.utils import (
