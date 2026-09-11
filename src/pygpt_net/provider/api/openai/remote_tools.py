@@ -136,7 +136,11 @@ class RemoteTools:
             tools.append(self.window.core.api.openai.computer.get_tool())
 
         if not dedicated_computer:
-            if model.id not in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH and enabled["web_search"]:
+            if (
+                    model.id not in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH
+                    and enabled["web_search"]
+                    and self.window.controller.chat.remote_tools.supported(model, "web_search")
+            ):
                 tools.append({"type": "web_search_preview"})
 
             if model.id not in OPENAI_REMOTE_TOOL_DISABLE_CODE_INTERPRETER and enabled["code_interpreter"]:

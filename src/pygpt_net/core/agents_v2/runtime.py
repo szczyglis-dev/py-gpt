@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 16:35:00                  #
+# Updated Date: 2026.09.11 17:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -65,6 +65,11 @@ class AgentsV2Runtime:
     # often than this interval unless explicitly requested through swarm_status.
     SWARM_STATUS_INTERVAL = 4.0
 
+    # Keep the aggregate Swarm row readable when single-live-status mode is used.
+    # This is a UI-only hold: execution continues and newer statuses are coalesced
+    # by RuntimeEmitter until the visibility window expires.
+    SWARM_STATUS_MIN_VISIBLE = 2.5
+
     # Fallback default for the Settings option ``agent.v2.show_tool_chain``.
     # When enabled, normal tool calls made anywhere in the Agents v2 flow are
     # exported to the main conversation CtxItem under ``ctx.extra["tool_calls"]``
@@ -86,6 +91,7 @@ class AgentsV2Runtime:
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
         "delegate_task", "report_status", "shared_context", "swarm_start", "swarm_status",
     }
+    _STATUS_ONLY_TOOLS = {"report_status", "workflow_status", "swarm_status"}
 
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window
@@ -376,6 +382,14 @@ class AgentsV2Runtime:
         if isinstance(event, (AgentStream, AgentOutput)):
             self.collect_llm_artifacts(response=event, actor_id=actor)
         if isinstance(event, ToolCall):
+            tool_name = str(self._tool_event_value(event, "tool_name", "name", "tool") or "").strip()
+            if tool_name and tool_name not in self._STATUS_ONLY_TOOLS:
+                if actor == "orchestrator":
+                    self.emit_runtime_status("status.agent_v2.tool", tool=tool_name)
+                else:
+                    worker = self.workers.get(actor)
+                    if worker is not None:
+                        self.emit_runtime_status("status.agent_v2.tool", worker=worker, tool=tool_name)
             # A local/function tool call is also a Primary Agent prose boundary.
             # Keep this runtime-side segmentation independent of DB/UI timing.
             if actor == "orchestrator":
@@ -388,9 +402,21 @@ class AgentsV2Runtime:
             self.record_tool_call(event, actor=actor)
             self.verbose.log("TOOL CALL", event, actor=actor)
         elif isinstance(event, ToolCallResult):
+            tool_name = str(self._tool_event_value(event, "tool_name", "name", "tool") or "").strip()
             self.record_tool_result(event, actor=actor)
             if actor == "orchestrator":
                 self._actor_needs_new_part["orchestrator"] = True
+                # A provider/model pass after a tool result may spend noticeable
+                # time before yielding the next event. Do not label that gap as
+                # ``Planning task...`` because it is often simply TTFT for the
+                # final answer. Show the neutral request spinner instead. The
+                # renderer hides it on the next real text/tool/status activity.
+                if tool_name not in self._STATUS_ONLY_TOOLS:
+                    self.emitter.show_loading()
+            else:
+                worker = self.workers.get(actor)
+                if worker is not None and tool_name not in self._STATUS_ONLY_TOOLS:
+                    self.emit_runtime_status("status.agent_v2.planning", worker=worker)
             self.verbose.log("TOOL RESULT", event, actor=actor)
         elif isinstance(event, AgentStream):
             delta = getattr(event, "delta", None)
@@ -1234,7 +1260,7 @@ class AgentsV2Runtime:
             # In single-live-status mode the aggregate remains one replaceable
             # status row, but each active worker is rendered on its own line.
             # The legacy accumulating timeline keeps the old inline `` | `` form.
-            activity_text = ("\n" if single_live_status else " | ") + activity_text
+            activity_text = ("\n\n" if single_live_status else " | ") + activity_text
         template = self.translated_status(
             "status.agent_v2.swarm.summary",
             declared=snapshot["declared"] or 0,
@@ -1265,7 +1291,16 @@ class AgentsV2Runtime:
         self._last_swarm_status_at = now
         text = self._swarm_status_text()
         self.verbose.log("SWARM STATUS AUTO", self._swarm_snapshot())
-        self.emitter.status(text, source="orchestrator")
+        hold_for = (
+            self.SWARM_STATUS_MIN_VISIBLE
+            if bool(self.window.core.config.get("agent.v2.single_status.live", True))
+            else 0.0
+        )
+        self.emitter.status(
+            text,
+            source="orchestrator",
+            hold_for=hold_for,
+        )
 
     def _ensure_swarm_reporter(self):
         if not self.is_swarm_mode or self.finished:

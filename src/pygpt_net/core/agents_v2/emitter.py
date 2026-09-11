@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:00:00                  #
+# Updated Date: 2026.09.11 17:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -36,6 +36,12 @@ class RuntimeEmitter:
         self._pending_part_uuid = None
         self._last_emitted_part_uuid = None
         self.final_started = False
+        # A status may request a short UI-only minimum visibility window. Newer
+        # statuses are coalesced and emitted after that window instead of replacing
+        # the current row immediately. This never delays agent/tool execution.
+        self._status_hold_until = 0.0
+        self._status_hold_handle = None
+        self._pending_status = None
         # Keep high-frequency model deltas off the Qt event queue. The Web renderer
         # already batches JS work, but without this layer every token still crossed
         # the Qt signal boundary and triggered Python-side response handling/DB work.
@@ -279,7 +285,81 @@ class RuntimeEmitter:
         self.clear_status()
         self.final_started = True
 
-    def status(self, text: Optional[str], source: str = "orchestrator"):
+    def _cancel_status_hold(self, drop_pending: bool = True):
+        handle = self._status_hold_handle
+        self._status_hold_handle = None
+        if handle is not None:
+            try:
+                handle.cancel()
+            except Exception:
+                pass
+        self._status_hold_until = 0.0
+        if drop_pending:
+            self._pending_status = None
+
+    def _emit_status_now(self, value: str, source: str, hold_for: float = 0.0):
+        if value == self.status_text:
+            # Repeated aggregate refreshes do not need another Qt/JS event, but
+            # they may renew the requested UI hold window.
+            if value and hold_for > 0:
+                self._status_hold_until = max(
+                    self._status_hold_until,
+                    time.monotonic() + float(hold_for),
+                )
+            return
+        self.status_text = value
+        self.begin()
+        self._emit(
+            KernelEvent.AGENT_V2_STATUS,
+            status=value,
+            source=source,
+        )
+        if value and hold_for > 0:
+            self._status_hold_until = time.monotonic() + float(hold_for)
+
+    def _flush_held_status(self):
+        self._status_hold_handle = None
+        if self._finished or self.final_started:
+            self._pending_status = None
+            self._status_hold_until = 0.0
+            return
+        now = time.monotonic()
+        if self._status_hold_until > now:
+            self._schedule_status_hold_flush()
+            return
+        pending = self._pending_status
+        self._pending_status = None
+        self._status_hold_until = 0.0
+        if pending is not None:
+            value, source, hold_for = pending
+            self._emit_status_now(value, source, hold_for)
+
+    def _schedule_status_hold_flush(self):
+        if self._status_hold_handle is not None:
+            return
+        delay = max(0.0, self._status_hold_until - time.monotonic())
+        try:
+            loop = asyncio.get_running_loop()
+            self._status_hold_handle = loop.call_later(
+                delay,
+                self._flush_held_status,
+            )
+        except RuntimeError:
+            # Isolated/unit callers may not own an asyncio loop. Do not block them
+            # just to preserve a visual hold; emit the newest pending status now.
+            pending = self._pending_status
+            self._pending_status = None
+            self._status_hold_until = 0.0
+            if pending is not None:
+                value, source, hold_for = pending
+                self._emit_status_now(value, source, hold_for)
+
+    def status(
+            self,
+            text: Optional[str],
+            source: str = "orchestrator",
+            hold_for: float = 0.0,
+    ):
         if self._finished:
             return
         self._flush_stream()
@@ -290,18 +370,46 @@ class RuntimeEmitter:
         # the same final-mode guard as a second line of defence.
         if self.final_started and value:
             return
-        if value == self.status_text:
+
+        # Empty status is an authoritative cleanup barrier (final begin, stop, end).
+        # Never make final output wait for a visual minimum-duration status.
+        if not value:
+            self._cancel_status_hold(drop_pending=True)
+            self._emit_status_now("", source, 0.0)
             return
-        self.status_text = value
-        self.begin()
-        self._emit(
-            KernelEvent.AGENT_V2_STATUS,
-            status=value,
-            source=source,
-        )
+
+        now = time.monotonic()
+        if self._status_hold_until > now:
+            # Coalesce rapid status churn while the current row is guaranteed to
+            # remain visible. Only the newest pending value matters for the UI.
+            self._pending_status = (value, source, max(0.0, float(hold_for or 0.0)))
+            self._schedule_status_hold_flush()
+            return
+
+        # The hold expired before its timer ran; the newest incoming status wins.
+        self._cancel_status_hold(drop_pending=True)
+        self._emit_status_now(value, source, max(0.0, float(hold_for or 0.0)))
 
     def clear_status(self):
         self.status("")
+
+    def show_loading(self):
+        """Show the neutral request spinner while waiting for the next agent event.
+
+        This is intentionally separate from workflow statuses: after a tool result
+        the model may be preparing the final answer (or another pass), and showing
+        a semantic status such as ``Planning task...`` is misleading. The renderer
+        hides this spinner automatically on the next real text/tool/status activity.
+        """
+        if self._finished or self.final_started or self.signals is None:
+            return
+        self.clear_status()
+        data = {"id": "chat"}
+        ctx = getattr(self.context, "ctx", None)
+        meta = getattr(ctx, "meta", None)
+        if meta is not None:
+            data["meta"] = meta
+        self.signals.response.emit(KernelEvent(KernelEvent.STATE_BUSY, data))
 
     async def execute_plugin(self, tool_ctx, cmds, stopped_cb):
         """Await a PyGPT plugin without blocking the Qt GUI thread.
@@ -348,6 +456,7 @@ class RuntimeEmitter:
         if final_answer and not self.final_started:
             self.start_final(final_answer, part_uuid=part_uuid)
         self._flush_stream()
+        self._cancel_status_hold(drop_pending=True)
         self._finished = True
         self._emit(
             KernelEvent.AGENT_V2_END,

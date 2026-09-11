@@ -29,7 +29,7 @@ import pygpt_net.fonts_rc
 class Body:
 
     NUM_TIPS = 13
-    EXTRA_ITEMS_VISIBLE_LIMIT = 10
+    EXTRA_ITEMS_VISIBLE_LIMIT = 5
 
     # User input auto-collapse threshold and collapsed max height (pixels).
     # Set to 0 to disable automatic collapsing.

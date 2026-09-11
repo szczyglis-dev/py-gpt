@@ -58,7 +58,11 @@ class RemoteTools:
             return [s.strip() for s in str(raw).split(",") if s.strip()]
 
         # --- Web Search (server tool) ---
-        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")
+        remote_tools = self.window.controller.chat.remote_tools
+        is_web = (
+            remote_tools.enabled(model, "web_search")
+            and remote_tools.supported(model, "web_search")
+        )
         if is_web:
             ttype = cfg.get("remote_tools.anthropic.web_search.type", "web_search_20250305")
             tname = "web_search"

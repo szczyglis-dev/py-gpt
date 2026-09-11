@@ -15,6 +15,35 @@ from pygpt_net.item.model import ModelItem
 
 
 class RemoteTools:
+    # Remote Web Search capability is intentionally blacklist-based.  Known
+    # legacy model families are blocked, while unknown/future models are
+    # assumed to support the provider-native web tool.  This avoids having to
+    # update PyGPT every time a provider publishes a new model.
+    WEB_SEARCH_UNSUPPORTED_EXACT = {
+        "openai": {
+            "gpt-4",
+            "codex-mini-latest",
+        },
+    }
+    WEB_SEARCH_UNSUPPORTED_PREFIXES = {
+        "openai": (
+            "gpt-3.5-",
+            "gpt-4-",  # legacy GPT-4 snapshots/turbo; does not match gpt-4o/gpt-4.1
+            "o1",
+            "o3",
+        ),
+        "anthropic": (
+            "claude-3-5",
+        ),
+        "x_ai": (
+            "grok-3",
+        ),
+        "google": (
+            "gemini-1.0",
+            "models/gemini-1.0",
+        ),
+    }
+
     def __init__(self, window=None):
         """
         Remote tools controller
@@ -51,6 +80,38 @@ class RemoteTools:
         if tool_name == "web_search":
             return self.is_web(model)
         return False
+
+    def supported(self, model: Union[ModelItem, str], tool_name: str) -> bool:
+        """Return whether a model supports the selected provider-native tool.
+
+        The Web Search check is deliberately forward-compatible: only known
+        unsupported legacy families are rejected.  Unknown/new model IDs are
+        accepted by default so they can use remote Web Search without waiting
+        for a PyGPT model-registry update.
+
+        :param model: ModelItem or model name
+        :param tool_name: Tool name
+        :return: True if the remote tool may be used
+        """
+        if isinstance(model, str):
+            model = self.window.core.models.get(model)
+        if not model:
+            return False
+        if tool_name != "web_search":
+            return True
+
+        provider = str(getattr(model, "provider", "") or "").lower()
+        model_id = str(getattr(model, "id", "") or "").strip().lower()
+        if not model_id:
+            return False
+
+        exact = self.WEB_SEARCH_UNSUPPORTED_EXACT.get(provider, set())
+        if model_id in exact:
+            return False
+        prefixes = self.WEB_SEARCH_UNSUPPORTED_PREFIXES.get(provider, ())
+        if any(model_id.startswith(prefix) for prefix in prefixes):
+            return False
+        return True
 
     def is_web(self, model: ModelItem) -> bool:
         """

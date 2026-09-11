@@ -143,7 +143,11 @@ class RemoteTools:
         tools: list = []
         cfg = self.window.core.config
         model_id = (model.id if model and getattr(model, "id", None) else "").lower()
-        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # get global config
+        remote_tools = self.window.controller.chat.remote_tools
+        is_web = (
+            remote_tools.enabled(model, "web_search")
+            and remote_tools.supported(model, "web_search")
+        )
 
         # Google Search tool
         if is_web and "image" not in model.id:

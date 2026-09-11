@@ -228,7 +228,11 @@ class Remote:
         :return: Dict with 'sdk' and 'http' keys
         """
         cfg = self.window.core.config
-        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")  # get global config
+        remote_tools = self.window.controller.chat.remote_tools
+        is_web = (
+            remote_tools.enabled(model, "web_search")
+            and remote_tools.supported(model, "web_search")
+        )
         mode = "on" if is_web else "off"
 
         # sources toggles
@@ -288,7 +292,10 @@ class Remote:
         tools: List[dict] = []
         include: List[str] = []
 
-        is_web_enabled = enabled_global(model, "web_search")
+        is_web_enabled = (
+            enabled_global(model, "web_search")
+            and self.window.controller.chat.remote_tools.supported(model, "web_search")
+        )
         is_x_enabled = bool(cfg.get("remote_tools.xai.x_search", False))
         is_code_enabled = bool(cfg.get("remote_tools.xai.code_execution", False))
         is_mcp_enabled = bool(cfg.get("remote_tools.xai.mcp", False))
@@ -399,7 +406,10 @@ class Remote:
         enabled_global = self.window.controller.chat.remote_tools.enabled
 
         # Toggles
-        is_web_enabled = enabled_global(model, "web_search")
+        is_web_enabled = (
+            enabled_global(model, "web_search")
+            and self.window.controller.chat.remote_tools.supported(model, "web_search")
+        )
         is_x_enabled = bool(cfg.get("remote_tools.xai.x_search", False))
         is_code_enabled = bool(cfg.get("remote_tools.xai.code_execution", False))
         is_mcp_enabled = bool(cfg.get("remote_tools.xai.mcp", False))
