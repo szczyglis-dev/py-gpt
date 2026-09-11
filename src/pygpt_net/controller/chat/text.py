@@ -179,8 +179,6 @@ class Text:
             ctx.extra["sub_reply"] = True  # mark as sub reply in extra data
 
         controller.files.reset()  # clear uploaded files IDs
-        if continuation_parent is None:
-            controller.ctx.store_history(ctx, "input")  # store only the user-visible turn input
         controller.chat.log_ctx(ctx, "input")  # log
 
         # assistant: create thread, upload attachments

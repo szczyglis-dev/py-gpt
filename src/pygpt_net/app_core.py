@@ -30,7 +30,6 @@ from .core.experts import Experts
 from .core.idx import Idx
 from .core.installer import Installer
 from .core.filesystem import Filesystem
-from .core.history import History
 from .core.image import Image
 from .core.llm import LLM
 from .core.models import Models
@@ -82,7 +81,6 @@ class Core:
         self.dispatcher = Dispatcher(window)
         self.experts = Experts(window)
         self.filesystem = Filesystem(window)
-        self.history = History(window)
         self.idx = Idx(window)
         self.image = Image(window)
         self.llm = LLM(window)

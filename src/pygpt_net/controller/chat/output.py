@@ -203,8 +203,6 @@ class Output:
         core.ctx.store()
 
         controller.ctx.update_ctx()
-        controller.ctx.store_history(ctx, "output")  # store to history
-
         controller.chat.audio.handle_output(ctx)  # handle audio output
         controller.chat.common.auto_unlock(ctx)  # unlock input if allowed
         if mode != MODE_AUDIO:

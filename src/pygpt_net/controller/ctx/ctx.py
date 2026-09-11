@@ -671,8 +671,6 @@ class Ctx:
                 print("Error deleting ctx data from indexes", e)
 
             if self.window.core.ctx.get_current() == id:
-                items = self.window.core.ctx.all()  # TODO: get by meta id(s)
-                self.window.core.history.remove_items(items)
                 updated_current = True
             self.window.core.attachments.context.delete_by_meta_id(id)
             self.window.core.ctx.remove(id)
@@ -865,7 +863,6 @@ class Ctx:
         self.group_id = None
         self.unselect()
         self.window.core.ctx.truncate()
-        self.window.core.history.truncate()
         self.window.core.attachments.context.truncate()
         self.clear_selected()
         self.update()
@@ -898,7 +895,6 @@ class Ctx:
         self.group_id = None
         self.unselect()
         self.window.core.ctx.truncate()
-        self.window.core.history.truncate()
         self.window.core.ctx.truncate_groups()
         self.window.core.attachments.context.truncate()
         self.clear_selected()
@@ -1621,20 +1617,6 @@ class Ctx:
                 self.window.controller.chat.log("Calling for prepare context name...")
                 self.prepare_name(ctx)  # async
                 return True
-        return False
-
-    def store_history(self, ctx: CtxItem, type: str) -> bool:
-        """
-        Store ctx in history if enabled
-
-        :param ctx: CtxItem
-        :param type: input|output
-        :return: Tru if stored
-        """
-        # store to history
-        if self.window.core.config.get('store_history'):
-            self.window.core.history.append(ctx, type)
-            return True
         return False
 
     def reload(self):
