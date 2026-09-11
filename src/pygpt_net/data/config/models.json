@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.8.14",
-        "app.version": "2.8.14",
-        "updated_at": "2026-09-10T15:18:00"
+        "version": "2.8.15",
+        "app.version": "2.8.15",
+        "updated_at": "2026-09-11T15:18:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
