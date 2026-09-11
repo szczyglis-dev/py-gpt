@@ -521,7 +521,7 @@ Event debug logging
 
 Event flow can be inspected by enabling:
 
-``Config -> Settings -> Debug -> Log and debug events``
+``Config -> Settings -> Debug -> Log events``
 
 Adding a custom GUI Tool
 ------------------------

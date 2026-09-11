@@ -671,6 +671,22 @@ class Patch:
             if old < parse_version("2.8.16"):
                 print("Migrating config from < 2.8.16...")
 
+                # 2.8.16 UI/runtime defaults. These are intentional resets, not
+                # only missing-key fills: old profiles used values that are no
+                # longer the application defaults.
+                if data.get("render.msg.user.collapse.px") != 230:
+                    data["render.msg.user.collapse.px"] = 230
+                    updated = True
+
+                # The Blocks web style and TXT history export were removed.
+                if data.get("theme.style") == "blocks":
+                    data["theme.style"] = "chatgpt"
+                    updated = True
+                for key in ("store_history", "store_history_time"):
+                    if key in data:
+                        del data[key]
+                        updated = True
+
                 # Experts are always executed through the Agents v2 runtime now,
                 # so the old implementation toggle no longer has any effect.
                 if "experts.use_agent" in data:

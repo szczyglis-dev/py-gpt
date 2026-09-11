@@ -90,7 +90,7 @@ To use the ``RAG`` mode, the file must be indexed in the vector database. This o
 
 **Embeddings**
 
-When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: ``Config -> Settings -> Files and Attachments``. You can also choose the embedding models for specified providers in ``Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding providers for attachments`` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: ``Config -> Settings -> Files and Attachments``. You can also choose the embedding models for specified providers in ``Config -> Settings -> Indexes / RAG -> Embeddings -> Default embedding providers for attachments`` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
 
 For example, if the RAG query model is ``gpt-4o-mini``, then the default model for the provider ``OpenAI`` will be used. If the default model for ``OpenAI`` is not specified on the list, the global provider and model will be used.
 
@@ -103,7 +103,7 @@ The active ``data`` directory is also where the application stores files generat
 
 The ``Files I/O`` and ``Code interpreter (v2)`` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as ``/data``.
 
-If ``Settings -> Files and attachments -> Store images, captures, and uploads in the data directory`` is enabled, ``img``, ``capture`` and ``upload`` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. The internal ``tmp`` directory always remains in the base profile workdir.
+If ``Settings -> Files and attachments -> Store images, captures, and uploads in the workdir data directory`` is enabled, ``img``, ``capture`` and ``upload`` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. The internal ``tmp`` directory always remains in the base profile workdir.
 
 .. image:: images/v2_file_output.png
    :width: 800

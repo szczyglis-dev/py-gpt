@@ -46,7 +46,9 @@ class Video:
         option_duration = self.window.core.video.get_duration_option()
 
         conf_global['video.aspect_ratio'] = OptionCombo(self.window, 'global', 'video.aspect_ratio', option_ratio)
+        conf_global['video.aspect_ratio'].setToolTip(trans('settings.video.aspect_ratio.desc'))
         conf_global['video.resolution'] = OptionCombo(self.window, 'global', 'video.resolution', option_resolution)
+        conf_global['video.resolution'].setToolTip(trans('settings.video.resolution.desc'))
         conf_global['video.duration'] = OptionInput(self.window, 'global', 'video.duration', option_duration)
         conf_global['video.duration'].setToolTip(trans('settings.video.duration.desc'))
 

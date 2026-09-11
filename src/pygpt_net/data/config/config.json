@@ -491,7 +491,7 @@
   "render.code_syntax.stream_n_line": 5,
   "render.engine": "web",
   "render.memory.limit": "2.5GB",
-  "render.msg.user.collapse.px": 1500,
+  "render.msg.user.collapse.px": 230,
   "render.open_gl": true,
   "render.plain": false,
   "security.commands.blacklist.linux": "",
@@ -506,8 +506,6 @@
   "security.filesystem.write.restrict": true,
   "send_clear": true,
   "send_mode": 1,
-  "store_history": true,
-  "store_history_time": true,
   "stream": true,
   "tabs.data": {
     "0": {

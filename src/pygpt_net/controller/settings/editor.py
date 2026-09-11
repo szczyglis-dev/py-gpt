@@ -220,30 +220,6 @@ class Editor:
         if self.config_changed('access.shortcuts'):
             self.window.setup_global_shortcuts()
 
-        # video: resolution
-        if self.config_changed('video.resolution'):
-            value = self.window.core.config.get('video.resolution')
-            self.window.core.config.set('video.resolution', value)
-            option = self.window.core.video.get_resolution_option()
-            self.window.controller.config.apply_value(
-                parent_id='global',
-                key='video.resolution',
-                option=option,
-                value=str(value),
-            )
-
-        # video: duration
-        if self.config_changed('video.duration'):
-            value = self.window.core.config.get('video.duration')
-            self.window.core.config.set('video.duration', value)
-            option = self.window.core.video.get_duration_option()
-            self.window.controller.config.apply_value(
-                parent_id='global',
-                key='video.duration',
-                option=option,
-                value=int(value) or 8,
-            )
-
         # update ENV
         self.window.core.config.setup_env()
 

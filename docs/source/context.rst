@@ -45,7 +45,7 @@ root without changing the application's base workdir.
 .. important::
    The internal ``tmp`` directory always remains in the base profile workdir.
    ``img``, ``capture`` and ``upload`` also remain in their normal base-profile
-   locations unless ``Store images, captures, and uploads in the data directory``
+   locations unless ``Store images, captures, and uploads in the workdir data directory``
    is enabled. When that option is enabled, those three directories follow the
    active project data workdir.
 
@@ -63,4 +63,3 @@ You can clear the entire memory (all contexts) by selecting the menu option:
 Context storage
 -----------------
 On the application side, the context is stored in the ``SQLite`` database located in the base profile/application workdir (``db.sqlite``). A project data-workdir override does not move this database.
-In addition, all history is also saved to ``.txt`` files for easy reading.

@@ -54,6 +54,7 @@ class Image:
 
         option_resolutions = self.window.core.image.get_resolution_option()
         conf_global['img_resolution'] = OptionCombo(self.window, 'global', 'img_resolution', option_resolutions)
+        conf_global['img_resolution'].setToolTip(trans("settings.img_resolution.desc"))
 
         option_aspect_ratio = self.window.core.image.get_xai_aspect_ratio_option()
         conf_global['img.aspect_ratio'] = OptionCombo(

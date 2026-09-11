@@ -12,7 +12,7 @@ PyGPT writes application logs to:
 
     %workdir%/app.log
 
-The log level can be selected directly in ``Config -> Settings -> Debug -> Log Level``. The available levels are:
+The log level can be selected directly in ``Config -> Settings -> Debug -> Log level``. The available levels are:
 
 * ``ERROR`` - the default level. Logs errors and uncaught exceptions.
 * ``WARNING`` - logs warnings in addition to errors.
@@ -35,8 +35,8 @@ or:
 
 Additional logging switches are available in ``Config -> Settings -> Debug``:
 
-* ``Log and debug context`` - logs detailed conversation-context input, output and processing information.
-* ``Log and debug events`` - logs application event dispatch and handling.
+* ``Log conversation processing`` - logs detailed conversation-context input, output and processing information.
+* ``Log events`` - logs application event dispatch and handling.
 * ``Log plugin usage to console`` - logs plugin execution and usage details.
 * ``Log image and video generation to console`` - logs image and video generation activity.
 * ``Log attachments usage to console`` - logs attachment processing and usage details.

@@ -862,7 +862,13 @@ class Body:
         )
 
         syntax_style = cfg_get("render.code_syntax") or "default"
-        user_msg_collapse_height = max(0, int(self.USER_MSG_COLLAPSE_HEIGHT_PX))
+        try:
+            user_msg_collapse_height = max(0, int(cfg_get(
+                "render.msg.user.collapse.px",
+                self.USER_MSG_COLLAPSE_HEIGHT_PX,
+            )))
+        except (TypeError, ValueError):
+            user_msg_collapse_height = self.USER_MSG_COLLAPSE_HEIGHT_PX
         style_js = (
             f'window.CODE_SYNTAX_STYLE={_json_dumps(syntax_style)};'
             f'window.PROFILE_CODE_HL_N_LINE={int(cfg_get("render.code_syntax.stream_n_line", 25))};'

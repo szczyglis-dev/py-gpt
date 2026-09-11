@@ -464,7 +464,7 @@ Plugin allows you to generate images in Chat mode:
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for immediate querying of your indexed documents.
 
-**Tip:** If you do not want to call tools/commands, disable the checkbox `+Tools`. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: `Settings -> Indexes / LlamaIndex -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode`. Stream mode is disabled if the ReAct agent and `+Tools` checkbox are active.
+**Tip:** If you do not want to call tools/commands, disable the checkbox `+Tools`. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: `Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode`. Stream mode is disabled if the ReAct agent and `+Tools` checkbox are active.
 
 **Querying single files**
 
@@ -540,17 +540,17 @@ Built-in file loaders:
 - Webpages (crawling any webpage content)
 - YouTube (transcriptions)
 
-You can configure data loaders in `Settings / Indexes / LlamaIndex / Data Loaders` by providing list of keyword arguments for specified loaders.
+You can configure data loaders in `Settings / Indexes / RAG / Data Loaders` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
-LlamaIndex is also integrated with the context database, so conversation history can be indexed and used as additional RAG context. Context indexing is configured separately from file indexing in `Settings -> Indexes / LlamaIndex -> Context indexing`.
+LlamaIndex is also integrated with the context database, so conversation history can be indexed and used as additional RAG context. Context indexing is configured separately from file indexing in `Settings -> Indexes / RAG -> Context indexing`.
 
 ### File, context, and project indexing
 
 PyGPT separates file indexing from conversation-context indexing:
 
-- **File indexing** indexes files and directories into a selected persistent vector index. Use `Settings -> Indexes / LlamaIndex -> File indexing`, the **Index all** action, or `Files -> RMB -> Embed into index`.
-- **Context indexing** indexes stored conversation items from the context database. It is configured in `Settings -> Indexes / LlamaIndex -> Context indexing`.
+- **File indexing** indexes files and directories into a selected persistent vector index. Use `Settings -> Indexes / RAG -> File indexing`, the **Index all** action, or `Files -> RMB -> Embed into index`.
+- **Context indexing** indexes stored conversation items from the context database. It is configured in `Settings -> Indexes / RAG -> Context indexing`.
 - **Project indexes** are isolated runtime indexes associated with projects. They are created and resolved automatically and do not need to be added to the normal configured indexes list.
 
 A project's **data workdir** and its **project index** are separate. The data workdir controls which filesystem directory the Files view and file tools use; the project index controls vector-store data. Changing the project data workdir does not move or rebuild the project index.
@@ -573,7 +573,7 @@ Project-aware indexing is also available outside automatic context indexing:
 - The project context menu provides **Update project index** and **Truncate project index** actions. Updating continues incrementally; truncating removes the project's index data and resets its indexing state.
 - Deleting a project also removes its project index. Duplicating a project rebuilds a corresponding isolated index only when the source project had one.
 
-Removing an entry from `Settings -> Indexes / LlamaIndex -> Indexes` removes only the configuration entry; it does **not** delete data already stored in the vector store. Use the **Clear and truncate** tab to permanently remove a selected index or all tracked project indexes.
+Removing an entry from `Settings -> Indexes / RAG -> Indexes` removes only the configuration entry; it does **not** delete data already stored in the vector store. Use the **Clear and truncate** tab to permanently remove a selected index or all tracked project indexes.
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
 
@@ -597,7 +597,7 @@ You can configure selected vector store by providing config options like `api_ke
 
 **Configuring data loaders**
 
-In the `Settings -> Indexes / LlamaIndex -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance. See the section: `Configuration / Data Loaders` for configuration reference.
+In the `Settings -> Indexes / RAG -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance. See the section: `Configuration / Data Loaders` for configuration reference.
 
 
 ## Chat with Audio
@@ -644,7 +644,7 @@ Plugin allows you to generate images in Chat mode:
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
 
-For OpenAI models, you can also enable remote image generation in `Config -> Settings -> Remote Tools`. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
+For supported models/providers, you can also enable remote image generation in `Config -> Settings -> Remote Tools`. If enabled, image generation is available natively in supported work modes without the inline plugin.
 
 To use `Imagen` models you must enable `Use Vertex AI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
 
@@ -670,7 +670,7 @@ This lets you quickly use them again for generating new images later on.
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
 
-Images are stored in the base-profile `img` directory by default. If **Store images, captures, and uploads in the data directory** is enabled, generated images are stored under the active `data` workdir instead, including a custom project data workdir when one is active.
+Images are stored in the base-profile `img` directory by default. If **Store images, captures, and uploads in the workdir data directory** is enabled, generated images are stored under the active `data` workdir instead, including a custom project data workdir when one is active.
 
 
 ## Chat with Agents
@@ -929,7 +929,7 @@ Experts can also be used in `Agent (autonomous)` mode - by creating a new agent 
 
 You can also use experts in "inline" mode - by activating the `Experts (inline)` plugin. This allows for the use of experts in any mode, such as normal chat.
 
-Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at `Settings -> Agents and experts -> Experts -> Sub-mode for experts`.
+Experts are executed through the shared **Chat with Agents** runtime, so there is no separate **Experts** tab in Settings. Each Expert uses its preset model, system prompt, local/remote tool permissions and optional RAG index, while its hidden child context keeps the Expert memory isolated within the parent conversation.
 
 You can also ask for a list of active experts at any time:
 
@@ -992,7 +992,7 @@ Conversations can be organized into projects. By default, projects use the share
 
 A project workdir overrides **only the logical `data` directory** used by conversations in that project. It does not replace the profile/application workdir. Files such as `config.json`, `models.json`, `db.sqlite`, logs and other profile-level directories such as `tmp`, `cache`, `css`, `locale` and fonts continue to use the base profile workdir. Conversations outside projects, and projects with **Use shared workdir** enabled, use the normal `<profile workdir>/data` directory.
 
-The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Code interpreter (v2)**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the data directory** is enabled; otherwise they remain in their normal base-profile locations.
+The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Code interpreter (v2)**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
 
 ## Clearing history
 
@@ -1005,7 +1005,6 @@ File -> Clear history...
 ## Context storage
 
 On the application side, the context is stored in the `SQLite` database located in the base profile/application workdir (`db.sqlite`). A project data-workdir override does not move this database.
-In addition, all history is also saved to `.txt` files for easy reading.
 
 Once a conversation begins, a title for the chat is generated and displayed on the list to the left. This process is similar to `ChatGPT`, where the subject of the conversation is summarized, and a title for the thread is created based on that summary. You can change the name of the thread at any time.
 
@@ -1087,7 +1086,7 @@ To use the `RAG` mode, the file must be indexed in the vector database. This occ
 
 **Embeddings**
 
-When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: `Config -> Settings -> Files and Attachments`. You can also choose the embedding models for specified providers in `Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding providers for attachments` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: `Config -> Settings -> Files and Attachments`. You can also choose the embedding models for specified providers in `Config -> Settings -> Indexes / RAG -> Embeddings -> Default embedding providers for attachments` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
 
 For example, if the RAG query model is `gpt-4o-mini`, then the default model for the provider `OpenAI` will be used. If the default model for `OpenAI` is not specified on the list, the global provider and model will be used.
 
@@ -1097,7 +1096,7 @@ For example, if the RAG query model is `gpt-4o-mini`, then the default model for
 
 The active `data` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with LlamaIndex. The project override applies only to this logical data root; it does not move profile-level paths such as `tmp`, configuration files, the database or other application directories.
 
-The `Files I/O` and `Code interpreter (v2)` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
+The `Files I/O` and `Code interpreter (v2)` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1364,7 +1363,7 @@ Refer to: https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedd
 
 You can use an Ollama instance for embeddings. Simply select the `ollama` provider in:
 
-```Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Embeddings provider```
+```Config -> Settings -> Indexes / RAG -> Embeddings -> Embeddings provider```
 
 Define parameters like model name and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
 
@@ -2065,7 +2064,7 @@ https://pygpt.readthedocs.io/en/latest/extending.html
 
 # Functions, commands and tools
 
-PyGPT supports native API function calls as well as its internal command/tool system. Commands exposed by enabled plugins can be called by compatible models when the `+ Tools` option is active. Native function calls can be configured in `Config -> Settings -> Prompts`, and model-level support is controlled by the `Tool calls` option in the Models Editor.
+PyGPT supports native API tool/function calls as well as its internal prompt-based command/tool system. Commands exposed by enabled plugins can be called by compatible models when the `+ Tools` option is active. Native API tool calls can be enabled in `Config -> Settings -> Prompts`, and model-level support is controlled by the `Tool calls` option in the Models Editor.
 
 Custom commands and API function schemas can be used together and are translated by PyGPT when required.
 
@@ -2377,7 +2376,7 @@ Config -> Settings...
 
 ![v2_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_settings.png)
 
-The Settings window contains configuration for API providers, layout, files and attachments, context, remote tools, models, prompts, media, LlamaIndex, agents, security, accessibility, updates, debugging, and other application features.
+The Settings window contains configuration for API providers, layout, files and attachments, chats, remote tools, models, prompts, media, RAG/indexes, agents, security, accessibility, updates, debugging, and other application features.
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:
 
@@ -2437,7 +2436,7 @@ https://pygpt.readthedocs.io/en/latest/configuration.html#translations-locale
 
 **Configuring data loaders**
 
-In the `Settings -> Indexes / LlamaIndex -> Data loaders` section you can define additional keyword arguments passed to data loader instances.
+In the `Settings -> Indexes / RAG -> Data loaders` section you can define additional keyword arguments passed to data loader instances.
 
 PyGPT includes built-in loaders for common file types and external/web content. In most cases, LlamaIndex loaders are used internally. You can also develop and register your own custom loader.
 

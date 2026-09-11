@@ -727,7 +727,7 @@
         "type": "bool",
         "slider": false,
         "label": "settings.render.open_gl",
-        "description": "settings.render.web.only.desc",
+        "description": "settings.render.open_gl.desc",
         "value": true,
         "min": 0,
         "max": 0,
@@ -762,12 +762,25 @@
         "step": null,
         "secret": false
     },
+    "max_requests_limit": {
+        "section": "general",
+        "type": "int",
+        "slider": false,
+        "label": "settings.max_requests_limit",
+        "description": "settings.max_requests_limit.desc",
+        "value": 60,
+        "min": 0,
+        "max": null,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "theme.style": {
         "section": "layout",
         "type": "combo",
         "use": "styles",
         "label": "settings.theme.style",
-        "description": "settings.render.web.only.desc",
+        "description": "settings.theme.style.desc",
         "value": "chatgpt",
         "advanced": false
     },
@@ -776,7 +789,7 @@
         "type": "float",
         "slider": true,
         "label": "settings.zoom",
-        "description": "settings.render.web.only.desc",
+        "description": "settings.zoom.desc",
         "value": 1.0,
         "min": 0.2,
         "max": 3.0,
@@ -789,7 +802,7 @@
         "type": "combo",
         "use": "syntax_styles",
         "label": "settings.render.code_syntax",
-        "description": "settings.render.web.only.desc",
+        "description": "settings.render.code_syntax.desc",
         "value": "github-dark",
         "advanced": false,
         "tab": "code_syntax"
@@ -956,7 +969,7 @@
         "slider": false,
         "label": "settings.render.msg.user.collapse.px",
         "description": "settings.render.msg.user.collapse.px.desc",
-        "value": 1500,
+        "value": 230,
         "advanced": false
     },
     "layout.tooltips": {
@@ -1250,32 +1263,6 @@
         "step": null,
         "advanced": false
     },
-    "store_history": {
-        "section": "ctx",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.store_history",
-        "description": "settings.store_history.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
-    "store_history_time": {
-        "section": "ctx",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.store_history_time",
-        "description": "settings.store_history_time.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "lock_modes": {
         "section": "ctx",
         "type": "bool",
@@ -1402,19 +1389,6 @@
         "value": 256000,
         "min": 0,
         "max": 2000000,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },
-    "max_requests_limit": {
-        "section": "model",
-        "type": "int",
-        "slider": false,
-        "label": "settings.max_requests_limit",
-        "description": "settings.max_requests_limit.desc",
-        "value": 60,
-        "min": 0,
-        "max": null,
         "multiplier": 1,
         "step": 1,
         "advanced": false
@@ -1677,112 +1651,6 @@
         "step": null,
         "advanced": false
     },
-    "img_resolution": {
-        "section": "images",
-        "type": "combo",
-        "slider": false,
-        "label": "settings.img_resolution",
-        "description": "settings.img_resolution.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "keys": [
-            {
-                "auto": "[gpt-image] auto"
-            },
-            {
-                "1024x1024": "[gpt-image] 1024x1024"
-            },
-            {
-                "1536x1024": "[gpt-image] 1536x1024"
-            },
-            {
-                "1024x1536": "[gpt-image] 1024x1536"
-            },
-            {
-                "1536x864": "[gpt-image-2+] 1536x864"
-            },
-            {
-                "864x1536": "[gpt-image-2+] 864x1536"
-            },
-            {
-                "2048x2048": "[gpt-image-2+] 2048x2048"
-            },
-            {
-                "2048x1152": "[gpt-image-2+] 2048x1152"
-            },
-            {
-                "1152x2048": "[gpt-image-2+] 1152x2048"
-            },
-            {
-                "2560x1440": "[gpt-image-2+] 2560x1440"
-            },
-            {
-                "1440x2560": "[gpt-image-2+] 1440x2560"
-            },
-            {
-                "3840x2160": "[gpt-image-2+] 3840x2160"
-            },
-            {
-                "2160x3840": "[gpt-image-2+] 2160x3840"
-            },
-            {
-                "1k": "[xAI Imagine] 1K"
-            },
-            {
-                "2k": "[xAI Imagine] 2K"
-            },
-            {
-                "1024x1024": "[Imagen 3.0] 1024x1024"
-            },
-            {
-                "896x1280": "[Imagen 3.0] 896x1280"
-            },
-            {
-                "1280x896": "[Imagen 3.0] 1280x896"
-            },
-            {
-                "768x1408": "[Imagen 3.0] 768x1408"
-            },
-            {
-                "1408x768": "[Imagen 3.0] 1408x768"
-            },
-            {
-                "1024x1024": "[Imagen 4.0] 1024x1024"
-            },
-            {
-                "896x1280": "[Imagen 4.0] 896x1280"
-            },
-            {
-                "1280x896": "[Imagen 4.0] 1280x896"
-            },
-            {
-                "768x1408": "[Imagen 4.0] 768x1408"
-            },
-            {
-                "1408x768": "[Imagen 4.0] 1408x768"
-            },
-            {
-                "2048x2048": "[Imagen 4.0] 2048x2048"
-            },
-            {
-                "1792x2560": "[Imagen 4.0] 1792x2560"
-            },
-            {
-                "2560x1792": "[Imagen 4.0] 2560x1792"
-            },
-            {
-                "1536x2816": "[Imagen 4.0] 1536x2816"
-            },
-            {
-                "2816x1536": "[Imagen 4.0] 2816x1536"
-            }
-        ],
-        "tab": "image"
-    },
     "img_quality": {
         "section": "images",
         "type": "combo",
@@ -1836,82 +1704,12 @@
         "step": null,
         "tab": "image"
     },
-    "video.aspect_ratio": {
-        "section": "images",
-        "type": "text",
-        "slider": false,
-        "label": "settings.video.aspect_ratio",
-        "description": "settings.video.aspect_ratio.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "video"
-    },
-    "video.duration": {
-        "section": "images",
-        "type": "int",
-        "slider": false,
-        "label": "settings.video.duration",
-        "description": "settings.video.duration.desc",
-        "value": "",
-        "min": 1,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "video"
-    },
-    "video.fps": {
-        "section": "images",
-        "type": "int",
-        "slider": false,
-        "label": "settings.video.fps",
-        "description": "settings.video.fps.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "video"
-    },
     "video.seed": {
         "section": "images",
         "type": "text",
         "slider": false,
         "label": "settings.video.seed",
         "description": "settings.video.seed.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "video"
-    },
-    "video.generate_audio": {
-        "section": "images",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.video.generate_audio",
-        "description": "settings.video.generate_audio.desc",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "video"
-    },
-    "video.resolution": {
-        "section": "images",
-        "type": "text",
-        "slider": false,
-        "label": "settings.video.resolution",
-        "description": "settings.video.resolution.desc",
         "value": "",
         "min": null,
         "max": null,
@@ -3264,65 +3062,6 @@
         "advanced": false,
         "tab": "autonomous"
     },
-    "experts.mode": {
-        "section": "agent",
-        "type": "combo",
-        "use": "agent_modes",
-        "slider": false,
-        "label": "settings.experts.mode",
-        "description": "settings.experts.mode.desc",
-        "value": "chat",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "experts"
-    },
-    "experts.func_call.native": {
-        "section": "agent",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.experts.func_call.native",
-        "description": "settings.experts.func_call.native.desc",
-        "value": false,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false,
-        "tab": "experts"
-    },
-    "experts.api_use_responses": {
-        "section": "agent",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.experts.api_use_responses",
-        "description": "settings.experts.api_use_responses.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "secret": false,
-        "advanced": false,
-        "tab": "experts"
-    },
-    "experts.internal.api_use_responses": {
-        "section": "agent",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.experts.internal.api_use_responses",
-        "description": "settings.experts.internal.api_use_responses.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "secret": false,
-        "advanced": false,
-        "tab": "experts"
-    },
     "agent.goal.notify": {
         "section": "agent",
         "type": "bool",
@@ -3380,8 +3119,8 @@
         "section": "debug",
         "type": "combo",
         "slider": false,
-        "label": "Log Level",
-        "description": "Tip: Running application with --debug=1 or --debug=2 command line arguments overwrites this settings and force enables logging to %workdir%/app.log file. Log levels: 1 = INFO, 2 = DEBUG",
+        "label": "settings.log.level",
+        "description": "settings.log.level.desc",
         "value": "",
         "min": null,
         "max": null,
@@ -3407,7 +3146,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log and debug context",
+        "label": "settings.log.ctx",
         "description": "settings.log.ctx.desc",
         "value": true,
         "min": null,
@@ -3420,7 +3159,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log and debug events",
+        "label": "settings.log.events",
         "description": "settings.log.events.desc",
         "value": false,
         "min": null,
@@ -3433,7 +3172,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log plugin usage to console",
+        "label": "settings.log.plugins",
         "description": "settings.log.plugins.desc",
         "value": false,
         "min": null,
@@ -3446,7 +3185,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log image and video generation to console",
+        "label": "settings.log.image",
         "description": "settings.log.image.desc",
         "value": false,
         "min": null,
@@ -3459,7 +3198,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log attachments usage to console",
+        "label": "settings.log.attachments",
         "description": "settings.log.attachments.desc",
         "value": false,
         "min": null,
@@ -3472,7 +3211,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log Agents usage to console",
+        "label": "settings.log.agents",
         "description": "settings.log.agents.desc",
         "value": false,
         "min": 0,
@@ -3514,7 +3253,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log LlamaIndex usage to console",
+        "label": "settings.log.llama",
         "description": "settings.log.llama.desc",
         "value": false,
         "min": null,
@@ -3527,7 +3266,7 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log Realtime sessions to console",
+        "label": "settings.log.realtime",
         "description": "settings.log.realtime.desc",
         "value": false,
         "min": null,
@@ -3540,13 +3279,14 @@
         "section": "debug",
         "type": "bool",
         "slider": false,
-        "label": "Log legacy API usage to console",
+        "label": "settings.log.assistants",
         "value": false,
         "min": null,
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "description": "settings.log.assistants.desc"
     },
     "access.voice_control": {
         "section": "access",

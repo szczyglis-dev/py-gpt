@@ -4,7 +4,7 @@ Indexing and RAG
 PyGPT uses LlamaIndex and a vector store to provide persistent RAG data for
 ``Chat with Files`` and related plugins. File indexing and conversation-context
 indexing are separate workflows and can be configured independently in
-``Settings -> Indexes / LlamaIndex``.
+``Settings -> Indexes / RAG``.
 
 Index types
 -----------
@@ -12,7 +12,7 @@ Index types
 PyGPT uses three related index concepts:
 
 * **Configured indexes** are the normal persistent indexes listed in
-  ``Settings -> Indexes / LlamaIndex -> Indexes``. They can contain files,
+  ``Settings -> Indexes / RAG -> Indexes``. They can contain files,
   external data, and indexed conversation context.
 * **Project indexes** are isolated persistent indexes created automatically for
   projects. They are shown to the user as ``Current project`` and are not added

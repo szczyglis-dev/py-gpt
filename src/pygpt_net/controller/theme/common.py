@@ -78,6 +78,7 @@ class Common:
             'tip.toolbox.mode',
             'tip.toolbox.presets',
             'tip.toolbox.prompt',
+            'agent.v2.mode.tip',
         ]
         state = self.window.core.config.get('layout.tooltips')
         if state:
@@ -209,6 +210,9 @@ class Common:
                     to_replace = ['web-', '.css', '.light', '.dark']
                     for item in to_replace:
                         file = file.replace(item, '')
+                    # 'blocks' is a retired web style; old profiles fall back to chatgpt.
+                    if file == 'blocks':
+                        continue
                     if file not in styles:
                         styles.append(file)
         return sorted(styles)

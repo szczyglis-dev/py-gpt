@@ -103,6 +103,7 @@ class Prompt:
 
         mode_tip = HelpLabel(trans('agent.v2.mode.tip'), w)
         mode_tip.setAlignment(Qt.AlignCenter)
+        mode_tip.setVisible(bool(w.core.config.get('layout.tooltips')))
         nodes['agent.v2.mode.tip'] = mode_tip
 
         mode_widget = QWidget()

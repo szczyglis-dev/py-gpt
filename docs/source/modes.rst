@@ -52,7 +52,7 @@ This mode enables chat interaction with your documents and entire context histor
 It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
 
 .. tip::
-   If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / LlamaIndex -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
+   If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
 
 **Querying single files**
 
@@ -122,10 +122,10 @@ Built-in file loaders:
 * Webpages (crawling any webpage content)
 * YouTube (transcriptions)
 
-You can configure data loaders in ``Settings -> Indexes / LlamaIndex -> Data loaders`` by providing list of keyword arguments for specified loaders.
+You can configure data loaders in ``Settings -> Indexes / RAG -> Data loaders`` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
-LlamaIndex is also integrated with the context database, so conversation history can be indexed and used as additional RAG context. File indexing and conversation-context indexing are configured separately in ``Settings -> Indexes / LlamaIndex -> File indexing`` and ``Context indexing``.
+LlamaIndex is also integrated with the context database, so conversation history can be indexed and used as additional RAG context. File indexing and conversation-context indexing are configured separately in ``Settings -> Indexes / RAG -> File indexing`` and ``Context indexing``.
 
 Project conversations can use an isolated ``Current project`` index. When ``Use isolated index per project`` is enabled, project context is kept separate from the global auto-indexing targets and is updated incrementally. The same project index can be selected in Chat with Files, from the Files context menu, and by project-aware plugins.
 
@@ -148,11 +148,11 @@ See :doc:`indexing` for the complete description of file indexing, context auto-
 * RedisVectorStore
 * SimpleVectorStore
 
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / LlamaIndex`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / RAG`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
 
 **Configuring data loaders**
 
-In the ``Settings -> Indexes / LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
+In the ``Settings -> Indexes / RAG -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
 
 
 Chat with Audio
@@ -203,7 +203,7 @@ Plugin allows you to generate images in Chat mode:
 .. image:: images/v3_img_chat.png
    :width: 800
 
-For OpenAI models, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
+For supported models/providers, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation is available natively in supported work modes without the inline plugin.
 
 To use ``Imagen`` models you must enable ``Use Vertex AI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
 
@@ -230,7 +230,7 @@ You also have the options to delete it or view it in full size in your web brows
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
 
-Images are stored in the base-profile ``img`` directory by default. If ``Store images, captures, and uploads in the data directory`` is enabled, generated images are stored under the active ``data`` workdir instead, including a custom project data workdir when one is active.
+Images are stored in the base-profile ``img`` directory by default. If ``Store images, captures, and uploads in the workdir data directory`` is enabled, generated images are stored under the active ``data`` workdir instead, including a custom project data workdir when one is active.
 
 
 
@@ -534,7 +534,7 @@ Experts can also be used in ``Agent (autonomous)`` mode - by creating a new agen
 
 You can also use experts in "inline" mode - by activating the ``Experts (inline)`` plugin. This allows for the use of experts in any mode, such as normal chat.
 
-Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at ``Settings -> Agents and experts -> Experts -> Sub-mode for experts``.
+Experts are executed through the shared **Chat with Agents** runtime. There is no separate **Experts** tab in Settings. Each Expert uses its preset model, system prompt, local/remote tool permissions and optional RAG index, while its hidden child context keeps the Expert memory isolated within the parent conversation.
 
 You can also ask for a list of active experts at any time:
 

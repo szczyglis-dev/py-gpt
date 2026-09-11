@@ -88,10 +88,8 @@ class Video:
         # optional params
         worker.aspect_ratio = str(extra.get("aspect_ratio") or self.window.core.config.get('video.aspect_ratio') or "16:9")
         worker.duration_seconds = int(extra.get("duration") or self.window.core.config.get('video.duration') or 8)
-        worker.fps = int(extra.get("fps") or self.window.core.config.get('video.fps') or 24)
         worker.seed = extra.get("seed") or self.window.core.config.get('video.seed') or None
         worker.negative_prompt = extra.get("negative_prompt") or self.window.core.config.get('video.negative_prompt') or None
-        worker.generate_audio = bool(extra.get("generate_audio", self.window.core.config.get('video.generate_audio') or False))
         worker.resolution = (extra.get("resolution") or self.window.core.config.get('video.resolution') or "720p")
 
         self.worker = worker
@@ -153,9 +151,7 @@ class VideoWorker(QRunnable):
         # video generation params
         self.aspect_ratio = "16:9"
         self.duration_seconds = 8
-        self.fps = 24
         self.seed: Optional[int] = None
-        self.generate_audio: bool = False  # generation includes audio by default on Veo 3.x
         self.resolution: str = "720p"      # Veo supports 720p/1080p depending on variant
 
         # limits / capabilities

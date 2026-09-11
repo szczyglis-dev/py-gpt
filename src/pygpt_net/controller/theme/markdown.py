@@ -61,7 +61,7 @@ class Markdown:
 
         :return: stylesheet
         """
-        web_style = self.window.core.config.get("theme.style", "blocks")
+        web_style = self.window.core.config.get("theme.style", "chatgpt")
         if "web" not in self.css or self.web_style != web_style:
             self.load()
         if "web" in self.css:
@@ -86,7 +86,7 @@ class Markdown:
             "markdown",
             "web",
         ]
-        web_style = self.window.core.config.get("theme.style", "blocks")
+        web_style = self.window.core.config.get("theme.style", "chatgpt")
         for base_name in parents:
             suffix = ""
             if base_name == 'web':

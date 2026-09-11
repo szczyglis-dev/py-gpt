@@ -38,6 +38,10 @@ class Theme:
 
     def setup(self):
         """Setup theme"""
+        # Normalize the retired Blocks web style before any renderer CSS is loaded.
+        if self.window.core.config.get("theme.style") == "blocks":
+            self.window.core.config.set("theme.style", "chatgpt")
+            self.window.core.config.save()
         self.markdown.load()
         self.menu.setup_list()
         self.menu.setup_density()
@@ -117,6 +121,10 @@ class Theme:
 
         :param name: web style name
         """
+        # The legacy 'blocks' style was removed in 2.8.16. Keep a runtime
+        # fallback for old profiles/custom calls that still reference it.
+        if name == "blocks":
+            name = "chatgpt"
         styles_list = self.common.get_styles_list()
         if name not in styles_list:
             name = "chatgpt"
