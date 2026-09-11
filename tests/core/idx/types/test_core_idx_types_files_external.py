@@ -39,7 +39,7 @@ def test_files_get_id_normalizes_path_relative_to_data_directory(tmp_path):
     data_dir = tmp_path / "data"
     nested = data_dir / "a" / "b.txt"
     data_dir.mkdir()
-    window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get_user_dir=MagicMock(return_value=str(data_dir)))))
+    window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get_user_dir=MagicMock(return_value=str(data_dir))), filesystem=SimpleNamespace(get_data_dir=MagicMock(return_value=str(data_dir)))))
     files = Files(window=window, provider=MagicMock())
     assert files.get_id(str(nested)) == "a/b.txt"
 

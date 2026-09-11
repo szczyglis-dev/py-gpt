@@ -1,3 +1,4 @@
+import os
 import io
 import tarfile
 from types import SimpleNamespace
@@ -17,7 +18,8 @@ def make_plugin(values=None, options=None):
         update_plugin_config=MagicMock(),
         save=MagicMock(),
     )
-    window = SimpleNamespace(core=SimpleNamespace(config=config), update_status=MagicMock())
+    filesystem = SimpleNamespace(get_data_dir=MagicMock(return_value="/work/data"))
+    window = SimpleNamespace(core=SimpleNamespace(config=config, filesystem=filesystem), update_status=MagicMock())
     plugin = SimpleNamespace(
         id="plugin-x",
         window=window,
@@ -130,13 +132,19 @@ def test_run_as_root_user_and_labels_use_optional_option():
     docker = Docker(plugin)
     assert docker.get_run_as_root() is True
     assert docker.get_container_user() == "0:0"
-    assert docker.get_container_labels() == {"pygpt.run_as_root": "true"}
+    assert docker.get_container_labels() == {
+        "pygpt.run_as_root": "true",
+        "pygpt.data_dir": os.path.normcase(os.path.realpath("/work/data")),
+    }
 
     plugin2, _ = make_plugin(values={})
     docker2 = Docker(plugin2)
     assert docker2.get_run_as_root() is False
     assert docker2.get_container_user() is None
-    assert docker2.get_container_labels() == {"pygpt.run_as_root": "false"}
+    assert docker2.get_container_labels() == {
+        "pygpt.run_as_root": "false",
+        "pygpt.data_dir": os.path.normcase(os.path.realpath("/work/data")),
+    }
 
 
 def test_end_restart_attach_signals_and_log_delegate():
@@ -149,7 +157,7 @@ def test_end_restart_attach_signals_and_log_delegate():
     docker.end(all=True)
     docker.stop_container.assert_called_once_with("ctr")
     docker.restart()
-    docker.restart_container.assert_called_once_with("ctr")
+    docker.restart_container.assert_called_once_with("ctr", ctx=None)
     signals = object()
     docker.attach_signals(signals)
     assert docker.signals is signals

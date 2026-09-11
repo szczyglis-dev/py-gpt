@@ -31,6 +31,7 @@ def test_cmd_syntax_linux_hides_winapi_and_appends_cwd(mock_window):
     plugin = Plugin(window=mock_window)
     mock_window.core.platforms.get_as_string.return_value = "Linux"
     mock_window.core.config.get_user_dir = MagicMock(return_value="/tmp/data")
+    mock_window.core.filesystem.get_data_dir = MagicMock(return_value="/tmp/data")
     plugin.set_option_value("auto_cwd", True)
     plugin.set_option_value("sandbox_docker", False)
     with patch("pygpt_net.plugin.cmd_system.plugin.platform.system", return_value="Linux"):

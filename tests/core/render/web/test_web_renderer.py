@@ -76,8 +76,8 @@ def renderer(fake_window):
     r.helpers.strip_tool_calls = MagicMock(side_effect=lambda x: x)
     r.body = MagicMock()
     r.body.build_extras_dicts = MagicMock(return_value=({}, {}, {}, {}))
-    r.body.get_image_html = MagicMock(side_effect=lambda image, n, c: f"<img>{image}</img>")
-    r.body.get_file_html = MagicMock(side_effect=lambda file, n, c: f"<file>{file}</file>")
+    r.body.get_image_html = MagicMock(side_effect=lambda image, n, c, ctx=None: f"<img>{image}</img>")
+    r.body.get_file_html = MagicMock(side_effect=lambda file, n, c, ctx=None: f"<file>{file}</file>")
     r.body.get_url_html = MagicMock(side_effect=lambda url, n, c: f"<url>{url}</url>")
     r.body.get_collapsible_extra_rows_html = MagicMock(
         side_effect=lambda rows: f'<div class="extra-items-list">{"<br/>".join(rows)}</div>'

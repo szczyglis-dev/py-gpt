@@ -173,8 +173,8 @@ def test_security_helpers_forward_to_security_layer(mock_window):
     assert worker.security_read("a", sandbox=True) == "/safe/read"
     assert worker.security_write("b", sandbox=False) == "/safe/write"
     assert worker.security_command("echo ok", sandbox=True) == ["echo", "ok"]
-    mock_window.core.security.ensure_read.assert_called_once_with("a", sandbox=True)
-    mock_window.core.security.ensure_write.assert_called_once_with("b", sandbox=False)
+    mock_window.core.security.ensure_read.assert_called_once_with("a", sandbox=True, ctx=None)
+    mock_window.core.security.ensure_write.assert_called_once_with("b", sandbox=False, ctx=None)
     mock_window.core.security.ensure_command.assert_called_once_with("echo ok", sandbox=True)
 
 

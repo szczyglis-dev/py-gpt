@@ -12,7 +12,8 @@ def _window():
         ui=SimpleNamespace(nodes={}),
         controller=SimpleNamespace(config=SimpleNamespace(placeholder=SimpleNamespace(apply=placeholder))),
         core=SimpleNamespace(
-            config=SimpleNamespace(get_user_dir=MagicMock(return_value="/work/data"))
+            config=SimpleNamespace(get_user_dir=MagicMock(return_value="/work/data")),
+            filesystem=SimpleNamespace(get_data_dir=MagicMock(return_value="/work/data")),
         ),
     )
 
@@ -76,7 +77,7 @@ def test_add_description_translates_placeholder_and_expands_workdir():
         result = dialog.add_description("desc.key")
 
     assert result == ("desc", "Path: /work/data")
-    dialog.window.core.config.get_user_dir.assert_called_once_with("data")
+    dialog.window.core.filesystem.get_data_dir.assert_called_once_with()
 
 
 def test_add_option_builds_label_and_description_rows():

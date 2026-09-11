@@ -1,3 +1,4 @@
+import os
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -26,7 +27,19 @@ def test_excluded_extensions_are_sorted_and_cover_binary_archives_media():
 def make_parser(tmp_path):
     data_dir = tmp_path / "data"
     data_dir.mkdir()
-    filesystem = SimpleNamespace(make_local_list=MagicMock(side_effect=lambda paths: [f"local:{p}" for p in paths]))
+    def is_in(path, root):
+        try:
+            return os.path.commonpath([os.path.abspath(path), os.path.abspath(root)]) == os.path.abspath(root)
+        except ValueError:
+            return False
+
+    filesystem = SimpleNamespace(
+        get_data_dir=MagicMock(return_value=str(data_dir)),
+        get_shared_data_dir=MagicMock(return_value=str(data_dir)),
+        _is_path_in=MagicMock(side_effect=is_in),
+        is_global_profile_path=MagicMock(return_value=False),
+        make_local_list=MagicMock(side_effect=lambda paths, ctx=None: [f"local:{p}" for p in paths]),
+    )
     config = SimpleNamespace(get_user_dir=MagicMock(return_value=str(data_dir)))
     window = SimpleNamespace(core=SimpleNamespace(config=config, filesystem=filesystem))
     return Parser(window), filesystem, data_dir
@@ -60,7 +73,7 @@ def test_extract_data_files_rebases_to_local_data_and_collects_images(tmp_path):
     assert paths == expected
     assert ctx.files == expected
     assert ctx.images == [f"local:{expected[0]}"]
-    filesystem.make_local_list.assert_called_once_with([expected[0]])
+    filesystem.make_local_list.assert_called_once_with([expected[0]], ctx=ctx)
 
 
 def test_extract_data_files_none_response_is_noop(tmp_path):

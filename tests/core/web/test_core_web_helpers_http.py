@@ -69,12 +69,15 @@ def test_get_links_and_images_make_absolute_and_deduplicate(monkeypatch):
 def test_download_image_writes_after_security_check_and_returns_local_path(tmp_path, monkeypatch):
     img_dir = tmp_path / "img"; img_dir.mkdir()
     security = SimpleNamespace(ensure_write=MagicMock())
-    filesystem = SimpleNamespace(make_local=MagicMock(side_effect=lambda p: f"local:{p}"))
+    filesystem = SimpleNamespace(
+        get_runtime_dir=MagicMock(return_value=str(img_dir)),
+        make_local=MagicMock(side_effect=lambda p, ctx=None: f"local:{p}"),
+    )
     config = SimpleNamespace(get_user_dir=MagicMock(return_value=str(img_dir)))
     window = SimpleNamespace(core=SimpleNamespace(config=config, security=security, filesystem=filesystem))
     monkeypatch.setattr(mod.requests, "get", MagicMock(return_value=SimpleNamespace(content=b"PNG")))
     out = Helpers(window).download_image("https://example.test/a.png")
     written = img_dir / "example.test_a.png"
     assert written.read_bytes() == b"PNG"
-    security.ensure_write.assert_called_once_with(str(written), sandbox=False)
+    security.ensure_write.assert_called_once_with(str(written), sandbox=False, ctx=None)
     assert out == f"local:{written}"

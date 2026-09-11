@@ -197,7 +197,8 @@ def test_get_workdir_prefix_switches_for_sandbox():
     cfg = _bare_config()
     cfg.get_user_dir = MagicMock(return_value="/user/data")
     plugins = MagicMock()
-    cfg.window = SimpleNamespace(core=SimpleNamespace(plugins=plugins))
+    filesystem = SimpleNamespace(get_data_dir=MagicMock(return_value='/user/data'))
+    cfg.window = SimpleNamespace(core=SimpleNamespace(plugins=plugins, filesystem=filesystem))
 
     plugins.get_option.return_value = False
     assert cfg.get_workdir_prefix() == "/user/data"

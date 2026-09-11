@@ -5,10 +5,12 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from pygpt_net.core.agents_v2.runtime import AgentsV2Runtime
+from pygpt_net.core.agents_v2.mode import AgentMode
 
 
 def make_runtime(enabled=True, extra=None):
     runtime = AgentsV2Runtime.__new__(AgentsV2Runtime)
+    runtime.agent_mode = AgentMode.ORCHESTRATOR
     runtime.return_tool_calls_to_main_ctx = enabled
     runtime._main_tool_calls = []
     runtime._main_tool_call_seq = 0

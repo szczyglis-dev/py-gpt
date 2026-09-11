@@ -15,6 +15,7 @@ def _worker(mock_window, tmp_path):
     plugin = Plugin(window=mock_window)
     plugin.setup()
     mock_window.core.config.get_user_dir = MagicMock(return_value=str(tmp_path))
+    mock_window.core.filesystem.get_data_dir = MagicMock(return_value=str(tmp_path))
     worker = Worker()
     worker.from_defaults(plugin)
     worker.log = MagicMock()

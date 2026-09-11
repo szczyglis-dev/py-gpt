@@ -73,9 +73,12 @@ def test_confirm_accept_rename_create_and_url_routes():
     ctrl, window = _ctrl()
     agent_builder = MagicMock()
     window.tools.get.return_value = agent_builder
+    window.ui.dialog['rename'].get_project_workdir_settings.return_value = (False, '/projects/g1')
 
     ctrl.accept_rename('ctx.group', 'g1', 'Renamed')
-    window.controller.ctx.update_group_name.assert_called_once_with('g1', 'Renamed', True)
+    window.controller.ctx.update_group_name.assert_called_once_with(
+        'g1', 'Renamed', True, use_shared_workdir=False, workdir='/projects/g1'
+    )
 
     ctrl.accept_create('mkdir', '/tmp', 'new-dir')
     window.controller.files.make_dir.assert_called_once_with('/tmp', 'new-dir')

@@ -16,6 +16,7 @@ def _ctx(**overrides):
             delete=MagicMock(),
             new_in_group=MagicMock(),
             rename_group=MagicMock(),
+            edit_group=MagicMock(),
             delete_group=MagicMock(),
             delete_group_all=MagicMock(),
             common=SimpleNamespace(
@@ -171,10 +172,11 @@ def test_delete_actions_arm_scroll_guard_before_dispatch():
 
 def test_group_actions_route_to_controller():
     widget = _ctx()
+    widget.action_group_edit = lambda group_id_or_ids: ContextList.action_group_edit(widget, group_id_or_ids)
     ContextList.action_group_new_in_group(widget, [7, 8])
     ContextList.action_group_rename(widget, 7)
     widget.window.controller.ctx.new_in_group.assert_called_once_with(force=False, group_id=[7, 8])
-    widget.window.controller.ctx.rename_group.assert_called_once_with(7)
+    widget.window.controller.ctx.edit_group.assert_called_once_with(7)
     assert widget.restore_after_ctx_menu is False
 
 

@@ -12,9 +12,13 @@ def make_fs(tmp_path):
     upload = user / "upload"
     data.mkdir(parents=True)
     upload.mkdir()
+    dirs = {"data": "data", "upload": "upload", "img": "img", "capture": "capture", "tmp": "tmp"}
     config = SimpleNamespace(
         path=str(user),
+        dirs=dirs,
         get_user_path=MagicMock(return_value=str(user)),
+        has=MagicMock(return_value=False),
+        get=MagicMock(return_value=False),
         get_user_dir=MagicMock(side_effect=lambda key: str({"data": data, "upload": upload}.get(key, user / key))),
         get_app_path=MagicMock(return_value=str(tmp_path / "app")),
     )

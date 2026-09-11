@@ -165,7 +165,7 @@ def test_append_images(vision):
     ctx = SimpleNamespace()
     vision.attachments = {"a": "path1"}
     vision.urls = ["url1"]
-    vision.window.core.filesystem.make_local_list = lambda lst: lst
+    vision.window.core.filesystem.make_local_list = lambda lst, ctx=None: lst
     vision.append_images(ctx)
     assert ctx.images == ["url1"]
     assert ctx.urls == ["url1"]

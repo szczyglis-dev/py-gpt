@@ -29,6 +29,7 @@ def _camera():
     camera.auto = False
     camera.window.controller.attachment.is_capture_clear.return_value = False
     camera.window.core.config.get_user_dir.return_value = "/capture"
+    camera.window.core.filesystem.get_runtime_dir.return_value = "/capture"
     camera.window.core.config.get.side_effect = lambda key, default=None: {
         "vision.capture.quality": 91,
         "mode": "chat",

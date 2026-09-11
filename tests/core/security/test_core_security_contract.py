@@ -24,7 +24,10 @@ def make_security(tmp_path, *, os_id="linux", values=None):
         is_windows=MagicMock(return_value=os_id == "windows"),
         is_mac=MagicMock(return_value=os_id == "macos"),
     )
-    window = SimpleNamespace(core=SimpleNamespace(config=config, platforms=platforms, ctx=SimpleNamespace(update_item=MagicMock())))
+    filesystem = SimpleNamespace(get_data_dir=MagicMock(return_value=str(data_dir)))
+    window = SimpleNamespace(core=SimpleNamespace(
+        config=config, platforms=platforms, filesystem=filesystem, ctx=SimpleNamespace(update_item=MagicMock())
+    ))
     return Security(window), window, data_dir, tmp_dir
 
 
@@ -78,7 +81,7 @@ def test_bulk_path_checks_delegate(tmp_path):
     sec.ensure_reads(["a", "b"], sandbox=True)
     sec.ensure_writes(["c", "d"], sandbox=False)
     assert sec.ensure_read.call_args_list[0].args == ("a",)
-    assert sec.ensure_read.call_args_list[0].kwargs == {"sandbox": True}
+    assert sec.ensure_read.call_args_list[0].kwargs == {"sandbox": True, "ctx": None}
     assert sec.ensure_read.call_count == 2
     assert sec.ensure_write.call_count == 2
 

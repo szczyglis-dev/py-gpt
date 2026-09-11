@@ -51,6 +51,7 @@ def test_sandbox_volumes_and_docker_run_are_isolated(mock_window):
     plugin.get_option_value.side_effect = lambda name: name == "sandbox_docker"
     assert runner.is_sandbox() is True
     mock_window.core.config.get_user_dir = MagicMock(return_value="/data")
+    mock_window.core.filesystem.get_data_dir = MagicMock(return_value="/data")
     assert runner.get_volumes() == {"/data": {"bind": "/data", "mode": "rw"}}
     plugin.docker.execute.return_value = b"ok"
     runner.get_docker = MagicMock(return_value=object())
@@ -96,10 +97,11 @@ def test_sys_exec_sandbox_uses_docker_without_host_subprocess(mock_window):
     runner.handle_result_docker = MagicMock(return_value="OUT")
     runner.parse_result = MagicMock(return_value="PARSED")
     runner.log = MagicMock()
+    ctx = CtxItem()
     result = runner.sys_exec_sandbox(
-        CtxItem(), {"params": {"command": "echo x"}}, {"cmd": "sys_exec"}
+        ctx, {"params": {"command": "echo x"}}, {"cmd": "sys_exec"}
     )
-    runner.run_docker.assert_called_once_with("echo x")
+    runner.run_docker.assert_called_once_with("echo x", ctx=ctx)
     assert result["context"].endswith("PARSED")
 
 
@@ -115,6 +117,7 @@ def test_parse_result_is_timezone_independent_and_handles_image_path(mock_window
 def test_prepare_path_respects_host_and_sandbox(mock_window):
     runner, plugin = make_runner(mock_window)
     mock_window.core.config.get_user_dir = MagicMock(return_value="/work")
+    mock_window.core.filesystem.get_data_dir = MagicMock(return_value="/work")
     runner.is_sandbox = MagicMock(return_value=False)
     assert runner.prepare_path("a.txt") == "/work/a.txt"
     assert runner.prepare_path("/abs/a.txt") == "/abs/a.txt"

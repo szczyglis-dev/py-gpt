@@ -171,7 +171,10 @@ def test_agents_v2_runtime_prefetch_rag_context_respects_auto_retrieve_setting()
 
 def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(monkeypatch):
     actor_ctx = MagicMock()
-    monkeypatch.setattr(runtime_module, "AgentsV2VerboseLogger", lambda window, run_id: MagicMock())
+    monkeypatch.setattr(
+        runtime_module, "AgentsV2VerboseLogger",
+        lambda window, run_id, agent_mode=None: MagicMock(),
+    )
     monkeypatch.setattr(runtime_module, "WorkerToolFactory", lambda runtime: SimpleNamespace(runtime=runtime))
     monkeypatch.setattr(AgentsV2Runtime, "_persist_input_images", lambda self: None)
     monkeypatch.setattr(AgentsV2Runtime, "_build_shared_context", lambda self: "shared")
@@ -204,7 +207,7 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     assert runtime.shared_context_text == "shared"
     assert runtime.runtime_system_context == "runtime"
     actor_ctx.set_input.assert_called_once_with("input", "orchestrator")
-    actor_ctx.set_output.assert_called_once_with("", "Orchestrator")
+    actor_ctx.set_output.assert_called_once_with("", "Primary Agent")
 
 
 def test_agents_v2_runtime_build_agent_prefers_function_calling_and_disables_parallel_for_ollama(monkeypatch):

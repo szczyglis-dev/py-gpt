@@ -134,7 +134,7 @@ def test_vision_helpers_reset_and_mime_detection():
         assert vision._guess_mime(path) == mime
     assert vision.is_image("x.WEBP") is True
     assert vision.is_image("x.txt") is False
-    vision.window = SimpleNamespace(core=SimpleNamespace(filesystem=SimpleNamespace(make_local_list=lambda paths: ["local:" + p for p in paths])))
+    vision.window = SimpleNamespace(core=SimpleNamespace(filesystem=SimpleNamespace(make_local_list=lambda paths, ctx=None: ["local:" + p for p in paths])))
     vision.attachments = {"x": "p"}; vision.urls = ["u"]; vision.input_tokens = 5
     ctx = SimpleNamespace(images=[])
     vision.append_images(ctx)

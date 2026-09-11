@@ -40,6 +40,7 @@ def make_runtime(functions=None):
     runtime.window.core.debug = MagicMock()
     runtime.allow_local_tools = True
     runtime.shared_context_text = "shared text"
+    runtime.main_agent_name = "Orchestrator"
     runtime.index_id = None
     runtime.model = object()
     runtime.verbose = MagicMock()

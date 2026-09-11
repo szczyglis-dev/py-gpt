@@ -103,8 +103,9 @@ def test_get_canvas_sizes(mock_window):
 def test_get_capture_dir(mock_window):
     """Test get capture dir"""
     common = Common(mock_window)
-    mock_window.core.config.get_user_dir = MagicMock(return_value='/tmp/pygpt/capture')
+    mock_window.core.filesystem.get_runtime_dir = MagicMock(return_value='/tmp/pygpt/capture')
     assert common.get_capture_dir() == '/tmp/pygpt/capture'
+    mock_window.core.filesystem.get_runtime_dir.assert_called_once_with('capture')
 
 
 def test_get_draw_modes(mock_window):

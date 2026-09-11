@@ -83,6 +83,7 @@ def make_window(store=None):
     packer.unpack = Mock(return_value=None)
     filesystem = SimpleNamespace()
     filesystem.packer = packer
+    filesystem.get_data_dir = Mock(side_effect=lambda ctx=None: config.get_user_dir('data'))
     db = SimpleNamespace()
     db.get_db = Mock(return_value=None)
     models = SimpleNamespace()

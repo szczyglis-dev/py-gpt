@@ -47,7 +47,13 @@ class FakeConfig:
         return self.user_dir
 
 class FakeFilesystem:
-    def make_local_list(self, lst):
+    def __init__(self, data_dir):
+        self.data_dir = data_dir
+
+    def get_data_dir(self, ctx=None):
+        return self.data_dir
+
+    def make_local_list(self, lst, ctx=None):
         return lst
 
 class FakeCore:
@@ -55,7 +61,7 @@ class FakeCore:
         self.models = FakeModels()
         self.config = FakeConfig()
         self.config.user_dir = user_dir
-        self.filesystem = FakeFilesystem()
+        self.filesystem = FakeFilesystem(user_dir)
 
 class FakeWindow:
     def __init__(self, user_dir):

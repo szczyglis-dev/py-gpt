@@ -35,15 +35,22 @@ def test_make_local(mock_window):
     """Test make local"""
     filesystem = Filesystem(mock_window)
     filesystem.window.core.config.path = 'test_dir'
+    filesystem.window.core.config.get_user_path = MagicMock(return_value='test_dir')
+    filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: os.path.join('test_dir', name))
 
     path = filesystem.make_local('test_dir/test_file')
     assert path == '%workdir%/test_file'
 
     filesystem.window.core.config.path = 'C:\\test_dir'
+    filesystem.window.core.config.get_user_path = MagicMock(return_value='C:\\test_dir')
+    filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: 'C:\\test_dir\\' + name)
     path = filesystem.make_local('C:\\test_dir\\test_file')
-    assert path == '%workdir%\\test_file'
+    expected = '%workdir%\\test_file' if platform.system() == 'Windows' else 'C:\\test_dir\\test_file'
+    assert path == expected
 
     filesystem.window.core.config.path = 'test_dir'
+    filesystem.window.core.config.get_user_path = MagicMock(return_value='test_dir')
+    filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: os.path.join('test_dir', name))
     path = filesystem.make_local('test_file')
     assert path == 'test_file'
 
@@ -52,6 +59,8 @@ def test_make_local_list(mock_window):
     """Test make local list"""
     filesystem = Filesystem(mock_window)
     filesystem.window.core.config.path = 'test_dir'
+    filesystem.window.core.config.get_user_path = MagicMock(return_value='test_dir')
+    filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: os.path.join('test_dir', name))
 
     file_list = ['test_dir/test_file', 'test_dir/test_file2']
 
@@ -95,11 +104,15 @@ def test_to_workdir(mock_window):
 
     if platform.system() == 'Windows':
         filesystem.window.core.config.path = 'C:\\Users\\new_user\\.config\\pygpt-net'
+        filesystem.window.core.config.get_user_path = MagicMock(return_value='C:\\Users\\new_user\\.config\\pygpt-net')
+        filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: 'C:\\Users\\new_user\\.config\\pygpt-net\\' + name)
         mock_window.core.platforms.is_windows = MagicMock(return_value=True)
         path = filesystem.to_workdir('C:\\Users\\old_user\\.config\\pygpt-net\\data\\test_file')
         assert path == 'C:\\Users\\new_user\\.config\\pygpt-net\\data\\test_file'
     else:
         filesystem.window.core.config.path = '/home/new_user/.config/pygpt-net'
+        filesystem.window.core.config.get_user_path = MagicMock(return_value='/home/new_user/.config/pygpt-net')
+        filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: f'/home/new_user/.config/pygpt-net/{name}')
         mock_window.core.platforms.is_windows = MagicMock(return_value=False)
         path = filesystem.to_workdir('/home/old_user/.config/pygpt-net/data/test_file')
         assert path == '/home/new_user/.config/pygpt-net/data/test_file'
@@ -110,11 +123,15 @@ def test_extract_local_url(mock_window):
     filesystem = Filesystem(mock_window)
     if platform.system() == 'Windows':
         filesystem.window.core.config.path = 'C:\\Users\\new_user\\.config\\pygpt-net'
+        filesystem.window.core.config.get_user_path = MagicMock(return_value='C:\\Users\\new_user\\.config\\pygpt-net')
+        filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: 'C:\\Users\\new_user\\.config\\pygpt-net\\' + name)
         mock_window.core.platforms.is_windows = MagicMock(return_value=True)
         expected_path = 'C:\\Users\\new_user\\.config\\pygpt-net\\data\\test_file'
         url, path = filesystem.extract_local_url('C:\\Users\\old_user\\.config\\pygpt-net\\data\\test_file')
     else:
         filesystem.window.core.config.path = '/home/new_user/.config/pygpt-net'
+        filesystem.window.core.config.get_user_path = MagicMock(return_value='/home/new_user/.config/pygpt-net')
+        filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: f'/home/new_user/.config/pygpt-net/{name}')
         mock_window.core.platforms.is_windows = MagicMock(return_value=False)
         expected_path = '/home/new_user/.config/pygpt-net/data/test_file'
         url, path = filesystem.extract_local_url('/home/old_user/.config/pygpt-net/data/test_file')
@@ -132,6 +149,8 @@ def test_extract_local_url_none(mock_window):
         else '/home/user/.config/pygpt-net'
     )
     filesystem.window.core.config.path = work_dir
+    filesystem.window.core.config.get_user_path = MagicMock(return_value=work_dir)
+    filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: os.path.join(work_dir, name))
     mock_window.core.platforms.is_windows = MagicMock(return_value=platform.system() == 'Windows')
 
     url, path = filesystem.extract_local_url('http://www.google.com/file.png')
@@ -150,6 +169,8 @@ def test_get_local_url_workdir(mock_window):
     filesystem = Filesystem(mock_window)
     work_dir = 'C:\\Users\\user\\.config\\pygpt-net' if platform.system() == 'Windows' else '/home/user/.config/pygpt-net'
     filesystem.window.core.config.path = work_dir
+    filesystem.window.core.config.get_user_path = MagicMock(return_value=work_dir)
+    filesystem.window.core.config.get_user_dir = MagicMock(side_effect=lambda name: os.path.join(work_dir, name))
     mock_window.core.platforms.is_windows = MagicMock(return_value=platform.system() == 'Windows')
 
     expected_path = os.path.join(work_dir, 'img', 'zażółć 猫.png')
