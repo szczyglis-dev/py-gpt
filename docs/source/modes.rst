@@ -234,70 +234,75 @@ Images are stored in ``img`` directory in PyGPT's user data folder.
 
 
 
-Agents v2 (beta)
+Chat with Agents
 ----------------
 
+**Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older ``Agent (LlamaIndex)``, ``Agent (OpenAI)``, and ``Agent (Autonomous)`` modes.
+
+The **Mode** selector below the system prompt controls how the workflow operates. The default mode is **Chat**.
+
+Agent modes
+^^^^^^^^^^^
+
+**Chat**
+   The default mode. A primary agent communicates directly with the user, uses available tools, and can delegate selected tasks to background workers when useful. This is the general-purpose option for a normal agent conversation with multi-agent assistance available on demand.
+
+**Orchestrator**
+   A dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can execute concurrently. This mode is intended for structured, multi-stage tasks where explicit coordination and verification are useful. The Orchestrator runtime supports up to ``16`` workers.
+
+**Swarm**
+   The orchestrator launches a swarm containing the number of workers requested by the user. If the request does not specify the number of agents, the orchestrator asks how many should be launched before starting the swarm. Workers are numbered and prefixed in status output. At startup the orchestrator reports that it is launching the swarm and states its size, then periodically reports an aggregated status with the number of running agents and a summary of what they are doing. Swarm does not impose a worker-count limit.
+
 .. warning::
-   **Agents v2 is currently a beta feature introduced in version 2.8.10.** Its behavior, preset options, workflow rules, and provider compatibility may change in subsequent releases.
+   **Use Swarm with care.** This mode has no built-in limit on the number of agents that can be created. Requesting a large swarm can cause unexpectedly high API usage, token consumption, local or remote resource usage, many concurrent tool operations, and other unexpected effects. Start with a reasonable number of agents and supervise workflows that can modify files, execute code or system commands, or perform external actions.
 
-**Agents v2** is a new orchestrated multi-agent mode designed for complex tasks that benefit from planning, delegation, parallel execution, tool use, and verification. It uses a dedicated orchestration runtime built on LlamaIndex agent workflows and is separate from the older ``Agent (LlamaIndex)``, ``Agent (OpenAI)``, and ``Agent (Autonomous)`` modes.
+Tools and provider capabilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A single **Orchestrator** is responsible for the user-facing conversation and owns the task from start to finish. During a task it can dynamically create specialist **worker agents**, assign or update their roles, start or reuse them for follow-up work, inspect their state, wait for their results, stop them, or remove them. Workers keep their in-memory history while the current Agents v2 runtime is active, allowing the Orchestrator to continue or refine their work without recreating them.
+Chat with Agents can use both local and provider-side capabilities:
 
-Up to ``16`` workers can exist in one runtime. Independent workers can execute concurrently, which is useful for parallel research, independent analysis, implementation plus testing, or other subtasks that do not depend on each other.
-
-The Orchestrator can answer very small tasks directly. For multi-step or action-oriented work, the workflow is designed to delegate the main execution to one or more workers, collect their work product, verify important results when appropriate, and integrate everything into the final answer. Worker response text is private to the orchestration runtime; the user sees the Orchestrator's streamed response and a single transient workflow status line.
-
-**Tools and provider capabilities**
-
-Agents v2 can use both local and provider-side capabilities:
-
-* **Local tools** from enabled PyGPT plugins can be made available to the Orchestrator and workers.
+* **Local tools** from enabled PyGPT plugins can be made available to the primary agent/orchestrator and workers.
 * **Remote tools** exposed by the selected provider can be made available when supported by the provider/model and enabled in PyGPT.
-* Local and remote tools can be enabled or disabled independently in the Agents v2 preset with ``Allow local tools`` and ``Allow remote tools``.
+* Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with ``Allow local tools`` and ``Allow remote tools``.
 * Models with native function calling use it when available. For compatible models without native function calling, the runtime can use a ReAct agent as a fallback.
 
 Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code Interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
-**Settings**
+Settings
+^^^^^^^^
 
-Agent-related application settings are available under ``Settings -> Agents and experts``. The **General / v2** tab contains settings intended for the current Agents v2 workflow. ``Show full tool-chain in Agents v2`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
+Agent-related application settings are available under ``Settings -> Agents and experts``. The **Chat with Agents** section contains settings intended for this workflow. ``Show full tool-chain in Chat with Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
 
-Options specific to older agent implementations are kept in the **Legacy** tab. ``Display full agent output in chat view`` controls full output rendering for legacy agent modes, while ``Display a tray notification when the goal is achieved`` controls legacy agent completion notifications. These Legacy options do not control the Agents v2 tool-chain display.
+Options specific to older agent implementations are kept in the **Legacy** tab. ``Display full agent output in chat view`` controls full output rendering for legacy agent modes, while ``Display a tray notification when the goal is achieved`` controls legacy agent completion notifications. These Legacy options do not control the Chat with Agents tool-chain display.
 
-**RAG, attachments and artifacts**
+RAG, attachments and artifacts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If a valid index is selected in the Agents v2 preset, a ``query_index`` RAG tool is exposed to the workflow. User attachments and extracted attachment context are shared with the Orchestrator and workers. When the selected model supports image input, current image attachments are also supplied as native image blocks.
+If a valid index is selected in the Chat with Agents preset, a ``query_index`` RAG tool is exposed to the workflow. User attachments and extracted attachment context are shared with the active workflow and its workers. When the selected model supports image input, current image attachments are also supplied as native image blocks.
 
 Files, images, URLs and attachments produced by workers, local tools, or supported provider-side tools are collected by the runtime and propagated to the main user-visible response.
 
-**Memory**
+Memory
+^^^^^^
 
-The Orchestrator keeps a hidden conversation history across turns in the current conversation/preset. This history is subject to the normal PyGPT/model token-window policy. Each worker has its own in-memory history for the lifetime of the current Agents v2 runtime, and that memory is retained when the Orchestrator reuses the same worker for a follow-up or refinement task.
+The user-facing primary agent or orchestrator keeps hidden conversation history across turns in the current conversation/preset. This history is subject to the normal PyGPT/model token-window policy. Worker memory is runtime-local and can be retained when the same worker is reused during a workflow.
 
-**Worker lifecycle**
+Worker lifecycle by mode
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-The Orchestrator manages workers with its internal runtime tools:
+**Chat**
+   The primary agent delegates individual tasks to workers when useful. The normal interaction remains a direct chat with the primary agent, so the full worker-management lifecycle is not the main user-facing workflow.
 
-* ``agent_create`` - create a specialist worker, optionally starting it immediately.
-* ``agent_update`` - update an idle worker's role/instructions while preserving its memory.
-* ``agent_run`` - start or reuse an existing worker on another task.
-* ``agent_status`` / ``agent_list`` - inspect worker state and progress.
-* ``agent_wait`` - asynchronously wait for one or more workers.
-* ``agent_stop`` - stop a running worker.
-* ``agent_remove`` - dispose of a worker that is no longer needed.
-* ``workflow_status`` - update the transient progress line shown to the user.
-* ``workflow_finish`` - finalize the entire task with the complete user-facing answer.
+**Orchestrator**
+   The orchestrator explicitly manages workers with operations for creating, updating, running, inspecting, waiting for, stopping, and removing them. The workflow cannot be finalized while required worker activity remains unresolved.
 
-The workflow cannot be finalized while required workers are still running or when a newly created worker has never been started. The Orchestrator must first wait for, stop, run, or remove those workers before completing the task.
+**Swarm**
+   Swarm extends the orchestrator lifecycle with swarm initialization and aggregate swarm-status reporting. The runtime tracks the requested swarm size, numbers workers for status output, and reports collective progress while the swarm is active.
 
-**Recommended use cases**
+Recommended use cases
+^^^^^^^^^^^^^^^^^^^^^
 
-Agents v2 is particularly useful for coding and file operations, research with independent verification, RAG-assisted tasks, multi-stage analysis, workflows combining multiple tools, and tasks that can be split into independent parallel subtasks.
-
-.. warning::
-   Because Agents v2 is currently **beta**, use it with appropriate supervision when tools can modify files, execute code or system commands, or perform external actions.
-
+Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-stage work such as coding and file operations, research with independent verification, RAG-assisted tasks, implementation plus testing, or workflows that combine several tools. Use **Swarm** only when a task genuinely benefits from many parallel, independent workers and you intentionally want to choose the swarm size yourself.
 
 Agent (LlamaIndex) 
 -------------------

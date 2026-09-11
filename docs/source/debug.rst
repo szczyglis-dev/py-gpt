@@ -41,8 +41,8 @@ Additional logging switches are available in ``Config -> Settings -> Debug``:
 * ``Log image and video generation to console`` - logs image and video generation activity.
 * ``Log attachments usage to console`` - logs attachment processing and usage details.
 * ``Log Agents usage to console`` - logs agent and expert execution details.
-* ``Log agents v2 workflow`` - logs a concise, human-readable Agents v2 workflow trace, including important orchestration events, agent operations, tool names, statuses, waits and response previews. It omits stream chunks, full tool definitions and large JSON payloads.
-* ``Agents v2 verbose (log full flow to console)`` - logs the complete Agents v2 orchestration flow, including full system prompts, available tools and tool calls, worker operations and states, inputs, outputs, RAG context and workflow lifecycle. This output can contain sensitive prompt or tool data.
+* ``Log Chat with Agents workflow`` - logs a concise, human-readable Chat with Agents workflow trace, including important orchestration events, agent operations, tool names, statuses, waits and response previews. It omits stream chunks, full tool definitions and large JSON payloads.
+* ``Chat with Agents verbose (log full flow to console)`` - logs the complete Chat with Agents orchestration flow, including full system prompts, available tools and tool calls, worker operations and states, inputs, outputs, RAG context and workflow lifecycle. This output can contain sensitive prompt or tool data.
 * ``Log LlamaIndex usage to console`` - logs LlamaIndex indexing, querying and related activity.
 * ``Log Realtime sessions to console`` - logs real-time audio session activity and provider details.
 * ``Log legacy API usage to console`` - logs activity from legacy API code paths.

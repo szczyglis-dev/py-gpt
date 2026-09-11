@@ -16,7 +16,7 @@ Release: **2.8.14** | build: **2026-09-10** | Python: **>=3.10, <3.14**
 
 **PyGPT** is an **all-in-one desktop AI assistant** supporting models from `OpenAI` (`GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, and models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, and `gpt-oss`.
 
-It supports chat, **Agents v2 (beta)** and other agent workflows, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
+It supports chat, **Chat with Agents** and other agent workflows, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
 
 **PyGPT** also provides speech synthesis through `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI`, plus speech recognition with `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Bing` and `xAI Grok Voice`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, **Agents v2 (beta)**, Agents and Autonomous Mode.
+- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, Chat with Agents, Agents and Autonomous Mode.
 - Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -65,7 +65,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Includes a notepad.
 - Includes simple painter / drawing tool.
 - Includes an node-based Agents Builder.
-- Includes **Agents v2 (beta)**, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
+- Includes Chat with Agents, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
 - Fully configurable.
@@ -671,42 +671,54 @@ prompts for creating new images.
 Images are stored in ``img`` directory in **PyGPT** user data folder.
 
 
-## Agents v2 (beta)
+## Chat with Agents
 
-> **Beta:** Agents v2 is currently an experimental beta feature introduced in version `2.8.10`. Its behavior, preset options, workflow rules, and provider compatibility may change in subsequent releases.
+**Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)`, `Agent (OpenAI)`, and `Agent (Autonomous)` modes.
 
-**Agents v2** is a new orchestrated multi-agent mode designed for complex tasks that benefit from planning, delegation, parallel execution, tool use, and verification. It uses a dedicated orchestration runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)`, `Agent (OpenAI)`, and `Agent (Autonomous)` modes.
+The **Mode** selector below the system prompt lets you choose how the agent workflow operates. The default is **Chat**.
 
-A single **Orchestrator** is responsible for the user-facing conversation and owns the task from start to finish. During a task it can dynamically create specialist **worker agents**, assign or update their roles, start or reuse them for follow-up work, inspect their state, wait for their results, stop them, or remove them. Workers keep their in-memory history while the current Agents v2 runtime is active, allowing the Orchestrator to continue or refine their work without recreating them. Up to 16 workers can exist in one runtime, and independent workers can execute concurrently.
+### Agent modes
 
-The Orchestrator can answer very small tasks directly, but for multi-step or action-oriented work it delegates execution to workers and integrates their results into the final response. Worker output is private to the orchestration runtime; the user sees the Orchestrator's streamed response plus a transient progress/status line.
+- **Chat** - the default mode. A primary agent talks directly with the user, uses available tools, and can delegate selected tasks to background workers when useful. This is the best general-purpose option when you want a normal agent conversation with multi-agent assistance available on demand.
+- **Orchestrator** - a dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can run concurrently. This mode is useful for structured, multi-stage tasks where explicit coordination and verification are important. The Orchestrator runtime supports up to `16` workers.
+- **Swarm** - the orchestrator launches a swarm containing the number of workers requested by the user. If the number of agents is not specified in the request, the orchestrator asks how many should be launched before starting the swarm. Workers are numbered and prefixed in status output, the orchestrator reports the swarm size when it starts, and it periodically provides an aggregated status showing how many agents are running and what they are doing. **Swarm does not impose a worker-count limit.**
 
-**Tools and provider capabilities**
+> **Warning:** Use **Swarm** with care. This mode has no built-in limit on the number of agents that can be created. Requesting a large swarm can cause unexpectedly high API usage, token consumption, resource usage, many concurrent tool operations, and other unexpected effects. Start with a reasonable number of agents and supervise workflows that can modify files, execute code or system commands, or perform external actions.
 
-Agents v2 can use both local and provider-side capabilities:
+### Tools and provider capabilities
 
-- **Local tools** from enabled PyGPT plugins can be made available to the Orchestrator and workers.
+Chat with Agents can use both local and provider-side capabilities:
+
+- **Local tools** from enabled PyGPT plugins can be made available to the primary agent/orchestrator and workers.
 - **Remote tools** exposed by the selected provider can be made available when supported by the provider/model and enabled in PyGPT.
-- Local and remote tools can be enabled or disabled independently in the Agents v2 preset with **Allow local tools** and **Allow remote tools**.
+- Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with **Allow local tools** and **Allow remote tools**.
 - Models with native function calling use it when available; the runtime can fall back to a ReAct agent for compatible models without native function calling.
 
-**Settings**
+Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code Interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
-Agent-related application settings are organized under `Settings -> Agents and experts`. The **General / v2** tab contains settings intended for the current Agents v2 workflow. **Show full tool-chain in Agents v2** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
+### Settings
 
-Settings kept only for older agent implementations are separated into the **Legacy** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These Legacy options do not control the Agents v2 tool-chain display.
+Agent-related application settings are organized under `Settings -> Agents and experts`. The **Chat with Agents** section contains settings for this workflow. **Show full tool-chain in Chat with Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
 
-**RAG, attachments and artifacts**
+Settings kept only for older agent implementations are separated into the **Legacy** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These Legacy options do not control the Chat with Agents tool-chain display.
 
-If a valid index is selected in the preset, Agents v2 exposes it as a RAG query tool. User attachments and extracted attachment context are shared with the workflow, and image attachments are also passed as native image input when the selected model supports images. Files, images, URLs and attachments produced by workers or provider-side tools are collected by the runtime and propagated to the main response.
+### RAG, attachments and artifacts
 
-**Memory and workflow lifecycle**
+If a valid index is selected in the preset, Chat with Agents exposes it as a RAG query tool. User attachments and extracted attachment context are shared with the workflow, and image attachments are also passed as native image input when the selected model supports images. Files, images, URLs and attachments produced by workers or provider-side tools are collected by the runtime and propagated to the main response.
 
-The Orchestrator keeps its own hidden conversation memory across turns in the current conversation/preset, subject to the normal PyGPT token-window limits. Worker memory is runtime-local and is retained when the same worker is reused during that workflow. The Orchestrator cannot finalize a workflow while required workers are still running or when a newly created worker has never been started; it must first wait for, stop, run or remove those workers and then produce the final answer.
+### Memory and worker lifecycle
 
-**Recommended use cases** include coding and file operations, research with independent verification, RAG-assisted tasks, multi-stage analysis, workflows that combine multiple tools, and tasks that can be split into independent parallel subtasks.
+The user-facing primary agent or orchestrator keeps hidden conversation memory across turns in the current conversation/preset, subject to the normal PyGPT token-window limits. Worker memory is runtime-local and can be retained when the same worker is reused during a workflow.
 
-**Note:** Because Agents v2 is currently **beta**, use it with appropriate supervision when tools can modify files, execute code or system commands, or perform external actions.
+The worker-management model depends on the selected mode:
+
+- **Chat** delegates individual tasks to workers through the primary agent, without exposing the full orchestration lifecycle as the main interaction pattern.
+- **Orchestrator** uses explicit worker-management operations to create, update, run, inspect, wait for, stop, and remove workers, and finalizes the workflow only after required worker activity has been resolved.
+- **Swarm** extends the orchestrator flow with swarm initialization and aggregate swarm status. It tracks the requested number of workers, numbers them for status output, and reports collective progress while they are running.
+
+### Recommended use cases
+
+Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-step work such as coding, file operations, research with independent verification, RAG-assisted analysis, implementation plus testing, or workflows combining several tools. Use **Swarm** when a task genuinely benefits from many parallel, independent workers and you intentionally want to control the swarm size yourself.
 
 ##  Agent (LlamaIndex) 
 
@@ -2571,8 +2583,8 @@ may consume additional tokens that are not displayed in the main window.
 **2.8.13 (2026-09-09)**
 
 - Fixed issue with empty parameters in the Anthropic API remote tool for computer use.
-- Added support for the use of computer use remote tool in Agents v2 for Anthropic and Google.
-- Added **OSINT v2** preset to Agents v2.
+- Added support for the use of computer use remote tool in Chat with Agents for Anthropic and Google.
+- Added **OSINT v2** preset to Chat with Agents.
 - Added a new plugin: **Memory (inline)**.
 - Updated IPython Dockerfile: included default installation of pandas, matplotlib, scikit-learn, and other useful libraries.
 - Integrated Google remote tool - MCP.
@@ -2585,7 +2597,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.8.12 (2026-09-08)**
 
-- Improved, extended, and fixed several bugs in the following modes: Chat, Realtime + Audio, Computer Use, Autonomous Agent, and Agents v2.
+- Improved, extended, and fixed several bugs in the following modes: Chat, Realtime + Audio, Computer Use, Autonomous Agent, and Chat with Agents.
 - Added new models: **GPT-6 Astra** and **Claude Fable 5.1**.
 - Added a new remote tool in **Settings**: **Computer Use**, which allows you to control the computer in standard Chat mode.
 - Added item limits, a **Show more** option, and collapsible items to the project list.

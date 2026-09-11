@@ -25,7 +25,7 @@ Features
 ---------
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
-* 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, Agents v2 (beta), Agents and Autonomous Mode.
+* 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, Agents and Autonomous Mode.
 * Supports multiple models like ``OpenAI GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``o1``, ``o3``, ``o4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Gemma 4``, ``Qwen 3.6``, ``Llama 4``, ``Mistral Small 3.2``, ``DeepSeek``, ``Bielik``, ``Nemotron``, ``gpt-oss``, etc.
 * Chat with your own Files: integrated ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 * Built-in vector databases support and automated files and data embedding.
@@ -52,7 +52,7 @@ Features
 * Includes a notepad.
 * Includes simple painter / drawing tool.
 * Includes a node-based Agents Builder.
-* Includes Agents v2 (beta), an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
+* Includes Chat with Agents, a multi-agent mode with Chat, Orchestrator, and Swarm workflows for direct agent interaction, controlled background delegation, or large parallel worker groups.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
 * Fully configurable.

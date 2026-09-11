@@ -555,12 +555,12 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 Agents and experts
 ~~~~~~~~~~~~~~~~~~
 
-General / v2
-^^^^^^^^^^^^
+Chat with Agents
+^^^^^^^^^^^^^^^^
 
-* ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before an Agents v2 run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
+* ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before a Chat with Agents run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
 
-* ``Show full tool-chain in Agents v2``: When enabled, the final Agents v2 response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
+* ``Show full tool-chain in Chat with Agents``: When enabled, the final Chat with Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
 Agents
 ^^^^^^
@@ -602,9 +602,9 @@ Experts
 Legacy
 ^^^^^^
 
-* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents v2 tool-chain display. Default: True.
+* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Chat with Agents tool-chain display. Default: True.
 
-* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Agents v2 workflow status or tool-chain rendering. Default: False.
+* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Chat with Agents workflow status or tool-chain rendering. Default: False.
 
 Accessibility
 ~~~~~~~~~~~~~
@@ -709,11 +709,11 @@ Debug
 
 * ``Log attachments usage to console``: Prints attachment-processing decisions and related activity to the console, helping diagnose upload, extraction, RAG, or native-attachment handling. Default: False.
 
-* ``Log Agents usage to console``: Prints general agent execution diagnostics to the console, including activity from agent workflows not covered by the more specialized Agents v2 logging options. Default: False.
+* ``Log Agents usage to console``: Prints general agent execution diagnostics to the console, including activity from agent workflows not covered by the more specialized Chat with Agents logging options. Default: False.
 
-* ``Log agents v2 workflow``: Logs a concise Agents v2 workflow trace, including orchestration events, tool names, statuses, waits, and response previews without full prompts or large payloads. Default: False.
+* ``Log Chat with Agents workflow``: Logs a concise Chat with Agents workflow trace, including orchestration events, tool names, statuses, waits, and response previews without full prompts or large payloads. Default: False.
 
-* ``Agents v2 verbose (log full flow to console)``: Logs the complete Agents v2 orchestration flow, including system prompts, tool calls, worker state, RAG context, inputs, and outputs. This may contain sensitive data. Default: False.
+* ``Chat with Agents verbose (log full flow to console)``: Logs the complete Chat with Agents orchestration flow, including system prompts, tool calls, worker state, RAG context, inputs, and outputs. This may contain sensitive data. Default: False.
 
 * ``Log LlamaIndex usage to console``: Prints LlamaIndex indexing, retrieval, and query-flow diagnostics to the console. Enable it when troubleshooting Chat with Files or vector-store behavior. Default: False.
 
