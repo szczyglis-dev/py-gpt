@@ -296,7 +296,7 @@ class Plugin(BasePlugin):
                 append_to_ctx=self.APPEND_SCREENSHOT_TO_CTX,
             )  # attach screenshot
         if path:
-            img_path = self.window.core.filesystem.make_local(path)
+            img_path = self.window.core.filesystem.make_local(path, ctx=ctx)
             if self.APPEND_SCREENSHOT_TO_CTX:
                 ctx.images_before.append(img_path)
             else:
@@ -330,7 +330,7 @@ class Plugin(BasePlugin):
                             continue
                         setattr(target, attr, [
                             value for value in values
-                            if filesystem.make_local(str(value)) != img_path
+                            if filesystem.make_local(str(value), ctx=target) != img_path
                         ])
         else:
             # Do not leave a tool turn pending forever when the capture backend

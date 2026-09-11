@@ -200,7 +200,7 @@ def latest_transport_image(window, ctx) -> Optional[str]:
             paths = []
             if filesystem is not None:
                 try:
-                    paths.append(filesystem.to_workdir(raw, auto_prefix=False))
+                    paths.append(filesystem.to_workdir(raw, auto_prefix=False, ctx=candidate))
                 except Exception:
                     pass
             paths.append(raw)

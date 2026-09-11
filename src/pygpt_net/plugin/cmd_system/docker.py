@@ -56,10 +56,10 @@ class Docker(BaseDocker):
         """
         return self.plugin.get_option_value('container_name')
 
-    def get_local_data_dir(self) -> str:
+    def get_local_data_dir(self, ctx=None) -> str:
         """
         Get the local data directory.
 
         :return: Local data directory.
         """
-        return self.plugin.window.core.config.get_user_dir("data")
+        return self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)

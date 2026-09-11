@@ -409,7 +409,7 @@ class Indexer(QObject):
         """
         idx = self.resolve_idx(idx)
         self.tmp_idx = idx  # store tmp index name (for confirmation)
-        path = self.window.core.config.get_user_dir('data')
+        path = self.window.core.filesystem.get_data_dir()
         if not force:
             content = trans('idx.confirm.files.content').replace('{dir}', path) \
                       + "\n" + trans('idx.token.warn')

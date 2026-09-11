@@ -197,9 +197,9 @@ Code syntax
 Files and attachments
 ~~~~~~~~~~~~~~~~~~~~~
 
-* ``Store attachments in the workdir upload directory``: Copies uploaded attachments into PyGPT's workdir upload storage so the files remain available to the application after the original upload action. Disable it if you do not want PyGPT to keep its own persistent copy. Default: True.
+* ``Store attachments in the workdir upload directory``: Copies uploaded attachments into PyGPT-managed upload storage so the files remain available after the original upload action. With ``Store images, captures, and uploads in the data directory`` disabled, this is the base-profile ``upload`` directory. With that option enabled, upload storage follows the active runtime ``data`` workdir, including a custom project data workdir. Disable this option if you do not want PyGPT to keep its own persistent copy. Default: True.
 
-* ``Store images, captures, and uploads in the data directory``: Stores generated images, screenshots/captures, and uploaded files under the main workdir ``data`` tree instead of using their normal dedicated locations. Enable it when you want application-managed media consolidated in one data directory. Default: False.
+* ``Store images, captures, and uploads in the data directory``: Stores generated images, screenshots/captures, and uploaded files under the active runtime ``data`` tree instead of using their normal dedicated base-profile locations. If the active conversation belongs to a project with a custom data workdir, these files follow that project directory. When disabled, ``img``, ``capture`` and ``upload`` remain in their normal base-profile locations even if the project uses a custom data workdir. The internal ``tmp`` directory is never redirected by this option. Default: False.
 
 * ``Allow images as additional context``: Allows images attached to earlier context items to be reused as additional visual context in later model requests. Disable it when images should be considered only in the message where they were explicitly attached. Default: False.
 
@@ -217,7 +217,7 @@ Files and attachments
 
 * ``RAG limit``: Only if the option 'Use history in RAG query' is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit. Default: 3.
 
-* ``Directory for file downloads``: Chooses the subdirectory under the workdir ``data`` directory where files downloaded by PyGPT tools and integrations are saved. The value is a directory name/path relative to ``data``. Default: ``download``.
+* ``Directory for file downloads``: Chooses the subdirectory under the active runtime ``data`` directory where files downloaded by PyGPT tools and integrations are saved. For a project with a custom data workdir, the subdirectory is created below that project directory; otherwise it is relative to the shared profile ``data`` directory. Default: ``download``.
 
 Context
 ~~~~~~~
@@ -641,9 +641,9 @@ Security settings control host-side filesystem access, system commands used by p
 General
 ^^^^^^^
 
-* ``Restrict plugin file reads to working directory``: When enabled, plugin-mediated reads of local files are limited to the current workdir ``data`` directory. The application-owned internal ``tmp`` directory is also allowed so built-in temporary workflows such as IPython and Canvas can operate. Default: True.
+* ``Restrict plugin file reads to working directory``: When enabled, plugin-mediated reads of local files are limited to the active conversation's runtime ``data`` directory. For a project with a custom data workdir, the project directory is used; otherwise the shared profile ``data`` directory is used. The application-owned internal ``tmp`` directory from the base profile is also allowed so built-in temporary workflows such as IPython and Canvas can operate. Default: True.
 
-* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the current workdir ``data`` directory (plus the application-owned internal ``tmp`` directory). Default: True.
+* ``Restrict plugin file writes to working directory``: When enabled, plugin-mediated writes, modifications, moves, and deletes are limited to the active conversation's runtime ``data`` directory (plus the application-owned base-profile ``tmp`` directory). Default: True.
 
 * ``Enable system command whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
 
@@ -751,24 +751,50 @@ You can manually edit the configuration files in this directory (this is your wo
 * ``config.json`` - stores the main configuration settings.
 * ``models.json`` - stores models configurations.
 * ``cache`` - a directory for audio cache.
-* ``capture`` - a directory for captured images from camera and screenshots
+* ``capture`` - the base-profile directory for captured images from camera and screenshots; when consolidated data storage is enabled, captures are stored under the active runtime ``data`` workdir instead.
 * ``css`` - a directory for CSS stylesheets (user override)
 * ``history`` - a directory for context history in ``.txt`` format.
 * ``idx`` - ``LlamaIndex`` indexes
-* ``img`` - a directory for generated images saved by the application.
+* ``img`` - the base-profile directory for generated images; when consolidated data storage is enabled, generated images are stored under the active runtime ``data`` workdir instead.
 * ``locale`` - a directory for locales (user override)
-* ``data`` - a directory for data files and files downloaded/generated by models.
+* ``data`` - the shared/default directory for data files and files downloaded/generated by models. A project may override only this logical directory with its own runtime data workdir.
 * ``presets`` - a directory for presets stored as ``.json`` files.
-* ``upload`` - a directory for local copies of attachments coming from outside the workdir
-* ``tmp`` - application-managed temporary files (for example audio input, Canvas, Code Interpreter/IPython and Transcript working files); this is not the user-facing model output directory.
+* ``upload`` - the base-profile directory for local copies of attachments; when consolidated data storage is enabled, upload storage is placed under the active runtime ``data`` workdir instead.
+* ``tmp`` - application-managed temporary files (for example audio input, Canvas, Code Interpreter/IPython and Transcript working files); this directory always remains in the base profile workdir and is never replaced by a project data workdir.
 * ``db.sqlite`` - a database with contexts, notepads and indexes data records
 * ``app.log`` - a file with error and debug log
+
+Project data workdirs
+~~~~~~~~~~~~~~~~~~~~~
+
+The directory above is the **profile/application workdir**. Projects do not
+replace it. A project can override only the logical ``data`` directory used by
+conversations assigned to that project.
+
+When creating a project, ``Use shared workdir`` is enabled by default. Disable
+it to choose a custom project data directory. For an existing project use
+``RMB -> Edit``. The project item tooltip shows the effective directory.
+Conversations outside projects and projects using the shared workdir continue to
+use ``<profile workdir>/data``.
+
+This runtime override is used by the Files view, Files I/O, Code Interpreter,
+filesystem-aware tools, file-download paths and Docker ``/data`` mappings. It
+does **not** relocate ``config.json``, ``models.json``, ``db.sqlite``, ``tmp``,
+``cache``, ``css``, ``locale``, fonts, logs or other profile-level paths.
+``tmp`` always remains in the base profile workdir. ``img``, ``capture`` and
+``upload`` follow the project data workdir only when ``Store images, captures,
+and uploads in the data directory`` is enabled; otherwise they remain in their
+base-profile locations.
+
+Internally, portable paths written as ``%workdir%/data/...`` are resolved
+against the active conversation's data root at runtime. Other ``%workdir%``
+paths keep their normal profile-level meaning.
 
 
 Setting the Working Directory Using Command Line Arguments
 ----------------------------------------------------------
 
-To set the current working directory using a command-line argument, use:
+To set the base profile/application working directory using a command-line argument, use:
 
 .. code-block:: ini
 
@@ -779,6 +805,10 @@ or, for the binary version:
 .. code-block:: ini
 
    pygpt.exe --workdir="/path/to/workdir"
+
+This command-line option changes the whole profile/application workdir. It is
+different from a project's custom data workdir, which overrides only the
+logical ``data`` directory for conversations in that project.
    
 
 Translations / locale

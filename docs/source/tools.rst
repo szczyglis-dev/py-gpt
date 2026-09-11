@@ -83,7 +83,7 @@ A simple text editor that enables you to edit text files directly within the app
 Transcribe Audio/Video Files
 -----------------------------
 
-An audio transcription tool with which you can prepare a transcript from a video or audio file. It uses the configured speech-recognition provider to generate the text. The tool's generated working transcript is stored as ``%workdir%/tmp/transcript.txt`` rather than in the user-facing ``data`` directory.
+An audio transcription tool with which you can prepare a transcript from a video or audio file. It uses the configured speech-recognition provider to generate the text. The tool's generated working transcript is stored as ``%workdir%/tmp/transcript.txt`` rather than in the user-facing ``data`` directory. The ``tmp`` path always belongs to the base profile workdir and is not redirected by a project data-workdir override.
 
 OpenAI / Google Vector Stores
 -----------------------------

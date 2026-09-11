@@ -31,7 +31,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx=None
     ) -> str:
         """
         Get image HTML
@@ -44,7 +45,7 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         return """<a href="{url}"><img src="{path}" width="{img_width}" class="image"></a>
         <p><b>{prefix}{num}:</b> <a href="{url}">{path}</a></p>""". \
             format(prefix=trans('chat.prefix.img'),
@@ -115,7 +116,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx=None
     ) -> str:
         """
         Get file HTML
@@ -128,7 +130,7 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         return """<div><b>{prefix}{num}:</b> <a href="{url}">{path}</a></div>""". \
             format(prefix=trans('chat.prefix.file'),
                    url=url,

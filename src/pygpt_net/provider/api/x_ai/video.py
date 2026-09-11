@@ -399,7 +399,7 @@ class VideoWorker(QRunnable):
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
             # keep unified key 'video_id' across providers; value is the public URL returned by xAI
-            self.ctx.extra["video_id"] = self.window.core.filesystem.make_local(url)
+            self.ctx.extra["video_id"] = self.window.core.filesystem.make_local(url, ctx=self.ctx)
             self.window.core.ctx.update_item(self.ctx)
         except Exception:
             pass

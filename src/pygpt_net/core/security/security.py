@@ -35,9 +35,9 @@ class Security:
     def __init__(self, window=None):
         self.window = window
 
-    def get_workdir(self) -> str:
-        """Return the plugin filesystem working directory (the user data directory)."""
-        return self.window.core.config.get_user_dir("data")
+    def get_workdir(self, ctx=None) -> str:
+        """Return the active plugin filesystem data directory."""
+        return self.window.core.filesystem.get_data_dir(ctx=ctx)
 
     def get_os_id(self) -> str:
         """Return settings suffix for the current host operating system."""
@@ -76,53 +76,53 @@ class Security:
         except (TypeError, ValueError, OSError):
             return False
 
-    def is_in_workdir(self, path: str) -> bool:
-        """Return True when path is inside the user-facing workdir data directory."""
-        return self._is_in_dir(path, self.get_workdir())
+    def is_in_workdir(self, path: str, ctx=None) -> bool:
+        """Return True when path is inside the active data workdir."""
+        return self._is_in_dir(path, self.get_workdir(ctx=ctx))
 
     def is_in_internal_tmp(self, path: str) -> bool:
         """Return True when path is inside the app-owned workdir temporary directory."""
         return self._is_in_dir(path, self.window.core.config.get_user_dir("tmp"))
 
-    def is_in_allowed_workdir(self, path: str) -> bool:
+    def is_in_allowed_workdir(self, path: str, ctx=None) -> bool:
         """Return True for paths allowed by the workdir filesystem restriction."""
-        return self.is_in_workdir(path) or self.is_in_internal_tmp(path)
+        return self.is_in_workdir(path, ctx=ctx) or self.is_in_internal_tmp(path)
 
-    def ensure_read(self, path: str, sandbox: bool = False) -> str:
+    def ensure_read(self, path: str, sandbox: bool = False, ctx=None) -> str:
         """Validate a local file/directory read. Security restrictions are bypassed in sandbox mode."""
         if path is None or str(path).strip() == "":
             return path
-        if sandbox or not self.is_read_restricted() or self.is_in_allowed_workdir(path):
+        if sandbox or not self.is_read_restricted() or self.is_in_allowed_workdir(path, ctx=ctx):
             return path
         print(path, sandbox)
         raise SecurityError(
             "Permission denied - filesystem read access outside the workdir data directory is disabled. "
             "Enable filesystem access outside workdir in Settings -> Security "
             "(disable the read restriction). Allowed directory: {}"
-            .format(self.get_workdir())
+            .format(self.get_workdir(ctx=ctx))
         )
 
-    def ensure_write(self, path: str, sandbox: bool = False) -> str:
+    def ensure_write(self, path: str, sandbox: bool = False, ctx=None) -> str:
         """Validate a local file/directory write. Security restrictions are bypassed in sandbox mode."""
         if path is None or str(path).strip() == "":
             return path
-        if sandbox or not self.is_write_restricted() or self.is_in_allowed_workdir(path):
+        if sandbox or not self.is_write_restricted() or self.is_in_allowed_workdir(path, ctx=ctx):
             return path
         print(path, sandbox)
         raise SecurityError(
             "Permission denied - filesystem write access outside the workdir data directory is disabled. "
             "Enable filesystem access outside workdir in Settings -> Security "
             "(disable the write restriction). Allowed directory: {}"
-            .format(self.get_workdir())
+            .format(self.get_workdir(ctx=ctx))
         )
 
-    def ensure_reads(self, paths: Iterable[str], sandbox: bool = False):
+    def ensure_reads(self, paths: Iterable[str], sandbox: bool = False, ctx=None):
         for path in paths or []:
-            self.ensure_read(path, sandbox=sandbox)
+            self.ensure_read(path, sandbox=sandbox, ctx=ctx)
 
-    def ensure_writes(self, paths: Iterable[str], sandbox: bool = False):
+    def ensure_writes(self, paths: Iterable[str], sandbox: bool = False, ctx=None):
         for path in paths or []:
-            self.ensure_write(path, sandbox=sandbox)
+            self.ensure_write(path, sandbox=sandbox, ctx=ctx)
 
     @staticmethod
     def _parse_list(value) -> set:

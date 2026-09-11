@@ -1492,7 +1492,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.add(image)
-                    html_parts.append(self.body.get_image_html(image, n, c))
+                    html_parts.append(self.body.get_image_html(image, n, c, ctx=ctx))
                     self.pids[pid].images_appended.append(image)
                     n += 1
                 except Exception:
@@ -1507,7 +1507,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.add(file)
-                    files_html.append(self.body.get_file_html(file, n, c))
+                    files_html.append(self.body.get_file_html(file, n, c, ctx=ctx))
                     self.pids[pid].files_appended.append(file)
                     n += 1
                 except Exception:
@@ -3255,7 +3255,7 @@ class Renderer(BaseRenderer):
             seq += 1
             md_text = ""
             if text:
-                md_src = self.helpers.pre_format_text(str(text))
+                md_src = self.helpers.pre_format_text(str(text), ctx=ctx)
                 md_text = self.helpers.post_format_text(md_src)
             timeline.append({
                 "part_id": getattr(part, "id", None),
@@ -3528,7 +3528,7 @@ class Renderer(BaseRenderer):
             )
 
             # Pre/post format raw markdown via Helpers to preserve placeholders ([!cmd], think) and workdir tokens.
-            md_src = self.helpers.pre_format_text(visible_output_text)
+            md_src = self.helpers.pre_format_text(visible_output_text, ctx=ctx)
             md_text = self.helpers.post_format_text(md_src)
             name, avatar, personalize = self._output_identity(ctx)
             show_output_identity = self._show_output_identity(ctx, prev_ctx)

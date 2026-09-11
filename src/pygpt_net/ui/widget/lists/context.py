@@ -1598,8 +1598,8 @@ class ContextList(BaseList):
         a_new = menu.addAction(self._icons['add'], trans('action.ctx.new'))
         a_new.triggered.connect(functools.partial(self.action_group_new_in_group, group_ids))
 
-        a_rename = menu.addAction(self._icons['edit'], trans('action.rename'))
-        a_rename.triggered.connect(functools.partial(self.action_group_rename, group_ids))
+        a_rename = menu.addAction(self._icons['edit'], trans('action.edit'))
+        a_rename.triggered.connect(functools.partial(self.action_group_edit, group_ids))
 
         a_delete = menu.addAction(self._icons['delete'], trans('action.group.delete.only'))
         a_delete.triggered.connect(functools.partial(self.action_group_delete_only, group_ids))
@@ -1677,8 +1677,8 @@ class ContextList(BaseList):
                 menu = QMenu(self)
                 a_new = menu.addAction(self._icons['add'], trans('action.ctx.new'))
                 a_new.triggered.connect(functools.partial(self.window.controller.ctx.new_in_group, force=False, group_id=id_value))
-                a_rename = menu.addAction(self._icons['edit'], trans('action.rename'))
-                a_rename.triggered.connect(functools.partial(self.window.controller.ctx.rename_group, id_value))
+                a_rename = menu.addAction(self._icons['edit'], trans('action.edit'))
+                a_rename.triggered.connect(functools.partial(self.window.controller.ctx.edit_group, id_value))
                 a_duplicate = menu.addAction(self._icons['copy'], trans('action.group.duplicate'))
                 a_duplicate.triggered.connect(functools.partial(self.window.controller.ctx.duplicate_group, id_value))
 
@@ -2026,12 +2026,14 @@ class ContextList(BaseList):
         self.restore_after_ctx_menu = False
         self.window.controller.ctx.new_in_group(force=False, group_id=group_id_or_ids)
 
-    def action_group_rename(self, group_id_or_ids):
-        """
-        Rename group(s).
-        """
+    def action_group_edit(self, group_id_or_ids):
+        """Edit project(s)."""
         self.restore_after_ctx_menu = False
-        self.window.controller.ctx.rename_group(group_id_or_ids)
+        self.window.controller.ctx.edit_group(group_id_or_ids)
+
+    def action_group_rename(self, group_id_or_ids):
+        """Backward-compatible wrapper for project editing."""
+        self.action_group_edit(group_id_or_ids)
 
     def action_group_delete_only(self, group_id_or_ids):
         """

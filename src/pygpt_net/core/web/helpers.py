@@ -220,21 +220,21 @@ class Helpers:
                 continue
         return images
 
-    def download_image(self, img: str) -> str:
+    def download_image(self, img: str, ctx=None) -> str:
         """
         Download image from URL
 
         :param img: URL to download image from
         :return: local path to image
         """
-        dir = self.window.core.config.get_user_dir("img")
+        dir = self.window.core.filesystem.get_runtime_dir("img", ctx=ctx)
         response = requests.get(img, stream=True)
         name = img.replace("http://", "").replace("https://", "").replace("/", "_")
         path = os.path.join(dir, name)
         if os.path.exists(path):
             name = name + uuid.uuid4().hex[:6].upper()
         download_path = os.path.join(dir, name)
-        self.window.core.security.ensure_write(download_path, sandbox=False)
+        self.window.core.security.ensure_write(download_path, sandbox=False, ctx=ctx)
         with open(download_path, 'wb', ) as f:
             f.write(response.content)
-        return self.window.core.filesystem.make_local(download_path)
+        return self.window.core.filesystem.make_local(download_path, ctx=ctx)

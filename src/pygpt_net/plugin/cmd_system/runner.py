@@ -155,13 +155,13 @@ class Runner:
         import docker
         return docker.from_env()
 
-    def get_volumes(self) -> dict:
+    def get_volumes(self, ctx=None) -> dict:
         """
         Get docker volumes
 
         :return: docker volumes
         """
-        path = self.plugin.window.core.config.get_user_dir('data')
+        path = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
         mapping = {}
         mapping[path] = {
             "bind": "/data",
@@ -169,7 +169,7 @@ class Runner:
         }
         return mapping
 
-    def run_docker(self, cmd: str) -> bytes or None:
+    def run_docker(self, cmd: str, ctx=None) -> bytes or None:
         """
         Run docker container with command and return response
 
@@ -177,9 +177,9 @@ class Runner:
         :return: response
         """
         client = self.get_docker()
-        mapping = self.get_volumes()
+        mapping = self.get_volumes(ctx=ctx)
         try:
-            response = self.plugin.docker.execute(cmd)
+            response = self.plugin.docker.execute(cmd, ctx=ctx)
         except Exception as e:
             response = str(e).encode("utf-8")
         return response
@@ -210,7 +210,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -225,16 +225,16 @@ class Runner:
             sandbox=True,
         )
         self.send_interpreter_output_begin("stdout")
-        response = self.run_docker(item["params"]['command'])
+        response = self.run_docker(item["params"]['command'], ctx=ctx)
         result = self.handle_result_docker(response)
         self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
-    def parse_result(self, result):
+    def parse_result(self, result, ctx=None):
         """
         Parse result
 
@@ -246,7 +246,7 @@ class Runner:
         img_ext = ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]
         s = str(result).strip()
         if any(s.lower().endswith('.' + ext) for ext in img_ext):
-            path = self.prepare_path(s.replace("file://", ""), on_host=True)
+            path = self.prepare_path(s.replace("file://", ""), on_host=True, ctx=ctx)
             if os.path.isfile(path):
                 return "![Image](file://{})".format(path)
         return str(result)
@@ -257,7 +257,7 @@ class Runner:
         """
         return os.path.isabs(path)
 
-    def prepare_path(self, path: str, on_host: bool = True) -> str:
+    def prepare_path(self, path: str, on_host: bool = True, ctx=None) -> str:
         """
         Prepare path
 
@@ -267,12 +267,16 @@ class Runner:
         """
         if not path:
             return path
+        if on_host and self.is_sandbox():
+            mapped = self.plugin.window.core.filesystem.from_sandbox_data_path(path, ctx=ctx)
+            if mapped != path:
+                return mapped
         if self.is_absolute_path(path):
             return path
         else:
             if not self.is_sandbox() or on_host:
                 return os.path.join(
-                    self.plugin.window.core.config.get_user_dir('data'),
+                    self.plugin.window.core.filesystem.get_data_dir(ctx=ctx),
                     path,
                 )
             else:
@@ -590,10 +594,10 @@ class Runner:
     # -------------------------------
     # WinAPI: screenshots
     # -------------------------------
-    def _save_pixmap(self, pix, path: str) -> Tuple[bool, str]:
+    def _save_pixmap(self, pix, path: str, ctx=None) -> Tuple[bool, str]:
         """Save QPixmap to disk, ensure dir."""
-        abspath = self.prepare_path(path)
-        self.plugin.window.core.security.ensure_write(abspath, sandbox=False)
+        abspath = self.prepare_path(path, ctx=ctx)
+        self.plugin.window.core.security.ensure_write(abspath, sandbox=False, ctx=ctx)
         try:
             os.makedirs(os.path.dirname(abspath), exist_ok=True)
         except Exception:
@@ -605,7 +609,8 @@ class Runner:
                        hwnd: Optional[int] = None,
                        title: Optional[str] = None,
                        exact: bool = False,
-                       path: Optional[str] = None) -> Dict:
+                       path: Optional[str] = None,
+                       ctx=None) -> Dict:
         self._ensure_windows()
         handle, candidates, err = self._resolve_window(hwnd, title, exact=exact, visible_only=False)
         if candidates is not None:
@@ -625,10 +630,10 @@ class Runner:
         if pix.isNull():
             return {"result": "Failed", "context": "grabWindow returned null pixmap."}
 
-        ok, abspath = self._save_pixmap(pix, path)
+        ok, abspath = self._save_pixmap(pix, path, ctx=ctx)
         if not ok:
             return {"result": "Failed", "context": f"Could not save screenshot to: {abspath}"}
-        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath)
+        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath, ctx=ctx)
         return {"result": abspath, "context": context}
 
     def win_area_screenshot(self,
@@ -637,7 +642,8 @@ class Runner:
                             title: Optional[str] = None,
                             exact: bool = False,
                             relative: bool = False,
-                            path: Optional[str] = None) -> Dict:
+                            path: Optional[str] = None,
+                            ctx=None) -> Dict:
         self._ensure_windows()
         if any(v is None for v in [x, y, width, height]):
             return {"result": "Missing geometry", "context": "Params x,y,width,height are required."}
@@ -665,10 +671,10 @@ class Runner:
         if pix.isNull():
             return {"result": "Failed", "context": "grabWindow returned null pixmap."}
 
-        ok, abspath = self._save_pixmap(pix, path)
+        ok, abspath = self._save_pixmap(pix, path, ctx=ctx)
         if not ok:
             return {"result": "Failed", "context": f"Could not save screenshot to: {abspath}"}
-        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath)
+        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath, ctx=ctx)
         return {"result": abspath, "context": context}
 
     # -------------------------------

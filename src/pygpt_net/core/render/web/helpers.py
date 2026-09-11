@@ -246,7 +246,7 @@ class Helpers:
 
         return s
 
-    def pre_format_text(self, text: str) -> str:
+    def pre_format_text(self, text: str, ctx=None) -> str:
         """
         Pre-format text
 
@@ -276,14 +276,14 @@ class Helpers:
         if "sandbox:" in s.lower():
             fs = self.window.core.filesystem
             s = self._RE_SANDBOX_TOKEN.sub(
-                lambda m: f'({fs.get_local_url("sandbox:" + m.group(1))})',
+                lambda m: f'({fs.get_local_url("sandbox:" + m.group(1), ctx=ctx)})',
                 s,
             )
 
         if "%workdir%" in s:
             fs = self.window.core.filesystem
             s = self._RE_WORKDIR_TOKEN.sub(
-                lambda m: f'({fs.get_local_url("%workdir%" + m.group(1))})',
+                lambda m: f'({fs.get_local_url("%workdir%" + m.group(1), ctx=ctx)})',
                 s,
             )
 

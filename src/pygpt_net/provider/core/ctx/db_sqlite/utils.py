@@ -274,6 +274,7 @@ def unpack_meta(
         group.uuid = row['group_uuid']
         group.name = row['group_name']
         group.additional_ctx = unpack_item_value(row['group_additional_ctx_json'])
+        group.extra = unpack_item_value(row.get('group_extra_json')) or {}
         if group.additional_ctx is None:
             group.additional_ctx = []
         meta.group = group
@@ -294,6 +295,9 @@ def unpack_group(
     """
     group.additional_ctx = unpack_item_value(row['additional_ctx_json'])
     group.created = unpack_var(row['created_ts'], 'int')
+    group.extra = unpack_item_value(row.get('extra_json'))
+    if group.extra is None:
+        group.extra = {}
     group.id = unpack_var(row['id'], 'int')
     group.name = row['name']
     group.updated = unpack_var(row['updated_ts'], 'int')

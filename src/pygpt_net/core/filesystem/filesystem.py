@@ -13,7 +13,7 @@ import os
 import shutil
 
 from pathlib import PurePath
-from typing import Tuple, Any, Union, List
+from typing import Tuple, Any, Union, List, Optional
 from urllib.parse import unquote
 from uuid import uuid4
 
@@ -42,10 +42,339 @@ class Filesystem:
         self.url = Url(window)
         self.workdir_placeholder = "%workdir%"
 
+    def get_shared_data_dir(self) -> str:
+        """Return the global profile data directory.
+
+        This is the historical ``<profile workdir>/data`` path and is never
+        affected by a project override.
+        """
+        return self.window.core.config.get_user_dir("data")
+
+    def is_data_storage_enabled(self) -> bool:
+        """Return whether img/capture/upload are configured below ``data``."""
+        config = self.window.core.config
+        return bool(config.has("upload.data_dir") and config.get("upload.data_dir"))
+
+    def get_runtime_dir(
+            self,
+            name: str,
+            ctx=None,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None,
+            create: bool = True,
+    ) -> str:
+        """Resolve a user directory with project-aware ``data`` semantics.
+
+        Only ``data`` itself is always project-aware. ``img``, ``capture`` and
+        ``upload`` follow the project data directory only when the existing
+        ``upload.data_dir`` option is enabled. With that option disabled they
+        remain rooted in the global profile workdir, exactly as before. All
+        remaining application directories are always global.
+        """
+        config = self.window.core.config
+        if name not in config.dirs:
+            raise Exception(f"Unknown dir: {name}")
+
+        if name == "data":
+            return self.get_data_dir(
+                ctx=ctx, meta_id=meta_id, group_id=group_id, create=create,
+            )
+
+        data_children = ("img", "capture", "upload")
+        if name in data_children and self.is_data_storage_enabled():
+            root = self.get_data_dir(
+                ctx=ctx, meta_id=meta_id, group_id=group_id, create=create,
+            )
+            path = os.path.join(root, config.dirs[name])
+        else:
+            path = os.path.join(config.get_user_path(), config.dirs[name])
+
+        if create:
+            try:
+                os.makedirs(path, exist_ok=True)
+            except OSError:
+                pass
+        return path
+
+    def _global_profile_roots(self) -> List[str]:
+        """Return top-level profile directories that must never be remapped.
+
+        This guard matters when a custom project workdir is the profile root or
+        one of its parents. In that case a simple ``path is inside project``
+        check would otherwise incorrectly classify e.g. global ``img`` or
+        ``tmp`` as project data.
+        """
+        config = self.window.core.config
+        data_children = {"img", "capture", "upload"}
+        data_storage = self.is_data_storage_enabled()
+        roots = []
+        for name, rel in config.dirs.items():
+            if name == "data":
+                continue
+            if data_storage and name in data_children:
+                # These are intentionally children of the active data root.
+                continue
+            roots.append(os.path.join(config.get_user_path(), rel))
+        return roots
+
+    def is_global_profile_path(
+            self,
+            path: str,
+            ctx=None,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None,
+    ) -> bool:
+        """Return True when ``path`` belongs to a non-project profile tree.
+
+        This is primarily an overlap guard for custom project data roots that
+        are equal to, or are parents of, the base PyGPT profile directory.
+        ``tmp`` and all other ordinary profile roots always win over project
+        data.  The shared/base ``data`` tree is also protected when a project
+        override points somewhere else.
+        """
+        if not path:
+            return False
+
+        for root in self._global_profile_roots():
+            if self._is_path_in(path, root):
+                return True
+
+        shared_data = self.get_shared_data_dir()
+        active_data = self.get_data_dir(
+            ctx=ctx, meta_id=meta_id, group_id=group_id, create=False,
+        )
+        if os.path.normcase(os.path.abspath(active_data)) != os.path.normcase(os.path.abspath(shared_data)):
+            if self._is_path_in(path, shared_data):
+                return True
+
+        return False
+
+    def _resolve_group_id(
+            self,
+            ctx=None,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None,
+    ) -> Optional[int]:
+        """Resolve a project/group ID for a runtime operation.
+
+        An explicitly supplied context/meta is authoritative. In particular,
+        a context that belongs to no project must resolve to the shared data
+        workdir even if the user switches the UI to a project meanwhile.
+        """
+        if group_id is not None:
+            try:
+                value = int(group_id)
+                return value if value > 0 else None
+            except (TypeError, ValueError):
+                return None
+
+        if ctx is not None:
+            meta = getattr(ctx, "meta", None)
+            if meta is not None:
+                value = getattr(meta, "group_id", None)
+                try:
+                    value = int(value)
+                    return value if value > 0 else None
+                except (TypeError, ValueError):
+                    return None
+
+            # Accept a CtxMeta-like object as well as a CtxItem. This keeps the
+            # resolver useful for UI/provider paths that already own metadata
+            # but do not wrap it in a message item.
+            if hasattr(ctx, "group_id"):
+                value = getattr(ctx, "group_id", None)
+                try:
+                    value = int(value)
+                    return value if value > 0 else None
+                except (TypeError, ValueError):
+                    return None
+
+            if meta_id is None:
+                meta_id = getattr(ctx, "meta_id", None)
+
+        if meta_id is not None:
+            try:
+                meta = self.window.core.ctx.get_meta_by_id(int(meta_id))
+            except (TypeError, ValueError):
+                meta = None
+            if meta is None:
+                return None
+            value = getattr(meta, "group_id", None)
+            try:
+                value = int(value)
+                return value if value > 0 else None
+            except (TypeError, ValueError):
+                return None
+
+        # No concrete context was supplied (for example a UI path lookup), so
+        # resolve against the conversation that is currently selected.
+        try:
+            meta = self.window.core.ctx.get_current_meta()
+        except Exception:
+            meta = None
+        if meta is None:
+            return None
+        try:
+            value = int(getattr(meta, "group_id", None))
+            return value if value > 0 else None
+        except (TypeError, ValueError):
+            return None
+
+    def get_data_dir(
+            self,
+            ctx=None,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None,
+            create: bool = True,
+    ) -> str:
+        """Return the runtime ``data`` workdir for a context/project.
+
+        Only the user-facing ``data`` directory can be overridden by a project.
+        Every other profile directory continues to use ``Config.get_user_dir``.
+        """
+        shared = self.get_shared_data_dir()
+        resolved_group_id = self._resolve_group_id(
+            ctx=ctx, meta_id=meta_id, group_id=group_id,
+        )
+        if resolved_group_id is None:
+            return shared
+
+        try:
+            group = self.window.core.ctx.get_group_by_id(resolved_group_id)
+        except Exception:
+            group = None
+        if group is None:
+            return shared
+
+        extra = getattr(group, "extra", None)
+        if not isinstance(extra, dict):
+            return shared
+        if bool(extra.get("use_shared_workdir", True)):
+            return shared
+
+        value = str(extra.get("workdir") or "").strip()
+        if not value:
+            return shared
+        value = os.path.expandvars(os.path.expanduser(value))
+        if not os.path.isabs(value):
+            value = os.path.abspath(value)
+        value = os.path.normpath(value)
+        if create:
+            try:
+                os.makedirs(value, exist_ok=True)
+            except OSError:
+                # Keep the configured path. The actual file operation will
+                # provide the useful permission/mount error to the caller.
+                pass
+        return value
+
+    def from_sandbox_data_path(self, path: str, ctx=None) -> str:
+        """Map a Docker ``/data`` path to the active host data workdir.
+
+        This helper is intentionally explicit: host absolute paths are not
+        globally reinterpreted. Call it only when a value is known to come
+        from a sandbox/container namespace.
+        """
+        if not path:
+            return path
+        raw = unquote(str(path)).strip()
+        if raw.lower().startswith("sandbox:"):
+            raw = raw[len("sandbox:"):].strip()
+        normalized = raw.replace("\\", "/")
+        if normalized == "/data" or normalized.startswith("/data/"):
+            tail = normalized[len("/data"):].lstrip("/")
+            root = self.get_data_dir(ctx=ctx)
+            if not tail:
+                return root
+            return os.path.join(root, *[part for part in tail.split("/") if part])
+        return path
+
+    def resolve_sandbox_path(self, path: str, ctx=None) -> str:
+        """Resolve a model-facing ``sandbox:`` path to a host path.
+
+        ``/data`` is the only sandbox root that follows the active project.
+        ``/pygpt_tmp`` and all ordinary profile directories (notably ``tmp``)
+        stay rooted in the base profile.  Absolute host paths emitted by a
+        tool are preserved when they already point inside the base profile or
+        the active project data root.
+        """
+        if not path:
+            return path
+
+        raw = unquote(str(path)).strip()
+        if raw.lower().startswith("sandbox:"):
+            raw = raw[len("sandbox:"):].strip()
+
+        normalized = raw.replace("\\", "/")
+
+        # sandbox:/C:/... is a common model-emitted spelling of an absolute
+        # Windows host path. Drop only the synthetic leading slash; do not do
+        # this for POSIX paths.
+        try:
+            is_windows = self.window.core.platforms.is_windows()
+        except Exception:
+            is_windows = os.name == "nt"
+        if is_windows and len(normalized) >= 4 \
+                and normalized[0] == "/" and normalized[1].isalpha() \
+                and normalized[2] == ":" and normalized[3] == "/":
+            raw = raw[1:]
+            normalized = normalized[1:]
+
+        # Docker/project data namespace.
+        if normalized == "/data" or normalized.startswith("/data/"):
+            return self.from_sandbox_data_path(normalized, ctx=ctx)
+
+        # Internal interpreter temporary namespace is always global/base.
+        if normalized == "/pygpt_tmp" or normalized.startswith("/pygpt_tmp/"):
+            tail = normalized[len("/pygpt_tmp"):].lstrip("/")
+            root = self.window.core.config.get_user_dir("tmp")
+            return root if not tail else os.path.join(
+                root, *[part for part in tail.split("/") if part]
+            )
+
+        # Some model/tool outputs wrap an already valid absolute host path in
+        # sandbox:. Do not strip its leading slash and accidentally reinterpret
+        # it relative to the project data directory.
+        host_candidate = os.path.normpath(raw)
+        if os.path.isabs(host_candidate):
+            base = self.window.core.config.get_user_path()
+            data = self.get_data_dir(ctx=ctx)
+            if self._is_path_in(host_candidate, base) or self._is_path_in(host_candidate, data):
+                return host_candidate
+
+        # Virtual profile roots such as sandbox:/tmp/x or sandbox:/img/x.
+        # Only img/capture/upload may follow project data, and only when the
+        # existing single-data-directory option is enabled. tmp always stays
+        # global because get_runtime_dir() deliberately never remaps it.
+        for name, rel in self.window.core.config.dirs.items():
+            if name == "data":
+                continue
+            rel_norm = str(rel).replace("\\", "/").strip("/")
+            prefix = "/" + rel_norm
+            if normalized == prefix or normalized.startswith(prefix + "/"):
+                tail = normalized[len(prefix):].lstrip("/")
+                root = self.get_runtime_dir(name, ctx=ctx)
+                return root if not tail else os.path.join(
+                    root, *[part for part in tail.split("/") if part]
+                )
+
+        # Historical sandbox links treated /foo as a workdir-relative path.
+        # Keep that fallback for unknown virtual roots.
+        return raw.lstrip("/\\")
+
+    @staticmethod
+    def _is_path_in(path: str, root: str) -> bool:
+        try:
+            path_abs = os.path.normcase(os.path.abspath(path))
+            root_abs = os.path.normcase(os.path.abspath(root))
+            return os.path.commonpath([path_abs, root_abs]) == root_abs
+        except (TypeError, ValueError, OSError):
+            return False
+
     def install(self):
         """Install provider data"""
         # data directory
-        data_dir = self.window.core.config.get_user_dir('data')
+        data_dir = self.get_shared_data_dir()
         if not os.path.exists(data_dir):
             os.makedirs(data_dir, exist_ok=True)
 
@@ -89,28 +418,66 @@ class Filesystem:
             if os.path.exists(src):
                 shutil.copyfile(src, dst)
 
-    def make_local(self, path: str) -> str:
+    def make_local(self, path: str, ctx=None, meta_id: Optional[int] = None, group_id: Optional[int] = None) -> str:
         """
-        Make local placeholder path
+        Make a portable placeholder path.
 
-        :param path: path to prepare
-        :return: local path with working dir placeholder
+        Project workdirs are serialized through the historical
+        ``%workdir%/data`` namespace so saved conversations remain portable and
+        old paths continue to resolve after switching projects.
         """
-        return path.replace(
-            self.window.core.config.get_user_path(),
-            self.workdir_placeholder
-        )
+        if not path:
+            return path
+        native = os.path.normpath(path)
+        base = self.window.core.config.get_user_path()
+        shared_data = self.get_shared_data_dir()
+        data_dir = self.get_data_dir(ctx=ctx, meta_id=meta_id, group_id=group_id)
 
-    def make_local_list(self, paths: list) -> list:
+        # If the custom project data root overlaps the global profile root,
+        # global application-owned directories must win. Otherwise e.g.
+        # <profile>/img/foo.png could be serialized as %workdir%/data/img/foo
+        # and later resolve inside the project. This is especially important
+        # when upload.data_dir is disabled.
+        if os.path.normcase(os.path.abspath(data_dir)) != os.path.normcase(os.path.abspath(shared_data)):
+            if self.is_global_profile_path(
+                    native, ctx=ctx, meta_id=meta_id, group_id=group_id,
+            ):
+                # Ordinary profile roots (tmp/img/capture/upload/etc.) keep
+                # using %workdir% relative to the base profile.  The shared
+                # data tree is the one exception: %workdir%/data intentionally
+                # means the active project, so an explicit path into shared
+                # data must remain absolute to preserve its original target.
+                if self._is_path_in(native, shared_data):
+                    return path
+                rel = os.path.relpath(native, base)
+                if rel == ".":
+                    return self.workdir_placeholder
+                return os.path.join(self.workdir_placeholder, rel)
+
+        if self._is_path_in(native, data_dir):
+            rel = os.path.relpath(native, data_dir)
+            prefix = self.workdir_placeholder + os.sep + "data"
+            if rel == ".":
+                return prefix
+            return os.path.join(prefix, rel)
+
+        if self._is_path_in(native, base):
+            rel = os.path.relpath(native, base)
+            if rel == ".":
+                return self.workdir_placeholder
+            return os.path.join(self.workdir_placeholder, rel)
+        return path
+
+    def make_local_list(self, paths: list, ctx=None) -> list:
         """
         Make local placeholder paths
 
         :param paths: list with paths to prepare
         :return: local paths with working dir placeholder
         """
-        return [self.make_local(path) for path in paths]
+        return [self.make_local(path, ctx=ctx) for path in paths]
 
-    def make_local_list_img(self, paths: List[str]) -> List[str]:
+    def make_local_list_img(self, paths: List[str], ctx=None) -> List[str]:
         """
         Make local placeholder paths for images
 
@@ -121,7 +488,7 @@ class Filesystem:
         result = []
         for path in paths:
             if path.endswith(tuple(img_ext)):
-                result.append(self.make_local(path))
+                result.append(self.make_local(path, ctx=ctx))
         return result
 
     def get_url(self, url: str) -> QUrl:
@@ -143,7 +510,8 @@ class Filesystem:
     def normalize_local_path(
             self,
             path: str,
-            auto_prefix: bool = True
+            auto_prefix: bool = True,
+            ctx=None
     ) -> str:
         """
         Normalize a local path received directly or through a Qt URL.
@@ -160,13 +528,13 @@ class Filesystem:
 
         path = unquote(path)
 
-        # ``sandbox:/...`` is a model-facing virtual path used by some tool
-        # runtimes. In the desktop app it represents a path relative to the
-        # current PyGPT workdir, not an absolute path from the host filesystem
-        # root. Normalize it before file:// handling so renderers can resolve
-        # model-emitted sandbox links consistently.
+        # Resolve the sandbox namespace before generic workdir handling.
+        # In particular, preserve real absolute host paths and keep tmp rooted
+        # in the base profile; only /data follows the active project.
         if path.lower().startswith('sandbox:'):
-            path = path[len('sandbox:'):].lstrip('/\\')
+            path = self.resolve_sandbox_path(path, ctx=ctx)
+            if os.path.isabs(path):
+                return os.path.normpath(path)
 
         if path.startswith('file://'):
             # Legacy Windows links could contain backslashes inside file:///.
@@ -180,16 +548,16 @@ class Filesystem:
                 path = file_url.replace('file:///', '', 1).replace('file://', '', 1)
                 path = unquote(path)
 
-        return self.to_workdir(path, auto_prefix=auto_prefix)
+        return self.to_workdir(path, auto_prefix=auto_prefix, ctx=ctx)
 
-    def get_local_url(self, path: str) -> str:
+    def get_local_url(self, path: str, ctx=None) -> str:
         """
         Convert a local/workdir path to a properly encoded file URL.
 
         :param path: local path or path containing the %workdir% placeholder
         :return: encoded file URL
         """
-        path = self.normalize_local_path(path)
+        path = self.normalize_local_path(path, ctx=ctx)
         return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
 
     def get_path(self, path: str) -> str:
@@ -204,28 +572,54 @@ class Filesystem:
             return str(os.path.join(*parts))  # rebuild OS directory separators
         return path
 
-    def to_workdir(self, path: str, auto_prefix: bool = True) -> str:
-        """
-        Replace user path with current workdir
+    def to_workdir(
+            self,
+            path: str,
+            auto_prefix: bool = True,
+            ctx=None,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None,
+    ) -> str:
+        """Resolve placeholders while remapping only the ``data`` branch.
 
-        :param path: path to fix
-        :param auto_prefix: add workdir prefix if missing
-        :return: path with replaced user workdir
+        ``%workdir%/data`` points at the active project data directory. Other
+        paths under ``%workdir%`` keep using the global profile workdir.
         """
+        if not path:
+            return path
+
         path = self.get_path(path)
-        work_dir = self.window.core.config.get_user_path()  # current OS app workdir
+        base_workdir = self.window.core.config.get_user_path()
+        data_workdir = self.get_data_dir(
+            ctx=ctx, meta_id=meta_id, group_id=group_id,
+        )
 
-        # try to find %workdir% placeholder in path
         if self.workdir_placeholder in path:
-            return path.replace(
-                self.workdir_placeholder,
-                work_dir
-            )
+            before, after = path.split(self.workdir_placeholder, 1)
+            normalized_after = after.replace("\\", "/")
+            if normalized_after == "/data" or normalized_after.startswith("/data/"):
+                tail = normalized_after[len("/data"):].lstrip("/")
+                resolved = data_workdir if not tail else os.path.join(
+                    data_workdir, *[part for part in tail.split("/") if part],
+                )
+                return before + resolved
+            return path.replace(self.workdir_placeholder, base_workdir)
 
         if not auto_prefix:
             return path
 
-        # try to find workdir in path: old versions compatibility, < 2.0.113
+        # A relative path explicitly rooted at data belongs to the runtime data
+        # directory. This preserves legacy ``data/foo`` and sandbox:/data/foo.
+        portable = path.replace("\\", "/")
+        if portable == "data" or portable.startswith("data/"):
+            tail = portable[len("data"):].lstrip("/")
+            return data_workdir if not tail else os.path.join(
+                data_workdir, *[part for part in tail.split("/") if part],
+            )
+
+        # Old versions compatibility, < 2.0.113. This intentionally targets the
+        # global profile root; only its data child is project-remappable above.
+        work_dir = base_workdir
         if work_dir.endswith('.config/pygpt-net'):
             work_dir = work_dir.rsplit('/.config/pygpt-net', 1)[0]
         elif work_dir.endswith('.config\\pygpt-net'):
@@ -239,7 +633,7 @@ class Filesystem:
         parts = path[dir_index:]
         return os.path.join(work_dir, parts)
 
-    def extract_local_url(self, path: str) -> Tuple[str, str]:
+    def extract_local_url(self, path: str, ctx=None) -> Tuple[str, str]:
         """
         Extract a local URL and native filesystem path.
 
@@ -249,7 +643,7 @@ class Filesystem:
         if path.startswith('http://') or path.startswith('https://'):
             return path, path
 
-        path = self.normalize_local_path(path)
+        path = self.normalize_local_path(path, ctx=ctx)
         url = QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
         return url, path
 
@@ -263,24 +657,18 @@ class Filesystem:
             self.window.core.config.get_user_path()
         ).toString(QUrl.FullyEncoded)
 
-    def in_work_dir(self, path: str) -> bool:
-        """
-        Check if path is in work directory
+    def in_work_dir(self, path: str, ctx=None) -> bool:
+        """Check if a path is inside the active runtime data directory."""
+        return self._is_path_in(path, self.get_data_dir(ctx=ctx))
 
-        :param path: path to file
-        :return: True if path is in work directory
-        """
-        work_dir = self.window.core.config.get_user_dir("data")
-        return path.startswith(work_dir)
-
-    def store_upload(self, path: str) -> str:
+    def store_upload(self, path: str, ctx=None) -> str:
         """
         Store file in upload directory
 
         :param path: path to uploading file
         :return: path to stored uploaded file
         """
-        upload_dir = self.window.core.config.get_user_dir("upload")
+        upload_dir = self.get_runtime_dir("upload", ctx=ctx)
         file_name = os.path.basename(path)
         upload_path = os.path.join(upload_dir, file_name)
         # if file exists, store in UUID subdir
@@ -291,13 +679,13 @@ class Filesystem:
         shutil.copyfile(path, upload_path)
         return upload_path
 
-    def remove_upload(self, path: str):
+    def remove_upload(self, path: str, ctx=None):
         """
         Delete uploaded file
 
         :param path: path to uploading file
         """
-        upload_dir = self.window.core.config.get_user_dir("upload")
+        upload_dir = self.get_runtime_dir("upload", ctx=ctx)
         if path.startswith(upload_dir):
             if os.path.exists(path):
                 os.remove(path)

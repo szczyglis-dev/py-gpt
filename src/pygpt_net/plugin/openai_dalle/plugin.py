@@ -159,7 +159,7 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         core = self.window.core
-        current_image = get_current_user_image_path(core, mode)
+        current_image = get_current_user_image_path(core, mode, ctx=ctx)
         if current_image:
             remember_user_reference_image_path(core, ctx, current_image)
         referenced_image = current_image or get_last_user_reference_image_path(core, ctx)
@@ -218,6 +218,7 @@ class Plugin(BasePlugin):
                         resolved_reference = resolve_local_image_path(
                             self.window.core,
                             reference_image,
+                            ctx=ctx,
                         )
                         if resolved_reference is None:
                             raise ValueError(

@@ -408,7 +408,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx: Optional[CtxItem] = None
     ) -> str:
         """
         Get HTML for an image or video link with optional numbering.
@@ -418,7 +419,7 @@ class Body:
         :param num_all: Optional total number of images/videos
         :return: HTML string
         """
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         basename = os.path.basename(path)
         ext = os.path.splitext(basename)[1].lower()
         video_exts = (".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv")
@@ -427,7 +428,7 @@ class Body:
             if ext != ".webm":
                 webm_path = os.path.splitext(path)[0] + ".webm"
                 if os.path.exists(webm_path):
-                    source_url = self.window.core.filesystem.get_local_url(webm_path)
+                    source_url = self.window.core.filesystem.get_local_url(webm_path, ctx=ctx)
                     ext = ".webm"
             return f'''
             <div class="extra-src-video-box" title="{url}">
@@ -499,7 +500,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx: Optional[CtxItem] = None
     ) -> str:
         """
         Get HTML for a file link with icon and optional numbering.
@@ -513,7 +515,7 @@ class Body:
         icon_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
         icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
         num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         name = os.path.basename(path) or path
         return f'{icon} <a href="{url}">{name}</a> <b>{num_str}</b>'
 
@@ -579,7 +581,7 @@ class Body:
         _shuffle(tips)
         return _json_dumps(tips)
 
-    def _extract_local_url(self, url: str) -> Tuple[str, str]:
+    def _extract_local_url(self, url: str, ctx: Optional[CtxItem] = None) -> Tuple[str, str]:
         """
         Extract local URL and path using filesystem helper.
 
@@ -589,7 +591,7 @@ class Body:
         :return: Tuple of (url, path).
         """
         try:
-            return self.window.core.filesystem.extract_local_url(url)
+            return self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         except Exception:
             return url, url
 
@@ -680,7 +682,7 @@ class Body:
                         and attachments.is_ctx_excluded_path(img)):
                     continue
                 try:
-                    url, path = self._extract_local_url(img)
+                    url, path = self._extract_local_url(img, ctx=ctx)
                     basename = os.path.basename(path)
                     ext = os.path.splitext(basename)[1].lower()
                     is_video = ext in video_exts
@@ -688,7 +690,7 @@ class Body:
                     if is_video and ext != ".webm":
                         wp = os.path.splitext(path)[0] + ".webm"
                         if os.path.exists(wp):
-                            webm_path = self.window.core.filesystem.get_local_url(wp)
+                            webm_path = self.window.core.filesystem.get_local_url(wp, ctx=ctx)
                     images[str(n)] = {
                         "url": url,
                         # Browser-facing media sources must be file:// URLs, not
@@ -709,7 +711,7 @@ class Body:
             n = 1
             for f in ctx.files:
                 try:
-                    url, path = self._extract_local_url(f)
+                    url, path = self._extract_local_url(f, ctx=ctx)
                     files[str(n)] = {
                         "url": url,
                         "path": path,

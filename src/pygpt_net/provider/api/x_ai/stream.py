@@ -170,20 +170,24 @@ def _process_message_content_for_outputs(core, ctx, state, content):
                     state.xai_downloaded_file_ids = set()
                 if fid not in state.xai_downloaded_file_ids:
                     try:
-                        path = core.api.xai.store.download_to_dir(fid)
+                        path = core.api.xai.store.download_to_dir(fid, ctx=ctx)
                     except Exception:
                         path = None
                     if path:
+                        # Persist project-workdir files in the portable historical
+                        # ``%workdir%/data/...`` form instead of an absolute custom
+                        # host path. Resolution back to disk remains context-aware.
+                        local_path = core.filesystem.make_local(path, ctx=ctx)
                         if not isinstance(ctx.files, list):
                             ctx.files = []
-                        if path not in ctx.files:
-                            ctx.files.append(path)
+                        if local_path not in ctx.files:
+                            ctx.files.append(local_path)
                         ext = path.lower().rsplit(".", 1)[-1] if "." in path else ""
                         if ext in ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp"]:
                             if not isinstance(ctx.images, list):
                                 ctx.images = []
-                            if path not in ctx.images:
-                                ctx.images.append(path)
+                            if local_path not in ctx.images:
+                                ctx.images.append(local_path)
                         state.xai_downloaded_file_ids.add(fid)
     if any_image:
         try:

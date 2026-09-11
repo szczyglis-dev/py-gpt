@@ -548,7 +548,7 @@ class Ctx:
             if value.startswith(("http://", "https://", "data:")):
                 return value
             try:
-                return filesystem.make_local(value)
+                return filesystem.make_local(value, ctx=item)
             except Exception:
                 return value
 

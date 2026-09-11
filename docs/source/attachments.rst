@@ -97,11 +97,13 @@ For example, if the RAG query model is ``gpt-4o-mini``, then the default model f
 Downloading files
 -----------------
 
-**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an ``data`` folder located within the user's working directory. To view or manage these files, users can navigate to the ``Files`` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
+**PyGPT** automatically downloads and saves files created by the model in the active ``data`` workdir. Outside projects, and in projects that use the shared workdir, this is the normal ``<profile workdir>/data`` directory. A project can instead define its own data workdir; when a conversation from that project is active, the ``Files`` tab displays that project directory and file-producing tools use it automatically.
 
-This ``data`` directory is also where the application stores files that are generated locally by the AI, such as code files or any other outputs requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated ``LlamaIndex``) and use it's contents as additional context provided to discussion.
+The active ``data`` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with the integrated ``LlamaIndex`` support. The project override applies only to this logical data root; it does not move profile-level paths such as ``tmp``, configuration files, the database or other application directories.
 
-The ``Files I/O`` plugin takes care of file operations in the ``data`` directory, while the ``Code Interpreter`` plugin allows for the execution of code from these files.
+The ``Files I/O`` and ``Code Interpreter`` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as ``/data``.
+
+If ``Settings -> Files and attachments -> Store images, captures, and uploads in the data directory`` is enabled, ``img``, ``capture`` and ``upload`` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. The internal ``tmp`` directory always remains in the base profile workdir.
 
 .. image:: images/v2_file_output.png
    :width: 800

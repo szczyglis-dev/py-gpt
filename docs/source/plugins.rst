@@ -689,11 +689,11 @@ Code Interpreter
 
 From version ``2.4.13`` with built-in ``IPython``.
 
-The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the ``data`` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
+The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the active ``data`` directory. For conversations in a project with a custom workdir, that project directory becomes the runtime data root; otherwise the shared ``<profile workdir>/data`` directory is used. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in a Docker container.
 
 **IPython:** Starting from version ``2.4.13``, it is highly recommended to adopt the new option: ``IPython``, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
-To use IPython in sandbox mode, Docker must be installed on your system. 
+To use IPython in sandbox mode, Docker must be installed on your system. When the sandbox is started, the active conversation's runtime ``data`` workdir is mounted as ``/data``. Switching to a project with a custom data workdir changes this mapping at runtime; the base profile workdir itself is not remapped.
 
 You can find the installation instructions here: https://docs.docker.com/engine/install/
 
@@ -840,7 +840,7 @@ Command used to keep the legacy Python container alive. *Default:* ``tail -f /de
 
 - ``Docker volumes`` *docker_volumes*
 
-Host-to-container volume mappings. The stock configuration maps the PyGPT workdir to ``/data``.
+Host-to-container volume mappings. The stock configuration maps the active conversation's runtime ``data`` workdir to ``/data``. If a project uses a custom data workdir, the Docker mapping is updated at runtime for that project. The application's base workdir and its non-data directories are not remapped.
 
 - ``Docker ports`` *docker_ports*
 
@@ -1219,7 +1219,7 @@ Uploads a photo to a page from a local path or URL.
 Files I/O
 ------------------
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the ``data`` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the active ``data`` workdir. Normally this is ``<profile workdir>/data``. If the current conversation belongs to a project with ``Use shared workdir`` disabled, the project's configured directory is used instead. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system. The ``cwd`` tool reports the same runtime-resolved data workdir.
 
 Plugin capabilities include:
 
@@ -2586,7 +2586,7 @@ The plugin provides access to the operating system and executes system commands.
 
 - ``Auto-append CWD to sys_exec`` *auto_cwd*
 
-Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
+Automatically append the current runtime data working directory to ``sys_exec`` commands. In a project with a custom data workdir this resolves to the project directory; otherwise it resolves to the shared profile ``data`` directory. *Default:* ``True``
 
 - ``Connect to the Python/OS window`` *attach_output*
 
@@ -2624,7 +2624,7 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
 
 - ``Docker volumes`` *docker_volumes*
 
-  Host ↔ container volume mappings. By default, user data directory on host (``{workdir}``) is mapped read/write to ``/data`` in the container.
+  Host ↔ container volume mappings. By default, the active runtime ``data`` workdir on the host is mapped read/write to ``/data`` in the container. A custom project data workdir is therefore mounted automatically when a conversation from that project runs the tool.
   
   Structure of each item:
   
@@ -2632,7 +2632,7 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
   - ``docker`` (text) – container path (e.g. ``/data``)
   - ``host`` (text) – host path (e.g. ``{workdir}``)
   
-  Default: one mapping of ``{workdir}`` → ``/data``
+  Default: one runtime mapping of the active data workdir → ``/data``
 
 - ``Docker ports`` *docker_ports*
 
@@ -2648,7 +2648,7 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
 
 Notes:
 
-- When sandboxing is enabled, relative paths passed in commands are resolved against the user data directory and mounted into the container at ``/data``.
+- When sandboxing is enabled, relative paths passed in commands are resolved against the active conversation's data workdir and mounted into the container at ``/data``.
 - The plugin checks for Docker availability and will prompt to build the image if it does not exist.
 
 **WinAPI (Windows)**

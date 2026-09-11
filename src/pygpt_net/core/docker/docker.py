@@ -144,9 +144,9 @@ class Docker:
             if 'stream' in chunk:
                 self.log(chunk['stream'].strip())
 
-    def prepare_local_data_dir(self):
+    def prepare_local_data_dir(self, ctx=None):
         """ Prepare the local data directory."""
-        local_data_dir = self.get_local_data_dir()
+        local_data_dir = self.get_local_data_dir(ctx=ctx)
         try:
             os.makedirs(local_data_dir)
         except FileExistsError:
@@ -185,7 +185,7 @@ class Docker:
         except errors.NotFound:
             self.log(f"Container '{name}' not found.")
 
-    def create_container(self, name: str):
+    def create_container(self, name: str, ctx=None):
         """
         Create the Docker container.
 
@@ -195,21 +195,21 @@ class Docker:
         client = self.get_docker_client()
         image_name = self.get_image_name()
         entrypoint = self.get_entrypoint()
-        volumes = self.get_volumes()
+        volumes = self.get_volumes(ctx=ctx)
         ports = self.get_ports()
-        labels = self.get_container_labels()
+        labels = self.get_container_labels(ctx=ctx)
         user = self.get_container_user()
 
         try:
             container = client.containers.get(name)
             container.reload()
             current_mode = container.attrs.get("Config", {}).get("Labels", {}) or {}
-            if current_mode.get("pygpt.run_as_root") != labels["pygpt.run_as_root"]:
+            if any(current_mode.get(key) != value for key, value in labels.items()):
                 if container.status == 'running':
                     container.stop()
                     container.wait()
                 container.remove()
-                raise errors.NotFound("Sandbox user mode changed")
+                raise errors.NotFound("Sandbox runtime mapping changed")
             if container.status == 'running':
                 pass
             else:
@@ -244,7 +244,7 @@ class Docker:
         except Exception as e:
             self.log(f"Error creating container: {e}")
 
-    def restart_container(self, name: str):
+    def restart_container(self, name: str, ctx=None):
         """
         Restart the Docker container.
 
@@ -254,17 +254,17 @@ class Docker:
         client = self.get_docker_client()
         image_name = self.get_image_name()
         entrypoint = self.get_entrypoint()
-        volumes = self.get_volumes()
+        volumes = self.get_volumes(ctx=ctx)
         ports = self.get_ports()
-        labels = self.get_container_labels()
+        labels = self.get_container_labels(ctx=ctx)
         user = self.get_container_user()
 
         try:
             container = client.containers.get(name)
             container.reload()
             current_mode = container.attrs.get("Config", {}).get("Labels", {}) or {}
-            if current_mode.get("pygpt.run_as_root") != labels["pygpt.run_as_root"]:
-                print(f"Container '{name}' sandbox user mode changed. Recreating it.")
+            if any(current_mode.get(key) != value for key, value in labels.items()):
+                print(f"Container '{name}' sandbox runtime mapping changed. Recreating it.")
                 if container.status == 'running':
                     container.stop()
                     container.wait()
@@ -374,17 +374,17 @@ class Docker:
         except Exception as e:
             print(f"Error restarting container '{name}': {e}")
 
-    def restart(self):
+    def restart(self, ctx=None):
         """Restart the Docker container."""
-        self.restart_container(self.get_container_name())
+        self.restart_container(self.get_container_name(), ctx=ctx)
 
-    def get_volumes(self) -> dict:
+    def get_volumes(self, ctx=None) -> dict:
         """
         Get the volumes mappings.
 
         :return: Volumes mappings.
         """
-        workdir = self.get_local_data_dir()
+        workdir = self.get_local_data_dir(ctx=ctx)
         config = self.plugin.get_option_value('docker_volumes')
         data = {}
         for item in config:
@@ -439,13 +439,14 @@ class Docker:
             return "0:0"
         return None
 
-    def get_container_labels(self) -> dict:
+    def get_container_labels(self, ctx=None) -> dict:
         """Labels used to detect a sandbox user-mode change."""
         return {
             "pygpt.run_as_root": "true" if self.get_run_as_root() else "false",
+            "pygpt.data_dir": os.path.normcase(os.path.realpath(self.get_local_data_dir(ctx=ctx))),
         }
 
-    def execute(self, cmd: str) -> Optional[bytes]:
+    def execute(self, cmd: str, ctx=None) -> Optional[bytes]:
         """
         Execute command in Docker container.
 
@@ -461,7 +462,7 @@ class Docker:
 
         # run the container
         try:
-            self.create_container(name)
+            self.create_container(name, ctx=ctx)
             container = client.containers.get(name)
             result = container.exec_run(
                 cmd,
@@ -475,13 +476,13 @@ class Docker:
             response = str(e).encode("utf-8")
         return response
 
-    def get_local_data_dir(self) -> str:
+    def get_local_data_dir(self, ctx=None) -> str:
         """
         Get the local data directory.
 
         :return: Local data directory.
         """
-        return self.plugin.window.core.config.get_user_dir("data")
+        return self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
 
     def is_docker_installed(self) -> bool:
         """

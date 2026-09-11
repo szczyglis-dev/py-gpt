@@ -800,14 +800,14 @@ class Chat:
         saved: List[str] = []
         for fid in file_ids:
             try:
-                path = self.window.core.api.anthropic.store.download_to_dir(fid)
+                path = self.window.core.api.anthropic.store.download_to_dir(fid, ctx=ctx)
                 if path:
                     saved.append(path)
             except Exception:
                 continue
 
         if saved:
-            saved = self.window.core.filesystem.make_local_list(saved)
+            saved = self.window.core.filesystem.make_local_list(saved, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []
             for p in saved:

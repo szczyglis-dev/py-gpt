@@ -480,7 +480,7 @@ class VideoWorker(QRunnable):
 
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
-            self.ctx.extra["video_id"] = self.window.core.filesystem.make_local(ref)
+            self.ctx.extra["video_id"] = self.window.core.filesystem.make_local(ref, ctx=self.ctx)
             self.window.core.ctx.update_item(self.ctx)
         except Exception:
             pass

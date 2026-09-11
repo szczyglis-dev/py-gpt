@@ -198,7 +198,7 @@ class Worker(BaseWorker):
         if cmd in read_path:
             requested = paths("path")
             if not requested and cmd in {"list_dir", "tree", "find"}:
-                requested = [self.plugin.window.core.config.get_user_dir("data")]
+                requested = [self.get_workdir()]
             for path in requested:
                 self.security_read(path)
         elif cmd in write_path:
@@ -395,7 +395,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            path = self.plugin.window.core.config.get_user_dir('data')
+            path = self.get_workdir()
             if "path" in item["params"]:
                 path = self.prepare_path(item["params"]['path'])
             self.msg = "Listing directory: {}".format(path)
@@ -422,7 +422,7 @@ class Worker(BaseWorker):
         """
         context = None
         try:
-            path = self.plugin.window.core.config.get_user_dir('data')
+            path = self.get_workdir()
             if "path" in item["params"]:
                 path = self.prepare_path(item["params"]['path'])
             self.msg = "Listing directory: {}".format(path)
@@ -553,7 +553,7 @@ class Worker(BaseWorker):
             else:
                 # Handle local file paths
                 src = os.path.join(
-                    self.plugin.window.core.config.get_user_dir('data'),
+                    self.get_workdir(),
                     item["params"]['src'],
                 )
                 # Copy local file
@@ -1013,9 +1013,9 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            self.msg = "Getting CWD: {}".format(self.plugin.window.core.config.get_user_dir('data'))
+            self.msg = "Getting CWD: {}".format(self.get_workdir())
             self.log(self.msg)
-            result = self.plugin.window.core.config.get_user_dir('data')
+            result = self.get_workdir()
         except Exception as e:
             result = self.throw_error(e)
 
@@ -1161,7 +1161,7 @@ class Worker(BaseWorker):
             if "pattern" not in item["params"]:
                 return self.make_response(item, "Search pattern not provided")
             recursive = True
-            path = self.plugin.window.core.config.get_user_dir('data')
+            path = self.get_workdir()
             pattern = item["params"]['pattern']
             if "path" in item["params"]:
                 path = self.prepare_path(item["params"]['path'])
@@ -1233,13 +1233,13 @@ class Worker(BaseWorker):
         :return: prepared path
         """
         if path in [".", "./"]:
-            return self.plugin.window.core.config.get_user_dir('data')
+            return self.get_workdir()
 
         if self.is_absolute_path(path):
             return path
         else:
             return os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
+                self.get_workdir(),
                 path,
             )
 
@@ -1290,6 +1290,7 @@ class Worker(BaseWorker):
                 content = self.plugin.read_as_text(
                     path,
                     use_loaders=self.plugin.get_option_value("use_loaders"),
+                    ctx=self.ctx,
                 )
                 data.append({
                     "path": os.path.basename(path),

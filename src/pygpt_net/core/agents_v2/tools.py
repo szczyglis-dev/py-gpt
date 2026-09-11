@@ -176,7 +176,7 @@ class WorkerToolFactory:
             if not raw:
                 continue
             try:
-                path = filesystem.to_workdir(raw, auto_prefix=False)
+                path = filesystem.to_workdir(raw, auto_prefix=False, ctx=tool_ctx)
             except Exception:
                 path = raw
             if os.path.isfile(path):

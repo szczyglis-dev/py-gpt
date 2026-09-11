@@ -110,7 +110,7 @@ class Runner:
                 allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
-            workdir = self.window.core.config.get_workdir_prefix()
+            workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
 
             # vector store idx from preset
             if preset:
@@ -278,7 +278,7 @@ class Runner:
                 allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
-            workdir = self.window.core.config.get_workdir_prefix()
+            workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
 
             # tools
             agent_tools = self.window.core.agents.tools

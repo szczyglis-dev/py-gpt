@@ -212,13 +212,13 @@ class Config:
 
         return path
 
-    def get_workdir_prefix(self) -> str:
+    def get_workdir_prefix(self, ctx=None) -> str:
         """
         Return workdir path (sandboxed or user dir)
 
         :return: workdir path
         """
-        workdir = self.get_user_dir('data')
+        workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
         if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
             workdir = "/data"
         return workdir
@@ -546,7 +546,13 @@ class Config:
 
         :return: last used directory
         """
-        last_dir = self.get_user_dir("data")
+        # The default file-dialog directory follows the active conversation's
+        # data workdir. Only the semantic ``data`` directory is project-aware;
+        # all other profile directories remain rooted in the global workdir.
+        try:
+            last_dir = self.window.core.filesystem.get_data_dir()
+        except (AttributeError, RuntimeError):
+            last_dir = self.get_user_dir("data")
         if self.has("dialog.last_dir"):
             tmp_dir = self.get("dialog.last_dir")
             if os.path.isdir(tmp_dir):

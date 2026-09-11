@@ -198,7 +198,7 @@ class Camera(QObject):
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
             path = os.path.join(
-                self.window.core.config.get_user_dir('capture'),
+                self.window.core.filesystem.get_runtime_dir('capture'),
                 name + '.jpg'
             )
 
@@ -262,7 +262,7 @@ class Camera(QObject):
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
             path = os.path.join(
-                self.window.core.config.get_user_dir('capture'),
+                self.window.core.filesystem.get_runtime_dir('capture'),
                 name + '.jpg'
             )
             # capture frame

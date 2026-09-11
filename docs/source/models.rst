@@ -108,7 +108,7 @@ PyGPT has a preconfigured list of models (as of 2026-09-09):
 - ``grok-imagine-video-1.5`` (xAI)
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
-This file is located in your working directory. You can add new models provided directly by ``OpenAI API`` (or compatible), ``Google Gen AI API``, ``Anthropic API``, ``xAI API``, and those supported by ``LlamaIndex`` or ``Ollama`` to this file. LlamaIndex-specific configuration is stored in the ``llama_index`` key.
+This file is located in the base profile/application workdir and is not affected by a project data-workdir override. You can add new models provided directly by ``OpenAI API`` (or compatible), ``Google Gen AI API``, ``Anthropic API``, ``xAI API``, and those supported by ``LlamaIndex`` or ``Ollama`` to this file. LlamaIndex-specific configuration is stored in the ``llama_index`` key.
 
 You can import new models by manually editing ``models.json`` or by using the model importer in the ``Config -> Models -> Import`` menu.
 

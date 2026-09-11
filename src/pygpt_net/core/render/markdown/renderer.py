@@ -290,7 +290,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(image)
-                    node.append(self.body.get_image_html(image, n, c))
+                    node.append(self.body.get_image_html(image, n, c, ctx=ctx))
                     self.pids[pid].images_appended.append(image)
                     n += 1
                 except Exception as e:
@@ -305,7 +305,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(file)
-                    node.append(self.body.get_file_html(file, n, c))
+                    node.append(self.body.get_file_html(file, n, c, ctx=ctx))
                     n += 1
                 except Exception as e:
                     pass
@@ -399,6 +399,9 @@ class Renderer(BaseRenderer):
         to_append = self.pids[pid].buffer
         if re.search(r'```(?!.*```)', self.pids[pid].buffer):
             to_append += "\n```"  # fix for code block without closing ```
+        # Resolve runtime workdir/sandbox placeholders against the context
+        # that owns this streamed message, not whichever tab is active now.
+        to_append = self.helpers.pre_format_text(to_append, ctx=ctx)
         html = self.parser.parse(to_append)
         self.append_html_chunk(meta, ctx, self.helpers.format_chunk(html))
 
@@ -463,7 +466,7 @@ class Renderer(BaseRenderer):
         :param type: type of message
         """
         if type != "msg-user":  # markdown for bot messages
-            text = self.helpers.pre_format_text(text)
+            text = self.helpers.pre_format_text(text, ctx=ctx)
             text = self.parser.parse(text)
             text = self.append_timestamp(ctx, text)
         else:

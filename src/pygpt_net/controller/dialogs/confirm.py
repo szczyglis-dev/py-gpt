@@ -352,7 +352,12 @@ class Confirm:
         if type == 'ctx':
             self.window.controller.ctx.update_name(id, name)
         elif type == 'ctx.group':
-            self.window.controller.ctx.update_group_name(id, name, True)
+            use_shared, workdir = self.window.ui.dialog['rename'].get_project_workdir_settings()
+            self.window.controller.ctx.update_group_name(
+                id, name, True,
+                use_shared_workdir=use_shared,
+                workdir=workdir,
+            )
         elif type == 'tab':
             self.window.controller.ui.tabs.update_name(id, name, True)
         elif type == 'attachment':
@@ -386,7 +391,12 @@ class Confirm:
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.create(id, name)
         elif type == 'ctx.group':
-            self.window.controller.ctx.create_group(name, id)
+            use_shared, workdir = self.window.ui.dialog['create'].get_project_workdir_settings()
+            self.window.controller.ctx.create_group(
+                name, id,
+                use_shared_workdir=True if use_shared is None else use_shared,
+                workdir=workdir,
+            )
         elif type == 'agent.builder.agent':
             self.window.tools.get("agent_builder").add_agent(name)        
         elif type == 'remote_store.new':

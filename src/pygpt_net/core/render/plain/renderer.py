@@ -276,7 +276,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.add(image)
-                    self.append_raw(meta, item, self.body.get_image_html(image, n, c))
+                    self.append_raw(meta, item, self.body.get_image_html(image, n, c, ctx=item))
                     pd.images_appended.append(image)
                     already.add(image)
                     n += 1
@@ -292,7 +292,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.add(file)
-                    self.append_raw(meta, item, self.body.get_file_html(file, n, c))
+                    self.append_raw(meta, item, self.body.get_file_html(file, n, c, ctx=item))
                     n += 1
                 except Exception as e:
                     pass

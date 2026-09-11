@@ -10,6 +10,8 @@
 # ================================================== #
 
 from typing import Optional, List, Union
+import copy
+import time
 
 from PySide6.QtCore import QModelIndex, QTimer
 from PySide6.QtGui import QStandardItem
@@ -225,6 +227,7 @@ class Ctx:
 
         self.common.focus_chat(meta)
         self.window.controller.chat.attachment.update()
+        self.window.controller.files.update_explorer(reload=True)
         self.set_selected(id)
         self.clean_memory()  # clean memory
 
@@ -1293,6 +1296,8 @@ class Ctx:
             self.group_id = group_id
             updated = True
 
+        if updated:
+            self.window.controller.files.update_explorer(reload=True)
         if updated and update:
             QTimer.singleShot(
                 10,
@@ -1312,6 +1317,7 @@ class Ctx:
             updated = True
         if updated:
             self.group_id = None
+            self.window.controller.files.update_explorer(reload=True)
             QTimer.singleShot(
                 10,
                 lambda: self.update_and_restore()
@@ -1326,16 +1332,25 @@ class Ctx:
 
         :param meta_id: int
         """
-        self.window.ui.dialog['create'].id = 'ctx.group'
-        self.window.ui.dialog['create'].input.setText("")
-        self.window.ui.dialog['create'].current = meta_id
-        self.window.ui.dialog['create'].show()
+        dialog = self.window.ui.dialog['create']
+        dialog.id = 'ctx.group'
+        dialog.input.setText("")
+        dialog.current = meta_id
+        dialog.set_project_mode(
+            True,
+            use_shared=True,
+            workdir=self.window.core.filesystem.get_shared_data_dir(),
+            edit=False,
+        )
+        dialog.show()
         self.window.ui.dialog['create'].input.setFocus()
 
     def create_group(
             self,
             name: Optional[str] = None,
-            meta_id: Optional[Union[int, list]] = None
+            meta_id: Optional[Union[int, list]] = None,
+            use_shared_workdir: bool = True,
+            workdir: Optional[str] = None,
     ):
         """
         Make directory
@@ -1349,6 +1364,10 @@ class Ctx:
             )
             return
         group = self.window.core.ctx.make_group(name)
+        group.extra = {
+            "use_shared_workdir": bool(use_shared_workdir),
+            "workdir": str(workdir or "").strip(),
+        }
         id = self.window.core.ctx.insert_group(group)
         if id is not None:
             ids = meta_id if isinstance(meta_id, list) else [meta_id] if meta_id is not None else []
@@ -1370,6 +1389,7 @@ class Ctx:
         if group is None:
             return
         new_group = self.window.core.ctx.make_group(group.name + " (copy)")
+        new_group.extra = copy.deepcopy(getattr(group, "extra", {}) or {})
         new_group_id = self.window.core.ctx.insert_group(new_group)
         if new_group_id is None:
             return
@@ -1416,59 +1436,79 @@ class Ctx:
     def truncate_project_index(self, group_id: int):
         self.window.controller.idx.indexer.truncate_project(int(group_id), False)
 
+    def edit_group(
+            self,
+            id: Union[int, list],
+    ):
+        """Open project settings (name and optional project data workdir)."""
+        ids = id if isinstance(id, list) else [id]
+        group = None
+        for tmp_id in ids:
+            group = self.window.core.ctx.get_group_by_id(tmp_id)
+            if group is not None:
+                break
+        if group is None:
+            return
+
+        extra = getattr(group, "extra", None) or {}
+        use_shared = bool(extra.get("use_shared_workdir", True))
+        workdir = str(extra.get("workdir") or "").strip()
+        dialog = self.window.ui.dialog['rename']
+        dialog.id = 'ctx.group'
+        dialog.input.setText(group.name)
+        dialog.current = id
+        dialog.set_project_mode(
+            True,
+            use_shared=use_shared,
+            workdir=workdir,
+            edit=True,
+            # Multi-project editing keeps the old bulk-name behavior without
+            # accidentally overwriting different workdir settings.
+            allow_workdir=len(ids) == 1,
+        )
+        dialog.show()
+
     def rename_group(
             self,
             id: Union[int, list],
             force: bool = False
     ):
-        """
-        Rename group
-
-        :param id: group ID or list of IDs
-        :param force: force rename
-        """
-        ids = id if isinstance(id, list) else [id]
+        """Backward-compatible alias for project editing."""
         if not force:
-            is_group = False
-            name = ""
-            for tmp_id in ids:
-                group = self.window.core.ctx.get_group_by_id(tmp_id)
-                if group is not None:
-                    is_group = True
-                    name = group.name
-                    break
-            if not is_group:
-                return
-            self.window.ui.dialog['rename'].id = 'ctx.group'
-            self.window.ui.dialog['rename'].input.setText(name)
-            self.window.ui.dialog['rename'].current = id
-            self.window.ui.dialog['rename'].show()
+            self.edit_group(id)
 
     def update_group_name(
             self,
             id: Union[int, list],
             name: str,
-            close: bool = True
+            close: bool = True,
+            use_shared_workdir: Optional[bool] = None,
+            workdir: Optional[str] = None,
     ):
-        """
-        Update group name
-
-        :param id: group ID or list of IDs
-        :param name: group name
-        :param close: close rename dialog
-        """
+        """Update project name and, for a single project edit, its data workdir."""
         updated = False
         ids = id if isinstance(id, list) else [id]
-        for id in ids:
-            group = self.window.core.ctx.get_group_by_id(id)
-            if group is not None:
-                group.name = name
-                self.window.core.ctx.update_group(group)
-                updated = True
+        for group_id in ids:
+            group = self.window.core.ctx.get_group_by_id(group_id)
+            if group is None:
+                continue
+            group.name = name
+            group.updated = int(time.time())
+            if use_shared_workdir is not None:
+                extra = getattr(group, "extra", None)
+                if not isinstance(extra, dict):
+                    extra = {}
+                extra["use_shared_workdir"] = bool(use_shared_workdir)
+                extra["workdir"] = str(workdir or "").strip()
+                group.extra = extra
+            self.window.core.ctx.update_group(group)
+            updated = True
         if updated:
             if close:
                 self.window.ui.dialog['rename'].close()
             self.update_and_restore()
+            # The Files tool root follows the active conversation immediately.
+            self.window.controller.files.update_explorer(reload=True)
 
     def get_group_name(self, id: int) -> str:
         """

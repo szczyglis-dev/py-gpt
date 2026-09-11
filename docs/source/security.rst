@@ -15,13 +15,16 @@ Two independent restrictions are available:
 * ``Restrict plugin file reads to working directory`` - enabled by default.
 * ``Restrict plugin file writes to working directory`` - enabled by default.
 
-When a restriction is enabled, plugin-mediated host filesystem access is limited to the user-facing
-``%workdir%/data`` directory. PyGPT also allows its own internal ``%workdir%/tmp`` directory so
+When a restriction is enabled, plugin-mediated host filesystem access is limited to the active
+conversation's user-facing ``data`` workdir. Normally this is ``%workdir%/data``. If the conversation
+belongs to a project with a custom data workdir, that project directory becomes the allowed data root
+for the operation. PyGPT also allows its own internal base-profile ``%workdir%/tmp`` directory so
 application-managed temporary workflows can function without disabling filesystem protection. Examples
 include audio input, HTML Canvas, Code Interpreter/IPython and Transcript working files.
 
-The ``tmp`` exception is internal to PyGPT; it does not make arbitrary directories outside the workdir
-available to plugins.
+The project override affects only the logical ``data`` root. The ``tmp`` exception remains tied to the
+base profile and does not make arbitrary directories outside the effective data workdir available to
+plugins.
 
 System commands
 ~~~~~~~~~~~~~~~

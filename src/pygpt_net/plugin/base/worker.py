@@ -258,13 +258,19 @@ class BaseWorker(QRunnable):
         """Validate host-side plugin file read access."""
         if self.plugin is None or self.plugin.window is None:
             return path
-        return self.plugin.window.core.security.ensure_read(path, sandbox=sandbox)
+        return self.plugin.window.core.security.ensure_read(path, sandbox=sandbox, ctx=self.ctx)
 
     def security_write(self, path: str, sandbox: bool = False) -> str:
         """Validate host-side plugin file write access."""
         if self.plugin is None or self.plugin.window is None:
             return path
-        return self.plugin.window.core.security.ensure_write(path, sandbox=sandbox)
+        return self.plugin.window.core.security.ensure_write(path, sandbox=sandbox, ctx=self.ctx)
+
+    def get_workdir(self) -> str:
+        """Return the data workdir bound to this tool-call context."""
+        if self.plugin is None or self.plugin.window is None:
+            return ""
+        return self.plugin.window.core.filesystem.get_data_dir(ctx=self.ctx)
 
     def security_command(self, command: str, sandbox: bool = False):
         """Validate host-side plugin system command access."""

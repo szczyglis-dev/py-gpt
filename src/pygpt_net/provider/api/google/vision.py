@@ -104,7 +104,7 @@ class Vision:
         if len(images) > 0:
             visible = [path for id_, path in images.items() if id_ not in self.hidden_attachments]
             if visible:
-                ctx.images = self.window.core.filesystem.make_local_list(visible)
+                ctx.images = self.window.core.filesystem.make_local_list(visible, ctx=ctx)
 
     def get_attachments(self) -> Dict[str, str]:
         """

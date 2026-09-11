@@ -112,7 +112,7 @@ class Plugin(BasePlugin):
         silent = data.get("silent", False)
 
         if name == Event.CMD_SYNTAX:
-            self.cmd_syntax(data)
+            self.cmd_syntax(data, ctx=ctx)
 
         elif name == Event.CMD_EXECUTE:
             self.cmd(
@@ -128,7 +128,7 @@ class Plugin(BasePlugin):
                 # duplicate the same payload in the message footer.
                 data['html'] = ''
 
-    def cmd_syntax(self, data: dict):
+    def cmd_syntax(self, data: dict, ctx: CtxItem = None):
         """
         Event: CMD_SYNTAX
 
@@ -136,7 +136,7 @@ class Plugin(BasePlugin):
         """
         # get current working directory
         os_name = self.window.core.platforms.get_as_string(env_suffix=False)
-        cwd = self.window.core.config.get_user_dir('data')
+        cwd = self.window.core.filesystem.get_data_dir(ctx=ctx)
         is_windows = (platform.system() == "Windows")
         winapi_enabled = self.get_option_value("winapi_enabled")
 

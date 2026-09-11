@@ -60,7 +60,7 @@ You can also query individual files "on the fly" using the ``query_file`` comman
 
 **For example:**
 
-If you have a file: ``data/my_cars.txt`` with content ``My car is red.``
+If you have a file: ``data/my_cars.txt`` with content ``My car is red.`` (``data`` means the active data workdir for the current conversation/project)
 
 You can ask for: ``Query the file my_cars.txt about what color my car is.``
 
@@ -82,7 +82,7 @@ For a visualization from OpenAI's page, see this picture:
 
 Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
 
-To index your files, simply copy or upload them into the ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Embed into index``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with Files (LlamaIndex, inline)`` plugin.
+To index your files, copy or upload them into the active ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Embed into index``. The active data directory is normally ``<profile workdir>/data``; when the current conversation belongs to a project with a custom workdir, the project's directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with Files (LlamaIndex, inline)`` plugin.
 
 Built-in file loaders: 
 
@@ -135,7 +135,7 @@ See :doc:`indexing` for the complete description of file indexing, context auto-
    Remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
 
 .. tip::
-   Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
+   Using the Chat with Files mode, you have default access to files manually indexed from the active ``data`` directory. For a project with a custom data workdir this means that project's directory; otherwise it is the shared profile ``data`` directory. You can also use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
 **Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
 
@@ -230,7 +230,7 @@ You also have the options to delete it or view it in full size in your web brows
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
 
-Images are stored in ``img`` directory in PyGPT's user data folder.
+Images are stored in the base-profile ``img`` directory by default. If ``Store images, captures, and uploads in the data directory`` is enabled, generated images are stored under the active ``data`` workdir instead, including a custom project data workdir when one is active.
 
 
 

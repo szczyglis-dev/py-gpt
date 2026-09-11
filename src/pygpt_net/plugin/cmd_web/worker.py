@@ -105,7 +105,7 @@ class Worker(BaseWorker):
         value = str(path or "").replace("file://", "", 1)
         if os.path.isabs(value):
             return value
-        return os.path.join(self.plugin.window.core.config.get_user_dir("data"), value)
+        return os.path.join(self.get_workdir(), value)
 
     @Slot()
     def run(self):
@@ -539,7 +539,7 @@ class Worker(BaseWorker):
                     download_errors = []
                     for img in images:
                         try:
-                            path = self.plugin.window.core.web.helpers.download_image(img)
+                            path = self.plugin.window.core.web.helpers.download_image(img, ctx=self.ctx)
                             if path:
                                 if path not in self.ctx.images_before:
                                     self.ctx.images_before.append(path)

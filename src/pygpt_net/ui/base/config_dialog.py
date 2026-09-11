@@ -236,7 +236,7 @@ class BaseConfigDialog:
         """
         value = trans_placeholder_apply(trans(text))
         if "%WORKDIR%" in value:
-            value = value.replace("%WORKDIR%", self.window.core.config.get_user_dir("data"))
+            value = value.replace("%WORKDIR%", self.window.core.filesystem.get_data_dir())
         return DescLabel(value)
 
     def add_urls(self, urls, align=Qt.AlignLeft) -> QWidget:

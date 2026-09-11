@@ -37,9 +37,17 @@ The main options include recursive directory indexing, replacement of old
 versions during re-indexing, excluded extensions, stop-on-error behavior, and
 custom metadata for file and web/external documents.
 
+The Files view is project-aware. If the active conversation belongs to a project
+with a custom data workdir, the view uses that directory as its filesystem root;
+outside projects, or when ``Use shared workdir`` is enabled, it uses the shared
+``<profile workdir>/data`` directory. File-indexing actions therefore operate on
+files from the effective data workdir of the active conversation.
+
 When the current conversation belongs to a project, ``Current project`` is
 available as a runtime index target. Selecting it indexes the file or directory
-into the isolated index for that project.
+into the isolated index for that project. The project's filesystem data workdir
+and its isolated vector index are separate concepts: changing the data workdir
+does not move, rename or rebuild the project's vector index.
 
 Context indexing
 ----------------

@@ -494,7 +494,7 @@ For a visualization from OpenAI's page, see this picture:
 
 Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
 
-To index your files, simply copy or upload them  into the `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with Files (LlamaIndex, inline)` plugin.
+To index your files, copy or upload them into the active `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with a custom data workdir, the project directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with Files (LlamaIndex, inline)` plugin.
 
 ![v2_idx1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx1.png)
 
@@ -553,6 +553,8 @@ PyGPT separates file indexing from conversation-context indexing:
 - **Context indexing** indexes stored conversation items from the context database. It is configured in `Settings -> Indexes / LlamaIndex -> Context indexing`.
 - **Project indexes** are isolated runtime indexes associated with projects. They are created and resolved automatically and do not need to be added to the normal configured indexes list.
 
+A project's **data workdir** and its **project index** are separate. The data workdir controls which filesystem directory the Files view and file tools use; the project index controls vector-store data. Changing the project data workdir does not move or rebuild the project index.
+
 The **Conversation auto-indexing** setting has three modes:
 
 - **Off** - disables automatic conversation-context indexing.
@@ -575,7 +577,7 @@ Removing an entry from `Settings -> Indexes / LlamaIndex -> Indexes` removes onl
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
 
-**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
+**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the active `data` directory. For a project with a custom data workdir this means that project's directory; otherwise it is the shared profile `data` directory. You can also use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
 **Token limit:** When you use `Chat with Files` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
 
@@ -668,7 +670,7 @@ This lets you quickly use them again for generating new images later on.
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
 
-Images are stored in ``img`` directory in **PyGPT** user data folder.
+Images are stored in the base-profile `img` directory by default. If **Store images, captures, and uploads in the data directory** is enabled, generated images are stored under the active `data` workdir instead, including a custom project data workdir when one is active.
 
 
 ## Chat with Agents
@@ -984,6 +986,14 @@ You can disable context support in the settings by using the following option:
 Config -> Settings -> Use context 
 ```
 
+## Projects and project data workdirs
+
+Conversations can be organized into projects. By default, projects use the shared profile `data` directory. When creating a project, leave **Use shared workdir** enabled to keep this behavior, or disable it and select a custom directory for that project. For an existing project, use `RMB -> Edit` to change its name or data workdir. Hovering a project item in the context list shows the effective data workdir.
+
+A project workdir overrides **only the logical `data` directory** used by conversations in that project. It does not replace the profile/application workdir. Files such as `config.json`, `models.json`, `db.sqlite`, logs and other profile-level directories such as `tmp`, `cache`, `css`, `locale` and fonts continue to use the base profile workdir. Conversations outside projects, and projects with **Use shared workdir** enabled, use the normal `<profile workdir>/data` directory.
+
+The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Code Interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the data directory** is enabled; otherwise they remain in their normal base-profile locations.
+
 ## Clearing history
 
 You can clear the entire memory (all contexts) by selecting the menu option:
@@ -994,7 +1004,7 @@ File -> Clear history...
 
 ## Context storage
 
-On the application side, the context is stored in the `SQLite` database located in the working directory (`db.sqlite`).
+On the application side, the context is stored in the `SQLite` database located in the base profile/application workdir (`db.sqlite`). A project data-workdir override does not move this database.
 In addition, all history is also saved to `.txt` files for easy reading.
 
 Once a conversation begins, a title for the chat is generated and displayed on the list to the left. This process is similar to `ChatGPT`, where the subject of the conversation is summarized, and a title for the thread is created based on that summary. You can change the name of the thread at any time.
@@ -1083,11 +1093,11 @@ For example, if the RAG query model is `gpt-4o-mini`, then the default model for
 
 ## Downloading files
 
-**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `data` folder located within the user's working directory. To view or manage these files, users can navigate to the `Files` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
+**PyGPT** automatically downloads and saves files created by the model in the active `data` workdir. Outside projects, and in projects that use the shared workdir, this is the normal `<profile workdir>/data` directory. A project can instead define its own data workdir; when a conversation from that project is active, the **Files** tab displays that directory and file-producing tools use it automatically.
 
-This `data` directory is also where the application stores files that are generated locally by the AI, such as code files or any other data requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated `LlamaIndex`) and use it's contents as additional context provided to discussion.
+The active `data` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with LlamaIndex. The project override applies only to this logical data root; it does not move profile-level paths such as `tmp`, configuration files, the database or other application directories.
 
-The `Files I/O` plugin takes care of file operations in the `data` directory, while the `Code Interpreter` plugin allows for the execution of code from these files.
+The `Files I/O` and `Code Interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1121,7 +1131,7 @@ To edit saved profiles, choose the option from the menu: `Config -> Profile -> E
 
 To switch to a created profile, pick the profile from the menu: `Config -> Profile -> [Profile Name]`
 
-Each profile uses its own user directory (workdir). You can link a newly created or edited profile to an existing workdir with its configuration.
+Each profile uses its own user directory (workdir). You can link a newly created or edited profile to an existing workdir with its configuration. This is the profile/application workdir. A project's custom workdir is different: it overrides only the runtime `data` directory for conversations in that project and does not replace the profile workdir.
 
 The name of the currently active profile is shown as (Profile Name) in the window title.
 
@@ -1235,7 +1245,7 @@ PyGPT has a preconfigured list of models (as of 2026-09-09):
 ```
 
 All models are specified in the configuration file `models.json`, which you can customize. 
-This file is located in your working directory. You can add new models provided directly by `OpenAI API` (or compatible), `Google Gen AI API`, `Anthropic API`, `xAI API`, and those supported by `LlamaIndex` or `Ollama` to this file. Configuration for LlamaIndex in placed in `llama_index` key.
+This file is located in the base profile/application workdir and is not affected by a project data-workdir override. You can add new models provided directly by `OpenAI API` (or compatible), `Google Gen AI API`, `Anthropic API`, `xAI API`, and those supported by `LlamaIndex` or `Ollama` to this file. Configuration for LlamaIndex in placed in `llama_index` key.
 
 You can import new models by manually editing `models.json` or by using the model importer in the `Config -> Models -> Import` menu.
 
@@ -1586,11 +1596,11 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-with-fil
 
 From version `2.4.13` with built-in `IPython`.
 
-The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the `data` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
+The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the active `data` directory. For conversations in a project with a custom workdir, the project directory becomes the runtime data root; otherwise the shared `<profile workdir>/data` directory is used. Docker execution exposes the same active host directory as `/data`.
 
 **IPython:** Starting from version `2.4.13`, it is highly recommended to adopt the new option: `IPython`, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
-To use IPython in sandbox mode, Docker must be installed on your system. 
+To use IPython in sandbox mode, Docker must be installed on your system. The active conversation's runtime `data` workdir is mounted as `/data`; a custom project data workdir is therefore remapped automatically when that project is active.
 
 You can find the installation instructions here: https://docs.docker.com/engine/install/
 
@@ -1674,7 +1684,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#facebook
 
 ## Files I/O
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the active `data` workdir. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with **Use shared workdir** disabled, the project's configured directory is used instead. The plugin and its current-working-directory tool resolve this path dynamically for the conversation that invoked the operation.
 
 Plugin capabilities include:
 
@@ -2378,13 +2388,15 @@ PyGPT stores its configuration and user data in the working directory, which by 
 
 Configuration files such as `config.json` and `models.json` can also be edited manually.
 
+A project's custom workdir does **not** replace this profile/application workdir. It overrides only the logical `data` directory for conversations assigned to that project. The **Files** tab, file tools and Docker `/data` mapping follow the active project data directory at runtime, while `tmp`, configuration, database, cache, CSS, locale, fonts and logs remain in the base profile workdir.
+
 For the complete manual configuration reference, including configuration files and workdir contents, see:
 
 https://pygpt.readthedocs.io/en/latest/configuration.html#manual-configuration
 
 ## Setting the Working Directory Using Command Line Arguments
 
-To set the current working directory using a command-line argument, use:
+To set the base profile/application working directory using a command-line argument, use:
 
 ```
 python3 ./run.py --workdir="/path/to/workdir"
@@ -2395,6 +2407,7 @@ or, for the binary version:
 pygpt.exe --workdir="/path/to/workdir"
 ```
 
+This command-line option changes the entire profile/application workdir. It is different from a project's custom data workdir, which changes only the logical `data` directory for that project.
 
 ## Translations / Locale
 

@@ -149,9 +149,9 @@ del _pygpt_make_system_noninteractive
         except docker.errors.ImageNotFound:
             return False
 
-    def restart(self):
+    def restart(self, ctx=None):
         """Restart the container."""
-        self.restart_container(self.get_container_name())
+        self.restart_container(self.get_container_name(), ctx=ctx)
 
     def build_image(self):
         """Build the Docker image for the IPython kernel."""
@@ -176,7 +176,8 @@ del _pygpt_make_system_noninteractive
     def init(
             self,
             force: bool = False,
-            auto_init: bool = False) -> None:
+            auto_init: bool = False,
+            ctx=None) -> None:
         """
         Initialize the IPython kernel client.
 
@@ -185,7 +186,7 @@ del _pygpt_make_system_noninteractive
         """
         from jupyter_client import BlockingKernelClient
         if self.initialized and not force:
-            user_mode_current = self.is_container_user_mode_current()
+            user_mode_current = self.is_container_user_mode_current(ctx=ctx)
             if user_mode_current and self.check_ready():
                 return
             if not user_mode_current:
@@ -199,8 +200,8 @@ del _pygpt_make_system_noninteractive
                 pass
             self.initialized = False
 
-        self.prepare_local_data_dir()
-        self.start_container(self.get_container_name())
+        self.prepare_local_data_dir(ctx=ctx)
+        self.start_container(self.get_container_name(), ctx=ctx)
         self.prepare_conn()
         self.client = BlockingKernelClient(connection_file=self.get_kernel_file_path())
         self.client.load_connection_file()
@@ -236,11 +237,11 @@ del _pygpt_make_system_noninteractive
         except Exception as e:
             self.log(f"Unable to configure non-interactive IPython shell: {e}")
 
-    def prepare_local_data_dir(self):
+    def prepare_local_data_dir(self, ctx=None):
         """
         Prepare the local data directory.
         """
-        local_data_dir = self.get_local_data_dir()
+        local_data_dir = self.get_local_data_dir(ctx=ctx)
         try:
             os.makedirs(local_data_dir)
         except FileExistsError:
@@ -324,7 +325,7 @@ del _pygpt_make_system_noninteractive
         except docker.errors.NotFound:
             self.log(f"Container '{name}' not found.")
 
-    def run_container(self, name: str) -> bool:
+    def run_container(self, name: str, ctx=None) -> bool:
         """
         Run the Docker container.
 
@@ -342,7 +343,7 @@ del _pygpt_make_system_noninteractive
         try:
             print("Running container {}...".format(name))
             self.prepare_conn()
-            local_data_dir = self.get_local_data_dir()
+            local_data_dir = self.get_local_data_dir(ctx=ctx)
             kwargs = {
                 "image": self.get_image_name(),
                 "name": name,
@@ -360,7 +361,7 @@ del _pygpt_make_system_noninteractive
                         'mode': 'rw',
                     }
                 },
-                "labels": self.get_container_labels(),
+                "labels": self.get_container_labels(ctx=ctx),
                 "detach": True,
             }
             user = self.get_container_user()
@@ -374,7 +375,7 @@ del _pygpt_make_system_noninteractive
             self.log(f"Error running container: {e}")
             return False
 
-    def start_container(self, name: str):
+    def start_container(self, name: str, ctx=None):
         """
         Start the Docker container.
 
@@ -386,9 +387,9 @@ del _pygpt_make_system_noninteractive
             container = client.containers.get(name)
             container.reload()
             labels = container.attrs.get("Config", {}).get("Labels", {}) or {}
-            expected = self.get_container_labels()["pygpt.run_as_root"]
-            if labels.get("pygpt.run_as_root") != expected:
-                self.log(f"Container '{name}' sandbox user mode changed. Recreating it...")
+            expected = self.get_container_labels(ctx=ctx)
+            if any(labels.get(key) != value for key, value in expected.items()):
+                self.log(f"Container '{name}' sandbox runtime mapping changed. Recreating it...")
                 if container.status == "running":
                     container.stop()
                     container.wait()
@@ -401,10 +402,10 @@ del _pygpt_make_system_noninteractive
         except docker.errors.NotFound:
             self.log(f"Container '{name}' not found. Creating new one...")
             self.log(f"Creating a new container: '{name}'...")
-            self.run_container(name)
+            self.run_container(name, ctx=ctx)
             self.log("Container has been started.")
 
-    def restart_container(self, name: str):
+    def restart_container(self, name: str, ctx=None):
         """
         Restart the Docker container.
 
@@ -422,7 +423,7 @@ del _pygpt_make_system_noninteractive
             self.log(f"Container '{name}' not found. Nothing stopped.")
 
         self.log(f"Creating a new container: '{name}'...")
-        self.run_container(name)
+        self.run_container(name, ctx=ctx)
         self.log("Container has been started.")
 
     def get_conn_address(self) -> str:
@@ -437,15 +438,15 @@ del _pygpt_make_system_noninteractive
         """Return whether the IPython sandbox should explicitly run as root."""
         return bool(self.plugin.get_option_value("ipython_run_as_root"))
 
-    def is_container_user_mode_current(self) -> bool:
+    def is_container_user_mode_current(self, ctx=None) -> bool:
         """Check whether the running container matches the configured user mode."""
         import docker.errors
         try:
             container = self.get_docker_client().containers.get(self.get_container_name())
             container.reload()
             labels = container.attrs.get("Config", {}).get("Labels", {}) or {}
-            expected = self.get_container_labels()["pygpt.run_as_root"]
-            return labels.get("pygpt.run_as_root") == expected
+            expected = self.get_container_labels(ctx=ctx)
+            return all(labels.get(key) == value for key, value in expected.items())
         except docker.errors.NotFound:
             return False
         except Exception:
@@ -458,10 +459,11 @@ del _pygpt_make_system_noninteractive
             return "0:0"
         return None
 
-    def get_container_labels(self) -> dict:
+    def get_container_labels(self, ctx=None) -> dict:
         """Labels used to detect a sandbox user-mode change."""
         return {
             "pygpt.run_as_root": "true" if self.get_run_as_root() else "false",
+            "pygpt.data_dir": os.path.normcase(os.path.realpath(self.get_local_data_dir(ctx=ctx))),
         }
 
     def get_bind_address(self) -> str:
@@ -494,15 +496,15 @@ del _pygpt_make_system_noninteractive
         """
         return os.path.join(self.plugin.window.core.config.get_user_dir("tmp"), self.kernel_file)
 
-    def get_local_data_dir(self) -> str:
+    def get_local_data_dir(self, ctx=None) -> str:
         """
         Get the local data directory.
 
         :return: Local data directory.
         """
-        return str(os.path.join(self.plugin.window.core.config.get_user_dir("data")))
+        return self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
 
-    def execute_system(self, command: str) -> bytes:
+    def execute_system(self, command: str, ctx=None) -> bytes:
         """
         Execute a shell command inside the same container as the IPython kernel.
 
@@ -516,11 +518,11 @@ del _pygpt_make_system_noninteractive
         name = self.get_container_name()
 
         try:
-            self.prepare_local_data_dir()
+            self.prepare_local_data_dir(ctx=ctx)
             if not self.is_image():
                 self.build_image()
 
-            self.start_container(name)
+            self.start_container(name, ctx=ctx)
             container = client.containers.get(name)
             container.reload()
             if container.status != "running":
@@ -556,7 +558,8 @@ del _pygpt_make_system_noninteractive
             self,
             code: str,
             current: bool = False,
-            auto_init: bool = False) -> str:
+            auto_init: bool = False,
+            ctx=None) -> str:
         """
         Execute the code in the IPython kernel.
 
@@ -578,6 +581,7 @@ del _pygpt_make_system_noninteractive
             self.init(
                 force=False,
                 auto_init=auto_init,
+                ctx=ctx,
             )
         except Exception as e:
             self.initialized = False
@@ -585,12 +589,12 @@ del _pygpt_make_system_noninteractive
 
         if not self.initialized or not self.check_ready():
             self.log("IPython kernel is unavailable before execution.")
-            if not auto_init or not self.restart_kernel():
+            if not auto_init or not self.restart_kernel(ctx=ctx):
                 self.send_output(self.NOT_READY_MSG)
                 return self.NOT_READY_MSG
 
         if not current:
-            if not self.restart_kernel():
+            if not self.restart_kernel(ctx=ctx):
                 self.send_output(self.NOT_READY_MSG)
                 return self.NOT_READY_MSG
 
@@ -624,7 +628,7 @@ del _pygpt_make_system_noninteractive
                     if client_alive:
                         continue
                     self.log("IPython kernel heartbeat was lost during execution.")
-                    recovered = auto_init and self.restart_kernel()
+                    recovered = auto_init and self.restart_kernel(ctx=ctx)
                     result = self.RECOVERED_MSG if recovered else self.NOT_READY_MSG
                     self.send_output(result)
                     return result
@@ -637,7 +641,7 @@ del _pygpt_make_system_noninteractive
                         client_alive = bool(client.is_alive())
                     except Exception:
                         client_alive = False
-                    recovered = auto_init and not client_alive and self.restart_kernel()
+                    recovered = auto_init and not client_alive and self.restart_kernel(ctx=ctx)
                     result = self.RECOVERED_MSG if recovered else self.NOT_READY_MSG
                     self.send_output(result)
                     return result
@@ -678,7 +682,7 @@ del _pygpt_make_system_noninteractive
         finally:
             self.executing = False
 
-    def restart_kernel(self) -> bool:
+    def restart_kernel(self, ctx=None) -> bool:
         """Restart the kernel, suppressing duplicate restart bursts."""
         from jupyter_client import BlockingKernelClient
         if not self._restart_lock.acquire(blocking=False):
@@ -695,7 +699,7 @@ del _pygpt_make_system_noninteractive
                 return True
 
             self.send_output("Restarting...")
-            self.restart_container(self.get_container_name())
+            self.restart_container(self.get_container_name(), ctx=ctx)
 
             if self.client is not None:
                 try:

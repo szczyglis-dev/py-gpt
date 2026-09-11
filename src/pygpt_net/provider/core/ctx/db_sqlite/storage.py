@@ -186,7 +186,8 @@ class Storage:
                 m.*,
                 g.name as group_name,
                 g.uuid as group_uuid,
-                g.additional_ctx_json as group_additional_ctx_json
+                g.additional_ctx_json as group_additional_ctx_json,
+                g.extra_json as group_extra_json
             FROM 
                 ctx_meta m 
                 {join_statement} 
@@ -259,7 +260,8 @@ class Storage:
                 m.*, 
                 g.name as group_name,
                 g.uuid as group_uuid,
-                g.additional_ctx_json as group_additional_ctx_json 
+                g.additional_ctx_json as group_additional_ctx_json,
+                g.extra_json as group_extra_json 
             FROM 
                 ctx_meta m 
             LEFT JOIN 
@@ -564,12 +566,14 @@ class Storage:
                 SET
                     name = :name,
                     additional_ctx_json = :additional_ctx_json,
+                    extra_json = :extra_json,
                     updated_ts = :updated_ts
                 WHERE id = :id
             """).bindparams(
                 id=meta.group.id,
                 name=meta.group.name,
                 additional_ctx_json=pack_item_value(meta.group.additional_ctx),
+                extra_json=pack_item_value(meta.group.extra),
                 updated_ts=int(time.time()),
             )
             with db.begin() as conn:
@@ -1458,11 +1462,13 @@ class Storage:
             UPDATE ctx_group
             SET
                 name = :name,
+                extra_json = :extra_json,
                 updated_ts = :updated_ts
             WHERE id = :id
         """).bindparams(
             id=id,
             name=group.name,
+            extra_json=pack_item_value(group.extra),
             updated_ts=int(group.updated),
         )
         with db.begin() as conn:
@@ -1483,20 +1489,23 @@ class Storage:
                 uuid,
                 created_ts,
                 updated_ts,
-                name
+                name,
+                extra_json
             )
             VALUES 
             (
                 :uuid,
                 :created_ts,
                 :updated_ts,
-                :name
+                :name,
+                :extra_json
             )
         """).bindparams(
             uuid=group.uuid,
             created_ts=int(group.created or 0),
             updated_ts=int(group.updated or 0),
             name=group.name,
+            extra_json=pack_item_value(group.extra),
         )
         with db.begin() as conn:
             result = conn.execute(stmt)

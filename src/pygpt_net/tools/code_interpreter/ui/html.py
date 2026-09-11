@@ -505,7 +505,7 @@ class HtmlOutput(QWebEngineView):
         # render images
         if ctx.images:
             for img in ctx.images:
-                url, path = self.window.core.filesystem.extract_local_url(img)
+                url, path = self.window.core.filesystem.extract_local_url(img, ctx=ctx)
                 self.page().runJavaScript(
                     f"appendImage('{path}', '{url}');")
 

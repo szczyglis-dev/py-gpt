@@ -138,7 +138,7 @@ class Plugin(BasePlugin):
         silent = data.get("silent", False)
 
         if name == Event.CMD_SYNTAX:
-            self.cmd_syntax(data)
+            self.cmd_syntax(data, ctx=ctx)
 
         elif name == Event.CMD_EXECUTE:
             self.cmd(
@@ -154,14 +154,14 @@ class Plugin(BasePlugin):
                 # in the message footer.
                 data['html'] = ''
 
-    def cmd_syntax(self, data: dict):
+    def cmd_syntax(self, data: dict, ctx: CtxItem = None):
         """
         Event: CMD_SYNTAX
 
         :param data: event data dict
         """
         # get current working directory
-        legacy_data = self.window.core.config.get_user_dir('data')
+        legacy_data = self.window.core.filesystem.get_data_dir(ctx=ctx)
         ipython_data = legacy_data
 
         ipython_enabled = any(

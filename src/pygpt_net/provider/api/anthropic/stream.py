@@ -78,7 +78,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
             if fid in state.anthropic_downloaded_ids:
                 continue
             try:
-                path = core.api.anthropic.store.download_to_dir(fid)
+                path = core.api.anthropic.store.download_to_dir(fid, ctx=ctx)
             except Exception:
                 path = None
             if path:
@@ -86,7 +86,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                 state.anthropic_downloaded_ids.add(fid)
         if saved:
             try:
-                loc = core.filesystem.make_local_list(saved)
+                loc = core.filesystem.make_local_list(saved, ctx=ctx)
             except Exception:
                 loc = saved
             if not isinstance(ctx.files, list):

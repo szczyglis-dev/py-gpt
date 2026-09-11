@@ -133,6 +133,7 @@ class Database:
             'created_ts',
             'uuid',
             'additional_ctx_json',
+            'extra_json',
         ]
         columns["idx_ctx"] = [
             'id',
@@ -292,7 +293,7 @@ class Database:
                 'sort_by': columns["ctx_group"],
                 'search_fields': ['id', 'name'],
                 'timestamp_columns': ['created_ts', 'updated_ts'],
-                'json_columns': ['additional_ctx_json'],
+                'json_columns': ['additional_ctx_json', 'extra_json'],
                 'default_sort': 'id',
                 'default_order': 'DESC',
                 'primary_key': 'id',

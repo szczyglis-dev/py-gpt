@@ -1080,7 +1080,7 @@ class AgentsV2Runtime:
         if not paths:
             return
         try:
-            images = self.window.core.filesystem.make_local_list(paths)
+            images = self.window.core.filesystem.make_local_list(paths, ctx=ctx)
         except Exception as exc:
             self.window.core.debug.log(exc)
             images = paths

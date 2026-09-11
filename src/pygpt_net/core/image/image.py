@@ -144,7 +144,7 @@ class Image(QObject):
         """
         img_id = uuid.uuid4()
         dt_prefix = strftime("%Y%m%d_%H%M%S")
-        img_dir = self.window.core.config.get_user_dir("img")
+        img_dir = self.window.core.filesystem.get_runtime_dir("img", ctx=ctx)
         filename = f"{dt_prefix}_{img_id}.png"
         return os.path.join(img_dir, filename)
 

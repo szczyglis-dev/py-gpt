@@ -63,7 +63,7 @@ class Files:
         :return: file id
         """
         path = os.path.normpath(path)
-        root_path = os.path.normpath(self.window.core.config.get_user_dir('data'))
+        root_path = os.path.normpath(self.window.core.filesystem.get_data_dir())
         path = path.replace(root_path, '')
         path = path.replace("\\", "/").strip(r'\/')
         return path

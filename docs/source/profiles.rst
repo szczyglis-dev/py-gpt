@@ -11,6 +11,6 @@ To edit saved profiles, choose the option from the menu: ``Config -> Profile -> 
 
 To switch to a created profile, pick the profile from the menu: ``Config -> Profile -> [Profile Name]``
 
-Each profile uses its own user directory (workdir). You can link a newly created or edited profile to an existing workdir with its configuration.
+Each profile uses its own user directory (workdir). You can link a newly created or edited profile to an existing workdir with its configuration. This profile workdir contains application-level configuration and storage. A project's custom workdir is different: it overrides only the runtime ``data`` directory for conversations in that project and does not replace the profile workdir.
 
 The name of the currently active profile is shown as (Profile Name) in the window title.

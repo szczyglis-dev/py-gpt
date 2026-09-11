@@ -120,12 +120,12 @@ class Plugin(BasePlugin):
             ctx.extra.pop("agents_v2_filesystem_context", None)
 
         if self.get_option_value("auto_cwd") and self.window.core.command.is_cmd(inline=False):
-            runtime_context = self.build_runtime_filesystem_context()
+            runtime_context = self.build_runtime_filesystem_context(ctx=ctx)
             if runtime_context:
                 prompt += "\n\n" + runtime_context
         return prompt
 
-    def build_runtime_filesystem_context(self) -> str:
+    def build_runtime_filesystem_context(self, ctx: CtxItem = None) -> str:
         """Build host/sandbox filesystem guidance for the current runtime.
 
         The host data path is always the working directory for Files I/O. If an
@@ -135,7 +135,7 @@ class Plugin(BasePlugin):
 
         :return: prompt fragment
         """
-        host_data_dir = self.window.core.config.get_user_dir("data")
+        host_data_dir = self.window.core.filesystem.get_data_dir(ctx=ctx)
         parts = ["CURRENT WORKING DIRECTORY: " + host_data_dir]
 
         ipython_sandbox, legacy_sandbox = self.get_code_interpreter_sandbox_modes()
@@ -286,7 +286,7 @@ class Plugin(BasePlugin):
         indexes = self.get_index_names()
         return indexes[0] if indexes else ""
 
-    def read_as_text(self, path: str, use_loaders: bool = True) -> str:
+    def read_as_text(self, path: str, use_loaders: bool = True, ctx: CtxItem = None) -> str:
         """
         Read file and return content as text
 
@@ -295,7 +295,7 @@ class Plugin(BasePlugin):
         :return: text content
         """
         # use_loaders = False
-        self.window.core.security.ensure_read(path, sandbox=False)
+        self.window.core.security.ensure_read(path, sandbox=False, ctx=ctx)
         if use_loaders:
             content, docs = self.window.core.idx.indexing.read_text_content(path)
             return content

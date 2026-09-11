@@ -1276,7 +1276,7 @@ class ImageWorker(QRunnable):
         try:
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
-            self.ctx.extra["image_id"] = self.window.core.filesystem.make_local(str(value))
+            self.ctx.extra["image_id"] = self.window.core.filesystem.make_local(str(value), ctx=self.ctx)
             self.window.core.ctx.update_item(self.ctx)
         except Exception:
             pass
@@ -1291,7 +1291,7 @@ class ImageWorker(QRunnable):
             self.window.core.image.make_safe_filename(self.input_prompt) + "-" +
             str(idx + 1) + ".png"
         )
-        path = os.path.join(self.window.core.config.get_user_dir("img"), name)
+        path = os.path.join(self.window.core.filesystem.get_runtime_dir("img", ctx=self.ctx), name)
         self.signals.status.emit(trans('img.status.downloading') + f" ({idx + 1} / {self.num}) -> {path}")
         if self.window.core.image.save_image(path, data):
             return path

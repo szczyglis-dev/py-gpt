@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 14:30:00                  #
+# Updated Date: 2026.09.11 13:25:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -454,6 +454,21 @@ class CtxList:
             group_item = GroupItem(self._folder_icon, group_name, group.id)
             group_item.hasAttachments = is_attachment
 
+            # Show the exact logical data workdir used by this project.  Resolve
+            # by group id rather than by the currently selected context so the
+            # tooltip is correct for every project row at the same time.
+            try:
+                project_workdir = self.window.core.filesystem.get_data_dir(
+                    group_id=group.id,
+                    create=False,
+                )
+            except Exception:
+                project_workdir = self.window.core.filesystem.get_shared_data_dir()
+
+            tooltip_parts = [
+                f"{trans('dialog.project.workdir')}: {project_workdir}"
+            ]
+
             # Provide all metadata required by the delegate
             custom_data = {
                 "is_group": True,
@@ -466,9 +481,11 @@ class CtxList:
                 files_str = ", ".join(files)
                 if len(files_str) > 40:
                     files_str = files_str[:40] + '...'
-                tooltip_str = f"{trans('attachments.ctx.tooltip.list').format(num=len(files))}: {files_str}"
-                group_item.setToolTip(tooltip_str)
+                tooltip_parts.append(
+                    f"{trans('attachments.ctx.tooltip.list').format(num=len(files))}: {files_str}"
+                )
 
+            group_item.setToolTip("\n".join(tooltip_parts))
             group_item.setData(custom_data, QtCore.Qt.ItemDataRole.UserRole)
 
             max_contexts = max(0, int(MAX_PROJECT_CONTEXTS_DISPLAY or 0))

@@ -1156,7 +1156,7 @@ class Chat:
                     file_id = p.get("id") or p.get("file_id")
                     if isinstance(file_id, str):
                         try:
-                            save = self.window.core.api.xai.store.download_to_dir(file_id)
+                            save = self.window.core.api.xai.store.download_to_dir(file_id, ctx=ctx)
                             if save:
                                 if not isinstance(ctx.files, list):
                                     ctx.files = []
@@ -1250,13 +1250,13 @@ class Chat:
         saved = []
         for fid in ids:
             try:
-                p = self.window.core.api.xai.store.download_to_dir(fid)
+                p = self.window.core.api.xai.store.download_to_dir(fid, ctx=ctx)
                 if p:
                     saved.append(p)
             except Exception:
                 continue
         if saved:
-            saved = self.window.core.filesystem.make_local_list(saved)
+            saved = self.window.core.filesystem.make_local_list(saved, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []
             for p in saved:

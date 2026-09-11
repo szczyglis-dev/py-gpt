@@ -86,14 +86,14 @@ class Image:
                         tmp_video_id = item.extra.get('video_id')
                         if video_id is None and tmp_video_id:
                             if not tmp_video_id.startswith("http://") and not tmp_video_id.startswith("https://"):
-                                video_id = core.filesystem.to_workdir(tmp_video_id, auto_prefix=False)
+                                video_id = core.filesystem.to_workdir(tmp_video_id, auto_prefix=False, ctx=item)
                             else:
                                 video_id = tmp_video_id
                     if core.config.get("img.remix"):
                         tmp_image_id = item.extra.get('image_id')
                         if image_id is None and tmp_image_id:
                             if not tmp_image_id.startswith("http://") and not tmp_image_id.startswith("https://"):
-                                image_id = core.filesystem.to_workdir(tmp_image_id, auto_prefix=False)
+                                image_id = core.filesystem.to_workdir(tmp_image_id, auto_prefix=False, ctx=item)
                             else:
                                 image_id = tmp_image_id
                 if image_id and video_id:
@@ -187,7 +187,7 @@ class Image:
         ico_download = os.path.join(ico_dir, "download.svg")
         ico_preview = os.path.join(ico_dir, "view.svg")
         for path in paths:
-            safe_path = self.window.core.filesystem.make_local(path)
+            safe_path = self.window.core.filesystem.make_local(path, ctx=ctx)
             """
             urls.append(f"![image]({ico_preview}) [**{trans('action.preview')}**]({safe_path})  "
                         f"![image]({ico_download})[**{trans('action.download')}**](bridge://download/{safe_path})")
@@ -200,7 +200,7 @@ class Image:
         if not core.config.get('img_raw'):
             string += f"\nPrompt: {prompt}"
 
-        local_urls = core.filesystem.make_local_list(paths)
+        local_urls = core.filesystem.make_local_list(paths, ctx=ctx)
         ctx.images = local_urls  # save images paths
         remember_generated_image_path(core, ctx, paths)
         ctx.set_output(string.strip())
@@ -248,7 +248,7 @@ class Image:
             string += f"{i}) `{path}`\n"
             i += 1
 
-        local_urls = core.filesystem.make_local_list(paths)
+        local_urls = core.filesystem.make_local_list(paths, ctx=ctx)
 
         # Do not replace images already attached to this context. In particular,
         # the Image generation plugin stores the user's reference image in

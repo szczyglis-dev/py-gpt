@@ -108,7 +108,7 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
         if not isinstance(uri, str) or not uri:
             return None
         try:
-            path = core.api.google.store.download_to_dir(uri, prefer_name=prefer_name)
+            path = core.api.google.store.download_to_dir(uri, prefer_name=prefer_name, ctx=ctx)
             return path
         except Exception:
             return None
@@ -117,7 +117,7 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
         if not paths:
             return
         try:
-            loc = core.filesystem.make_local_list(paths)
+            loc = core.filesystem.make_local_list(paths, ctx=ctx)
         except Exception:
             loc = paths
         if not isinstance(ctx.files, list):

@@ -19,7 +19,7 @@ LAST_GENERATED_IMAGE_PATH = "image_generation_last_path"
 LAST_USER_REFERENCE_IMAGE_PATH = "image_generation_reference_path"
 
 
-def resolve_local_image_path(core, value: Optional[str]) -> Optional[str]:
+def resolve_local_image_path(core, value: Optional[str], ctx: Optional[CtxItem] = None) -> Optional[str]:
     """
     Resolve a workdir/local image reference and make sure it points to an
     existing image file.
@@ -36,10 +36,10 @@ def resolve_local_image_path(core, value: Optional[str]) -> Optional[str]:
         return None
 
     try:
-        path = core.filesystem.normalize_local_path(path)
+        path = core.filesystem.normalize_local_path(path, ctx=ctx)
     except Exception:
         try:
-            path = core.filesystem.to_workdir(path, auto_prefix=False)
+            path = core.filesystem.to_workdir(path, auto_prefix=False, ctx=ctx)
         except Exception:
             return None
 
@@ -50,12 +50,12 @@ def resolve_local_image_path(core, value: Optional[str]) -> Optional[str]:
     return os.path.normpath(path)
 
 
-def make_portable_image_path(core, value: Optional[str]) -> Optional[str]:
+def make_portable_image_path(core, value: Optional[str], ctx: Optional[CtxItem] = None) -> Optional[str]:
     """Return an existing local image path using the %workdir% placeholder when possible."""
-    path = resolve_local_image_path(core, value)
+    path = resolve_local_image_path(core, value, ctx=ctx)
     if path is None:
         return None
-    return core.filesystem.make_local(path)
+    return core.filesystem.make_local(path, ctx=ctx)
 
 
 def remember_generated_image_path(core, ctx: Optional[CtxItem], paths: list) -> Optional[str]:
@@ -73,7 +73,7 @@ def remember_generated_image_path(core, ctx: Optional[CtxItem], paths: list) -> 
         return None
 
     for value in reversed(paths):
-        path = make_portable_image_path(core, value)
+        path = make_portable_image_path(core, value, ctx=ctx)
         if path is None:
             continue
         if not isinstance(ctx.extra, dict):
@@ -99,7 +99,7 @@ def remember_user_reference_image_path(
     """
     if ctx is None:
         return None
-    path = make_portable_image_path(core, value)
+    path = make_portable_image_path(core, value, ctx=ctx)
     if path is None:
         return None
     if not isinstance(ctx.extra, dict):
@@ -133,13 +133,13 @@ def _get_generated_path_from_ctx(core, ctx: Optional[CtxItem]) -> tuple[bool, Op
         return False, None
 
     # New explicit cache written by the image response controller.
-    path = make_portable_image_path(core, ctx.extra.get(LAST_GENERATED_IMAGE_PATH))
+    path = make_portable_image_path(core, ctx.extra.get(LAST_GENERATED_IMAGE_PATH), ctx=ctx)
     if path:
         return True, path
 
     # Backward compatibility: OpenAI/Google image providers already persisted
     # image_id in older contexts. Use it only when it resolves to a local image.
-    path = make_portable_image_path(core, ctx.extra.get("image_id"))
+    path = make_portable_image_path(core, ctx.extra.get("image_id"), ctx=ctx)
     if path:
         return True, path
 
@@ -148,7 +148,7 @@ def _get_generated_path_from_ctx(core, ctx: Optional[CtxItem]) -> tuple[bool, Op
     # an image-generation context rather than an arbitrary image attachment.
     if ctx.extra.get("image_id") and getattr(ctx, "images", None):
         for value in reversed(ctx.images):
-            path = make_portable_image_path(core, value)
+            path = make_portable_image_path(core, value, ctx=ctx)
             if path:
                 return True, path
     return True, None
@@ -187,7 +187,7 @@ def _get_user_reference_path_from_ctx(core, ctx: Optional[CtxItem]) -> tuple[boo
         return False, None
     if LAST_USER_REFERENCE_IMAGE_PATH not in ctx.extra:
         return False, None
-    return True, make_portable_image_path(core, ctx.extra.get(LAST_USER_REFERENCE_IMAGE_PATH))
+    return True, make_portable_image_path(core, ctx.extra.get(LAST_USER_REFERENCE_IMAGE_PATH), ctx=ctx)
 
 
 def get_last_user_reference_image_path(core, ctx: Optional[CtxItem] = None) -> Optional[str]:
@@ -214,7 +214,7 @@ def get_last_user_reference_image_path(core, ctx: Optional[CtxItem] = None) -> O
     return None
 
 
-def get_current_user_image_path(core, mode: str) -> Optional[str]:
+def get_current_user_image_path(core, mode: str, ctx: Optional[CtxItem] = None) -> Optional[str]:
     """
     Return the most recently attached image from the current user input.
     Only the active attachment queue is inspected; historical context
@@ -229,7 +229,7 @@ def get_current_user_image_path(core, mode: str) -> Optional[str]:
         return None
 
     for attachment in reversed(list(attachments.values())):
-        path = make_portable_image_path(core, getattr(attachment, "path", None))
+        path = make_portable_image_path(core, getattr(attachment, "path", None), ctx=ctx)
         if path:
             return path
     return None

@@ -81,11 +81,11 @@ class Container:
             # prepare the path to save the file
             if self.window.core.config.has("download.dir") and self.window.core.config.get("download.dir") != "":
                 dir = os.path.join(
-                    self.window.core.config.get_user_dir('data'),
+                    self.window.core.filesystem.get_data_dir(ctx=ctx),
                     self.window.core.config.get("download.dir"),
                 )
             else:
-                dir = self.window.core.config.get_user_dir('data')
+                dir = self.window.core.filesystem.get_data_dir(ctx=ctx)
 
             path = os.path.join(dir, file_name)
             if os.path.exists(path):
@@ -112,7 +112,7 @@ class Container:
 
         # append to ctx
         if downloaded_files:
-            downloaded_files = self.window.core.filesystem.make_local_list(downloaded_files)
+            downloaded_files = self.window.core.filesystem.make_local_list(downloaded_files, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []
             ctx.files += downloaded_files

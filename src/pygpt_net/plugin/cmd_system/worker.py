@@ -89,9 +89,9 @@ class Worker(BaseWorker):
                             response = self._wrap(item, self.plugin.runner.win_set_opacity, params)
 
                         elif cmd == "win_screenshot":
-                            response = self._wrap(item, self.plugin.runner.win_screenshot, params)
+                            response = self._wrap(item, self.plugin.runner.win_screenshot, {**params, "ctx": self.ctx})
                         elif cmd == "win_area_screenshot":
-                            response = self._wrap(item, self.plugin.runner.win_area_screenshot, params)
+                            response = self._wrap(item, self.plugin.runner.win_area_screenshot, {**params, "ctx": self.ctx})
 
                         elif cmd == "win_clipboard_get":
                             response = self._wrap(item, self.plugin.runner.win_clipboard_get, params)

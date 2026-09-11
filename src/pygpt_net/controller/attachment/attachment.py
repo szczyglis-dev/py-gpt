@@ -462,13 +462,13 @@ class Attachment:
         """
         if self.window.core.config.has("download.dir") and self.window.core.config.get("download.dir") != "":
             path = os.path.join(
-                self.window.core.config.get_user_dir('data'),
+                self.window.core.filesystem.get_data_dir(),
                 self.window.core.config.get("download.dir"),
                 file_name,
             )
         else:
             path = os.path.join(
-                self.window.core.config.get_user_dir('data'),
+                self.window.core.filesystem.get_data_dir(),
                 file_name,
             )
         return str(path)

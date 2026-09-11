@@ -1245,14 +1245,14 @@ class Chat:
                 if not uri or not isinstance(uri, str):
                     continue
                 # Only Gemini Files API refs are supported for direct download
-                save_path = self.window.core.api.google.store.download_to_dir(uri, prefer_name=prefer)
+                save_path = self.window.core.api.google.store.download_to_dir(uri, prefer_name=prefer, ctx=ctx)
                 if save_path:
                     downloaded.append(save_path)
             except Exception:
                 continue
 
         if downloaded:
-            downloaded = self.window.core.filesystem.make_local_list(downloaded)
+            downloaded = self.window.core.filesystem.make_local_list(downloaded, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []
             for path in downloaded:

@@ -218,13 +218,13 @@ class Runner:
         """
         return self.plugin.get_option_value('sandbox_docker_image')
 
-    def get_volumes(self) -> dict:
+    def get_volumes(self, ctx=None) -> dict:
         """
         Get docker volumes
 
         :return: docker volumes
         """
-        path = self.plugin.window.core.config.get_user_dir('data')
+        path = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
         mapping = {}
         mapping[path] = {
             "bind": "/data",
@@ -232,7 +232,7 @@ class Runner:
         }
         return mapping
 
-    def run_docker(self, cmd: str) -> bytes or None:
+    def run_docker(self, cmd: str, ctx=None) -> bytes or None:
         """
         Run docker container with command and return response
 
@@ -240,7 +240,7 @@ class Runner:
         :return: response
         """
         try:
-            response = self.plugin.docker.execute(cmd)
+            response = self.plugin.docker.execute(cmd, ctx=ctx)
         except Exception as e:
             # self.error(e)
             response = str(e).encode("utf-8")
@@ -258,8 +258,8 @@ class Runner:
         """
         msg = "Executing Python file: {}".format(item["params"]['path'])
         self.log(msg)
-        path = self.prepare_path(item["params"]['path'], on_host=True)
-        self.plugin.window.core.security.ensure_read(path, sandbox=False)
+        path = self.prepare_path(item["params"]['path'], on_host=True, ctx=ctx)
+        self.plugin.window.core.security.ensure_read(path, sandbox=False, ctx=ctx)
 
         # check if file exists
         if not os.path.isfile(path):
@@ -297,7 +297,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -312,14 +312,14 @@ class Runner:
         path = item["params"]['path']
         msg = "Executing Python file: {}".format(path)
         self.log(msg, sandbox=True)
-        path = self.prepare_path(path, on_host=False)
+        path = self.prepare_path(path, on_host=False, ctx=ctx)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
             filename=path,
         )
 
         """
         # send input to interpreter
-        with open(self.prepare_path(path, on_host=True), 'r', encoding="utf-8") as file:
+        with open(self.prepare_path(path, on_host=True, ctx=ctx), 'r', encoding="utf-8") as file:
             code = file.read()
             self.append_input(code)
             self.send_interpreter_input(code)  # send input to interpreter
@@ -327,13 +327,13 @@ class Runner:
 
         self.log("Running command: {}".format(cmd), sandbox=True)
         self.send_interpreter_output_begin("stdout")
-        response = self.run_docker(cmd)
+        response = self.run_docker(cmd, ctx=ctx)
         result = self.handle_result_docker(response)
         self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def code_execute_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
@@ -352,17 +352,17 @@ class Runner:
             path = self.plugin.window.tools.get("interpreter").file_current
             if "path" in item["params"]:
                 path = item["params"]['path']
-            path = self.prepare_path(path, on_host=True)
-            self.plugin.window.core.security.ensure_write(path, sandbox=False)
+            path = self.prepare_path(path, on_host=True, ctx=ctx)
+            self.plugin.window.core.security.ensure_write(path, sandbox=False, ctx=ctx)
             msg = "Saving Python file: {}".format(path)
             self.log(msg)
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
-            path = self.prepare_path(self.plugin.window.tools.get("interpreter").file_input, on_host=True)
-            self.plugin.window.core.security.ensure_read(path, sandbox=False)
+            path = self.prepare_path(self.plugin.window.tools.get("interpreter").file_input, on_host=True, ctx=ctx)
+            self.plugin.window.core.security.ensure_read(path, sandbox=False, ctx=ctx)
 
-        self.append_input(data)
+        self.append_input(data, ctx=ctx)
         self.send_interpreter_input(data)  # send input to interpreter
 
         # run code
@@ -386,7 +386,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
@@ -406,16 +406,16 @@ class Runner:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
             self.log(msg, sandbox=True)
-            with open(self.prepare_path(path, on_host=True), 'w', encoding="utf-8") as file:
+            with open(self.prepare_path(path, on_host=True, ctx=ctx), 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
             path = self.plugin.window.tools.get("interpreter").file_input
 
-        self.append_input(data)
+        self.append_input(data, ctx=ctx)
         self.send_interpreter_input(data)  # send input to interpreter
 
         # run code
-        path = self.prepare_path(path, on_host=False)
+        path = self.prepare_path(path, on_host=False, ctx=ctx)
         msg = "Executing Python code: {}".format(item["params"]['code'])
         self.log(msg, sandbox=True)
         cmd = self.plugin.get_option_value('python_cmd_tpl').format(
@@ -423,13 +423,13 @@ class Runner:
         )
         self.log("Running command: {}".format(cmd), sandbox=True)
         self.send_interpreter_output_begin("stdout")
-        response = self.run_docker(cmd)
+        response = self.run_docker(cmd, ctx=ctx)
         result = self.handle_result_docker(response)
         self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def ipython_sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -456,7 +456,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def ipython_sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -466,13 +466,13 @@ class Runner:
         self.log("Running command: {}".format(command), sandbox=True)
         self.send_interpreter_input(command)  # show command in interpreter output
         self.send_interpreter_output_begin("stdout")
-        response = self.plugin.ipython_docker.execute_system(command)
+        response = self.plugin.ipython_docker.execute_system(command, ctx=ctx)
         result = self.handle_result_docker(response)
         self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def python_sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -499,7 +499,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def python_sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
@@ -509,13 +509,13 @@ class Runner:
         self.log("Running command: {}".format(command), sandbox=True)
         self.send_interpreter_input(command)  # show command in interpreter output
         self.send_interpreter_output_begin("stdout")
-        response = self.plugin.docker.execute(command)
+        response = self.plugin.docker.execute(command, ctx=ctx)
         result = self.handle_result_docker(response)
         self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def ipython_execute_new(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
@@ -536,19 +536,19 @@ class Runner:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
             self.log(msg, sandbox=sandbox)
-            host_path = self.prepare_path(path, on_host=True)
-            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox)
+            host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox, ctx=ctx)
             with open(host_path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
             path = self.plugin.window.tools.get("interpreter").file_input
 
-        host_path = self.prepare_path(path, on_host=True)
-        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox)
+        host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox, ctx=ctx)
         with open(host_path, 'r', encoding="utf-8") as file:
             data = file.read()
 
-        self.append_input(data)
+        self.append_input(data, ctx=ctx)
         self.send_interpreter_input(data)  # send input to interpreter tool
 
         # run code in IPython interpreter
@@ -558,7 +558,11 @@ class Runner:
         try:
             self.log("Please wait...", sandbox=sandbox)
             self.send_interpreter_output_begin("stdout")
-            result = self.plugin.get_interpreter().execute(data, current=False)
+            interpreter = self.plugin.get_interpreter()
+            if sandbox:
+                result = interpreter.execute(data, current=False, ctx=ctx)
+            else:
+                result = interpreter.execute(data, current=False)
             result = self.handle_result_ipython(ctx, result)
             self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
@@ -568,7 +572,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def ipython_execute(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
@@ -600,19 +604,19 @@ class Runner:
                 path = item["params"]['path']
             msg = "Saving Python file: {}".format(path)
             self.log(msg, sandbox=sandbox)
-            host_path = self.prepare_path(path, on_host=True)
-            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox)
+            host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox, ctx=ctx)
             with open(host_path, 'w', encoding="utf-8") as file:
                 file.write(data)
         else:
             path = self.plugin.window.tools.get("interpreter").file_input
 
-        host_path = self.prepare_path(path, on_host=True)
-        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox)
+        host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox, ctx=ctx)
         with open(host_path, 'r', encoding="utf-8") as file:
             data = file.read()
 
-        self.append_input(data)
+        self.append_input(data, ctx=ctx)
         self.send_interpreter_input(data)  # send input to interpreter tool
 
         # run code in IPython interpreter
@@ -622,11 +626,20 @@ class Runner:
         try:
             self.log("Please wait...", sandbox=sandbox)
             self.send_interpreter_output_begin("stdout")
-            result = self.plugin.get_interpreter().execute(
-                data,
-                current=True,
-                auto_init=auto_init,  # auto initialize after error
-            )
+            interpreter = self.plugin.get_interpreter()
+            if sandbox:
+                result = interpreter.execute(
+                    data,
+                    current=True,
+                    auto_init=auto_init,  # auto initialize after error
+                    ctx=ctx,
+                )
+            else:
+                result = interpreter.execute(
+                    data,
+                    current=True,
+                    auto_init=auto_init,  # auto initialize after error
+                )
             result = self.handle_result_ipython(ctx, result)
             self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
@@ -636,7 +649,7 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def ipython_kernel_restart(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
@@ -650,14 +663,18 @@ class Runner:
         :return: response dict
         """
         sandbox = self.is_sandbox_ipython()
-        self.append_input("")
+        self.append_input("", ctx=ctx)
         self.send_interpreter_input("")  # send input to interpreter tool
 
         # restart IPython interpreter
         self.log("Connecting to IPython interpreter...", sandbox=sandbox)
         try:
             self.log("Restarting IPython kernel...", sandbox=sandbox)
-            response = self.plugin.get_interpreter().restart_kernel()
+            interpreter = self.plugin.get_interpreter()
+            if sandbox:
+                response = interpreter.restart_kernel(ctx=ctx)
+            else:
+                response = interpreter.restart_kernel()
         except Exception as e:
             self.error(e)
             response = False
@@ -676,10 +693,10 @@ class Runner:
         return {
             "request": request,
             "result": str(result),
-            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
-    def parse_result(self, result):
+    def parse_result(self, result, ctx=None):
         """
         Parse result
 
@@ -690,12 +707,12 @@ class Runner:
             return ""
         img_ext = ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]
         if result.strip().split(".")[-1].lower() in img_ext:
-            path = self.prepare_path(result.strip().replace("file://", ""), on_host=True)
+            path = self.prepare_path(result.strip().replace("file://", ""), on_host=True, ctx=ctx)
             if os.path.isfile(path):
                 return "![Image](file://{})".format(path)
         return str(result)
 
-    def append_input(self, data: str):
+    def append_input(self, data: str, ctx=None):
         """
         Append input to interpreter input file
 
@@ -705,7 +722,7 @@ class Runner:
             return
 
         content = ""
-        path = self.prepare_path(self.plugin.window.tools.get("interpreter").file_input, on_host=True)
+        path = self.prepare_path(self.plugin.window.tools.get("interpreter").file_input, on_host=True, ctx=ctx)
         if os.path.isfile(path):
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -740,7 +757,7 @@ class Runner:
             interpreter.file_output_json,
         }
 
-    def prepare_path(self, path: str, on_host: bool = True) -> str:
+    def prepare_path(self, path: str, on_host: bool = True, ctx=None) -> str:
         """
         Prepare path
 
@@ -748,6 +765,11 @@ class Runner:
         :param on_host: is on host
         :return: prepared path
         """
+        if on_host and (self.is_sandbox() or self.is_sandbox_ipython()):
+            mapped = self.plugin.window.core.filesystem.from_sandbox_data_path(path, ctx=ctx)
+            if mapped != path:
+                return mapped
+
         if self.is_absolute_path(path):
             return path
 
@@ -761,7 +783,7 @@ class Runner:
 
         if not self.is_sandbox() or on_host:
             return os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
+                self.plugin.window.core.filesystem.get_data_dir(ctx=ctx),
                 path,
             )
         return path

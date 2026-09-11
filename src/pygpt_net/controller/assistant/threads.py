@@ -200,7 +200,7 @@ class Threads(QObject):
         # handle content images
         if images_ids:
             image_paths = self.window.controller.assistant.files.handle_received_ids(images_ids, ".png")
-            ctx.images = self.window.core.filesystem.make_local_list(list(image_paths))
+            ctx.images = self.window.core.filesystem.make_local_list(list(image_paths), ctx=ctx)
 
         # citations
         if citations:
@@ -212,7 +212,7 @@ class Threads(QObject):
         paths += self.window.controller.assistant.files.handle_received_ids(file_ids)
         if paths:
             # convert to local paths
-            local_paths = self.window.core.filesystem.make_local_list(list(paths))
+            local_paths = self.window.core.filesystem.make_local_list(list(paths), ctx=ctx)
             text_msg = ctx.output  # use current output
             if text_msg:
                 # map file ids to local paths
@@ -234,7 +234,7 @@ class Threads(QObject):
                     if path.split('.')[-1].lower() in self.img_ext:
                         img_files.append(path)
                 if img_files:
-                    ctx.images = self.window.core.filesystem.make_local_list(list(img_files))
+                    ctx.images = self.window.core.filesystem.make_local_list(list(img_files), ctx=ctx)
 
         ctx.from_previous()  # append previous result again before save
         self.window.core.ctx.update_item(ctx)

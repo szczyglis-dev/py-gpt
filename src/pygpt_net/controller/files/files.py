@@ -318,7 +318,7 @@ class Files:
                 if parent_path:
                     target_directory = parent_path
                 else:
-                    target_directory = self.window.core.config.get_user_dir('data')
+                    target_directory = self.window.core.filesystem.get_data_dir()
                 num = 0
                 for file_path in files:
                     path_to = os.path.join(
@@ -369,7 +369,7 @@ class Files:
         if not paths:
             return
         if target_directory is None:
-            target_directory = self.window.core.config.get_user_dir('data')
+            target_directory = self.window.core.filesystem.get_data_dir()
 
         try:
             if not os.path.exists(target_directory):
@@ -561,7 +561,7 @@ class Files:
         data = {}  # indexed file rows are lazy-loaded by the explorer model
         self.window.ui.nodes['output_files'].index_data = data
         if reload:
-            root = self.window.core.config.get_user_dir('data')
+            root = self.window.core.filesystem.get_data_dir()
             self.window.ui.nodes['output_files'].directory = root
             self.window.ui.nodes['output_files'].update_view()
             self.window.ui.nodes['output_files'].path_label.setText(root)
@@ -652,7 +652,7 @@ class Files:
         :param path: path to file
         :return: stripped path
         """
-        work_dir = self.window.core.config.get_user_dir("data")
+        work_dir = self.window.core.filesystem.get_data_dir()
         path = path.replace(work_dir, "")
         if path.startswith("/") or path.startswith("\\"):
             path = path[1:]

@@ -34,7 +34,7 @@ class Helpers:
         replacement = r'<p class="cmd">\1</p>'
         return re.sub(pattern, replacement, text)
 
-    def pre_format_text(self, text: str) -> str:
+    def pre_format_text(self, text: str, ctx=None) -> str:
         """
         Pre-format text
 
@@ -53,7 +53,7 @@ class Helpers:
         try:
             text = re.sub(
                 r'\(sandbox:([^)]+)\)',
-                lambda m: f'({self.window.core.filesystem.get_local_url("sandbox:" + m.group(1))})',
+                lambda m: f'({self.window.core.filesystem.get_local_url("sandbox:" + m.group(1), ctx=ctx)})',
                 text,
                 flags=re.IGNORECASE,
             )
@@ -65,7 +65,7 @@ class Helpers:
         try:
             text = re.sub(
                 r'\(%workdir%([^)]+)\)',
-                lambda m: f'({self.window.core.filesystem.get_local_url("%workdir%" + m.group(1))})',
+                lambda m: f'({self.window.core.filesystem.get_local_url("%workdir%" + m.group(1), ctx=ctx)})',
                 text,
             )
         except Exception:

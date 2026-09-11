@@ -1039,6 +1039,7 @@ class CtxGroup:
     id: Optional[int] = None
     name: Optional[str] = None
     additional_ctx: list = field(default_factory=list)
+    extra: dict = field(default_factory=dict)
     additional_ctx_current: list = field(default_factory=list)
     count: int = 0
     created: int = field(default_factory=lambda: int(time.time()))
@@ -1057,6 +1058,7 @@ class CtxGroup:
         self.additional_ctx_current = []
         self.count = 0
         self.created = int(time.time())
+        self.extra = {}
         self.id = id
         self.items = []
         self.name = name
@@ -1105,6 +1107,7 @@ class CtxGroup:
             "additional_ctx": self.additional_ctx,
             "count": self.count,
             "created": self.created,
+            "extra": self.extra,
             "id": self.id,
             "items": self.items,
             "name": self.name,
@@ -1121,6 +1124,7 @@ class CtxGroup:
         g = data.get
         self.count = g("count", 0)
         self.created = g("created", None)
+        self.extra = g("extra", {}) or {}
         self.id = g("id", None)
         self.items = g("items", [])
         self.name = g("name", None)
