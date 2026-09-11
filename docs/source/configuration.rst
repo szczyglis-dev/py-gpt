@@ -562,6 +562,14 @@ Chat with Agents
 
 * ``Show full tool-chain in Chat with Agents``: When enabled, the final Chat with Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
+* ``Max iterations (Chat / Orchestrator)``: Maximum number of main-agent iterations in Chat and Orchestrator modes. Set ``0`` for no application-level iteration limit. Default: ``48``.
+
+* ``Max iterations (Swarm)``: Maximum number of main-agent/orchestrator iterations in Swarm mode. Set ``0`` for no application-level iteration limit. Default: ``4096``.
+
+* ``Worker max iterations``: Maximum number of iterations for each worker agent in any Chat with Agents mode. Set ``0`` for no application-level iteration limit. Default: ``24``.
+
+An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling these limits can increase latency, token/API usage, and tool execution. This is especially important in Swarm because Swarm has no worker-count limit.
+
 Agents
 ^^^^^^
 

@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, Chat with Agents, Agents and Autonomous Mode.
+- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, **Chat with Agents**, Agents and Autonomous Mode.
 - Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -65,7 +65,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Includes a notepad.
 - Includes simple painter / drawing tool.
 - Includes an node-based Agents Builder.
-- Includes Chat with Agents, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
+- Includes **Chat with Agents**, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
 - Fully configurable.
@@ -699,6 +699,14 @@ Local plugin execution is integrated with the normal PyGPT command/tool system, 
 ### Settings
 
 Agent-related application settings are organized under `Settings -> Agents and experts`. The **Chat with Agents** section contains settings for this workflow. **Show full tool-chain in Chat with Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
+
+The same section also exposes the iteration limits used by the Chat with Agents runtime:
+
+- **Max iterations (Chat / Orchestrator)** - maximum number of main-agent iterations in Chat and Orchestrator modes. Default: `48`.
+- **Max iterations (Swarm)** - maximum number of main-agent/orchestrator iterations in Swarm mode. Default: `4096`.
+- **Worker max iterations** - maximum number of iterations for each worker agent, regardless of the selected Chat with Agents mode. Default: `24`.
+
+For all three options, `0` means **unlimited**. These are agent execution iterations (reasoning/tool-call cycles), not user conversation turns. Raising or removing these limits can substantially increase API usage, token consumption, execution time, and the number of tool operations. In **Swarm**, an unlimited iteration setting can combine with the absence of a worker-count limit, so use it particularly carefully.
 
 Settings kept only for older agent implementations are separated into the **Legacy** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These Legacy options do not control the Chat with Agents tool-chain display.
 

@@ -3121,6 +3121,48 @@
         "advanced": false,
         "tab": "general"
     },
+    "agent.v2.max_iterations": {
+        "section": "agent",
+        "type": "int",
+        "slider": false,
+        "label": "settings.agent.v2.max_iterations",
+        "description": "settings.agent.v2.max_iterations.desc",
+        "value": 48,
+        "min": 0,
+        "max": null,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
+    "agent.v2.swarm.max_iterations": {
+        "section": "agent",
+        "type": "int",
+        "slider": false,
+        "label": "settings.agent.v2.swarm.max_iterations",
+        "description": "settings.agent.v2.swarm.max_iterations.desc",
+        "value": 4096,
+        "min": 0,
+        "max": null,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
+    "agent.v2.worker.max_iterations": {
+        "section": "agent",
+        "type": "int",
+        "slider": false,
+        "label": "settings.agent.v2.worker.max_iterations",
+        "description": "settings.agent.v2.worker.max_iterations.desc",
+        "value": 24,
+        "min": 0,
+        "max": null,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
     "agent.output.render.all": {
         "section": "agent",
         "type": "bool",

@@ -654,9 +654,16 @@ class Patch:
             # < 2.8.15
             if old < parse_version("2.8.15"):
                 print("Migrating config from < 2.8.15...")
-                if "agent.v2.mode" not in data:
-                    data["agent.v2.mode"] = cfg_get_base("agent.v2.mode")
-                    updated = True
+                to_add = [
+                    "agent.v2.mode",
+                    "agent.v2.max_iterations",
+                    "agent.v2.swarm.max_iterations",
+                    "agent.v2.worker.max_iterations",
+                ]
+                for key in to_add:
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
 
         # update file
         migrated = False

@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import sys
 import time
 import uuid
 from types import SimpleNamespace
@@ -69,6 +70,15 @@ class AgentsV2Runtime:
     # for durable UI inspection. Orchestration/worker-management plumbing is
     # deliberately excluded.
     RETURN_TOOL_CALLS_TO_MAIN_CTX = False
+
+    # Iteration limits are user-configurable in Settings -> Agents -> Chat with Agents.
+    # LlamaIndex treats max_iterations=0 as a falsy value and replaces it with its
+    # own default, so PyGPT maps 0 to sys.maxsize to provide the documented
+    # "unlimited" behavior while keeping the upstream API contract unchanged.
+    MAIN_MAX_ITERATIONS_DEFAULT = 48
+    SWARM_MAX_ITERATIONS_DEFAULT = 4096
+    WORKER_MAX_ITERATIONS_DEFAULT = 24
+    UNLIMITED_MAX_ITERATIONS = sys.maxsize
 
     _TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX = {
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
@@ -209,6 +219,8 @@ class AgentsV2Runtime:
             "runtime_system_context": self.runtime_system_context,
             "bridge_system_prompt": self.bridge_system_prompt,
             "max_workers": "user_defined" if self.is_swarm_mode else self.MAX_WORKERS,
+            "main_max_iterations": self.main_max_iterations_configured or "unlimited",
+            "worker_max_iterations": self.worker_max_iterations_configured or "unlimited",
         })
 
     @property
@@ -218,6 +230,48 @@ class AgentsV2Runtime:
     @property
     def is_primary_agent_mode(self) -> bool:
         return self.agent_mode == AgentMode.PRIMARY_AGENT
+
+    def _configured_iteration_limit(self, key: str, default: int) -> int:
+        """Return a validated iteration limit from config (0 means unlimited)."""
+        try:
+            value = int(self.window.core.config.get(key, default))
+        except (TypeError, ValueError):
+            value = int(default)
+        if value < 0:
+            value = 0
+        return value
+
+    @staticmethod
+    def _effective_iteration_limit(value: int) -> int:
+        """Translate the PyGPT 0=unlimited contract to LlamaIndex semantics."""
+        return AgentsV2Runtime.UNLIMITED_MAX_ITERATIONS if value == 0 else value
+
+    @property
+    def main_max_iterations_configured(self) -> int:
+        if self.is_swarm_mode:
+            return self._configured_iteration_limit(
+                "agent.v2.swarm.max_iterations",
+                self.SWARM_MAX_ITERATIONS_DEFAULT,
+            )
+        return self._configured_iteration_limit(
+            "agent.v2.max_iterations",
+            self.MAIN_MAX_ITERATIONS_DEFAULT,
+        )
+
+    @property
+    def main_max_iterations(self) -> int:
+        return self._effective_iteration_limit(self.main_max_iterations_configured)
+
+    @property
+    def worker_max_iterations_configured(self) -> int:
+        return self._configured_iteration_limit(
+            "agent.v2.worker.max_iterations",
+            self.WORKER_MAX_ITERATIONS_DEFAULT,
+        )
+
+    @property
+    def worker_max_iterations(self) -> int:
+        return self._effective_iteration_limit(self.worker_max_iterations_configured)
 
     @property
     def is_swarm_mode(self) -> bool:
@@ -1615,7 +1669,7 @@ class AgentsV2Runtime:
             handler = state.agent.run(
                 user_msg=worker_input,
                 memory=state.memory,
-                max_iterations=24,
+                max_iterations=self.worker_max_iterations,
                 early_stopping_method="generate",
             )
             async for event in handler.stream_events():

@@ -113,7 +113,7 @@ class Runner:
             handler = main_agent.run(
                 user_msg=main_input,
                 chat_history=history,
-                max_iterations=4096 if runtime.is_swarm_mode else 48,
+                max_iterations=runtime.main_max_iterations,
                 early_stopping_method="generate",
             )
 
