@@ -667,6 +667,24 @@ class Patch:
                         data[key] = cfg_get_base(key)
                         updated = True
 
+            # < 2.8.16
+            if old < parse_version("2.8.16"):
+                print("Migrating config from < 2.8.16...")
+
+                # Experts are always executed through the Agents v2 runtime now,
+                # so the old implementation toggle no longer has any effect.
+                if "experts.use_agent" in data:
+                    del data["experts.use_agent"]
+                    updated = True
+
+                # expert_call changed from {id, query} to {id, instruction,
+                # system_prompt?}. Reset the manager prompt so existing profiles
+                # do not keep instructing models to emit the obsolete schema.
+                expert_prompt = cfg_get_base("prompt.expert")
+                if data.get("prompt.expert") != expert_prompt:
+                    data["prompt.expert"] = expert_prompt
+                    updated = True
+
         # update file
         migrated = False
         if updated:

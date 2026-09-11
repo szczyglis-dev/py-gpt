@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 18:55:00                  #
+# Updated Date: 2026.09.11 21:45:00                  #
 # ================================================== #
 
 import json
@@ -27,7 +27,8 @@ from pygpt_net.core.types import (
     TOOL_EXPERT_CALL_NAME,
     TOOL_EXPERT_CALL_DESCRIPTION,
     TOOL_EXPERT_CALL_PARAM_ID_DESCRIPTION,
-    TOOL_EXPERT_CALL_PARAM_QUERY_DESCRIPTION,
+    TOOL_EXPERT_CALL_PARAM_INSTRUCTION_DESCRIPTION,
+    TOOL_EXPERT_CALL_PARAM_SYSTEM_PROMPT_DESCRIPTION,
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
     TOOL_QUERY_ENGINE_PARAM_QUERY_DESCRIPTION,
@@ -188,7 +189,7 @@ class Experts:
             self,
             ctx: CtxItem,
             prepared: bool = False,
-    ) -> Dict[str, str]:
+    ) -> Dict[str, Dict[str, str]]:
         """
         Extract expert calls from context output/prepared tool commands.
 
@@ -238,13 +239,23 @@ class Experts:
                 if item["cmd"] == TOOL_EXPERT_CALL_NAME:
                     if "params" not in item:
                         continue
-                    if "id" not in item["params"] or "query" not in item["params"]:
+                    if "id" not in item["params"]:
                         continue
                     id = item["params"]["id"]
                     if id not in ids:
                         continue
-                    query = item["params"]["query"]
-                    calls[id] = query
+                    # `query` is accepted only for compatibility with pre-2.8.16
+                    # saved/provider-shaped calls. New tool definitions require
+                    # the clearer `instruction` field.
+                    instruction = item["params"].get("instruction")
+                    if instruction in (None, ""):
+                        instruction = item["params"].get("query")
+                    if instruction in (None, ""):
+                        continue
+                    calls[id] = {
+                        "instruction": str(instruction),
+                        "system_prompt": str(item["params"].get("system_prompt") or ""),
+                    }
             except Exception as e:
                 core.debug.log(e)
                 return {}
@@ -327,23 +338,26 @@ class Experts:
             self,
             master_ctx: CtxItem,
             expert_id: str,
-            query: str
+            request=None,
+            query=None,
     ):
         """
         Call the expert
 
         :param master_ctx: master context
         :param expert_id: expert id (preset ID)
-        :param query: input text (master prompt)
+        :param request: expert request with required instruction and optional system prompt
         """
         if self.stopped():
             return
+        if request is None:
+            request = query  # compatibility with pre-2.8.16 callers
 
         worker = ExpertWorker(
             window=self.window,
             master_ctx=master_ctx,
             expert_id=expert_id,
-            query=query,
+            request=request,
         )
         worker.signals.response.connect(self.handle_response)  # connect to finished signal
         worker.signals.finished.connect(self.handle_finished)  # connect to finished signal
@@ -433,7 +447,7 @@ class Experts:
             self.call(
                 master_ctx=self.master_ctx,
                 expert_id=self.last_expert_id,
-                query=tool_data,
+                request={"instruction": tool_data},
             )
             return
 
@@ -625,9 +639,15 @@ class Experts:
                         "type": "str",
                     },
                     {
-                        "name": "query",
-                        "description": TOOL_EXPERT_CALL_PARAM_QUERY_DESCRIPTION,
+                        "name": "instruction",
+                        "description": TOOL_EXPERT_CALL_PARAM_INSTRUCTION_DESCRIPTION,
                         "required": True,
+                        "type": "str",
+                    },
+                    {
+                        "name": "system_prompt",
+                        "description": TOOL_EXPERT_CALL_PARAM_SYSTEM_PROMPT_DESCRIPTION,
+                        "required": False,
                         "type": "str",
                     }
                 ]

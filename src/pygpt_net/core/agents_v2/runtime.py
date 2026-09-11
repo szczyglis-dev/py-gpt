@@ -2431,13 +2431,27 @@ class AgentsV2Runtime:
             return self.orchestrator_tools()
         return self.primary_agent_tools()
 
-    def _compose_main_agent_prompt(self, base_prompt: str) -> str:
-        # ``context.system_prompt`` is already the final PyGPT system prompt after
-        # PRE/POST/POST_PROMPT_END processing. Prefer it over preset.prompt so
-        # plugin additions are not lost and the base preset is not duplicated.
-        additional = str(self.bridge_system_prompt or "").strip()
-        if not additional and self.preset is not None:
-            additional = str(getattr(self.preset, "prompt", "") or "").strip()
+    def compose_agent_system_prompt(
+            self,
+            base_prompt: str = "",
+            additional_system_prompt: Optional[str] = None,
+    ) -> str:
+        """Compose the shared Agents v2 runtime envelope around an actor prompt.
+
+        Top-level Chat with Agents actors add their role prompt as ``base_prompt``.
+        Other integrations (for example Experts) can reuse the same provider/tool/RAG
+        runtime context without inheriting the Primary Agent/Orchestrator role.
+        """
+        if additional_system_prompt is None:
+            # ``context.system_prompt`` is already the final PyGPT system prompt after
+            # PRE/POST/POST_PROMPT_END processing. Prefer it over preset.prompt so
+            # plugin additions are not lost and the base preset is not duplicated.
+            additional = str(self.bridge_system_prompt or "").strip()
+            if not additional and self.preset is not None:
+                additional = str(getattr(self.preset, "prompt", "") or "").strip()
+        else:
+            additional = str(additional_system_prompt or "").strip()
+
         capabilities = [
             f"agent_mode={self.agent_mode.value}",
             f"selected_model={getattr(self.model, 'id', '')}",
@@ -2458,22 +2472,29 @@ class AgentsV2Runtime:
         rag_context = self._rag_prompt_context()
         if rag_context:
             rag_context = "\n\n" + rag_context
+
+        base = str(base_prompt or "").strip()
+        prefix = (base + "\n\n") if base else ""
         return (
-            base_prompt
-            + "\n\n<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
+            prefix
+            + "<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
             + runtime_environment
             + rag_context
             + "\n\n<additional_system_prompt>\n" + additional + "\n</additional_system_prompt>"
         )
 
+    def _compose_main_agent_prompt(self, base_prompt: str) -> str:
+        """Backward-compatible wrapper for top-level Chat with Agents prompts."""
+        return self.compose_agent_system_prompt(base_prompt=base_prompt)
+
     def primary_agent_prompt(self) -> str:
-        return self._compose_main_agent_prompt(PRIMARY_AGENT_BASE_PROMPT)
+        return self.compose_agent_system_prompt(base_prompt=PRIMARY_AGENT_BASE_PROMPT)
 
     def orchestrator_prompt(self) -> str:
-        return self._compose_main_agent_prompt(ORCHESTRATOR_BASE_PROMPT)
+        return self.compose_agent_system_prompt(base_prompt=ORCHESTRATOR_BASE_PROMPT)
 
     def swarm_prompt(self) -> str:
-        return self._compose_main_agent_prompt(SWARM_BASE_PROMPT)
+        return self.compose_agent_system_prompt(base_prompt=SWARM_BASE_PROMPT)
 
     def main_agent_prompt(self) -> str:
         """Return the system prompt for the selected top-level strategy."""

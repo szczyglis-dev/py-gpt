@@ -114,12 +114,21 @@ class Experts:
         # Compatibility fallback for older contexts which expose only extracted
         # mentions at this point.
         if not calls:
-            for expert_id, query in mentions.items():
+            for expert_id, request in mentions.items():
+                if isinstance(request, dict):
+                    instruction = str(request.get("instruction") or request.get("query") or "")
+                    system_prompt = str(request.get("system_prompt") or "")
+                else:
+                    instruction = str(request or "")
+                    system_prompt = ""
+                arguments = {"id": expert_id, "instruction": instruction}
+                if system_prompt:
+                    arguments["system_prompt"] = system_prompt
                 calls.append({
                     "type": "function",
                     "function": {
                         "name": TOOL_EXPERT_CALL_NAME,
-                        "arguments": {"id": expert_id, "query": query},
+                        "arguments": arguments,
                     },
                 })
         return calls

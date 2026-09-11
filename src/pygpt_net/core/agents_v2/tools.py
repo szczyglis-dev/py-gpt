@@ -75,11 +75,15 @@ class WorkerToolFactory:
 
         return tools
 
-    def build_orchestrator(self, actor) -> List[BaseTool]:
-        """Expose normal PyGPT capabilities directly to the selected main agent."""
+    def build_orchestrator(self, actor, exclude: Optional[set] = None) -> List[BaseTool]:
+        """Expose normal PyGPT capabilities directly to the selected main agent.
+
+        ``exclude`` lets integrations reuse the same factory while preventing
+        recursive/self-referential tools (Experts exclude ``expert_call``).
+        """
         tools: List[BaseTool] = []
         if self.runtime.allow_local_tools and self.window.core.command.is_cmd(inline=False):
-            tools.extend(self._plugin_tools(actor))
+            tools.extend(self._plugin_tools(actor, exclude=exclude))
         async def shared_context() -> str:
             return self.runtime.shared_context_text or "No shared attachment context is available."
 
@@ -223,12 +227,13 @@ class WorkerToolFactory:
             ))
         return blocks
 
-    def _plugin_tools(self, worker) -> List[BaseTool]:
+    def _plugin_tools(self, worker, exclude: Optional[set] = None) -> List[BaseTool]:
         out: List[BaseTool] = []
+        excluded = {str(name) for name in (exclude or set())}
         for item in self.window.core.command.get_functions(force=True):
             try:
                 name = str(item.get("name") or "").strip()
-                if not name or name in self.RESERVED:
+                if not name or name in self.RESERVED or name in excluded:
                     continue
                 description = str(item.get("desc") or name)
                 schema = json.loads(item.get("params") or "{}")

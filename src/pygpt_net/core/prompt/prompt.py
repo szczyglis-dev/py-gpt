@@ -170,14 +170,14 @@ class Prompt:
         self.window.dispatch(event)
         sys_prompt = event.data['value']
 
+        # Experts are executed by LlamaIndex FunctionAgent/ReActAgent through the
+        # Agents v2 runtime. Their tool schemas are owned by that runtime, so never
+        # append the legacy PyGPT <tool> command syntax to an Expert system prompt.
+        if is_expert:
+            return sys_prompt
+
         force_native_tools = False
         force_syntax_tools = False
-
-        # always enable native tool calls from experts if agent used
-        if is_expert:
-            if self.window.core.config.get('experts.use_agent', False):
-                force_syntax_tools = False
-                force_native_tools = True
 
         # event: tools syntax apply (if tools enabled or inline plugin then append tools prompt)
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
