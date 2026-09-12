@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:45:00                  #
+# Updated Date: 2026.09.12 20:20:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -728,16 +728,37 @@ class Tabs:
             title += f" - {tab.tooltip}"
         return title
 
-    def update_tooltip(self, tooltip: str):
+    def update_tooltip(
+            self,
+            tooltip: str,
+            meta_id: Optional[int] = None,
+    ):
         """
-        Update tab tooltip
+        Update chat tab tooltip.
+
+        Render events may arrive while a non-chat tab is focused (e.g. Notepad
+        or Painter), especially in split-screen mode. Never apply a context
+        title to the currently focused tab blindly; target only chat tabs bound
+        to the loaded context.
 
         :param tooltip: tooltip text
+        :param meta_id: context meta ID; if omitted, use the current chat tab
         """
-        tabs = self.window.ui.layout.get_tabs_by_idx(self.column_idx)
-        if tabs is not None and 0 <= self.current < tabs.count():
-            tabs.setTabToolTip(self.current, tooltip)
-        tabs.setTabToolTip(self.current, tooltip)
+        if meta_id is None:
+            tab = self.get_current_tab()
+            targets = [tab] if tab is not None and tab.type == Tab.TAB_CHAT else []
+        else:
+            targets = [
+                tab for tab in self.window.core.tabs.pids.values()
+                if tab.type == Tab.TAB_CHAT and tab.data_id == meta_id
+            ]
+
+        for tab in targets:
+            tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+            if tabs is None or tab.idx is None or tab.idx < 0 or tab.idx >= tabs.count():
+                continue
+            tab.tooltip = tooltip
+            tabs.setTabToolTip(tab.idx, tooltip)
         self.debug()
 
     def rename(

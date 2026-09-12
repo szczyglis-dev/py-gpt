@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 14:20:00                  #
+# Updated Date: 2026.09.12 20:20:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -325,7 +325,11 @@ class Render:
         """
         self.instance().on_load(meta)
         self.update()
-        self.window.controller.ui.tabs.update_tooltip(meta.name)  # update tab tooltip
+        if meta is not None:
+            self.window.controller.ui.tabs.update_tooltip(
+                meta.name,
+                meta_id=meta.id,
+            )
 
     def fresh(self, meta: Optional[CtxMeta] = None) -> None:
         """

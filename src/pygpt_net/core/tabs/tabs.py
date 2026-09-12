@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:45:00                  #
+# Updated Date: 2026.09.12 20:20:00                  #
 # ================================================== #
 
 import uuid
@@ -662,6 +662,12 @@ class Tabs:
         else:
             return tabs.addTab(tab.child, tab.title)
 
+    @staticmethod
+    def _sync_tooltip_with_title(tab: Tab) -> None:
+        """Keep non-chat tab tooltips aligned with their visible tab names."""
+        if tab.type != Tab.TAB_CHAT:
+            tab.tooltip = "" if tab.title is None else str(tab.title)
+
     def add_chat(self, tab: Tab):
         """
         Add chat tab
@@ -703,6 +709,7 @@ class Tabs:
             idx = tab.data_id  # restore prev idx
         tab.child, idx, data_id = self.window.controller.notepad.create(idx, tab, restore=restore)
         tab.data_id = data_id  # notepad idx in db, enumerated from 1
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -720,6 +727,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.explorer.setup()
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -738,6 +746,7 @@ class Tabs:
         tab.parent = column
         tab.child = self.window.ui.chat.output.painter.setup()
         tab.child.append(self.window.ui.painter)
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -755,6 +764,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.calendar.setup()
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -780,6 +790,7 @@ class Tabs:
         tab.title = trans(tool.tab_title)
         tab.parent = column
         tab.child = self.from_widget(widget)
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
