@@ -215,9 +215,29 @@ class Ctx:
         :param id: context meta id
         :param force: force select
         """
-        prev_id = self.window.core.ctx.get_current()
-        self.window.core.ctx.set_current(id)
-        meta = self.window.core.ctx.get_meta_by_id(id)
+        core_ctx = self.window.core.ctx
+        prev_id = core_ctx.get_current()
+        meta = core_ctx.get_meta_by_id(id)
+
+        # A context that is already open owns a concrete chat tab. Navigate to
+        # that tab instead of loading the context into whichever chat tab is
+        # currently active. This also reveals the right split-screen column
+        # when the matching tab is open there but the column is hidden.
+        if meta is not None and self.window.controller.ui.tabs.focus_chat_by_data_id(id):
+            # The normal tab-change handler synchronizes core.ctx. Keep a safe
+            # fallback for an unusual stale/unloaded tab state.
+            if core_ctx.get_current() != id:
+                self.load(id)
+            if prev_id != id or force:
+                self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
+            self.set_group(meta.group_id)
+            self.window.controller.chat.attachment.update()
+            self.window.controller.files.update_explorer(reload=True)
+            self.set_selected(id)
+            self.clean_memory()  # clean memory
+            return
+
+        core_ctx.set_current(id)
         if prev_id != id or force:
             self.load(id)
             self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event

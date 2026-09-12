@@ -1091,6 +1091,63 @@ class Tabs:
         idx = tabs.currentIndex()
         return self.window.core.tabs.get_tab_by_index(idx, column_idx)
 
+    def get_chat_tab_by_data_id(self, data_id: int) -> Optional[Tab]:
+        """
+        Return an already opened chat tab bound to the given context ID.
+
+        Prefer the active column when the same context is opened more than
+        once, then scan the remaining split-screen columns.
+
+        :param data_id: context meta ID
+        :return: matching chat tab or None
+        """
+        if data_id is None:
+            return None
+
+        columns = [self.column_idx]
+        columns.extend(col for col in range(self.window.core.tabs.NUM_COLS) if col != self.column_idx)
+
+        for column_idx in columns:
+            tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+            if tabs is None:
+                continue
+
+            current_idx = tabs.currentIndex()
+            current_tab = self.window.core.tabs.get_tab_by_index(current_idx, column_idx)
+            if (current_tab is not None
+                    and current_tab.type == Tab.TAB_CHAT
+                    and current_tab.data_id == data_id):
+                return current_tab
+
+            for idx in range(tabs.count()):
+                if idx == current_idx:
+                    continue
+                tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
+                if tab is not None and tab.type == Tab.TAB_CHAT and tab.data_id == data_id:
+                    return tab
+        return None
+
+    def focus_chat_by_data_id(self, data_id: int) -> bool:
+        """
+        Focus an already opened chat tab by context ID.
+
+        If the chat lives in the hidden right column, enable split-screen first.
+        Selecting the tab then uses the normal tab-change path to synchronize
+        the global context without rebinding another chat tab.
+
+        :param data_id: context meta ID
+        :return: True when an existing chat tab was focused
+        """
+        tab = self.get_chat_tab_by_data_id(data_id)
+        if tab is None:
+            return False
+
+        if tab.column_idx == 1 and not self.is_split_screen_enabled():
+            self.enable_split_screen(update_switch=True)
+
+        self.switch_tab_by_idx(tab.idx, tab.column_idx)
+        return True
+
     def is_tool(self, tool_id: str) -> bool:
         """
         Check if one of any tabs is of given tool ID
