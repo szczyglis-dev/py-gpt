@@ -707,7 +707,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
     $ sudo snap connect pygpt:docker docker:docker-daemon
 
-**Code interpreter:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon to open the Python/OS window. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Code interpreter:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon to open the Python/OS window. Alternatively, enable split-screen mode and open ``Python/OS`` in the second view column, or add it as a tool to a tab. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
 
 .. image:: images/v2_python.png
    :width: 600
@@ -720,7 +720,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
    Docker Desktop: https://docs.docker.com/desktop/
 
 .. tip::
-   Remember to enable the ``Tools`` switch to allow commands from plugins to be executed.
+   Remember to enable the ``Tools`` switch to allow tools from plugins to be executed.
 
 **Options:**
 
@@ -878,15 +878,13 @@ Context history (calendar, inline)
 Provides access to context history database.
 Plugin also provides access to reading and creating day notes.
 
-Examples of use, you can ask e.g. for the following:
+Example prompts:
 
-* Give me today day note
-* Save a new note for today
-* Update my today note with...
-* Get the list of yesterday conversations
-* Get contents of conversation ID 123
-
-etc.
+* Show me today's note.
+* Save a new note for today.
+* Update today's note with...
+* Show me yesterday's conversations.
+* Show me the contents of conversation ID 123.
 
 You can also use ``@`` ID tags to automatically use summary of previous contexts in current discussion.
 To use context from previous discussion with specified ID use following syntax in your query:

@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research, Completion, Image and Video generation, **Chat with Agents**, Experts, Computer use, plus legacy Agent and Autonomous modes.
+- 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Experts, Computer use, plus legacy Agent and Autonomous modes.
 - Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -1557,7 +1557,7 @@ sudo snap connect pygpt:docker-executables docker:docker-executables
 sudo snap connect pygpt:docker docker:docker-daemon
 ````
 
-**Code interpreter:** PyGPT includes the **Python/OS** tool for real-time Python and IPython execution. Click the `<>` icon to open the Python/OS window. Plugin code input/output is mirrored there only when **Connect to the Python/OS window** is enabled (default: enabled). The window keeps 30 input/output blocks by default (`0` = unlimited), and **Always run code in a fresh kernel** is disabled by default.
+**Code interpreter:** PyGPT includes the **Python/OS** tool for real-time Python and IPython execution. Click the `<>` icon to open the Python/OS window. Alternatively, enable split-screen mode and open **Python/OS** in the second view column, or add it as a tool to a tab. Plugin code input/output is mirrored there only when **Connect to the Python/OS window** is enabled (default: enabled). The window keeps 30 input/output blocks by default (`0` = unlimited), and **Always run code in a fresh kernel** is disabled by default.
 
 ![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
 
@@ -1566,7 +1566,7 @@ sudo snap connect pygpt:docker docker:docker-daemon
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
 
-**Tip:** Remember to enable the `Tools` switch to allow commands from plugins to be executed.
+**Tip:** Remember to enable the `Tools` switch to allow tools from plugins to be executed.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#code-interpreter-v2
 
@@ -1575,19 +1575,17 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#code-interpre
 Provides access to context history database.
 Plugin also provides access to reading and creating day notes.
 
-Examples of use, you can ask e.g. for the following:
+Example prompts:
 
-```Give me today day note```
+```Show me today's note.```
 
-```Save a new note for today```
+```Save a new note for today.```
 
-```Update my today note with...```
+```Update today's note with...```
 
-```Get the list of yesterday conversations```
+```Show me yesterday's conversations.```
 
-```Get contents of conversation ID 123```
-
-etc.
+```Show me the contents of conversation ID 123.```
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#context-history-calendar-inline
 
