@@ -66,6 +66,7 @@
   "agent.v2.log_workflow": false,
   "agent.v2.mode": "chat",
   "agent.v2.max_iterations": 48,
+  "agent.v2.max_workers": 16,
   "agent.v2.swarm.max_iterations": 4096,
   "agent.v2.worker.max_iterations": 24,
   "agent.v2.show_tool_chain": false,

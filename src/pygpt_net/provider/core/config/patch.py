@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 11:00:00                  #
+# Updated Date: 2026.09.12 13:45:00                  #
 # ================================================== #
 
 import copy
@@ -707,6 +707,17 @@ class Patch:
                 expert_prompt = cfg_get_base("prompt.expert")
                 if data.get("prompt.expert") != expert_prompt:
                     data["prompt.expert"] = expert_prompt
+                    updated = True
+
+            # < 2.8.17
+            if old < parse_version("2.8.17"):
+                print("Migrating config from < 2.8.17...")
+
+                # Chat with Agents worker limit is configurable from 2.8.17.
+                # Keep 16 as the default for existing profiles; 0 means unlimited.
+                key = "agent.v2.max_workers"
+                if key not in data:
+                    data[key] = cfg_get_base(key)
                     updated = True
 
         # update file

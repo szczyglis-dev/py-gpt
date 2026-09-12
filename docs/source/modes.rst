@@ -171,7 +171,7 @@ Agent modes
    The default mode. A primary agent communicates directly with the user, uses available tools, and can delegate selected tasks to background workers when useful. This is the general-purpose option for a normal agent conversation with multi-agent assistance available on demand.
 
 **Orchestrator**
-   A dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can execute concurrently. This mode is intended for structured, multi-stage tasks where explicit coordination and verification are useful. The Orchestrator runtime supports up to ``16`` workers.
+   A dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can execute concurrently. This mode is intended for structured, multi-stage tasks where explicit coordination and verification are useful. The Orchestrator runtime supports up to ``16`` workers by default. You can change this limit in ``Settings -> Agents and experts -> Chat with Agents -> Max workers (Chat / Orchestrator)``; set it to ``0`` for no worker limit.
 
 **Swarm**
    The orchestrator launches a swarm containing the number of workers requested by the user. If the request does not specify the number of agents, the orchestrator asks how many should be launched before starting the swarm. Workers are numbered and prefixed in status output. At startup the orchestrator reports that it is launching the swarm and states its size, then periodically reports an aggregated status with the number of running agents and a summary of what they are doing. Swarm does not impose a worker-count limit.
@@ -196,13 +196,14 @@ Settings
 
 Agent-related application settings are available under ``Settings -> Agents and experts``. The **Chat with Agents** section contains settings intended for this workflow. ``Show full tool-chain in Chat with Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
 
-The runtime iteration limits are configurable in the same section:
+The runtime worker-count and iteration limits are configurable in the same section:
 
 * ``Max iterations (Chat / Orchestrator)`` - main-agent iteration limit for Chat and Orchestrator. Default: ``48``.
+* ``Max workers (Chat / Orchestrator)`` - maximum number of worker agents that can be created in Chat and Orchestrator workflows. Default: ``16``; set ``0`` for unlimited. This setting does not limit Swarm size.
 * ``Max iterations (Swarm)`` - main-agent/orchestrator iteration limit for Swarm. Default: ``4096``.
 * ``Worker max iterations`` - per-worker iteration limit in all Chat with Agents modes. Default: ``24``.
 
-For every limit, ``0`` means **unlimited**. An iteration is an internal agent reasoning/tool-call cycle, not a user conversation turn. Higher or unlimited values may substantially increase API calls, token consumption, execution time, and tool activity. In Swarm, this can combine with the lack of a worker-count limit, so unlimited settings should be used with particular care.
+For every limit, ``0`` means **unlimited**. The three iteration settings control internal agent reasoning/tool-call cycles, not user conversation turns; the worker limit controls how many worker agents may be created in a Chat or Orchestrator workflow. Higher or unlimited values may substantially increase API calls, token consumption, execution time, and tool activity. Swarm keeps its separately declared worker count and is not constrained by the Chat/Orchestrator worker limit.
 
 Options specific to older agent implementations are kept in the **Legacy** tab. ``Display full agent output in chat view`` controls full output rendering for legacy agent modes, while ``Display a tray notification when the goal is achieved`` controls legacy agent completion notifications. These Legacy options do not control the Chat with Agents tool-chain display.
 

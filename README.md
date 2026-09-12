@@ -609,7 +609,7 @@ The **Mode** selector below the system prompt lets you choose how the agent work
 ### Agent modes
 
 - **Chat** - the default mode. A primary agent talks directly with the user, uses available tools, and can delegate selected tasks to background workers when useful. This is the best general-purpose option when you want a normal agent conversation with multi-agent assistance available on demand.
-- **Orchestrator** - a dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can run concurrently. This mode is useful for structured, multi-stage tasks where explicit coordination and verification are important. The Orchestrator runtime supports up to `16` workers.
+- **Orchestrator** - a dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can run concurrently. This mode is useful for structured, multi-stage tasks where explicit coordination and verification are important. The Orchestrator runtime supports up to `16` workers by default. You can change this limit in `Settings -> Agents and experts -> Chat with Agents -> Max workers (Chat / Orchestrator)`; set it to `0` for no worker limit.
 - **Swarm** - the orchestrator launches a swarm containing the number of workers requested by the user. If the number of agents is not specified in the request, the orchestrator asks how many should be launched before starting the swarm. Workers are numbered and prefixed in status output, the orchestrator reports the swarm size when it starts, and it periodically provides an aggregated status showing how many agents are running and what they are doing. **Swarm does not impose a worker-count limit.**
 
 > **Warning:** Use **Swarm** with care. This mode has no built-in limit on the number of agents that can be created. Requesting a large swarm can cause unexpectedly high API usage, token consumption, resource usage, many concurrent tool operations, and other unexpected effects. Start with a reasonable number of agents and supervise workflows that can modify files, execute code or system commands, or perform external actions.
@@ -629,13 +629,14 @@ Local plugin execution is integrated with the normal PyGPT command/tool system, 
 
 Agent-related application settings are organized under `Settings -> Agents and experts`. The **Chat with Agents** section contains settings for this workflow. **Show full tool-chain in Chat with Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
 
-The same section also exposes the iteration limits used by the Chat with Agents runtime:
+The same section also exposes worker-count and iteration limits used by the Chat with Agents runtime:
 
 - **Max iterations (Chat / Orchestrator)** - maximum number of main-agent iterations in Chat and Orchestrator modes. Default: `48`.
+- **Max workers (Chat / Orchestrator)** - maximum number of worker agents that can be created in Chat and Orchestrator workflows. Default: `16`; set `0` for unlimited. This setting does not limit Swarm size.
 - **Max iterations (Swarm)** - maximum number of main-agent/orchestrator iterations in Swarm mode. Default: `4096`.
 - **Worker max iterations** - maximum number of iterations for each worker agent, regardless of the selected Chat with Agents mode. Default: `24`.
 
-For all three options, `0` means **unlimited**. These are agent execution iterations (reasoning/tool-call cycles), not user conversation turns. Raising or removing these limits can substantially increase API usage, token consumption, execution time, and the number of tool operations. In **Swarm**, an unlimited iteration setting can combine with the absence of a worker-count limit, so use it particularly carefully.
+For all four limits, `0` means **unlimited**. The three iteration settings control internal agent reasoning/tool-call cycles, not user conversation turns; the worker limit controls how many worker agents may be created in a Chat or Orchestrator workflow. Raising or removing these limits can substantially increase API usage, token consumption, execution time, and the number of tool operations. **Swarm** keeps its separately declared worker count and is not constrained by the Chat/Orchestrator worker limit.
 
 Settings kept only for older agent implementations are separated into the **Legacy** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These Legacy options do not control the Chat with Agents tool-chain display.
 

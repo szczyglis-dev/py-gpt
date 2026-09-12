@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 18:35:00                  #
+# Updated Date: 2026.09.12 13:45:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ class AgentsV2Runtime:
     execution, tool bridging, persistence and artifact propagation are shared.
     """
 
-    MAX_WORKERS = 16
+    MAX_WORKERS_DEFAULT = 16
 
     # Code-level switch only (not exposed in presets/UI). Swarm mode always
     # prefixes worker statuses with the numbered agent identity; other modes use
@@ -240,7 +240,10 @@ class AgentsV2Runtime:
             "shared_context": self.shared_context_text,
             "runtime_system_context": self.runtime_system_context,
             "bridge_system_prompt": self.bridge_system_prompt,
-            "max_workers": "user_defined" if self.is_swarm_mode else self.MAX_WORKERS,
+            "max_workers": (
+                "user_defined" if self.is_swarm_mode
+                else (self.max_workers_configured or "unlimited")
+            ),
             "main_max_iterations": self.main_max_iterations_configured or "unlimited",
             "worker_max_iterations": self.worker_max_iterations_configured or "unlimited",
         })
@@ -283,6 +286,14 @@ class AgentsV2Runtime:
     @property
     def main_max_iterations(self) -> int:
         return self._effective_iteration_limit(self.main_max_iterations_configured)
+
+    @property
+    def max_workers_configured(self) -> int:
+        """Maximum workers for Chat/Orchestrator modes (0 means unlimited)."""
+        return self._configured_iteration_limit(
+            "agent.v2.max_workers",
+            self.MAX_WORKERS_DEFAULT,
+        )
 
     @property
     def worker_max_iterations_configured(self) -> int:
@@ -1602,10 +1613,12 @@ class AgentsV2Runtime:
                 }, ensure_ascii=False)
                 self.verbose.log("AGENT CREATE REJECTED", result)
                 return result
-        elif len(self.workers) >= self.MAX_WORKERS:
-            result = json.dumps({"error": f"Maximum workers reached ({self.MAX_WORKERS})."})
-            self.verbose.log("AGENT CREATE REJECTED", result)
-            return result
+        else:
+            max_workers = self.max_workers_configured
+            if max_workers > 0 and len(self.workers) >= max_workers:
+                result = json.dumps({"error": f"Maximum workers reached ({max_workers})."})
+                self.verbose.log("AGENT CREATE REJECTED", result)
+                return result
         raw_name = (name or "Worker").strip()[:80]
         instruction = (instruction or "General specialist").strip()
         language = str(language or "").strip()
@@ -2460,7 +2473,7 @@ class AgentsV2Runtime:
             f"rag_index={self.index_id or 'none'}",
             f"rag_prefetched_context={'yes' if self.rag_context_text else 'no'}",
             f"shared_attachment_context={'yes' if self.shared_context_text else 'no'}",
-            f"max_parallel_workers={'user_defined_unbounded' if self.is_swarm_mode else self.MAX_WORKERS}",
+            f"max_parallel_workers={'user_defined_unbounded' if self.is_swarm_mode else (self.max_workers_configured or 'unlimited')}",
         ]
         runtime_environment = ""
         if self.runtime_system_context and self.runtime_system_context not in additional:

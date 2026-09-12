@@ -550,11 +550,13 @@ Chat with Agents
 
 * ``Max iterations (Chat / Orchestrator)``: Maximum number of main-agent iterations in Chat and Orchestrator modes. Set ``0`` for no application-level iteration limit. Default: ``48``.
 
+* ``Max workers (Chat / Orchestrator)``: Maximum number of worker agents that can be created in Chat and Orchestrator workflows. Set ``0`` for no worker limit. Default: ``16``. This setting does not limit Swarm size.
+
 * ``Max iterations (Swarm)``: Maximum number of main-agent/orchestrator iterations in Swarm mode. Set ``0`` for no application-level iteration limit. Default: ``4096``.
 
 * ``Worker max iterations``: Maximum number of iterations for each worker agent in any Chat with Agents mode. Set ``0`` for no application-level iteration limit. Default: ``24``.
 
-An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling these limits can increase latency, token/API usage, and tool execution. This is especially important in Swarm because Swarm has no worker-count limit.
+An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling iteration limits can increase latency, token/API usage, and tool execution. The Chat/Orchestrator worker limit controls the number of workers created in those workflows; ``0`` removes that limit. Swarm is not constrained by this setting and uses its separately declared worker count.
 
 Agents
 ^^^^^^
