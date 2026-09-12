@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 20:31:00
+# Updated Date: 2026.09.12 14:45:00
 # ================================================== #
 
 import datetime
@@ -16,7 +16,7 @@ import math
 from collections import deque
 
 from PySide6.QtCore import Qt, QPoint, QPointF, QRect, QSize, QSaveFile, QIODevice, QTimer, Signal
-from PySide6.QtGui import QImage, QPainter, QPen, QAction, QActionGroup, QIcon, QColor, QCursor
+from PySide6.QtGui import QImage, QPainter, QPen, QAction, QActionGroup, QIcon, QColor, QCursor, QKeySequence
 from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication, QAbstractScrollArea
 
 from pygpt_net.core.tabs.tab import Tab
@@ -200,6 +200,54 @@ class PainterWidget(QWidget):
         :param tab: Tab
         """
         self.tab = tab
+
+    def bind_clipboard_shortcuts(self, container: QWidget, scroll_area=None):
+        """
+        Bind Painter keyboard shortcuts to the whole Painter tab.
+
+        The empty part of QScrollArea is its viewport, not PainterWidget. Make
+        that viewport focusable and watch its mouse/key events so Ctrl+C,
+        Ctrl+V and Delete work after clicking anywhere in the Painter area.
+
+        :param container: Painter tab container
+        :param scroll_area: Painter QScrollArea
+        """
+        if container is None:
+            return
+
+        self._act_copy.setShortcuts(
+            QKeySequence.keyBindings(QKeySequence.StandardKey.Copy)
+        )
+        self._act_copy.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+
+        self._act_paste.setShortcuts(
+            QKeySequence.keyBindings(QKeySequence.StandardKey.Paste)
+        )
+        self._act_paste.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+
+        self._act_clear.setShortcut(QKeySequence(Qt.Key_Delete))
+        self._act_clear.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+
+        container.addAction(self._act_copy)
+        container.addAction(self._act_paste)
+        container.addAction(self._act_clear)
+
+        # Keep references because these objects are checked in eventFilter().
+        self._shortcutContainer = container
+        self._shortcutFocusWidgets = [container]
+        container.setFocusPolicy(Qt.StrongFocus)
+        container.installEventFilter(self)
+
+        if scroll_area is not None:
+            scroll_area.setFocusPolicy(Qt.StrongFocus)
+            scroll_area.installEventFilter(self)
+            self._shortcutFocusWidgets.append(scroll_area)
+
+            viewport = scroll_area.viewport()
+            if viewport is not None:
+                viewport.setFocusPolicy(Qt.StrongFocus)
+                viewport.installEventFilter(self)
+                self._shortcutFocusWidgets.append(viewport)
 
     # ---------- Canvas public API (explicit, zoom-independent) ----------
 
@@ -792,20 +840,41 @@ class PainterWidget(QWidget):
 
     # ---------- Public API (clipboard, file, actions) ----------
 
-    def handle_paste(self):
-        """Handle clipboard paste"""
+    def handle_paste(self) -> bool:
+        """
+        Paste an image from the clipboard into the Painter.
+
+        :return: True if an image was pasted
+        """
         clipboard = QApplication.clipboard()
         source = clipboard.mimeData()
-        if source.hasImage():
-            image = clipboard.image()
-            if isinstance(image, QImage):
-                self.set_image(image, fit_canvas_to_image=True)
+        if not source.hasImage():
+            return False
 
-    def handle_copy(self):
-        """Handle clipboard copy"""
+        image = clipboard.image()
+        if not isinstance(image, QImage) or image.isNull():
+            return False
+
+        self.set_image(image, fit_canvas_to_image=True)
+        if self.window is not None:
+            self.window.update_status(trans('clipboard.pasted'))
+        return True
+
+    def handle_copy(self) -> bool:
+        """
+        Copy the current Painter image to the clipboard.
+
+        :return: True if the image was copied
+        """
         self._ensure_composited_image()
+        if self.image is None or self.image.isNull():
+            return False
+
         clipboard = QApplication.clipboard()
         clipboard.setImage(self.image)
+        if self.window is not None:
+            self.window.update_status(trans('clipboard.copied'))
+        return True
 
     def contextMenuEvent(self, event):
         """
@@ -1560,16 +1629,37 @@ class PainterWidget(QWidget):
 
         super().mouseReleaseEvent(event)
 
+    def _handle_painter_shortcut(self, event) -> bool:
+        """
+        Handle Painter-wide keyboard shortcuts.
+
+        :param event: key event
+        :return: True if handled
+        """
+        if event.matches(QKeySequence.StandardKey.Copy):
+            self.handle_copy()
+            event.accept()
+            return True
+        if event.matches(QKeySequence.StandardKey.Paste):
+            self.handle_paste()
+            event.accept()
+            return True
+        if event.key() == Qt.Key_Delete and event.modifiers() == Qt.NoModifier:
+            self.action_clear()
+            event.accept()
+            return True
+        return False
+
     def keyPressEvent(self, event):
         """
         Key press event to handle shortcuts
 
         :param event: Event
         """
+        if self._handle_painter_shortcut(event):
+            return
         if event.key() == Qt.Key_Z and QApplication.keyboardModifiers() == Qt.ControlModifier:
             self.undo()
-        elif event.key() == Qt.Key_V and QApplication.keyboardModifiers() == Qt.ControlModifier:
-            self.handle_paste()
         elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
             if self.cropping and self._selecting:
                 self._finalize_crop()
@@ -1717,12 +1807,24 @@ class PainterWidget(QWidget):
 
     def eventFilter(self, source, event):
         """
-        Focus event filter
+        Focus and Painter-tab shortcut event filter.
 
         :param source: source
         :param event: event
         """
-        if event.type() == event.Type.FocusIn:
+        event_type = event.type()
+
+        shortcut_widgets = getattr(self, '_shortcutFocusWidgets', [])
+        if source in shortcut_widgets:
+            if event_type == event.Type.MouseButtonPress:
+                # Clicking the empty QScrollArea viewport must give the Painter
+                # tab keyboard focus instead of leaving it in another widget.
+                source.setFocus(Qt.MouseFocusReason)
+            elif event_type == event.Type.KeyPress:
+                if self._handle_painter_shortcut(event):
+                    return True
+
+        if event_type == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
