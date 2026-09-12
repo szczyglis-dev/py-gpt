@@ -978,12 +978,6 @@ Settings -> Agents and experts -> Autonomous -> Index to use
 
 On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PyGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
 
-You can disable context support in the settings by using the following option:
-
-``` ini
-Config -> Settings -> Use context 
-```
-
 ## Projects and project data workdirs
 
 Conversations can be organized into projects. By default, projects use the shared profile `data` directory. When creating a project, leave **Use shared workdir** enabled to keep this behavior, or disable it and select a custom directory for that project. For an existing project, use `RMB -> Edit` to change its name or data workdir. Hovering a project item in the context list shows the effective data workdir.
