@@ -422,6 +422,7 @@ class BaseRenderer:
             self,
             meta: CtxMeta,
             ctx: Optional[CtxItem] = None,
+            immediate: bool = False,
     ):
         """
         Clear tool output

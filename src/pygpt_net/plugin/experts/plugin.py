@@ -12,7 +12,7 @@
 from PySide6.QtCore import Slot
 
 from pygpt_net.core.events import Event
-from pygpt_net.core.types import MODE_AGENT, MODE_EXPERT, TOOL_EXPERT_CALL_NAME
+from pygpt_net.core.types import TOOL_EXPERT_CALL_NAME
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base.plugin import BasePlugin
 
@@ -26,8 +26,8 @@ class Plugin(BasePlugin):
         self.name = "Experts (inline)"
         self.description = "Enables inline experts in current mode."
         self.prefix = "Experts"
-        # expert_call is a regular inline command tool. In dedicated Experts and
-        # legacy Agent modes the controller activates this plugin implicitly.
+        # expert_call is a regular inline command tool. Dedicated Experts mode
+        # activates it implicitly; every other mode follows the plugin toggle.
         self.type = ["expert", "cmd.inline"]
         self.allowed_cmds = [TOOL_EXPERT_CALL_NAME]
         self.order = 9998
@@ -53,13 +53,11 @@ class Plugin(BasePlugin):
             return
 
         if name == Event.SYSTEM_PROMPT:
-            # Dedicated Experts/legacy Agent prompts are composed by the agent
-            # controller. The plugin prompt hook is only for inline Experts.
-            mode = self.window.core.config.get("mode")
-            if mode in (MODE_AGENT, MODE_EXPERT):
-                return
             if data.get("is_expert"):
                 return  # never recursively expose Experts inside an Expert
+            # The Experts plugin owns its prompt in every mode. Dedicated
+            # Experts mode enables this plugin implicitly; all other modes,
+            # including Autonomous Agent, require the normal plugin toggle.
             data["value"] = self.on_system_prompt(data.get("value", ""))
 
     def cmd_syntax(self, data: dict):

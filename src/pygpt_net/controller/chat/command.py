@@ -6,17 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.12 17:55:00                  #
 # ================================================== #
 
-import copy
 from typing import Any
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from pygpt_net.core.types import (
-    MODE_AGENT,
-)
 from pygpt_net.core.events import KernelEvent, RenderEvent, Event
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.ctx.reply import ReplyContext
@@ -216,8 +212,6 @@ class Command(QObject):
         if self.window.controller.kernel.stopped():
             return
 
-        mode = getattr(ctx, "mode", None) or self.window.core.config.get('mode')
-
         # extract commands
         cmds = ctx.cmds_before  # native/llama tool calls are prepared before rendering
         if not cmds and ctx.tool_calls:
@@ -226,7 +220,6 @@ class Command(QObject):
             cmds = self.window.core.command.extract_cmds(ctx.output)
 
         if len(cmds) > 0:
-            all_cmds = copy.deepcopy(cmds)
             # check if commands are enabled, leave only enabled commands
             for cmd in list(cmds):
                 if "cmd" not in cmd:
@@ -240,15 +233,6 @@ class Command(QObject):
                         and not self._is_realtime_computer_command(ctx, cmd_id)):
                     self.log(f"[cmd] Command not allowed: {cmd_id}")
                     cmds.remove(cmd)  # remove command from execution list
-
-            # agent mode
-            if mode == MODE_AGENT:
-                commands = self.window.core.command.from_commands(cmds)  # pack to execution list
-                self.window.controller.agent.legacy.on_cmd(
-                    ctx,
-                    commands,
-                    all_cmds,
-                )
 
             if len(cmds) == 0:
                 self.window.controller.chat.common.unlock_input()  # unlock input

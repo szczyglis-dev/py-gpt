@@ -605,8 +605,6 @@ class Command:
                     if not self.window.core.models.is_tool_call_allowed(mode, model_data):
                         return False
 
-            if self.window.controller.agent.legacy.enabled():
-                return self.window.core.config.get('agent.func_call.native', False)
         return self.window.core.config.get('func_call.native', False)
 
     def is_cmd(self, inline: bool = True) -> bool:
@@ -628,6 +626,12 @@ class Command:
         :param cmd: command
         :return: True if command is enabled
         """
+        # Internal autonomous controls are advertised by the agent controller
+        # rather than by a user-toggleable plugin, but execution still goes
+        # through the same chat command/tool lifecycle.
+        if self.window.controller.agent.legacy.is_tool_enabled(cmd):
+            return True
+
         enabled_cmds = set()
 
         def collect(event_type):

@@ -102,15 +102,6 @@ class Plugin(BasePlugin):
         elif name == Event.PLUGIN_SETTINGS_CHANGED:
             self.window.controller.agent.legacy.update()  # update agent status bar
 
-        elif name in [
-            Event.CMD_INLINE,
-            Event.CMD_EXECUTE,
-        ]:
-            if self.get_option_value("auto_stop"):
-                self.cmd(
-                    ctx,
-                    data['commands'],
-                )
 
     def is_active_prompt(self) -> bool:
         """
@@ -147,15 +138,6 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         return self.window.controller.agent.legacy.on_input_before(prompt)
-
-    def cmd(self, ctx: CtxItem, cmds: list):
-        """
-        Events: CMD_INLINE, CMD_EXECUTE
-
-        :param ctx: CtxItem
-        :param cmds: commands dict
-        """
-        self.window.controller.agent.legacy.cmd(ctx, cmds)  # force execute
 
     def on_stop(self):
         """

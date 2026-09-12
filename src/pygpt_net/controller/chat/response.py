@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:20:00                  #
+# Updated Date: 2026.09.12 16:20:00
 # ================================================== #
 
 from typing import Dict, Any
@@ -15,6 +15,7 @@ from pygpt_net.core.agents_v2.tool_bridge import is_pending, discard
 
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.core.types import (
+    MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
@@ -47,6 +48,12 @@ class Response:
         # message. This is UI-only state; the parent CtxItem remains unchanged.
         self._agent_v2_inline_parts = {}
 
+    def _is_stale_autonomous_ctx(self, ctx: CtxItem) -> bool:
+        """Return True for a late legacy-autonomous callback from a replaced run."""
+        if ctx is None or getattr(ctx, "mode", None) != MODE_AGENT:
+            return False
+        return not self.window.controller.agent.legacy.is_ctx_current_run(ctx)
+
     def handle(
             self,
             context: BridgeContext,
@@ -64,6 +71,10 @@ class Response:
         controller = self.window.controller
         dispatch = self.window.dispatch
         ctx = context.ctx
+
+        if self._is_stale_autonomous_ctx(ctx):
+            core.debug.info("[agent] Dropping stale provider response from an older autonomous run.")
+            return
 
         if not status:
             error = extra.get("error", None)
@@ -98,7 +109,7 @@ class Response:
             elif not status:
                 ctx = source_ctx.turn_parent
                 context.ctx = ctx
-                dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta}))
+                dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "immediate": True}))
             else:
                 ctx = source_ctx
 
@@ -114,6 +125,7 @@ class Response:
             failed_meta = getattr(ctx, "meta", None)
             dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
                 "meta": failed_meta,
+                "immediate": True,
             }))  # hide cmd waiting
             if not controller.kernel.stopped():
                 controller.chat.common.unlock_input()  # unlock input
@@ -397,6 +409,9 @@ class Response:
         :param extra: Extra data
         """
         ctx = context.ctx
+        if self._is_stale_autonomous_ctx(ctx):
+            self.window.core.debug.info("[agent] Dropping stale provider failure from an older autonomous run.")
+            return
         if ctx is not None:
             if not isinstance(ctx.extra, dict):
                 ctx.extra = {}
@@ -558,7 +573,11 @@ class Response:
             # be delivered later by Qt. Remove it again immediately before the
             # first authoritative final token is handed to the renderer.
             self.window.dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
-            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "immediate": True,
+            }))
         if part is not None:
             if value and not str(part.output or "").strip():
                 if not isinstance(part.extra, dict):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 20:25:00                  #
+# Updated Date: 2026.09.12 18:02:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
@@ -14,7 +14,7 @@ from typing import List, Dict, Any, Optional
 from PySide6.QtGui import QAction
 
 from pygpt_net.core.types import (
-    MODE_AGENT, MODE_AUDIO, MODE_EXPERT,
+    MODE_AUDIO, MODE_EXPERT,
 )
 from pygpt_net.controller.plugins.presets import Presets
 from pygpt_net.controller.plugins.settings import Settings
@@ -190,9 +190,8 @@ class Plugins:
         """
         Check if plugin is enabled.
 
-        Experts is also the built-in executor for expert_call. It is therefore
-        implicitly active in dedicated Experts and legacy Agent modes while still
-        remaining user-toggleable as an inline plugin in ordinary Chat modes.
+        Experts is the built-in executor for expert_call in dedicated Experts
+        mode. In all other modes it follows the normal user-toggleable plugin state.
 
         :param id: plugin id
         :return: True if enabled
@@ -202,7 +201,7 @@ class Plugins:
             return False
         if id == "experts":
             mode = self.window.core.config.get("mode")
-            if mode in (MODE_AGENT, MODE_EXPERT):
+            if mode == MODE_EXPERT:
                 return bool(self.window.core.experts.get_experts())
         return self.enabled.get(id, False)
 
@@ -411,14 +410,9 @@ class Plugins:
             return
 
         event = Event(event_type, {'commands': commands})
-        mode = self.window.core.config.get('mode')
         self.log("Executing plugin commands..." if event_type == Event.CMD_EXECUTE else "Executing inline plugin commands...")
-        change_status = True
-        if mode == MODE_AGENT and len(cmds) == 1 and cmds[0].get("cmd") == "goal_update":
-            change_status = False
         wait_str = trans('status.cmd.wait')
-        if change_status:
-            self.window.update_status(wait_str)
+        self.window.update_status(wait_str)
 
         ctx.results = []
         event.ctx = ctx

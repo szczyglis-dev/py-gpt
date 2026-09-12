@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 04:00:00                  #
+# Updated Date: 2026.09.12 16:20:00
 # ================================================== #
 
 from typing import Optional, Any
@@ -15,7 +15,7 @@ from PySide6.QtCore import Slot, QObject
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import RenderEvent
-from pygpt_net.core.types import MODE_ASSISTANT
+from pygpt_net.core.types import MODE_AGENT, MODE_ASSISTANT
 from pygpt_net.item.ctx import CtxItem
 
 from .stream_worker import StreamWorker
@@ -51,6 +51,34 @@ class Stream(QObject):
         """
         return list(self.pids.keys())
 
+    def _is_stale_autonomous_ctx(self, ctx: Optional[CtxItem]) -> bool:
+        """Reject late stream signals from a stopped/replaced legacy autonomous run."""
+        if ctx is None or getattr(ctx, "mode", None) != MODE_AGENT:
+            return False
+        return not self.window.controller.agent.legacy.is_ctx_current_run(ctx)
+
+    def _get_current_pid_data(self, ctx: Optional[CtxItem]):
+        """Return PID data only when it still belongs to the worker emitting *ctx*."""
+        pid = self.get_pid_by_ctx(ctx)
+        if pid is None:
+            return None, None
+        pid_data = self.pids.get(pid)
+        if pid_data is None:
+            return pid, None
+        worker = pid_data.get("worker")
+        if worker is None or getattr(worker, "ctx", None) is not ctx:
+            return pid, None
+        return pid, pid_data
+
+    def _release_current_worker(self, ctx: Optional[CtxItem]):
+        """Release *ctx* only if the PID was not already reused by a newer request."""
+        pid, pid_data = self._get_current_pid_data(ctx)
+        if pid_data is None:
+            return
+        pid_data["worker"] = None
+        if self.pids.get(pid) is pid_data:
+            del self.pids[pid]
+
     def append(
             self,
             ctx: CtxItem,
@@ -75,17 +103,18 @@ class Stream(QObject):
         pid = self.get_pid_by_ctx(ctx)
         if pid is None:
             return  # abort streaming if no PID found
-        if pid not in self.pids:
-            self.pids[pid] = {}
-
-        pid_data = self.pids[pid]
-        pid_data["ctx"] = ctx
-        pid_data["mode"] = mode
-        pid_data["is_response"] = is_response
-        pid_data["reply"] = reply
-        pid_data["internal"] = internal
-        pid_data["context"] = context
-        pid_data["extra"] = extra if extra is not None else {}
+        # A chat PID can be reused immediately after STOP. Keep each stream in a
+        # fresh record so a late end/chunk from the previous worker cannot mutate
+        # or delete the newer request's tracking data.
+        pid_data = {
+            "ctx": ctx,
+            "mode": mode,
+            "is_response": is_response,
+            "reply": reply,
+            "internal": internal,
+            "context": context,
+            "extra": extra if extra is not None else {},
+        }
 
         # cache the get renderer instance method
         if self.instance is None:
@@ -100,6 +129,7 @@ class Stream(QObject):
         ctx.stream = None # clear reference to generator
 
         pid_data["worker"] = worker # keep reference to avoid GC, per PID
+        self.pids[pid] = pid_data
         self.window.core.debug.info(f"[chat] Stream begin... PID={pid}")
         self.window.threadpool.start(worker)
 
@@ -110,10 +140,14 @@ class Stream(QObject):
 
         :param ctx: Context item
         """
-        pid = self.get_pid_by_ctx(ctx)
-        if pid is None or pid not in self.pids:
-            return  # abort if no PID found or not tracked
-        pid_data = self.pids[pid]
+        if self._is_stale_autonomous_ctx(ctx):
+            self.window.core.debug.info("[agent] Dropping stale stream end from an older autonomous run.")
+            self._release_current_worker(ctx)
+            return
+        pid, pid_data = self._get_current_pid_data(ctx)
+        if pid_data is None:
+            return  # stale worker or PID already reused by a newer request
+        worker = pid_data.get("worker")
 
         controller = self.window.controller
         controller.ui.update_tokens()
@@ -173,8 +207,11 @@ class Stream(QObject):
                     internal=pid_data["internal"],
                 )
 
-        pid_data["worker"] = None  # release worker reference
-        del self.pids[pid]  # remove PID tracking
+        # A continuation/new manual request may already have replaced this PID
+        # while post_handle() was running. Never delete that newer worker.
+        if self.pids.get(pid) is pid_data and pid_data.get("worker") is worker:
+            pid_data["worker"] = None  # release worker reference
+            del self.pids[pid]  # remove PID tracking
 
     @Slot(object, str, bool)
     def handleChunk(
@@ -190,6 +227,12 @@ class Stream(QObject):
         :param chunk: Chunk of data
         :param begin: Whether this is the beginning of the stream
         """
+        if self._is_stale_autonomous_ctx(ctx):
+            return
+        _, pid_data = self._get_current_pid_data(ctx)
+        if pid_data is None:
+            return  # signal from a worker superseded on the same chat PID
+
         # Tool feedback is an ephemeral provider call, but its visible prose
         # belongs to the same durable user turn. Once text appears after a tool,
         # materialize the completed tool round and stream the new text into a
@@ -259,6 +302,10 @@ class Stream(QObject):
 
         :param event: RenderEvent
         """
+        data = getattr(event, "data", None)
+        event_ctx = data.get("ctx") if isinstance(data, dict) else None
+        if self._is_stale_autonomous_ctx(event_ctx):
+            return
         self.window.dispatch(event)
 
     @Slot(object, object)
@@ -269,14 +316,16 @@ class Stream(QObject):
         :param ctx: Context item
         :param error: Exception or error message
         """
-        pid = self.get_pid_by_ctx(ctx)
-        if pid is None or pid not in self.pids:
-            return  # abort if no PID found or not tracked
-        pid_data = self.pids[pid]
+        if self._is_stale_autonomous_ctx(ctx):
+            self._release_current_worker(ctx)
+            return
+        pid, pid_data = self._get_current_pid_data(ctx)
+        if pid_data is None:
+            return  # stale worker or PID already reused by a newer request
 
         self.window.core.debug.log(error)
         failed_meta = getattr(pid_data.get("ctx"), "meta", None)
-        self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": failed_meta}))
+        self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": failed_meta, "immediate": True}))
         self.window.dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": failed_meta, "ctx": pid_data.get("ctx")}))
         if pid_data["is_response"]:
             if not isinstance(pid_data["extra"], dict):
@@ -301,8 +350,9 @@ class Stream(QObject):
             # response.failed()+post_handle() above is the complete response
             # error lifecycle. Consume the paired end signal by removing this
             # worker now, otherwise handleEnd() would finalize it a second time.
-            pid_data["worker"] = None
-            self.pids.pop(pid, None)
+            if self.pids.get(pid) is pid_data:
+                pid_data["worker"] = None
+                self.pids.pop(pid, None)
 
     def log(self, data: object):
         """

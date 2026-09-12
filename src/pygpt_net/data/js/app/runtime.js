@@ -538,8 +538,26 @@ class Runtime {
 		this.scrollMgr.scheduleScroll();
 	};
 
-	api_clearToolStatus = (parentId = null) => {
-		this.api_freezeWorkflowStatus(parentId, 'tool');
+	api_clearToolStatus = (parentId = null, immediate = true) => {
+		// Normal tool completion clears the Python-side workflow record immediately,
+		// but keeps the already-painted waiting row in the DOM until the durable
+		// Tool/Tools block is rebuilt. That rebuild replaces the DOM synchronously,
+		// so the user never sees an empty gap between "Tool: ..." and the button.
+		// STOP/error paths pass immediate=true and remove the row right away.
+		if (!immediate) {
+			this.api_freezeWorkflowStatus(parentId, 'tool');
+			return;
+		}
+		const wantedParent = String(parentId || '');
+		const host = wantedParent ? this._statusMessageHost(wantedParent, false) : null;
+		if (wantedParent && !host) return;
+		const root = host ? host.timeline : document;
+		for (const node of Array.from(root.querySelectorAll('.workflow-status'))) {
+			if (String(node.dataset.statusKind || '') !== 'tool') continue;
+			const part = node.closest ? node.closest('.msg-part-status') : null;
+			if (part) part.remove();
+			else node.remove();
+		}
 	};
 
 	// After beginStream() clears the transient output area, recreate the id-bound
@@ -884,7 +902,7 @@ window.bindWorkflowStream = (parentId, nameHeader, records) => runtime.api_bindW
 window.setAgentStatus = (text, parentId, statusId) => runtime.api_setAgentStatus(text, parentId, statusId);
 window.clearAgentStatus = (parentId) => runtime.api_clearAgentStatus(parentId);
 window.setToolStatus = (names, parentId, statusId) => runtime.api_setToolStatus(names, parentId, statusId);
-window.clearToolStatus = (parentId) => runtime.api_clearToolStatus(parentId);
+window.clearToolStatus = (parentId, immediate = true) => runtime.api_clearToolStatus(parentId, immediate);
 window.freezeWorkflowStatus = (parentId, kind) => runtime.api_freezeWorkflowStatus(parentId, kind);
 
 window.begin = () => runtime.api_begin();

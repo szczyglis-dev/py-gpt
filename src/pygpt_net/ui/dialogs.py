@@ -121,6 +121,7 @@ class Dialogs:
             msg: str,
             parent_object=None,
             modal: bool = False,
+            dont_show_again: bool = False,
     ):
         """
         Show confirm dialog
@@ -130,6 +131,7 @@ class Dialogs:
         :param msg: message to show
         :param parent_object: parent object
         :param modal: True to block interaction with the parent window
+        :param dont_show_again: show the optional "Do not show again" checkbox
         """
         confirm = self.window.ui.dialog.get('confirm')
         confirm.type = type
@@ -137,6 +139,7 @@ class Dialogs:
         confirm.message.setText(msg)
         confirm.parent_object = parent_object
         confirm.setModal(bool(modal))
+        confirm.set_dont_show_again_visible(bool(dont_show_again))
         confirm.show()
 
     def alert(self, msg: any):

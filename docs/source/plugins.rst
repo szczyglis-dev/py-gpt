@@ -417,22 +417,20 @@ Autonomous mode
 .. warning::
    **Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
-The plugin activates autonomous mode in standard chat modes, where AI begins a conversation with itself. 
-You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
-in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
+The plugin activates the iterative Autonomous loop inside supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes. It can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the configured run-control rules stop it.
 
-This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation.
+The plugin uses the normal PyGPT tool flow, so it can cooperate with other enabled plugins such as Web search, Files I/O, Code interpreter, image generation, and other integrations. Provider-native function/tool calls are used according to the normal global/model configuration rather than a separate Autonomous setting.
 
 **Options**
 
-You can adjust the number of iterations for the self-conversation in the ``Plugins / Settings...`` menu under the following option:
+You can adjust the number of Autonomous loop iterations in the ``Plugins / Settings...`` menu under the following option:
 
 - ``Iterations`` *iterations*
 
 *Default:* `3`
 
 .. warning::
-   Setting this option to ``0`` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
+   Setting this option to ``0`` activates an **infinite loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
 - ``Prompts`` *prompts*
 
@@ -441,11 +439,11 @@ First active prompt on list will be used to handle autonomous mode.
 
 - ``Auto-stop after goal is reached`` *auto_stop*
 
-If enabled, plugin will stop after goal is reached. *Default:* `True`
+If enabled, the model can terminate the autonomous run early when the original goal is complete. If disabled, the internal completion-control tool is not exposed and the run continues until the iteration limit or an external/manual stop. *Default:* `True`
 
 - ``Always continue`` *always_continue*
 
-If enabled, the plugin proceeds to the next iteration even when the goal has already been reached. *Default:* `False`
+Keeps the loop open-ended and asks the model to continue with additional useful in-scope work instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the normal iteration limit until the run is stopped externally. Enabling Auto-stop disables Always continue. *Default:* `False`
 
 - ``Reverse roles between iterations`` *reverse_roles*
 

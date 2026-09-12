@@ -345,27 +345,35 @@ class Responses:
                                     if output_type == "function_call_output":
                                         if tool_call["call_id"] and tool_call["function"]["name"]:
                                             if "tool_output" in item.extra and isinstance(item.extra["tool_output"], list):
+                                                exact_output = None
+                                                legacy_output = None
                                                 for tool_output in item.extra["tool_output"]:
-                                                    if ("cmd" in tool_output
-                                                            and tool_output["cmd"] == tool_call["function"]["name"]):
-                                                        msg = {
-                                                            "type": "function_call_output",
-                                                            "call_id": tool_call["call_id"],
-                                                            "output": str(tool_output),
-                                                        }
-                                                        is_tool_output = True
-                                                        messages.append(msg)
-                                                        break
-                                                    elif "result" in tool_output:
-                                                        # if result is present, append it as function call output
-                                                        msg = {
-                                                            "type": "function_call_output",
-                                                            "call_id": tool_call["call_id"],
-                                                            "output": str(tool_output["result"]),
-                                                        }
-                                                        is_tool_output = True
-                                                        messages.append(msg)
-                                                        break
+                                                    if not isinstance(tool_output, dict):
+                                                        continue
+                                                    output_cmd = tool_output.get("cmd")
+                                                    if output_cmd:
+                                                        if output_cmd == tool_call["function"]["name"]:
+                                                            exact_output = tool_output
+                                                            break
+                                                        # A named output belongs to another call; never use it
+                                                        # as a positional fallback for this call_id.
+                                                        continue
+                                                    if legacy_output is None and "result" in tool_output:
+                                                        legacy_output = tool_output
+
+                                                tool_output = exact_output or legacy_output
+                                                if tool_output is not None:
+                                                    msg = {
+                                                        "type": "function_call_output",
+                                                        "call_id": tool_call["call_id"],
+                                                        "output": str(
+                                                            tool_output
+                                                            if exact_output is not None
+                                                            else tool_output.get("result")
+                                                        ),
+                                                    }
+                                                    is_tool_output = True
+                                                    messages.append(msg)
 
                                     # computer call output
                                     elif output_type == "computer_call":
@@ -769,11 +777,6 @@ class Responses:
                         and effective_parent_mode in self.RESPONSES_ALLOWED_MODES
                         and self.window.core.config.get('api_use_responses', False)):
                     allowed = True  # use responses API for chat mode, only OpenAI models
-
-                    # agents
-                    if self.window.controller.agent.legacy.enabled():
-                        if not self.window.core.config.get('agent.api_use_responses', False):
-                            allowed = False
 
                     # Expert manager requests use the same global Responses
                     # setting as Chat. Headless Expert instances are executed by

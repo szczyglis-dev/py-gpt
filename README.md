@@ -946,29 +946,28 @@ Below is a pattern for how different types of agents work. You can use these pat
 
 **Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
 
-`Agent (Autonomous)` is a legacy loop-based workflow that repeatedly runs a selected underlying mode and feeds the result into the next iteration. It is intended for unattended multi-step execution where the model can continue working toward a goal without requiring a new user message after every step.
+`Agent (Autonomous)` is a legacy single-agent loop for tasks that should continue across multiple model passes without requiring a new user message after every step. The same model keeps working on the original request, reviews the accumulated result, performs additional useful work or verification, and continues until the run is stopped by its configured rules. It does not create or orchestrate worker agents.
 
-Unlike `Chat with Agents`, this mode does not use the modern primary-agent/delegated-worker orchestration runtime. It is kept mainly for compatibility with older presets and workflows. Enabled plugins and tools remain available according to the capabilities of the selected underlying mode.
+The current implementation is **Chat-backed**. Autonomous requests use the same bridge, provider routing, API selection, native tool/function-call settings, and normal tool execution flow as standard `Chat`. 
 
-**WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review the enabled plugins before starting a run, especially when file access, system commands, web actions, or other side effects are available.
-
-The run can be limited to a fixed number of iterations. Setting the number of iterations to `0` enables an unlimited loop and can cause very high API usage, token consumption, and repeated tool operations.
-
-When `Auto-stop` is enabled, the workflow attempts to stop after the goal has been reached. When `Always continue...` is enabled, PyGPT sends the continuation prompt and starts another iteration even if the previous result appears complete.
-
-**Options**
-
-The autonomous workflow is a virtual mode that executes another PyGPT mode internally. Select the underlying mode in:
-
-```ini
-Settings -> Agents and experts -> Autonomous -> Sub-mode for agents
-```
-
-The default sub-mode is `Chat`. If the selected sub-mode uses LlamaIndex/RAG, you can also choose the index in:
+If no RAG index is selected, Autonomous follows normal Chat routing. To use an index, select it in:
 
 ```ini
 Settings -> Agents and experts -> Autonomous -> Index to use
 ```
+
+Selecting an index forces the run through `Chat with Files (LlamaIndex)` with that index. Select `---` to keep normal Chat routing.
+
+**Run controls**
+
+- **Max run steps (iterations)** limits the number of autonomous model passes. Set it to `0` for an unlimited loop. Tool calls and their results are handled inside the normal tool flow and do not represent a separate user turn.
+- **Auto-stop** allows the agent to terminate the run early when it determines that the original goal is complete, or when a run-control condition requires stopping. When Auto-stop is disabled, the agent is not given the internal completion-control tool; the loop is then governed by the configured run limit or a manual/application stop.
+- **Always continue** keeps the run open-ended and instructs the agent to continue exploring useful in-scope refinements instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the configured iteration limit, so the run continues until it is stopped externally.
+- **Auto-stop** and **Always continue** are mutually exclusive. Enabling either one immediately disables the other; both may also be disabled.
+
+When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation because an unattended run can generate substantial API usage, token consumption, and repeated tool actions.
+
+**WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
 
 
 # Context and memory
@@ -1487,13 +1486,11 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 
 ## Autonomous mode
 
-**WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
+**WARNING: Use autonomous mode with caution.** Long or unlimited runs can make repeated API requests and tool calls, including actions with side effects.
 
-The plugin activates autonomous mode in standard chat modes, where AI begins a conversation with itself. 
-You can set this loop to run for any number of iterations. The plugin also has an **Always continue** option (default: disabled) that forces another iteration even when the goal has already been reached. Throughout this sequence, the model will engage
-in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
+The plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Files I/O, Code interpreter, image generation, and other integrations remain available through the normal PyGPT tool flow.
 
-This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation.
+The **Iterations** option limits the number of autonomous passes; `0` means unlimited. **Auto-stop** lets the model finish the run early when the goal is complete. **Always continue** is mutually exclusive with Auto-stop: enabling it disables Auto-stop and makes the loop open-ended, ignoring the normal iteration limit until the run is stopped externally.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#autonomous-mode
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:15:00                  #
+# Updated Date: 2026.09.12 16:20:00
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -190,6 +190,15 @@ class Input:
         if is_agent_continue and origin_ctx is None:
             self.window.core.debug.info("[agent] Ignoring continuation without an originating context.")
             return
+
+        # A stopped legacy autonomous run can still have late provider/tool
+        # callbacks in Qt's queue. Never let them become input for a newer run.
+        if (is_internal_reply or is_agent_continue) and origin_mode == MODE_AGENT:
+            if not self.window.controller.agent.legacy.is_ctx_current_run(origin_ctx):
+                self.window.core.debug.info(
+                    "[agent] Ignoring stale internal input from an older autonomous run."
+                )
+                return
 
         # Agents v2 owns only replies originating from its own private tool
         # contexts. Do not use the currently focused/global UI mode here: in a

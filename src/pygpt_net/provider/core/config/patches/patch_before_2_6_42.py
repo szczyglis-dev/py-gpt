@@ -694,8 +694,6 @@ class Patch:
             # < 2.0.135
             if old < parse_version("2.0.135"):
                 print("Migrating config from < 2.0.135...")
-                if 'agent.mode' not in data:
-                    data['agent.mode'] = "chat"
                 if 'agent.idx' not in data:
                     data['agent.idx'] = "base"
                 updated = True
@@ -2087,8 +2085,6 @@ class Patch:
             # < 2.5.68
             if old < parse_version("2.5.68"):
                 print("Migrating config from < 2.5.68..")
-                if "agent.func_call.native" not in data:
-                    data["agent.func_call.native"] = False
                 if "experts.func_call.native" not in data:
                     data["experts.func_call.native"] = False
                 updated = True
@@ -2102,8 +2098,6 @@ class Patch:
                     'prompt.agent.goal')
                 data["prompt.expert"] = cfg_get_base(
                     'prompt.expert')
-                if "agent.api_use_responses" not in data:
-                    data["agent.api_use_responses"] = False
                 if "experts.api_use_responses" not in data:
                     data["experts.api_use_responses"] = False
                 if "experts.internal.api_use_responses" not in data:

@@ -133,7 +133,11 @@ class Render:
         elif name == RenderEvent.TOOL_UPDATE:
             self.tool_output_update(data.get("meta"), data.get("tool_data"))
         elif name == RenderEvent.TOOL_CLEAR:
-            self.tool_output_clear(data.get("meta"), data.get("ctx"))
+            self.tool_output_clear(
+                data.get("meta"),
+                data.get("ctx"),
+                immediate=bool(data.get("immediate", False)),
+            )
         elif name == RenderEvent.TOOL_BEGIN:
             self.tool_output_begin(
                 data.get("meta"),
@@ -593,9 +597,14 @@ class Render:
         self.instance().tool_output_update(meta, content)
         self.update()
 
-    def tool_output_clear(self, meta: CtxMeta, ctx: Optional[CtxItem] = None) -> None:
-        """Freeze the active tool status without removing workflow history."""
-        self.instance().tool_output_clear(meta, ctx)
+    def tool_output_clear(
+            self,
+            meta: CtxMeta,
+            ctx: Optional[CtxItem] = None,
+            immediate: bool = False,
+    ) -> None:
+        """Retire a tool-waiting status; optionally remove its DOM row immediately."""
+        self.instance().tool_output_clear(meta, ctx, immediate=immediate)
         self.update()
 
     def tool_output_begin(
@@ -608,7 +617,7 @@ class Render:
         # A queued TOOL_BEGIN can arrive just after STOP/ESC. Never resurrect a
         # waiting status once the kernel has been halted.
         if self.window.controller.kernel.stopped():
-            self.instance().tool_output_clear(meta, ctx)
+            self.instance().tool_output_clear(meta, ctx, immediate=True)
             self.update()
             return
         self.instance().tool_output_begin(meta, tool_names or [], ctx)

@@ -33,7 +33,6 @@ from pygpt_net.core.types import (
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
 from pygpt_net.ui.widget.element.labels import HelpLabel
-from pygpt_net.ui.widget.lists.experts import ExpertsEditor
 from pygpt_net.utils import trans
 
 
@@ -161,9 +160,6 @@ class Preset(BaseConfigDialog):
         # Ensure modes column never grows taller than its content; avoids creating vertical gap above the splitter.
         modes.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         self.window.ui.nodes['preset.editor.modes'] = modes
-
-        # experts
-        self.window.ui.nodes['preset.editor.experts'] = ExpertsEditor(self.window)
 
         # Expert description. It is shown only in Experts mode and is placed
         # in the upper preset section directly above the tool policy row.
@@ -312,8 +308,6 @@ class Preset(BaseConfigDialog):
         # Keep base column at content height; do not stretch vertically.
         widget_base.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
-        self.window.ui.nodes['preset.editor.experts'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
         main = QHBoxLayout()
         # Use the same content inset as the other top-level preset tabs.
         main.setContentsMargins(10, 10, 10, 0)
@@ -349,17 +343,9 @@ class Preset(BaseConfigDialog):
         widget_personalize = QWidget()
         widget_personalize.setLayout(personalize_rows)
 
-        experts_rows = QVBoxLayout()
-        experts_rows.setContentsMargins(10, 10, 10, 0)
-        experts_rows.addWidget(self.window.ui.nodes['preset.editor.experts'])
-
-        widget_experts = QWidget()
-        widget_experts.setLayout(experts_rows)
-
         tabs = QTabWidget()
         tabs.addTab(splitter, trans("preset.tab.general"))
         tabs.addTab(widget_personalize, trans("preset.tab.personalize"))
-        tabs.addTab(widget_experts, trans("preset.tab.experts"))
         tabs.addTab(widget_remote_tools, trans("preset.tab.remote_tools"))
         self.window.ui.tabs['preset.editor.tabs'] = tabs
 

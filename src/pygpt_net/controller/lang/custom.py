@@ -75,8 +75,7 @@ class Custom:
 
         self.window.ui.tabs['preset.editor.tabs'].setTabText(0, trans("preset.tab.general"))
         self.window.ui.tabs['preset.editor.tabs'].setTabText(1, trans("preset.tab.personalize"))
-        self.window.ui.tabs['preset.editor.tabs'].setTabText(2, trans("preset.tab.experts"))
-        self.window.ui.tabs['preset.editor.tabs'].setTabText(3, trans("preset.tab.remote_tools"))
+        self.window.ui.tabs['preset.editor.tabs'].setTabText(2, trans("preset.tab.remote_tools"))
 
         # Shared preset prompt tab and the Autonomous-mode hint are not part of
         # the generic option-label mapping, so update them explicitly when the

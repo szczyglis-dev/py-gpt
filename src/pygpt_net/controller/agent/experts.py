@@ -38,7 +38,7 @@ class Experts:
             if prev_prompt is not None and prev_prompt.strip() != "":
                 sys_prompt = sys_prompt + "\n\n" + prev_prompt
 
-        if self.enabled() or controller.agent.legacy.enabled(check_inline=False):
+        if self.enabled():
             if controller.agent.legacy.enabled():
                 sys_prompt += "\n\n" + core.experts.get_prompt()
             else:

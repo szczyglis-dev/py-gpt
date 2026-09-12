@@ -11,7 +11,7 @@
 
 import sys
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
+from PySide6.QtWidgets import QCheckBox, QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
 
 from pygpt_net.utils import trans
 
@@ -64,8 +64,23 @@ class ConfirmDialog(QDialog):
         self.message.setMinimumWidth(400)
         self.message.setWordWrap(True)
         self.layout.addWidget(self.message)
+
+        self.dont_show_again = QCheckBox(trans('dialog.confirm.dont_show_again'))
+        self.dont_show_again.setContentsMargins(10, 0, 10, 5)
+        self.dont_show_again.setVisible(False)
+        self.layout.addWidget(self.dont_show_again)
+
         self.layout.addLayout(bottom)
         self.setLayout(self.layout)
+
+    def set_dont_show_again_visible(self, visible: bool):
+        """Show/hide and reset the optional do-not-show-again checkbox."""
+        self.dont_show_again.setChecked(False)
+        self.dont_show_again.setVisible(bool(visible))
+
+    def is_dont_show_again_checked(self) -> bool:
+        """Return the current state of the optional do-not-show-again checkbox."""
+        return bool(self.dont_show_again.isVisible() and self.dont_show_again.isChecked())
 
     def _affirmative_on_left(self) -> bool:
         """

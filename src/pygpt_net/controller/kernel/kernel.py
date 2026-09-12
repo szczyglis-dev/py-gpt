@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:20:00                  #
+# Updated Date: 2026.09.12 17:58:00                  #
 # ================================================== #
 
 import threading
@@ -16,7 +16,6 @@ from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.types import (
-    MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
@@ -85,7 +84,7 @@ class Kernel:
     _QUEUE_EVENTS_ALL = _REQUEST_EVENTS | _OUTPUT_EVENTS | _STACK_ADD_EVENTS | _CALL_EVENTS
 
     _ASYNC_DISABLED_MODES = frozenset(
-        (MODE_ASSISTANT, MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2, MODE_LLAMA_INDEX)
+        (MODE_ASSISTANT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2, MODE_LLAMA_INDEX)
     )
     _THREADED_MODES = frozenset((MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2))
 
@@ -431,10 +430,6 @@ class Kernel:
         if mode in self._ASYNC_DISABLED_MODES:
             return False
         if ctx.agent_call:
-            return False
-        controller = self.window.controller
-        agent = controller.agent
-        if agent.legacy.enabled():
             return False
         return True
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 17:40:00                  #
+# Updated Date: 2026.09.12 16:20:00
 # ================================================== #
 
 import io
@@ -18,6 +18,7 @@ from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from openai.types.chat import ChatCompletionChunk
 
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.types import MODE_AGENT
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.google.utils import capture_google_usage
@@ -188,7 +189,16 @@ class StreamWorker(QRunnable):
         :param ctx: Current context item
         :return: True if should stop
         """
-        if not ctrl.kernel.stopped():
+        parent = getattr(ctx, "turn_parent", None)
+        context_stopped = bool(
+            getattr(ctx, "stopped", False)
+            or (parent is not None and getattr(parent, "stopped", False))
+        )
+        stale_autonomous = bool(
+            getattr(ctx, "mode", None) == MODE_AGENT
+            and not ctrl.agent.legacy.is_ctx_current_run(ctx)
+        )
+        if not ctrl.kernel.stopped() and not context_stopped and not stale_autonomous:
             return False
 
         gen = state.generator

@@ -270,7 +270,6 @@ class Common:
         })) # stop event
 
         controller.kernel.stack.clear()  # pause reply stack
-        controller.agent.experts.stop()
         controller.agent.legacy.on_stop()
         controller.assistant.threads.stop = True
         controller.assistant.threads.reset()  # reset run and func calls
@@ -293,7 +292,7 @@ class Common:
             or getattr(current_ctx, "meta", None)
             or core.ctx.get_current_meta()
         )
-        dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": current_meta}))
+        dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": current_meta, "immediate": True}))
         dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": current_meta, "ctx": current_ctx}))
         dispatch(RenderEvent(RenderEvent.TOOL_END))
         self.unlock_input()

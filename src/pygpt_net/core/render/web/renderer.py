@@ -1382,6 +1382,34 @@ class Renderer(BaseRenderer):
             if kind is None or record.get("kind") == kind:
                 record["active"] = False
 
+    def _workflow_status_remove(
+            self,
+            meta: CtxMeta,
+            ctx: Optional[CtxItem] = None,
+            kind: Optional[str] = None,
+    ) -> None:
+        """Remove transient workflow rows from runtime history.
+
+        Tool waiting rows are only placeholders until the durable Tool/Tools
+        block becomes UI-ready. Keeping them after TOOL_CLEAR allows a later
+        partial/reload of the same CtxItem to replay a stale ``Tool: ...`` row
+        between already materialized message segments.
+        """
+        key, _pid, _ctx = self._workflow_status_key(meta, ctx)
+        if key is None:
+            return
+        records = self._workflow_statuses.get(key)
+        if not records:
+            return
+        if kind is None:
+            self._workflow_statuses.pop(key, None)
+            return
+        kept = [record for record in records if record.get("kind") != kind]
+        if kept:
+            self._workflow_statuses[key] = kept
+        else:
+            self._workflow_statuses.pop(key, None)
+
     def _workflow_status_records(
             self,
             ctx: CtxItem,
@@ -2265,16 +2293,31 @@ class Renderer(BaseRenderer):
         except Exception:
             pass
 
-    def tool_output_clear(self, meta: CtxMeta, ctx: Optional[CtxItem] = None):
-        """Freeze tool waiting status and clear only the legacy live result area."""
+    def tool_output_clear(
+            self,
+            meta: CtxMeta,
+            ctx: Optional[CtxItem] = None,
+            immediate: bool = False,
+    ):
+        """Retire transient tool status without creating a visual hand-off gap.
+
+        The runtime record is removed immediately so a later partial/reload cannot
+        replay a stale ``Tool: ...`` row. During normal completion the painted DOM
+        row is only frozen and remains visible until the durable Tool/Tools block
+        replaces the message DOM. STOP/error paths request ``immediate=True`` and
+        remove the painted row at once.
+        """
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
-        self._workflow_status_freeze(meta, resolved_ctx, kind="tool")
+        self._workflow_status_remove(meta, resolved_ctx, kind="tool")
         try:
             parent_id = json.dumps(
                 str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
             )
+            immediate_js = "true" if immediate else "false"
             self.get_output_node(meta).page().runJavaScript(
-                "if (typeof window.freezeWorkflowStatus !== 'undefined') "
+                "if (typeof window.clearToolStatus !== 'undefined') "
+                f"clearToolStatus({parent_id}, {immediate_js});"
+                "else if (typeof window.freezeWorkflowStatus !== 'undefined') "
                 f"freezeWorkflowStatus({parent_id}, 'tool');"
                 "if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
             )

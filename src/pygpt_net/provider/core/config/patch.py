@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 13:45:00                  #
+# Updated Date: 2026.09.12 18:30:00                  #
 # ================================================== #
 
 import copy
@@ -588,11 +588,6 @@ class Patch:
                     data["model"] = "gpt-5.6-sol-medium"
                     updated = True
 
-                # Autonomous Agent now defaults to the OpenAI Responses API.
-                if data.get("agent.api_use_responses") is not True:
-                    data["agent.api_use_responses"] = True
-                    updated = True
-
                 # Project attachments are now opt-in. Existing profiles should
                 # keep standard per-chat attachment scoping unless explicitly
                 # enabled by the user.
@@ -719,6 +714,51 @@ class Patch:
                 if key not in data:
                     data[key] = cfg_get_base(key)
                     updated = True
+
+                # Infinite autonomous runs can suppress their confirmation warning.
+                # Existing profiles keep the warning enabled until the user opts out.
+                key = "agent.infinity.confirm"
+                if key not in data:
+                    data[key] = cfg_get_base(key)
+                    updated = True
+
+                # Auto-stop and Always continue are mutually exclusive. Older
+                # profiles could have both enabled; preserve Always continue as
+                # the explicit open-ended choice and disable Auto-stop.
+                if data.get("agent.auto_stop") and data.get("agent.continue.always"):
+                    data["agent.auto_stop"] = False
+                    updated = True
+
+                # Autonomous Agent now follows the normal Chat bridge/tool/API
+                # configuration. Keep an index only when the removed sub-mode was
+                # explicitly Chat with Files; otherwise clear the old dormant
+                # default ("base") so it does not unexpectedly force LlamaIndex.
+                old_agent_mode = data.get("agent.mode")
+                if old_agent_mode != "llama_index" and data.get("agent.idx") != "_":
+                    data["agent.idx"] = "_"
+                    updated = True
+                for key in (
+                    "agent.mode",
+                    "agent.func_call.native",
+                    "agent.api_use_responses",
+                ):
+                    if key in data:
+                        del data[key]
+                        updated = True
+
+                # Autonomous Agent prompts changed in 2.8.17. Reset them
+                # unconditionally so every existing profile gets the new flow,
+                # including profiles where these prompts were customized.
+                for prompt_key in (
+                    "prompt.agent.instruction",
+                    "prompt.agent.continue",
+                    "prompt.agent.continue.always",
+                    "prompt.agent.goal",
+                ):
+                    new_value = cfg_get_base(prompt_key)
+                    if data.get(prompt_key) != new_value:
+                        data[prompt_key] = new_value
+                        updated = True
 
         # update file
         migrated = False

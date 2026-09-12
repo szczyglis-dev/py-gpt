@@ -3017,21 +3017,6 @@
         "advanced": false,
         "tab": "legacy"
     },
-    "agent.mode": {
-        "section": "agent",
-        "type": "combo",
-        "use": "agent_modes",
-        "slider": false,
-        "label": "settings.agent.mode",
-        "description": "settings.agent.mode.desc",
-        "value": "chat",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "autonomous"
-    },
     "agent.idx": {
         "section": "agent",
         "type": "combo",
@@ -3039,7 +3024,7 @@
         "slider": false,
         "label": "settings.agent.idx",
         "description": "settings.agent.idx.desc",
-        "value": "base",
+        "value": "_",
         "min": null,
         "max": null,
         "multiplier": null,
@@ -3047,32 +3032,17 @@
         "advanced": false,
         "tab": "autonomous"
     },
-    "agent.func_call.native": {
+    "agent.infinity.confirm": {
         "section": "agent",
         "type": "bool",
         "slider": false,
-        "label": "settings.agent.func_call.native",
-        "description": "settings.agent.func_call.native.desc",
-        "value": false,
+        "label": "settings.agent.infinity.confirm",
+        "description": "settings.agent.infinity.confirm.desc",
+        "value": true,
         "min": 0,
         "max": 0,
         "multiplier": 1,
         "step": 1,
-        "advanced": false,
-        "tab": "autonomous"
-    },
-    "agent.api_use_responses": {
-        "section": "agent",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.agent.api_use_responses",
-        "description": "settings.agent.api_use_responses.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "secret": false,
         "advanced": false,
         "tab": "autonomous"
     },

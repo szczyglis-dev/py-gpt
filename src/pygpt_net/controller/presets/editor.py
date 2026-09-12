@@ -39,15 +39,12 @@ from pygpt_net.core.types import (
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 
-from .experts import Experts
-
 class Editor:
 
     TAB_IDX = {
         "general": 0,
         "personalize": 1,
-        "experts": 2,
-        "remote_tools": 3,
+        "remote_tools": 2,
     }
 
     def __init__(self, window=None):
@@ -57,7 +54,6 @@ class Editor:
         :param window: Window instance
         """
         self.window = window
-        self.experts = Experts(window)
         self.built = False
         self.tab_options_idx = {}
         self.opened = False
@@ -1103,7 +1099,6 @@ class Editor:
 
         if id is None:
             self.current = None  # RESET HERE is always required for new/avatar update
-            self.experts.update_list()
             self.window.ui.config[self.id]['idx'].set_value("_")  # reset idx combo if new preset
 
         if id is not None and id != "":
@@ -1192,9 +1187,6 @@ class Editor:
 
         # toggle extra options
         self.toggle_extra_options()
-
-        # update experts list, after ID loaded
-        self.experts.update_list()
 
         # setup avatar config
         self.update_avatar_config(data)
@@ -1622,10 +1614,10 @@ class Editor:
 
     def toggle_tab(self, name: str, show: bool = True):
         """
-        Show experts tab
+        Show or hide a preset editor tab
 
         :param name: name of the tab
-        :param show: Show or hide experts tab
+        :param show: show or hide tab
         """
         tabs = self.window.ui.tabs['preset.editor.tabs']
         idx = self.TAB_IDX[name]
@@ -1633,7 +1625,6 @@ class Editor:
             if show:
                 tabs.setTabEnabled(idx, True)
                 tabs.setTabVisible(idx, True)
-                self.experts.update_tab()
             else:
                 tabs.setTabEnabled(idx, False)
                 tabs.setTabVisible(idx, False)

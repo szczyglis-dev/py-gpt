@@ -478,6 +478,11 @@ class BasePlugin(QObject):
         ctx.reply = True
 
         extras = {k: v for k, v in response.items() if k not in self._IGNORE_EXTRA_KEYS}
+        request = response.get("request") if isinstance(response, dict) else None
+        if isinstance(request, dict) and request.get("cmd"):
+            # Keep the originating command name next to the result so native
+            # providers can map parallel function outputs to the correct call_id.
+            extras.setdefault("cmd", str(request["cmd"]))
 
         if not isinstance(ctx.extra, dict):
             ctx.extra = {}

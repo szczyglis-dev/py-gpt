@@ -373,13 +373,13 @@ Prompts
 
 * ``Agent: evaluation prompt in loop [LlamaIndex] - % complete``: Defines the legacy LlamaIndex evaluation prompt that estimates how complete the current result is. The returned completion percentage participates in the agent loop's stop/continue decision.
 
-* ``Autonomous mode - instruction``: Sets the base system instruction used by the autonomous mode. It defines how the autonomous loop should approach goals, use available tools, and continue its work.
+* ``Autonomous mode - instruction``: Sets the base system instruction used by Autonomous mode. It tells the model to treat the request as a multi-pass task, make concrete progress, verify and refine non-trivial work, use available tools through the normal Chat tool flow, and keep user-facing output in the user's language.
 
-* ``Autonomous mode: continue``: Defines the follow-up instruction used when the legacy autonomous agent needs another iteration after an intermediate response. It tells the model to continue working toward the current goal rather than end the run.
+* ``Autonomous mode: continue``: Defines the follow-up instruction sent when another normal Autonomous iteration is required. It asks the model to continue from the accumulated work, choose the next useful in-scope action or verification step, and avoid merely repeating the previous response.
 
-* ``Autonomous mode: continue (always, more steps)``: Defines the stronger continuation instruction used by legacy agent flows configured to keep iterating for additional reasoning/work. It is sent between iterations to request another step even when the previous response appears mostly complete.
+* ``Autonomous mode: continue (always, more steps)``: Defines the open-ended continuation instruction used by **Always continue**. It encourages the model to keep finding new, materially useful in-scope angles, checks, consequences, and refinements instead of voluntarily concluding the run.
 
-* ``Autonomous mode: goal update``: Defines how the legacy autonomous agent should report and update progress toward its current goal. PyGPT uses this prompt when maintaining the goal state between iterations.
+* ``Autonomous mode: goal update``: Defines the run-control instruction used only when **Auto-stop** is enabled. It lets Autonomous mode signal terminal states such as completion, waiting, pause, or failure. When Auto-stop is disabled, this run-control tool/instruction is not exposed to the model.
 
 * ``Expert - system prompt``: Defines the instruction that tells the current model how and when to delegate tasks through the regular ``expert_call`` tool. The prompt applies to the caller; each selected Expert is executed as a regular agent by the shared Chat with Agents / Agents v2 runtime and receives the model, system prompt, tool permissions and optional RAG configuration from its own preset.
 
@@ -574,13 +574,9 @@ Agents
 Autonomous
 ^^^^^^^^^^
 
-* ``Sub-mode for agents``: Chooses the underlying interaction mode used by the Autonomous agent, such as standard Chat or Chat with Files. The choice determines which context/tool/index pipeline the autonomous loop runs on. Default: ``chat``.
+* ``Index to use``: Selects an optional RAG index for Autonomous mode. ``---`` keeps normal Chat routing. Selecting an index is the only Autonomous-specific routing override and forces the request through ``Chat with Files (LlamaIndex)`` with that index. Default: ``---``.
 
-* ``Index to use``: Selects the LlamaIndex index queried by Autonomous mode when its sub-mode is Chat with Files. It is ignored for sub-modes that do not use an index. Default: ``base``.
-
-* ``Use native API function calls``: Uses provider-native function/tool calls inside Autonomous agent mode instead of PyGPT's legacy text command format. When enabled, the legacy command prompts are not used for the autonomous tool-call path. Default: False.
-
-* ``Use the Responses API in Agent mode``: Routes OpenAI Autonomous-agent requests through the Responses API rather than Chat Completions. This enables Responses-native behavior and remote tools where supported by the selected model. Default: True.
+* ``Show infinite loop warning``: Shows a confirmation dialog before starting an Autonomous run when the configured run limit is ``0``. The confirmation contains **Do not show again**; accepting the run with that checkbox selected disables future warnings. Re-enable this setting to show the warning again. Default: True.
 
 Legacy
 ^^^^^^

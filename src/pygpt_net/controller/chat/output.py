@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 19:05:00                  #
+# Updated Date: 2026.09.12 17:34:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -136,13 +136,12 @@ class Output:
                 ctx.cmds_before = core.command.tool_calls_to_cmds(ctx.tool_calls)
             log("Tool call received...")
 
-        # ``goal_update`` in autonomous Agent mode is a local run-control signal,
-        # not an executable plugin tool. Consume it before deciding whether this
-        # response needs a tool roundtrip. This is especially important for
-        # native function calls: a terminal goal_update-only response must finish
-        # the current turn instead of waiting forever for a synthetic tool result.
+        # Provider/model fallback: occasionally a model prints a function-like
+        # ``goal_update(status=...)`` line instead of making the native call (or
+        # emitting legacy <tool> markup). Recover only a trailing standalone line
+        # and strip it from visible output before applying run control.
         if mode == MODE_AGENT:
-            self.window.controller.agent.legacy.consume_control_commands(ctx)
+            self.window.controller.agent.legacy.consume_text_control_fallback(ctx)
 
         has_tool_request = bool(ctx.tool_calls or ctx.cmds_before)
         part = ctx.get_active_part()

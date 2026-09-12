@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 17:30:00                  #
+# Updated Date: 2026.09.12 17:55:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -30,7 +30,6 @@ class Placeholder:
         self.window = window
         self._apply_handlers = {
             "access_actions": lambda p: self.get_access_actions(),
-            "agent_modes": lambda p: self.get_agent_modes(),
             "agent_provider": lambda p: self.get_agent_providers(),
             "agent_provider_llama": lambda p: self.get_agent_providers_llama(),
             "agent_provider_openai": lambda p: self.get_agent_providers_openai(),
@@ -399,15 +398,6 @@ class Placeholder:
                 data.append({f"separator::{provider}": provider_label})
                 data.extend([{k: v} for k, v in provider_items])
         return data
-
-    def get_agent_modes(self) -> List[Dict[str, str]]:
-        """
-        Get agent/expert modes list
-
-        :return: Filled placeholder list
-        """
-        modes = self.window.core.agents.legacy.get_allowed_modes()
-        return [{mid: trans(f"mode.{mid}")} for mid in modes]
 
     def get_languages(self) -> List[Dict[str, str]]:
         """

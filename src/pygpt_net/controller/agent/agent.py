@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2026.09.12 18:40:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import BaseEvent, Event
@@ -19,7 +19,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 from .common import Common
-from .experts import Experts
 from .legacy import Legacy
 from .llama import Llama
 
@@ -32,7 +31,6 @@ class Agent:
         """
         self.window = window
         self.common = Common(window)
-        self.experts = Experts(window)
         self.llama = Llama(window)
         self.legacy = Legacy(window)
 
@@ -59,16 +57,15 @@ class Agent:
         """
         name = event.name
 
-        # on input begin, unlock experts and reset evaluation steps
+        # on input begin, reset evaluation steps
         if name == Event.INPUT_BEGIN:
             mode = event.data.get("mode", "")
             force = event.data.get("force", False)
-            self.experts.unlock()  # unlock experts
             self.llama.reset_eval_step()  # reset evaluation steps
 
             if not force:
                 # if agent mode: iterations check, show alert confirm if infinity loop
-                if self.common.is_infinity_loop(mode):
+                if self.common.is_infinity_loop(mode) and self.common.should_confirm_infinity_loop():
                     event.data["stop"] = True  # stop flow
                     self.common.display_infinity_loop_confirm()
                     return
@@ -105,14 +102,25 @@ class Agent:
         # on pre-prompt
         elif name == Event.PRE_PROMPT:
             mode = event.data.get("mode", "")
-            sys_prompt = event.data.get("value", "")
-            is_expert = event.data.get("is_expert", False)
-            if is_expert:
-                return # abort if expert call
-            event.data["value"] = self.experts.append_prompts(
-                mode,
-                sys_prompt,
-            )
+            if mode == MODE_AGENT:
+                sys_prompt = event.data.get("value", "")
+                # Autonomous mode owns only its autonomous/run-control prompt.
+                # Experts are not attached to Agent presets anymore; when the
+                # Experts plugin is enabled it appends its prompt later through
+                # the same SYSTEM_PROMPT hook used by every other mode.
+                auto_stop = bool(self.window.core.config.get("agent.auto_stop"))
+                prompt = self.legacy.normalize_instruction_prompt(
+                    self.window.core.prompt.get("agent.instruction")
+                )
+                if not auto_stop and prompt == self.legacy.AUTONOMOUS_INSTRUCTION:
+                    prompt = self.legacy.AUTONOMOUS_INSTRUCTION_NO_CONTROL
+                if sys_prompt is not None and str(sys_prompt).strip() != "":
+                    prompt += "\n\n" + str(sys_prompt)
+                event.data["value"] = self.legacy.on_system_prompt(
+                    prompt,
+                    append_prompt=None,
+                    auto_stop=auto_stop,
+                )
         # on ctx after
         elif name == Event.CTX_BEFORE:
             mode = event.data.get("mode", "")

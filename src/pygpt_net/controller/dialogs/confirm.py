@@ -42,7 +42,12 @@ class Confirm:
             self.window.controller.chat.command.confirm_pending_safety_confirmation(id)
             return
 
-        self.window.ui.dialog['confirm'].close()
+        confirm_dialog = self.window.ui.dialog['confirm']
+        dont_show_again = (
+            type == 'agent.infinity.run'
+            and confirm_dialog.is_dont_show_again_checked()
+        )
+        confirm_dialog.close()
 
         # app
         if type == 'app.log.clear':
@@ -85,6 +90,8 @@ class Confirm:
 
         # agent infinity loop run
         elif type == 'agent.infinity.run':
+            if dont_show_again:
+                self.window.controller.agent.common.disable_infinity_loop_confirm()
             self.window.controller.chat.input.send_input(force=True)
 
         # interpreter
