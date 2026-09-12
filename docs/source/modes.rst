@@ -237,7 +237,12 @@ Use **Chat** for general agent conversations and tasks where delegation is occas
 
 Realtime + audio
 ----------------
-This mode works like Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
+This mode works like Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and more natural voice communication.
+
+The audio toolbox provides two options for controlling voice turns:
+
+* **Auto (VAD)** - enables automatic voice activity detection. While you speak, microphone audio is streamed to the active real-time model/provider, which detects when speech starts and when you stop speaking. The turn is then committed automatically and the model can respond without requiring you to manually stop the recording.
+* **Loop** - automatically starts microphone recording again after the model finishes playing its audio response. This enables continuous back-and-forth voice conversation without having to click the microphone button before every next turn. When used together with **Auto (VAD)**, each new turn can start automatically and end automatically when you stop speaking.
 
 At this moment, OpenAI real-time models (via the Realtime API), Google Gemini real-time models (via the Live API), and xAI Grok real-time models are supported.
 
