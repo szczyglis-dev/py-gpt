@@ -692,6 +692,11 @@ The plugin operates similarly to the ``Code Interpreter`` feature in ``ChatGPT``
 
 To use IPython in sandbox mode, Docker must be installed on your system. When the sandbox is started, the active conversation's runtime ``data`` workdir is mounted as ``/data``. Switching to a project with a custom data workdir changes this mapping at runtime; the base profile workdir itself is not remapped.
 
+**IPython system commands:** The ``ipython_sys_exec`` tool is available for executing operating-system commands inside the active IPython environment. It is similar to ``sys_exec`` from the ``System (OS)`` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, ``ipython_sys_exec`` executes the command inside that Docker container.
+
+**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless ``sudo`` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the ``Code interpreter (v2)`` plugin settings.
+
+
 You can find the installation instructions here: https://docs.docker.com/engine/install/
 
 **Connecting IPython in Docker in Snap version**:
@@ -706,7 +711,10 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
     $ sudo snap connect pygpt:docker docker:docker-daemon
 
-**Code interpreter:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon to open the Python/OS window. Alternatively, enable split-screen mode and open ``Python/OS`` in the second view column, or add it as a tool to a tab. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Code interpreter:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon above the input field to open the Python/OS window. You can also open it from the main menu: ``Tools -> Python / OS``. Alternatively, enable split-screen mode and open ``Python/OS`` in the second view column, or add it as a tool to a tab. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+
+.. image:: images/v2_interpreter_icon.png
+   :width: 600
 
 .. image:: images/v2_python.png
    :width: 600
