@@ -312,16 +312,35 @@ class Renderer(BaseRenderer):
 
     def get_or_create_pid(self, meta: CtxMeta) -> Optional[int]:
         """
-        Get PID for context meta and create PID data (if not exists)
+        Get PID for context meta and create PID data (if not exists).
+
+        Keep the WebView bound to the same meta before its first ``setHtml``.
+        This matters when the application starts in plain-text mode: the web
+        renderer does not receive ON_LOAD then, so ChatWebOutput.meta is still
+        unset when the user switches to WebEngine. Without binding it here,
+        loadFinished emits ON_PAGE_LOAD with ``meta=None`` and the buffered
+        context is never flushed until the conversation is loaded again.
 
         :param meta: context meta
         :return: PID or None
         """
-        if meta is not None:
-            pid = self.get_pid(meta)
-            if pid not in self.pids:
-                self.pid_create(pid, meta)
-            return pid
+        if meta is None:
+            return None
+
+        pid = self.get_pid(meta)
+        if pid is None:
+            return None
+
+        if pid not in self.pids:
+            self.pid_create(pid, meta)
+        else:
+            self.pids[pid].meta = meta
+
+        node = self.get_output_node_by_pid(pid)
+        if node is not None:
+            node.set_meta(meta)
+
+        return pid
 
     def pid_create(
             self,
