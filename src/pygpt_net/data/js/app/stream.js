@@ -744,11 +744,13 @@ class StreamEngine {
 
 	// Start hiding the current reasoning block after the configured grace period.
 	// Repeated answer tokens do not restart the delay. If thinking resumes first,
-	// _updateReasoningVisibilityFromChunk() cancels both timers.
-	_scheduleReasoningHide(msg) {
+	// _updateReasoningVisibilityFromChunk() cancels both timers. rootOverride lets
+	// non-text events (for example a tool call) target the current workflow host.
+	_scheduleReasoningHide(msg, rootOverride = null) {
 		if (!this.reasoningEnabled || !this.reasoningHideAfterResponse || !this.reasoningVisible || this.reasoningThinking) return;
 		if (this.reasoningHideDelayTimer || this.reasoningFadeOutTimer || this.reasoningFadeOutStartedAt > 0) return;
 
+		const getRoot = () => rootOverride || this.getMsgSnapshotRoot(msg);
 		const startFade = () => {
 			this.reasoningHideDelayTimer = 0;
 			if (this.reasoningThinking || !this.reasoningVisible) return;
@@ -759,12 +761,11 @@ class StreamEngine {
 			this.reasoningFadeOutStartedAt = (typeof performance !== 'undefined' && typeof performance.now === 'function')
 				? performance.now() : Date.now();
 
-			const root = this.getMsgSnapshotRoot(msg);
-			this._syncReasoningVisibility(root);
+			this._syncReasoningVisibility(getRoot());
 
 			if (duration <= 0) {
 				this.reasoningFadeOutStartedAt = 0;
-				this._syncReasoningVisibility(this.getMsgSnapshotRoot(msg));
+				this._syncReasoningVisibility(getRoot());
 				return;
 			}
 
@@ -772,13 +773,29 @@ class StreamEngine {
 				this.reasoningFadeOutTimer = 0;
 				if (this.reasoningThinking) return;
 				this.reasoningFadeOutStartedAt = 0;
-				this._syncReasoningVisibility(this.getMsgSnapshotRoot(msg));
+				this._syncReasoningVisibility(getRoot());
 			}, duration + 24);
 		};
 
 		const delay = Math.max(0, Number(this.reasoningFadeOutDelay) || 0);
 		if (delay <= 0) startFade();
 		else this.reasoningHideDelayTimer = setTimeout(startFade, delay);
+	}
+
+	// A tool call is also an output boundary. Providers may finish reasoning and
+	// immediately request a tool without emitting any normal assistant text, so
+	// treat the tool call like the first response token for reasoning auto-hide.
+	hideReasoningForToolCall(root = null) {
+		if (!this.reasoningEnabled || !this.reasoningHideAfterResponse || !this.reasoningVisible) return;
+
+		// A tool call ends the current reasoning phase even when the provider did
+		// not emit an explicit closing </think> token before the call. This also
+		// allows a later <think> block to become visible normally.
+		this.reasoningThinking = false;
+
+		const msg = this.getMsg(false, '');
+		if (!msg && !root) return;
+		this._scheduleReasoningHide(msg, root);
 	}
 
 	// Apply the current live-reasoning state to rendered <think> nodes. The newest

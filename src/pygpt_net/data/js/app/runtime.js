@@ -511,8 +511,19 @@ class Runtime {
 		this.api_freezeWorkflowStatus(parentId);
 	};
 
+	_hideReasoningForToolCall = (parentId = null) => {
+		if (!this.stream || typeof this.stream.hideReasoningForToolCall !== 'function') return;
+		let root = null;
+		if (parentId != null && String(parentId || '') !== '') {
+			const host = this._statusMessageHost(parentId, false);
+			if (host && host.timeline) root = host.timeline;
+		}
+		this.stream.hideReasoningForToolCall(root);
+	};
+
 	api_setToolStatus = (names, parentId = null, statusId = null) => {
 		const values = Array.isArray(names) ? names.filter(Boolean).map(v => String(v)) : [];
+		if (values.length) this._hideReasoningForToolCall(parentId);
 		if (this._agentsV2FinalActive) {
 			this.api_freezeWorkflowStatus(parentId, 'tool');
 			return;
@@ -643,7 +654,10 @@ class Runtime {
 	api_appendToolOutput = (c) => this.toolOutput.append(c);
 	api_updateToolOutput = (c) => this.toolOutput.update(c);
 	api_clearToolOutput = () => this.toolOutput.clear();
-	api_beginToolOutput = () => this.toolOutput.begin();
+	api_beginToolOutput = () => {
+		this._hideReasoningForToolCall();
+		this.toolOutput.begin();
+	};
 	api_endToolOutput = () => this.toolOutput.end();
 	api_enableToolOutput = () => this.toolOutput.enable();
 	api_disableToolOutput = () => this.toolOutput.disable();
