@@ -45,7 +45,7 @@ The following plugins are currently available:
 * ``Wolfram Alpha`` - adds computational knowledge, symbolic and numeric mathematics, unit conversions, matrix operations, and generated plots through Wolfram Alpha.
 * ``X/Twitter`` - connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
 
-**Tip:** Inline plugins do not require the ``+ Tools`` option in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
+**Tip:** Inline plugins work independently of the ``Tools`` switch in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
 
 
 Creating Your Own Plugins
@@ -720,7 +720,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
    Docker Desktop: https://docs.docker.com/desktop/
 
 .. tip::
-   always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
+   Remember to enable the ``Tools`` switch to allow commands from plugins to be executed.
 
 **Options:**
 
@@ -1705,7 +1705,7 @@ The plugin integrates with various Google services, enabling features such as em
 Image generation (inline)
 -------------------------
 
-The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The current model can call the plugin's ``image`` tool with a dedicated image prompt. The plugin does not require the ``+ Tools`` option to be enabled.
+The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The current model can call the plugin's ``image`` tool with a dedicated image prompt. The plugin does not require the ``Tools`` switch to be enabled.
 
 **Options**
 
@@ -1770,7 +1770,7 @@ Memory (inline)
 
 The ``Memory (inline)`` plugin provides a compact long-term memory cache stored in the local SQLite database. It keeps one global memory outside projects and one separate memory row for each project. When the active conversation belongs to a project, the project-specific memory is used instead of the global memory. It also provides a separate raw key/value store in the ``memory_keys`` table. Keyed memory follows the same scope rule: outside projects it uses only global keyed records, while a project uses only that project's keyed records.
 
-Because Memory is an inline plugin, it does not require the ``+ Tools`` option in the toolbox. Once enabled, its active commands can be exposed to the model regardless of the global Tools switch.
+Because Memory is an inline plugin, it works independently of the ``Tools`` switch in the toolbox. Once enabled, its active commands can be exposed to the model regardless of the global ``Tools`` switch.
 
 After a completed conversation turn, the plugin can asynchronously update the active memory with the configured model. The updater treats memory as a canonical compact state rather than an append-only log: related facts are merged contextually, duplicates are consolidated, newer information can supersede obsolete entries, and routine or transient details are discarded. Outside projects, the update prompt focuses on durable information about the user. Inside a project, it keeps the project-oriented memory behavior.
 
@@ -1974,7 +1974,7 @@ Plugin capabilities include:
 * Control the keyboard (pressing keys, typing text)
 * Making screenshots
 
-The ``+ Tools`` option must be enabled to use this plugin.
+The ``Tools`` switch must be enabled to use this plugin.
 
 **Options:**
 
@@ -3027,11 +3027,11 @@ Replace the whole system prompt with the image-analysis prompt instead of append
 
 - ``Tool: capturing images from camera`` *cmd.camera_capture*
 
-Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `+ Tools` option must be enabled. *Default:* `False`
+Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The ``Tools`` switch must be enabled. *Default:* `False`
 
 - ``Tool: making screenshots`` *cmd.make_screenshot*
 
-Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
+Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The ``Tools`` switch must be enabled. *Default:* `False`
 
 
 Voice control (inline)

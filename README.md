@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Experts, Computer use, plus legacy Agent and Autonomous modes.
+- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research, Completion, Image and Video generation, **Chat with Agents**, Experts, Computer use, plus legacy Agent and Autonomous modes.
 - Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -465,7 +465,7 @@ For supported models/providers, you can alternatively enable the provider-side i
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for immediate querying of your indexed documents.
 
-**Tip:** If you do not want to call tools/commands, disable the checkbox `+Tools`. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: `Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode`. Stream mode is disabled if the ReAct agent and `+Tools` checkbox are active.
+**Tip:** If you do not want to call tools/commands, disable the `Tools` switch. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: `Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode`. Stream mode is disabled when the ReAct agent is active together with the `Tools` switch.
 
 **Querying single files**
 
@@ -479,7 +479,7 @@ You can ask for: `Query the file my_cars.txt about what color my car is.`
 
 And you will receive the response: `Red`.
 
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option `Auto-index readed files` in plugin settings. Remember to enable `+ Tools` checkbox to allow usage of tools and commands from plugins. 
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option `Auto-index readed files` in plugin settings. Remember to enable the `Tools` switch to allow the use of tools and commands from plugins. 
 
 **Using Chat with Files mode**
 
@@ -580,7 +580,7 @@ Removing an entry from `Settings -> Indexes / RAG -> Indexes` removes only the c
 
 **Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the active `data` directory. For a project with a custom data workdir this means that project's directory; otherwise it is the shared profile `data` directory. You can also use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
-**Token limit:** When you use `Chat with Files` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
+**Token limit:** When you use `Chat with Files` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the `Tools` switch to reduce the number of tokens used by the system prompt.
 
 **Available vector stores** (provided by `LlamaIndex`):
 
@@ -1100,7 +1100,7 @@ The `Files I/O` and `Code interpreter (v2)` plugins use the same runtime-resolve
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
-To allow the model to manage files or python code execution, the `+ Tools` option must be active, along with the above-mentioned plugins:
+To allow the model to manage files or execute Python code, enable the `Tools` switch together with the required plugins:
 
 ![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_code_execute.png)
 
@@ -1461,7 +1461,7 @@ The following plugins are currently available:
 
 - `X/Twitter` - connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
 
-**Tip:** Inline plugins do not require the `+ Tools` option in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
+**Tip:** Inline plugins work independently of the `Tools` switch in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
 
 ## API calls
 
@@ -1566,7 +1566,7 @@ sudo snap connect pygpt:docker docker:docker-daemon
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
 
-**Tip:** always remember to enable the `+ Tools` option to allow execute commands from the plugins.
+**Tip:** Remember to enable the `Tools` switch to allow commands from plugins to be executed.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#code-interpreter-v2
 
@@ -1748,7 +1748,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#google-gmail-
 
 ## Image generation (inline)
 
-The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The model can then call the plugin's `image` tool with a dedicated image prompt. The plugin does not require the `+ Tools` option to be enabled.
+The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The model can then call the plugin's `image` tool with a dedicated image prompt. The plugin does not require the `Tools` switch to be enabled.
 
 By default, the plugin appends a short image-generation instruction to the system prompt so the current model knows when and how to use the `image` tool. You can disable this behavior with `Append image prompt to system prompt` while keeping the image tool available.
 
@@ -1762,36 +1762,11 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
 ## Memory (inline)
 
-The **Memory (inline)** plugin provides a compact long-term memory cache stored in the local database. It uses one global memory outside projects and a separate memory for each project; when a conversation belongs to a project, the project-specific memory is used instead of the global one. It also provides a separate raw key/value store in the `memory_keys` table with the same global/project isolation. Because it is an inline plugin, it does not require the `+ Tools` option to be enabled.
+The **Memory (inline)** plugin provides project-aware long-term memory for conversations. It maintains a compact memory that can be updated automatically and a separate raw key/value store for explicitly saved information. Global memory and per-project memories are isolated from each other, and the plugin works independently of the `Tools` switch.
 
-After a completed conversation turn, Memory can update the active memory asynchronously using the configured model. The updater rewrites the memory as a compact canonical state: it keeps important durable information, merges related facts instead of accumulating duplicates, reconciles newer information with older entries, and drops routine or transient details. Global memory focuses on durable information about the user, while project memory keeps information relevant to that project.
+For configuration options, memory scopes, automatic updates, and the complete reference for `memory_*` and `memory_key_*` tools, see the full documentation:
 
-**Options:**
-
-- **Memory update model** - model used for automatic memory updates and, when enabled, for refining manual `memory_add` calls.
-- **Maximum memory characters** - target memory size. Default: `15000` characters. A `300`-character safety margin is allowed before hard truncation.
-- **Refine memory before adding** - applies only to manual `memory_add` calls. When enabled (default), the configured model merges the new information into the existing memory instead of appending raw text. Automatic end-of-context updates are always refined regardless of this option.
-- **Auto attach memory to every conversation** - appends the active memory to the system prompt in `<context_memory>...</context_memory>`. Default: `False`.
-- **Auto attach memory only in projects** - automatically attaches memory when the current conversation belongs to a project. Default: `True`.
-- **Search memory key content** - controls `memory_key_search`. Key names are always searched with `LIKE '%query%'`; content is searched too only when this option is enabled. Default: `False`.
-
-Keyed memory is stored raw and never summarized, merged, or rewritten by the memory-update LLM. Each key is unique inside its global/project scope. The auto-attach options apply only to the compact memory; keyed records are retrieved explicitly through the keyed-memory tools. Use keyed writes only for genuinely important information that should be preserved for later use, not routine or temporary details.
-
-**Tools:**
-
-- `memory_get` - reads the complete memory for the current scope. Enabled by default.
-- `memory_add` - selectively adds an important, durable fact and can merge it with existing memory. Disabled by default.
-- `memory_update` - replaces the complete memory content for the current scope. Disabled by default.
-- `memory_clear` - clears the current memory only after explicit user confirmation. Enabled by default.
-- `memory_key_get(key|keys)` - reads raw keyed-memory records by one key or a list of keys. Enabled by default.
-- `memory_key_add(key, content)` - creates a new raw keyed record without overwriting an existing key or using an LLM. Enabled by default.
-- `memory_key_append(key, content)` - appends raw content exactly as provided to an existing key, without an automatic separator or LLM processing. Enabled by default.
-- `memory_key_update(key, content)` - replaces the raw content of an existing key. Enabled by default.
-- `memory_key_list()` - returns only key names, without content. Enabled by default.
-- `memory_key_search(query)` - returns matching raw records; always uses `LIKE '%query%'` on keys and optionally on content when **Search memory key content** is enabled. Enabled by default.
-- `memory_key_remove(key|keys)` - removes one key or a list of keys from the current scope. Enabled by default.
-
-Inside projects, keyed tools use only the current project's records and never fall back to global keyed memory. Outside projects, they use only global keyed records.
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#memory-inline
 
 ## MCP (Model Context Protocol)
 
@@ -2006,7 +1981,7 @@ https://pygpt.readthedocs.io/en/latest/extending.html
 
 # Functions, commands and tools
 
-PyGPT supports native API tool/function calls as well as its internal prompt-based command/tool system. Commands exposed by enabled plugins can be called by compatible models when the `+ Tools` option is active. Native API tool calls can be enabled in `Config -> Settings -> Prompts`, and model-level support is controlled by the `Tool calls` option in the Models Editor.
+PyGPT supports native API tool/function calls as well as its internal prompt-based command/tool system. Commands exposed by enabled plugins can be called by compatible models when the `Tools` switch is enabled. Native API tool calls can be enabled in `Config -> Settings -> Prompts`, and model-level support is controlled by the `Tool calls` option in the Models Editor.
 
 Custom commands and API function schemas can be used together and are translated by PyGPT when required.
 

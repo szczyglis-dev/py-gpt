@@ -54,7 +54,7 @@ This mode enables chat interaction with your documents and entire context histor
 It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
 
 .. tip::
-   If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
+   If you do not want to call tools/commands, disable the ``Tools`` switch. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled when the ReAct agent is active together with the ``Tools`` switch.
 
 **Querying single files**
 
@@ -68,7 +68,7 @@ You can ask for: ``Query the file my_cars.txt about what color my car is.``
 
 And you will receive the response: ``Red``.
 
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto index reading files`` in plugin settings. Remember to enable ``+ Tools`` checkbox to allow usage of tools and commands from plugins.
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto index reading files`` in plugin settings. Remember to enable the ``Tools`` switch to allow the use of tools and commands from plugins.
 
 **Using Chat with Files mode**
 
@@ -139,7 +139,7 @@ See :doc:`indexing` for the complete description of file indexing, context auto-
 .. tip::
    Using the Chat with Files mode, you have default access to files manually indexed from the active ``data`` directory. For a project with a custom data workdir this means that project's directory; otherwise it is the shared profile ``data`` directory. You can also use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
 
-**Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
+**Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the ``Tools`` switch to reduce the number of tokens used by the system prompt.
 
 **Available vector stores** (provided by ``LlamaIndex``):
 

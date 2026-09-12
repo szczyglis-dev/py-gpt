@@ -353,7 +353,7 @@ a newer related event. This is noted below.
   identifies the tool-call context.
 
 * ``CMD_INLINE`` - inline-command equivalent of ``CMD_EXECUTE``. It is used by plugins that intentionally
-  expose inline commands independently of the normal ``+ Tools`` path.
+  expose inline commands independently of the normal ``Tools`` switch.
 
 * ``CMD_SYNTAX`` - asks enabled plugins to publish normal command/tool definitions. Plugins append command
   definitions to ``data["cmd"]``. Depending on the call site, ``data`` can also contain ``prompt``,

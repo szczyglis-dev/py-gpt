@@ -479,7 +479,7 @@ Chat
 
 * ``Chat mode``: Selects the LlamaIndex chat-engine mode used by Chat with Files, which determines how retrieved context and conversation history are combined when generating an answer. ``context`` is the default general-purpose mode. Default: ``context``.
 
-* ``Use ReAct agent for tool calls in Chat with Files mode.``: When ``+Tools`` is enabled in Chat with Files, routes tool use through a LlamaIndex ReAct agent rather than the normal tool-call path. Enable it only when you specifically want ReAct-style tool planning in this mode. Default: False.
+* ``Use ReAct agent for tool calls in Chat with Files mode.``: When the ``Tools`` switch is enabled in Chat with Files, routes tool use through a LlamaIndex ReAct agent rather than the normal tool-call path. Enable it only when you specifically want ReAct-style tool planning in this mode. Default: False.
 
 * ``Auto-retrieve additional context``: Runs retrieval for every Chat with Files query and injects the matching indexed content into the model context automatically. Disable it if retrieval should happen only through an explicit agent/tool path. Default: True.
 

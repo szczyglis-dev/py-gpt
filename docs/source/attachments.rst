@@ -111,7 +111,7 @@ If ``Settings -> Files and attachments -> Store images, captures, and uploads in
 .. image:: images/v2_file_output.png
    :width: 800
 
-To allow the model to manage files or python code execution, the ``+ Tools`` option must be active, along with the above-mentioned plugins:
+To allow the model to manage files or execute Python code, enable the ``Tools`` switch together with the required plugins:
 
 .. image:: images/v2_code_execute.png
    :width: 400
