@@ -93,14 +93,16 @@ class Container:
         """
         nodes = self.window.ui.nodes
 
-        if tab.pid in nodes['output_plain']:
-            nodes['output_plain'][tab.pid].on_delete()  # clean up
-            nodes['output_plain'][tab.pid] = None
-            del nodes['output_plain'][tab.pid]
-        if tab.pid in nodes['output']:
-            nodes['output'][tab.pid].on_delete()  # clean up
-            nodes['output'][tab.pid] = None
-            del nodes['output'][tab.pid]
+        # Unregister widgets before cleanup.  WebView cleanup is asynchronous
+        # (deleteLater), so renderer lookups must stop seeing the old wrapper as
+        # soon as teardown begins.
+        output_plain = nodes['output_plain'].pop(tab.pid, None)
+        if output_plain is not None:
+            output_plain.on_delete()
+
+        output = nodes['output'].pop(tab.pid, None)
+        if output is not None:
+            output.on_delete()
 
         self.window.controller.chat.render.remove_pid(tab.pid)  # remove pid data from renderer registry
         self.window.core.ctx.output.remove_pid(tab.pid)  # remove pid from ctx output mapping

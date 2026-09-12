@@ -9,7 +9,7 @@
 # Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 from PySide6 import QtCore
-from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl, QCoreApplication, QEventLoop
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -130,9 +130,16 @@ class ChatWebOutput(QWebEngineView):
             self._unloaded = True
 
     def on_delete(self):
-        """Clean up on delete"""
+        """Clean up on delete without entering a nested Qt event loop."""
         if self._destroyed:
             return
+
+        # Mark cleanup as started before scheduling deletion.  ``deleteLater`` is
+        # intentionally asynchronous: forcing DeferredDelete processing here can
+        # re-enter renderer/timer code while registries still reference this
+        # Python wrapper, producing "Internal C++ object ... already deleted".
+        self._destroyed = True
+
         if not self._unloaded:
             self.unload()
 
@@ -215,14 +222,6 @@ class ChatWebOutput(QWebEngineView):
             self.deleteLater()
         except Exception as e:
             self._on_delete_failed(e)
-
-        try:
-            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
-            QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
-        except Exception as e:
-            self._on_delete_failed(e)
-
-        self._destroyed = True
 
     def eventFilter(self, source, event):
         """

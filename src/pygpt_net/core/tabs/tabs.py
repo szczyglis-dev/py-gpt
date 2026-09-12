@@ -349,15 +349,16 @@ class Tabs:
             return
         try:
             if tab.type == Tab.TAB_CHAT:
-                node = self.window.ui.nodes['output'].get(tab.pid)
+                # Detach registry entries first.  This prevents nested Qt events
+                # during widget teardown from resolving wrappers whose C++ object
+                # is already scheduled for deletion.
+                node = self.window.ui.nodes['output'].pop(tab.pid, None)
                 if node:
                     node.unload()  # unload page completely
                     tab.unwrap(node)
-                    self.window.ui.nodes['output'].pop(pid, None)
-                node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
+                node_plain = self.window.ui.nodes['output_plain'].pop(tab.pid, None)
                 if node_plain:
                     tab.unwrap(node_plain)
-                    self.window.ui.nodes['output_plain'].pop(pid, None)
 
             if tab.type in (Tab.TAB_CHAT, Tab.TAB_NOTEPAD, Tab.TAB_TOOL):
                 tab.cleanup()  # unload refs from memory

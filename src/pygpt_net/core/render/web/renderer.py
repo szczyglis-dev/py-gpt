@@ -20,7 +20,7 @@ from typing import Optional, List, Any, Tuple
 from time import monotonic
 from io import StringIO
 
-from PySide6.QtCore import QTimer, QCoreApplication, QEventLoop, QEvent
+from PySide6.QtCore import QTimer
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.types import MODE_AGENT_V2
@@ -2035,14 +2035,14 @@ class Renderer(BaseRenderer):
         if tab is None:
             return
         layout = tab.child.layout()
-        tab.unwrap(node)
-        self.window.ui.nodes['output'].pop(tab.pid, None)
 
-        try:
-            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
-            QCoreApplication.processEvents(QEventLoop.AllEvents, 0)
-        except Exception:
-            pass
+        # Remove the old view from the public registry *before* cleanup.  Widget
+        # cleanup may schedule Qt events/timers, and no re-entrant renderer call
+        # may be allowed to resolve a view that is already being destroyed.
+        outputs = self.window.ui.nodes['output']
+        if outputs.get(tab.pid) is node:
+            outputs.pop(tab.pid, None)
+        tab.unwrap(node)
 
         view = ChatWebOutput(self.window)
         view.set_tab(tab)
@@ -2053,7 +2053,7 @@ class Renderer(BaseRenderer):
         layout.addWidget(view)  # tab body layout
         tab.add_ref(view)
         view.setVisible(True)
-        self.window.ui.nodes['output'][tab.pid] = view
+        outputs[tab.pid] = view
         self.auto_cleanup_soft(meta)
 
     def get_output_node(self, meta: Optional[CtxMeta] = None) -> Optional[ChatWebOutput]:
