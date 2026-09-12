@@ -1475,7 +1475,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#api-calls
 
 ## Audio input
 
-The plugin facilitates speech recognition. OpenAI Whisper is the default provider; local Whisper, Google, Google Cloud, Google GenAI, Bing, and xAI Grok Voice providers are also available. It allows voice input and voice commands to be captured through your microphone and transcribed into text. Once the plugin is enabled, use the `Microphone` icon on the right side of the input field to start voice input.
+The plugin facilitates speech recognition. `OpenAI Whisper` is the default provider; `local Whisper`, `Google`, `Google Cloud`, `Google GenAI`, `Bing`, and `xAI Grok Voice` providers are also available. It allows voice input and voice commands to be captured through your microphone and transcribed into text. Once the plugin is enabled, use the `Microphone` icon on the right side of the input field to start voice input.
 
 The plugin can be extended with other speech recognition providers.
 
