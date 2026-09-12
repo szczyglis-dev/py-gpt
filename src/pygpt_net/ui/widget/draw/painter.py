@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 14:45:00
+# Updated Date: 2026.09.12 15:55:00
 # ================================================== #
 
 import datetime
@@ -16,8 +16,13 @@ import math
 from collections import deque
 
 from PySide6.QtCore import Qt, QPoint, QPointF, QRect, QSize, QSaveFile, QIODevice, QTimer, Signal
-from PySide6.QtGui import QImage, QPainter, QPen, QAction, QActionGroup, QIcon, QColor, QCursor, QKeySequence
-from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication, QAbstractScrollArea
+from PySide6.QtGui import (
+    QImage, QPainter, QPen, QAction, QActionGroup, QIcon, QColor, QCursor,
+    QKeySequence,
+)
+from PySide6.QtWidgets import (
+    QMenu, QWidget, QFileDialog, QMessageBox, QApplication, QAbstractScrollArea,
+)
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.draw.modes import (
@@ -72,6 +77,7 @@ class PainterWidget(QWidget):
         self._mode = "brush"  # paint tool: "brush" or "erase"
         self._drawMode = DrawMode.FREE
         self._drawHandlers = create_draw_mode_handlers()
+        self._textMode = self._drawHandlers[DrawMode.TEXT]
         self._activeDrawHandler = None
         self._drawTransactionSnapshot = None
         self.lastPointCanvas = QPoint()  # kept for API compatibility
@@ -225,12 +231,17 @@ class PainterWidget(QWidget):
         )
         self._act_paste.setShortcutContext(Qt.WidgetWithChildrenShortcut)
 
-        self._act_clear.setShortcut(QKeySequence(Qt.Key_Delete))
-        self._act_clear.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+        # Delete must not share the Clear QAction: while the in-place text editor
+        # has focus it is a normal text-editing key, not a canvas-clear command.
+        if getattr(self, '_act_delete_shortcut', None) is None:
+            self._act_delete_shortcut = QAction(self)
+            self._act_delete_shortcut.setShortcut(QKeySequence(Qt.Key_Delete))
+            self._act_delete_shortcut.setShortcutContext(Qt.WidgetWithChildrenShortcut)
+            self._act_delete_shortcut.triggered.connect(self._handle_delete_shortcut_action)
 
         container.addAction(self._act_copy)
         container.addAction(self._act_paste)
-        container.addAction(self._act_clear)
+        container.addAction(self._act_delete_shortcut)
 
         # Keep references because these objects are checked in eventFilter().
         self._shortcutContainer = container
@@ -351,6 +362,7 @@ class PainterWidget(QWidget):
             anchor_widget_pos = self._viewport_center_in_widget_coords()
         self._update_widget_size_from_zoom()
         self._adjust_scroll_to_anchor(anchor_widget_pos, old_zoom, self.zoom)
+        self._sync_text_editor_style(refocus=False)
 
         self.update()
 
@@ -842,10 +854,14 @@ class PainterWidget(QWidget):
 
     def handle_paste(self) -> bool:
         """
-        Paste an image from the clipboard into the Painter.
+        Paste text into the active Text-mode editor, otherwise paste an image
+        from the clipboard into the Painter.
 
-        :return: True if an image was pasted
+        :return: True if clipboard content was pasted
         """
+        if self._textMode.paste(self):
+            return True
+
         clipboard = QApplication.clipboard()
         source = clipboard.mimeData()
         if not source.hasImage():
@@ -855,6 +871,7 @@ class PainterWidget(QWidget):
         if not isinstance(image, QImage) or image.isNull():
             return False
 
+        self.cancel_text_edit()
         self.set_image(image, fit_canvas_to_image=True)
         if self.window is not None:
             self.window.update_status(trans('clipboard.pasted'))
@@ -862,10 +879,14 @@ class PainterWidget(QWidget):
 
     def handle_copy(self) -> bool:
         """
-        Copy the current Painter image to the clipboard.
+        Copy selected text from the active Text-mode editor, otherwise copy
+        the current Painter image to the clipboard.
 
-        :return: True if the image was copied
+        :return: True if clipboard content was copied
         """
+        if self._textMode.copy():
+            return True
+
         self._ensure_composited_image()
         if self.image is None or self.image.isNull():
             return False
@@ -875,6 +896,12 @@ class PainterWidget(QWidget):
         if self.window is not None:
             self.window.update_status(trans('clipboard.copied'))
         return True
+
+    def _handle_delete_shortcut_action(self):
+        """Handle the tab-wide Delete shortcut without stealing Delete from text editing."""
+        if self._textMode.delete_at_cursor(self):
+            return
+        self.action_clear()
 
     def contextMenuEvent(self, event):
         """
@@ -927,6 +954,7 @@ class PainterWidget(QWidget):
 
     def action_clear(self):
         """Clear the image"""
+        self.cancel_text_edit()
         self.saveForUndo()
         self.clear_image()
         self.originalImage = self.image
@@ -971,6 +999,7 @@ class PainterWidget(QWidget):
         """
         if image.isNull():
             return
+        self.cancel_text_edit()
         self.saveForUndo()
         self.sourceImageOriginal = QImage(image)
         if fit_canvas_to_image:
@@ -993,6 +1022,17 @@ class PainterWidget(QWidget):
 
     # ---------- Undo/redo ----------
 
+    def _make_text_history_entry(self, kind: str, state, draft: dict) -> dict:
+        """Delegate Text history metadata to the Text draw mode."""
+        return self._textMode.make_history_entry(self, kind, state, draft)
+
+    def _text_history_kind(self, entry) -> str | None:
+        return self._textMode.history_kind(entry)
+
+    def _sync_canvas_combo_after_history(self):
+        if self.window and hasattr(self.window, "controller"):
+            self.window.controller.painter.common.sync_canvas_combo_from_widget()
+
     def saveForUndo(self):
         """Save current state for undo"""
         self._ensure_layers()
@@ -1001,24 +1041,102 @@ class PainterWidget(QWidget):
         self.redoStack.clear()
 
     def undo(self):
-        """Undo the last action"""
-        if self.undoStack:
+        """Undo the last action, including the two-stage Text-mode history."""
+        # Second Undo after a committed text block was reopened for editing:
+        # discard the draft and finish the transition to the pre-text state.
+        if self.is_text_edit_reopened_from_undo():
+            if self.undoStack and self._text_history_kind(self.undoStack[-1]) == "text_draft_cancel":
+                entry = self.undoStack.pop()
+                self.cancel_text_edit(discard_undo_stage=False)
+                self._apply_state(entry["state"])
+                self.redoStack.append(
+                    self._make_text_history_entry("text_draft_redo", entry["state"], entry["draft"])
+                )
+                self._sync_canvas_combo_after_history()
+                return
+
+        # A normal live text draft is not a Painter history item.
+        if self.has_active_text_edit():
+            self.cancel_text_edit()
+
+        if not self.undoStack:
+            return
+
+        entry = self.undoStack[-1]
+        kind = self._text_history_kind(entry)
+
+        # First Undo of committed text: remove its rasterized pixels but keep
+        # the action on the stack as a second stage, then reopen the block.
+        if kind == "text_commit":
             current = self._snapshot_state()
-            self.redoStack.append(current)
-            state = self.undoStack.pop()
-            self._apply_state(state)
-            if self.window and hasattr(self.window, "controller"):
-                self.window.controller.painter.common.sync_canvas_combo_from_widget()
+            before = entry["state"]
+            draft = entry["draft"]
+            self._apply_state(before)
+            self.undoStack[-1] = self._make_text_history_entry(
+                "text_draft_cancel", before, draft
+            )
+            self.redoStack.append(
+                self._make_text_history_entry("text_commit_redo", current, draft)
+            )
+            self._restore_text_edit_from_history(draft)
+            self._sync_canvas_combo_after_history()
+            return
+
+        current = self._snapshot_state()
+        self.redoStack.append(current)
+        state = self.undoStack.pop()
+        # Defensive fallback: history-stage entries should normally be handled
+        # above, but always unwrap them before applying a canvas snapshot.
+        if self._text_history_kind(state):
+            state = state.get("state")
+        self._apply_state(state)
+        self._sync_canvas_combo_after_history()
 
     def redo(self):
-        """Redo the last undo action"""
-        if self.redoStack:
-            current = self._snapshot_state()
-            self.undoStack.append(current)
-            state = self.redoStack.pop()
-            self._apply_state(state)
-            if self.window and hasattr(self.window, "controller"):
-                self.window.controller.painter.common.sync_canvas_combo_from_widget()
+        """Redo the last undo action, preserving Text edit/recommit stages."""
+        if not self.redoStack:
+            return
+
+        entry = self.redoStack[-1]
+        kind = self._text_history_kind(entry)
+
+        # Redo after the second Text undo: restore the editable draft first.
+        if kind == "text_draft_redo":
+            self.cancel_text_edit(discard_undo_stage=False)
+            entry = self.redoStack.pop()
+            self._apply_state(entry["state"])
+            self.undoStack.append(
+                self._make_text_history_entry("text_draft_cancel", entry["state"], entry["draft"])
+            )
+            self._restore_text_edit_from_history(entry["draft"])
+            self._sync_canvas_combo_after_history()
+            return
+
+        # Redo after the first Text undo: close the restored editor and put the
+        # already-rasterized committed state back in one operation.
+        if kind == "text_commit_redo":
+            entry = self.redoStack.pop()
+            before = self._snapshot_state()
+            if self.has_active_text_edit():
+                self.cancel_text_edit(discard_undo_stage=False)
+            if self.undoStack and self._text_history_kind(self.undoStack[-1]) == "text_draft_cancel":
+                stage = self.undoStack.pop()
+                before = stage["state"]
+            self._apply_state(entry["state"])
+            self.undoStack.append(
+                self._make_text_history_entry("text_commit", before, entry["draft"])
+            )
+            self._sync_canvas_combo_after_history()
+            return
+
+        self.cancel_text_edit()
+        current = self._snapshot_state()
+        self.undoStack.append(current)
+        state = self.redoStack.pop()
+        if self._text_history_kind(state):
+            state = state.get("state")
+        self._apply_state(state)
+        self._sync_canvas_combo_after_history()
 
     def has_undo(self) -> bool:
         """
@@ -1123,6 +1241,52 @@ class PainterWidget(QWidget):
 
         return f.commit()
 
+    # ---------- Text mode integration ----------
+
+    def has_active_text_edit(self) -> bool:
+        """Return True while the Text draw mode owns a live editor."""
+        return self._textMode.has_active()
+
+    def is_text_edit_reopened_from_undo(self) -> bool:
+        """Return True for the intermediate editable stage of Text undo."""
+        return self._textMode.reopened_from_undo()
+
+    def start_text_edit(
+        self,
+        point: QPoint,
+        text: str = "",
+        font_size: int | None = None,
+        color=None,
+        from_undo: bool = False,
+    ):
+        return self._textMode.start_edit(
+            self, point, text=text, font_size=font_size, color=color, from_undo=from_undo
+        )
+
+    def _restore_text_edit_from_history(self, draft: dict):
+        return self._textMode.restore_from_history(self, draft)
+
+    def _sync_text_editor_style(self, refocus: bool = False):
+        return self._textMode.sync_style(self, refocus=refocus)
+
+    def _schedule_text_editor_geometry_sync(self):
+        return self._textMode.schedule_geometry_sync(self)
+
+    def _sync_text_editor_geometry(self):
+        return self._textMode.sync_geometry(self)
+
+    def _drag_text_edit(self, start_origin: QPoint, display_delta: QPoint):
+        return self._textMode.drag(self, start_origin, display_delta)
+
+    def _step_text_size(self, direction: int):
+        return self._textMode.step_size(self, direction)
+
+    def cancel_text_edit(self, discard_undo_stage: bool = True):
+        return self._textMode.cancel(self, discard_undo_stage=discard_undo_stage)
+
+    def commit_text_edit(self) -> bool:
+        return self._textMode.commit(self)
+
     # ---------- Drawing modes / transactions ----------
 
     def _on_draw_mode_action(self, mode: DrawMode, checked: bool = True):
@@ -1143,9 +1307,14 @@ class PainterWidget(QWidget):
     def set_draw_mode(self, mode):
         """Set the current drawing mode using a stable DrawMode ID."""
         mode = DrawMode.from_value(mode)
+        if self.has_active_text_edit() and mode != DrawMode.TEXT:
+            self.commit_text_edit()
         if self.drawing:
             self.cancel_active_drawing()
         self._drawMode = mode
+        if self._mode == "brush":
+            cursor = Qt.IBeamCursor if mode == DrawMode.TEXT else Qt.CrossCursor
+            self.setCursor(QCursor(cursor))
         self.sync_draw_mode_actions()
         self.update()
 
@@ -1187,7 +1356,7 @@ class PainterWidget(QWidget):
     def _effective_draw_handler(self):
         """Eraser always behaves freehand; paint uses the selected drawing mode."""
         mode = DrawMode.FREE if self._mode == "erase" else self._drawMode
-        return self._drawHandlers[mode]
+        return self._drawHandlers.get(mode)
 
     def cancel_active_drawing(self):
         """Cancel an in-progress drawing gesture (used by ESC and mode changes)."""
@@ -1214,9 +1383,13 @@ class PainterWidget(QWidget):
         """
         if mode not in ("brush", "erase"):
             return
+        if mode == "erase" and self.has_active_text_edit():
+            self.commit_text_edit()
         self._mode = mode
         if self._mode == "erase":
             self.setCursor(QCursor(Qt.PointingHandCursor))
+        elif self._drawMode == DrawMode.TEXT:
+            self.setCursor(QCursor(Qt.IBeamCursor))
         else:
             self.setCursor(QCursor(Qt.CrossCursor))
 
@@ -1228,6 +1401,7 @@ class PainterWidget(QWidget):
         """
         self.brushColor = color
         self._pen.setColor(color)
+        self._textMode.set_color(self, color, refocus=True)
 
     def set_brush_size(self, size):
         """
@@ -1237,9 +1411,11 @@ class PainterWidget(QWidget):
         """
         self.brushSize = size
         self._pen.setWidth(size)
+        self._textMode.set_font_size(self, size, refocus=True)
 
     def clear_image(self):
         """Clear the image (both background and drawing layer)"""
+        self.cancel_text_edit()
         self._ensure_layers()
         self.sourceImageOriginal = None
         self.baseCanvas.fill(Qt.white)
@@ -1251,6 +1427,7 @@ class PainterWidget(QWidget):
 
     def start_crop(self):
         """Activate crop mode."""
+        self.commit_text_edit()
         self.cropping = True
         self._selecting = False
         self._selectionRect = QRect()
@@ -1496,6 +1673,11 @@ class PainterWidget(QWidget):
         :param event: Event
         """
         delta = event.angleDelta().y()
+        if self.has_active_text_edit() and delta != 0:
+            self._step_text_size(1 if delta > 0 else -1)
+            event.accept()
+            return
+
         if self._mouseDown and self.drawing and delta != 0:
             common = getattr(getattr(self.window.controller, "painter", None), "common", None)
             if common is not None:
@@ -1545,6 +1727,15 @@ class PainterWidget(QWidget):
         if event.button() == Qt.LeftButton:
             self._mouseDown = True
             self.setFocus(Qt.MouseFocusReason)
+
+            # Clicking outside the live editor commits the complete block.
+            # The same click is consumed; a second click starts another block.
+            if self.has_active_text_edit():
+                self._mouseDown = False
+                self.commit_text_edit()
+                event.accept()
+                return
+
             if self.cropping:
                 self.saveForUndo()
                 self._selecting = True
@@ -1555,9 +1746,19 @@ class PainterWidget(QWidget):
                 self._start_autoscroll()
                 return
 
-            self._ensure_layers()
             point = self._to_canvas_point(event.position())
+            if self._mode != "erase" and self._drawMode == DrawMode.TEXT:
+                self._mouseDown = False
+                self.start_text_edit(point)
+                event.accept()
+                return
+
+            self._ensure_layers()
             handler = self._effective_draw_handler()
+            if handler is None:
+                self._mouseDown = False
+                event.accept()
+                return
             self._activeDrawHandler = handler
             handler.begin(self, point)
             # Capture the complete drag even when the pointer leaves the canvas.
@@ -1645,7 +1846,7 @@ class PainterWidget(QWidget):
             event.accept()
             return True
         if event.key() == Qt.Key_Delete and event.modifiers() == Qt.NoModifier:
-            self.action_clear()
+            self._handle_delete_shortcut_action()
             event.accept()
             return True
         return False
@@ -1664,7 +1865,9 @@ class PainterWidget(QWidget):
             if self.cropping and self._selecting:
                 self._finalize_crop()
         elif event.key() == Qt.Key_Escape:
-            if self.drawing:
+            if self.has_active_text_edit():
+                self.cancel_text_edit()
+            elif self.drawing:
                 self.cancel_active_drawing()
             elif self.cropping:
                 self.cancel_crop()
@@ -1737,17 +1940,20 @@ class PainterWidget(QWidget):
         if self._canvasResizeInProgress:
             # Already updated _canvasSize in setter; ensure display size is in sync
             self._update_widget_size_from_zoom()
+            self._sync_text_editor_geometry()
             super().resizeEvent(event)
             return
 
         # Display-only resize caused by zoom update: nothing to do with buffers
         if self._zoomResizeInProgress:
+            self._sync_text_editor_geometry()
             self.update()
             super().resizeEvent(event)
             return
 
         # Ignore stray layout-driven resizes; enforce current display size from zoom
         self._update_widget_size_from_zoom()
+        self._sync_text_editor_geometry()
         self.update()
         super().resizeEvent(event)
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 20:31:00                  #
+# Updated Date: 2026.09.12 15:10:00                  #
 # ================================================== #
 
 from enum import Enum
@@ -22,6 +22,7 @@ class DrawMode(str, Enum):
     RECTANGLE = "rectangle"
     CIRCLE = "circle"
     LINE = "line"
+    TEXT = "text"
 
     @classmethod
     def from_value(cls, value):
@@ -40,6 +41,7 @@ DRAW_MODE_ORDER = (
     DrawMode.RECTANGLE,
     DrawMode.CIRCLE,
     DrawMode.LINE,
+    DrawMode.TEXT,
 )
 
 DRAW_MODE_NAMES = {
@@ -48,6 +50,7 @@ DRAW_MODE_NAMES = {
     DrawMode.RECTANGLE: "Rectangle",
     DrawMode.CIRCLE: "Circle",
     DrawMode.LINE: "Line",
+    DrawMode.TEXT: "Text",
 }
 
 DRAW_MODE_TRANSLATION_KEYS = {
@@ -56,6 +59,7 @@ DRAW_MODE_TRANSLATION_KEYS = {
     DrawMode.RECTANGLE: "painter.draw.mode.rectangle",
     DrawMode.CIRCLE: "painter.draw.mode.circle",
     DrawMode.LINE: "painter.draw.mode.line",
+    DrawMode.TEXT: "painter.draw.mode.text",
 }
 
 
