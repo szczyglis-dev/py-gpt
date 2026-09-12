@@ -186,11 +186,11 @@ LlamaIndex ``**kwargs`` and ``ENV`` fields remain available for provider-specifi
 Built-in provider wrappers normally reuse the API keys configured in ``Config -> Settings -> API Keys``
 when an explicit key is not supplied in the model's LlamaIndex arguments.
 
-How to use local or non-GPT models
-----------------------------------
+How to use local or other models
+--------------------------------
 
 Gemma 4, Qwen 3.6, Llama 4, Mistral, DeepSeek, Bielik, gpt-oss, and other local models
-``````````````````````````````````````````````````````````````````
+``````````````````````````````````````````````````````````````````````````````````````
 
 How to use locally installed Gemma 4, Qwen 3.6, Llama 4, DeepSeek, Mistral, Bielik, and other models:
 
@@ -270,26 +270,13 @@ Define parameters like model name and Ollama base URL in the Embeddings provider
 - name: ``base_url``, value: ``http://localhost:11434``, type: ``str``
 
 
-Provider configuration for LlamaIndex
-````````````````````````````````````````
+Other providers and LlamaIndex-based modes
+``````````````````````````````````````````
 
-Built-in LlamaIndex wrappers use the provider selected in the model configuration. In most cases the
-provider API key is read automatically from ``Config -> Settings -> API Keys`` when it is not supplied
-explicitly in ``Advanced -> [LlamaIndex] LLM provider extra **kwargs``.
+PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal ``Chat``, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. ``Chat with Files`` and other non-Chat workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
 
-Typical model configuration therefore only needs the model name in LlamaIndex arguments. Provider-specific
-arguments can still be added when required by a custom endpoint or integration.
+For built-in providers, configure credentials in ``Config -> Settings -> API Keys``. In most cases, LlamaIndex wrappers automatically reuse the corresponding provider key, so you do not need to duplicate credentials in model-specific environment variables. The model configuration normally only needs the correct provider and model name.
 
-Examples:
+Use the model's ``Advanced`` fields only when you need provider-specific overrides, a custom endpoint, or additional LlamaIndex arguments. For ``Local models (OpenAI API compatible)``, prefer the per-model ``API base`` and ``API key`` fields. Advanced LlamaIndex ``**kwargs`` and ``ENV`` values remain available for backend-specific options such as ``context_window``, ``is_chat_model``, or custom integration parameters.
 
-* ``Google`` uses the configured Google API key by default.
-* ``Anthropic`` uses the configured Anthropic API key by default.
-* ``xAI`` uses the configured xAI API key and endpoint by default.
-* ``Mistral AI`` uses the configured Mistral API key by default.
-* ``Perplexity`` uses the configured Perplexity API key by default.
-* ``HuggingFace API`` uses the configured HuggingFace token by default.
-* ``DeepSeek`` and ``Anthropic`` use the configured VoyageAI key for their default embeddings integration.
-
-For ``Local models (OpenAI API compatible)``, prefer the per-model ``API base`` and ``API key`` fields
-described above. Advanced LlamaIndex arguments can still be used for options such as ``is_chat_model``,
-``context_window``, or backend-specific parameters.
+Examples of built-in provider credential reuse include Google, Anthropic, xAI, Mistral AI, Perplexity, and HuggingFace. DeepSeek and Anthropic use the configured VoyageAI key for their default embeddings integration.

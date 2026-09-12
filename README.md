@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and Video generation, Experts, Computer use, **Chat with Agents**, Agents and Autonomous Mode.
+- 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Experts, Computer use, plus legacy Agent and Autonomous modes.
 - Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
 - Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files and data embedding.
@@ -66,7 +66,6 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Includes simple painter / drawing tool.
 - Includes an node-based Agents Builder.
 - Includes **Chat with Agents**, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
-- Includes **Experts** as reusable specialized agents powered by the same Agents v2 runtime and exposed to conversations through the regular `expert_call` tool.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
 - Fully configurable.
@@ -389,9 +388,9 @@ You can also manualy enable legacy mode by editing config file - open the `%WORK
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
 and an active API key that must be input into the program. Local models served through Ollama do not require an OpenAI account or external API keys.
 
-## Debugging and logging
+## Troubleshooting and diagnostics
 
-Please go to `Debugging and Logging` section for instructions on how to log and diagnose issues in a more detailed manner.
+See [Debugging and Logging](#debugging-and-logging) for logging and diagnostic options.
 
 
 # Quick Start
@@ -439,7 +438,7 @@ Currently built-in native clients:
 - Google GenAI SDK
 - xAI SDK
 
-Local `Ollama` models are also supported.
+Local `Ollama` models and models from other configured providers are also supported.
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -455,8 +454,9 @@ With this plugin, you can capture an image with your camera or attach an image a
 
 ![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
-**Image generation:** If you want to generate images directly in chat you must enable plugin `Image generation (inline)` in the Plugins menu.
-Plugin allows you to generate images in Chat mode:
+**Image generation:** If you want to generate images directly in chat, enable the `Image generation (inline)` plugin in the Plugins menu. The plugin allows you to generate images in Chat mode.
+
+For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in `Config -> Settings -> Remote Tools`. When available, this lets the model generate images natively without the inline plugin.
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
 
@@ -469,7 +469,7 @@ It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for im
 
 **Querying single files**
 
-You can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version `2.1.9` similar command is available for querying web and external content: `Directly query web content with LlamaIndex`.
+You can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. A similar command is available for querying web and external content: `Directly query web content with LlamaIndex`.
 
 **For example:**
 
@@ -611,15 +611,11 @@ At this moment, only OpenAI real-time models (via the Realtime API) and Google G
 
 ## Research
 
-This mode (when using Sonar and R1 models) operates using the Perplexity API: https://perplexity.ai.
+**Research** is a provider-aware mode for models designed for web research and deep-research workflows. Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**.
 
-It allows for deep web searching and utilizes Sonar models, available in `Perplexity AI`.
+Configure the API key for the provider you want to use in `Config -> Settings -> API Keys`. For Perplexity models, see https://perplexity.ai.
 
-It requires a Perplexity API key, which can be generated at: https://perplexity.ai.
-
-From version `2.5.27` also OpenAI deep-research models are available in this mode.
-
-**Google Remote MCP:** Google Remote MCP can be enabled in `Config -> Settings -> Remote Tools -> Google`. In the current PyGPT implementation it is available only in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
+**Google Remote MCP:** Google Remote MCP can be enabled in `Config -> Settings -> Remote Tools -> Google`. In the current PyGPT implementation it is available in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
 
 ## Completion
 
@@ -629,7 +625,6 @@ Similar to chat mode, on the right-hand side of the interface, there are conveni
 
 Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-From version `2.0.107` the `davinci` models are deprecated and has been replaced with `gpt-3.5-turbo-instruct` model in Completion mode.
 
 ## Image and video generation
 
@@ -731,9 +726,77 @@ The worker-management model depends on the selected mode:
 
 Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-step work such as coding, file operations, research with independent verification, RAG-assisted analysis, implementation plus testing, or workflows combining several tools. Use **Swarm** when a task genuinely benefits from many parallel, independent workers and you intentionally want to control the swarm size yourself.
 
-##  Agent (LlamaIndex) 
+## Experts
 
-Mode that allows the use of agents offered by `LlamaIndex`.
+**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
+
+Each enabled Expert is exposed to the current conversation as a regular `expert_call` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result. The Expert response is not inserted back into the conversation as a synthetic user message or an `@expert says...` entry.
+
+In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while `expert_call` adds the ability to delegate work to specialized agents.
+
+Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
+
+### How to use Experts
+
+1. Switch to **Experts** mode and create or edit an Expert preset. Give it a clear ID/name and specialized instructions, then enable it.
+2. Start a conversation in **Experts** mode, or enable the **Experts (inline)** plugin to make the same Experts available in another supported chat mode.
+3. Ask the model to use the Expert in natural language. For example:
+
+```bash
+Ask the Python programmer expert to review this code and suggest a fix.
+```
+
+The main model can then invoke `expert_call` automatically, use the returned result in its own answer, and call other tools or Experts if the task requires it. You do not need to manually start a separate Expert session. Defining and enabling the Expert is enough for it to become available to the model.
+
+Experts can be activated or deactivated from the preset list using the RMB context menu and the `Enable/Disable` actions. Only enabled Experts are exposed through `expert_call`.
+
+The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same `expert_call` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
+
+##  Computer use
+
+This mode allows for autonomous computer control.
+
+In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. PyGPT uses the selected provider's native `Computer use` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in `Mouse and keyboard` integration.
+
+**Example of use:**
+
+```Click on the Start Menu to open it, search for the Notepad in the list, and run it.```
+
+You can change the environment in which the navigation mode operates by using the list at the bottom of the toolbox.
+
+**Available Environments:**
+
+- Browser
+- Linux
+- Windows
+- Mac
+
+You can run this mode in a browser sandbox powered by `Playwright` (https://playwright.dev/). The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
+
+```bash
+pip install playwright
+playwright install chromium
+```
+
+You can install another supported engine instead with `playwright install firefox` or `playwright install webkit`.
+
+Then open `Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)` and configure the sandbox:
+
+- set `Engine` to the installed browser engine, for example `chromium`;
+- leave `Browsers directory` empty when using Playwright's default browser location, or set it to the custom directory where the Playwright browsers are installed;
+- optionally configure `Headless mode`, browser arguments, home URL and viewport size.
+
+Finally, enable the `Sandbox` switch in the Computer use toolbox when you want Computer use to run inside the Playwright browser sandbox.
+
+
+**Tip:** DO NOT enable the `Mouse and keyboard` plugin in Computer use mode—it is already connected to Computer use mode "in the background."
+
+
+## Agent (LlamaIndex)
+
+**Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
+
+This mode provides the older LlamaIndex-based agent workflows.
 
 Includes built-in agents (Workflow):
 
@@ -743,7 +806,6 @@ Includes built-in agents (Workflow):
 - CodeAct (connected to Code interpreter (v2) plugin)
 - Supervisor + worker
 
-In the future, the list of built-in agents will be expanded.
 
 You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agents Builder`.
 
@@ -757,7 +819,7 @@ In this mode, all commands from active plugins are available (commands from plug
 
 If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
 
-Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
+This legacy mode supports text input only; multimodal input is not available.
 
 **Loop / Evaluate Mode**
 
@@ -776,7 +838,9 @@ You can change the prompts used for evaluating the response in `Settings -> Prom
 
 ## Agent (OpenAI)
 
-The mode operates on the `openai-agents` library integrated into the application:
+**Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
+
+This mode provides the older agent workflows built on the `openai-agents` library integrated into the application:
 
 https://github.com/openai/openai-agents-python
 
@@ -869,111 +933,39 @@ Below is a pattern for how different types of agents work. You can use these pat
 - If the task is completed, the Supervisor returns the result to the user. If not, the Supervisor sends another instruction to the Worker to complete the task or asks the user if there are any questions.
 - The cycle repeats until the task is completed.
 
-**Tip**: Starting from version `2.5.97`, you can assign and use Experts in all of the agent types.
+**Tip:** Experts can be assigned and used in these legacy agent workflows where supported.
 
 **Limitations:**
 
 - When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
 
-##  Agent (Autonomous) 
+## Agent (Autonomous)
 
-This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: `Agent (LlamaIndex)`.
+**Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
 
-**WARNING: Please use this mode with caution** - autonomous mode, when connected with other plugins, may produce unexpected results!
+`Agent (Autonomous)` is a legacy loop-based workflow that repeatedly runs a selected underlying mode and feeds the result into the next iteration. It is intended for unattended multi-step execution where the model can continue working toward a goal without requiring a new user message after every step.
 
-The mode activates autonomous mode, where AI begins a conversation with itself. 
-You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
-in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
+Unlike `Chat with Agents`, this mode does not use the modern primary-agent/delegated-worker orchestration runtime. It is kept mainly for compatibility with older presets and workflows. Enabled plugins and tools remain available according to the capabilities of the selected underlying mode.
 
-**WARNING:** Setting the number of run steps (iterations) to `0` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
+**WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review the enabled plugins before starting a run, especially when file access, system commands, web actions, or other side effects are available.
 
-This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved.
+The run can be limited to a fixed number of iterations. Setting the number of iterations to `0` enables an unlimited loop and can cause very high API usage, token consumption, and repeated tool operations.
 
-You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
-
-All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system. All currently enabled plugins are automatically available to the Agent.
-
-When the `Auto-stop` option is enabled, the agent will attempt to stop once the goal has been reached.
-
-In opposition to `Auto-stop`, when the `Always continue...` option is enabled, the agent will use the "always continue" prompt to generate additional reasoning and automatically proceed to the next step, even if it appears that the task has been completed.
+When `Auto-stop` is enabled, the workflow attempts to stop after the goal has been reached. When `Always continue...` is enabled, PyGPT sends the continuation prompt and starts another iteration even if the previous result appears complete.
 
 **Options**
 
-The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
-You can choose which internal mode the agent should use in the settings:
+The autonomous workflow is a virtual mode that executes another PyGPT mode internally. Select the underlying mode in:
 
-```Settings -> Agents and experts -> Autonomous -> Sub-mode for agents```
-
-Default mode is: `Chat`.
-
-If you want to use the LlamaIndex mode when running the agent, you can also specify which index `LlamaIndex` should use with the option:
-
-```Settings -> Agents and experts -> Autonomous -> Index to use```
-
-## Experts
-
-**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
-
-Each enabled Expert is exposed to the current conversation as a regular `expert_call` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result. The Expert response is not inserted back into the conversation as a synthetic user message or an `@expert says...` entry.
-
-In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while `expert_call` adds the ability to delegate work to specialized agents.
-
-Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
-
-### How to use Experts
-
-1. Switch to **Experts** mode and create or edit an Expert preset. Give it a clear ID/name and specialized instructions, then enable it.
-2. Start a conversation in **Experts** mode, or enable the **Experts (inline)** plugin to make the same Experts available in another supported chat mode.
-3. Ask the model to use the Expert in natural language. For example:
-
-```bash
-Ask the Python programmer expert to review this code and suggest a fix.
+```ini
+Settings -> Agents and experts -> Autonomous -> Sub-mode for agents
 ```
 
-The main model can then invoke `expert_call` automatically, use the returned result in its own answer, and call other tools or Experts if the task requires it. You do not need to manually start a separate Expert session. Defining and enabling the Expert is enough for it to become available to the model.
+The default sub-mode is `Chat`. If the selected sub-mode uses LlamaIndex/RAG, you can also choose the index in:
 
-Experts can be activated or deactivated from the preset list using the RMB context menu and the `Enable/Disable` actions. Only enabled Experts are exposed through `expert_call`.
-
-The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same `expert_call` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
-
-##  Computer use
-
-This mode allows for autonomous computer control.
-
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. PyGPT uses the selected provider's native `Computer use` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in `Mouse and keyboard` integration.
-
-**Example of use:**
-
-```Click on the Start Menu to open it, search for the Notepad in the list, and run it.```
-
-You can change the environment in which the navigation mode operates by using the list at the bottom of the toolbox.
-
-**Available Environments:**
-
-- Browser
-- Linux
-- Windows
-- Mac
-
-You can run this mode in a browser sandbox powered by `Playwright` (https://playwright.dev/). The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
-
-```bash
-pip install playwright
-playwright install chromium
+```ini
+Settings -> Agents and experts -> Autonomous -> Index to use
 ```
-
-You can install another supported engine instead with `playwright install firefox` or `playwright install webkit`.
-
-Then open `Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)` and configure the sandbox:
-
-- set `Engine` to the installed browser engine, for example `chromium`;
-- leave `Browsers directory` empty when using Playwright's default browser location, or set it to the custom directory where the Playwright browsers are installed;
-- optionally configure `Headless mode`, browser arguments, home URL and viewport size.
-
-Finally, enable the `Sandbox` switch in the Computer use toolbox when you want Computer use to run inside the Playwright browser sandbox.
-
-
-**Tip:** DO NOT enable the `Mouse and keyboard` plugin in Computer use mode—it is already connected to Computer use mode "in the background."
 
 
 # Context and memory
@@ -1069,6 +1061,8 @@ Archive files such as ZIP and TAR are unpacked locally first. Their contents are
 **Note:** Native upload sends the original file content to the selected API provider. Provider-specific file type, size, model, retention, and availability limits may apply.
 
 **Tip:** To see native-upload activity in the console, enable `Settings -> Debug -> Log attachments usage to console`. Native upload messages are printed only when attachment logging is enabled.
+
+### Attachment context modes
 
 The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
 
@@ -1301,7 +1295,7 @@ Models assigned to a custom provider use the native OpenAI Python SDK with the *
 
 Once the provider is saved, import its models from `Config -> Models -> Import`, or create/edit a model manually and select the custom provider from the provider list. Model-specific `API base` / `API key` values in the Models Editor, when provided, override the custom provider values for that model.
 
-## How to use local or non-GPT models
+## How to use local or other models
 
 ### Gemma 4, Qwen 3.6, Llama 4, Mistral, DeepSeek, Bielik, gpt-oss, and other local models
 
@@ -1377,73 +1371,15 @@ Define parameters like model name and Ollama base URL in the Embeddings provider
 
 - name: `base_url`, value: `http://localhost:11434`, type: `str`
 
-### Google Gemini, Anthropic Claude, xAI Grok, etc.
+### Other providers and LlamaIndex-based modes
 
-If you want to use non-OpenAI models in `Chat with Files` and `Agents (LlamaIndex)` modes, then remember to configure the required parameters like API keys in the model config fields. `Chat` mode works via OpenAI SDK (compatible API), `Chat with Files` and `Agents (LlamaIndex)` modes works via LlamaIndex.
+PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal `Chat`, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. `Chat with Files` and other non-Chat workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
 
-**Google Gemini**
+For built-in providers, configure credentials in `Config -> Settings -> API Keys`. In most cases, LlamaIndex wrappers automatically reuse the corresponding provider key, so you do not need to duplicate credentials in model-specific environment variables. The model configuration normally only needs the correct provider and model name.
 
-Required ENV:
+Use the model's `Advanced` fields only when you need provider-specific overrides, a custom endpoint, or additional LlamaIndex arguments. For `Local models (OpenAI API compatible)`, prefer the per-model `API base` and `API key` fields. Advanced LlamaIndex `**kwargs` and `ENV` values remain available for backend-specific options such as `context_window`, `is_chat_model`, or custom integration parameters.
 
-- GOOGLE_API_KEY = {api_key_google}
-
-Required **kwargs:
-
-- model
-
-**Anthropic Claude**
-
-Required ENV:
-
-- ANTHROPIC_API_KEY = {api_key_anthropic}
-
-Required **kwargs:
-
-- model
-
-**xAI Grok** (Chat mode only)
-
-Required ENV:
-
-- OPENAI_API_KEY = {api_key_xai}
-- OPENAI_API_BASE = {api_endpoint_xai}
-
-Required **kwargs:
-
-- model
-
-**Mistral AI**
-
-Required ENV:
-
-- MISTRAL_API_KEY = {api_key_mistral}
-
-Required **kwargs:
-
-- model
-
-**Perplexity**
-
-Required ENV:
-
-- PPLX_API_KEY = {api_key_perplexity}
-
-Required **kwargs:
-
-- model
-
-**HuggingFace API**
-
-Required ENV:
-
-- HUGGING_FACE_TOKEN = {api_key_hugging_face}
-
-Required **kwargs:
-
-- model_name | model
-- token
-- provider = auto
-
+Examples of built-in provider credential reuse include Google, Anthropic, xAI, Mistral AI, Perplexity, and HuggingFace. DeepSeek and Anthropic use the configured VoyageAI key for their default embeddings integration.
 
 # Plugins
 
@@ -1601,11 +1537,9 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-with-fil
 
 ### Executing Code
 
-From version `2.4.13` with built-in `IPython`.
-
 The plugin operates similarly to the `Code Interpreter` feature in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the active `data` directory. For conversations in a project with a custom workdir, the project directory becomes the runtime data root; otherwise the shared `<profile workdir>/data` directory is used. Docker execution exposes the same active host directory as `/data`.
 
-**IPython:** Starting from version `2.4.13`, it is highly recommended to adopt the new option: `IPython`, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
+**IPython:** IPython is the recommended execution mode and offers significant improvements over the legacy Python workflow. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
 To use IPython in sandbox mode, Docker must be installed on your system. The active conversation's runtime `data` workdir is mounted as `/data`; a custom project data workdir is therefore remapped automatically when that project is active.
 
@@ -1627,7 +1561,9 @@ sudo snap connect pygpt:docker docker:docker-daemon
 
 ![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
 
-**INFO:** Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via `Plugins -> Settings`.
+**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Code interpreter (v2)` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+
+Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
 
 **Tip:** always remember to enable the `+ Tools` option to allow execute commands from the plugins.
@@ -1864,8 +1800,6 @@ With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Mod
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
 ## Mouse and keyboard
-
-Introduced in version: `2.4.4` (2024-11-09)
 
 **WARNING: Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
 
@@ -2168,7 +2102,9 @@ Remote vector stores management.
 
 This tool allows you to run Python code directly from within the app. It is integrated with the `Code interpreter (v2)` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
 
-**INFO:** Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via `Plugins -> Settings`.
+**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Code interpreter (v2)` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+
+Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
 ## HTML/JS Canvas
 
@@ -2183,6 +2119,8 @@ Enables translation between multiple languages using an AI model.
 A built-in web browser based on Chromium, allowing you to open webpages directly within the app. **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.
 
 # Agents Builder (beta)
+
+**Legacy modes only:** Agents Builder is used by the legacy `Agent (LlamaIndex)` and `Agent (OpenAI)` workflows. It is not used by the modern `Chat with Agents` mode.
 
 To launch the Agent Editor, navigate to:
 
@@ -2218,7 +2156,7 @@ Connecting agents and memory is done using node connections via slots. To connec
 
 **Tip:** Enable agent debugging in `Settings -> Debug -> Log Agents usage to console` to log the full workflow to the console.
 
-Agents built using this tool are compatible with both OpenAI Agents and LlamaIndex.
+Workflows built with this tool are compatible with the legacy `Agent (OpenAI)` and `Agent (LlamaIndex)` modes.
 
 **Notes:** Multi-branch agent flows automatically receive an internal routing instruction that tells the current agent which downstream route can be selected.
 
@@ -2251,7 +2189,7 @@ After receiving a response from the model, the application displays the actual t
 
 # Accessibility
 
-Since version `2.2.8`, PyGPT has added beta support for disabled people and voice control. This may be very useful for blind people.
+PyGPT includes beta accessibility features and voice control, including options that can assist blind and visually impaired users.
 
 In the `Config / Accessibility` menu, you can turn on accessibility features such as:
 
@@ -2531,52 +2469,13 @@ To get the new version, simply download it and start using it in place of the ol
 
 # Debugging and Logging
 
-In `Settings -> Developer` dialog, you can enable the `Show debug menu` option to turn on the debugging menu. The menu allows you to inspect the status of application elements. In the debugging menu, there is a `Logger` option that opens a log window. In the window, the program's operation is displayed in real-time.
+Most diagnostic options are available in `Config -> Settings -> Debug`. PyGPT writes application logs to `%workdir%/app.log`, and the log level can be set to `ERROR`, `WARNING`, `INFO`, or `DEBUG`. For startup troubleshooting, `--debug=1` forces `INFO` logging and `--debug=2` forces `DEBUG` logging.
 
-**Logging levels**:
+Additional switches can log conversation processing, events, plugin usage, attachments, image/video generation, LlamaIndex activity, Realtime sessions, legacy API paths, and agent workflows. For `Chat with Agents`, you can choose either a concise workflow trace or the full verbose flow. Full tracing can include prompts, tool arguments, retrieved context, and other sensitive data.
 
-By default, all errors and exceptions are logged to the file:
+Enable `Show debug menu` to expose developer tools such as the live Logger/console, DB Viewer, application-state inspectors, Chromium diagnostics, and WebEngine DevTools. If a compiled build crashes or fails during startup, launch it from a terminal so stdout/stderr and Python/Qt diagnostics remain visible.
 
-```ini
-{HOME_DIR}/.config/pygpt-net/app.log
-```
-
-To increase the logging level (`ERROR` level is default), run the application with `--debug` argument:
-
-``` ini
-python3 run.py --debug=1
-```
-
-or
-
-```ini
-python3 run.py --debug=2
-```
-
-The value `1` enables the `INFO`logging level.
-
-The value `2` enables the `DEBUG` logging level (most information).
-
-**Compatibility (legacy) mode**
-
-If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
-
-``` ini
-python3 run.py --legacy=1
-```
-
-and to force disable OpenGL hardware acceleration:
-
-``` ini
-python3 run.py --disable-gpu=1
-```
-
-You can also manualy enable legacy mode by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
-
-``` json
-"render.engine": "legacy",
-"render.open_gl": false,
-```
+For the complete debugging reference, Logger commands, DB Viewer details, compiled-build instructions, and all diagnostic switches, see the [Debugging and Logging documentation](https://pygpt.readthedocs.io/en/latest/debug.html).
 
 # Extending PyGPT
 

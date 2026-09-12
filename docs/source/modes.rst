@@ -19,7 +19,7 @@ In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra``, ``GPT
    - Google GenAI SDK
    - xAI SDK
 
-Local ``Ollama`` models are also supported.
+Local ``Ollama`` models and models from other configured providers are also supported.
 
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
@@ -40,7 +40,9 @@ With this plugin, you can capture an image with your camera or attach an image a
    :width: 800
 
 
-**Image generation:** If you want to generate images directly in chat you must enable plugin ``Image generation (inline)`` in the Plugins menu. Plugin allows you to generate images in Chat mode:
+**Image generation:** If you want to generate images directly in chat, enable the ``Image generation (inline)`` plugin in the Plugins menu. The plugin allows you to generate images in Chat mode.
+
+For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in ``Config -> Settings -> Remote Tools``. When available, this lets the model generate images natively without the inline plugin.
 
 .. image:: images/v3_img_chat.png
    :width: 800
@@ -56,7 +58,7 @@ It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for 
 
 **Querying single files**
 
-You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with LlamaIndex``.
+You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. A similar command is available for querying web and external content: ``Directly query web content with LlamaIndex``.
 
 **For example:**
 
@@ -164,15 +166,13 @@ Currently, in beta.
 At this moment, only OpenAI real-time models (via the Realtime API) and Google Gemini real-time models (via the Live API) are supported.
 
 Research
-----------------------
+--------
 
-This mode (when using Sonar and R1 models) operates using the Perplexity API: https://perplexity.ai.
+**Research** is a provider-aware mode for models designed for web research and deep-research workflows. Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**.
 
-It allows for deep web searching and utilizes Sonar models, available in ``Perplexity AI``.
+Configure the API key for the provider you want to use in ``Config -> Settings -> API Keys``. For Perplexity models, see https://perplexity.ai.
 
-It requires a Perplexity API key, which can be generated at: https://perplexity.ai.
-
-From version ``2.5.27`` also OpenAI deep-research models are available in this mode.
+**Google Remote MCP:** Google Remote MCP can be enabled in ``Config -> Settings -> Remote Tools -> Google``. In the current PyGPT implementation it is available in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
 
 Completion
 ----------
@@ -182,8 +182,6 @@ Similar to chat mode, on the right-hand side of the interface, there are conveni
 
 Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-.. note::
-   From version ``2.0.107`` the davinci models are deprecated and has been replaced with ``gpt-3.5-turbo-instruct`` model.
 
 
 Image and video generation
@@ -312,10 +310,84 @@ Recommended use cases
 
 Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-stage work such as coding and file operations, research with independent verification, RAG-assisted tasks, implementation plus testing, or workflows that combine several tools. Use **Swarm** only when a task genuinely benefits from many parallel, independent workers and you intentionally want to choose the swarm size yourself.
 
-Agent (LlamaIndex) 
--------------------
+Experts
+-------
 
-Mode that allows the use of agents offered by ``LlamaIndex``.
+**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
+
+Each enabled Expert is exposed to the current conversation as a regular ``expert_call`` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result. The Expert response is not inserted back into the conversation as a synthetic user message or an ``@expert says...`` entry.
+
+In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while ``expert_call`` adds the ability to delegate work to specialized agents.
+
+Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
+
+How to use Experts
+~~~~~~~~~~~~~~~~~~
+
+1. Switch to **Experts** mode and create or edit an Expert preset. Give it a clear ID/name and specialized instructions, then enable it.
+2. Start a conversation in **Experts** mode, or enable the **Experts (inline)** plugin to make the same Experts available in another supported chat mode.
+3. Ask the model to use the Expert in natural language. For example:
+
+.. code-block:: ini
+
+   Ask the Python programmer expert to review this code and suggest a fix.
+
+The main model can then invoke ``expert_call`` automatically, use the returned result in its own answer, and call other tools or Experts if the task requires it. You do not need to manually start a separate Expert session. Defining and enabling the Expert is enough for it to become available to the model.
+
+Experts can be activated or deactivated from the preset list using the RMB context menu and the ``Enable/Disable`` actions. Only enabled Experts are exposed through ``expert_call``.
+
+The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same ``expert_call`` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
+
+
+Computer use
+-------------
+This mode allows for autonomous computer control.
+
+In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. 
+
+PyGPT uses the selected provider's native ``Computer use`` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in ``Mouse and keyboard`` integration.
+
+**Example of use:**
+
+.. code-block:: ini
+
+   Click on the Start Menu to open it, search for the Notepad in the list, and run it.
+
+You can change the environment in which the navigation mode operates by using the list at the bottom of the toolbox.
+
+**Available Environments:**
+
+* Browser
+* Linux
+* Windows
+* Mac
+
+You can run this mode in a browser sandbox powered by ``Playwright``. The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
+
+.. code-block:: ini
+
+   pip install playwright
+   playwright install chromium
+
+You can install another supported engine instead with ``playwright install firefox`` or ``playwright install webkit``.
+
+Then open ``Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)`` and configure the sandbox:
+
+* set ``Engine`` to the installed browser engine, for example ``chromium``;
+* leave ``Browsers directory`` empty when using Playwright's default browser location, or set it to the custom directory where the Playwright browsers are installed;
+* optionally configure ``Headless mode``, browser arguments, home URL and viewport size.
+
+Finally, enable the ``Sandbox`` switch in the Computer use toolbox when you want Computer use to run inside the Playwright browser sandbox.
+
+.. tip::
+   **DO NOT** enable the ``Mouse and keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.
+
+Agent (LlamaIndex)
+------------------
+
+**Legacy mode — not recommended. Use the newer and more advanced ``Chat with Agents`` mode instead.**
+
+This mode provides the older LlamaIndex-based agent workflows.
 
 Includes built-in agents (Workflow):
 
@@ -325,7 +397,6 @@ Includes built-in agents (Workflow):
 * CodeAct (connected to Code interpreter (v2) plugin)
 * Supervisor + worker
 
-In the future, the list of built-in agents will be expanded.
 
 You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agents Builder``.
 
@@ -339,7 +410,7 @@ In this mode, all commands from active plugins are available (commands from plug
 
 If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
 
-Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
+This legacy mode supports text input only; multimodal input is not available.
 
 **Loop / Evaluate Mode**
 
@@ -359,7 +430,9 @@ You can change the prompts used for evaluating the response in ``Settings -> Pro
 Agent (OpenAI)
 --------------
 
-The mode operates on the ``openai-agents`` library integrated into the application:
+**Legacy mode — not recommended. Use the newer and more advanced ``Chat with Agents`` mode instead.**
+
+This mode provides the older agent workflows built on the ``openai-agents`` library integrated into the application:
 
 https://github.com/openai/openai-agents-python
 
@@ -462,7 +535,7 @@ Below is a pattern for how different types of agents work. You can use these pat
 * The cycle repeats until the task is completed.
 
 .. tip::
-   Starting from version ``2.5.97``, you can assign and use Experts in all of the agent types.
+   Experts can be assigned and used in these legacy agent workflows where supported.
 
 **Limitations:**
 
@@ -470,117 +543,32 @@ Below is a pattern for how different types of agents work. You can use these pat
 
 
 Agent (Autonomous)
--------------------
+------------------
 
-This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: ``Agent (LlamaIndex)``.
+**Legacy mode — not recommended. Use the newer and more advanced ``Chat with Agents`` mode instead.**
 
-.. warning::
-   **Please use this mode with caution!** - autonomous mode, when connected with other plugins, may produce unexpected results!
+``Agent (Autonomous)`` is a legacy loop-based workflow that repeatedly runs a selected underlying mode and feeds the result into the next iteration. It is intended for unattended multi-step execution where the model can continue working toward a goal without requiring a new user message after every step.
 
-The mode activates autonomous mode, where AI begins a conversation with itself. 
-You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
-in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
+Unlike ``Chat with Agents``, this mode does not use the modern primary-agent/delegated-worker orchestration runtime. It is kept mainly for compatibility with older presets and workflows. Enabled plugins and tools remain available according to the capabilities of the selected underlying mode.
 
 .. warning::
-   Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
+   Autonomous execution can perform repeated tool calls and external actions. Review the enabled plugins before starting a run, especially when file access, system commands, web actions, or other side effects are available.
 
-This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into 
-subtasks that the model will autonomously perform one after another until the goal is achieved. 
+The run can be limited to a fixed number of iterations. Setting the number of iterations to ``0`` enables an unlimited loop and can cause very high API usage, token consumption, and repeated tool operations.
 
-You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
-
-All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, 
-vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system. All currently enabled plugins are automatically available to the Agent.
-
-When the ``Auto-stop`` option is enabled, the agent will attempt to stop once the goal has been reached.
-
-In opposition to ``Auto-stop``, when the ``Always continue...`` option is enabled, the agent will use the "always continue" prompt to generate additional reasoning and automatically proceed to the next step, even if it appears that the task has been completed.
+When ``Auto-stop`` is enabled, the workflow attempts to stop after the goal has been reached. When ``Always continue...`` is enabled, PyGPT sends the continuation prompt and starts another iteration even if the previous result appears complete.
 
 **Options**
 
-The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
-You can choose which internal mode the agent should use in the settings:
+The autonomous workflow is a virtual mode that executes another PyGPT mode internally. Select the underlying mode in:
 
 .. code-block:: ini
 
    Settings -> Agents and experts -> Autonomous -> Sub-mode for agents
 
-Default mode is: ``Chat``.
-
-If you want to use the LlamaIndex mode when running the agent, you can also specify which index ``LlamaIndex`` should use with the option:
+The default sub-mode is ``Chat``. If the selected sub-mode uses LlamaIndex/RAG, you can also choose the index in:
 
 .. code-block:: ini
 
    Settings -> Agents and experts -> Autonomous -> Index to use
 
-Experts
--------
-
-**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
-
-Each enabled Expert is exposed to the current conversation as a regular ``expert_call`` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result. The Expert response is not inserted back into the conversation as a synthetic user message or an ``@expert says...`` entry.
-
-In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while ``expert_call`` adds the ability to delegate work to specialized agents.
-
-Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
-
-How to use Experts
-~~~~~~~~~~~~~~~~~~
-
-1. Switch to **Experts** mode and create or edit an Expert preset. Give it a clear ID/name and specialized instructions, then enable it.
-2. Start a conversation in **Experts** mode, or enable the **Experts (inline)** plugin to make the same Experts available in another supported chat mode.
-3. Ask the model to use the Expert in natural language. For example:
-
-.. code-block:: ini
-
-   Ask the Python programmer expert to review this code and suggest a fix.
-
-The main model can then invoke ``expert_call`` automatically, use the returned result in its own answer, and call other tools or Experts if the task requires it. You do not need to manually start a separate Expert session. Defining and enabling the Expert is enough for it to become available to the model.
-
-Experts can be activated or deactivated from the preset list using the RMB context menu and the ``Enable/Disable`` actions. Only enabled Experts are exposed through ``expert_call``.
-
-The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same ``expert_call`` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
-
-
-Computer use
--------------
-This mode allows for autonomous computer control.
-
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. 
-
-PyGPT uses the selected provider's native ``Computer use`` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in ``Mouse and keyboard`` integration.
-
-**Example of use:**
-
-.. code-block:: ini
-
-   Click on the Start Menu to open it, search for the Notepad in the list, and run it.
-
-You can change the environment in which the navigation mode operates by using the list at the bottom of the toolbox.
-
-**Available Environments:**
-
-* Browser
-* Linux
-* Windows
-* Mac
-
-You can run this mode in a browser sandbox powered by ``Playwright``. The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
-
-.. code-block:: ini
-
-   pip install playwright
-   playwright install chromium
-
-You can install another supported engine instead with ``playwright install firefox`` or ``playwright install webkit``.
-
-Then open ``Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)`` and configure the sandbox:
-
-* set ``Engine`` to the installed browser engine, for example ``chromium``;
-* leave ``Browsers directory`` empty when using Playwright's default browser location, or set it to the custom directory where the Playwright browsers are installed;
-* optionally configure ``Headless mode``, browser arguments, home URL and viewport size.
-
-Finally, enable the ``Sandbox`` switch in the Computer use toolbox when you want Computer use to run inside the Playwright browser sandbox.
-
-.. tip::
-   **DO NOT** enable the ``Mouse and keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.

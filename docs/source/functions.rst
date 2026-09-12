@@ -5,7 +5,7 @@ Functions, commands and tools
 
 	Remember to enable the ``+ Tools`` checkbox to enable execution of tools and commands from plugins.
 
-From version ``2.2.20`` PyGPT uses native API tool/function calls by default. You can go back to the internal prompt-based syntax (described below) by switching off ``Config -> Settings -> Prompts -> Native API tool calls``. You must also enable the ``Tool calls`` checkbox in model advanced settings for the specified model to use native API tool calls.
+PyGPT uses native API tool/function calls by default. You can go back to the internal prompt-based syntax (described below) by switching off ``Config -> Settings -> Prompts -> Native API tool calls``. You must also enable the ``Tool calls`` checkbox in model advanced settings for the specified model to use native API tool calls.
 
 In background, **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 

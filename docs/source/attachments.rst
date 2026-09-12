@@ -70,6 +70,9 @@ Files sent through the native path are marked with the ``(Native)`` suffix in th
 
    To inspect native-upload activity in the console, enable ``Settings -> Debug -> Log attachments usage to console``. Messages such as ``Uploading native attachment: ...`` are printed only when attachment logging is enabled.
 
+Attachment context modes
+^^^^^^^^^^^^^^^^^^^^^^^^
+
 The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
 
 - ``Full context``: Provides best results. This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.

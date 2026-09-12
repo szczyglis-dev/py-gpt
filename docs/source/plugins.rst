@@ -687,11 +687,9 @@ Code interpreter (v2)
 
 **Executing Code**
 
-From version ``2.4.13`` with built-in ``IPython``.
-
 The plugin operates similarly to the ``Code Interpreter`` feature in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the active ``data`` directory. For conversations in a project with a custom workdir, that project directory becomes the runtime data root; otherwise the shared ``<profile workdir>/data`` directory is used. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in a Docker container.
 
-**IPython:** Starting from version ``2.4.13``, it is highly recommended to adopt the new option: ``IPython``, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
+**IPython:** IPython is the recommended execution mode and offers significant improvements over the legacy Python workflow. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
 
 To use IPython in sandbox mode, Docker must be installed on your system. When the sandbox is started, the active conversation's runtime ``data`` workdir is mounted as ``/data``. Switching to a project with a custom data workdir changes this mapping at runtime; the base profile workdir itself is not remapped.
 
@@ -715,7 +713,11 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
    :width: 600
 
 .. important::
-   Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via ``Plugins -> Settings``.
+   Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the ``Code interpreter (v2)`` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+
+   Docker installation: https://docs.docker.com/engine/install/
+
+   Docker Desktop: https://docs.docker.com/desktop/
 
 .. tip::
    always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
@@ -1957,8 +1959,6 @@ Security notes
 
 Mouse and keyboard
 -------------------
-
-Introduced in version: ``2.4.4`` (2024-11-09)
 
 .. warning::
    **Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**

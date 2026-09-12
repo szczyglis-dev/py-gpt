@@ -1,7 +1,7 @@
 Accessibility
 =============
 
-Since version ``2.2.8``, PyGPT has added beta support for disabled people and voice control. This may be very useful for blind people.
+PyGPT includes beta accessibility features and voice control, including options that can assist blind and visually impaired users.
 
 
 In the ``Config / Accessibility`` menu, you can turn on accessibility features such as:
