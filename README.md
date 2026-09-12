@@ -385,8 +385,7 @@ You can also manualy enable legacy mode by editing config file - open the `%WORK
 
 ## Other requirements
 
-For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
-and an active API key that must be input into the program. Local models served through Ollama do not require an OpenAI account or external API keys.
+For API-based models, an internet connection and the appropriate provider API key are required. Models from OpenAI, Google, Anthropic, and xAI require API keys for their respective providers. Local models, such as those served through Ollama, do not require external API keys.
 
 ## Troubleshooting and diagnostics
 
