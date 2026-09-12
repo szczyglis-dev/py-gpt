@@ -25,7 +25,7 @@ from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRol
 from llama_index.core.memory import Memory
 from llama_index.core.tools import FunctionTool
 
-from pygpt_net.core.types import MODE_AGENT_V2
+from pygpt_net.core.types import MODE_AGENT_V2, PERSIST_HIDDEN_TOOL_CALLS
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.llms.artifacts import drain_llm_urls
 from pygpt_net.utils import is_image, trans
@@ -86,23 +86,17 @@ class AgentsV2Runtime:
     WORKER_MAX_ITERATIONS_DEFAULT = 24
     UNLIMITED_MAX_ITERATIONS = sys.maxsize
 
-    _TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX = {
-        "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
-        "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
-        "delegate_task", "report_status", "shared_context", "swarm_start", "swarm_status",
-    }
     _STATUS_ONLY_TOOLS = {"report_status", "workflow_status", "swarm_status"}
 
-    @classmethod
-    def _show_tool_status(cls, tool_name: str) -> bool:
-        """Return True only for user-meaningful execution tools.
+    def _show_tool_status(self, tool_name: str) -> bool:
+        """Return True only for tools allowed on the conversation status surface.
 
-        Worker lifecycle/delegation/workflow helpers are orchestration plumbing.
-        They may emit their own semantic statuses (for example worker start/wait),
-        but must never leak a synthetic ``Using tool: agent_*`` row to the UI.
+        The global hidden-tool policy covers orchestration plumbing and plugin
+        commands declared with ``hidden=True``. Such tools may still emit logs or
+        their own semantic statuses, but never a synthetic ``Using tool`` row.
         """
         name = str(tool_name or "").strip()
-        return bool(name and name not in cls._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX)
+        return bool(name and not self.window.core.command.is_tool_hidden(name))
 
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window
@@ -668,11 +662,14 @@ class AgentsV2Runtime:
         return f"agents_v2_{self.run_id}_{self._main_tool_call_seq}"
 
     def _persist_tool_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> str:
-        """Persist every Agents v2 tool invocation, independent of UI settings."""
+        """Persist an Agents v2 tool invocation according to hidden-tool policy."""
         name = str(name or "tool").strip() or "tool"
         actor_id, agent_name, current_task = self._actor_metadata(actor)
-        part = self._actor_part(actor, create=True)
         value = self._new_tool_call_id(call_id)
+        hidden = self.window.core.command.is_tool_hidden(name)
+        if hidden and not PERSIST_HIDDEN_TOOL_CALLS:
+            return value
+        part = self._actor_part(actor, create=True)
         safe_args = self._json_safe_tool_value(args)
         if isinstance(safe_args, dict) and len(safe_args) == 1:
             for wrapper in ("params", "arguments"):
@@ -692,7 +689,7 @@ class AgentsV2Runtime:
             task_name=current_task or name, update_legacy_cache=False,
             ui_visible=(
                 self.return_tool_calls_to_main_ctx
-                and name not in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX
+                and not hidden
             ),
             provider_history=(str(actor or "orchestrator") == "orchestrator"),
         )
@@ -785,7 +782,7 @@ class AgentsV2Runtime:
         if not self.return_tool_calls_to_main_ctx:
             return None
         name = str(name or "").strip()
-        if not name or name in self._TOOL_CALLS_EXCLUDED_FROM_MAIN_CTX:
+        if not name or self.window.core.command.is_tool_hidden(name):
             return None
 
         args = self._json_safe_tool_value(args)

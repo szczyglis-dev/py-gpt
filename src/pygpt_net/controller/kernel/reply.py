@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any, List
 
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
-from pygpt_net.core.types import MODE_LLAMA_INDEX
+from pygpt_net.core.types import MODE_LLAMA_INDEX, PERSIST_HIDDEN_TOOL_CALLS
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.agents_v2.tool_bridge import pop as pop_agent_v2_request
 
@@ -78,7 +78,15 @@ class Reply:
         # state instead of by the parent CtxItem pid.
         part = ctx.get_active_part()
         part_tasks = list(getattr(part, "tasks", None) or []) if part is not None else []
-        structured = bool(part_tasks)
+        hidden_unpersisted_cmds = bool(
+            not PERSIST_HIDDEN_TOOL_CALLS
+            and any(
+                core.command.is_tool_hidden(str(cmd.get("cmd") or ""))
+                for cmd in (ctx.cmds or [])
+                if isinstance(cmd, dict)
+            )
+        )
+        structured = bool(part_tasks) or hidden_unpersisted_cmds
         pending_after = False
 
         if ctx.reply:
@@ -88,16 +96,33 @@ class Reply:
                     return []
 
                 completed = core.ctx.complete_part_tasks(ctx, responses, part)
+                hidden_unpersisted = False
+                if not PERSIST_HIDDEN_TOOL_CALLS:
+                    for response in responses:
+                        request = response.get("request") if isinstance(response, dict) else None
+                        tool_name = str(request.get("cmd") or "") if isinstance(request, dict) else ""
+                        if tool_name and core.command.is_tool_hidden(tool_name):
+                            hidden_unpersisted = True
+                            break
                 pending_after = any(
                     not (isinstance(task.extra, dict) and task.extra.get("status") == "completed")
                     for task in part_tasks
                 )
+                # Hidden calls may intentionally have no durable task at all.
+                # Keep the reply batch open until every command in the current
+                # tool round has produced its model-facing response.
+                expected_replies = len(ctx.cmds or [])
+                received_replies = len(responses) + sum(
+                    len(batch or []) for batch in self.reply_stack
+                )
+                if expected_replies and received_replies < expected_replies:
+                    pending_after = True
 
                 # A repeated/late signal for an already completed task must not
                 # enqueue the same tool result a second time. complete_part_tasks
                 # always consumes a pending task (with request-order fallback), so
                 # no completed rows here means this reply was already consumed.
-                if not completed:
+                if not completed and not hidden_unpersisted:
                     core.debug.info("Reply ignored: no pending partial task matched plugin result.")
                     ctx.results = []
                     return []

@@ -17,6 +17,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    PERSIST_HIDDEN_TOOL_CALLS,
 )
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge import BridgeContext
@@ -862,12 +863,14 @@ If you say or imply that the run is finished, waiting, paused, or failed, emit t
             }
             handled.append(response)
 
-            if not isinstance(ctx.extra, dict):
-                ctx.extra = {}
-            ctx.extra.setdefault("tool_output", []).append({
-                "cmd": name,
-                "result": result,
-            })
+            if (PERSIST_HIDDEN_TOOL_CALLS
+                    or not self.window.core.command.is_tool_hidden(name)):
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                ctx.extra.setdefault("tool_output", []).append({
+                    "cmd": name,
+                    "result": result,
+                })
             ctx.results.append(response)
             ctx.reply = True
 

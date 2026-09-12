@@ -26,6 +26,7 @@ from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
     TOOL_QUERY_ENGINE_SPEC,
+    PERSIST_HIDDEN_TOOL_CALLS,
 )
 from pygpt_net.item.ctx import CtxItem
 
@@ -507,7 +508,18 @@ class Tools:
         """
         if self.has_last_tool_output():
             outputs = [self.get_last_tool_output()]
-            ctx.extra["tool_output"] = outputs
+            stored_outputs = [
+                output
+                for output in outputs
+                if (PERSIST_HIDDEN_TOOL_CALLS
+                    or not self.window.core.command.is_tool_hidden(
+                        str(output.get("cmd") or output.get("tool_name") or "")
+                    ))
+            ]
+            if stored_outputs:
+                ctx.extra["tool_output"] = stored_outputs
+            else:
+                ctx.extra.pop("tool_output", None)
             if outputs is not None:
                 response = ""
                 for output in outputs:

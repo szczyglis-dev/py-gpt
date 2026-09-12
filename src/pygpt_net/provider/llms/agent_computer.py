@@ -704,7 +704,8 @@ class AgentComputerBridge:
         if not commands:
             raise RuntimeError("Computer Use returned no executable action")
 
-        runtime.emit_runtime_status("status.agent_v2.tool", tool=tool_label)
+        if runtime._show_tool_status(tool_label):
+            runtime.emit_runtime_status("status.agent_v2.tool", tool=tool_label)
         runtime.verbose.log("COMPUTER USE ACTIONS", commands, actor="orchestrator")
 
         # Match OpenAI's known-good Agents v2 path: execute the canonical actions

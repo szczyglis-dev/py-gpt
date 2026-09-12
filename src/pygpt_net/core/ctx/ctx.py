@@ -33,6 +33,7 @@ from pygpt_net.core.types import (
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
+    PERSIST_HIDDEN_TOOL_CALLS,
 )
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
 from pygpt_net.item.ctx_part import CtxItemPart
@@ -768,6 +769,10 @@ class Ctx:
             fn = call.get("function") if isinstance(call.get("function"), dict) else {}
             name = str(fn.get("name") or call.get("name") or "tool")
             args = fn.get("arguments", call.get("arguments", {}))
+            hidden = self.window.core.command.is_tool_hidden(name, call)
+            if hidden and not PERSIST_HIDDEN_TOOL_CALLS:
+                continue
+            task_ui_visible = bool(ui_visible and not hidden)
 
             # OpenAI Responses exposes two different identifiers for a function
             # call: ``id`` (e.g. fc_...) identifies the output item, whereas
@@ -828,13 +833,17 @@ class Ctx:
                     "tool_item_id": provider_item_id or call_id,
                     "tool_type": tool_type,
                     "tool_round": next_tool_round,
-                    "ui_visible": bool(ui_visible),
+                    "ui_visible": task_ui_visible,
                     "provider_history": bool(provider_history),
                 },
             )
             tasks.append(task)
         if tasks and update_legacy_cache and isinstance(item.extra, dict):
-            item.extra["tool_calls"] = list(tool_calls or [])
+            stored_calls = self.window.core.command.tool_calls_for_storage(tool_calls or [])
+            if stored_calls:
+                item.extra["tool_calls"] = stored_calls
+            else:
+                item.extra.pop("tool_calls", None)
         return tasks
 
     def complete_part_tasks(self, item: CtxItem, results: list, part: Optional[CtxItemPart] = None) -> list:
@@ -852,6 +861,10 @@ class Ctx:
         for response in results or []:
             req = response.get("request") if isinstance(response, dict) else None
             name = str(req.get("cmd") or "") if isinstance(req, dict) else ""
+            if (name
+                    and self.window.core.command.is_tool_hidden(name)
+                    and not PERSIST_HIDDEN_TOOL_CALLS):
+                continue
             task = None
             if name and by_name.get(name):
                 task = by_name[name].pop(0)

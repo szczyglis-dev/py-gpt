@@ -22,6 +22,11 @@ from pygpt_net.core.types import (
     MODE_AUDIO,
 )
 from pygpt_net.core.events import Event
+from pygpt_net.core.types.tools import (
+    PERSIST_HIDDEN_TOOL_CALLS,
+    is_hidden_tool as is_hidden_tool_name,
+    register_hidden_tool_definition,
+)
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
@@ -38,6 +43,145 @@ class Command:
         :param window: Window instance
         """
         self.window = window
+
+    @staticmethod
+    def _tool_name(value: Any) -> str:
+        """Extract a tool/command name from supported definition/call shapes."""
+        if isinstance(value, str):
+            return value.strip()
+        if not isinstance(value, dict):
+            return ""
+        name = value.get("cmd") or value.get("name")
+        function = value.get("function")
+        if not name and isinstance(function, dict):
+            name = function.get("name")
+        return str(name or "").strip()
+
+    def is_tool_hidden(self, name: str, definition: Optional[Dict[str, Any]] = None) -> bool:
+        """Return True when a tool must be omitted from the conversation UI."""
+        if isinstance(definition, dict) and definition.get("hidden") is True:
+            register_hidden_tool_definition(definition)
+            return True
+        value = str(name or "").strip()
+        if not value:
+            return False
+        if is_hidden_tool_name(value):
+            return True
+
+        # Current command syntax also covers dynamic tools supplied directly by
+        # plugins instead of BasePlugin.add_cmd().
+        for item in getattr(self.window.core.ctx, "current_cmd", None) or []:
+            if (isinstance(item, dict)
+                    and self._tool_name(item) == value
+                    and item.get("hidden") is True):
+                register_hidden_tool_definition(item)
+                return True
+
+        # BasePlugin.add_cmd(hidden=True) stores the marker on the command option.
+        # Inspect registered plugins as a history/reload fallback even when the
+        # command has not yet been advertised in the current model prompt.
+        try:
+            for plugin in self.window.core.plugins.all().values():
+                option = getattr(plugin, "options", {}).get(f"cmd.{value}")
+                if isinstance(option, dict) and option.get("hidden") is True:
+                    register_hidden_tool_definition({"cmd": value, "hidden": True})
+                    return True
+        except Exception:
+            pass
+        return False
+
+    def visible_tools(self, values: List[Any]) -> List[Any]:
+        """Filter hidden commands/tool calls while preserving input objects/order."""
+        result = []
+        for value in values or []:
+            name = self._tool_name(value)
+            if name and self.is_tool_hidden(name, value if isinstance(value, dict) else None):
+                continue
+            result.append(value)
+        return result
+
+    def visible_tool_names(self, names: List[str]) -> List[str]:
+        """Return only names that may be surfaced in conversation UI statuses."""
+        return [
+            str(name)
+            for name in (names or [])
+            if str(name) and not self.is_tool_hidden(str(name))
+        ]
+
+    def tool_calls_for_storage(self, tool_calls: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Apply the code-level hidden-tool persistence policy."""
+        if PERSIST_HIDDEN_TOOL_CALLS:
+            return list(tool_calls or [])
+        return self.visible_tools(tool_calls or [])
+
+    def commands_for_storage(self, commands: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Return command metadata that may be written to durable context storage."""
+        if PERSIST_HIDDEN_TOOL_CALLS:
+            return list(commands or [])
+        return self.visible_tools(commands or [])
+
+    def tool_results_for_storage(self, results: List[Any]) -> List[Any]:
+        """Remove model-facing results that belong to non-persisted hidden tools."""
+        if PERSIST_HIDDEN_TOOL_CALLS:
+            return list(results or [])
+        stored = []
+        for result in results or []:
+            name = ""
+            if isinstance(result, dict):
+                request = result.get("request")
+                if isinstance(request, dict):
+                    name = str(request.get("cmd") or request.get("name") or "")
+                if not name:
+                    name = str(result.get("cmd") or "")
+            if name and self.is_tool_hidden(name):
+                continue
+            stored.append(result)
+        return stored
+
+    def extra_for_storage(self, extra: Any) -> Any:
+        """Sanitize compatibility tool caches before writing context extras."""
+        if PERSIST_HIDDEN_TOOL_CALLS or not isinstance(extra, dict):
+            return extra
+        stored = copy.deepcopy(extra)
+        for key in ("tool_calls", "prev_tool_calls"):
+            if isinstance(stored.get(key), list):
+                values = self.visible_tools(stored[key])
+                if values:
+                    stored[key] = values
+                else:
+                    stored.pop(key, None)
+        if isinstance(stored.get("tool_output"), list):
+            outputs = self.tool_results_for_storage(stored["tool_output"])
+            # Plugin output caches usually carry the command at top level rather
+            # than under request; apply the same rule explicitly.
+            outputs = [
+                value for value in outputs
+                if not (
+                    isinstance(value, dict)
+                    and str(value.get("cmd") or "")
+                    and self.is_tool_hidden(str(value.get("cmd") or ""))
+                )
+            ]
+            if outputs:
+                stored["tool_output"] = outputs
+            else:
+                stored.pop("tool_output", None)
+        return stored
+
+    def output_for_storage(self, text: Optional[str]) -> Optional[str]:
+        """Remove hidden legacy ``<tool>`` requests from durable assistant text."""
+        if PERSIST_HIDDEN_TOOL_CALLS or text is None:
+            return text
+
+        def replace(match):
+            command = self.extract_cmd(match.group(1))
+            if isinstance(command, dict):
+                name = self._tool_name(command)
+                if name and self.is_tool_hidden(name, command):
+                    return ""
+            return match.group(0)
+
+        return self._RE_TOOL_BLOCKS.sub(replace, str(text))
 
     def append_syntax(
             self,
@@ -82,6 +226,7 @@ class Command:
         self.window.core.ctx.current_cmd = copy.deepcopy(cmds)
 
         for cmd in cmds:
+            register_hidden_tool_definition(cmd)
             if "cmd" in cmd and "instruction" in cmd:
                 cmd_name = cmd["cmd"]
                 data_cmd = {"help": cmd["instruction"]}
@@ -279,7 +424,11 @@ class Command:
         ctx.tool_calls = tmp_calls
 
         if append_output:
-            ctx.extra["tool_calls"] = ctx.tool_calls
+            stored_tool_calls = self.tool_calls_for_storage(ctx.tool_calls)
+            if stored_tool_calls:
+                ctx.extra["tool_calls"] = stored_tool_calls
+            else:
+                ctx.extra.pop("tool_calls", None)
             ctx.extra["tool_output"] = []
 
     def unpack_tool_calls_from_llama(
@@ -479,6 +628,7 @@ class Command:
         functions = []
         limit = self.DESC_LIMIT
         for cmd in cmds:
+            register_hidden_tool_definition(cmd)
             if "cmd" in cmd and "instruction" in cmd:
                 cmd_name = cmd["cmd"]
                 desc = cmd["instruction"]

@@ -920,7 +920,10 @@ class Renderer(BaseRenderer):
         """
         self.tool_output_end()
         output = self.prepare_output(meta=meta, ctx=ctx, flush=flush, prev_ctx=prev_ctx, next_ctx=next_ctx)
-        if output or ctx.get_part_tool_calls(visible_only=True):
+        visible_part_tools = self.helpers.extract_extra_tool_calls(
+            ctx.get_part_tool_calls(visible_only=True)
+        )
+        if output or visible_part_tools:
             self._hide_previous_agent_action_icons(meta, ctx)
             block = self._build_render_block(meta, ctx, input_text=None, output_text=output,
                                              prev_ctx=prev_ctx, next_ctx=next_ctx)
@@ -2350,7 +2353,12 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem] = None,
     ):
         """Show an animated tool row inside the chronological message body."""
-        names_list = list(tool_names or [])
+        names_list = self.window.core.command.visible_tool_names(list(tool_names or []))
+        # Hidden tools are intentionally invisible, but they must not retire the
+        # neutral request spinner. Returning before _workflow_status_add() keeps
+        # the current loader state untouched while the hidden tool executes.
+        if not names_list:
+            return
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
         status_id = self._workflow_status_add(
             meta, resolved_ctx, kind="tool", tool_names=names_list,
@@ -2779,17 +2787,29 @@ class Renderer(BaseRenderer):
         if ctx is None:
             return False
 
+        explicit_request = False
         try:
-            if getattr(ctx, "tool_calls", None):
-                return True
+            tool_calls = list(getattr(ctx, "tool_calls", None) or [])
+            if tool_calls:
+                explicit_request = True
+                if self.window.core.command.visible_tools(tool_calls):
+                    return True
         except Exception:
             pass
 
         try:
-            if getattr(ctx, "cmds", None):
-                return True
+            cmds = list(getattr(ctx, "cmds", None) or [])
+            if cmds:
+                explicit_request = True
+                if self.window.core.command.visible_tools(cmds):
+                    return True
         except Exception:
             pass
+
+        # An explicit hidden-only request must not participate in visual
+        # tool-chain grouping even if it also produced extra context.
+        if explicit_request:
+            return False
 
         try:
             if getattr(ctx, "extra_ctx", None):
@@ -3403,8 +3423,13 @@ class Renderer(BaseRenderer):
         parts = []
         for part in all_parts:
             part_uuid = str(getattr(part, "uuid", "") or "")
+            visible_part_tools = bool(include_tool_calls) and bool(
+                self.helpers.extract_extra_tool_calls(
+                    ctx.get_part_tool_calls(visible_only=True, part=part)
+                )
+            )
             if (getattr(part, "output", None) not in (None, "")
-                    or bool(getattr(part, "tasks", None))
+                    or visible_part_tools
                     or part_uuid in anchored_uuids):
                 parts.append(part)
 
@@ -3412,7 +3437,9 @@ class Renderer(BaseRenderer):
             return []
 
         has_visible_structured_tools = bool(include_tool_calls) and any(
-            bool(ctx.get_part_tool_calls(visible_only=True, part=part))
+            bool(self.helpers.extract_extra_tool_calls(
+                ctx.get_part_tool_calls(visible_only=True, part=part)
+            ))
             for part in parts
         )
         # A single plain text part needs no sub-timeline. Any status, tool or
@@ -3541,6 +3568,9 @@ class Renderer(BaseRenderer):
                         continue
                     if not task.is_ui_ready() or extra.get("ui_visible") is False:
                         continue
+                    tool_name = str(extra.get("tool_name") or task.task_name or task.name or "tool")
+                    if self.window.core.command.is_tool_hidden(tool_name):
+                        continue
                     try:
                         round_ids.add(max(1, int(extra.get("tool_round") or 1)))
                     except (TypeError, ValueError):
@@ -3570,7 +3600,7 @@ class Renderer(BaseRenderer):
                 # is disabled, otherwise old Agents v2 turns could leak raw
                 # <tool> payloads into the assistant text.
                 legacy_calls = self.helpers.extract_tool_calls(source_text)
-                visible_text = self.helpers.strip_tool_calls(raw_text) if legacy_calls else raw_text
+                visible_text = self.helpers.strip_tool_calls(raw_text)
                 if visible_text:
                     append_segment(part, text=visible_text)
                 if include_tool_calls and legacy_calls:
@@ -3708,9 +3738,8 @@ class Renderer(BaseRenderer):
                     and isinstance(ctx.extra, dict)
                     and ctx.extra.get("agents_v2_tool_calls_display") is True):
                 tool_calls = self.helpers.extract_extra_tool_calls(ctx.extra.get("tool_calls"))
-            visible_output_text = "" if partial_timeline else (
-                self.helpers.strip_tool_calls(output_text or "")
-                if legacy_output_calls else (output_text or "")
+            visible_output_text = "" if partial_timeline else self.helpers.strip_tool_calls(
+                output_text or ""
             )
 
             # Pre/post format raw markdown via Helpers to preserve placeholders ([!cmd], think) and workdir tokens.
@@ -3726,13 +3755,9 @@ class Renderer(BaseRenderer):
 
             # tool output visibility (agent step / commands)
             is_cmd = (
-                next_ctx is not None and
-                next_ctx.internal and
-                (
-                    bool(tool_calls)
-                    or len(ctx.cmds) > 0
-                    or (ctx.extra_ctx is not None and len(ctx.extra_ctx) > 0)
-                )
+                next_ctx is not None
+                and next_ctx.internal
+                and self._ctx_has_tool_request(ctx)
             )
             tool_result = ""
             tool_output = ""  # backward-compatible HTML-ready result

@@ -869,7 +869,8 @@ class Storage:
             VALUES (:uuid, :parent_item_id, :agent_id, :name, :output, :extra_json, :created_at, :updated_at)
         """).bindparams(
             uuid=part.uuid, parent_item_id=part.parent_item_id, agent_id=part.agent_id,
-            name=part.name, output=part.output, extra_json=pack_item_value(part.extra),
+            name=part.name, output=self.window.core.command.output_for_storage(part.output),
+            extra_json=pack_item_value(self.window.core.command.extra_for_storage(part.extra)),
             created_at=int(part.created_at or now), updated_at=int(part.updated_at or now),
         )
         with db.begin() as conn:
@@ -886,8 +887,10 @@ class Storage:
             UPDATE ctx_item_partial SET agent_id=:agent_id, name=:name, output=:output,
                 extra_json=:extra_json, updated_at=:updated_at WHERE id=:id
         """).bindparams(
-            id=part.id, agent_id=part.agent_id, name=part.name, output=part.output,
-            extra_json=pack_item_value(part.extra), updated_at=part.updated_at,
+            id=part.id, agent_id=part.agent_id, name=part.name,
+            output=self.window.core.command.output_for_storage(part.output),
+            extra_json=pack_item_value(self.window.core.command.extra_for_storage(part.extra)),
+            updated_at=part.updated_at,
         )
         with db.begin() as conn:
             conn.execute(stmt)
@@ -1017,7 +1020,7 @@ class Storage:
             meta_id=int(meta.id),
             external_id=item.external_id,
             input=item.input,
-            output=item.output,
+            output=self.window.core.command.output_for_storage(item.output),
             input_name=item.input_name,
             output_name=item.output_name,
             input_ts=int(item.input_timestamp or 0),
@@ -1029,14 +1032,14 @@ class Storage:
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
-            cmds_json=pack_item_value(item.cmds),
-            results_json=pack_item_value(item.results),
+            cmds_json=pack_item_value(self.window.core.command.commands_for_storage(item.cmds)),
+            results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
             images_json=self._pack_ctx_images(item),
             files_json=pack_item_value(item.files),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
-            extra=pack_item_value(item.extra),
+            extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
@@ -1116,7 +1119,7 @@ class Storage:
         """).bindparams(
             id=item.id,
             input=item.input,
-            output=item.output,
+            output=self.window.core.command.output_for_storage(item.output),
             input_name=item.input_name,
             output_name=item.output_name,
             input_ts=int(item.input_timestamp or 0),
@@ -1128,14 +1131,14 @@ class Storage:
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
-            cmds_json=pack_item_value(item.cmds),
-            results_json=pack_item_value(item.results),
+            cmds_json=pack_item_value(self.window.core.command.commands_for_storage(item.cmds)),
+            results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
             images_json=self._pack_ctx_images(item),
             files_json=pack_item_value(item.files),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
-            extra=pack_item_value(item.extra),
+            extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),

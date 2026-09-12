@@ -37,6 +37,15 @@ class Helpers:
         """
         self.window = window
 
+    def is_tool_hidden(self, name: str) -> bool:
+        """Return True when a tool is excluded from the conversation surface."""
+        if not name:
+            return False
+        try:
+            return bool(self.window.core.command.is_tool_hidden(str(name)))
+        except Exception:
+            return False
+
     def _html_escape_keep_math(self, m: re.Match) -> str:
         """
         Replaces < and > with &lt; / &gt;, leaving \\[ ... \\]
@@ -95,6 +104,8 @@ class Helpers:
                     request = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
             except Exception:
                 pass
+            if self.is_tool_hidden(name):
+                continue
             calls.append({
                 "name": name or "tool",
                 "request": request,
@@ -120,6 +131,8 @@ class Helpers:
                 continue
             name = str(function.get("name") or "").strip()
             if not name:
+                continue
+            if self.is_tool_hidden(name):
                 continue
             arguments = function.get("arguments", {})
             if isinstance(arguments, str):

@@ -323,7 +323,8 @@ class AgentOpenAIResponses(OpenAIResponses):
 
         acknowledgements = await self._computer_safety(call)
         actions = computer_api.get_actions(call)
-        runtime.emit_runtime_status("status.agent_v2.tool", tool="computer_use")
+        if runtime._show_tool_status("computer_use"):
+            runtime.emit_runtime_status("status.agent_v2.tool", tool="computer_use")
         runtime.verbose.log("COMPUTER USE CALL", {
             "call_id": call_id,
             "id": response_item_id,

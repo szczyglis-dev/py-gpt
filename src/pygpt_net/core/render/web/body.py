@@ -533,6 +533,9 @@ class Body:
         parts: List[str] = []
 
         if "plugin" in extra:
+            tool_name = str(extra.get("cmd") or "")
+            if tool_name and self.window.core.command.is_tool_hidden(tool_name):
+                return ""
             event = Event(Event.TOOL_OUTPUT_RENDER, {
                 'tool': extra["plugin"],
                 'html': '',
@@ -546,6 +549,9 @@ class Body:
 
         elif "tool_output" in extra and isinstance(extra["tool_output"], list):
             for tool in extra["tool_output"]:
+                tool_name = str(tool.get("cmd") or "") if isinstance(tool, dict) else ""
+                if tool_name and self.window.core.command.is_tool_hidden(tool_name):
+                    continue
                 if "plugin" not in tool:
                     continue
                 event = Event(Event.TOOL_OUTPUT_RENDER, {

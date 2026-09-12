@@ -288,11 +288,12 @@ class WorkerToolFactory:
 
                         cmd = {"cmd": tool_name, "params": call_args}
                         self.runtime.verbose.log("LOCAL TOOL REQUEST", cmd, actor=actor_id)
-                        self.runtime.emit_runtime_status(
-                            "status.agent_v2.tool",
-                            worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
-                            tool=tool_name,
-                        )
+                        if self.runtime._show_tool_status(tool_name):
+                            self.runtime.emit_runtime_status(
+                                "status.agent_v2.tool",
+                                worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
+                                tool=tool_name,
+                            )
                         # Plugin controller/API objects are shared with the rest of PyGPT.
                         # Keep their side effects serialized, while the worker LLM loops remain concurrent.
                         async with self.runtime.local_tool_lock:

@@ -9,6 +9,66 @@
 # Updated Date: 2026.09.11 21:45:00                  #
 # ================================================== #
 
+from typing import Any, Optional
+
+
+# Tool calls listed here are runtime/internal plumbing and must never be exposed
+# in the conversation UI. Plugins can extend the same mechanism declaratively by
+# defining a command with ``hidden=True``.
+HIDDEN_TOOL_NAMES = {
+    "agent_create",
+    "agent_update",
+    "agent_run",
+    "agent_status",
+    "agent_list",
+    "agent_wait",
+    "agent_stop",
+    "agent_remove",
+    "workflow_status",
+    "workflow_finish",
+    "delegate_task",
+    "report_status",
+    "shared_context",
+    "swarm_start",
+    "swarm_status",
+}
+
+# Code-level persistence policy for hidden tools. When False, hidden tool calls
+# and their display/result cache are kept only for the live execution lifecycle
+# and are not written as durable context task/tool metadata.
+PERSIST_HIDDEN_TOOL_CALLS = False
+
+# Commands declared by plugins with ``hidden=True`` are registered here while
+# plugins/tool schemas are being built. Keep this separate from the static list
+# above so the built-in defaults remain obvious and easy to edit.
+_REGISTERED_HIDDEN_TOOL_NAMES = set()
+
+
+def register_hidden_tool(name: Optional[str]) -> None:
+    """Register a dynamically declared hidden tool name."""
+    value = str(name or "").strip()
+    if value:
+        _REGISTERED_HIDDEN_TOOL_NAMES.add(value)
+
+
+def register_hidden_tool_definition(definition: Any) -> None:
+    """Register a command/tool definition carrying ``hidden=True``."""
+    if not isinstance(definition, dict) or definition.get("hidden") is not True:
+        return
+    name = definition.get("cmd") or definition.get("name")
+    if not name and isinstance(definition.get("function"), dict):
+        name = definition["function"].get("name")
+    register_hidden_tool(name)
+
+
+def is_hidden_tool(name: Optional[str]) -> bool:
+    """Return True when a tool is globally or dynamically hidden from the UI."""
+    value = str(name or "").strip()
+    return bool(
+        value
+        and (value in HIDDEN_TOOL_NAMES or value in _REGISTERED_HIDDEN_TOOL_NAMES)
+    )
+
 TOOL_EXPERT_CALL_NAME = "expert_call"
 TOOL_EXPERT_CALL_DESCRIPTION = (
     "Run a named Expert as an isolated agent with its own persistent conversation memory, "

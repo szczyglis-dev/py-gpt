@@ -131,7 +131,11 @@ class Output:
         if ctx.tool_calls:
             if not isinstance(ctx.extra, dict):
                 ctx.extra = {}
-            ctx.extra["tool_calls"] = list(ctx.tool_calls)
+            stored_tool_calls = core.command.tool_calls_for_storage(ctx.tool_calls)
+            if stored_tool_calls:
+                ctx.extra["tool_calls"] = stored_tool_calls
+            else:
+                ctx.extra.pop("tool_calls", None)
             if not ctx.cmds_before:
                 ctx.cmds_before = core.command.tool_calls_to_cmds(ctx.tool_calls)
             log("Tool call received...")
