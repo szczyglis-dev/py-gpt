@@ -65,11 +65,15 @@ def test_agents_v2_runtime_create_worker_requires_language_before_building_agent
 
 def test_agents_v2_runtime_create_worker_enforces_max_worker_limit():
     runtime = make_runtime()
-    runtime.workers = {f"w{i}": make_worker(f"w{i}") for i in range(runtime.MAX_WORKERS)}
+    limit = runtime.MAX_WORKERS_DEFAULT
+    runtime.window.core.config.get.side_effect = lambda key, default=None: (
+        limit if key == "agent.v2.max_workers" else default
+    )
+    runtime.workers = {f"w{i}": make_worker(f"w{i}") for i in range(limit)}
 
     payload = json.loads(asyncio.run(runtime.create_worker("Extra", "Work", "English")))
 
-    assert payload == {"error": f"Maximum workers reached ({runtime.MAX_WORKERS})."}
+    assert payload == {"error": f"Maximum workers reached ({limit})."}
 
 
 def test_agents_v2_runtime_update_worker_rejects_running_worker():

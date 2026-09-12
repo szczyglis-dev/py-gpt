@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 from pygpt_net.core.agents_v2.runtime import AgentsV2Runtime
 from pygpt_net.core.agents_v2.mode import AgentMode
+from pygpt_net.core.types.tools import is_hidden_tool
 
 
 def make_runtime(enabled=True, extra=None):
@@ -30,6 +31,7 @@ def make_runtime(enabled=True, extra=None):
     main = SimpleNamespace(extra={} if extra is None else extra, parts=[part], active_part=part)
     runtime.context = SimpleNamespace(ctx=main)
     runtime.window = MagicMock()
+    runtime.window.core.command.is_tool_hidden.side_effect = is_hidden_tool
     runtime._actor_parts["orchestrator"] = part
 
     def record_tool_calls(_main, calls, part=None, agent_id=None, agent_name=None,

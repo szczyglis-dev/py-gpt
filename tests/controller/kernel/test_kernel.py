@@ -332,15 +332,10 @@ def test_async_allowed(kernel, fake_window):
     ctx.agent_call = False
     fake_window.core.config["mode"] = "agent"
     allowed = kernel.async_allowed(ctx)
-    assert allowed is False
-    fake_window.core.config["mode"] = "normal"
-    fake_window.controller.agent.legacy.enabled = lambda: True
-    allowed = kernel.async_allowed(ctx)
-    assert allowed is False
-    fake_window.controller.agent.legacy.enabled = lambda: False
-    fake_window.controller.agent.experts.enabled = lambda: True
-    allowed = kernel.async_allowed(ctx)
     assert allowed is True
+    fake_window.core.config["mode"] = "agent_v2"
+    allowed = kernel.async_allowed(ctx)
+    assert allowed is False
 
 def test_is_threaded(kernel, fake_window):
     fake_window.core.config["mode"] = "agent_llama"

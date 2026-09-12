@@ -195,6 +195,7 @@ def test_prepare_reply_ctx_filters_results_and_collects_tool_output(mock_window)
         "private": "extra only",
     }
     mock_window.core.config.set("ctx.use_extra", False)
+    mock_window.core.command.is_tool_hidden.return_value = False
     returned = plugin.prepare_reply_ctx(response, ctx)
 
     assert returned is response
@@ -209,6 +210,7 @@ def test_prepare_reply_ctx_filters_results_and_collects_tool_output(mock_window)
         "result": "ok",
         "agent_trace": {"step": 1},
         "private": "extra only",
+        "cmd": "x",
     }]
     assert "context" not in response
 

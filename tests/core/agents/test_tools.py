@@ -37,6 +37,7 @@ def fake_window():
 
     # Setup command functions.
     window.core.command = MagicMock()
+    window.core.command.is_tool_hidden.return_value = False
     window.core.command.get_functions.return_value = [
         {
             "name": "test_function",

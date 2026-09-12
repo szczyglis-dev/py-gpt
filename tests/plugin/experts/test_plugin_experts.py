@@ -36,7 +36,7 @@ def test_experts_system_prompt_appends_expert_prompt(mock_window):
     assert plugin.on_system_prompt("") == "EXPERTS"
 
 
-def test_experts_handle_skips_nested_expert_and_disallowed_mode(mock_window):
+def test_experts_handle_skips_nested_expert_and_applies_in_agent_mode(mock_window):
     plugin = Plugin(window=mock_window)
     mock_window.core.experts.get_prompt.return_value = "EXPERTS"
     event = Event()
@@ -50,8 +50,9 @@ def test_experts_handle_skips_nested_expert_and_disallowed_mode(mock_window):
     event.data = {"value": "base"}
     mock_window.core.config.set("mode", MODE_AGENT)
     plugin.handle(event)
-    assert event.data["value"] == "base"
+    assert event.data["value"] == "base\n\nEXPERTS"
 
+    event.data = {"value": "base"}
     mock_window.core.config.set("mode", "chat")
     plugin.handle(event)
     assert event.data["value"] == "base\n\nEXPERTS"

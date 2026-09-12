@@ -190,8 +190,8 @@ def test_chat_common_stop_dispatches_shutdown_events_and_mocks_external_api_stop
     assert KernelEvent.STATE_IDLE in names
     assert AppEvent.INPUT_STOPPED in names
     common.window.controller.kernel.stack.clear.assert_called_once_with()
-    common.window.controller.agent.experts.stop.assert_called_once_with()
     common.window.controller.agent.legacy.on_stop.assert_called_once_with()
+    common.window.controller.agent.experts.stop.assert_not_called()
     common.window.controller.assistant.threads.reset.assert_called_once_with()
     common.unlock_input.assert_called_once_with()
     common.stop_client.assert_called_once_with()

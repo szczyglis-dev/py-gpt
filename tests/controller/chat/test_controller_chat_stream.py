@@ -32,6 +32,10 @@ def test_stream_worker_run_raw_chunk(monkeypatch):
     ctx.output = ""
     ctx.input_tokens = 5
     ctx.set_tokens = MagicMock()
+    ctx.stopped = False
+    ctx.turn_parent = None
+    ctx.mode = None
+    ctx.model = None
 
     # Create dummy window with needed attributes.
     window = MagicMock()
@@ -81,6 +85,10 @@ def test_stream_worker_run_stopped(monkeypatch):
     ctx.output = ""
     ctx.input_tokens = 10
     ctx.set_tokens = MagicMock()
+    ctx.stopped = False
+    ctx.turn_parent = None
+    ctx.mode = None
+    ctx.model = None
 
     window = MagicMock()
     window.core.image.gen_unique_path.return_value = "dummy_image.png"
@@ -130,6 +138,10 @@ def test_stream_worker_run_exception(monkeypatch):
     ctx.input_tokens = 1
     ctx.set_tokens = MagicMock()
     ctx.chunk_type = None
+    ctx.stopped = False
+    ctx.turn_parent = None
+    ctx.mode = None
+    ctx.model = None
 
     window = MagicMock()
     window.core.image.gen_unique_path.return_value = "dummy_image.png"
@@ -194,7 +206,7 @@ def test_stream_append(monkeypatch):
 
 def test_handleEnd_assistant():
     meta = SimpleNamespace(id=1)
-    ctx = SimpleNamespace(meta=meta)
+    ctx = SimpleNamespace(meta=meta, mode=None, turn_parent=None, extra={})
     window = MagicMock()
     window.dispatch = MagicMock()
     window.controller.ui.update_tokens = MagicMock()
@@ -205,7 +217,8 @@ def test_handleEnd_assistant():
     stream_obj = Stream(window)
     stream_obj.pids = {
         1: {
-            "ctx": MagicMock(),
+            "ctx": ctx,
+            "worker": SimpleNamespace(ctx=ctx),
             "mode": MODE_ASSISTANT,
             "is_response": False,
             "reply": False,
@@ -235,11 +248,12 @@ def test_handleError():
     window.core.ctx.output.get_pid = MagicMock(return_value=1)
 
     meta = SimpleNamespace(id=1)
-    dummy_ctx = SimpleNamespace(meta=meta)
+    dummy_ctx = SimpleNamespace(meta=meta, mode=None, turn_parent=None)
     stream_obj = Stream(window)
     stream_obj.pids = {
         1: {
             "ctx": dummy_ctx,
+            "worker": SimpleNamespace(ctx=dummy_ctx),
             "mode": None,
             "is_response": True,
             "reply": False,

@@ -34,14 +34,6 @@ def fake_window():
     return win
 
 
-def test_agent_enabled(fake_window):
-    experts = Experts(window=fake_window)
-    fake_window.controller.agent.legacy.enabled.return_value = True
-    assert experts.agent_enabled() is True
-    fake_window.controller.agent.legacy.enabled.return_value = False
-    assert experts.agent_enabled() is False
-
-
 def test_exists(fake_window):
     experts = Experts(window=fake_window)
     fake_window.core.presets.has.return_value = True
@@ -60,23 +52,23 @@ def test_get_expert(fake_window):
     fake_window.core.presets.get_by_id.assert_called_once_with(MODE_EXPERT, "exp1")
 
 
-def test_get_experts_agent_branch(fake_window):
-    fake_window.controller.agent.legacy.enabled.return_value = True
-    agent = MagicMock(experts=["uuid1"])
-    fake_window.core.presets.get_by_mode.side_effect = lambda mode: {
-        MODE_AGENT: {"agent1": agent},
-        MODE_EXPERT: {},
-    }.get(mode, {})
+def test_get_experts_uses_global_registry_in_agent_mode(fake_window):
+    global_expert = PresetItem()
+    global_expert.enabled = True
+    global_expert.name = "Global Expert"
+
+    agent_preset = MagicMock(experts=["assigned-only-uuid"])
     fake_window.core.config.get.side_effect = lambda key, default=None: (
-        "agent1" if key == "preset" else default
+        MODE_AGENT if key == "mode" else default
+    )
+    fake_window.core.presets.get_by_mode.side_effect = lambda mode: (
+        {"global": global_expert} if mode == MODE_EXPERT
+        else {"agent": agent_preset} if mode == MODE_AGENT
+        else {}
     )
 
-    expert = PresetItem()
-    expert.filename = "expA"
-    expert.name = "Expert A"
-    fake_window.core.presets.get_by_uuid.return_value = expert
-
-    assert Experts(window=fake_window).get_experts() == {"expA": expert}
+    assert Experts(window=fake_window).get_experts() == {"global": global_expert}
+    fake_window.core.presets.get_by_uuid.assert_not_called()
 
 
 def test_get_experts_filters_disabled_and_current_presets(fake_window):
@@ -113,19 +105,6 @@ def test_get_expert_name_by_id(fake_window):
 
     assert experts.get_expert_name_by_id("expX") == "Expert X"
     assert experts.get_expert_name_by_id("missing") is None
-
-
-def test_count_experts(fake_window):
-    agent = MagicMock(experts=["uuid1", "uuid2", "missing"])
-    fake_window.core.presets.get_by_mode.side_effect = lambda mode: (
-        {"agent1": agent} if mode == MODE_AGENT else {}
-    )
-    fake_window.core.presets.get_by_uuid.side_effect = lambda uuid: (
-        object() if uuid in {"uuid1", "uuid2"} else None
-    )
-
-    assert Experts(window=fake_window).count_experts("agent1") == 2
-    assert Experts(window=fake_window).count_experts("missing") == 0
 
 
 def test_get_prompt(fake_window):

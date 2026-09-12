@@ -34,6 +34,8 @@ def fake_node():
 def fake_window(fake_node):
     w = SimpleNamespace()
     w.core = SimpleNamespace()
+    w.core.command = MagicMock()
+    w.core.command.visible_tool_names.side_effect = lambda names: names
     w.core.ctx = SimpleNamespace()
     w.core.ctx.output = MagicMock()
     w.core.ctx.output.get_current = MagicMock(return_value=fake_node)
@@ -791,7 +793,7 @@ class TestRenderer:
         renderer.get_output_node = MagicMock(return_value=fake_window.core.ctx.output.get_current(meta))
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
-        renderer.tool_output_begin(meta)
+        renderer.tool_output_begin(meta, ["search"])
         node.page().runJavaScript.assert_called()
 
     def test_tool_output_end(self, renderer, fake_window):

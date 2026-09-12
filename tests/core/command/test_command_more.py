@@ -44,7 +44,11 @@ def make_window():
     presets = SimpleNamespace(get_current_functions=lambda: [])
     plugins = SimpleNamespace(is_type_enabled=lambda t: False)
     agent = SimpleNamespace(
-        legacy=SimpleNamespace(enabled=lambda check_inline=True: False, get_functions=lambda: []),
+        legacy=SimpleNamespace(
+            enabled=lambda check_inline=True: False,
+            get_functions=lambda: [],
+            is_tool_enabled=lambda cmd: False,
+        ),
         experts=SimpleNamespace(enabled=lambda: False)
     )
     controller = SimpleNamespace(presets=presets, plugins=plugins, agent=agent)
@@ -302,12 +306,9 @@ def test_is_native_enabled_various_branches():
     window.core.models.is_tool_call_allowed = lambda mode, model_data: False
     assert command.is_native_enabled() is False
     window.core.models.is_tool_call_allowed = lambda mode, model_data: True
-    window.controller.agent.legacy = SimpleNamespace(enabled=lambda check_inline=True: True)
-    window.core.config['agent.func_call.native'] = True
+    window.core.config['func_call.native'] = True
     assert command.is_native_enabled() is True
-    window.controller.agent.legacy = SimpleNamespace(enabled=lambda check_inline=True: False)
-    window.controller.agent.experts = SimpleNamespace(enabled=lambda: True)
-    window.core.config['experts.func_call.native'] = False
+    window.core.config['func_call.native'] = False
     assert command.is_native_enabled() is False
     window.core.config['func_call.native'] = True
     assert command.is_native_enabled(force=True) is True

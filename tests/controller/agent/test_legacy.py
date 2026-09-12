@@ -17,6 +17,15 @@ from tests.mocks import mock_window
 from pygpt_net.controller.agent.legacy import Legacy
 from pygpt_net.core.types import MODE_AGENT
 
+
+def _start_run(legacy, window, *, auto_stop=True, always_continue=False):
+    window.core.config.set('mode', MODE_AGENT)
+    window.core.config.set('agent.auto_stop', auto_stop)
+    window.core.config.set('agent.continue.always', always_continue)
+    window.controller.agent.legacy.update = MagicMock()
+    legacy.on_user_send("test")
+
+
 def test_setup(mock_window):
     """Test setup"""
     legacy = Legacy(mock_window)
@@ -78,10 +87,11 @@ def test_on_user_send(mock_window):
 
 
 def test_on_ctx_end(mock_window):
-    """Test on ctx end"""
+    """Test on ctx end for the active autonomous run."""
     ctx = CtxItem()
-    mock_window.controller.agent.legacy.update = MagicMock()
     legacy = Legacy(mock_window)
+    _start_run(legacy, mock_window)
+    legacy.bind_ctx_to_run(ctx)
     iterations = 2
     legacy.on_ctx_end(ctx, iterations=iterations)
     assert legacy.iteration == 1
@@ -105,9 +115,10 @@ def test_on_ctx_end_stop(mock_window):
 
 
 def test_on_ctx_before(mock_window):
-    """Test on ctx before"""
+    """Test on ctx before for a context belonging to the active run."""
     ctx = CtxItem()
     legacy = Legacy(mock_window)
+    _start_run(legacy, mock_window)
     legacy.on_ctx_before(ctx)
     assert legacy.iteration == 0
     assert legacy.stop is False
@@ -117,29 +128,26 @@ def test_on_ctx_before(mock_window):
 
 
 def test_on_ctx_after(mock_window):
-    """Test on ctx after"""
+    """Test on ctx after for the active autonomous run."""
     mock_window.core.prompt.get = MagicMock(return_value="continue...")
     ctx = CtxItem()
     ctx.output = "output"
     legacy = Legacy(mock_window)
+    _start_run(legacy, mock_window)
+    legacy.bind_ctx_to_run(ctx)
     legacy.on_ctx_after(ctx)
     assert legacy.prev_output == "continue..."
 
 
-def test_on_cmd(mock_window):
-    """Test on cmd"""
+def test_cmd_ignores_context_outside_active_run(mock_window):
+    """Run-control commands from an unbound/stale context are ignored."""
     mock_window.core.config.set('mode', MODE_AGENT)
     mock_window.core.config.set('agent.auto_stop', True)
-    mock_window.core.config.set('agent.continue.always', False)
     ctx = CtxItem()
-    ctx.output = "output"
     legacy = Legacy(mock_window)
-    result = legacy.on_cmd(ctx, [{"cmd": "goal_update", "params": {"status": "finished"}}])
-    assert result is True
-    assert legacy.stop is False
-    assert legacy.finished is True
-    assert legacy.terminal_status == "finished"
-    assert legacy.prev_output is None
+    result = legacy.cmd(ctx, [{"cmd": "goal_update", "params": {"status": "finished"}}])
+    assert result is False
+    assert legacy.finished is False
 
 
 def test_cmd(mock_window):
@@ -150,6 +158,8 @@ def test_cmd(mock_window):
     ctx = CtxItem()
     ctx.output = "output"
     legacy = Legacy(mock_window)
+    _start_run(legacy, mock_window)
+    legacy.bind_ctx_to_run(ctx)
     result = legacy.cmd(ctx, [{"cmd": "goal_update", "params": {"status": "finished"}}])
     assert result is True
     assert legacy.stop is False

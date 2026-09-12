@@ -117,6 +117,7 @@ def test_get_draw_modes(mock_window):
         DrawMode.RECTANGLE,
         DrawMode.CIRCLE,
         DrawMode.LINE,
+        DrawMode.TEXT,
     )
 
 

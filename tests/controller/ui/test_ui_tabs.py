@@ -408,9 +408,11 @@ def test_update_tooltip(tabs, dummy_window):
     fake_tabs.setTabToolTip = MagicMock()
     fake_tabs.count = MagicMock(return_value=3)
     dummy_window.ui.layout.get_tabs_by_idx = MagicMock(return_value=fake_tabs)
-    tabs.current = 1
+    tab = SimpleNamespace(type=Tab.TAB_CHAT, idx=1, column_idx=0, tooltip="")
+    tabs.get_current_tab = MagicMock(return_value=tab)
     tabs.update_tooltip("new tooltip")
-    fake_tabs.setTabToolTip.assert_called_with(1, "new tooltip")
+    fake_tabs.setTabToolTip.assert_called_once_with(1, "new tooltip")
+    assert tab.tooltip == "new tooltip"
 
 def test_rename(tabs, dummy_window):
     dummy_tab = MagicMock(title="Old Title")

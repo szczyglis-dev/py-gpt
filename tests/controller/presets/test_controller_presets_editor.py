@@ -49,7 +49,7 @@ def test_preset_editor_from_current_applies_all_global_values_to_editor():
     ctrl, window = _editor()
     values = {
         'ai_name': 'AI', 'user_name': 'User', 'prompt': 'P',
-        'temperature': 1.2, 'model': 'm1',
+        'temperature': 1.2, 'model': 'm1', 'mode': 'chat',
     }
     window.core.config.get.side_effect = lambda key: values[key]
     ctrl.from_current()
@@ -71,17 +71,16 @@ def test_preset_editor_update_from_global_updates_current_preset_and_saves():
     window.core.presets.save.assert_called_once_with('preset-1')
 
 
-def test_preset_editor_toggle_tab_updates_qt_tab_and_expert_counter():
+def test_preset_editor_toggle_tab_updates_qt_tab():
     ctrl, window = _editor()
-    ctrl.experts.update_tab = MagicMock()
+    assert 'experts' not in ctrl.TAB_IDX
     tabs = window.ui.tabs['preset.editor.tabs']
-    ctrl.toggle_tab('experts', True)
-    tabs.setTabEnabled.assert_called_with(ctrl.TAB_IDX['experts'], True)
-    tabs.setTabVisible.assert_called_with(ctrl.TAB_IDX['experts'], True)
-    ctrl.experts.update_tab.assert_called_once_with()
-    ctrl.toggle_tab('experts', False)
-    tabs.setTabEnabled.assert_called_with(ctrl.TAB_IDX['experts'], False)
-    tabs.setTabVisible.assert_called_with(ctrl.TAB_IDX['experts'], False)
+    ctrl.toggle_tab('remote_tools', True)
+    tabs.setTabEnabled.assert_called_with(ctrl.TAB_IDX['remote_tools'], True)
+    tabs.setTabVisible.assert_called_with(ctrl.TAB_IDX['remote_tools'], True)
+    ctrl.toggle_tab('remote_tools', False)
+    tabs.setTabEnabled.assert_called_with(ctrl.TAB_IDX['remote_tools'], False)
+    tabs.setTabVisible.assert_called_with(ctrl.TAB_IDX['remote_tools'], False)
 
 
 def test_preset_editor_remove_avatar_requires_confirmation_when_not_forced():
@@ -135,8 +134,10 @@ def test_preset_editor_toggle_extra_options_by_provider_shows_base_when_mapping_
     ctrl, window = _editor()
     ctrl.tab_options_idx = {}
     tabs = window.ui.tabs['preset.editor.extra']
+    tabs.count.return_value = 1
+    tabs.currentIndex.return_value = 0
     ctrl.toggle_extra_options_by_provider()
-    tabs.setTabVisible.assert_called_once_with(0, True)
+    tabs.setTabVisible.assert_any_call(0, True)
 
 
 def test_preset_editor_load_extra_options_applies_saved_agent_values():
@@ -287,6 +288,8 @@ def test_preset_editor_edit_resolves_index_and_opens_editor():
     preset = MagicMock()
     window.core.presets.get_by_idx.return_value = preset
     ctrl.init = MagicMock()
+    ctrl.fit_splitter_to_content = MagicMock()
+    ctrl._normalize_extra_tabs = MagicMock()
     ctrl.edit(4)
     window.core.presets.get_by_idx.assert_called_once_with(4, 'chat')
     ctrl.init.assert_called_once_with(preset)
@@ -318,9 +321,9 @@ def test_preset_editor_init_new_chat_preset_uses_mocked_dynamic_helpers():
         'reload_all', 'load_extra_defaults', 'update_indexes_list', 'load_extra_options',
         'toggle_extra_options', 'update_avatar_config', 'show_hide_by_mode',
         'toggle_extra_options_by_provider', 'append_default_prompt',
+        'fit_splitter_to_content',
     ]:
         setattr(ctrl, name, MagicMock())
-    ctrl.experts.update_list = MagicMock()
 
     ctrl.init(None)
 

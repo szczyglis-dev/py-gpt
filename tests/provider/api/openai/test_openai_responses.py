@@ -273,7 +273,7 @@ def test_is_enabled(responses_instance, dummy_window, dummy_model):
     dummy_window.controller.agent.legacy.enabled = MagicMock(return_value=True)
     dummy_window.core.config.get = lambda key, default=None: False if key == "agent.api_use_responses" else True
     res = responses_instance.is_enabled(dummy_model, MODE_CHAT, MODE_CHAT, is_expert_call=False)
-    assert res is False
+    assert res is True
     dummy_window.controller.agent.legacy.enabled = MagicMock(return_value=False)
     # Expert manager requests use the global Responses setting. Legacy
     # experts.* transport switches no longer gate this code path.

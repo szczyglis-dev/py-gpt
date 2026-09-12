@@ -45,6 +45,7 @@ def make_runtime(functions=None):
     runtime.model = object()
     runtime.verbose = MagicMock()
     runtime.is_stopped = MagicMock(return_value=False)
+    runtime._show_tool_status = MagicMock(return_value=False)
     runtime.local_tool_lock = asyncio.Lock()
     runtime.emitter = SimpleNamespace(execute_plugin=AsyncMock(return_value={"ok": True}))
     runtime.emit_runtime_status = MagicMock()

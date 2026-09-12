@@ -22,6 +22,7 @@ def test_select(mock_window):
     presets.preset_change_locked = MagicMock(return_value=False)
     mock_window.core.config.data['mode'] = "chat"
     mock_window.core.presets.get_by_idx = MagicMock(return_value='preset_id')
+    mock_window.controller.presets.editor.opened = False
 
     presets.select(1)
     mock_window.core.config.data['preset'] = "preset_id"
