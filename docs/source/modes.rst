@@ -157,81 +157,6 @@ You can configure selected vector store by providing config options like ``api_k
 In the ``Settings -> Indexes / RAG -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
 
 
-Chat with Audio
----------------
-This mode works like Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
-
-Currently, in beta. 
-
-At this moment, only OpenAI real-time models (via the Realtime API) and Google Gemini real-time models (via the Live API) are supported.
-
-Research
---------
-
-**Research** is a provider-aware mode for models designed for web research and deep-research workflows. Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**.
-
-Configure the API key for the provider you want to use in ``Config -> Settings -> API Keys``. For Perplexity models, see https://perplexity.ai.
-
-**Google Remote MCP:** Google Remote MCP can be enabled in ``Config -> Settings -> Remote Tools -> Google``. In the current PyGPT implementation it is available in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
-
-Completion
-----------
-An older mode of operation that allows working in the standard text completion mode. However, it allows for a bit more flexibility with the text by enabling you to initiate the entire discussion in any way you like.
-
-Similar to chat mode, on the right-hand side of the interface, there are convenient presets. These allow you to fine-tune instructions and swiftly transition between varied configurations and pre-made prompt templates.
-
-Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
-
-
-
-Image and video generation
---------------------------
-
-**PyGPT** enables quick and easy image creation with image-generation models such as ``gpt-image``, ``Imagen``, ``Gemini``, ``Nano Banana`` and ``Grok``, as well as video generation using models such as ``Veo`` and ``Sora``.
-Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in ``Image generation`` mode or ask the model for the best prompt.
-
-.. image:: images/v3_img.png
-   :width: 800
-
-Image generation using image models is also available in every mode via plugin ``Image generation (inline)``. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
-
-If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
-Plugin allows you to generate images in Chat mode:
-
-.. image:: images/v3_img_chat.png
-   :width: 800
-
-For supported models/providers, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation is available natively in supported work modes without the inline plugin.
-
-To use ``Imagen`` models you must enable ``Use Vertex AI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
-
-**Remix, Edit, or Extend**
-
-To remix or extend from a previous image or video instead of creating a new one from scratch, enable the ``Remix/Extend`` option checkbox in the toolbox. The last generated image or video in the current context will be used as a reference for your prompt, allowing you to request changes to the generated content. If the ``Remix/Extend`` option is enabled, uploading an image attachment as a reference will not take effect.
-
-**Raw mode**
-
-There is an option for switching prompt generation mode.
-
-If **Raw Mode** is enabled, a model will receive the prompt exactly as you have provided it.
-If **Raw Mode** is disabled, a model will generate the best prompt for you based on your instructions.
-
-**Image storage**
-
-Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
-You also have the options to delete it or view it in full size in your web browser.
-
-.. tip::
-   Use presets to save your prepared prompts. 
-   This lets you quickly use them again for generating new images later on.
-
-The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
-prompts for creating new images.
-
-Images are stored in the base-profile ``img`` directory by default. If ``Store images, captures, and uploads in the workdir data directory`` is enabled, generated images are stored under the active ``data`` workdir instead, including a custom project data workdir when one is active.
-
-
-
 Chat with Agents
 ----------------
 
@@ -310,33 +235,79 @@ Recommended use cases
 
 Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-stage work such as coding and file operations, research with independent verification, RAG-assisted tasks, implementation plus testing, or workflows that combine several tools. Use **Swarm** only when a task genuinely benefits from many parallel, independent workers and you intentionally want to choose the swarm size yourself.
 
-Experts
--------
+Realtime + audio
+----------------
+This mode works like Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
 
-**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
+Currently, in beta. 
 
-Each enabled Expert is exposed to the current conversation as a regular ``expert_call`` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result.
+At this moment, only OpenAI real-time models (via the Realtime API) and Google Gemini real-time models (via the Live API) are supported.
 
-In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while ``expert_call`` adds the ability to delegate work to specialized agents.
+Research
+--------
 
-Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
+**Research** is a provider-aware mode for models designed for web research and deep-research workflows. Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**.
 
-How to use Experts
-~~~~~~~~~~~~~~~~~~
+Configure the API key for the provider you want to use in ``Config -> Settings -> API Keys``. For Perplexity models, see https://perplexity.ai.
 
-1. Switch to **Experts** mode and create or edit an Expert preset. Give it a clear ID/name and specialized instructions, then enable it.
-2. Start a conversation in **Experts** mode, or enable the **Experts (inline)** plugin to make the same Experts available in another supported chat mode.
-3. Ask the model to use the Expert in natural language. For example:
+**Google Remote MCP:** Google Remote MCP can be enabled in ``Config -> Settings -> Remote Tools -> Google``. In the current PyGPT implementation it is available in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
 
-.. code-block:: ini
+Completion
+----------
+An older mode of operation that allows working in the standard text completion mode. However, it allows for a bit more flexibility with the text by enabling you to initiate the entire discussion in any way you like.
 
-   Ask the Python programmer expert to review this code and suggest a fix.
+Similar to chat mode, on the right-hand side of the interface, there are convenient presets. These allow you to fine-tune instructions and swiftly transition between varied configurations and pre-made prompt templates.
 
-The main model can then invoke ``expert_call`` automatically, use the returned result in its own answer, and call other tools or Experts if the task requires it. You do not need to manually start a separate Expert session. Defining and enabling the Expert is enough for it to become available to the model.
+Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-Experts can be activated or deactivated from the preset list using the RMB context menu and the ``Enable/Disable`` actions. Only enabled Experts are exposed through ``expert_call``.
 
-The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same ``expert_call`` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
+
+Image and video generation
+--------------------------
+
+**PyGPT** enables quick and easy image creation with image-generation models such as ``gpt-image``, ``Imagen``, ``Gemini``, ``Nano Banana`` and ``Grok``, as well as video generation using models such as ``Veo`` and ``Sora``.
+Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in ``Image generation`` mode or ask the model for the best prompt.
+
+.. image:: images/v3_img.png
+   :width: 800
+
+Image generation using image models is also available in every mode via plugin ``Image generation (inline)``. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
+
+If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
+Plugin allows you to generate images in Chat mode:
+
+.. image:: images/v3_img_chat.png
+   :width: 800
+
+For supported models/providers, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation is available natively in supported work modes without the inline plugin.
+
+To use ``Imagen`` models you must enable ``Use Vertex AI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
+
+**Remix, Edit, or Extend**
+
+To remix or extend from a previous image or video instead of creating a new one from scratch, enable the ``Remix/Extend`` option checkbox in the toolbox. The last generated image or video in the current context will be used as a reference for your prompt, allowing you to request changes to the generated content. If the ``Remix/Extend`` option is enabled, uploading an image attachment as a reference will not take effect.
+
+**Raw mode**
+
+There is an option for switching prompt generation mode.
+
+If **Raw Mode** is enabled, a model will receive the prompt exactly as you have provided it.
+If **Raw Mode** is disabled, a model will generate the best prompt for you based on your instructions.
+
+**Image storage**
+
+Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
+You also have the options to delete it or view it in full size in your web browser.
+
+.. tip::
+   Use presets to save your prepared prompts. 
+   This lets you quickly use them again for generating new images later on.
+
+The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
+prompts for creating new images.
+
+Images are stored in the base-profile ``img`` directory by default. If ``Store images, captures, and uploads in the workdir data directory`` is enabled, generated images are stored under the active ``data`` workdir instead, including a custom project data workdir when one is active.
+
 
 
 Computer use
@@ -381,6 +352,35 @@ Finally, enable the ``Sandbox`` switch in the Computer use toolbox when you want
 
 .. tip::
    **DO NOT** enable the ``Mouse and keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.
+
+Experts
+-------
+
+**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
+
+Each enabled Expert is exposed to the current conversation as a regular ``expert_call`` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result.
+
+In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while ``expert_call`` adds the ability to delegate work to specialized agents.
+
+Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
+
+How to use Experts
+~~~~~~~~~~~~~~~~~~
+
+1. Switch to **Experts** mode and create or edit an Expert preset. Give it a clear ID/name and specialized instructions, then enable it.
+2. Start a conversation in **Experts** mode, or enable the **Experts (inline)** plugin to make the same Experts available in another supported chat mode.
+3. Ask the model to use the Expert in natural language. For example:
+
+.. code-block:: ini
+
+   Ask the Python programmer expert to review this code and suggest a fix.
+
+The main model can then invoke ``expert_call`` automatically, use the returned result in its own answer, and call other tools or Experts if the task requires it. You do not need to manually start a separate Expert session. Defining and enabling the Expert is enough for it to become available to the model.
+
+Experts can be activated or deactivated from the preset list using the RMB context menu and the ``Enable/Disable`` actions. Only enabled Experts are exposed through ``expert_call``.
+
+The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same ``expert_call`` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
+
 
 Agent (LlamaIndex)
 ------------------
