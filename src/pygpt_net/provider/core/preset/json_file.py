@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.09.12 12:20:00                  #
 # ================================================== #
 
 import json
@@ -267,10 +267,10 @@ class JsonFileProvider(BaseProvider):
             item.agent_provider = data['agent_provider']
         if 'agent_provider_openai' in data:
             item.agent_provider_openai = data['agent_provider_openai']
-        if 'agent_v2_allow_local_tools' in data:
-            item.agent_v2_allow_local_tools = bool(data['agent_v2_allow_local_tools'])
-        if 'agent_v2_allow_remote_tools' in data:
-            item.agent_v2_allow_remote_tools = bool(data['agent_v2_allow_remote_tools'])
+        # Older Agent/Expert presets may not contain these fields. Tool access
+        # defaults to enabled and must not inherit stale values from a reused item.
+        item.agent_v2_allow_local_tools = bool(data.get('agent_v2_allow_local_tools', True))
+        item.agent_v2_allow_remote_tools = bool(data.get('agent_v2_allow_remote_tools', True))
         if 'ai_avatar' in data:
             item.ai_avatar = data['ai_avatar']
         if 'ai_name' in data:

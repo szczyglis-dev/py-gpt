@@ -12,6 +12,7 @@
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
+    MODE_AGENT,
     MODE_AGENT_V2,
     MODE_CHAT, MODE_AUDIO,
 )
@@ -216,7 +217,7 @@ class Mode:
         cfg = self.window.core.config
         cfg.set("temperature", temperature)
         preset_id = cfg.get('preset')
-        if preset_id is not None and preset_id != "":
+        if cfg.get('mode') != MODE_AGENT and preset_id is not None and preset_id != "":
             items = self.window.core.presets.items
             if preset_id in items:
                 preset = items[preset_id]

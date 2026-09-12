@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 19:50:00
+# Updated Date: 2026.09.12 12:56:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -77,6 +77,21 @@ class Custom:
         self.window.ui.tabs['preset.editor.tabs'].setTabText(1, trans("preset.tab.personalize"))
         self.window.ui.tabs['preset.editor.tabs'].setTabText(2, trans("preset.tab.experts"))
         self.window.ui.tabs['preset.editor.tabs'].setTabText(3, trans("preset.tab.remote_tools"))
+
+        # Shared preset prompt tab and the Autonomous-mode hint are not part of
+        # the generic option-label mapping, so update them explicitly when the
+        # application language changes.
+        self.window.ui.nodes['preset.prompt.agent.desc'].setText(trans("preset.prompt.agent.desc"))
+        preset_extra = self.window.ui.tabs['preset.editor.extra']
+        preset_mode = self.window.core.config.get('mode')
+        if preset_mode == MODE_AGENT:
+            preset_extra.setTabText(0, trans("preset.prompt.agent"))
+        elif preset_mode == MODE_AGENT_V2:
+            preset_extra.setTabText(0, trans("preset.prompt.agent_v2"))
+        elif preset_mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+            preset_extra.setTabText(0, trans("preset.prompt.agent_llama"))
+        else:
+            preset_extra.setTabText(0, trans("preset.prompt"))
 
 
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))

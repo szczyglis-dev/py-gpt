@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 11:00:00                  #
+# Updated Date: 2026.09.12 12:30:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -91,7 +91,9 @@ class Mode:
 
         # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
         if not is_agent_openai and not is_agent_llama:
-            presets_editor.toggle_tab("personalize", True)
+            # Agents v2 and Experts use the compact agent preset layout and do
+            # not expose the legacy Personalize tab.
+            presets_editor.toggle_tab("personalize", not (is_agent_v2 or is_expert))
             if 'preset.prompt' in ui_nodes and ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(False)
                 ui_nodes['preset.prompt'].setPlaceholderText("")
@@ -141,12 +143,11 @@ class Mode:
             ui_nodes['preset.experts.label'].setVisible(False)
             ui_nodes['preset.presets.label'].setVisible(True)
 
-        if is_expert:
-            ui_nodes['preset.editor.description'].setVisible(True)
-            presets_editor.toggle_tab("remote_tools", True)
-        else:
-            presets_editor.toggle_tab("remote_tools", False)
-            ui_nodes['preset.editor.description'].setVisible(False)
+        # Expert presets now use the same compact agent editor as Agents v2.
+        # The old per-preset remote-tools tab is no longer used; tool access is
+        # controlled by the two agent_v2_allow_* booleans instead.
+        ui_nodes['preset.editor.description'].setVisible(is_expert)
+        presets_editor.toggle_tab("remote_tools", False)
 
         if is_completion:
             ui_nodes['preset.editor.user_name'].setVisible(True)
@@ -158,14 +159,21 @@ class Mode:
         else:
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
 
+        # Autonomous mode uses the shared prompt editor for an additional
+        # system prompt. Its base-instruction location is explained directly
+        # below the textarea; hide that hint in every other preset mode.
+        ui_nodes['preset.prompt.agent.desc'].setVisible(is_agent)
+
         # prompt editor toolbox visibility
         if is_agent:
             presets_editor.toggle_tab("experts", True)
-            ui_nodes['preset.editor.temperature'].setVisible(True)
+            # Autonomous Agent does not expose a per-preset temperature.
+            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(False)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent"))
         elif is_agent_v2:
@@ -178,8 +186,22 @@ class Mode:
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(True)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(True)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_v2"))
+        elif is_expert:
+            presets_editor.toggle_tab("experts", False)
+            presets_editor.toggle_tab("personalize", False)
+            presets_editor.toggle_tab("remote_tools", False)
+            ui_nodes['preset.editor.temperature'].setVisible(False)
+            ui_nodes['preset.editor.idx'].setVisible(True)
+            ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(True)
+            ui_nodes['preset.editor.modes'].setVisible(False)
+            ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
         elif is_agent_llama:
             presets_editor.toggle_tab("experts", False)
             ui_nodes['preset.editor.temperature'].setVisible(False)
@@ -187,6 +209,7 @@ class Mode:
             ui_nodes['preset.editor.agent_provider'].setVisible(True)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         elif is_agent_openai:
@@ -196,6 +219,7 @@ class Mode:
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         else:
@@ -209,8 +233,15 @@ class Mode:
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(True)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
+
+        # The upper preset editor pane changes height substantially between
+        # modes.  Re-fit it after every mode switch so no stale splitter size
+        # leaves an empty band above the prompt; the lower section receives all
+        # remaining dialog height in every preset mode.
+        presets_editor.fit_splitter_to_content()
 
         # media options visibility
         # xAI image generation exposes aspect ratio separately from its 1K/2K

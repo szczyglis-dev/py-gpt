@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2026.09.12 12:15:00                  #
 # ================================================== #
 
 import json
@@ -167,10 +167,11 @@ class PresetItem:
             self.agent_openai = data["agent_openai"]
         if "agent_v2" in data:
             self.agent_v2 = bool(data["agent_v2"])
-        if "agent_v2_allow_local_tools" in data:
-            self.agent_v2_allow_local_tools = bool(data["agent_v2_allow_local_tools"])
-        if "agent_v2_allow_remote_tools" in data:
-            self.agent_v2_allow_remote_tools = bool(data["agent_v2_allow_remote_tools"])
+        # Agent/Expert tool policy defaults to enabled for older presets that
+        # predate these fields. Assign unconditionally so reusing a PresetItem
+        # cannot leak a previous False value when the keys are absent.
+        self.agent_v2_allow_local_tools = bool(data.get("agent_v2_allow_local_tools", True))
+        self.agent_v2_allow_remote_tools = bool(data.get("agent_v2_allow_remote_tools", True))
         if "agent_provider" in data:
             self.agent_provider = data["agent_provider"]
         if "agent_provider_openai" in data:

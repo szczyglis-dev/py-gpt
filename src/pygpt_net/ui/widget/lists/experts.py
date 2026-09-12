@@ -167,10 +167,14 @@ class ExpertsEditor(QWidget):
         arrows_layout.addWidget(self.window.ui.nodes["preset.experts.remove"])
 
         self.window.ui.nodes["preset.experts.available.label"] = QLabel(trans("preset.experts.available.label"))
+        self.window.ui.nodes["preset.experts.available.label"].setAlignment(QtCore.Qt.AlignCenter)
+        self.window.ui.nodes["preset.experts.available.label"].setContentsMargins(6, 4, 6, 4)
         self.window.ui.nodes["preset.experts.available"] = ExpertsList(self.window, id="preset.experts.available")
         self.window.ui.nodes["preset.experts.available"].clicked.disconnect()
 
         self.window.ui.nodes["preset.experts.selected.label"] = QLabel(trans("preset.experts.selected.label"))
+        self.window.ui.nodes["preset.experts.selected.label"].setAlignment(QtCore.Qt.AlignCenter)
+        self.window.ui.nodes["preset.experts.selected.label"].setContentsMargins(6, 4, 6, 4)
         self.window.ui.nodes["preset.experts.selected"] = ExpertsList(self.window, id="preset.experts.selected")
         self.window.ui.nodes["preset.experts.selected"].clicked.disconnect()
 

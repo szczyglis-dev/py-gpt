@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 16:00:00                  #
+# Updated Date: 2026.09.12 12:40:00                  #
 # ================================================== #
 
 import datetime
@@ -15,7 +15,7 @@ import shutil
 import uuid
 from typing import Any, Optional, Dict
 
-from PySide6.QtCore import Slot, Qt
+from PySide6.QtCore import Slot, Qt, QTimer
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout, QScrollArea, QFrame
 from PySide6.QtGui import QImageReader
 
@@ -91,7 +91,8 @@ class Editor:
             "description": {
                 "type": "text",
                 "label": "preset.description",
-                "placeholder": "preset.description.desc",
+                "description": "preset.description.desc",
+                "placeholder": "preset.description.placeholder",
             },
             MODE_IMAGE: {
                 "type": "bool",
@@ -218,6 +219,7 @@ class Editor:
         }
         self.hidden_by_mode = {  # hidden fields by mode
             MODE_CHAT: ["idx"],
+            MODE_AGENT: ["temperature"],
             MODE_AGENT_LLAMA: ["temperature"],
             MODE_AGENT_OPENAI: ["temperature"],
             MODE_AGENT_V2: ["temperature"],
@@ -276,84 +278,205 @@ class Editor:
         self.window.ui.add_hook("update.preset.agent_provider", self.hook_update)
         self.window.ui.add_hook("update.preset.agent_provider_openai", self.hook_update)
 
-    def toggle_extra_options(self):
-        """Toggle extra options in preset editor"""
-        if not self.tab_options_idx:
+    def fit_splitter_to_content(self):
+        """Minimize the upper preset pane and give all remaining height to the prompt."""
+        splitter = self.window.ui.splitters.get('editor.presets')
+        if splitter is None or splitter.count() < 2:
             return
-        mode = self.window.core.config.get('mode')
-        tabs = self.window.ui.tabs['preset.editor.extra']
-        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
-            tabs.setTabVisible(0, True)  # show base prompt
-            for opt_id in self.tab_options_idx:  # hide all tabs
-                for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() > tab_idx:
-                        tabs.setTabVisible(tab_idx, False)
-            return
-        else:
-            for opt_id in self.tab_options_idx:  # hide all tabs
-                for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() > tab_idx:
-                        tabs.setTabVisible(tab_idx, False)
 
-            self.toggle_extra_options_by_provider()
+        def fit():
+            # Preset fields are shown/hidden dynamically. Recompute layout
+            # minima after Qt has applied the current mode and size the upper
+            # pane to the smallest height that can contain its visible fields.
+            # The prompt pane receives every remaining pixel.
+            if splitter.count() < 2:
+                return
+
+            upper = splitter.widget(0)
+            lower = splitter.widget(1)
+            if upper is None or lower is None:
+                return
+
+            upper_layout = upper.layout()
+            lower_layout = lower.layout()
+            if upper_layout is not None:
+                upper_layout.invalidate()
+                upper_layout.activate()
+            if lower_layout is not None:
+                lower_layout.invalidate()
+                lower_layout.activate()
+
+            upper.updateGeometry()
+            lower.updateGeometry()
+
+            upper_min = upper.minimumSizeHint().height()
+            if upper_layout is not None:
+                upper_min = max(upper_min, upper_layout.minimumSize().height())
+            upper_min = max(0, upper_min)
+
+            available = splitter.height() - splitter.handleWidth()
+            if available <= 0:
+                return
+
+            # Do not use upper.sizeHint() here. It is a preferred size and may
+            # retain extra vertical space from a previously visible preset mode.
+            # QSplitter will still enforce the real widget minimums if the
+            # dialog is too short.
+            lower_height = max(1, available - upper_min)
+            splitter.setSizes([upper_min, lower_height])
+
+        # A zero-delay pass handles ordinary mode switches. The second pass is
+        # intentional: EditorDialog is resized/shown after preset data is loaded,
+        # so the final window geometry may not exist during the first layout pass.
+        QTimer.singleShot(0, fit)
+        QTimer.singleShot(75, fit)
+
+    def _set_extra_tabs_visible(self, visible_indices, preferred=None):
+        """Apply extra-tab visibility without leaving QTabBar horizontally scrolled.
+
+        The target tab is made visible and selected *before* obsolete tabs are
+        hidden.  QTabBar can otherwise retain the scroll offset of a previously
+        selected provider tab, which clips the left edge of the next title.
+        """
+        tabs = self.window.ui.tabs.get('preset.editor.extra')
+        if not tabs or tabs.count() == 0:
+            return
+
+        visible = sorted({
+            idx for idx in visible_indices
+            if isinstance(idx, int) and 0 <= idx < tabs.count()
+        })
+        if not visible:
+            return
+
+        current = tabs.currentIndex()
+        if preferred in visible:
+            target = preferred
+        elif current in visible:
+            target = current
+        else:
+            target = visible[0]
+
+        # Critical ordering: position/select the destination while the previous
+        # tab geometry still exists.  Only then hide tabs that are no longer
+        # relevant.  This makes Qt reset the tab-bar viewport deterministically.
+        tabs.setTabVisible(target, True)
+        tabs.setCurrentIndex(target)
+        tabs.tabBar().setCurrentIndex(target)
+
+        visible_set = set(visible)
+        for idx in range(tabs.count()):
+            tabs.setTabVisible(idx, idx in visible_set)
+
+        tabs.setCurrentIndex(target)
+        tabs.tabBar().setCurrentIndex(target)
+        self._normalize_extra_tabs()
+
+    def _normalize_extra_tabs(self):
+        """Keep the active visible extra-options tab fully in view."""
+        tabs = self.window.ui.tabs.get('preset.editor.extra')
+        if not tabs:
+            return
+
+        def normalize():
+            if not tabs or tabs.count() == 0:
+                return
+            visible = [
+                i for i in range(tabs.count())
+                if tabs.isTabVisible(i) and tabs.isTabEnabled(i)
+            ]
+            if not visible:
+                return
+
+            current = tabs.currentIndex()
+            target = current if current in visible else visible[0]
+            bar = tabs.tabBar()
+
+            bar.setExpanding(False)
+            bar.setElideMode(Qt.ElideNone)
+            bar.setUsesScrollButtons(len(visible) > 1)
+
+            # Do not use the old currentIndex=-1 workaround here.  Changing the
+            # QTabBar index independently from QTabWidget could itself leave the
+            # bar with stale scroll geometry after dynamic hide/show operations.
+            tabs.setCurrentIndex(target)
+            bar.setCurrentIndex(target)
+            bar.updateGeometry()
+            tabs.updateGeometry()
+            bar.update()
+            tabs.update()
+
+        # Visibility changes and final dialog geometry are asynchronous in Qt.
+        # The first pass fixes normal switches; the second one handles a dialog
+        # that has just been shown or resized.
+        QTimer.singleShot(0, normalize)
+        QTimer.singleShot(75, normalize)
+
+    def toggle_extra_options(self):
+        """Toggle extra options in preset editor."""
+        mode = self.window.core.config.get('mode')
+
+        # All modes except the legacy provider-agent editors use only the base
+        # prompt tab.  Select it before hiding provider tabs so its title always
+        # starts at the left edge of QTabBar.
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
+
+        self.toggle_extra_options_by_provider()
 
     def toggle_extra_options_by_provider(self):
-        """Toggle extra options in preset editor by provider"""
+        """Toggle extra options in preset editor by provider."""
         tabs = self.window.ui.tabs['preset.editor.extra']
 
         if not self.tab_options_idx:
-            tabs.setTabVisible(0, True)  # base prompt
+            self._set_extra_tabs_visible([0], preferred=0)
             return
 
         mode = self.window.core.config.get('mode')
-        key_agent = ""
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-        if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
-            key_agent = "agent_provider_openai" if mode == MODE_AGENT_OPENAI else "agent_provider"
+        key_agent = "agent_provider_openai" if mode == MODE_AGENT_OPENAI else "agent_provider"
 
-            # 1) try from UI
-            current_provider = self.window.controller.config.get_value(
-                parent_id=self.id,
-                key=key_agent,
-                option=self.options[key_agent],
-            )
+        # 1) try from UI
+        current_provider = self.window.controller.config.get_value(
+            parent_id=self.id,
+            key=key_agent,
+            option=self.options[key_agent],
+        )
 
-            # 2) fallback to current preset
-            if not current_provider or current_provider == "_":
-                preset = self.window.core.presets.get_by_uuid(self.current)
-                if preset:
-                    current_provider = getattr(preset, key_agent, None)
+        # 2) fallback to current preset
+        if not current_provider or current_provider == "_":
+            preset = self.window.core.presets.get_by_uuid(self.current)
+            if preset:
+                current_provider = getattr(preset, key_agent, None)
 
-            # 3) if still not set -> show base prompt
-            if not current_provider or current_provider == "_":
-                tabs.setTabVisible(0, True)
-                return
+        # 3) if still not set -> show base prompt
+        if not current_provider or current_provider == "_":
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-            # first hide all tabs
-            for opt_id in self.tab_options_idx:
-                for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() > tab_idx:
-                        tabs.setTabVisible(tab_idx, False)
+        agent = self.window.core.agents.provider.get(current_provider, mode)
+        if not agent:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-            # hide base prompt
-            tabs.setTabVisible(0, False)
+        option_tabs = agent.get_options()
+        provider_tabs = [
+            idx for idx in self.tab_options_idx.get(current_provider, [])
+            if 0 <= idx < tabs.count()
+        ]
+        if not option_tabs or not provider_tabs:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-            # show tabs for current provider
-            for tab_idx in self.tab_options_idx.get(current_provider, []):
-                if tabs.count() > tab_idx:
-                    tabs.setTabVisible(tab_idx, True)
-
-            # if not found, show base prompt
-            agent = self.window.core.agents.provider.get(current_provider, mode)
-            if not agent:
-                tabs.setTabVisible(0, True)
-                return
-            option_tabs = agent.get_options()
-            if not option_tabs:
-                tabs.setTabVisible(0, True)
-        else:
-            # not agent mode -> show base prompt
-            tabs.setTabVisible(0, True)
+        # Preserve the currently selected provider tab when it still belongs to
+        # this provider; otherwise select its first option tab.
+        current = tabs.currentIndex()
+        preferred = current if current in provider_tabs else provider_tabs[0]
+        self._set_extra_tabs_visible(provider_tabs, preferred=preferred)
 
     def load_extra_options(self, preset: PresetItem):
         """
@@ -946,6 +1069,10 @@ class Editor:
             preset = self.window.core.presets.get_by_idx(idx, mode)
         self.init(preset)
         self.window.ui.dialogs.open_editor('editor.preset.presets', idx, width=800)
+        # open_editor() applies the dialog size only after init(). Re-run the
+        # geometry-sensitive fixes against the actual shown dialog dimensions.
+        self.fit_splitter_to_content()
+        self._normalize_extra_tabs()
 
     def reload_all(self, all: bool = False):
         """
@@ -1037,6 +1164,16 @@ class Editor:
 
         options = {}
         data_dict = data.to_dict()
+        if mode == MODE_EXPERT:
+            # Expert presets are agents with a fixed Experts mode, just like
+            # Chat with Agents presets are fixed to Agents v2. Do not expose or
+            # trust legacy mode switches in this editor.
+            for mode_key in (
+                    MODE_CHAT, MODE_COMPLETION, MODE_IMAGE, MODE_LLAMA_INDEX,
+                    MODE_EXPERT, MODE_AGENT_LLAMA, MODE_AGENT, MODE_AGENT_OPENAI,
+                    MODE_AGENT_V2, MODE_AUDIO, MODE_RESEARCH, MODE_COMPUTER):
+                data_dict[mode_key] = False
+            data_dict[MODE_EXPERT] = True
         for key in self.options:
             options[key] = self.options[key]
             options[key]['value'] = data_dict[key]
@@ -1073,6 +1210,11 @@ class Editor:
         self.toggle_extra_options_by_provider()
         if id is None:
             self.append_default_prompt()
+
+        # The preset layout is mode-dependent.  Re-fit the vertical splitter
+        # after all current-mode widgets have settled so the lower prompt pane
+        # immediately consumes all unused height.
+        self.fit_splitter_to_content()
 
     def save(
             self,
@@ -1147,17 +1289,19 @@ class Editor:
             )
             return
 
-        # check if at least one mode is selected
-        is_mode = False
+        # check if at least one mode is selected. Expert mode is fixed by the
+        # editor and therefore does not depend on the hidden mode checkboxes.
+        is_mode = mode == MODE_EXPERT
         get_value = self.window.controller.config.get_value
-        for check in modes:
-            if get_value(
-                parent_id=self.id,
-                key=check,
-                option=self.options[check],
-            ):
-                is_mode = True
-                break
+        if not is_mode:
+            for check in modes:
+                if get_value(
+                    parent_id=self.id,
+                    key=check,
+                    option=self.options[check],
+                ):
+                    is_mode = True
+                    break
         if mode != MODE_AGENT and not is_mode:
             self.window.ui.dialogs.alert(
                 trans('alert.preset.no_chat_completion')
@@ -1175,9 +1319,14 @@ class Editor:
         else:
             self.tmp_avatar = None
 
-        # if agent, assign experts and select only agent mode
+        # Agent-style preset editors have a fixed mode; do not persist stale
+        # mode flags from older/general preset layouts.
         curr_mode = self.window.core.config.get('mode')
-        if curr_mode == MODE_AGENT:
+        if curr_mode == MODE_EXPERT:
+            itm = self.window.core.presets.items[preset_id]
+            itm.reset_modes()
+            itm.expert = True
+        elif curr_mode == MODE_AGENT:
             itm = self.window.core.presets.items[preset_id]
             itm.reset_modes()
             itm.agent = True
@@ -1245,9 +1394,14 @@ class Editor:
         """
         get_value = self.window.controller.config.get_value
         data_dict = {}
+        mode = self.window.core.config.get('mode')
         for key in self.options:
             if key == "tool.function":
                 continue  # assigned separately
+            if mode == MODE_AGENT and key == "temperature":
+                # Legacy Autonomous Agent no longer has a per-preset
+                # temperature. Keep any existing serialized value untouched.
+                continue
             data_dict[key] = get_value(
                 parent_id=self.id,
                 key=key,
@@ -1281,7 +1435,8 @@ class Editor:
         config.set('ai_name', preset.ai_name)
         config.set('user_name', preset.user_name)
         config.set('prompt', preset.prompt)
-        config.set('temperature', preset.temperature)
+        if config.get('mode') != MODE_AGENT:
+            config.set('temperature', preset.temperature)
 
     @Slot()
     def from_current(self):
@@ -1306,12 +1461,13 @@ class Editor:
             option=self.options["prompt"],
             value=get_config('prompt'),
         )
-        apply_value(
-            parent_id=self.id,
-            key="temperature",
-            option=self.options["temperature"],
-            value=get_config('temperature'),
-        )
+        if get_config('mode') != MODE_AGENT:
+            apply_value(
+                parent_id=self.id,
+                key="temperature",
+                option=self.options["temperature"],
+                value=get_config('temperature'),
+            )
         apply_value(
             parent_id=self.id,
             key="model",

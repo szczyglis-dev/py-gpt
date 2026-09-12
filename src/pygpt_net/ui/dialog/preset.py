@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.09.12 12:56:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -165,28 +165,40 @@ class Preset(BaseConfigDialog):
         # experts
         self.window.ui.nodes['preset.editor.experts'] = ExpertsEditor(self.window)
 
-        # desc and prompt
+        # Expert description. It is shown only in Experts mode and is placed
+        # in the upper preset section directly above the tool policy row.
         desc = QWidget()
         desc.setLayout(options['description'])
         desc.setContentsMargins(0, 5, 0, 5)
+        desc.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.window.ui.nodes['preset.editor.description'] = desc
 
         # prompt + extra options
         prompt_layout = QVBoxLayout()
-        prompt_layout.addWidget(widgets['prompt'])
+        prompt_layout.addWidget(widgets['prompt'], 1)
+
+        # Autonomous-agent presets use this shared prompt editor, but their
+        # base instruction is configured globally. Keep the tab title concise
+        # and show that configuration hint below the textarea only in
+        # Autonomous mode.
+        agent_prompt_desc = self.add_description("preset.prompt.agent.desc")
+        agent_prompt_desc.setVisible(False)
+        prompt_layout.addWidget(agent_prompt_desc)
+        self.window.ui.nodes['preset.prompt.agent.desc'] = agent_prompt_desc
+
         prompt_layout.setContentsMargins(0, 10, 0, 10)
 
         footer_layout = self.prepare_extra_config(prompt_layout)
 
         prompt_layout = QVBoxLayout()
         prompt_layout.setContentsMargins(0, 0, 0, 0)
-        prompt_layout.addWidget(self.window.ui.nodes['preset.editor.description'])
-        prompt_layout.addLayout(footer_layout)
+        # The system-prompt section owns all spare vertical space.
+        prompt_layout.addLayout(footer_layout, 1)
 
         widget_prompt = QWidget()
         widget_prompt.setLayout(prompt_layout)
         widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        widget_prompt.setMinimumHeight(300)
+        widget_prompt.setMinimumHeight(160)
 
         # left column
         left_keys = [
@@ -197,8 +209,6 @@ class Preset(BaseConfigDialog):
             "agent_provider",
             "agent_provider_openai",
             "idx",
-            "agent_v2_allow_local_tools",
-            "agent_v2_allow_remote_tools",
         ]
         # personalize tab
         personalize_keys = [
@@ -229,6 +239,30 @@ class Preset(BaseConfigDialog):
             rows.addWidget(node)
             self.window.ui.nodes[node_key] = node
 
+        # Experts-only description row, directly above tool permissions.
+        rows.addWidget(self.window.ui.nodes['preset.editor.description'])
+
+        # Agents v2 / Experts tool policy. Keep both switches in a single row
+        # so the compact agent preset layout is identical in both modes.
+        tools_row = QHBoxLayout()
+        tools_row.setContentsMargins(0, 0, 0, 0)
+        tools_row.setSpacing(20)
+        for key in ("agent_v2_allow_local_tools", "agent_v2_allow_remote_tools"):
+            node_key = f"preset.editor.{key}"
+            node = QWidget()
+            node.setLayout(options[key])
+            node.setContentsMargins(0, 0, 0, 0)
+            node.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+            tools_row.addWidget(node, 1)
+            self.window.ui.nodes[node_key] = node
+
+        tools_widget = QWidget()
+        tools_widget.setLayout(tools_row)
+        tools_widget.setContentsMargins(0, 0, 0, 0)
+        tools_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        rows.addWidget(tools_widget)
+        self.window.ui.nodes['preset.editor.agent_v2_tools'] = tools_widget
+
         # remote tools
         remote_tools =  QWidget()
         remote_tools.setLayout(options['remote_tools'])
@@ -236,6 +270,7 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.remote_tools'] = remote_tools
 
         rows_remote_tools = QVBoxLayout()
+        rows_remote_tools.setContentsMargins(10, 10, 10, 0)
         rows_remote_tools.addWidget(self.window.ui.nodes['preset.editor.remote_tools'])
         rows_remote_tools.addStretch(1)
 
@@ -263,7 +298,9 @@ class Preset(BaseConfigDialog):
         personalize_rows.addWidget(self.window.ui.nodes['preset.editor.avatar'])
         personalize_rows.addStretch(1)
         personalize_rows.addWidget(warn_label)
-        personalize_rows.setContentsMargins(10, 30, 10, 0)
+        # Keep the content aligned with the General tab. The previous 30 px
+        # top margin pushed the AI name row noticeably lower than other tabs.
+        personalize_rows.setContentsMargins(10, 10, 10, 0)
 
         rows.setContentsMargins(0, 0, 0, 0)
         rows.addStretch(1)
@@ -278,27 +315,42 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.experts'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         main = QHBoxLayout()
-        main.addWidget(widget_base)
-        main.addWidget(self.window.ui.nodes['preset.editor.modes'])
+        # Use the same content inset as the other top-level preset tabs.
+        main.setContentsMargins(10, 10, 10, 0)
+        # Keep every variant of the upper preset section pinned to the top.
+        # The splitter may make this pane taller, but its controls must never
+        # drift vertically toward the center when the dialog is resized.
+        main.addWidget(widget_base, 1, Qt.AlignTop)
+        main.addWidget(self.window.ui.nodes['preset.editor.modes'], 1, Qt.AlignTop)
+        main.setAlignment(Qt.AlignTop)
 
         widget_main = QWidget()
         widget_main.setLayout(main)
-        # Critical: ensure the whole top pane (base + modes) stays at content height.
-        widget_main.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        # Keep the upper pane at its preferred height when the dialog itself grows.
+        # It remains manually resizable with the splitter handle.
+        widget_main.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         splitter = QSplitter(Qt.Vertical)
         splitter.addWidget(widget_main)
         splitter.addWidget(widget_prompt)
         splitter.setChildrenCollapsible(False)  # avoid accidental collapsing of any pane
-        # All extra vertical space goes to bottom (extra agent options); top stays at its sizeHint.
+        # Keep both panes manually resizable, but when the whole dialog is resized
+        # assign all additional height to the system-prompt pane. This applies to
+        # the shared Agents v2 / Experts editor layout.
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
+        splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # Prefer the smallest valid upper pane from the very first layout.
+        # Mode-dependent visibility is normalized again by the preset controller
+        # after the dialog is shown; the lower prompt pane owns all spare height.
+        splitter.setSizes([1, 100000])
         self.window.ui.splitters['editor.presets'] = splitter
 
         widget_personalize = QWidget()
         widget_personalize.setLayout(personalize_rows)
 
         experts_rows = QVBoxLayout()
+        experts_rows.setContentsMargins(10, 10, 10, 0)
         experts_rows.addWidget(self.window.ui.nodes['preset.editor.experts'])
 
         widget_experts = QWidget()
@@ -339,6 +391,16 @@ class Preset(BaseConfigDialog):
         self.window.ui.nodes['preset.editor.extra'] = {}
 
         tabs = QTabWidget()
+        # Dynamic agent/provider tabs are frequently shown and hidden. Keep the
+        # tab bar compact and scrollable; the controller also re-selects the
+        # active visible tab after each rebuild so a stale scroll offset cannot
+        # leave the title clipped on the left.
+        tabs.tabBar().setExpanding(False)
+        tabs.tabBar().setUsesScrollButtons(True)
+        # Never let a style elide the prompt/provider tab title. Visibility
+        # changes are handled by the controller before old tabs are hidden, so
+        # the active tab remains fully positioned inside the tab-bar viewport.
+        tabs.tabBar().setElideMode(Qt.ElideNone)
 
         # Make the prompt tab scrollable to avoid vertical overlap in narrow layouts.
         scroll_prompt = QScrollArea()
@@ -352,7 +414,7 @@ class Preset(BaseConfigDialog):
         tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         tabs.setMinimumHeight(150)
         layout = QVBoxLayout()
-        layout.addWidget(tabs)
+        layout.addWidget(tabs, 1)
         self.window.ui.tabs['preset.editor.extra'] = tabs
         return layout
 
