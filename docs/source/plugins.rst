@@ -127,7 +127,7 @@ User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mo
 Audio input
 ------------
 
-The plugin facilitates speech recognition. The default provider is OpenAI Whisper; local Whisper, Google, Google Cloud, Google GenAI, Microsoft Bing, and xAI Grok Voice providers are also available. It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new ``Speak`` option will appear at the bottom near the ``Send`` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+The plugin facilitates speech recognition. The default provider is OpenAI Whisper; local Whisper, Google, Google Cloud, Google GenAI, Microsoft Bing, and xAI Grok Voice providers are also available. It allows voice input and voice commands to be captured through your microphone and transcribed into text. Once the plugin is enabled, use the ``Microphone`` icon on the right side of the input field to start voice input.
 
 The plugin can be extended with other speech recognition providers.
 
@@ -234,7 +234,7 @@ Enables adjustment to ambient noise levels. *Default:* `True`
 
 - ``Continuous listen`` *continuous_listen*
 
-Experimental: continuous listening - do not stop listening after a single input. Warning: This feature may lead to unexpected results and requires fine-tuning with the rest of the options! If disabled, listening must be started manually by enabling the ``Speak`` option. *Default:* `False`
+Experimental: continuous listening - do not stop listening after a single input. Warning: This feature may lead to unexpected results and requires fine-tuning with the rest of the options! If disabled, listening must be started manually using the ``Microphone`` icon on the right side of the input field. *Default:* `False`
 
 - ``Wait for response`` *wait_response*
 
@@ -408,7 +408,6 @@ Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via model.
 
-Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided for the OpenAI API, with no additional keys required.
 
 
 Autonomous mode
