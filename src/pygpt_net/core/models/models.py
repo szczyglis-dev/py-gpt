@@ -667,14 +667,7 @@ class Models:
         :param model: ModelItem
         :return: True if tool call is allowed, False otherwise
         """
-        if mode == MODE_LLAMA_INDEX:
-            if model.provider == "google":
-                stream = self.window.core.config.get('stream', False)
-                if stream:
-                    return False
-        if model.tool_calls:
-            return True
-        return False
+        return model.tool_calls
 
     def get_version(self) -> str:
         """
