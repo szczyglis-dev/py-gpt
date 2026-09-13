@@ -289,7 +289,6 @@ class Mode:
             ui_nodes['input.counter'].setVisible(True)
 
         show = self.is_vision(mode)
-        ui_menu['menu.video'].menuAction().setVisible(show)
         ui_nodes['icon.video.capture'].setVisible(show)
         ui_nodes['attachments.capture_clear'].setVisible(show)
 

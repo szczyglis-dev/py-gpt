@@ -359,7 +359,6 @@ class Mapping:
         menu_title['menu.plugins.presets'] = 'menu.plugins.presets'
         menu_title['menu.about'] = 'menu.info'
         menu_title['menu.audio'] = 'menu.audio'
-        menu_title['menu.video'] = 'menu.video'
         menu_title['menu.tools'] = 'menu.tools'
         menu_title['menu.donate'] = 'menu.info.donate'
 
@@ -394,6 +393,8 @@ class Mapping:
         menu_text['info.website'] = 'menu.info.website'
         menu_text['info.github'] = 'menu.info.github'
         menu_text['info.report'] = 'menu.info.report'
+        menu_text['menu.audio.section.audio'] = 'menu.audio.section.audio'
+        menu_text['menu.audio.section.video'] = 'menu.audio.section.video'
         menu_text['audio.output'] = 'menu.audio.output'
         menu_text['audio.input'] = 'menu.audio.input'
         menu_text['audio.control.plugin'] = 'menu.audio.control.plugin'
