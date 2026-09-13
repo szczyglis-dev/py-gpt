@@ -439,14 +439,9 @@ def test_get_provider_available_custom_provider_keeps_credentials_out_of_model(i
     model = result["custom-model"]
     assert model.provider == importer.provider
     assert model.tool_calls is True
-    assert model.llama_index["args"] == [
-        {"name": "model", "value": "custom-model", "type": "str"}
-    ]
-    assert "env" not in model.llama_index
-    assert not any(
-        item.get("name") in {"api_key", "api_base"}
-        for item in model.llama_index.get("args", [])
-    )
+    # Importer no longer duplicates model/provider defaults into LlamaIndex.
+    # Empty config means "inherit normal provider/model settings at runtime".
+    assert model.llama_index == {}
 
 
 def test_get_providers_option_includes_runtime_custom_provider(importer, mock_window, monkeypatch):

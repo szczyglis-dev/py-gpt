@@ -59,6 +59,8 @@ def dummy_window():
     window.core.api.openai.computer.store_pending_safety_checks = MagicMock()
     window.core.api.openai.container = SimpleNamespace()
     window.core.api.openai.container.download_files = MagicMock()
+    window.core.models = SimpleNamespace()
+    window.core.models.get_reasoning_effort = MagicMock(return_value=None)
     window.core.tokens = SimpleNamespace()
     window.core.tokens.from_messages = MagicMock(return_value=5)
     window.core.tokens.from_user = MagicMock(return_value=10)

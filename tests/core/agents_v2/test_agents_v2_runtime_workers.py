@@ -9,6 +9,9 @@ from unittest.mock import MagicMock, AsyncMock
 from pygpt_net.core.agents_v2.runtime import AgentsV2Runtime
 from pygpt_net.core.agents_v2.mode import AgentMode
 from pygpt_net.core.agents_v2.state import WorkerState, WorkerStatus
+from pygpt_net.core.agents_v2.status import RuntimeStatus
+from pygpt_net.core.agents_v2.strategy import get_agent_strategy
+from pygpt_net.core.agents_v2.workers import WorkerRuntime
 
 
 def make_worker(worker_id="w01", status=WorkerStatus.CREATED, generation=0):
@@ -30,6 +33,7 @@ def make_worker(worker_id="w01", status=WorkerStatus.CREATED, generation=0):
 def make_runtime():
     runtime = AgentsV2Runtime.__new__(AgentsV2Runtime)
     runtime.agent_mode = AgentMode.ORCHESTRATOR
+    runtime.strategy = get_agent_strategy(runtime.agent_mode)
     runtime.workers = {}
     runtime.status_events = []
     runtime._status_seq = 0
@@ -45,12 +49,15 @@ def make_runtime():
     runtime.verbose = MagicMock()
     runtime.verbose_text = MagicMock()
     runtime.window = MagicMock()
+    runtime.window.core.config.get.side_effect = lambda key, default=None: default
     runtime._worker_parent_parts = {}
     runtime._stored_worker_context_runs = set()
     runtime._swarm_worker_numbers = {}
     runtime._swarm_reporter_task = None
     runtime.swarm_created_workers = 0
     runtime.SHOW_AGENT_NAME_IN_STATUS = False
+    runtime.status_api = RuntimeStatus(runtime)
+    runtime.worker_api = WorkerRuntime(runtime)
     return runtime
 
 

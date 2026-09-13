@@ -793,6 +793,7 @@ class TestRenderer:
         renderer.get_output_node = MagicMock(return_value=fake_window.core.ctx.output.get_current(meta))
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
+        fake_window.core.command.realtime_visible_tool_names.return_value = ["search"]
         renderer.tool_output_begin(meta, ["search"])
         node.page().runJavaScript.assert_called()
 

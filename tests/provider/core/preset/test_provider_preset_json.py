@@ -42,7 +42,6 @@ def test_load(mock_window):
         "vision": False,
         "langchain": False,
         "assistant": False,
-        "temperature": 1.0,
         "filename": None
     }
     dump = json.dumps(data)
@@ -74,7 +73,6 @@ def test_save(mock_window):
     item.vision = False
     item.langchain = False
     item.assistant = False
-    item.temperature = 1.0
     item.filename = None
 
     path = os.path.join(mock_window.core.config.path, 'presets', 'test.json')
@@ -103,7 +101,6 @@ def test_save_all(mock_window):
     item.vision = False
     item.langchain = False
     item.assistant = False
-    item.temperature = 1.0
     item.filename = None
     items = {
         'test': item
@@ -150,7 +147,6 @@ def test_serialize(mock_window):
     item.vision = False
    # item.langchain = False
     item.assistant = False
-    item.temperature = 1.0
     item.filename = None
 
     data = provider.serialize(item)
@@ -165,7 +161,6 @@ def test_serialize(mock_window):
 #    assert data['vision'] is False
 #    assert data['langchain'] is False
     assert data['assistant'] is False
-    assert data['temperature'] == 1.0
     assert data['filename'] is None
 
 
@@ -183,7 +178,6 @@ def test_deserialize(mock_window):
         "vision": False,
         #"langchain": False,
         "assistant": False,
-        "temperature": 1.0,
         "filename": None
     }
     item = PresetItem()
@@ -199,5 +193,4 @@ def test_deserialize(mock_window):
     assert item.vision is False
    # assert item.langchain is False
     assert item.assistant is False
-    assert item.temperature == 1.0
     assert item.filename is None

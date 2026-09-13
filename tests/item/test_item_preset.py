@@ -19,7 +19,6 @@ def test_preset_item_integrity():
     assert item.vision is False
     assert item.langchain is False
     assert item.assistant is False
-    assert item.temperature == 1.0
     assert item.filename is None
     assert item.version is None
     assert item.agent_v2_allow_local_tools is True
@@ -82,7 +81,6 @@ def test_preset_from_dict_loads_fields_and_normalizes_uuid():
         "prompt": "p",
         "remote_tools": ["web"],
         "research": True,
-        "temperature": 0.4,
         "tool.function": [{"name": "fn"}],
         "user_name": "User",
         "uuid": raw_uuid,
@@ -104,11 +102,9 @@ def test_preset_from_dict_loads_fields_and_normalizes_uuid():
 def test_preset_from_dict_is_partial():
     item = PresetItem()
     item.name = "keep"
-    item.temperature = 0.9
     returned = item.from_dict({"prompt": "new"})
     assert returned is item
     assert item.name == "keep"
-    assert item.temperature == 0.9
     assert item.prompt == "new"
 
 

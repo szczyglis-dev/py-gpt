@@ -109,14 +109,12 @@ def test_update_current(mock_window):
     preset.ai_name = "preset_ai_name"
     preset.user_name = "preset_user_name"
     preset.prompt = "preset_prompt"
-    preset.temperature = 0.5
     mock_window.core.presets.items = {"preset_id": preset}
 
     presets.update_current()
     assert mock_window.core.config.data["user_name"] == "preset_user_name"
     assert mock_window.core.config.data["ai_name"] == "preset_ai_name"
     assert mock_window.core.config.data["prompt"] == "preset_prompt"
-    assert mock_window.core.config.data["temperature"] == 0.5
 
 
 def test_refersh(mock_window):
@@ -125,7 +123,6 @@ def test_refersh(mock_window):
     presets.select_default = MagicMock()
     presets.update_current = MagicMock()
     presets.update_data = MagicMock()
-    mock_window.controller.mode.update_temperature = MagicMock()
     presets.update_list = MagicMock()
     presets.select_current = MagicMock()
 
@@ -133,7 +130,6 @@ def test_refersh(mock_window):
     presets.select_default.assert_called_once()
     presets.update_current.assert_called_once()
     presets.update_data.assert_called_once()
-    mock_window.controller.mode.update_temperature.assert_called_once()
     presets.update_list.assert_called_once()
     presets.select_current.assert_called_once()
 
@@ -147,7 +143,6 @@ def test_update_list(mock_window):
     preset.ai_name = "preset_ai_name"
     preset.user_name = "preset_user_name"
     preset.prompt = "preset_prompt"
-    preset.temperature = 0.5
     items = {"preset_id": preset}
     mock_window.core.presets.get_by_mode = MagicMock(return_value=items)
 
@@ -190,7 +185,6 @@ def test_duplicate(mock_window):
     preset.ai_name = "preset_ai_name"
     preset.user_name = "preset_user_name"
     preset.prompt = "preset_prompt"
-    preset.temperature = 0.5
 
     mock_window.core.presets = MagicMock()
     mock_window.core.presets.items = {"preset_id": preset}
@@ -217,20 +211,15 @@ def test_clear(mock_window):
     preset.ai_name = "preset_ai_name"
     preset.user_name = "preset_user_name"
     preset.prompt = "preset_prompt"
-    preset.temperature = 0.5
     mock_window.core.presets.items = {"preset_id": preset}
 
     presets.clear(True)
     assert mock_window.core.config.data['ai_name'] == ""
     assert mock_window.core.config.data['user_name'] == ""
     assert mock_window.core.config.data['prompt'] == ""
-    assert mock_window.core.config.data['temperature'] == 1.0
-
     assert preset.ai_name == ""
     assert preset.user_name == ""
     assert preset.prompt == ""
-    assert preset.temperature == 1.0
-
     presets.refresh.assert_called_once()
 
 
@@ -245,7 +234,6 @@ def test_delete(mock_window):
     preset.ai_name = "preset_ai_name"
     preset.user_name = "preset_user_name"
     preset.prompt = "preset_prompt"
-    preset.temperature = 0.5
     mock_window.core.presets = MagicMock()
     mock_window.core.presets.items = {"preset_id": preset}
     mock_window.core.presets.get_by_idx = MagicMock(return_value="preset_id")

@@ -78,14 +78,17 @@ def test_select(mock_window_conf):
         2: item1,
         18: item2,
     }
-    ctx.window.core.models.has_model = MagicMock()
-    ctx.window.core.models.has_model.return_value = True
+    ctx.window.core.config.get = MagicMock(side_effect=lambda key, default=None: (
+        True if key == "model.restore_from_ctx" else default
+    ))
+    ctx.window.core.models.resolve_model_key = MagicMock(return_value="id_last_model")
 
     ctx.load = MagicMock()
     ctx.select(2)
     assert ctx.current == 2
     assert ctx.mode == 'test_mode'
     assert ctx.model == 'id_last_model'
+    ctx.window.core.models.resolve_model_key.assert_called_once_with('test_mode', 'id_last_model')
     assert ctx.thread == 'id_thread'
     assert ctx.assistant == 'id_assistant'
     assert ctx.preset == 'id_preset'

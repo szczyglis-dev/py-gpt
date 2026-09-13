@@ -74,14 +74,13 @@ def test_bridgecontext_to_dict_with_ctx_model_and_reply_ctx(monkeypatch):
     reply.to_dict.return_value = {"reply": True}
     ctx_inst = DummyCtx()
     model_inst = DummyModel()
-    bc = mod.BridgeContext(ctx=ctx_inst, model=model_inst, reply_ctx=reply, history=[1, 2, 3], temperature=0.25, stream=True)
+    bc = mod.BridgeContext(ctx=ctx_inst, model=model_inst, reply_ctx=reply, history=[1, 2, 3], stream=True)
     data = bc.to_dict()
     assert data["ctx"] == {"ctx": "ok", "arg": True}
     assert ctx_inst._arg is True
     assert data["model"] == {"model": "ok"}
     assert data["reply_context"] == {"reply": True}
     assert data["history"] == 3
-    assert data["temperature"] == 0.25
     assert data["stream"] is True
 
 def test_bridgecontext_to_dict_reply_context_none_by_default():

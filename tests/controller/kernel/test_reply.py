@@ -155,8 +155,9 @@ def test_flush_mode_llama_index(reply_instance):
          "log.events": True
     }.get(key, default)
     reply.flush()
-    # ReAct consumes the tool result itself, so no REPLY_RETURN is emitted.
-    assert window.dispatch.call_count == 0
+    # Tool continuation is now unified: the originating LlamaIndex turn also
+    # receives a synthetic REPLY_RETURN so the model can consume the result.
+    assert window.dispatch.call_count == 1
 
 
 def test_flush_uses_origin_mode_not_active_llama_index_mode(reply_instance):

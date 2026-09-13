@@ -242,7 +242,7 @@ def test_get_service_context_uses_custom_embed_when_auto_embed_true(monkeypatch,
     cust_emb_mock.assert_called_once_with(model=fake_model)
 
 
-def test_get_custom_embed_provider_uses_matching_provider_and_includes_api_key(mock_window):
+def test_get_custom_embed_provider_uses_matching_provider_without_duplicating_credentials(mock_window):
     mock_window.core.idx.log = MagicMock()
 
     defaults = [
@@ -253,8 +253,6 @@ def test_get_custom_embed_provider_uses_matching_provider_and_includes_api_key(m
     emb_provider = MagicMock()
     emb_provider.get_embeddings_model = MagicMock(return_value="EMB_CUSTOM")
     mock_window.core.llm.get = MagicMock(side_effect=lambda provider_id: {"provEmb": emb_provider}.get(provider_id))
-
-    mock_window.core.models.prepare_client_args = MagicMock(return_value={"api_key": "KEY123"})
 
     model = ModelItem()
     model.provider = "provEmb"
@@ -267,7 +265,7 @@ def test_get_custom_embed_provider_uses_matching_provider_and_includes_api_key(m
     emb_provider.get_embeddings_model.assert_called_once()
     cfg = emb_provider.get_embeddings_model.call_args.kwargs["config"]
     assert {"name": "model_name", "type": "str", "value": "emb-model-1"} in cfg
-    assert {"name": "api_key", "type": "str", "value": "KEY123"} in cfg
+    assert not any(item.get("name") == "api_key" for item in cfg)
 
     mock_window.core.idx.log.assert_any_call("Embeddings: trying to use provEmb, model_name: emb-model-1")
 

@@ -14,6 +14,8 @@ from types import SimpleNamespace
 from unittest.mock import Mock, MagicMock
 import pytest
 
+from pygpt_net.core.types import MODE_LLAMA_INDEX
+
 chat_mod = importlib.import_module("pygpt_net.core.idx.chat")
 Chat = chat_mod.Chat
 
@@ -237,10 +239,16 @@ def test_retrieval_builds_output_and_metadata(monkeypatch):
 def test_is_stream_allowed_behavior(monkeypatch):
     chat = make_chat(monkeypatch)
     win = chat.window
-    win.core.config._m.update({"cmd": True, "llama.idx.react": True})
-    assert chat.is_stream_allowed() is False
-    win.core.config._m.update({"cmd": False, "llama.idx.react": True})
-    assert chat.is_stream_allowed() is True
+    model = FakeModelItem()
+    win.core.config._m.update({"cmd": True})
+    win.core.models.is_tool_call_allowed = Mock(return_value=False)
+    assert chat.is_stream_allowed(model) is False
+    win.core.models.is_tool_call_allowed.assert_called_once_with(MODE_LLAMA_INDEX, model)
+
+    win.core.models.is_tool_call_allowed.reset_mock()
+    win.core.config._m.update({"cmd": False})
+    assert chat.is_stream_allowed(model) is True
+    win.core.models.is_tool_call_allowed.assert_not_called()
 
 def test_query_file_indexes_and_cleans_tmp(monkeypatch):
     storage = Mock()

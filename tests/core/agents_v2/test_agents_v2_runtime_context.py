@@ -1,13 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from llama_index.core.base.llms.types import ImageBlock, MessageRole, TextBlock
 
+import pygpt_net.core.agents_v2.context as context_module
 import pygpt_net.core.agents_v2.runtime as runtime_module
+from pygpt_net.core.agents_v2.artifacts import RuntimeArtifacts
+from pygpt_net.core.agents_v2.context import RuntimeContext
+from pygpt_net.core.agents_v2.contracts import RuntimeInput, RuntimeOutput
 from pygpt_net.core.agents_v2.runtime import AgentsV2Runtime
+from pygpt_net.core.agents_v2.prompt_builder import RuntimePromptBuilder
+from pygpt_net.core.agents_v2.status import RuntimeStatus
+from pygpt_net.core.agents_v2.timeline import RuntimeTimeline
+from pygpt_net.core.agents_v2.tool_history import RuntimeToolHistory
+from pygpt_net.core.agents_v2.toolset import RuntimeToolset
+from pygpt_net.core.agents_v2.workers import WorkerRuntime
 
 
 def bare_runtime():
@@ -20,8 +31,61 @@ def bare_runtime():
     runtime.verbose = MagicMock()
     runtime.verbose_log = MagicMock()
     runtime.verbose_text = MagicMock()
+    runtime._actor_llms = {}
+    runtime.workers = {}
+    runtime.context_api = RuntimeContext(runtime)
+    runtime.artifact_api = RuntimeArtifacts(runtime)
     return runtime
 
+
+
+def test_agents_v2_runtime_output_returns_stable_snapshot():
+    runtime = AgentsV2Runtime.__new__(AgentsV2Runtime)
+    runtime.run_id = "run-1"
+    runtime.agent_mode = runtime_module.AgentMode.PRIMARY_AGENT
+    runtime.finished = True
+    runtime.final_answer = "done"
+
+    output = runtime.output()
+
+    assert isinstance(output, RuntimeOutput)
+    assert output.run_id == "run-1"
+    assert output.agent_mode is runtime_module.AgentMode.PRIMARY_AGENT
+    assert output.finished is True
+    assert output.final_answer == "done"
+
+
+def test_agents_v2_runtime_from_input_forwards_stable_contract(monkeypatch):
+    captured = {}
+
+    def fake_init(self, window, context, extra, signals, emitter):
+        captured.update({
+            "window": window,
+            "context": context,
+            "extra": extra,
+            "signals": signals,
+            "emitter": emitter,
+        })
+
+    monkeypatch.setattr(AgentsV2Runtime, "__init__", fake_init)
+    data = RuntimeInput(
+        window="window",
+        context="context",
+        extra={"x": 1},
+        signals="signals",
+        emitter="emitter",
+    )
+
+    runtime = AgentsV2Runtime.from_input(data)
+
+    assert isinstance(runtime, AgentsV2Runtime)
+    assert captured == {
+        "window": "window",
+        "context": "context",
+        "extra": {"x": 1},
+        "signals": "signals",
+        "emitter": "emitter",
+    }
 
 def test_agents_v2_runtime_input_images_requires_image_capable_model_and_unique_existing_files(monkeypatch):
     runtime = bare_runtime()
@@ -32,8 +96,8 @@ def test_agents_v2_runtime_input_images_requires_image_capable_model_and_unique_
         "text": SimpleNamespace(path="/tmp/a.txt"),
         "missing": SimpleNamespace(path="/tmp/missing.png"),
     }
-    monkeypatch.setattr(runtime_module.os.path, "isfile", lambda path: path != "/tmp/missing.png")
-    monkeypatch.setattr(runtime_module, "is_image", lambda path: path.endswith(".png"))
+    monkeypatch.setattr(context_module.os.path, "isfile", lambda path: path != "/tmp/missing.png")
+    monkeypatch.setattr(context_module, "is_image", lambda path: path.endswith(".png"))
 
     assert runtime._input_image_paths() == ["/tmp/a.png"]
 
@@ -111,7 +175,7 @@ def test_agents_v2_runtime_shared_context_contains_hidden_input_attachment_manif
             extra={"native_files": True},
         ),
     }
-    monkeypatch.setattr(runtime_module, "is_image", lambda path: path.endswith(".png"))
+    monkeypatch.setattr(context_module, "is_image", lambda path: path.endswith(".png"))
 
     text = runtime._build_shared_context()
 
@@ -206,6 +270,14 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     assert runtime.index_id is None
     assert runtime.shared_context_text == "shared"
     assert runtime.runtime_system_context == "runtime"
+    assert isinstance(runtime.timeline, RuntimeTimeline)
+    assert isinstance(runtime.tool_history, RuntimeToolHistory)
+    assert isinstance(runtime.context_api, RuntimeContext)
+    assert isinstance(runtime.status_api, RuntimeStatus)
+    assert isinstance(runtime.artifact_api, RuntimeArtifacts)
+    assert isinstance(runtime.worker_api, WorkerRuntime)
+    assert isinstance(runtime.toolset_api, RuntimeToolset)
+    assert isinstance(runtime.prompt_api, RuntimePromptBuilder)
     actor_ctx.set_input.assert_called_once_with("input", "orchestrator")
     actor_ctx.set_output.assert_called_once_with("", "Primary Agent")
 
@@ -221,8 +293,8 @@ def test_agents_v2_runtime_build_agent_prefers_function_calling_and_disables_par
         def __init__(self, **kwargs):
             raise AssertionError("ReActAgent should not be used")
 
-    monkeypatch.setattr(runtime_module, "FunctionAgent", FakeFunctionAgent)
-    monkeypatch.setattr(runtime_module, "ReActAgent", FakeReactAgent)
+    monkeypatch.setattr(context_module, "FunctionAgent", FakeFunctionAgent)
+    monkeypatch.setattr(context_module, "ReActAgent", FakeReactAgent)
     runtime = bare_runtime()
     runtime.model = SimpleNamespace(is_ollama=lambda: True)
     runtime.verbose = MagicMock()
@@ -246,8 +318,8 @@ def test_agents_v2_runtime_build_agent_uses_react_for_non_function_calling_model
         def __init__(self, **kwargs):
             captured.update(kwargs)
 
-    monkeypatch.setattr(runtime_module, "FunctionAgent", FakeFunctionAgent)
-    monkeypatch.setattr(runtime_module, "ReActAgent", FakeReactAgent)
+    monkeypatch.setattr(context_module, "FunctionAgent", FakeFunctionAgent)
+    monkeypatch.setattr(context_module, "ReActAgent", FakeReactAgent)
     runtime = bare_runtime()
     runtime.model = SimpleNamespace(is_ollama=lambda: False)
     runtime.verbose = MagicMock()
@@ -264,7 +336,7 @@ def test_agents_v2_runtime_collect_artifacts_merges_only_new_durable_values():
     main = SimpleNamespace(files=["existing"], images=[], urls=[], attachments=[])
     runtime.context.ctx = main
     runtime._artifact_seen = {
-        "files": {runtime_module.json.dumps("existing")},
+        "files": {json.dumps("existing")},
         "images": set(),
         "urls": set(),
         "attachments": set(),

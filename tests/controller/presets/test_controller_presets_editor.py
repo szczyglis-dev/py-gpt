@@ -35,13 +35,12 @@ def test_preset_editor_setup_refreshes_dynamic_lists_and_registers_hooks():
 
 def test_preset_editor_to_current_copies_selected_personalization_values():
     ctrl, window = _editor()
-    preset = SimpleNamespace(ai_name='AI', user_name='User', prompt='Prompt', temperature=0.7)
+    preset = SimpleNamespace(ai_name='AI', user_name='User', prompt='Prompt')
     ctrl.to_current(preset)
     assert window.core.config.set.call_args_list == [
         (('ai_name', 'AI'), {}),
         (('user_name', 'User'), {}),
         (('prompt', 'Prompt'), {}),
-        (('temperature', 0.7), {}),
     ]
 
 
@@ -49,13 +48,13 @@ def test_preset_editor_from_current_applies_all_global_values_to_editor():
     ctrl, window = _editor()
     values = {
         'ai_name': 'AI', 'user_name': 'User', 'prompt': 'P',
-        'temperature': 1.2, 'model': 'm1', 'mode': 'chat',
+        'model': 'm1', 'mode': 'chat',
     }
     window.core.config.get.side_effect = lambda key: values[key]
     ctrl.from_current()
     calls = window.controller.config.apply_value.call_args_list
     assert [c.kwargs['key'] for c in calls] == [
-        'ai_name', 'user_name', 'prompt', 'temperature', 'model'
+        'ai_name', 'user_name', 'prompt', 'model'
     ]
     assert calls[-1].kwargs['value'] == 'm1'
 

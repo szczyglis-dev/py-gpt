@@ -6,12 +6,17 @@ from unittest.mock import MagicMock
 
 from pygpt_net.core.agents_v2.runtime import AgentsV2Runtime
 from pygpt_net.core.agents_v2.mode import AgentMode
+from pygpt_net.core.agents_v2.strategy import get_agent_strategy
+from pygpt_net.core.agents_v2.timeline import RuntimeTimeline
+from pygpt_net.core.agents_v2.tool_history import RuntimeToolHistory
+from pygpt_net.core.agents_v2.utils import json_safe_tool_result, json_safe_tool_value
 from pygpt_net.core.types.tools import is_hidden_tool
 
 
 def make_runtime(enabled=True, extra=None):
     runtime = AgentsV2Runtime.__new__(AgentsV2Runtime)
     runtime.agent_mode = AgentMode.ORCHESTRATOR
+    runtime.strategy = get_agent_strategy(runtime.agent_mode)
     runtime.return_tool_calls_to_main_ctx = enabled
     runtime._main_tool_calls = []
     runtime._main_tool_call_seq = 0
@@ -47,15 +52,17 @@ def make_runtime(enabled=True, extra=None):
         return [task]
 
     runtime.window.core.ctx.record_tool_calls.side_effect = record_tool_calls
+    runtime.timeline = RuntimeTimeline(runtime)
+    runtime.tool_history = RuntimeToolHistory(runtime)
     return runtime, main
 
 
 def test_agents_v2_runtime_tool_value_conversion_is_persistence_safe():
-    assert AgentsV2Runtime._json_safe_tool_value('{"x": 1}') == {"x": 1}
-    assert AgentsV2Runtime._json_safe_tool_value("plain") == "plain"
-    assert AgentsV2Runtime._json_safe_tool_value(None) == {}
-    assert AgentsV2Runtime._json_safe_tool_result('[1, 2]') == [1, 2]
-    assert AgentsV2Runtime._json_safe_tool_result("") == ""
+    assert json_safe_tool_value('{"x": 1}') == {"x": 1}
+    assert json_safe_tool_value("plain") == "plain"
+    assert json_safe_tool_value(None) == {}
+    assert json_safe_tool_result('[1, 2]') == [1, 2]
+    assert json_safe_tool_result("") == ""
 
 
 def test_agents_v2_runtime_local_tool_call_unwraps_params_and_attaches_response():
@@ -108,11 +115,14 @@ def test_agents_v2_runtime_normal_tool_events_pair_by_provider_call_id():
 
 def test_agents_v2_runtime_result_without_call_id_matches_oldest_unanswered_same_tool():
     runtime, _main = make_runtime(True)
-    runtime.record_tool_call({"tool_name": "search", "tool_kwargs": {"q": 1}}, actor="w01")
-    runtime.record_tool_call({"tool_name": "search", "tool_kwargs": {"q": 2}}, actor="w01")
+    # Use a normal persisted tool here. ``search`` belongs to the Mouse & Keyboard
+    # realtime-only hidden tool set and is intentionally excluded from durable/UI
+    # tool history.
+    runtime.record_tool_call({"tool_name": "query_index", "tool_kwargs": {"q": 1}}, actor="w01")
+    runtime.record_tool_call({"tool_name": "query_index", "tool_kwargs": {"q": 2}}, actor="w01")
 
-    runtime.record_tool_result({"tool_name": "search", "tool_output": "one"}, actor="w01")
-    runtime.record_tool_result({"tool_name": "search", "tool_output": "two"}, actor="w01")
+    runtime.record_tool_result({"tool_name": "query_index", "tool_output": "one"}, actor="w01")
+    runtime.record_tool_result({"tool_name": "query_index", "tool_output": "two"}, actor="w01")
 
     assert [item["agents_v2_response"] for item in runtime._main_tool_calls] == ["one", "two"]
 

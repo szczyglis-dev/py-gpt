@@ -21,6 +21,7 @@ def _window():
     return SimpleNamespace(
         core=SimpleNamespace(
             config=MagicMock(),
+            models=MagicMock(),
             api=SimpleNamespace(openai=MagicMock()),
         )
     )
@@ -37,7 +38,7 @@ def test_init_and_api_key_placeholder():
     assert provider.id == "custom_test_12345678"
     assert provider.name == "Test API"
     assert provider.api_base == "https://api.example/v1"
-    assert provider.type == [MODE_LLAMA_INDEX]
+    assert provider.type == [MODE_LLAMA_INDEX, "embeddings"]
     assert provider.is_runtime_custom is True
     assert provider.get_api_key() == "custom"
 
@@ -71,6 +72,10 @@ def test_llama_uses_openai_like_with_provider_defaults():
         ]
     }
     window = _window()
+    window.core.models.prepare_client_args.return_value = {
+        "api_key": "SECRET",
+        "base_url": "https://api.example/v1",
+    }
     llm_instance = object()
 
     with patch("llama_index.llms.openai_like.OpenAILike", return_value=llm_instance) as openai_like:
@@ -101,6 +106,10 @@ def test_llama_per_model_api_configuration_has_priority():
     model.custom_api_endpoint = "https://model.example/v1"
     model.custom_api_key = "MODEL-KEY"
     window = _window()
+    window.core.models.prepare_client_args.return_value = {
+        "api_key": "MODEL-KEY",
+        "base_url": "https://model.example/v1",
+    }
 
     with patch("llama_index.llms.openai_like.OpenAILike", return_value="LLM") as openai_like:
         result = provider.llama(window=window, model=model)
