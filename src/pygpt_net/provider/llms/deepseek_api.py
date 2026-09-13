@@ -44,11 +44,7 @@ class DeepseekApiLLM(BaseLLM):
         :return: LLM provider instance
         """
         from pygpt_net.provider.llms.llama_index.deepseek import DeepSeek
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_deepseek", "")
+        args = self.prepare_openai_compatible_args(window, model)
         reasoning_effort = window.core.models.get_reasoning_effort(model)
         if reasoning_effort:
             additional_kwargs = dict(args.get("additional_kwargs") or {})
@@ -77,12 +73,19 @@ class DeepseekApiLLM(BaseLLM):
             }, window)
         if "api_key" in args:
             args["voyage_api_key"] = args.pop("api_key")
-        if "voyage_api_key" not in args or args["voyage_api_key"] == "":
-            args["voyage_api_key"] = window.core.config.get("api_key_voyage", "")
-        if "model" in args and "model_name" not in args:
+        if not args.get("voyage_api_key"):
+            args["voyage_api_key"] = (
+                self.get_env_override(
+                    window,
+                    window.core.config.get("llama.idx.embeddings.env", []) or [],
+                    ["VOYAGE_API_KEY"],
+                )
+                or window.core.config.get("api_key_voyage", "")
+            )
+        if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
 
-        timeout = window.core.config.get("api_native_voyage.timeout")
+        timeout = args.pop("timeout", self.get_embeddings_timeout(window.core.config))
         max_retries = window.core.config.get("api_native_voyage.max_retries")
         proxy = window.core.config.get("api_proxy")
         if not window.core.config.get("api_proxy.enabled", False):

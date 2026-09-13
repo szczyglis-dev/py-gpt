@@ -150,7 +150,7 @@ See :doc:`indexing` for the complete description of file indexing, context auto-
 * RedisVectorStore
 * SimpleVectorStore
 
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / RAG`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / RAG -> Vector Store``. See the section: ``Configuration / Vector stores`` for configuration reference.
 
 **Configuring data loaders**
 
@@ -429,7 +429,7 @@ You can choose between two methods of evaluation:
 
 You can set the limit of steps in such a loop by going to ``Settings -> Agents and experts -> Agents -> Max evaluation steps in loop``. The default value is ``3``, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
-You can change the prompts used for evaluating the response in ``Settings -> Prompts -> Agent: evaluation prompt in loop``. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
+You can change the prompts used for evaluating the response in ``Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]``. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
 Agent (OpenAI)
 --------------

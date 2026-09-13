@@ -84,16 +84,7 @@ class PerplexityLLM(BaseLLM):
         from llama_index.llms.openai_like import OpenAILike
 
         cfg = window.core.config
-        args = self.parse_args(model.llama_index, window)
-
-        if "api_key" not in args or not args["api_key"]:
-            args["api_key"] = cfg.get("api_key_perplexity", "")
-        if "model" not in args:
-            args["model"] = model.id
-
-        custom_base = cfg.get("api_endpoint_perplexity", "").strip()
-        if custom_base and "api_base" not in args:
-            args["api_base"] = custom_base
+        args = self.prepare_openai_compatible_args(window, model)
 
         # Sonar uses the OpenAI-compatible Chat Completions endpoint.
         if "is_chat_model" not in args:

@@ -573,7 +573,7 @@ Project-aware indexing is also available outside automatic context indexing:
 - The project context menu provides **Update project index** and **Truncate project index** actions. Updating continues incrementally; truncating removes the project's index data and resets its indexing state.
 - Deleting a project also removes its project index. Duplicating a project rebuilds a corresponding isolated index only when the source project had one.
 
-Removing an entry from `Settings -> Indexes / RAG -> Indexes` removes only the configuration entry; it does **not** delete data already stored in the vector store. Use the **Clear and truncate** tab to permanently remove a selected index or all tracked project indexes.
+Removing an entry from `Settings -> Indexes / RAG -> General -> Indexes` removes only the configuration entry; it does **not** delete data already stored in the vector store. Use the **Clear and truncate** tab to permanently remove a selected index or all tracked project indexes.
 
 **WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
 
@@ -592,7 +592,7 @@ Removing an entry from `Settings -> Indexes / RAG -> Indexes` removes only the c
 - SimpleVectorStore
 ```
 
-You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> LlamaIndex` window. See the section: `Configuration / Vector stores` for configuration reference.
+You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> Indexes / RAG -> Vector Store`. See the section: `Configuration / Vector stores` for configuration reference.
 
 
 **Configuring data loaders**
@@ -837,7 +837,7 @@ You can choose between two methods of evaluation:
 
 You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Agents -> Max evaluation steps in loop`. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
-You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: evaluation prompt in loop`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
+You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
 ## Agent (OpenAI)
 
@@ -1014,7 +1014,7 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 **PyGPT** makes it simple for users to upload files and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Attachments` tab next to the text input area specifically for managing file uploads. 
 
-**Tip:** Project-wide attachment sharing is optional. Enable `Settings -> Files and attachments -> Make attachments available in the whole project` to make attachments added in one chat available to all chats in the same project. The option is disabled by default; when disabled, attachments remain available only in the chat where they were added.
+**Tip:** Project-wide attachment sharing is optional. Enable `Settings -> Files and attachments -> General -> Make attachments available in the whole project` to make attachments added in one chat available to all chats in the same project. The option is disabled by default; when disabled, attachments remain available only in the chat where they were added.
 
 ![v2_file_input](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1068,7 +1068,7 @@ The content from the uploaded attachments will be used in the current conversati
 
 - `Summary`: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the `Files and attachments` section.
 
-In the `RAG` and `Summary` mode, you can enable an additional setting by going to `Settings -> Files and attachments -> Use history in RAG query`. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the `RAG limit` option, you can set a limit on how many recent entries in a discussion should be considered (`0 = no limit, default: 3`).
+In the `RAG` and `Summary` mode, you can enable an additional setting by going to `Settings -> Files and attachments -> RAG -> Use history in RAG query`. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the `RAG limit` option, you can set a limit on how many recent entries in a discussion should be considered (`0 = no limit, default: 3`).
 
 **Important**: When using `Full context` mode, the entire content of the file is included in the prompt, which can result in high token usage each time. If you want to reduce the number of tokens used, instead use the `RAG` option, which will only query the indexed attachment in the vector database to provide additional context.
 
@@ -1082,9 +1082,9 @@ To use the `RAG` mode, the file must be indexed in the vector database. This occ
 
 **Embeddings**
 
-When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: `Config -> Settings -> Files and Attachments`. You can also choose the embedding models for specified providers in `Config -> Settings -> Indexes / RAG -> Embeddings -> Default embedding providers for attachments` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+When using RAG to query attachments, the documents are indexed into a temporary vector store. The query model is configured in `Config -> Settings -> Files and attachments -> RAG -> Model for RAG queries`. Embedding configuration is shared with the rest of RAG under `Config -> Settings -> Indexes / RAG -> Embeddings`.
 
-For example, if the RAG query model is `gpt-4o-mini`, then the default model for the provider `OpenAI` will be used. If the default model for `OpenAI` is not specified on the list, the global provider and model will be used.
+`Default embedding models` maps each model provider to its default embedding model and is used for file indexing, conversation-context indexing, and attachments. For attachment RAG, PyGPT first tries the mapping that matches the RAG query model's provider; if no mapping is available, it falls back to the global `Embeddings provider` and its default model. Credentials and endpoints are inherited from the selected provider's normal global settings, including runtime custom providers. `Global embeddings provider **kwargs` and `Global embeddings provider ENV vars` in **Advanced** are optional overrides and normally remain empty. `Embeddings timeout` controls embedding request timeout and defaults to 60 seconds.
 
 ## Downloading files
 
@@ -1104,7 +1104,7 @@ To allow the model to manage files or execute Python code, enable the `Tools` sw
 
 ## What is preset?
 
-Presets in **PyGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system prompt, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `LlamaIndex`.
+Presets in **PyGPT** are templates for quickly switching between reusable conversation/model configurations. A preset can store the selected model and mode availability, system prompt, names/personalization fields, optional RAG index, and mode-specific options such as tool permissions or remote tools. The exact fields shown in the preset editor depend on the selected mode. Presets can be used with built-in providers, custom providers, local models, and LlamaIndex-backed workflows.
 
 The application lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
@@ -1241,8 +1241,10 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - `grok-imagine-video-1.5` (xAI)
 ```
 
-All models are specified in the configuration file `models.json`, which you can customize. 
-This file is located in the base profile/application workdir and is not affected by a project data-workdir override. You can add new models provided directly by `OpenAI API` (or compatible), `Google Gen AI API`, `Anthropic API`, `xAI API`, and those supported by `LlamaIndex` or `Ollama` to this file. Configuration for LlamaIndex in placed in `llama_index` key.
+All models are specified in the configuration file `models.json`, which you can customize.
+This file is located in the base profile/application workdir and is not affected by a project data-workdir override. You can add models for built-in providers, OpenAI-compatible/custom providers, `Ollama`, and LlamaIndex-backed workflows.
+
+For normal LlamaIndex use, no model-specific API key, endpoint, model name, `**kwargs` or `ENV` block is required. PyGPT resolves the LlamaIndex model from the model ID/provider and reuses the provider's normal global credentials and endpoint. This also applies to runtime custom providers. The optional LlamaIndex fields in the model's **Advanced** section are overrides only: add `**kwargs` or `ENV` values when you intentionally need provider-specific parameters or want to override the inherited configuration. The model importer therefore does not need to create LlamaIndex `args`/`env` entries for ordinary models.
 
 You can import new models by manually editing `models.json` or by using the model importer in the `Config -> Models -> Import` menu.
 
@@ -1287,7 +1289,7 @@ and add a row with:
 
 Custom providers are stored in `config.json` under the `api_custom_providers` key. After saving Settings, they are registered immediately and become available anywhere PyGPT uses the LLM provider registry, including the Models Editor and `Config -> Models -> Import`. The importer obtains the model list from the provider's OpenAI-compatible `/models` endpoint.
 
-Models assigned to a custom provider use the native OpenAI Python SDK with the **Chat Completions API** in normal Chat mode. In **Chat with Files (LlamaIndex)** and LlamaIndex-based flows, PyGPT uses the LlamaIndex `OpenAILike` wrapper with the same API base URL and API key. Custom runtime providers intentionally use Chat Completions compatibility; they do not enable the OpenAI Responses API.
+Models assigned to a custom provider use the native OpenAI Python SDK with the **Chat Completions API** in normal Chat mode. In **Chat with Files (LlamaIndex)** and LlamaIndex-based flows, PyGPT uses the LlamaIndex `OpenAILike` wrapper and automatically reuses the same provider-level API base URL and API key. You do not need to duplicate them in LlamaIndex `**kwargs` or `ENV`. Custom runtime providers intentionally use Chat Completions compatibility; they do not enable the OpenAI Responses API.
 
 Once the provider is saved, import its models from `Config -> Models -> Import`, or create/edit a model manually and select the custom provider from the provider list. Model-specific `API base` / `API key` values in the Models Editor, when provided, override the custom provider values for that model.
 
@@ -1299,7 +1301,7 @@ How to use locally installed Gemma 4, Qwen 3.6, Llama 4, DeepSeek, Mistral, Biel
 
 1) Choose a working mode: `Chat` or `Chat with Files`.
 
-2) On the models list - select, edit, or add a new model (with `ollama` provider). You can edit the model settings through the menu `Config -> Models -> Edit`, then configure the model parameters in the `advanced` section.
+2) On the models list, select, edit, import, or add a model with the `ollama` provider. The model ID should match the name served by Ollama. No LlamaIndex `model_name` entry in Advanced `**kwargs` is required; PyGPT uses the model ID automatically.
 
 3) Download and install Ollama from here: https://github.com/ollama/ollama
 
@@ -1337,12 +1339,7 @@ The default endpoint for Ollama is: http://localhost:11434
 
 You can change it globally by setting the environment variable `OLLAMA_API_BASE` in `Settings -> General -> Advanced -> Application environment`.
 
-You can also change the "base_url" for a specific model in its configuration:
-
-`Config -> Models -> Edit`, then in the `Advanced -> [LlamaIndex] ENV Vars` section add the variable:
-
-NAME: `OLLAMA_API_BASE`
-VALUE: `http://my_endpoint.com:11434`
+The global value is automatically reused by Ollama LlamaIndex LLM and embedding wrappers. If one model must use a different endpoint, you can override it for that model in `Config -> Models -> Edit -> Advanced -> [LlamaIndex] ENV Vars` with `OLLAMA_API_BASE`.
 
 
 **List of all models supported by Ollama**
@@ -1351,31 +1348,23 @@ https://ollama.com/library
 
 https://github.com/ollama/ollama
 
-**IMPORTANT:** Remember to define the correct model name in the **kwargs list in the model settings.
-
 **Using local embeddings**
 
 Refer to: https://docs.llamaindex.ai/en/stable/examples/embeddings/ollama_embedding/
 
-You can use an Ollama instance for embeddings. Simply select the `ollama` provider in:
+You can use an Ollama instance for embeddings. Open `Config -> Settings -> Indexes / RAG -> Embeddings`, select `ollama` as the global `Embeddings provider`, and set the Ollama embedding model in `Default embedding models` for the `ollama` provider.
 
-```Config -> Settings -> Indexes / RAG -> Embeddings -> Embeddings provider```
-
-Define parameters like model name and Ollama base URL in the Embeddings provider **kwargs list, e.g.:
-
-- name: `model_name`, value: `gemma4:e4b`, type: `str`
-
-- name: `base_url`, value: `http://localhost:11434`, type: `str`
+The Ollama endpoint is inherited from the global `OLLAMA_API_BASE` configuration, so it does not need to be repeated in embedding `**kwargs`. `Global embeddings provider **kwargs` and `Global embeddings provider ENV vars` are available in the Embeddings **Advanced** group only for optional overrides. The common `Embeddings timeout` setting applies to embedding requests and defaults to 60 seconds.
 
 ### Other providers and LlamaIndex-based modes
 
 PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal `Chat`, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. `Chat with Files` and other non-Chat workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
 
-For built-in providers, configure credentials in `Config -> Settings -> API Keys`. In most cases, LlamaIndex wrappers automatically reuse the corresponding provider key, so you do not need to duplicate credentials in model-specific environment variables. The model configuration normally only needs the correct provider and model name.
+Configure provider credentials/endpoints once in `Config -> Settings -> API Keys` or, for runtime OpenAI-compatible providers, in `Config -> Settings -> Custom providers`. LlamaIndex-backed modes reuse those global settings automatically and use the selected model ID as the model name. Model-level LlamaIndex `**kwargs` and `ENV` can remain empty.
 
-Use the model's `Advanced` fields only when you need provider-specific overrides, a custom endpoint, or additional LlamaIndex arguments. For `Local models (OpenAI API compatible)`, prefer the per-model `API base` and `API key` fields. Advanced LlamaIndex `**kwargs` and `ENV` values remain available for backend-specific options such as `context_window`, `is_chat_model`, or custom integration parameters.
+Use the model's **Advanced** LlamaIndex fields only when you need an explicit provider-specific override or extra constructor parameter. For `Local models (OpenAI API compatible)`, prefer the per-model `API base` and `API key` fields when only one model needs a different connection.
 
-Examples of built-in provider credential reuse include Google, Anthropic, xAI, Mistral AI, Perplexity, and HuggingFace. DeepSeek and Anthropic use the configured VoyageAI key for their default embeddings integration.
+Embeddings follow the same rule. Configure the global embedding provider and provider-to-model mappings in `Config -> Settings -> Indexes / RAG -> Embeddings`. API keys and endpoints are inherited from the selected provider's global configuration; `Global embeddings provider **kwargs` and `Global embeddings provider ENV vars` are optional Advanced overrides. DeepSeek and Anthropic use the configured VoyageAI key for their default Voyage embedding integration.
 
 # Plugins
 
@@ -2296,7 +2285,21 @@ Config -> Settings...
 
 ![v2_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_settings.png)
 
-The Settings window contains configuration for API providers, layout, files and attachments, chats, remote tools, models, prompts, media, RAG/indexes, agents, security, accessibility, updates, debugging, and other application features.
+The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
+
+- **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI
+- **Layout:** General, Code syntax
+- **Files and attachments:** General, RAG
+- **Chats:** List, Render, Options
+- **Remote tools:** OpenAI, Google, Anthropic, xAI
+- **Images and video:** Image, Video
+- **Vision and camera:** Camera
+- **Audio:** Devices, Options, Cache
+- **Indexes / RAG:** General, Vector Store, Chat, Embeddings, File indexing, Context indexing, Data loaders, Clear and truncate
+- **Agents and experts:** Chat with Agents, Agents, Autonomous, Legacy
+- **Security:** General, Computer use, Linux, Windows, macOS
+
+The **Embeddings** tab uses the selected global provider plus `Default embedding models`; its global `**kwargs` and `ENV` fields are optional overrides placed in **Advanced**, not required credentials/model configuration.
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:
 
@@ -2380,7 +2383,7 @@ https://pygpt.readthedocs.io/en/latest/configuration.html#configuration-data-loa
 - SimpleVectorStore
 ```
 
-You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> LlamaIndex` window. 
+You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> Indexes / RAG -> Vector Store`. 
 
 Arguments provided here (on list: `Vector Store (**kwargs)` in `Advanced settings` will be passed to selected vector store provider. You can check keyword arguments needed by selected provider on LlamaIndex API reference page: 
 

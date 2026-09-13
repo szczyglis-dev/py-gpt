@@ -136,10 +136,17 @@ class AnthropicLLM(BaseLLM):
         proxy = window.core.config.get("api_proxy", None)
         if not window.core.config.get("api_proxy.enabled", False):
             proxy = None
-        if "model" not in args:
+        if not args.get("model"):
             args["model"] = model.id
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_anthropic", "")
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    (model.llama_index or {}).get("env", []),
+                    ["ANTHROPIC_API_KEY"],
+                )
+                or window.core.config.get("api_key_anthropic", "")
+            )
 
         # ---------------------------------------------
         # Remote server tools (e.g., web_search_20250305)
@@ -313,10 +320,17 @@ class AnthropicLLM(BaseLLM):
         proxy = window.core.config.get("api_proxy", None)
         if not window.core.config.get("api_proxy.enabled", False):
             proxy = None
-        if "model" not in args:
+        if not args.get("model"):
             args["model"] = model.id
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_anthropic", "")
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    (model.llama_index or {}).get("env", []),
+                    ["ANTHROPIC_API_KEY"],
+                )
+                or window.core.config.get("api_key_anthropic", "")
+            )
 
         built_remote_tools = []
         if allow_remote_tools:
@@ -370,12 +384,19 @@ class AnthropicLLM(BaseLLM):
             }, window)
         if "api_key" in args:
             args["voyage_api_key"] = args.pop("api_key")
-        if "voyage_api_key" not in args or args["voyage_api_key"] == "":
-            args["voyage_api_key"] = window.core.config.get("api_key_voyage", "")
-        if "model" in args and "model_name" not in args:
+        if not args.get("voyage_api_key"):
+            args["voyage_api_key"] = (
+                self.get_env_override(
+                    window,
+                    window.core.config.get("llama.idx.embeddings.env", []) or [],
+                    ["VOYAGE_API_KEY"],
+                )
+                or window.core.config.get("api_key_voyage", "")
+            )
+        if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
 
-        timeout = window.core.config.get("api_native_voyage.timeout")
+        timeout = args.pop("timeout", self.get_embeddings_timeout(window.core.config))
         max_retries = window.core.config.get("api_native_voyage.max_retries")
         proxy = window.core.config.get("api_proxy")
         if not window.core.config.get("api_proxy.enabled", False):

@@ -112,13 +112,7 @@ class xAILLM(BaseLLM):
 
         from llama_index.llms.openai_like import OpenAILike
 
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_xai", "")
-        if "api_base" not in args or args["api_base"] == "":
-            args["api_base"] = window.core.config.get("api_endpoint_xai", "https://api.x.ai/v1")
+        args = self.prepare_openai_compatible_args(window, model)
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
@@ -140,13 +134,7 @@ class xAILLM(BaseLLM):
         """Build an xAI Responses/Agent Tools LlamaIndex adapter."""
         from pygpt_net.provider.llms.x_ai_responses_agent import AgentXAIResponses
 
-        args = self.parse_args(model.llama_index, window)
-        args["model"] = args.get("model") or model.id
-        args["api_key"] = args.get("api_key") or window.core.config.get("api_key_xai", "")
-        args["api_base"] = args.get("api_base") or window.core.config.get(
-            "api_endpoint_xai",
-            "https://api.x.ai/v1",
-        )
+        args = self.prepare_openai_compatible_args(window, model)
 
         # Grok 3 does not support the current server-side Agent Tools. Mirror
         # normal xAI Chat and Agents v2 by switching to the configured fallback.
@@ -258,29 +246,17 @@ class xAILLM(BaseLLM):
 
         cfg = window.core.config
 
-        args: Dict = {}
-        if config is not None:
-            args = self.parse_args({"args": config}, window)
-
-        if "api_key" not in args or not args["api_key"]:
-            args["api_key"] = cfg.get("api_key_xai", "")
-
-        if "model" in args and "model_name" not in args:
-            args["model_name"] = args.pop("model")
-
-        # if OpenAI-compatible
-        if "api_base" not in args or not args["api_base"]:
-            args["api_base"] = cfg.get("api_endpoint_xai", "https://api.x.ai/v1")
+        args = self.prepare_openai_compatible_embedding_args(window, config)
 
         proxy = cfg.get("api_proxy") or cfg.get("api_native_xai.proxy")
         if not cfg.get("api_proxy.enabled", False):
             proxy = ""
-        timeout = cfg.get("api_native_xai.timeout")
+        timeout = self.get_embeddings_timeout(cfg)
 
         # 1) REST (OpenAI-compatible)
         try_args = dict(args)
         try:
-            try_args = self.inject_llamaindex_http_clients(try_args, cfg)
+            try_args = self.inject_llamaindex_embedding_http_clients(try_args, cfg)
             return BaseXAIEmbedding(**try_args)
         except TypeError:
             # goto gRPC

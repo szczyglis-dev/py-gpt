@@ -41,18 +41,8 @@ class OpenRouterLLM(BaseLLM):
         :return: Embedding provider instance
         """
         from llama_index.embeddings.openai_like import OpenAILikeEmbedding
-        args = {}
-        if config is not None:
-            args = self.parse_args({
-                "args": config,
-            }, window)
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key_open_router", "")
-        if "api_base" not in args:
-            args["api_base"] = window.core.config.get("api_endpoint_open_router", "")
-        if "model" in args and "model_name" not in args:
-            args["model_name"] = args.pop("model")
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
         return OpenAILikeEmbedding(**args)
 
     def llama(
@@ -70,13 +60,7 @@ class OpenRouterLLM(BaseLLM):
         :return: LLM provider instance
         """
         from llama_index.llms.openai_like import OpenAILike
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key_open_router", "")
-        if "api_base" not in args:
-            args["api_base"] = window.core.config.get("api_endpoint_open_router", "")
+        args = self.prepare_openai_compatible_args(window, model)
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:

@@ -119,7 +119,7 @@ class OpenAILLM(BaseLLM):
                     params.pop("max_tokens", None)
                 return params
 
-        args = self.parse_args(model.llama_index, window)
+        args = self.prepare_openai_compatible_args(window, model)
         model_id = str(args.get("model") or model.id or "").strip()
         if model_id.startswith("text-davinci"):
             # Preserve PyGPT's historical compatibility fallback.
@@ -127,17 +127,6 @@ class OpenAILLM(BaseLLM):
         if not model_id:
             raise ValueError("Model name is required for OpenAI completion.")
         args["model"] = model_id
-
-        # Use the same credentials/endpoints as the native OpenAI client,
-        # including per-model API overrides. OpenAILike expects api_base.
-        custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
-        custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
-        if not args.get("api_key"):
-            args["api_key"] = custom_api_key or window.core.config.get("api_key", "")
-        if not args.get("api_base"):
-            api_base = custom_api_endpoint or window.core.config.get("api_endpoint", "")
-            if api_base:
-                args["api_base"] = api_base
 
         organization = str(window.core.config.get("organization_key", "") or "").strip()
         if organization:
@@ -240,12 +229,7 @@ class OpenAILLM(BaseLLM):
         """
         from llama_index.llms.openai import OpenAI as LlamaOpenAI
         from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
-        args = self.parse_args(model.llama_index, window)
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key", "")
-        if "model" not in args:
-            args["model"] = model.id
-
+        args = self.prepare_openai_compatible_args(window, model)
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         mode = window.core.config.get("mode")
         # dont' use Responses in agent modes
@@ -312,11 +296,7 @@ class OpenAILLM(BaseLLM):
         from llama_index.llms.openai import OpenAI as LlamaOpenAI
         from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
 
-        args = self.parse_args(model.llama_index, window)
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key", "")
-        if "model" not in args:
-            args["model"] = model.id
+        args = self.prepare_openai_compatible_args(window, model)
         args = self.inject_llamaindex_http_clients(args, window.core.config)
 
         if allow_remote_tools:
@@ -363,15 +343,6 @@ class OpenAILLM(BaseLLM):
         :return: Embedding provider instance
         """
         from llama_index.embeddings.openai import OpenAIEmbedding
-        args = {}
-        if config is not None:
-            args = self.parse_args({
-                "args": config,
-            }, window)
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key", "")
-        if "model" in args and "model_name" not in args:
-            args["model_name"] = args.pop("model")
-
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
         return OpenAIEmbedding(**args)

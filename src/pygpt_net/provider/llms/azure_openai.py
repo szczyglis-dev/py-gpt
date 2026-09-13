@@ -90,10 +90,28 @@ class AzureOpenAILLM(BaseLLM):
         """
         from llama_index.llms.azure_openai import AzureOpenAI as LlamaAzureOpenAI
         args = self.parse_args(model.llama_index, window)
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key", "")
-        if "model" not in args:
+        env = (model.llama_index or {}).get("env", [])
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(window, env, ["AZURE_OPENAI_API_KEY", "OPENAI_API_KEY"])
+                or window.core.config.get("api_key", "")
+            )
+        if not args.get("model"):
             args["model"] = model.id
+        if not args.get("azure_endpoint"):
+            endpoint = (
+                self.get_env_override(window, env, ["AZURE_OPENAI_ENDPOINT"])
+                or window.core.config.get("api_azure_endpoint", "")
+            )
+            if endpoint:
+                args["azure_endpoint"] = endpoint
+        if not args.get("api_version"):
+            api_version = (
+                self.get_env_override(window, env, ["OPENAI_API_VERSION", "AZURE_OPENAI_API_VERSION"])
+                or window.core.config.get("api_azure_version", "")
+            )
+            if api_version:
+                args["api_version"] = api_version
         reasoning_effort = window.core.models.get_reasoning_effort(model)
         if reasoning_effort:
             additional_kwargs = dict(args.get("additional_kwargs") or {})
@@ -120,9 +138,27 @@ class AzureOpenAILLM(BaseLLM):
             args = self.parse_args({
                 "args": config,
             }, window)
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key", "")
-        if "model" in args and "model_name" not in args:
+        env = window.core.config.get("llama.idx.embeddings.env", []) or []
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(window, env, ["AZURE_OPENAI_API_KEY", "OPENAI_API_KEY"])
+                or window.core.config.get("api_key", "")
+            )
+        if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        if not args.get("azure_endpoint"):
+            endpoint = (
+                self.get_env_override(window, env, ["AZURE_OPENAI_ENDPOINT"])
+                or window.core.config.get("api_azure_endpoint", "")
+            )
+            if endpoint:
+                args["azure_endpoint"] = endpoint
+        if not args.get("api_version"):
+            api_version = (
+                self.get_env_override(window, env, ["OPENAI_API_VERSION", "AZURE_OPENAI_API_VERSION"])
+                or window.core.config.get("api_azure_version", "")
+            )
+            if api_version:
+                args["api_version"] = api_version
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
         return AzureOpenAIEmbedding(**args)

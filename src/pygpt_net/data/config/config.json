@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.8.17",
     "app.version": "2.8.17",
-    "updated_at": "2026-09-13T09:00:00"
+    "updated_at": "2026-09-13T09:00:00",
+    "version": "2.8.17"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -187,32 +187,32 @@
   "ctx.urls.internal": false,
   "ctx.use_extra": true,
   "current_model": {
-    "chat": "gpt-5.6-terra",
-    "completion": "gpt-3.5-turbo-instruct",
-    "img": "gpt-image-2.5-flare",
-    "langchain": "gpt-4o-mini",
-    "llama_index": "gpt-5.6-terra",
-    "vision": "gpt-5.6-terra",
     "agent": "gpt-5.6-terra",
     "agent_llama": "gpt-5.6-terra",
     "agent_openai": "gpt-5.6-terra",
-    "expert": "gpt-5.6-terra",
+    "agent_v2": "gpt-5.6-terra",
+    "chat": "gpt-5.6-terra",
+    "completion": "gpt-3.5-turbo-instruct",
     "computer": "gpt-5.6-sol",
-    "agent_v2": "gpt-5.6-terra"
+    "expert": "gpt-5.6-terra",
+    "img": "gpt-image-2.5-flare",
+    "langchain": "gpt-4o-mini",
+    "llama_index": "gpt-5.6-terra",
+    "vision": "gpt-5.6-terra"
   },
   "current_preset": {
-    "chat": "",
-    "completion": "",
-    "img": "",
-    "langchain": "",
-    "llama_index": "",
-    "vision": "",
     "agent": "",
     "agent_llama": "",
     "agent_openai": "",
-    "expert": "",
+    "agent_v2": "",
+    "chat": "",
+    "completion": "",
     "computer": "",
-    "agent_v2": ""
+    "expert": "",
+    "img": "",
+    "langchain": "",
+    "llama_index": "",
+    "vision": ""
   },
   "debug": false,
   "debug.render": false,
@@ -274,69 +274,45 @@
   "llama.idx.custom_meta.web": [],
   "llama.idx.db.index": "base",
   "llama.idx.db.last": 0,
-  "llama.idx.embeddings.args": [
-    {
-      "name": "model_name",
-      "value": "text-embedding-3-small",
-      "type": "str"
-    },
-    {
-      "name": "api_base",
-      "value": "https://api.openai.com/v1",
-      "type": "str"
-    },
-    {
-      "name": "timeout",
-      "value": 60,
-      "type": "float"
-    }
-  ],
+  "llama.idx.embeddings.args": [],
   "llama.idx.embeddings.default": [
     {
-      "provider": "anthropic",
-      "model": "voyage-3.5"
+      "model": "voyage-3.5",
+      "provider": "anthropic"
     },
     {
-      "provider": "deepseek_api",
-      "model": "voyage-3.5"
+      "model": "voyage-3.5",
+      "provider": "deepseek_api"
     },
     {
-      "provider": "google",
-      "model": "gemini-embedding-001"
+      "model": "gemini-embedding-001",
+      "provider": "google"
     },
     {
-      "provider": "openai",
-      "model": "text-embedding-3-small"
+      "model": "text-embedding-3-small",
+      "provider": "openai"
     },
     {
-      "provider": "azure_openai",
-      "model": "text-embedding-3-small"
+      "model": "text-embedding-3-small",
+      "provider": "azure_openai"
     },
     {
-      "provider": "mistral_ai",
-      "model": "mistral-embed"
+      "model": "mistral-embed",
+      "provider": "mistral_ai"
     },
     {
-      "provider": "ollama",
-      "model": ""
+      "model": "",
+      "provider": "ollama"
     },
     {
-      "provider": "x_ai",
-      "model": ""
+      "model": "",
+      "provider": "x_ai"
     }
   ],
-  "llama.idx.embeddings.env": [
-    {
-      "name": "OPENAI_API_KEY",
-      "value": "{api_key}"
-    },
-    {
-      "name": "OPENAI_API_BASE",
-      "value": "{api_endpoint}"
-    }
-  ],
+  "llama.idx.embeddings.env": [],
   "llama.idx.embeddings.limit.rpm": 100,
   "llama.idx.embeddings.provider": "openai",
+  "llama.idx.embeddings.timeout": 60,
   "llama.idx.excluded.ext": "3g2,3gp,7z,a,aac,aiff,alac,apk,apk,apng,app,ar,avif,bin,cab,class,deb,deb,dll,dmg,dmg,drv,dsd,dylib,dylib,ear,egg,elf,esd,exe,flac,flv,heic,heif,ico,img,iso,jar,ko,lib,lz,lz4,m2v,mpc,msi,nrg,o,ogg,ogv,pcm,pkg,pkg,psd,pyc,rar,rpm,rpm,so,so,svg,swm,sys,vdi,vhd,vhdx,vmdk,vob,war,whl,wim,wma,wmv,xz,zst",
   "llama.idx.excluded.force": false,
   "llama.idx.list": [
@@ -504,80 +480,80 @@
   "stream": true,
   "tabs.data": {
     "0": {
-      "uuid": "58c017b7-f0a4-4303-af0d-d2d70d8c1b15",
-      "pid": 0,
-      "idx": 0,
-      "type": 0,
-      "data_id": 1,
-      "title": "Chat",
       "custom_name": false,
-      "title_source": "default"
+      "data_id": 1,
+      "idx": 0,
+      "pid": 0,
+      "title": "Chat",
+      "title_source": "default",
+      "type": 0,
+      "uuid": "58c017b7-f0a4-4303-af0d-d2d70d8c1b15"
     },
     "1": {
-      "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e",
-      "pid": 1,
-      "idx": 1,
-      "type": 2,
-      "data_id": null,
-      "title": "Files",
       "custom_name": false,
-      "title_source": "default"
+      "data_id": null,
+      "idx": 1,
+      "pid": 1,
+      "title": "Files",
+      "title_source": "default",
+      "type": 2,
+      "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e"
     },
     "2": {
-      "uuid": "61e1b447-aed7-4678-890c-b44402a019eb",
-      "pid": 2,
-      "idx": 2,
-      "type": 4,
-      "data_id": null,
-      "title": "Calendar",
       "custom_name": false,
-      "title_source": "default"
+      "data_id": null,
+      "idx": 2,
+      "pid": 2,
+      "title": "Calendar",
+      "title_source": "default",
+      "type": 4,
+      "uuid": "61e1b447-aed7-4678-890c-b44402a019eb"
     },
     "3": {
-      "uuid": "31aa5dfc-d6ce-4bd5-b28d-a5bcabffa506",
-      "pid": 3,
-      "idx": 3,
-      "type": 3,
-      "data_id": null,
-      "title": "Painter",
       "custom_name": false,
-      "title_source": "default"
+      "data_id": null,
+      "idx": 3,
+      "pid": 3,
+      "title": "Painter",
+      "title_source": "default",
+      "type": 3,
+      "uuid": "31aa5dfc-d6ce-4bd5-b28d-a5bcabffa506"
     },
     "4": {
-      "uuid": "2944f757-2e1c-45b9-8281-2a12e00f3fab",
-      "pid": 4,
-      "idx": 4,
-      "type": 1,
-      "data_id": 1,
-      "title": "Notepad",
       "custom_name": false,
-      "title_source": "default"
+      "data_id": 1,
+      "idx": 4,
+      "pid": 4,
+      "title": "Notepad",
+      "title_source": "default",
+      "type": 1,
+      "uuid": "2944f757-2e1c-45b9-8281-2a12e00f3fab"
     },
     "5": {
-      "uuid": "4e90829a-a2c9-4006-a46e-e18460673948",
-      "pid": 5,
-      "idx": 0,
-      "type": 100,
-      "data_id": null,
-      "title": "Python/OS",
-      "tooltip": "",
-      "custom_name": false,
-      "title_source": "default",
       "column_idx": 1,
-      "tool_id": "interpreter"
+      "custom_name": false,
+      "data_id": null,
+      "idx": 0,
+      "pid": 5,
+      "title": "Python/OS",
+      "title_source": "default",
+      "tool_id": "interpreter",
+      "tooltip": "",
+      "type": 100,
+      "uuid": "4e90829a-a2c9-4006-a46e-e18460673948"
     },
     "6": {
-      "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9",
-      "pid": 6,
-      "idx": 1,
-      "type": 100,
-      "data_id": null,
-      "title": "HTML/JS Canvas",
-      "tooltip": "",
-      "custom_name": false,
-      "title_source": "default",
       "column_idx": 1,
-      "tool_id": "html_canvas"
+      "custom_name": false,
+      "data_id": null,
+      "idx": 1,
+      "pid": 6,
+      "title": "HTML/JS Canvas",
+      "title_source": "default",
+      "tool_id": "html_canvas",
+      "tooltip": "",
+      "type": 100,
+      "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9"
     }
   },
   "theme": "dark_darker",

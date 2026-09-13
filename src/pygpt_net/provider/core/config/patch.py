@@ -804,6 +804,14 @@ class Patch:
                             current_models[mode_key] = normalized
                             updated = True
 
+                # Embeddings use a dedicated request timeout from 2.8.17.
+                # Keep the base default for existing profiles; Advanced kwargs may
+                # still override provider-specific timeout fields where supported.
+                key = "llama.idx.embeddings.timeout"
+                if key not in data:
+                    data[key] = cfg_get_base(key)
+                    updated = True
+
                 # Chat with Agents worker limit is configurable from 2.8.17.
                 # Keep 16 as the default for existing profiles; 0 means unlimited.
                 key = "agent.v2.max_workers"

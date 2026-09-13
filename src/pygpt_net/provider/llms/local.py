@@ -40,14 +40,8 @@ class LocalLLM(BaseLLM):
         :return: Embedding provider instance
         """
         from llama_index.embeddings.openai_like import OpenAILikeEmbedding
-        args = {}
-        if config is not None:
-            args = self.parse_args({
-                "args": config,
-            }, window)
-        if "model" in args and "model_name" not in args:
-            args["model_name"] = args.pop("model")
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
         return OpenAILikeEmbedding(**args)
 
     def llama(
@@ -65,20 +59,11 @@ class LocalLLM(BaseLLM):
         :return: LLM provider instance
         """
         from llama_index.llms.openai_like import OpenAILike
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
+        args = self.prepare_openai_compatible_args(window, model)
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
-
-        custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
-        custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
-        if custom_api_key:
-            args["api_key"] = custom_api_key
-        if custom_api_endpoint:
-            args["api_base"] = custom_api_endpoint
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)

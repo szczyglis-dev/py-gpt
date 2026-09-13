@@ -108,6 +108,112 @@ class BaseLLM:
                                 pass
         return args
 
+    def get_env_override(
+            self,
+            window,
+            env: Optional[List[Dict]],
+            names: List[str],
+    ) -> Optional[str]:
+        """Return a declared Advanced ENV override without using stale process ENV."""
+        wanted = set(names)
+        for item in env or []:
+            if not isinstance(item, dict) or item.get("name") not in wanted:
+                continue
+            value = item.get("value")
+            if value is None:
+                return None
+            if isinstance(value, str):
+                try:
+                    value = value.format(**window.core.config.all())
+                except Exception:
+                    pass
+            value = str(value)
+            return value if value else None
+        return None
+
+    def get_openai_compatible_env_names(self) -> tuple[List[str], List[str]]:
+        """Return common API key/base ENV names accepted by a provider."""
+        key_names = ["OPENAI_API_KEY"]
+        base_names = ["OPENAI_API_BASE"]
+        provider_names = {
+            "deepseek_api": (["DEEPSEEK_API_KEY"], ["DEEPSEEK_API_BASE"]),
+            "x_ai": (["XAI_API_KEY"], ["XAI_API_BASE"]),
+            "perplexity": (["PERPLEXITY_API_KEY", "PPLX_API_KEY"], ["PERPLEXITY_API_BASE"]),
+            "open_router": (["OPENROUTER_API_KEY"], ["OPENROUTER_API_BASE"]),
+            "huggingface_router": (["HF_TOKEN", "HUGGING_FACE_HUB_TOKEN"], ["HF_INFERENCE_ENDPOINT"]),
+            "forge": (["FORGE_API_KEY"], ["FORGE_API_BASE"]),
+            "edenai": (["EDENAI_API_KEY"], ["EDENAI_API_BASE"]),
+        }
+        extra_keys, extra_bases = provider_names.get(self.id, ([], []))
+        return [*extra_keys, *key_names], [*extra_bases, *base_names]
+
+    def prepare_openai_compatible_args(
+            self,
+            window,
+            model: ModelItem,
+            options: Optional[dict] = None,
+    ) -> dict:
+        """Resolve LlamaIndex args with normal PyGPT provider defaults.
+
+        ``model.llama_index.args`` remains an override layer. Missing/empty
+        model, API key and API base are inherited from the same global/provider
+        configuration used by normal Chat, including runtime custom providers
+        and per-model custom endpoint/key overrides.
+        """
+        if options is None:
+            options = model.llama_index
+        args = self.parse_args(options or {}, window)
+
+        if not args.get("model"):
+            args["model"] = model.id
+
+        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
+        key_env_names, base_env_names = self.get_openai_compatible_env_names()
+        env = (model.llama_index or {}).get("env", [])
+        if not args.get("api_key"):
+            api_key = self.get_env_override(window, env, key_env_names)
+            if not api_key:
+                api_key = client_args.get("api_key")
+            if api_key:
+                args["api_key"] = api_key
+        if not args.get("api_base"):
+            api_base = self.get_env_override(window, env, base_env_names)
+            if not api_base:
+                api_base = client_args.get("base_url")
+            if api_base:
+                args["api_base"] = api_base
+        return args
+
+    def prepare_openai_compatible_embedding_args(
+            self,
+            window,
+            config: Optional[List[Dict]] = None,
+    ) -> dict:
+        """Resolve embedding overrides against provider-global API settings."""
+        args = self.parse_args({"args": config or []}, window)
+
+        model = ModelItem()
+        model.provider = self.id
+        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
+        key_env_names, base_env_names = self.get_openai_compatible_env_names()
+        env = window.core.config.get("llama.idx.embeddings.env", []) or []
+
+        if not args.get("api_key"):
+            api_key = self.get_env_override(window, env, key_env_names)
+            if not api_key:
+                api_key = client_args.get("api_key")
+            if api_key:
+                args["api_key"] = api_key
+        if not args.get("api_base"):
+            api_base = self.get_env_override(window, env, base_env_names)
+            if not api_base:
+                api_base = client_args.get("base_url")
+            if api_base:
+                args["api_base"] = api_base
+        if args.get("model") and not args.get("model_name"):
+            args["model_name"] = args.pop("model")
+        return args
+
     def completion(
             self,
             window,
@@ -332,4 +438,32 @@ class BaseLLM:
 
         args["http_client"] = httpx.Client(**common_kwargs)
         args["async_http_client"] = httpx.AsyncClient(**common_kwargs)
+        return args
+
+    def get_embeddings_timeout(self, cfg) -> float:
+        """Return the global embeddings request timeout in seconds."""
+        value = cfg.get("llama.idx.embeddings.timeout")
+        try:
+            timeout = float(value)
+        except (TypeError, ValueError):
+            timeout = 60.0
+        return timeout if timeout > 0 else 60.0
+
+    def inject_llamaindex_embedding_http_clients(self, args: dict, cfg) -> dict:
+        """Inject HTTP clients using the global embeddings request timeout."""
+        import httpx
+        proxy = (cfg.get("api_proxy") or "").strip()
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
+        common_kwargs = dict(
+            timeout=self.get_embeddings_timeout(cfg),
+            follow_redirects=True,
+        )
+        if proxy:
+            common_kwargs["proxy"] = proxy  # httpx>=0.28
+
+        if "http_client" not in args:
+            args["http_client"] = httpx.Client(**common_kwargs)
+        if "async_http_client" not in args:
+            args["async_http_client"] = httpx.AsyncClient(**common_kwargs)
         return args

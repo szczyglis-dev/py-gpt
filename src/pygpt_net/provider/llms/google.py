@@ -93,10 +93,20 @@ class GoogleLLM(BaseLLM):
         """
         from pygpt_net.provider.llms.google_capture import PyGPTGoogleGenAI
         args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_google", "")
+        if not args.get("model"):
+            model_id = str(model.id or "").strip()
+            if model_id and not model_id.startswith("models/"):
+                model_id = "models/" + model_id
+            args["model"] = model_id
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    (model.llama_index or {}).get("env", []),
+                    ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+                )
+                or window.core.config.get("api_key_google", "")
+            )
 
         window.core.api.google.setup_env()  # setup VertexAI if configured
         args = self.inject_llamaindex_http_clients(args, window.core.config)
@@ -175,10 +185,20 @@ class GoogleLLM(BaseLLM):
         from pygpt_net.provider.llms.google_agent import AgentGoogleGenAI
 
         args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_google", "")
+        if not args.get("model"):
+            model_id = str(model.id or "").strip()
+            if model_id and not model_id.startswith("models/"):
+                model_id = "models/" + model_id
+            args["model"] = model_id
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    (model.llama_index or {}).get("env", []),
+                    ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+                )
+                or window.core.config.get("api_key_google", "")
+            )
 
         window.core.api.google.setup_env()
         args = self.inject_llamaindex_http_clients(args, window.core.config)
@@ -217,13 +237,20 @@ class GoogleLLM(BaseLLM):
             args = self.parse_args({
                 "args": config,
             }, window)
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_google", "")
-        if "model" in args and "model_name" not in args:
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    window.core.config.get("llama.idx.embeddings.env", []) or [],
+                    ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+                )
+                or window.core.config.get("api_key_google", "")
+            )
+        if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
 
         window.core.api.google.setup_env()  # setup VertexAI if configured
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
         return GoogleGenAIEmbedding(**args)
 
     def get_models(
@@ -260,4 +287,19 @@ class GoogleLLM(BaseLLM):
                 async_client_args={"proxy": proxy},
             )
             args["http_options"] = http_options
+        return args
+
+    def inject_llamaindex_embedding_http_clients(self, args: dict, cfg) -> dict:
+        if "http_options" in args:
+            return args
+        proxy = cfg.get("api_proxy")
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
+        options = {
+            "timeout": int(self.get_embeddings_timeout(cfg) * 1000),
+        }
+        if proxy:
+            options["client_args"] = {"proxy": proxy}
+            options["async_client_args"] = {"proxy": proxy}
+        args["http_options"] = gtypes.HttpOptions(**options)
         return args

@@ -213,7 +213,7 @@ class LiteLLMProvider(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.llama_index, window)
+        args = self.prepare_openai_compatible_args(window, model)
         model_name = args.pop("model", model.id)
         temperature = float(args.pop("temperature", 0.7))
         max_tokens = int(args.pop("max_tokens", 1024))

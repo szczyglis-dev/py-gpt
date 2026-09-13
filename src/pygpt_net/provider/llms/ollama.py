@@ -235,11 +235,30 @@ class OllamaLLM(BaseLLM):
             args = self.parse_args({
                 "args": config,
             }, window)
-        if 'OLLAMA_API_BASE' in os.environ:
-            if "base_url" not in args:
-                args["base_url"] = os.environ['OLLAMA_API_BASE']
-        if "model" in args and "model_name" not in args:
+        if not args.get("base_url"):
+            # Advanced embedding ENV is an override; otherwise resolve the
+            # normal app-level OLLAMA_API_BASE setting. Reading the configured
+            # rows directly avoids a stale process ENV value after an override
+            # has been cleared in the UI.
+            base_url = (
+                self.get_env_override(
+                    window,
+                    window.core.config.get("llama.idx.embeddings.env", []) or [],
+                    ["OLLAMA_API_BASE"],
+                )
+                or self.get_env_override(
+                    window,
+                    window.core.config.get("app.env", []) or [],
+                    ["OLLAMA_API_BASE"],
+                )
+                or "http://localhost:11434"
+            )
+            args["base_url"] = base_url
+        if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
+        client_kwargs = dict(args.get("client_kwargs") or {})
+        client_kwargs.setdefault("timeout", self.get_embeddings_timeout(window.core.config))
+        args["client_kwargs"] = client_kwargs
         return OllamaEmbedding(**args)
 
     def init_embeddings(

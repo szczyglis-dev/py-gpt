@@ -100,19 +100,34 @@ class HuggingFaceApiLLM(BaseLLM):
         args = self.parse_args(model.llama_index, window)
 
         # model
-        if "model" not in args:
+        if not args.get("model"):
             args["model"] = model.id
 
         # token / api_key
-        if "token" not in args:
-            if "api_key" in args and args["api_key"]:
+        if not args.get("token"):
+            if args.get("api_key"):
                 args["token"] = args.pop("api_key")
             else:
-                args["token"] = cfg.get("api_key_hugging_face", "")
+                args["token"] = (
+                    self.get_env_override(
+                        window,
+                        (model.llama_index or {}).get("env", []),
+                        ["HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "OPENAI_API_KEY"],
+                    )
+                    or cfg.get("api_key_hugging_face", "")
+                )
 
         # Inference Endpoint / router
-        base_url = cfg.get("api_endpoint_hugging_face", "").strip()
-        if base_url and "base_url" not in args:
+        base_url = (
+            self.get_env_override(
+                window,
+                (model.llama_index or {}).get("env", []),
+                ["HF_INFERENCE_ENDPOINT", "OPENAI_API_BASE"],
+            )
+            or cfg.get("api_endpoint_hugging_face", "")
+            or ""
+        ).strip()
+        if base_url and not args.get("base_url"):
             args["base_url"] = base_url
 
         # proxy + trust_env (async)
@@ -137,19 +152,34 @@ class HuggingFaceApiLLM(BaseLLM):
             args = self.parse_args({"args": config}, window)
 
         # token / api_key
-        if "token" not in args:
-            if "api_key" in args:
+        if not args.get("token"):
+            if args.get("api_key"):
                 args["token"] = args.pop("api_key")
             else:
-                args["token"] = window.core.config.get("api_key_hugging_face", "")
+                args["token"] = (
+                    self.get_env_override(
+                        window,
+                        window.core.config.get("llama.idx.embeddings.env", []) or [],
+                        ["HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "OPENAI_API_KEY"],
+                    )
+                    or window.core.config.get("api_key_hugging_face", "")
+                )
 
         # model_name alias
-        if "model" in args and "model_name" not in args:
+        if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
 
         # Inference Endpoint / router
-        base_url = window.core.config.get("api_endpoint_hugging_face", "").strip()
-        if base_url and "base_url" not in args:
+        base_url = (
+            self.get_env_override(
+                window,
+                window.core.config.get("llama.idx.embeddings.env", []) or [],
+                ["HF_INFERENCE_ENDPOINT", "OPENAI_API_BASE"],
+            )
+            or window.core.config.get("api_endpoint_hugging_face", "")
+            or ""
+        ).strip()
+        if base_url and not args.get("base_url"):
             args["base_url"] = base_url
 
         # proxy + trust_env (async)
@@ -157,6 +187,7 @@ class HuggingFaceApiLLM(BaseLLM):
         if not window.core.config.get("api_proxy.enabled", False):
             proxy = ""
         trust_env = window.core.config.get("api_native_hf.trust_env", False)
+        args.setdefault("timeout", self.get_embeddings_timeout(window.core.config))
 
         return HFEmbed(proxy=proxy, trust_env=trust_env, **args)
 

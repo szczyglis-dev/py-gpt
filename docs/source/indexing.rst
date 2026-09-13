@@ -12,7 +12,7 @@ Index types
 PyGPT uses three related index concepts:
 
 * **Configured indexes** are the normal persistent indexes listed in
-  ``Settings -> Indexes / RAG -> Indexes``. They can contain files,
+  ``Settings -> Indexes / RAG -> General -> Indexes``. They can contain files,
   external data, and indexed conversation context.
 * **Project indexes** are isolated persistent indexes created automatically for
   projects. They are shown to the user as ``Current project`` and are not added

@@ -215,6 +215,38 @@ class Llm:
                 binder(runtime)
         return llm
 
+    def get_default_embeddings_model(self, provider: str) -> str:
+        """Return the globally configured default embedding model for provider."""
+        defaults = self.window.core.config.get("llama.idx.embeddings.default", []) or []
+        for item in defaults:
+            if not isinstance(item, dict):
+                continue
+            if item.get("provider") != provider:
+                continue
+            return str(item.get("model") or "").strip()
+        return ""
+
+    def prepare_embeddings_config(self, provider: str, args: Optional[List[Dict]]) -> List[Dict]:
+        """Treat embedding args as overrides and fill only a missing model name."""
+        config = [dict(item) if isinstance(item, dict) else item for item in (args or [])]
+        if self.extract_model_name_from_args(config):
+            return config
+
+        model_name = self.get_default_embeddings_model(provider)
+        if not model_name:
+            return config
+
+        for item in config:
+            if isinstance(item, dict) and item.get("name") in ("model", "model_name"):
+                item["value"] = model_name
+                return config
+        config.append({
+            "name": "model_name",
+            "type": "str",
+            "value": model_name,
+        })
+        return config
+
     def get_embeddings_provider(self) -> BaseEmbedding:
         """
         Get current embeddings provider
@@ -222,14 +254,15 @@ class Llm:
         :return: Llama embeddings provider instance
         """
         provider = self.window.core.config.get("llama.idx.embeddings.provider", self.default_embed)
-        env = self.window.core.config.get("llama.idx.embeddings.env", [])
-        args = self.window.core.config.get("llama.idx.embeddings.args", [])
+        env = self.window.core.config.get("llama.idx.embeddings.env", []) or []
+        args = self.window.core.config.get("llama.idx.embeddings.args", []) or []
 
         llm_provider = self.window.core.llm.get(provider) if provider is not None else None
         if llm_provider is None:
             provider = self.default_embed
             llm_provider = self.window.core.llm.get(provider)
 
+        args = self.prepare_embeddings_config(provider, args)
         llm_provider.init_embeddings(
             window=self.window,
             env=env,
@@ -281,12 +314,13 @@ class Llm:
 
         # try to get custom args from config for the model provider
         is_custom_provider = False
-        defaults = self.window.core.config.get("llama.idx.embeddings.default", [])
+        defaults = self.window.core.config.get("llama.idx.embeddings.default", []) or []
         for item in defaults:
+            if not isinstance(item, dict):
+                continue
             provider = item.get("provider", "")
             if provider and provider == model.provider:
                 is_custom_provider = True
-                client_args = self.window.core.models.prepare_client_args(MODE_CHAT, model)
                 model_name = item.get("model", "")
                 if not model_name:
                     model_name = model.id  # fallback to model id if not set in config (Ollama, etc)
@@ -297,24 +331,30 @@ class Llm:
                         "value": model_name,
                     }
                 ]
-                if model.provider != "ollama":
-                    args.append(
-                        {
+
+                # Keep model-specific OpenAI-compatible overrides in the
+                # auto-embedding path. Provider-global credentials/endpoints
+                # are resolved by the provider itself; these two values are
+                # intentionally added only when the model explicitly overrides
+                # them. This is relevant for Local AI and runtime custom
+                # providers, where a model may point at another endpoint.
+                if (model.provider == "local_ai"
+                        or self.window.core.llm.is_custom_provider(model.provider)):
+                    custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
+                    custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+                    if custom_api_key:
+                        args.append({
                             "name": "api_key",
                             "type": "str",
-                            "value": client_args.get("api_key", ""),
-                        }
-                    )
-                if model.provider == "local_ai":
-                    custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+                            "value": custom_api_key,
+                        })
                     if custom_api_endpoint:
-                        args.append(
-                            {
-                                "name": "api_base",
-                                "type": "str",
-                                "value": custom_api_endpoint,
-                            }
-                        )
+                        args.append({
+                            "name": "api_base",
+                            "type": "str",
+                            "value": custom_api_endpoint,
+                        })
+
                 self.window.core.idx.log(f"Embeddings: trying to use {model.provider}, model_name: {model_name}")
                 break
 
@@ -338,8 +378,10 @@ class Llm:
         :return: Model name if configured
         """
         model_name = ""
-        for item in args:
-            if item.get("name") in ["model", "model_name"]:
+        for item in args or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("name") in ["model", "model_name"] and item.get("value"):
                 model_name = item.get("value")
                 break
         return model_name

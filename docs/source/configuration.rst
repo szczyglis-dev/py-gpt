@@ -155,6 +155,9 @@ Eden AI
 Layout
 ~~~~~~
 
+General
+^^^^^^^
+
 * ``Style (chat)``: Selects the visual style used to display messages and other content in the chat view. It changes presentation only and does not affect model behavior. Default: ``chatgpt``.
 
 * ``Chat output window zoom``: Sets the scale of content displayed in the chat output, including text, code blocks, images, and controls. Use it to enlarge or shrink chat output independently of the individual font-size settings. Default: 1.0.
@@ -186,9 +189,9 @@ Code syntax
 
 * ``Disable syntax highlighting``: Renders code blocks without token-level syntax coloring. This can reduce rendering work for very large outputs or avoid highlighting issues with unusual code; the code content itself is unchanged. Default: False.
 
-* ``Highlight every Nth line (real-time)``: Controls how often streaming code is re-highlighted as new lines arrive. Larger values reduce renderer work during long code streams at the cost of less frequent visual updates. Default: 50.
+* ``Highlight every Nth line (real-time)``: Controls how often streaming code is re-highlighted as new lines arrive. Larger values reduce renderer work during long code streams at the cost of less frequent visual updates. Default: 5.
 
-* ``Highlight every N chars (real-time)``: Adds a character-count trigger for re-running syntax highlighting while code is streaming. Larger values reduce update frequency and can improve performance on large streamed responses. Default: 300.
+* ``Highlight every N chars (real-time)``: Adds a character-count trigger for re-running syntax highlighting while code is streaming. Larger values reduce update frequency and can improve performance on large streamed responses. Default: 1000.
 
 * ``Max lines to highlight (real-time)``: Limits syntax highlighting during streaming to code blocks up to the configured number of lines. Blocks above the limit are left unhighlighted while streaming to avoid expensive repeated rendering; set ``0`` to disable the limit. Default: 100.
 
@@ -198,6 +201,9 @@ Code syntax
 
 Files and attachments
 ~~~~~~~~~~~~~~~~~~~~~
+
+General
+^^^^^^^
 
 * ``Store attachments in the workdir upload directory``: Copies uploaded attachments into PyGPT-managed upload storage so the files remain available after the original upload action. With ``Store images, captures, and uploads in the workdir data directory`` disabled, this is the base-profile ``upload`` directory. With that option enabled, upload storage follows the active runtime ``data`` workdir, including a custom project data workdir. Disable this option if you do not want PyGPT to keep its own persistent copy. Default: True.
 
@@ -211,6 +217,11 @@ Files and attachments
 
 * ``Append attachment only once (mode: only if available, auto-detect)``: If enabled, the sent attachment will be appended once to the sending message, if the selected model and API handle the storage of sent messages on the server side. This may optimize token usage by sending attachments only once. Default: True.
 
+* ``Directory for file downloads``: Chooses the subdirectory under the active runtime ``data`` directory where files downloaded by PyGPT tools and integrations are saved. For a project with a custom data workdir, the subdirectory is created below that project directory; otherwise it is relative to the shared profile ``data`` directory. Default: ``download``.
+
+RAG
+^^^
+
 * ``Model for attachment content summary``: Model to use when generating a summary for the content of a file when the Summary option is selected. Default: gpt-4o-mini.
 
 * ``Model for RAG queries``: Model used to prepare and execute RAG queries when the RAG option is selected. Default: gpt-4o-mini.
@@ -219,43 +230,49 @@ Files and attachments
 
 * ``RAG limit``: Only if the option 'Use history in RAG query' is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit. Default: 3.
 
-* ``Directory for file downloads``: Chooses the subdirectory under the active runtime ``data`` directory where files downloaded by PyGPT tools and integrations are saved. For a project with a custom data workdir, the subdirectory is created below that project directory; otherwise it is relative to the shared profile ``data`` directory. Default: ``download``.
-
 Chats
 ~~~~~
 
-* ``Conversations per load (0 = all)``: Number of conversations loaded at a time in the conversation list. When you scroll to the bottom of the list, the next batch is loaded automatically. Set to 0 to load all conversations at once. Default: 1000.
+List
+^^^^
 
-* ``Model used for auto-summary``: Selects the model that generates automatic conversation summaries/titles used in the context list. This model is called separately from the active chat model when auto-summary is enabled. Default: ``gpt-4o-mini``.
+* ``Conversations shown in the list``: Number of conversations shown at a time in the conversation list. When you scroll to the bottom, the next batch is shown automatically. Set to ``0`` to show all conversations at once. Default: 1000.
+
+* ``Model used for auto-summary``: Selects the model that generates automatic conversation summaries/titles used in the conversation list. This model is called separately from the active chat model when auto-summary is enabled. Default: ``gpt-4o-mini``.
 
 * ``Automatic conversation summary``: Automatically generates a short summary/title for the conversation list instead of relying only on the first message. The model is selected by ``Model used for auto-summary``. Default: True.
 
-* ``Show projects at the top of the context list``: Keeps project containers grouped before ordinary conversations in the left context list. Disable it to let projects follow the normal list ordering. Default: True.
+* ``Show projects at the top of the conversation list``: Keeps project containers grouped before ordinary conversations in the left conversation list. Disable it to let projects follow the normal list ordering. Default: True.
 
 * ``Show date separators in the context list``: Groups ordinary conversations under relative age/date headers in the context list, making older items easier to scan. Disable it to display a continuous list without those separators. Default: True.
 
-* ``Show date separators in projects in the context list``: Groups conversations inside each project under relative age/date headers. Disable it if project contents should be shown as one uninterrupted list. Default: True.
+* ``Show date separators in projects in the context list``: Groups conversations inside each project under relative age/date headers. Default: False.
 
-* ``Show date separators in pinned items in the context list``: Adds relative age/date headers within the pinned-conversations area. It is disabled by default so pinned items remain a compact continuous group. Default: False.
+* ``Show date separators in pinned items in the context list``: Adds relative age/date headers within the pinned-conversations area. Default: False.
+
+* ``Search conversation content as well as titles``: Extends conversation-list search from titles/metadata to the text of stored messages. This finds more matches but can require more work on large histories. Default: True.
+
+Render
+^^^^^^
+
+* ``Show RAG sources``: Appends source nodes/documents returned by RAG retrieval to the rendered answer when source metadata is available. Default: True.
+
+* ``Show Code Interpreter output``: Displays execution results returned by provider-side Code Interpreter tools as part of the conversation. Default: True.
+
+* ``Show reasoning in real-time``: Requests and displays reasoning/thinking content exposed by supported models while a response is streaming. When disabled, PyGPT does not request or collect real-time reasoning through the supported reasoning path. Default: False.
+
+* ``Hide reasoning after response``: Collapses/hides the live reasoning panel when the normal answer begins/finishes according to the active renderer flow. Default: True.
+
+* ``Use extra context output``: Renders the human-readable/plain-text part of tool or command results in addition to their structured JSON payload when both forms are available. Default: True.
+
+Options
+^^^^^^^
 
 * ``Use context (memory)``: Includes previous messages from the current conversation when building new model requests, allowing the model to follow the ongoing dialogue. Disable it to send each new interaction without prior conversational context. Default: True.
 
-* ``Lock incompatible modes``: Prevents an existing conversation from being reused when you switch to a mode whose context format is incompatible with it. PyGPT creates a new context instead, avoiding mixed-mode history that a provider or mode cannot correctly consume. Default: True.
+* ``Lock incompatible modes``: Prevents an existing conversation from being reused when you switch to a mode whose context format is incompatible with it. PyGPT creates a new context instead. Default: True.
 
-* ``Search conversation content as well as titles``: Extends context-list search from conversation titles/metadata to the text of stored messages. This finds more matches but can require more work on large histories. Default: True.
-
-* ``Show RAG sources``: Appends the source nodes/documents returned by RAG retrieval to the rendered answer when source metadata is available. The current retrieval implementation may use LlamaIndex internally. Source display is not available on every streamed-response path, so it may appear only after non-streamed retrieval responses. Default: True.
-
-* ``Show Code Interpreter output``: Displays the execution results returned by provider-side Code Interpreter tools as part of the conversation. Disable it if you want the tool to run but do not want its raw/auxiliary output rendered in chat. Default: True.
-
-
-* ``Show reasoning in real-time``: Displays reasoning/thinking content exposed by supported models while a response is streaming. It affects only what PyGPT renders in the UI; providers that do not expose reasoning have nothing to show. Default: True.
-
-* ``Hide reasoning after response``: Collapses/hides the live reasoning panel as soon as ordinary answer tokens begin arriving. Disable it if you want exposed model reasoning to remain visible until the complete response finishes. Default: True.
-
-* ``Use extra context output``: Renders the human-readable/plain-text part of tool or command results in addition to their structured JSON payload when both forms are available. Disable it if you prefer to see only the structured tool output. Default: True.
-
-* ``Open URLs in built-in browser``: Opens clicked links inside PyGPT's built-in Chromium browser rather than handing them to the operating system's default browser. Disable it to use your normal external browser. Default: False.
+* ``Open URLs in built-in browser``: Opens clicked links inside PyGPT's built-in Chromium browser rather than handing them to the operating system's default browser. Default: False.
 
 Remote tools
 ~~~~~~~~~~~~
@@ -339,19 +356,13 @@ xAI
 Models
 ~~~~~~
 
+* ``Restore used model from stored conversation``: Restores the model saved with a conversation or preset when it is loaded. Disable it to keep the currently selected model. Default: False.
+
 * ``Max output tokens``: Caps the number of tokens PyGPT asks the model to generate in a single response where the provider/API supports an output-token limit. Set ``0`` to avoid applying an application-level cap. Default: 0.
 
 * ``Max total tokens``: Sets an application-level ceiling for the total token budget used when preparing a request, including conversation context and output allowance where applicable. Set ``0`` to disable this extra limit and rely on the model/provider context window. Default: 0.
 
 * ``Context threshold``: Reserves part of the model context window for the generated answer instead of filling the entire window with prompt/history tokens. Increasing it can reduce how much old context is included but leaves more room for completion. Default: 200.
-
-* ``Temperature``: Sets the sampling temperature sent to models that support it. Lower values bias generation toward more predictable token choices, while higher values increase variation; some reasoning models/providers may ignore or restrict this parameter. Default: 1.0.
-
-* ``Top-p``: Sets the nucleus-sampling probability mass sent to models that support it. Lower values restrict generation to a smaller high-probability token set; leave it at ``1.0`` to avoid applying nucleus filtering. Default: 1.0.
-
-* ``Frequency Penalty``: Penalizes tokens in proportion to how often they have already appeared, reducing repeated words/phrases on providers that support this parameter. Positive values increase the penalty; unsupported models may ignore it. Default: 0.0.
-
-* ``Presence Penalty``: Penalizes tokens once they have appeared at all, encouraging the model to introduce new tokens/topics on providers that support this parameter. Positive values increase the effect. Default: 0.0.
 
 Prompts
 ~~~~~~~
@@ -369,9 +380,9 @@ Prompts
 
 * ``Automatic conversation summary - user prompt``: Defines the user-message template used for automatic conversation summarization. ``{input}`` and ``{output}`` are replaced with conversation content before the summary request is sent.
 
-* ``Agent: evaluation prompt in loop [LlamaIndex] - % score``: Defines the LlamaIndex legacy-agent evaluation prompt that asks the evaluator to score the current result during a loop. The score is used to decide whether another improvement/evaluation step is needed.
+* ``Agent: response evaluation in loop [LlamaIndex] - % score``: Defines the LlamaIndex legacy-agent evaluation prompt that asks the evaluator to score the current result during a loop. The score is used to decide whether another improvement/evaluation step is needed.
 
-* ``Agent: evaluation prompt in loop [LlamaIndex] - % complete``: Defines the legacy LlamaIndex evaluation prompt that estimates how complete the current result is. The returned completion percentage participates in the agent loop's stop/continue decision.
+* ``Agent: response evaluation in loop [LlamaIndex] - % complete``: Defines the legacy LlamaIndex evaluation prompt that estimates how complete the current result is. The returned completion percentage participates in the agent loop's stop/continue decision.
 
 * ``Autonomous mode - instruction``: Sets the base system instruction used by Autonomous mode. It tells the model to treat the request as a multi-pass task, make concrete progress, verify and refine non-trivial work, use available tools through the normal Chat tool flow, and keep user-facing output in the user's language.
 
@@ -414,11 +425,11 @@ Camera
 
 * ``Camera Device``: Chooses which camera PyGPT opens for live capture/snapshot features. The numeric value corresponds to the camera device index exposed by the system. Default: 0.
 
-* ``Capture width (in pixels)``: Requests the horizontal resolution used when PyGPT captures frames from the selected camera. The device/driver may substitute the nearest supported resolution. Default: 1280.
+* ``Capture width``: Requests the horizontal resolution used when PyGPT captures frames from the selected camera. The device/driver may substitute the nearest supported resolution. Default: 1280.
 
-* ``Capture height (in pixels)``: Requests the vertical resolution used when PyGPT captures frames from the selected camera. The device/driver may substitute the nearest supported resolution. Default: 720.
+* ``Capture height``: Requests the vertical resolution used when PyGPT captures frames from the selected camera. The device/driver may substitute the nearest supported resolution. Default: 720.
 
-* ``Capture quality (%)``: Controls JPEG compression quality when camera frames are saved or passed through image-based workflows. Higher values preserve more detail but create larger images. Default: 95.
+* ``Capture quality``: Controls JPEG compression quality when camera frames are saved or passed through image-based workflows. Higher values preserve more detail but create larger images. Default: 95.
 
 Audio
 ~~~~~
@@ -463,7 +474,10 @@ Cache
 * ``Max files to store``: Limits how many generated audio files PyGPT retains in the speech-output cache. Older cache entries can be discarded as the limit is exceeded, preventing unbounded disk growth. Default: 1000.
 
 Indexes / RAG
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+
+General
+^^^^^^^
 
 * ``Indexes``: List of configured indexes. Removing an entry from this list does not delete data already stored in the vector store; use ``Clear and truncate`` for permanent deletion.
 
@@ -486,15 +500,19 @@ Chat
 Embeddings
 ^^^^^^^^^^
 
-* ``Embeddings provider``: Chooses the default embedding backend used to convert text into vectors for indexing and retrieval. Attachment-specific provider mappings can override this global choice. Default: ``openai``.
+* ``Embeddings provider``: Selects the global embedding provider used for indexing and Chat with Files. Credentials and endpoints are resolved from that provider's normal global configuration (``API Keys`` or ``Custom providers``), so they do not need to be duplicated in the embedding configuration. Default: ``openai``.
+
+* ``Default embedding models``: Defines the default embedding model for each provider. The same list is used for file indexing, conversation-context indexing, and attachment RAG. For provider-aware automatic embedding, PyGPT uses the entry matching the active model/provider when one is configured; otherwise it falls back to the global embedding provider and its default model.
 
 * ``RPM limit``: Throttles embedding requests issued during indexing/retrieval to the configured number per minute, helping stay within provider rate limits. Set ``0`` to disable PyGPT-side throttling. Default: 100.
 
-* ``Embeddings provider ENV vars``: Defines environment variables that are set before the selected embedding provider is initialized, for example credentials or provider-specific endpoints. A ``{config_key}`` placeholder is replaced with the matching value from PyGPT configuration.
+* ``Embeddings timeout``: Sets the timeout for embedding-provider requests, in seconds. Default: 60.
 
-* ``Global embeddings provider **kwargs``: Additional keyword arguments (**kwargs), such as model name, for the embeddings provider instance. These arguments will be passed to the provider instance; please refer to the LlamaIndex API reference for a list of required arguments for the specified embeddings provider.
+The two options below are shown in the collapsed **Advanced** group at the bottom of the Embeddings tab. They are optional overrides; leave them empty for the normal provider-based configuration described above.
 
-* ``Default embedding providers for attachments``: Maps model providers to the embedding provider/model that should be used when attachments are indexed for RAG. This lets, for example, attachment retrieval use a provider-appropriate embedding backend instead of the global default.
+* ``Global embeddings provider **kwargs``: Optional keyword-argument overrides passed to the embedding provider. Use them only for provider-specific parameters or deliberate overrides. When empty, PyGPT uses the model from ``Default embedding models`` and credentials/endpoint from the provider's global settings. Default: empty list.
+
+* ``Global embeddings provider ENV vars``: Optional environment-variable overrides applied before the embedding provider is initialized. Use them only when a backend specifically requires an ENV override. When empty, credentials and endpoint come from the provider's global settings. ``{config_key}`` can reference a PyGPT configuration value. Default: empty list.
 
 File indexing
 ^^^^^^^^^^^^^
@@ -547,6 +565,10 @@ Chat with Agents
 * ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before a Chat with Agents run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
 
 * ``Show full tool-chain in Chat with Agents``: When enabled, the final Chat with Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
+
+* ``Single live status per part``: While streaming, keeps one tool/status row for the current response part and updates it in place. Previous parts keep their latest status. The shared renderer also applies to compatible Chat tool/status events. Default: True.
+
+* ``Single status per part in unfinished history``: When an unfinished or failed turn without a final response is reloaded, shows only the latest tool/status row for each part instead of restoring the full temporary status timeline. Default: True.
 
 * ``Max iterations (Chat / Orchestrator)``: Maximum number of main-agent iterations in Chat and Orchestrator modes. Set ``0`` for no application-level iteration limit. Default: ``48``.
 
@@ -655,7 +677,7 @@ Personalize
 
 * ``About You``: Provide information about yourself, e.g., "My name is... I'm 30 years old, I'm interested in..." This will be included in the model's system prompt. WARNING: Please do not use AI as a "friend". Real-life friendship is better than using an AI as a friendship replacement. DO NOT become emotionally involved in interactions with an AI.
 
-* ``Enable in Modes``: Chooses which PyGPT modes receive the text from ``About You`` in their system context. Modes not selected here operate without the personalization block even when ``About You`` contains text.
+* ``Enable in modes``: Chooses which PyGPT modes receive the text from ``About You`` in their system context. Modes not selected here operate without the personalization block even when ``About You`` contains text.
 
 Custom providers
 ~~~~~~~~~~~~~~~~
@@ -1034,7 +1056,7 @@ Vector stores
 * RedisVectorStore
 * SimpleVectorStore
 
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / RAG`` window. 
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / RAG -> Vector Store``. 
 
 Arguments provided here (on list: ``Vector Store (**kwargs)`` in ``Advanced settings`` will be passed to selected vector store provider. You can check keyword arguments needed by selected provider on LlamaIndex API reference page: 
 
