@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.13 20:45:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -109,10 +109,17 @@ class Runner:
                 )
             main_input = runtime.build_user_message(str(context.prompt or "") + shared)
             runtime.verbose_log(runtime.main_event("INPUT"), main_input)
+            main_max_iterations = runtime.main_max_iterations
+            # Managed modes spend one extra internal LLM pass on the final
+            # user-facing answer after workflow_finish validates the workflow.
+            # Do not consume the user's configured work-iteration budget for that
+            # transport/finalization pass (0/unlimited already maps to sys.maxsize).
+            if runtime.uses_workflow_finish and runtime.main_max_iterations_configured > 0:
+                main_max_iterations += 1
             handler = main_agent.run(
                 user_msg=main_input,
                 chat_history=history,
-                max_iterations=runtime.main_max_iterations,
+                max_iterations=main_max_iterations,
                 early_stopping_method="generate",
             )
 
@@ -137,6 +144,16 @@ class Runner:
 
             post_tool_stream = False
             async for event in handler.stream_events():
+                # In managed modes workflow_finish only validates/arms the final
+                # response. The first non-empty AgentStream after that tool result
+                # is the real authoritative final answer, so prepare its durable
+                # part/UI barrier *before* timeline processing sees the delta.
+                if (isinstance(event, AgentStream)
+                        and getattr(event, "delta", None)
+                        and runtime.awaiting_workflow_final_response
+                        and not runtime.workflow_final_stream_started):
+                    runtime.begin_workflow_final_stream()
+
                 runtime.verbose_event(event, actor="orchestrator")
                 if runtime.is_stopped():
                     try:
@@ -199,21 +216,46 @@ class Runner:
                     runtime.verbose_text(runtime.main_event("RESULT"), fallback)
 
                     if runtime.uses_workflow_finish:
-                        # Managed-worker modes normally finalize via
-                        # workflow_finish. Keep the historical fallback when a
-                        # provider ends normally without calling the tool.
-                        last_output = runtime.last_orchestrator_output()
-                        runtime.final_answer = fallback or last_output or "OK"
-                        runtime.finished = True
-                        if last_output and runtime.final_answer.strip() == last_output.strip():
-                            runtime.mark_current_part_final()
-                            emitter.accept_streamed_final()
-                        else:
-                            final_part = runtime._prepare_final_part()
-                            await emitter.stream_final(
-                                runtime.final_answer,
-                                part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+                        if runtime.workflow_final_requested:
+                            # workflow_finish has already validated the workflow.
+                            # Resolve the just-completed ordinary assistant pass as
+                            # the authoritative final answer. In the normal path its
+                            # deltas were already forwarded to WebView live; only
+                            # providers that fail to expose deltas use the fallback
+                            # materialized replay below.
+                            streamed = runtime.primary_stream_final_output()
+                            runtime.final_answer = (
+                                streamed
+                                or runtime.resolve_primary_final_output(fallback)
+                                or runtime.workflow_final_hint
+                                or fallback
+                                or "OK"
                             )
+                            runtime.finished = True
+                            if runtime.workflow_final_stream_started and streamed:
+                                runtime.mark_current_part_final()
+                                emitter.accept_streamed_final()
+                            else:
+                                final_part = runtime._prepare_final_part()
+                                await emitter.stream_final(
+                                    runtime.final_answer,
+                                    part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+                                )
+                        else:
+                            # Defensive compatibility path: a provider may end the
+                            # managed workflow without calling workflow_finish.
+                            last_output = runtime.last_orchestrator_output()
+                            runtime.final_answer = fallback or last_output or "OK"
+                            runtime.finished = True
+                            if last_output and runtime.final_answer.strip() == last_output.strip():
+                                runtime.mark_current_part_final()
+                                emitter.accept_streamed_final()
+                            else:
+                                final_part = runtime._prepare_final_part()
+                                await emitter.stream_final(
+                                    runtime.final_answer,
+                                    part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+                                )
                     else:
                         # Primary Agent finalizes from the terminal response. The
                         # resolver removes already-streamed pre-tool prose and

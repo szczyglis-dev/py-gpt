@@ -435,12 +435,19 @@ class WorkerRuntime:
         self.runtime.emitter.status(value, source="orchestrator")
         return "Status updated."
 
-    async def finish_workflow(self, final_answer: str) -> str:
+    async def finish_workflow(self, final_answer: str = "") -> str:
         """Legacy compatibility finalizer; not exposed to the Primary Agent."""
         self.runtime.verbose_text("WORKFLOW FINISH REQUEST", final_answer)
         if self.runtime.finished:
             self.runtime.verbose.log("WORKFLOW FINISH REJECTED", "Workflow is already finished.")
             return "Workflow is already finished."
+        if self.runtime.workflow_final_requested:
+            payload = {
+                "error": "Workflow finalization is already accepted.",
+                "action": "Return the complete final answer now as normal assistant text without calling any more tools.",
+            }
+            self.runtime.verbose.log("WORKFLOW FINISH REJECTED", payload)
+            return json.dumps(payload, ensure_ascii=False)
 
         if self.runtime.is_swarm_mode:
             if self.runtime.swarm_expected_workers is None:
@@ -486,22 +493,24 @@ class WorkerRuntime:
             self.runtime.verbose.log("WORKFLOW FINISH REJECTED", payload)
             return json.dumps(payload, ensure_ascii=False, default=str)
 
-        answer = str(final_answer or "").strip()
-        if not answer:
-            return json.dumps({
-                "error": "final_answer is empty.",
-                "action": "Provide the complete user-facing final answer to workflow_finish.",
-            }, ensure_ascii=False)
-
-        self.runtime.finished = True
-        self.runtime.final_answer = answer
-        self.runtime.verbose_text("FINAL ANSWER", answer)
-        final_part = self.runtime._prepare_final_part()
-        await self.runtime.emitter.stream_final(
-            self.runtime.final_answer,
-            part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+        # Do not finalize from a tool argument. A function/tool call is only
+        # dispatched after its complete JSON payload has been generated, which
+        # necessarily turns a long final_answer argument into a non-streamed wait.
+        # Instead this tool only validates/arms finalization; the next ordinary
+        # assistant pass is the authoritative answer and arrives as native
+        # AgentStream deltas. Keep an optional legacy hint so older/custom prompts
+        # that still pass final_answer can recover if the final pass is empty.
+        self.runtime.workflow_final_requested = True
+        self.runtime.workflow_final_stream_started = False
+        self.runtime.workflow_final_hint = str(final_answer or "").strip()
+        self.runtime.verbose.log("WORKFLOW FINAL RESPONSE ARMED", {
+            "legacy_hint_chars": len(self.runtime.workflow_final_hint),
+        })
+        self.runtime.emitter.clear_status()
+        return (
+            "Finalization accepted. Return the complete user-facing final answer now as normal assistant text. "
+            "Do not call workflow_finish again and do not call any other tool."
         )
-        return "Workflow marked as finished. The runtime will stop the orchestrator now."
 
     async def start_swarm(self, agent_count: int) -> str:
         """Declare the exact user-requested Swarm size before worker creation."""

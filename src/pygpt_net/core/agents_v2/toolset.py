@@ -100,11 +100,12 @@ class RuntimeToolset:
                 description="Set/replace the single transient user-visible workflow status line.",
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.finish_workflow,
+                async_fn=self.runtime.request_workflow_finish,
                 name="workflow_finish",
                 description=(
-                    "Finalize the whole user task. Pass the complete final_answer. Call exactly once after all required "
-                    "work and verification are complete. Calling it terminates the orchestrator loop."
+                    "Validate that the whole user task is ready to finalize. Call exactly once with no arguments after "
+                    "all required work and verification are complete. After the tool returns, send the complete final "
+                    "answer as normal assistant text and do not call any more tools."
                 ),
             ),
         ]

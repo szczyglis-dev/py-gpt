@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 17:20:00                  #
+# Updated Date: 2026.09.13 20:45:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -189,13 +189,19 @@ class RuntimeEmitter:
             if index + 1 < len(chunks):
                 await asyncio.sleep(self._final_stream_delay)
 
-    def _begin_final(self, text: Optional[str]) -> str:
-        """Reset the live working draft and return normalized final text."""
+    def begin_final_stream(self) -> bool:
+        """Arm the authoritative final segment before its first native delta.
+
+        Managed Agents v2 modes finalize in two phases: ``workflow_finish`` first
+        validates that all work is complete, then the model produces one ordinary
+        assistant response.  Starting the UI final segment here lets that second
+        pass flow through ``AgentStream`` unchanged instead of waiting for an
+        already-materialized tool argument.
+        """
         if self._finished:
-            return ""
-        final = str(text or "").strip()
-        if not final:
-            return ""
+            return False
+        if self.final_started:
+            return True
         self._flush_stream()
         self.clear_status()
         self.begin()
@@ -205,14 +211,23 @@ class RuntimeEmitter:
         self.text = ""
         self.final_started = True
 
-        # Explicit UI barrier: clear the working Primary Agent draft and all
-        # transient status rows before any final-answer text is emitted. The
-        # corresponding main-thread handler also drops renderer micro-buffers.
+        # Explicit UI barrier: clear the working draft/status rows before the
+        # first authoritative final token is emitted.
         self._emit(getattr(KernelEvent, "AGENT_V2_FINAL_BEGIN", "kernel.agent_v2.final_begin"))
-        # The first authoritative final chunk is a new live stream segment. Keep
-        # begin=True so the renderer performs a second, token-adjacent transient
-        # status cleanup immediately before the first final token is painted.
+        # Keep begin=True so the renderer performs token-adjacent cleanup again
+        # immediately before the first real final token is painted.
         self._first_chunk = True
+        return True
+
+    def _begin_final(self, text: Optional[str]) -> str:
+        """Reset the live working draft and return normalized final text."""
+        if self._finished:
+            return ""
+        final = str(text or "").strip()
+        if not final:
+            return ""
+        if not self.begin_final_stream():
+            return ""
         return final
 
     def _final_chunks(self, text: str):

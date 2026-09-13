@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.13 20:45:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -131,6 +131,13 @@ class AgentsV2Runtime:
         self.sequence = 0
         self.finished = False
         self.final_answer = ""
+        # Orchestrator/Swarm finalization is deliberately two-phase.
+        # workflow_finish validates the workflow and arms the next ordinary LLM
+        # pass as the authoritative final response; that pass can then be streamed
+        # natively token-by-token through AgentStream.
+        self.workflow_final_requested = False
+        self.workflow_final_stream_started = False
+        self.workflow_final_hint = ""
         self.run_id = uuid.uuid4().hex[:12]
         self.verbose = AgentsV2VerboseLogger(window, self.run_id, agent_mode=self.agent_mode)
         self.status_events: List[Dict[str, Any]] = []
@@ -321,6 +328,11 @@ class AgentsV2Runtime:
     @property
     def uses_workflow_finish(self) -> bool:
         return self.strategy.uses_workflow_finish
+
+    @property
+    def awaiting_workflow_final_response(self) -> bool:
+        """True after workflow_finish accepted and before the final pass ends."""
+        return bool(self.workflow_final_requested and not self.finished)
 
     @property
     def main_agent_name(self) -> str:
@@ -574,6 +586,17 @@ class AgentsV2Runtime:
     def _prepare_final_part(self):
         return self.timeline._prepare_final_part()
 
+    def begin_workflow_final_stream(self):
+        """Prepare the durable final part and UI barrier for native final deltas."""
+        if not self.awaiting_workflow_final_response:
+            return self._actor_part("orchestrator", create=False)
+        if self.workflow_final_stream_started:
+            return self._actor_part("orchestrator", create=False)
+        part = self._prepare_final_part()
+        self.workflow_final_stream_started = True
+        self.emitter.begin_final_stream()
+        return part
+
     def last_orchestrator_output(self) -> str:
         return self.timeline.last_orchestrator_output()
 
@@ -618,7 +641,12 @@ class AgentsV2Runtime:
     async def set_status(self, status: str) -> str:
         return await self.worker_api.set_status(status)
 
-    async def finish_workflow(self, final_answer: str) -> str:
+    async def request_workflow_finish(self) -> str:
+        """Tool-facing no-argument finalization gate used by managed modes."""
+        return await self.worker_api.finish_workflow("")
+
+    async def finish_workflow(self, final_answer: str = "") -> str:
+        """Compatibility API for callers/tests that still pass a final hint."""
         return await self.worker_api.finish_workflow(final_answer)
 
     async def start_swarm(self, agent_count: int) -> str:
