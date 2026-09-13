@@ -256,6 +256,92 @@ class Models:
             if self.window.controller.model.editor.current is None:
                 self.window.controller.model.editor.set_by_tab(0)
 
+    def retranslate(self):
+        """Refresh all model-editor texts after a runtime language change."""
+        ui = self.window.ui
+        nodes = ui.nodes
+
+        static_nodes = {
+            'models.editor.btn.new': 'dialog.models.editor.btn.new',
+            'models.editor.btn.import': 'dialog.models.editor.btn.import',
+            'models.editor.btn.defaults.user': 'dialog.models.editor.btn.defaults.user',
+            'models.editor.btn.defaults.app': 'dialog.models.editor.btn.defaults.app',
+            'models.editor.btn.save': 'dialog.models.editor.btn.save',
+        }
+        for node_id, key in static_nodes.items():
+            node = nodes.get(node_id)
+            if node is not None:
+                node.setText(trans(key))
+
+        dialog = ui.dialog.get(self.dialog_id)
+        if dialog is not None:
+            dialog.setWindowTitle(trans('dialog.models.editor'))
+
+        group = ui.groups.get('models.editor.advanced')
+        if group is not None:
+            group.box.setText(trans('settings.advanced.collapse'))
+
+        search = nodes.get('models.editor.search')
+        if search is not None:
+            search.setPlaceholderText(trans('input.search.placeholder'))
+
+        # Option labels/descriptions and placeholder-backed values are created
+        # dynamically and therefore are not covered by the static locale-node
+        # mapper. Update them in place while preserving current values/checks.
+        config = ui.config.get('model', {})
+        for key, option in self.window.controller.model.editor.get_options().items():
+            label = trans(option['label'])
+            widget = config.get(key)
+            if option.get('type') == 'bool':
+                if widget is not None and hasattr(widget, 'setText'):
+                    widget.setText(label)
+            else:
+                label_node = nodes.get(f'model.{key}.label')
+                if label_node is not None:
+                    label_node.setText(label)
+
+            desc_key = option.get('description')
+            if desc_key:
+                desc_node = nodes.get(f'model.{key}.desc')
+                if desc_node is not None:
+                    desc_node.setText(trans(desc_key))
+
+            use = option.get('use')
+            if widget is not None and use and option.get('type') == 'bool_list':
+                params = option.get('use_params') if isinstance(option.get('use_params'), dict) else {}
+                keys = self.window.controller.config.placeholder.apply_by_id(use, params)
+                widget.option['keys'] = keys
+                widget.keys = keys
+                for item in keys:
+                    if not isinstance(item, dict):
+                        continue
+                    for item_id, item_label in item.items():
+                        widget.setText(item_id, item_label)
+                if getattr(widget, 'btn_select', None) is not None:
+                    widget.btn_select.setToolTip(trans('action.select_unselect_all'))
+            elif widget is not None and option.get('type') == 'dict':
+                if getattr(widget, 'add_btn', None) is not None:
+                    widget.add_btn.setText(trans('action.add'))
+
+        # Rebuild the provider filter because its synthetic "All" entry is
+        # translated at construction time. Preserve the active provider.
+        provider_combo = config.get('provider_global')
+        if provider_combo is not None:
+            current = provider_combo.get_value()
+            provider_keys = self.window.controller.config.placeholder.apply_by_id('llm_providers')
+            provider_keys.insert(0, {'-': trans('list.all')})
+            provider_combo.current_id = current
+            provider_combo.set_keys(provider_keys, lock=True)
+
+        if self._file_menu is not None:
+            self._file_menu.setTitle(trans('menu.file'))
+        action = self._menu_actions.get('import')
+        if action is not None:
+            action.setText(trans('action.import'))
+        action = self._menu_actions.get('close')
+        if action is not None:
+            action.setText(trans('menu.file.exit'))
+
     def _on_search_models(self, text: str):
         """
         Handle SearchInput callback. Filtering is prefix-based on model id or name (case-insensitive).

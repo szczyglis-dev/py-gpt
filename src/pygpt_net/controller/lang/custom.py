@@ -95,6 +95,18 @@ class Custom:
 
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
 
+        # Models editor/importer contain dynamic option labels and combo entries
+        # which are translated when the dialogs are built. Refresh them in-place
+        # so an already open dialog follows a runtime language switch.
+        try:
+            self.window.model_settings.retranslate()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+        try:
+            self.window.model_importer.retranslate()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+
         # Chat with Agents runtime mode selector. QComboBox item texts are not
         # covered by the generic node mapping, so retranslate them in-place
         # while keeping their stable machine-readable itemData values.

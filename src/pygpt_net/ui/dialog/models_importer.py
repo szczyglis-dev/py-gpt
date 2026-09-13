@@ -95,3 +95,38 @@ class ModelsImporter:
         self.window.ui.dialog[self.dialog_id] = ModelImporterOllamaDialog(self.window, self.dialog_id)
         self.window.ui.dialog[self.dialog_id].setLayout(layout)
         self.window.ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.models.importer'))
+
+    def retranslate(self):
+        """Refresh importer texts and provider selector after language change."""
+        ui = self.window.ui
+        nodes = ui.nodes
+        static_nodes = {
+            'models.importer.btn.refresh': 'dialog.models.importer.btn.refresh',
+            'models.importer.btn.cancel': 'dialog.models.importer.btn.cancel',
+            'models.importer.btn.save': 'dialog.models.importer.btn.save',
+            'models.importer.available.label': 'models.importer.available.label',
+            'models.importer.current.label': 'models.importer.current.label',
+            'models.importer.available.all': 'models.importer.all',
+        }
+        for node_id, key in static_nodes.items():
+            node = nodes.get(node_id)
+            if node is not None:
+                node.setText(trans(key))
+
+        dialog = ui.dialog.get(self.dialog_id)
+        if dialog is not None:
+            dialog.setWindowTitle(trans('dialog.models.importer'))
+
+        provider_combo = ui.config.get('models.importer', {}).get('provider')
+        if provider_combo is not None:
+            current = provider_combo.get_value()
+            option = self.window.controller.model.importer.get_providers_option()
+            provider_combo.current_id = current
+            provider_combo.set_keys(option['keys'], lock=True)
+
+        # The default provider hint is also localized and may currently be
+        # visible while the dialog stays open.
+        importer = self.window.controller.model.importer
+        if getattr(importer, 'initialized', False):
+            importer.update_title()
+
