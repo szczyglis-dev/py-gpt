@@ -6,11 +6,49 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 13:52:00                  #
+# Updated Date: 2026.09.13 19:52:00                  #
 # ================================================== #
 
 from typing import Any, Optional
 
+
+# Mouse & Keyboard tools are intentionally transient. Computer-control flows can
+# emit many of these calls in rapid succession; keeping them as normal tool
+# blocks would flood both the conversation history and durable context storage.
+# They are therefore hidden from persisted/rendered tool surfaces and exposed
+# only by the dedicated realtime status path while executing.
+MOUSE_KEYBOARD_TOOL_NAMES = {
+    "get_mouse_position",
+    "get_screenshot",
+    "open_web_browser",
+    "mouse_move",
+    "mouse_click",
+    "mouse_scroll",
+    "mouse_drag",
+    "keyboard_key",
+    "keyboard_keys",
+    "keyboard_type",
+    "wait",
+    "wait_5_seconds",
+    "go_back",
+    "go_forward",
+    "search",
+    "navigate",
+    "click_at",
+    "hover_at",
+    "type_text_at",
+    "key_combination",
+    "scroll_document",
+    "scroll_at",
+    "drag_and_drop",
+    "click",
+    "double_click",
+    "move",
+    "type",
+    "keypress",
+    "scroll",
+    "drag",
+}
 
 # Tool calls listed here are runtime/internal plumbing and must never be exposed
 # in the conversation UI. Plugins can extend the same mechanism declaratively by
@@ -31,6 +69,7 @@ HIDDEN_TOOL_NAMES = {
     "shared_context",
     "swarm_start",
     "swarm_status",
+    *MOUSE_KEYBOARD_TOOL_NAMES,
 }
 
 # Hidden tools listed here remain hidden everywhere (durable storage, history,
@@ -38,7 +77,7 @@ HIDDEN_TOOL_NAMES = {
 # status path while they are actually executing. This list is an exception to
 # presentation only; it must never be used to relax the normal hidden-tool
 # persistence/rendering policy.
-HIDDEN_TOOLS_REALTIME_ONLY = set()
+HIDDEN_TOOLS_REALTIME_ONLY = set(MOUSE_KEYBOARD_TOOL_NAMES)
 
 # Code-level persistence policy for hidden tools. When False, hidden tool calls
 # and their display/result cache are kept only for the live execution lifecycle
