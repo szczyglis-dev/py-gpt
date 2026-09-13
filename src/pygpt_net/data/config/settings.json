@@ -2489,21 +2489,6 @@
     "advanced": false,
     "tab": "chat"
   },
-  "llama.idx.react": {
-    "section": "llama-index",
-    "type": "bool",
-    "slider": false,
-    "label": "settings.llama.idx.react",
-    "description": "settings.llama.idx.react.desc",
-    "value": true,
-    "min": null,
-    "max": null,
-    "multiplier": null,
-    "step": null,
-    "secret": false,
-    "advanced": false,
-    "tab": "chat"
-  },
   "llama.idx.chat.auto_retrieve": {
     "section": "llama-index",
     "type": "bool",

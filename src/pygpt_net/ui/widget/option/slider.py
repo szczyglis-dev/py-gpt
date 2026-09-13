@@ -71,6 +71,7 @@ class OptionSlider(QWidget):
 
         # self.label = QLabel(self.title)  # TODO: check this
         self.label = QLabel('')
+        self.label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.slider = NoScrollSlider(Qt.Horizontal)
         self.slider.setMinimum(self.min)
         self.slider.setMaximum(self.max)

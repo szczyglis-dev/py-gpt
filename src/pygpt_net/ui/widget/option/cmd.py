@@ -9,6 +9,7 @@
 # Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
@@ -94,6 +95,7 @@ class OptionCmd(QWidget):
         desc_key = self.parent_id + '.' + id + '.desc'
 
         self.window.ui.nodes[desc_key] = QLabel(txt_desc)
+        self.window.ui.nodes[desc_key].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.nodes[desc_key].setWordWrap(True)
         self.window.ui.nodes[desc_key].setMaximumHeight(40)
         self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
@@ -103,7 +105,9 @@ class OptionCmd(QWidget):
         instr_key = "settings.cmd.field.instruction"
         params_key = "settings.cmd.field.params"
         instr_label = QLabel(trans(instr_key))
+        instr_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         params_label = QLabel(trans(params_key))
+        params_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
         # widgets
         self.enabled = OptionCheckbox(self.window, parent_id, key_enabled, option_enabled, icon = ":/icons/build.svg")  # enable checkbox

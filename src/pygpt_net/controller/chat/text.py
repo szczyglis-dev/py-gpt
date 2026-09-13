@@ -107,7 +107,7 @@ class Text:
         # should use the mode's normal streaming policy just like the initial
         # response. The ephemeral continuation is merged into the durable parent
         # only after its stream finishes (see controller.chat.stream).
-        stream = self.is_stream(mode)
+        stream = self.is_stream(mode, model_data)
 
         functions = []  # functions to call
         tools_outputs = []  # tools outputs (assistant only)
@@ -302,11 +302,12 @@ class Text:
 
         return ctx
 
-    def is_stream(self, mode: str) -> bool:
+    def is_stream(self, mode: str, model=None) -> bool:
         """
-        Check if stream is enabled for given mode
+        Check if stream is enabled for given mode and model.
 
         :param mode: mode
+        :param model: resolved model configuration
         :return: True if stream is enabled, False otherwise
         """
         core = self.window.core
@@ -318,6 +319,6 @@ class Text:
         elif mode == MODE_LLAMA_INDEX:
             if core.config.get("llama.idx.mode") == "retrieval":
                 return False
-            if not core.idx.chat.is_stream_allowed():
+            if not core.idx.chat.is_stream_allowed(model):
                 return False
         return stream

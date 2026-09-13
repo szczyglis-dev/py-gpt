@@ -322,7 +322,6 @@
     }
   ],
   "llama.idx.mode": "chat",
-  "llama.idx.react": false,
   "llama.idx.recursive": true,
   "llama.idx.replace_old": true,
   "llama.idx.status": {},

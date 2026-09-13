@@ -106,7 +106,7 @@ class Bridge:
                 mode = self.window.core.models.get_supported_mode(model, mode)  # switch
                 if base_mode == MODE_CHAT and mode == MODE_LLAMA_INDEX:
                     context.idx = None # disable index if in Chat mode and switch to Llama Index
-                    if not self.window.core.idx.chat.is_stream_allowed():
+                    if not self.window.core.idx.chat.is_stream_allowed(model):
                         context.stream = False  # disable stream in cmd mode
 
         self.window.core.debug.info("[bridge] Using mode: " + str(mode))

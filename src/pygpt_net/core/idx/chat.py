@@ -19,6 +19,7 @@ from llama_index.core.tools import QueryEngineTool
 
 from pygpt_net.core.types import (
     MODE_CHAT,
+    MODE_LLAMA_INDEX,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
@@ -244,11 +245,17 @@ class Chat:
         response = None
         attachments = context.attachments  # attachments
         cmd_enabled = self.window.core.config.get("cmd", False)  # use tools
-        use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
         if disable_cmd:
             cmd_enabled = False
+
+        # ReAct is an automatic fallback for models/providers that cannot use
+        # native tool calls in the current Chat with Files path. There is no
+        # user-facing switch: native tool calls are preferred whenever they are
+        # available, and ReAct is used only when tools are enabled and the
+        # native path is unavailable.
+        use_react = bool(cmd_enabled and not allow_native_tool_calls)
 
         if not self.window.core.idx.is_valid(idx):
             chat_mode = "simple"  # do not use query engine if no index
@@ -539,18 +546,22 @@ class Chat:
         else:
             return "No response from agent."
 
-    def is_stream_allowed(self) -> bool:
+    def is_stream_allowed(self, model: Optional[ModelItem] = None) -> bool:
         """
-        Return if stream mode allowed
+        Return whether Chat with Files can use the normal streaming path.
 
-        :return: True if stream allowed
+        ReAct itself is non-streaming in this integration. It is selected
+        automatically only when tools are enabled and native tool calls are not
+        available for the current model/provider path.
+
+        :param model: Current model, if already resolved
+        :return: True if stream is allowed
         """
-        use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
-        is_cmd = self.window.core.config.get("cmd", False)
-        if is_cmd:
-            if use_react:
-                return False  # do not append twice response from agent
-        return True
+        if not self.window.core.config.get("cmd", False):
+            return True
+        if model is None:
+            return True
+        return self.window.core.models.is_tool_call_allowed(MODE_LLAMA_INDEX, model)
 
     def query_file(
             self,

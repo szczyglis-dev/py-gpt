@@ -864,6 +864,13 @@ class Patch:
                         data[prompt_key] = new_value
                         updated = True
 
+                # The Chat with Files ReAct switch is retired. Remove it regardless of
+                # the stored config version so development profiles already stamped with
+                # the current version are cleaned as well.
+                if "llama.idx.react" in data:
+                    del data["llama.idx.react"]
+                    updated = True
+
         # update file
         migrated = False
         if updated:

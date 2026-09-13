@@ -1911,8 +1911,6 @@ class Patch:
                 print("Migrating config from < 2.5.27...")
                 if 'remote_tools.code_interpreter' not in data:
                     data["remote_tools.code_interpreter"] = False
-                if 'llama.idx.react' not in data:
-                    data["llama.idx.react"] = True
                 updated = True
 
             # < 2.5.29

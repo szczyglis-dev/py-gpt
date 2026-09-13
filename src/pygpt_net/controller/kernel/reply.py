@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any, List
 
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
-from pygpt_net.core.types import MODE_LLAMA_INDEX, PERSIST_HIDDEN_TOOL_CALLS
+from pygpt_net.core.types import PERSIST_HIDDEN_TOOL_CALLS
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.agents_v2.tool_bridge import pop as pop_agent_v2_request
 
@@ -215,12 +215,6 @@ class Reply:
         # the task is promoted to UI-ready only after the model consumes this
         # result and returns its next response.
         self.clear()
-
-        # disable reply if the originating LlamaIndex request used ReAct.
-        # Do not inspect the currently focused mode here.
-        mode = reply_mode or core.config.get("mode")
-        if mode == MODE_LLAMA_INDEX and core.config.get("llama.idx.react", False):
-            return
 
         # send reply
         context = BridgeContext()

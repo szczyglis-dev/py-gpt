@@ -62,6 +62,7 @@ class Settings(BaseConfigDialog):
         bottom.addWidget(self.window.ui.nodes['settings.btn.save'])
 
         self.window.ui.paths[id] = QLabel(str(path))
+        self.window.ui.paths[id].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.paths[id].setStyleSheet("font-weight: bold;")
 
         # settings section tabs
