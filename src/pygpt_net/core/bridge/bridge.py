@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.12 17:55:00                  #
 # ================================================== #
 
+import copy
 import time
 import weakref
 from datetime import datetime, timedelta
@@ -185,7 +186,13 @@ class Bridge:
             extra: Optional[Dict[str, Any]] = None
     ) -> str:
         """
-        Make quick call to provider and get response content
+        Make quick call to provider and get response content.
+
+        Quick bridge calls intentionally do not inherit the global runtime
+        reasoning-effort preference. They are used for lightweight auxiliary
+        requests where applying the user's chat reasoning budget would add
+        unnecessary latency/token usage. The original model object is never
+        mutated.
 
         :param context: Bridge context
         :param extra: extra data
@@ -200,59 +207,70 @@ class Bridge:
                 debug = {k: str(v) for k, v in context.to_dict().items()}
                 self.window.core.debug.debug(str(debug))
 
-        if context.model is not None:
-            # check if model is supported by OpenAI API, if not then try to use llama-index or langchain call
-            if not context.model.is_supported(MODE_CHAT):
+        # Providers resolve the effective effort from ModelItem.reasoning_effort.
+        # Use a shallow request-local copy with that capability disabled so the
+        # global model.reasoning_effort value is not injected into quick calls.
+        original_model = context.model
+        if original_model is not None and bool(getattr(original_model, "reasoning_effort", False)):
+            context.model = copy.copy(original_model)
+            context.model.reasoning_effort = False
 
-                # tmp switch to: llama-index
-                if context.model.is_supported(MODE_LLAMA_INDEX):
-                    context.stream = False  # force disable stream
-                    ctx = context.ctx  # output will be filled in query
-                    ctx.input = context.prompt
-                    try:
-                        res = self.window.core.idx.chat.chat(
-                            context=context,
-                            extra=extra,
-                            disable_cmd=True,
-                        )
-                        if res:
-                            return ctx.output  # response text is in ctx.output
-                    except Exception as e:
-                        self.window.core.debug.error("Error in Llama-index quick call: " + str(e))
-                        self.window.core.debug.error(e)
-                    return ""
-
-                # tmp switch to: langchain
-                """
-                elif context.model.is_supported(MODE_LANGCHAIN):
-                    context.stream = False
-                    ctx = context.ctx
-                    ctx.input = context.prompt
-                    try:
-                        res = self.window.core.chain.chat(
-                            context=context,
-                            extra=extra,
-                        )
-                        if res:
-                            return ctx.output  # response text is in ctx.output
-                    except Exception as e:
-                        self.window.core.debug.error("Error in Langchain quick call: " + str(e))
-                        self.window.core.debug.error(e)
-                    return ""
-                """
-
-        # if model is research model, then switch to research / Perplexity endpoint
-        if context.mode is None or context.mode == MODE_CHAT:
+        try:
             if context.model is not None:
+                # check if model is supported by OpenAI API, if not then try to use llama-index or langchain call
                 if not context.model.is_supported(MODE_CHAT):
-                    if context.model.is_supported(MODE_RESEARCH):
-                        context.mode = MODE_RESEARCH
 
-        # default: OpenAI API call
-        return self.window.core.api.openai.quick_call(
-            context=context,
-            extra=extra,
-        )
+                    # tmp switch to: llama-index
+                    if context.model.is_supported(MODE_LLAMA_INDEX):
+                        context.stream = False  # force disable stream
+                        ctx = context.ctx  # output will be filled in query
+                        ctx.input = context.prompt
+                        try:
+                            res = self.window.core.idx.chat.chat(
+                                context=context,
+                                extra=extra,
+                                disable_cmd=True,
+                            )
+                            if res:
+                                return ctx.output  # response text is in ctx.output
+                        except Exception as e:
+                            self.window.core.debug.error("Error in Llama-index quick call: " + str(e))
+                            self.window.core.debug.error(e)
+                        return ""
+
+                    # tmp switch to: langchain
+                    """
+                    elif context.model.is_supported(MODE_LANGCHAIN):
+                        context.stream = False
+                        ctx = context.ctx
+                        ctx.input = context.prompt
+                        try:
+                            res = self.window.core.chain.chat(
+                                context=context,
+                                extra=extra,
+                            )
+                            if res:
+                                return ctx.output  # response text is in ctx.output
+                        except Exception as e:
+                            self.window.core.debug.error("Error in Langchain quick call: " + str(e))
+                            self.window.core.debug.error(e)
+                        return ""
+                    """
+
+            # if model is research model, then switch to research / Perplexity endpoint
+            if context.mode is None or context.mode == MODE_CHAT:
+                if context.model is not None:
+                    if not context.model.is_supported(MODE_CHAT):
+                        if context.model.is_supported(MODE_RESEARCH):
+                            context.mode = MODE_RESEARCH
+
+            # default: OpenAI API call
+            return self.window.core.api.openai.quick_call(
+                context=context,
+                extra=extra,
+            )
+        finally:
+            context.model = original_model
 
     def get_worker(self) -> BridgeWorker:
         """
