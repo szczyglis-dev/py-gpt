@@ -34,7 +34,7 @@ Above where you type your messages, the interface shows you the number of tokens
 .. image:: images/v3_vision_plugins.png
    :width: 400
 
-With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
+With this plugin, you can capture an image with your camera or attach an image and send it for analysis. Camera controls are available from the main ``Audio / Video`` menu under the **Video** section. Use ``Enable camera`` to start the live preview. Enable ``Auto capture`` to automatically capture the current frame for compatible vision turns; with auto capture disabled, click the live camera preview to take a manual snapshot. Camera device, resolution, and JPEG quality are configured in ``Settings -> Vision and camera -> Camera``:
 
 .. image:: images/v3_vision_chat.png
    :width: 800
@@ -54,7 +54,7 @@ This mode enables chat interaction with your documents and entire context histor
 It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
 
 .. tip::
-   If you do not want to call tools/commands, disable the ``Tools`` switch. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled when the ReAct agent is active together with the ``Tools`` switch.
+   If you do not want to call tools/commands, disable the ``Tools`` switch. It will speed up the response time when using local models. When tools are enabled, PyGPT prefers native tool calls whenever the current model/provider supports them. If native tool calls are unavailable, Chat with Files automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming, so stream mode is disabled automatically only on that path; there is no separate ReAct setting.
 
 **Querying single files**
 

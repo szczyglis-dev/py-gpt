@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.16** | build: **2026-09-12** | Python: **>=3.10, <3.14**
+Release: **2.8.17** | build: **2026-09-12** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -49,7 +49,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing` and `xAI Grok Voice`.
 - Plugins support with built-in plugins like `Files I/O`, `Code interpreter (v2)`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - MCP support.
-- Camera capture for real-time image analysis in Chat and other supported modes.
+- Camera capture for real-time image analysis in Chat and other supported modes, controlled from the `Audio / Video` menu.
 - Image analysis via vision models.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
@@ -449,7 +449,7 @@ Above where you type your messages, the interface shows you the number of tokens
 
 ![v3_vision_plugins](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_plugins.png)
 
-With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
+With this plugin, you can capture an image with your camera or attach an image and send it for analysis. Camera controls are available from the main `Audio / Video` menu under the **Video** section. Use `Enable camera` to start the live preview. Enable `Auto capture` to automatically capture the current frame for compatible vision turns; with auto capture disabled, click the live camera preview to take a manual snapshot. Camera device, resolution, and JPEG quality are configured in `Settings -> Vision and camera -> Camera`:
 
 ![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
@@ -464,7 +464,7 @@ For supported models/providers, you can alternatively enable the provider-side i
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for immediate querying of your indexed documents.
 
-**Tip:** If you do not want to call tools/commands, disable the `Tools` switch. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: `Settings -> Indexes / RAG -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode`. Stream mode is disabled when the ReAct agent is active together with the `Tools` switch.
+**Tip:** If you do not want to call tools/commands, disable the `Tools` switch. It will speed up the response time when using local models. When tools are enabled, PyGPT prefers native tool calls whenever the current model/provider supports them. If native tool calls are unavailable, Chat with Files automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming, so stream mode is disabled automatically only on that path; there is no separate ReAct setting.
 
 **Querying single files**
 

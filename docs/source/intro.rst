@@ -36,7 +36,7 @@ Features
 * Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing`` and ``xAI Grok Voice``.
 * Plugins support with built-in plugins like ``Files I/O``, ``Code interpreter (v2)``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * MCP support.
-* Camera capture for real-time image analysis in Chat and other supported modes.
+* Camera capture for real-time image analysis in Chat and other supported modes, controlled from the ``Audio / Video`` menu.
 * Image analysis via vision models.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 * Handles and stores the full context of conversations (short and long-term memory).

@@ -300,7 +300,7 @@ Provider-specific credentials are required where applicable: Azure and Eleven La
 
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
-To enable voice synthesis, activate the ``Audio output`` plugin in the ``Plugins`` menu or turn on the ``Audio output`` option in the ``Audio / Voice`` menu (both options in the menu achieve the same outcome).
+To enable voice synthesis, activate the ``Audio output`` plugin in the ``Plugins`` menu or enable ``Output: Speech synthesis`` in the **Audio** section of the ``Audio / Video`` menu (both options enable the same plugin).
 
 **Options**
 
@@ -3008,6 +3008,8 @@ Vision (inline)
 ----------------
 
 The plugin adds image analysis to supported chat modes without relying on the deprecated standalone Vision mode. When an image attachment, screenshot, or camera capture is detected, the request is handled through Chat with the image-capable model configured in the plugin. This preserves the plugin's dedicated-model behavior while removing the dependency on the legacy Vision mode.
+
+Camera capture is controlled from the main ``Audio / Video`` menu, under the **Video** section. ``Enable camera`` starts/stops the preview and ``Auto capture`` captures the current frame automatically for compatible vision turns. With auto capture disabled, click the live camera preview to take a snapshot manually.
 
 The plugin model list is filtered by capabilities (``Chat`` + image input), not by provider. Models from any supported provider can therefore be selected, including OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible endpoints, and other configured providers. Native Google, Anthropic, and xAI SDK routing is respected when enabled; otherwise the configured OpenAI-compatible Chat endpoint is used where applicable.
 

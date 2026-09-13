@@ -244,11 +244,11 @@ List
 
 * ``Show projects at the top of the conversation list``: Keeps project containers grouped before ordinary conversations in the left conversation list. Disable it to let projects follow the normal list ordering. Default: True.
 
-* ``Show date separators in the context list``: Groups ordinary conversations under relative age/date headers in the context list, making older items easier to scan. Disable it to display a continuous list without those separators. Default: True.
+* ``Show date separators in the conversation list``: Groups ordinary conversations under relative age/date headers in the context list, making older items easier to scan. Disable it to display a continuous list without those separators. Default: True.
 
-* ``Show date separators in projects in the context list``: Groups conversations inside each project under relative age/date headers. Default: False.
+* ``Show date separators in projects in the conversation list``: Groups conversations inside each project under relative age/date headers. Default: False.
 
-* ``Show date separators in pinned items in the context list``: Adds relative age/date headers within the pinned-conversations area. Default: False.
+* ``Show date separators in pinned conversations``: Adds relative age/date headers within the pinned-conversations area. Default: False.
 
 * ``Search conversation content as well as titles``: Extends conversation-list search from titles/metadata to the text of stored messages. This finds more matches but can require more work on large histories. Default: True.
 
@@ -431,6 +431,8 @@ Camera
 
 * ``Capture quality``: Controls JPEG compression quality when camera frames are saved or passed through image-based workflows. Higher values preserve more detail but create larger images. Default: 95.
 
+The camera runtime controls are in the main ``Audio / Video`` menu, under the **Video** section. ``Enable camera`` starts/stops the live camera preview, while ``Auto capture`` automatically captures the current frame for compatible vision turns. With auto capture disabled, click the live camera preview to take a manual snapshot. The options in this Settings section only select the camera device and capture parameters.
+
 Audio
 ~~~~~
 
@@ -493,7 +495,7 @@ Chat
 
 * ``Chat mode``: Selects the LlamaIndex chat-engine mode used by Chat with Files, which determines how retrieved context and conversation history are combined when generating an answer. ``context`` is the default general-purpose mode. Default: ``context``.
 
-* ``Use ReAct agent for tool calls in Chat with Files mode.``: When the ``Tools`` switch is enabled in Chat with Files, routes tool use through a LlamaIndex ReAct agent rather than the normal tool-call path. Enable it only when you specifically want ReAct-style tool planning in this mode. Default: False.
+Tool-call routing in Chat with Files is automatic. When the ``Tools`` switch is enabled, PyGPT uses native tool calls whenever the current model/provider path supports them. If native tool calls are unavailable, PyGPT automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming in this integration, so streaming is disabled automatically only for that fallback path. There is no separate ReAct setting.
 
 * ``Auto-retrieve additional context``: Runs retrieval for every Chat with Files query and injects the matching indexed content into the model context automatically. Disable it if retrieval should happen only through an explicit agent/tool path. Default: True.
 
