@@ -13,7 +13,7 @@ from typing import Optional, Union, Tuple
 import math
 import os
 
-from PySide6.QtCore import Qt, QSize, QTimer, QEvent
+from PySide6.QtCore import Qt, QSize, QTimer, QEvent, QPoint
 from PySide6.QtGui import QAction, QIcon, QImage, QTextCursor
 from PySide6.QtWidgets import (
     QTextEdit,
@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QWidget,
     QHBoxLayout,
+    QMenu,
 )
 
 from pygpt_net.core.events import Event
@@ -29,6 +30,8 @@ from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, Director
 
 
 class ChatInput(QTextEdit):
+
+    REASONING_EFFORT_KEY = "reasoning_effort"
 
     ICON_PASTE = QIcon(":/icons/paste.svg")
     ICON_VOLUME = QIcon(":/icons/volume.svg")
@@ -88,6 +91,7 @@ class ChatInput(QTextEdit):
         self._icons_right = {}       # key -> QPushButton
         self._icon_meta_right = {}   # key -> meta as above
         self._icon_order_right = []  # rendering order for right bar
+        self._reasoning_effort_menu = None
 
         self._init_icon_bar()
         # Initialize the bottom-right icon bar (independent from the left one)
@@ -101,6 +105,10 @@ class ChatInput(QTextEdit):
             callback=self.action_add_attachment,
             visible=True,
         )
+        # Runtime reasoning-effort selector. It is shown only for models which
+        # explicitly opt in and is placed immediately to the left of microphone.
+        self.add_reasoning_effort_button()
+
         # Add a microphone button (hidden by default; shown when audio input is enabled)
         # Placed on the bottom-right icon bar
         self.add_right_icon(
@@ -126,6 +134,7 @@ class ChatInput(QTextEdit):
         # Apply initial margins (top padding + left space for icons)
         # Also reserve right space for bottom-right icons; bottom margin stays 0
         self._apply_margins()
+        self.update_reasoning_effort()
 
         # ---- Auto-resize config (input in splitter) ----
         self._auto_max_lines = 10  # max lines for auto-expansion
@@ -558,6 +567,144 @@ class ChatInput(QTextEdit):
     def action_toggle_web(self):
         """Toggle web search (button click)."""
         self.window.controller.chat.remote_tools.toggle('web_search')
+
+    def add_reasoning_effort_button(self) -> QPushButton:
+        """Add the runtime reasoning-effort selector to the right icon bar."""
+        key = self.REASONING_EFFORT_KEY
+        if key in self._icons_right:
+            return self._icons_right[key]
+
+        btn = QPushButton(self._icon_bar_right)
+        btn.setObjectName("chatInputReasoningEffort")
+        btn.setCursor(Qt.PointingHandCursor)
+        btn.setFocusPolicy(Qt.NoFocus)
+        btn.setFlat(True)
+        btn.setIcon(QIcon())
+        btn.setIconSize(QSize(0, 0))
+        btn.setFixedHeight(self._btn_size_right.height())
+        btn.setMinimumWidth(self._btn_size_right.width())
+        btn.setToolTip(trans("reasoning_effort.tooltip"))
+        btn.clicked.connect(self.action_reasoning_effort)
+        btn.setHidden(True)
+
+        self._icons_right[key] = btn
+        self._icon_order_right.append(key)
+        self._icon_meta_right[key] = {
+            "icon": QIcon(),
+            "alt_icon": None,
+            "tooltip": trans("reasoning_effort.tooltip"),
+            "alt_tooltip": None,
+            "active": False,
+        }
+        self._rebuild_icon_layout_right()
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+        return btn
+
+    def update_reasoning_effort(self):
+        """Refresh visibility, value and width of the reasoning-effort selector."""
+        btn = self._icons_right.get(self.REASONING_EFFORT_KEY)
+        if btn is None:
+            return
+
+        try:
+            model_key = self.window.core.config.get("model")
+            model = self.window.core.models.get(model_key)
+            efforts = self.window.core.models.get_reasoning_efforts(model)
+        except (AttributeError, RuntimeError):
+            efforts = []
+            model = None
+
+        if not efforts:
+            btn.setHidden(True)
+            self._update_icon_bar_geometry_right()
+            self._apply_margins()
+            return
+
+        current = self.window.core.models.get_reasoning_effort(model)
+        if current is None:
+            btn.setHidden(True)
+            self._update_icon_bar_geometry_right()
+            self._apply_margins()
+            return
+
+        label = trans(f"reasoning_effort.{current}")
+        btn.setText(f"{label}  ▴")
+        btn.setToolTip(trans("reasoning_effort.tooltip"))
+        btn.setFixedHeight(self._btn_size_right.height())
+
+        # This button is text-based, unlike the fixed-size icon buttons next to it.
+        # Calculate its width from the translated label every time the model/value
+        # changes.  sizeHint() includes the active Qt/QSS button padding; the
+        # explicit text fallback keeps enough room with styles whose hint omits
+        # some stylesheet padding.
+        btn.ensurePolished()
+        text_width = btn.fontMetrics().horizontalAdvance(btn.text())
+        hint_width = btn.sizeHint().width()
+        btn.setFixedWidth(max(
+            self._btn_size_right.width(),
+            hint_width,
+            text_width + 28,
+        ))
+        btn.setHidden(False)
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+
+    def action_reasoning_effort(self):
+        """Open an upward popup with the effort values supported by this model."""
+        btn = self._icons_right.get(self.REASONING_EFFORT_KEY)
+        if btn is None or btn.isHidden():
+            return
+
+        model = self.window.core.models.get(self.window.core.config.get("model"))
+        efforts = self.window.core.models.get_reasoning_efforts(model)
+        current = self.window.core.models.get_reasoning_effort(model)
+        if not efforts:
+            return
+
+        menu = QMenu(self)
+        menu.setObjectName("chatInputReasoningEffortMenu")
+
+        # Match the context-list section-header convention: disabled + bold.
+        # Keeping the header as a menu action lets the native theme provide the
+        # correct text color in both light and dark themes.
+        header = QAction(trans("reasoning_effort.header"), menu)
+        header.setEnabled(False)
+        header_font = header.font()
+        header_font.setBold(True)
+        header.setFont(header_font)
+        menu.addAction(header)
+        menu.addSeparator()
+
+        for effort in efforts:
+            action = QAction(trans(f"reasoning_effort.{effort}"), menu)
+            action.setCheckable(True)
+            action.setChecked(effort == current)
+            action.triggered.connect(
+                lambda checked=False, value=effort: self.set_reasoning_effort(value)
+            )
+            menu.addAction(action)
+
+        # Keep a reference for the lifetime of the non-modal popup. QMenu will
+        # automatically choose another screen edge if the ideal point is invalid.
+        self._reasoning_effort_menu = menu
+        menu.aboutToHide.connect(self._clear_reasoning_effort_menu)
+        menu.adjustSize()
+        size = menu.sizeHint()
+        global_pos = btn.mapToGlobal(QPoint(btn.width() - size.width(), -size.height()))
+        menu.popup(global_pos)
+
+    def _clear_reasoning_effort_menu(self):
+        menu = self._reasoning_effort_menu
+        self._reasoning_effort_menu = None
+        if menu is not None:
+            menu.deleteLater()
+
+    def set_reasoning_effort(self, effort: str):
+        """Persist the single global effort value selected by the user."""
+        model = self.window.core.models.get(self.window.core.config.get("model"))
+        if self.window.core.models.set_reasoning_effort(effort, model=model, persist=True):
+            self.update_reasoning_effort()
 
     # -------------------- Left icon bar  --------------------
     # - Add icons: add_icon(...) or add_icons([...])
@@ -1140,13 +1287,18 @@ class ChatInput(QTextEdit):
         self._icon_size_right = new_icon_sz
         self._btn_size_right = new_btn_sz
 
-        for btn in self._icons_right.values():
-            btn.setIconSize(self._icon_size_right)
-            btn.setFixedSize(self._btn_size_right)
+        for key, btn in self._icons_right.items():
+            if key == self.REASONING_EFFORT_KEY:
+                btn.setIconSize(QSize(0, 0))
+                btn.setFixedHeight(self._btn_size_right.height())
+            else:
+                btn.setIconSize(self._icon_size_right)
+                btn.setFixedSize(self._btn_size_right)
 
         if hasattr(self, "_icon_bar_right"):
             self._icon_bar_right.setFixedHeight(self._btn_size_right.height())
 
+        self.update_reasoning_effort()
         self._update_icon_bar_geometry_right()
         self._reposition_icon_bar_right()
         self._apply_margins()
@@ -1284,7 +1436,8 @@ class ChatInput(QTextEdit):
         if not vis:
             return 0
         count = len(vis)
-        w = count * self._btn_size_right.width() + (count - 1) * self._icons_spacing_right
+        w = sum(max(0, btn.width()) for btn in vis)
+        w += (count - 1) * self._icons_spacing_right
         return w
 
     def _update_icon_bar_geometry(self):
@@ -1320,7 +1473,10 @@ class ChatInput(QTextEdit):
         if hasattr(self, "_icon_bar_right"):
             fw = self.frameWidth()
             bar_w = self._compute_icon_bar_right_width()
-            bar_h = self._btn_size_right.height()
+            visible = self._visible_buttons_right()
+            bar_h = max(
+                [btn.height() for btn in visible] or [self._btn_size_right.height()]
+            )
             x = self.width() - fw - self._icons_margin_right - bar_w + self._icons_offset_x_right
             y = self.height() - fw - self._icons_margin_right - bar_h + self._icons_offset_y_right
             # Clamp inside widget bounds

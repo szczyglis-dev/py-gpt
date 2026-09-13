@@ -123,6 +123,11 @@ class xAILLM(BaseLLM):
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return OpenAILike(**args)
 
@@ -155,6 +160,12 @@ class xAILLM(BaseLLM):
         args.pop("is_chat_model", None)
         args.pop("is_function_calling_model", None)
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning"] = {"effort": reasoning_effort}
+            args["additional_kwargs"] = additional_kwargs
 
         args["built_in_tools"] = list(remote_cfg.get("tools") or [])
         include = list(remote_cfg.get("include") or [])

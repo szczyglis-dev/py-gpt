@@ -123,9 +123,18 @@ class Chat:
             response_kwargs['temperature'] = self.window.core.config.get('temperature')
             response_kwargs['top_p'] = self.window.core.config.get('top_p')
 
-        # extra arguments, o3 only
-        if model.extra and "reasoning_effort" in model.extra:
-            response_kwargs['reasoning_effort'] = model.extra["reasoning_effort"]
+        # Runtime reasoning effort is a single global preference and is sent
+        # only for models which explicitly support changing it.
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            if model.provider == "open_router":
+                extra_body = dict(response_kwargs.get("extra_body") or {})
+                reasoning = dict(extra_body.get("reasoning") or {})
+                reasoning["effort"] = reasoning_effort
+                extra_body["reasoning"] = reasoning
+                response_kwargs["extra_body"] = extra_body
+            else:
+                response_kwargs["reasoning_effort"] = reasoning_effort
 
         # tool calls are not supported for some models
         if model.id in OPENAI_DISABLE_TOOLS:

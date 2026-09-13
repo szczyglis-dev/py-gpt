@@ -25,6 +25,7 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
+from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 from pygpt_net.provider.api.openai.agents.experts import get_experts
 from pygpt_net.utils import trans
@@ -96,6 +97,7 @@ class Agent(BaseAgent):
             allow_remote_tools=True,
         )
         kwargs.update(tool_kwargs)  # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     async def run(

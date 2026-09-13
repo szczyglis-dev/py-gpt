@@ -122,8 +122,7 @@ class LlamaIndexLLMProxy:
 
     @staticmethod
     def _is_reasoning_model(model, model_name: str) -> bool:
-        extra = getattr(model, "extra", None) or {}
-        if isinstance(extra, dict) and extra.get("reasoning_effort") is not None:
+        if bool(getattr(model, "reasoning_effort", False)):
             return True
 
         name = str(model_name or "").lower()

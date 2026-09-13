@@ -30,6 +30,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
+from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 from pygpt_net.provider.api.openai.agents.response import StreamHandler
 from pygpt_net.provider.api.openai.agents.experts import get_experts
@@ -110,6 +111,7 @@ class Agent(BaseAgent):
             allow_remote_tools= self.get_option(preset, "base", "allow_remote_tools"),
         )
         kwargs.update(tool_kwargs) # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def get_evaluator(
@@ -149,6 +151,7 @@ class Agent(BaseAgent):
             allow_remote_tools=allow_remote_tools,
         )
         kwargs.update(tool_kwargs) # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def get_chooser(
@@ -188,6 +191,7 @@ class Agent(BaseAgent):
             allow_remote_tools=allow_remote_tools,
         )
         kwargs.update(tool_kwargs) # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def make_choose_query(

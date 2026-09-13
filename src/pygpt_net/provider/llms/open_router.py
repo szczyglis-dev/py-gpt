@@ -81,6 +81,19 @@ class OpenRouterLLM(BaseLLM):
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            # OpenRouter uses its own top-level ``reasoning`` object, while the
+            # pinned OpenAI SDK validates Chat Completions keyword arguments.
+            # ``extra_body`` is the supported escape hatch for provider-specific
+            # OpenRouter fields and LlamaIndex forwards it to the OpenAI client.
+            extra_body = dict(additional_kwargs.get("extra_body") or {})
+            reasoning = dict(extra_body.get("reasoning") or {})
+            reasoning["effort"] = reasoning_effort
+            extra_body["reasoning"] = reasoning
+            additional_kwargs["extra_body"] = extra_body
+            args["additional_kwargs"] = additional_kwargs
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         if model:
             args["model"] = window.core.models.get_openrouter_model(model)

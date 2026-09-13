@@ -182,8 +182,32 @@ class AnthropicLLM(BaseLLM):
             args,
             self._remote_tool_beta_headers(args.get("tools") or []),
         )
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        self._merge_reasoning_effort(args, reasoning_effort)
 
         return AnthropicWithProxy(**args, proxy=proxy)
+
+    @staticmethod
+    def _merge_reasoning_effort(args: dict, reasoning_effort: Optional[str]) -> None:
+        """Forward Anthropic effort without requiring a new SDK signature.
+
+        PyGPT currently supports anthropic==0.75.0. Its stable
+        ``Messages.create`` method does not declare ``output_config`` even
+        though the API accepts the field. LlamaIndex forwards
+        ``additional_kwargs`` directly to that method, so putting
+        ``output_config`` there raises ``unexpected keyword argument``.
+        ``extra_body`` is supported by that SDK and is merged into the JSON
+        request body, which also keeps this compatible with newer SDKs.
+        """
+        if not reasoning_effort:
+            return
+        additional_kwargs = dict(args.get("additional_kwargs") or {})
+        extra_body = dict(additional_kwargs.get("extra_body") or {})
+        output_config = dict(extra_body.get("output_config") or {})
+        output_config["effort"] = reasoning_effort
+        extra_body["output_config"] = output_config
+        additional_kwargs["extra_body"] = extra_body
+        args["additional_kwargs"] = additional_kwargs
 
     @staticmethod
     def _remote_tool_beta_headers(tools: List[dict]) -> List[str]:
@@ -322,6 +346,8 @@ class AnthropicLLM(BaseLLM):
             args,
             self._remote_tool_beta_headers(args.get("tools") or []),
         )
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        self._merge_reasoning_effort(args, reasoning_effort)
         return AgentAnthropic(**args, proxy=proxy)
 
     def get_embeddings_model(

@@ -37,6 +37,7 @@ class LiteLLMIndex(CustomLLM):
     max_tokens: int = 1024
     api_key: Optional[str] = None
     api_base: Optional[str] = None
+    reasoning_effort: Optional[str] = None
 
     @property
     def metadata(self) -> LLMMetadata:
@@ -62,6 +63,8 @@ class LiteLLMIndex(CustomLLM):
             completion_kwargs["api_key"] = self.api_key
         if self.api_base:
             completion_kwargs["api_base"] = self.api_base
+        if self.reasoning_effort:
+            completion_kwargs["reasoning_effort"] = self.reasoning_effort
         return completion_kwargs
 
     @staticmethod
@@ -216,10 +219,12 @@ class LiteLLMProvider(BaseLLM):
         max_tokens = int(args.pop("max_tokens", 1024))
         api_key = args.pop("api_key", "")
         api_base = args.pop("api_base", "")
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
         return LiteLLMIndex(
             model_name=model_name,
             temperature=temperature,
             max_tokens=max_tokens,
             api_key=api_key or None,
             api_base=api_base or None,
+            reasoning_effort=reasoning_effort,
         )

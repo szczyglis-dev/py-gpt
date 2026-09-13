@@ -9,7 +9,16 @@
 # Updated Date: 2026.09.10 15:18:00
 # ================================================== #
 
+import copy
+import re
+
 from packaging.version import parse as parse_version, Version
+
+from pygpt_net.core.types.reasoning import (
+    LEGACY_REASONING_SUFFIXES,
+    get_provider_efforts,
+    legacy_key_parts,
+)
 
 from pygpt_net.core.types import (
     MODE_RESEARCH,
@@ -272,15 +281,9 @@ class Patch:
                     "gemini-3.5-flash",
                     "gemini-3.5-flash-lite",
                     "gemini-3.6-flash",
-                    "gpt-5.6-sol-high",
-                    "gpt-5.6-sol-low",
-                    "gpt-5.6-sol-medium",
-                    "gpt-5.6-luna-high",
-                    "gpt-5.6-luna-low",
-                    "gpt-5.6-luna-medium",
-                    "gpt-5.6-terra-high",
-                    "gpt-5.6-terra-low",
-                    "gpt-5.6-terra-medium",
+                    "gpt-5.6-sol",
+                    "gpt-5.6-luna",
+                    "gpt-5.6-terra",
                     "gpt-image-2",
                     "gpt-realtime-2.1",
                     "gpt-realtime-2.1-mini",
@@ -438,27 +441,16 @@ class Patch:
             if old < parse_version("2.8.12"):
                 print("Migrating models from < 2.8.12...")
 
-                # Add GPT-6 Astra
-                for key in (
-                        "gpt-6-astra-low",
-                        "gpt-6-astra-medium",
-                        "gpt-6-astra-high",
+                # Add GPT-6 Astra. Reasoning effort is selected at runtime,
+                # so the catalog contains one item for the API model ID.
+                key = "gpt-6-astra"
+                base_model = from_base(key)
+                if base_model and not any(
+                        str(getattr(model, "id", "") or "") == base_model.id
+                        for model in data.values()
                 ):
-                    base_model = from_base(key)
-                    if not base_model:
-                        continue
-                    base_effort = str(
-                        (getattr(base_model, "extra", None) or {}).get("reasoning_effort", "")
-                    )
-                    if not any(
-                            str(getattr(model, "id", "") or "") == base_model.id
-                            and str(
-                                (getattr(model, "extra", None) or {}).get("reasoning_effort", "")
-                            ) == base_effort
-                            for model in data.values()
-                    ):
-                        data[key] = base_model
-                        updated = True
+                    data[key] = base_model
+                    updated = True
 
                 # Add Claude Fable 5.1
                 key = "claude-fable-5-1"
@@ -555,28 +547,15 @@ class Patch:
                 print("Migrating models from < 2.8.13...")
 
                 # GPT-5.3-Codex is the current dedicated Codex API model.
-                # Add all supported reasoning-effort variants from the base catalog.
-                for key in (
-                        "gpt-5.3-codex-low",
-                        "gpt-5.3-codex-medium",
-                        "gpt-5.3-codex-high",
-                        "gpt-5.3-codex-xhigh",
+                # Reasoning effort is selected at runtime from one catalog item.
+                key = "gpt-5.3-codex"
+                base_model = from_base(key)
+                if base_model and not any(
+                        str(getattr(model, "id", "") or "") == base_model.id
+                        for model in data.values()
                 ):
-                    base_model = from_base(key)
-                    if not base_model:
-                        continue
-                    base_effort = str(
-                        (getattr(base_model, "extra", None) or {}).get("reasoning_effort", "")
-                    )
-                    if not any(
-                            str(getattr(model, "id", "") or "") == base_model.id
-                            and str(
-                                (getattr(model, "extra", None) or {}).get("reasoning_effort", "")
-                            ) == base_effort
-                            for model in data.values()
-                    ):
-                        data[key] = base_model
-                        updated = True
+                    data[key] = base_model
+                    updated = True
 
             # <  2.8.14 <--- add GPT Image 2.5 models and LlamaIndex completion modes
             if old < parse_version("2.8.14"):
@@ -615,6 +594,241 @@ class Patch:
                     if not model.has_mode(MODE_COMPLETION):
                         model.add_mode(MODE_COMPLETION)
                         updated = True
+
+            # < 2.8.17 <--- runtime reasoning effort; merge legacy variants
+            if old < parse_version("2.8.17"):
+                print("Migrating models from < 2.8.17...")
+
+                base_by_identity = {}
+                for base_key, base_model in base_data.items():
+                    identity = (
+                        str(getattr(base_model, "provider", "") or ""),
+                        str(getattr(base_model, "id", "") or ""),
+                    )
+                    base_by_identity[identity] = (base_key, base_model)
+
+                # Profiles that skipped one of the intermediate catalog patches
+                # still need the canonical replacement models.
+                for key in (
+                        "gpt-5.3-codex",
+                        "gpt-5.6-luna",
+                        "gpt-5.6-sol",
+                        "gpt-5.6-terra",
+                        "gpt-6-astra",
+                        "o3-mini",
+                ):
+                    base_model = from_base(key)
+                    if base_model is None:
+                        continue
+                    identity = (
+                        str(getattr(base_model, "provider", "") or ""),
+                        str(getattr(base_model, "id", "") or ""),
+                    )
+                    if not any(
+                            (str(getattr(model, "provider", "") or ""),
+                             str(getattr(model, "id", "") or "")) == identity
+                            for model in data.values()
+                    ):
+                        data[key] = copy.deepcopy(base_model)
+                        updated = True
+
+                # Find historical effort variants. The old catalog encoded the
+                # level both in the list key and in extra.reasoning_effort.
+                variant_groups = {}
+                identity_counts = {}
+                for _key, _model in data.items():
+                    _identity = (
+                        str(getattr(_model, "provider", "") or ""),
+                        str(getattr(_model, "id", "") or ""),
+                    )
+                    identity_counts[_identity] = identity_counts.get(_identity, 0) + 1
+
+                for key, model in list(data.items()):
+                    extra = getattr(model, "extra", None) or {}
+                    base_key, suffix_effort = legacy_key_parts(key)
+                    extra_effort = str(extra.get("reasoning_effort", "") or "").lower()
+                    identity = (
+                        str(getattr(model, "provider", "") or ""),
+                        str(getattr(model, "id", "") or ""),
+                    )
+                    # Old PyGPT variants had a suffixed catalog key but the same
+                    # unsuffixed provider model ID and/or extra.reasoning_effort.
+                    # Do not rename a legitimate custom model whose real ID itself
+                    # happens to end in "-high"/"-low".
+                    suffix_variant = (
+                        suffix_effort in LEGACY_REASONING_SUFFIXES
+                        and (
+                            str(getattr(model, "id", "") or "") != str(key)
+                            or identity_counts.get(identity, 0) > 1
+                            or identity in base_by_identity
+                        )
+                    )
+                    is_variant = (
+                        suffix_variant
+                        or extra_effort in LEGACY_REASONING_SUFFIXES
+                    )
+                    if not is_variant:
+                        continue
+                    variant_groups.setdefault(identity, set()).add(key)
+                    if base_key and base_key in data:
+                        base_candidate = data[base_key]
+                        base_identity = (
+                            str(getattr(base_candidate, "provider", "") or ""),
+                            str(getattr(base_candidate, "id", "") or ""),
+                        )
+                        if base_identity == identity:
+                            variant_groups[identity].add(base_key)
+
+                key_map = {}
+                selected_key = self.window.core.config.get("model")
+
+                def _merge_list(items, attr):
+                    merged = []
+                    for item in items:
+                        for value in (getattr(item, attr, None) or []):
+                            if value not in merged:
+                                merged.append(value)
+                    return merged
+
+                def _unique_target_key(preferred, identity, member_keys):
+                    """Avoid overwriting an unrelated custom model on key collision."""
+                    if preferred not in data or preferred in member_keys:
+                        return preferred
+                    existing = data[preferred]
+                    existing_identity = (
+                        str(getattr(existing, "provider", "") or ""),
+                        str(getattr(existing, "id", "") or ""),
+                    )
+                    if existing_identity == identity:
+                        return preferred
+
+                    provider = re.sub(r"[^a-z0-9_-]+", "-", str(identity[0] or "model").lower()).strip("-")
+                    candidate_base = f"{preferred}-{provider or 'model'}"
+                    candidate = candidate_base
+                    counter = 2
+                    while candidate in data and candidate not in member_keys:
+                        occupied = data[candidate]
+                        occupied_identity = (
+                            str(getattr(occupied, "provider", "") or ""),
+                            str(getattr(occupied, "id", "") or ""),
+                        )
+                        if occupied_identity == identity:
+                            return candidate
+                        candidate = f"{candidate_base}-{counter}"
+                        counter += 1
+                    return candidate
+
+                for identity, member_keys in variant_groups.items():
+                    members = [data[k] for k in member_keys if k in data]
+                    if not members:
+                        continue
+
+                    base_entry = base_by_identity.get(identity)
+                    if base_entry is not None:
+                        preferred_key, base_model = base_entry
+                    else:
+                        base_model = None
+                        trimmed = [legacy_key_parts(k)[0] for k in member_keys]
+                        trimmed = [k for k in trimmed if k]
+                        preferred_key = sorted(trimmed)[0] if trimmed else sorted(member_keys)[0]
+                    target_key = _unique_target_key(preferred_key, identity, member_keys)
+
+                    # Prefer an already canonical item, then the currently active
+                    # variant, then high/medium/low/xhigh for deterministic merging.
+                    rep_key = target_key if target_key in member_keys and target_key in data else None
+                    if rep_key is None and selected_key in member_keys:
+                        rep_key = selected_key
+                    if rep_key is None:
+                        rank = {"high": 0, "medium": 1, "low": 2, "xhigh": 3}
+                        rep_key = min(
+                            member_keys,
+                            key=lambda k: (rank.get(legacy_key_parts(k)[1], 9), str(k)),
+                        )
+                    representative = copy.deepcopy(data[rep_key])
+
+                    representative.mode = _merge_list(members, "mode")
+                    representative.input = _merge_list(members, "input")
+                    representative.output = _merge_list(members, "output")
+                    representative.default = any(bool(getattr(m, "default", False)) for m in members)
+                    representative.imported = any(bool(getattr(m, "imported", False)) for m in members)
+                    representative.tool_calls = any(bool(getattr(m, "tool_calls", False)) for m in members)
+                    representative.is_hidden = all(bool(getattr(m, "is_hidden", False)) for m in members)
+
+                    if getattr(representative, "name", None):
+                        representative.name = re.sub(
+                            r"\s*\((?:low|medium|high|xhigh)\)\s*$",
+                            "",
+                            str(representative.name),
+                            flags=re.IGNORECASE,
+                        )
+                    if base_model is not None:
+                        representative.id = base_model.id
+                        representative.reasoning_effort = bool(base_model.reasoning_effort)
+                    else:
+                        representative.reasoning_effort = bool(
+                            get_provider_efforts(getattr(representative, "provider", ""))
+                        )
+
+                    extra = dict(getattr(representative, "extra", None) or {})
+                    extra.pop("reasoning_effort", None)
+                    representative.extra = extra
+
+                    for old_key in list(member_keys):
+                        if old_key in data:
+                            del data[old_key]
+                        key_map[old_key] = target_key
+                    data[target_key] = representative
+                    updated = True
+
+                # Remove the obsolete per-model API parameter from every model,
+                # and mark supported user/custom entries from the new base catalog.
+                for model in data.values():
+                    extra = dict(getattr(model, "extra", None) or {})
+                    if "reasoning_effort" in extra:
+                        del extra["reasoning_effort"]
+                        model.extra = extra
+                        updated = True
+
+                    identity = (
+                        str(getattr(model, "provider", "") or ""),
+                        str(getattr(model, "id", "") or ""),
+                    )
+                    base_entry = base_by_identity.get(identity)
+                    if base_entry is not None:
+                        enabled = bool(base_entry[1].reasoning_effort)
+                        if bool(getattr(model, "reasoning_effort", False)) != enabled:
+                            model.reasoning_effort = enabled
+                            updated = True
+
+                # Rewrite global/current model references for merged user keys.
+                # Contexts and presets are intentionally not rewritten: runtime
+                # restoration resolves their legacy suffixes on demand.
+                cfg = self.window.core.config
+                cfg_changed = False
+
+                def _mapped_ref(value):
+                    # Only rewrite keys that were actually merged. Bundled legacy
+                    # references are normalized by the config patch which runs
+                    # before the model patch; this avoids touching legitimate
+                    # custom model IDs that merely end in an effort-like suffix.
+                    return key_map.get(value, value)
+
+                current = cfg.get("model")
+                mapped = _mapped_ref(current)
+                if mapped != current:
+                    cfg.set("model", mapped)
+                    cfg_changed = True
+
+                current_models = cfg.get("current_model")
+                if isinstance(current_models, dict):
+                    for mode_key, value in list(current_models.items()):
+                        mapped = _mapped_ref(value)
+                        if mapped != value:
+                            current_models[mode_key] = mapped
+                            cfg_changed = True
+
+                if cfg_changed:
+                    cfg.save()
 
         # update file
         if updated:

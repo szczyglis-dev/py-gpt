@@ -228,7 +228,7 @@ class OpenAI(FunctionCallingLLM):
         default=False,
         description="Whether to use strict mode for invoking tools/using schemas.",
     )
-    reasoning_effort: Optional[Literal["low", "medium", "high"]] = Field(
+    reasoning_effort: Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]] = Field(
         default=None,
         description="The effort to use for reasoning models.",
     )
@@ -271,7 +271,7 @@ class OpenAI(FunctionCallingLLM):
         pydantic_program_mode: PydanticProgramMode = PydanticProgramMode.DEFAULT,
         output_parser: Optional[BaseOutputParser] = None,
         strict: bool = False,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] = None,
+        reasoning_effort: Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]] = None,
         modalities: Optional[List[str]] = None,
         audio_config: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
@@ -459,8 +459,9 @@ class OpenAI(FunctionCallingLLM):
                 "max_completion_tokens", all_kwargs["max_tokens"]
             )
             all_kwargs.pop("max_tokens", None)
-        if self.model in O1_MODELS and self.reasoning_effort is not None:
-            # O1 models support reasoning_effort of low, medium, high
+        if self.reasoning_effort is not None:
+            # Runtime validation is performed by PyGPT before this adapter is
+            # invoked; newer reasoning models support provider-specific levels.
             all_kwargs["reasoning_effort"] = self.reasoning_effort
 
         if self.modalities is not None:

@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
+from pygpt_net.core.types.reasoning import get_google_thinking_kwargs
 
 
 class GoogleLLM(BaseLLM):
@@ -35,6 +36,31 @@ class GoogleLLM(BaseLLM):
         self.id = "google"
         self.name = "Google"
         self.type = [MODE_LLAMA_INDEX, "embeddings"]
+
+    @staticmethod
+    def _generation_config_dict(value) -> dict:
+        """Normalize a Google GenerateContentConfig/dict for safe merging."""
+        if value is None:
+            return {}
+        if isinstance(value, dict):
+            return dict(value)
+        try:
+            return value.model_dump(exclude_none=True)
+        except Exception:
+            return {}
+
+    def _append_reasoning_effort(self, window, model: ModelItem, args: dict) -> None:
+        effort = window.core.models.get_reasoning_effort(model)
+        if not effort:
+            return
+        thinking = get_google_thinking_kwargs(model.id, effort)
+        if not thinking:
+            return
+        generation_config = self._generation_config_dict(args.get("generation_config"))
+        # llama-index-llms-google-genai 0.11.1 expects a typed
+        # GenerateContentConfig here and calls .model_dump() on it internally.
+        generation_config["thinking_config"] = gtypes.ThinkingConfig(**thinking)
+        args["generation_config"] = gtypes.GenerateContentConfig(**generation_config)
 
     def llama_completion(
             self,
@@ -74,6 +100,8 @@ class GoogleLLM(BaseLLM):
 
         window.core.api.google.setup_env()  # setup VertexAI if configured
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        had_generation_config = "generation_config" in args
+        self._append_reasoning_effort(window, model, args)
 
         # -----------------------------------------------------------
         # Remote built-in tools for Google GenAI via LlamaIndex:
@@ -90,19 +118,23 @@ class GoogleLLM(BaseLLM):
             except Exception as e:
                 window.core.debug.log(e)
 
-        if built_tools:
-            # Only attach if user didn't already pass their own config
-            if "built_in_tool" not in args and "generation_config" not in args:
-                if len(built_tools) == 1:
+        if built_tools and not had_generation_config:
+            # A runtime thinking_config may have created generation_config after
+            # parsing the model args.  It must not suppress remote tools.  A
+            # user-supplied generation_config keeps the historical behavior.
+            if len(built_tools) == 1:
+                if "built_in_tool" not in args:
                     args["built_in_tool"] = built_tools[0]
-                else:
-                    # If multiple tools are enabled, provide them via generation_config.tools
-                    try:
-                        args["generation_config"] = gtypes.GenerateContentConfig(tools=built_tools)
-                    except Exception as e:
-                        # Fallback to the first tool if GenerateContentConfig cannot be constructed
-                        window.core.debug.log(e)
-                        args["built_in_tool"] = built_tools[0]
+            else:
+                generation_config = self._generation_config_dict(args.get("generation_config"))
+                if not generation_config.get("tools"):
+                    generation_config["tools"] = built_tools
+                    args["generation_config"] = gtypes.GenerateContentConfig(**generation_config)
+
+        # The pinned llama-index Google integration treats generation_config as
+        # a pydantic model, not a plain dict. Normalize user/model args too.
+        if isinstance(args.get("generation_config"), dict):
+            args["generation_config"] = gtypes.GenerateContentConfig(**args["generation_config"])
 
         return PyGPTGoogleGenAI(**args, pygpt_remote_tools=built_tools)
 
@@ -150,6 +182,7 @@ class GoogleLLM(BaseLLM):
 
         window.core.api.google.setup_env()
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self._append_reasoning_effort(window, model, args)
 
         remote = []
         if allow_remote_tools:
@@ -157,6 +190,9 @@ class GoogleLLM(BaseLLM):
                 remote = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
             except Exception as e:
                 window.core.debug.log(e)
+
+        if isinstance(args.get("generation_config"), dict):
+            args["generation_config"] = gtypes.GenerateContentConfig(**args["generation_config"])
 
         return AgentGoogleGenAI(
             **args,

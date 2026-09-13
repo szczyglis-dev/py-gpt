@@ -32,6 +32,7 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
+from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 from pygpt_net.provider.api.openai.agents.response import StreamHandler
 from pygpt_net.provider.api.openai.agents.experts import get_experts
@@ -303,6 +304,7 @@ class Agent(BaseAgent):
         }
         if worker_tool:
             kwargs["tools"] = [worker_tool]
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def get_worker(self, window, kwargs: Dict[str, Any]):
@@ -342,6 +344,7 @@ class Agent(BaseAgent):
             allow_remote_tools= self.get_option(preset, "worker", "allow_remote_tools"),
         )
         kwargs.update(tool_kwargs) # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     async def run(

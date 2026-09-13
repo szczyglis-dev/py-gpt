@@ -478,16 +478,19 @@ class Presets:
         preset_id = cfg.get('preset')
         if not preset_id or preset_id not in w.core.presets.items:
             return
+        if not bool(cfg.get('model.restore_from_ctx', False)):
+            return
         preset = w.core.presets.items[preset_id]
         model = preset.model
         if not model or model == "_":
             return
         models = w.core.models
-        if models.has(model) and models.is_allowed(model, mode):
-            if cfg.get('model') == model:
+        resolved = models.resolve_model_key(mode, model)
+        if resolved is not None:
+            if cfg.get('model') == resolved:
                 return
-            cfg.set('model', model)
-            w.controller.model.set(mode, model)
+            cfg.set('model', resolved)
+            w.controller.model.set(mode, resolved)
             w.controller.model.init_list()
             w.controller.model.select_current()
 

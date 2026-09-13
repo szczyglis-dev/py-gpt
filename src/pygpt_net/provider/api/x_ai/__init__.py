@@ -285,13 +285,17 @@ class ApiXAI:
 
             # Create chat session
             include = []
-            chat = client.chat.create(
-                model=model.id,
-                tools=(client_tools if client_tools else None),
-                include=(include if include else None),
-                store_messages=store_messages,
-                previous_response_id=prev_id,
-            )
+            chat_kwargs = {
+                "model": model.id,
+                "tools": (client_tools if client_tools else None),
+                "include": (include if include else None),
+                "store_messages": store_messages,
+                "previous_response_id": prev_id,
+            }
+            reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+            if reasoning_effort:
+                chat_kwargs["reasoning_effort"] = reasoning_effort
+            chat = client.chat.create(**chat_kwargs)
 
             # Append history if enabled and no previous_response_id is used
             self.responses.append_history_sdk(
@@ -369,6 +373,7 @@ class ApiXAI:
                     temperature=temperature,
                     max_tokens=context.max_tokens,
                     search_parameters=None,
+                    reasoning_effort=self.window.core.models.get_reasoning_effort(model),
                 )
                 if ctx:
                     if calls:
@@ -385,7 +390,11 @@ class ApiXAI:
                 attachments=context.attachments,
                 multimodal_ctx=context.multimodal_ctx,
             )
-            chat = client.chat.create(model=model.id, messages=messages)
+            chat_kwargs = {"model": model.id, "messages": messages}
+            reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+            if reasoning_effort:
+                chat_kwargs["reasoning_effort"] = reasoning_effort
+            chat = client.chat.create(**chat_kwargs)
             resp = chat.sample()
             return getattr(resp, "content", "") or ""
         except Exception as e:

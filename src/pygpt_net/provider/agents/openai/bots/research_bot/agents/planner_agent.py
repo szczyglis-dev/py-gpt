@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from agents import Agent
 
 from pygpt_net.item.preset import PresetItem
+from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 
 
@@ -58,4 +59,5 @@ def get_planner_agent(
         allow_remote_tools=config["allow_remote_tools"],
     )
     kwargs.update(tool_kwargs)  # update kwargs with tools
+    append_reasoning_model_settings(kwargs, window, config["model"])
     return Agent(**kwargs)

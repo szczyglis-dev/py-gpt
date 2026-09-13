@@ -41,6 +41,7 @@ class ModelItem:
     name: Optional[str] = None
     output: list = field(default_factory=lambda: ["text"])
     provider: str = "openai"
+    reasoning_effort: bool = False
     tokens: int = 0
     tool_calls: bool = False
 
@@ -66,6 +67,7 @@ class ModelItem:
         self.name = None
         self.output = ["text"]  # multimodal support: image, audio, etc.
         self.provider = "openai"  # default provider
+        self.reasoning_effort = False  # allow runtime reasoning-effort selection
         self.tokens = 0
         self.tool_calls = False  # native tool calls available
 
@@ -104,6 +106,8 @@ class ModelItem:
             self.output = output.split(',')
         if 'provider' in data:
             self.provider = data['provider']
+        if 'reasoning_effort' in data:
+            self.reasoning_effort = bool(data['reasoning_effort'])
         if 'tokens' in data:
             self.tokens = data['tokens']
         if 'tool_calls' in data:
@@ -138,6 +142,7 @@ class ModelItem:
             'imported': self.imported,
             'is_hidden': self.is_hidden,
             'provider': self.provider,
+            'reasoning_effort': self.reasoning_effort,
             'tool_calls': self.tool_calls,
             'llama_index.args': [],
             'llama_index.env': []

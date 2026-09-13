@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.8.16",
-        "app.version": "2.8.16",
-        "updated_at": "2026-09-12T15:18:00"
+        "version": "2.8.17",
+        "app.version": "2.8.17",
+        "updated_at": "2026-09-13T09:00:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
@@ -40,6 +40,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "claude-fable-5": {
@@ -85,6 +86,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "claude-fable-5-1": {
@@ -130,6 +132,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "claude-haiku-4-5": {
@@ -175,6 +178,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "claude-opus-4-5": {
@@ -220,6 +224,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "claude-opus-5": {
@@ -265,6 +270,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "claude-sonnet-4-5": {
@@ -310,6 +316,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "claude-sonnet-5": {
@@ -355,6 +362,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "deep-research-max-preview-04-2026": {
@@ -395,6 +403,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deep-research-preview-04-2026": {
@@ -435,6 +444,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deep-research-pro-preview-12-2025": {
@@ -475,6 +485,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deepseek-r1:8b": {
@@ -512,6 +523,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deepseek_api_v4_flash": {
@@ -559,6 +571,7 @@
             "extra": {},
             "imported": false,
             "provider": "deepseek_api",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "deepseek_api_v4_pro": {
@@ -606,6 +619,7 @@
             "extra": {},
             "imported": false,
             "provider": "deepseek_api",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-2.5-computer-use-preview-10-2025": {
@@ -643,6 +657,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-2.5-flash": {
@@ -689,6 +704,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-2.5-flash-image": {
@@ -727,6 +743,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gemini-2.5-flash-native-audio-latest": {
@@ -766,6 +783,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-2.5-pro": {
@@ -812,6 +830,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3-flash-preview": {
@@ -860,6 +879,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3-pro-image": {
@@ -898,6 +918,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gemini-3.1-flash-image": {
@@ -936,6 +957,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": false
         },
         "gemini-3.1-flash-lite-image": {
@@ -974,6 +996,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.1-flash-live-preview": {
@@ -1014,6 +1037,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-3.1-pro-preview": {
@@ -1060,6 +1084,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.5-flash": {
@@ -1107,6 +1132,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.5-flash-lite": {
@@ -1154,6 +1180,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.6-flash": {
@@ -1200,6 +1227,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.7-flash": {
@@ -1247,6 +1275,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-flash-latest": {
@@ -1293,6 +1322,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-pro-latest": {
@@ -1339,6 +1369,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemma4:e4b": {
@@ -1377,6 +1408,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-3.5-turbo": {
@@ -1431,6 +1463,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-3.5-turbo-instruct": {
@@ -1455,6 +1488,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4": {
@@ -1509,6 +1543,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4-turbo": {
@@ -1565,6 +1600,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4o": {
@@ -1621,6 +1657,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4o-mini": {
@@ -1677,9 +1714,10 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
-        "gpt-5.3-codex-high": {
+        "gpt-5.3-codex": {
             "id": "gpt-5.3-codex",
             "mode": [
                 "chat",
@@ -1731,189 +1769,14 @@
             ],
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true,
-            "name": "gpt-5.3-codex (high)",
-            "extra": {
-                "reasoning_effort": "high"
-            }
+            "name": "gpt-5.3-codex",
+            "extra": {}
         },
-        "gpt-5.3-codex-low": {
-            "id": "gpt-5.3-codex",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.3-codex",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true,
-            "name": "gpt-5.3-codex (low)",
-            "extra": {
-                "reasoning_effort": "low"
-            }
-        },
-        "gpt-5.3-codex-medium": {
-            "id": "gpt-5.3-codex",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.3-codex",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true,
-            "name": "gpt-5.3-codex (medium)",
-            "extra": {
-                "reasoning_effort": "medium"
-            }
-        },
-        "gpt-5.3-codex-xhigh": {
-            "id": "gpt-5.3-codex",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.3-codex",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true,
-            "name": "gpt-5.3-codex (xhigh)",
-            "extra": {
-                "reasoning_effort": "xhigh"
-            }
-        },
-        "gpt-5.6-luna-high": {
+        "gpt-5.6-luna": {
             "id": "gpt-5.6-luna",
-            "name": "gpt-5.6-luna (high)",
+            "name": "gpt-5.6-luna",
             "mode": [
                 "chat",
                 "agent_v2",
@@ -1963,134 +1826,15 @@
             "output": [
                 "text"
             ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
+            "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
-        "gpt-5.6-luna-low": {
-            "id": "gpt-5.6-luna",
-            "name": "gpt-5.6-luna (low)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-luna",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-luna-medium": {
-            "id": "gpt-5.6-luna",
-            "name": "gpt-5.6-luna (medium)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-luna",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-sol-high": {
+        "gpt-5.6-sol": {
             "id": "gpt-5.6-sol",
-            "name": "gpt-5.6-sol (high)",
+            "name": "gpt-5.6-sol",
             "mode": [
                 "chat",
                 "agent_v2",
@@ -2140,134 +1884,15 @@
             "output": [
                 "text"
             ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
+            "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
-        "gpt-5.6-sol-low": {
-            "id": "gpt-5.6-sol",
-            "name": "gpt-5.6-sol (low)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-sol",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-sol-medium": {
-            "id": "gpt-5.6-sol",
-            "name": "gpt-5.6-sol (medium)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-sol",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-terra-high": {
+        "gpt-5.6-terra": {
             "id": "gpt-5.6-terra",
-            "name": "gpt-5.6-terra (high)",
+            "name": "gpt-5.6-terra",
             "mode": [
                 "chat",
                 "agent_v2",
@@ -2317,134 +1942,15 @@
             "output": [
                 "text"
             ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
+            "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
-        "gpt-5.6-terra-low": {
-            "id": "gpt-5.6-terra",
-            "name": "gpt-5.6-terra (low)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-terra",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-terra-medium": {
-            "id": "gpt-5.6-terra",
-            "name": "gpt-5.6-terra (medium)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-terra",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-6-astra-high": {
+        "gpt-6-astra": {
             "id": "gpt-6-astra",
-            "name": "gpt-6-astra (high)",
+            "name": "gpt-6-astra",
             "mode": [
                 "chat",
                 "agent_v2",
@@ -2494,129 +2000,10 @@
             "output": [
                 "text"
             ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
+            "extra": {},
             "imported": false,
             "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-6-astra-low": {
-            "id": "gpt-6-astra",
-            "name": "gpt-6-astra (low)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-6-astra",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-6-astra-medium": {
-            "id": "gpt-6-astra",
-            "name": "gpt-6-astra (medium)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai",
-                "computer",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-6-astra",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-image-1": {
@@ -2642,6 +2029,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gpt-image-1.5": {
@@ -2694,6 +2082,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gpt-image-2": {
@@ -2746,6 +2135,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gpt-image-2.5-flare": {
@@ -2798,6 +2188,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gpt-image-2.5-sunburst": {
@@ -2850,6 +2241,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gpt-oss-120b": {
@@ -2888,6 +2280,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-oss-120b-huggingface-router": {
@@ -2935,6 +2328,7 @@
             "extra": {},
             "imported": false,
             "provider": "huggingface_router",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-oss-20b": {
@@ -2973,6 +2367,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-oss-20b-huggingface-router": {
@@ -3020,6 +2415,7 @@
             "extra": {},
             "imported": false,
             "provider": "huggingface_router",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-realtime": {
@@ -3073,6 +2469,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-realtime-2.1": {
@@ -3127,6 +2524,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-realtime-2.1-mini": {
@@ -3181,6 +2579,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-2-vision": {
@@ -3225,6 +2624,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-3-mini": {
@@ -3271,6 +2671,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-3-mini-fast": {
@@ -3317,6 +2718,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-4.3": {
@@ -3368,6 +2770,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "grok-4.5": {
@@ -3419,6 +2822,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "grok-4.6": {
@@ -3470,6 +2874,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "grok-imagine-image": {
@@ -3512,6 +2917,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "grok-imagine-image-quality-latest": {
@@ -3554,6 +2960,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "grok-imagine-video": {
@@ -3597,6 +3004,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "grok-imagine-video-1.5": {
@@ -3640,6 +3048,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "imagen-4.0-generate-001": {
@@ -3676,6 +3085,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "llama2-uncensored": {
@@ -3713,6 +3123,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "llama3.1": {
@@ -3751,6 +3162,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "llama4:scout": {
@@ -3789,6 +3201,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "mistral-small3.2:latest": {
@@ -3827,6 +3240,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "nano-banana-pro-preview": {
@@ -3865,6 +3279,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "nemotron-3.5-lightning:30b": {
@@ -3902,6 +3317,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "o1": {
@@ -3958,6 +3374,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "o1-pro": {
@@ -4014,6 +3431,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "o3": {
@@ -4070,11 +3488,12 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
-        "o3-mini-high": {
+        "o3-mini": {
             "id": "o3-mini",
-            "name": "o3-mini (high)",
+            "name": "o3-mini",
             "mode": [
                 "chat",
                 "agent_v2",
@@ -4121,123 +3540,10 @@
             "output": [
                 "text"
             ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
+            "extra": {},
             "imported": false,
             "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-low": {
-            "id": "o3-mini",
-            "name": "o3-mini (low)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama",
-                "agent_openai",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-medium": {
-            "id": "o3-mini",
-            "name": "o3-mini (medium)",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama",
-                "agent_openai",
-                "completion"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "o3-pro": {
@@ -4294,6 +3600,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "o4-mini": {
@@ -4349,6 +3656,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "qwen3.5:9b": {
@@ -4387,6 +3695,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "qwen3.6:27b": {
@@ -4425,6 +3734,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "sonar": {
@@ -4472,6 +3782,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "sonar-deep-research": {
@@ -4519,6 +3830,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
+            "reasoning_effort": true,
             "tool_calls": false
         },
         "sonar-pro": {
@@ -4566,6 +3878,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "sonar-reasoning-pro": {
@@ -4613,6 +3926,7 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
+            "reasoning_effort": true,
             "tool_calls": false
         },
         "sora-2": {
@@ -4665,6 +3979,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "sora-2-pro": {
@@ -4717,6 +4032,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "veo-3.1-fast-generate-preview": {
@@ -4754,6 +4070,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "veo-3.1-generate-preview": {
@@ -4791,6 +4108,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "veo-3.1-lite-generate-preview": {
@@ -4828,6 +4146,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         }
     }

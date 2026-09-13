@@ -409,13 +409,24 @@ class Ctx:
             self.assistant = ctx.assistant
             self.preset = ctx.preset
 
-            if restore_model:
-                if ctx.last_model is not None \
-                        and self.window.core.models.has_model(self.mode, ctx.last_model):
-                    self.model = ctx.last_model
-                elif ctx.model is not None \
-                        and self.window.core.models.has_model(self.mode, ctx.model):
-                    self.model = ctx.model
+            # Model restore is opt-in. Reasoning effort is intentionally not
+            # part of context state and is never restored from a conversation.
+            # Leave the context model unset when restore is disabled so changing
+            # to a conversation in another mode keeps that mode's global model
+            # selection instead of reusing the model from the previously active
+            # mode.
+            self.model = None
+            should_restore_model = (
+                restore_model
+                and bool(self.window.core.config.get('model.restore_from_ctx', False))
+            )
+            if should_restore_model:
+                models = self.window.core.models
+                resolved = models.resolve_model_key(self.mode, ctx.last_model)
+                if resolved is None:
+                    resolved = models.resolve_model_key(self.mode, ctx.model)
+                if resolved is not None:
+                    self.model = resolved
 
             self.set_items(self.load(id))
 

@@ -95,6 +95,13 @@ class Chat:
             self.window.core.debug.info(f"[xai] Switching to vision model: {fb} (was: {model_id}) due to image input")
             model_id = fb
 
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model_item)
+        if model_id != model_item.id:
+            # A vision fallback is a different API model and may not expose the
+            # selected model's reasoning control. Do not forward the parameter
+            # unless the actually selected catalog model is being called.
+            reasoning_effort = None
+
         # Server-side Agent Tools availability (web_search/x_search/code_execution/MCP/collections)
         # If any server-side tool is enabled, delegate to the Responses API which implements the Agent Tools flow.
         srv_cfg = self.window.core.api.xai.remote.build_for_chat(model_item, stream=context.stream)
@@ -115,12 +122,16 @@ class Chat:
                 history=context.history,
                 attachments=attachments,
                 prompt=prompt,
+                reasoning_effort=reasoning_effort,
             )
 
         # NON-STREAM: prefer SDK only for plain chat (no function tools/tool-turns/images)
         prefer_sdk_plain = (not tools_prepared) and (not has_tool_turns) and (not has_images)
         if prefer_sdk_plain:
-            chat = client.chat.create(model=model_id, messages=sdk_messages)
+            chat_kwargs = {"model": model_id, "messages": sdk_messages}
+            if reasoning_effort:
+                chat_kwargs["reasoning_effort"] = reasoning_effort
+            chat = client.chat.create(**chat_kwargs)
             try:
                 if hasattr(chat, "sample"):
                     return chat.sample()
@@ -144,6 +155,7 @@ class Chat:
             search_parameters=None,  # Live Search removed from Chat Completions; handled via Agent Tools in Responses API
             temperature=context.temperature,
             max_tokens=context.max_tokens,
+            reasoning_effort=reasoning_effort,
         )
         return {
             "output_text": text or "",
@@ -460,6 +472,7 @@ class Chat:
         search_parameters: Optional[Dict[str, Any]],
         temperature: Optional[float],
         max_tokens: Optional[int],
+        reasoning_effort: Optional[str] = None,
     ) -> Tuple[str, List[dict], List[str], Optional[dict], str]:
         """
         Non-streaming HTTP Chat Completions call to xAI with optional tools, Live Search, and vision.
@@ -486,6 +499,8 @@ class Chat:
         }
         if max_tokens:
             payload["max_tokens"] = int(max_tokens)
+        if reasoning_effort:
+            payload["reasoning_effort"] = reasoning_effort
 
         tools_payload = self._make_tools_payload(tools)
         if tools_payload:
@@ -583,6 +598,7 @@ class Chat:
         history: Optional[List[CtxItem]] = None,
         attachments: Optional[Dict[str, AttachmentItem]] = None,
         prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ):
         """
         Streaming HTTP Chat Completions (SSE) for xAI.
@@ -615,6 +631,8 @@ class Chat:
         }
         if max_tokens:
             payload["max_tokens"] = int(max_tokens)
+        if reasoning_effort:
+            payload["reasoning_effort"] = reasoning_effort
 
         tools_payload = self._make_tools_payload(tools or [])
         if tools_payload:

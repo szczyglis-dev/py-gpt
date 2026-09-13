@@ -134,6 +134,10 @@ class Custom:
         self.window.controller.attachment.update_tab(mode)
         self.window.controller.assistant.files.update_tab()
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
+        try:
+            self.window.ui.nodes['input'].update_reasoning_effort()
+        except (AttributeError, KeyError):
+            pass
 
         # input: attachments
         self.window.ui.models['attachments'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))

@@ -109,9 +109,9 @@ class Completion:
             if max_tokens > 0:
                 kwargs["max_tokens"] = max_tokens
 
-        extra = getattr(model, "extra", None) or {}
-        if extra.get("reasoning_effort"):
-            kwargs["reasoning_effort"] = extra["reasoning_effort"]
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            kwargs["reasoning_effort"] = reasoning_effort
 
         return kwargs
 

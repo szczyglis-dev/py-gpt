@@ -109,6 +109,10 @@ class OllamaLLM(BaseLLM):
         if ctx_size > 0 and "context_window" not in args:
             args["context_window"] = int(ctx_size)
 
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            args["think"] = reasoning_effort
+
         return OllamaCompletion(**args)
 
     def llama(
@@ -150,6 +154,11 @@ class OllamaLLM(BaseLLM):
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = bool(model.tool_calls)
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
 
         # Keep PyGPT model limits in LlamaIndex metadata/request settings.
         ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
@@ -202,6 +211,9 @@ class OllamaLLM(BaseLLM):
         args["model"] = model_id
         args["base_url"] = base_url
         args["is_function_calling_model"] = bool(model.tool_calls)
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            args["think"] = reasoning_effort
 
         return Ollama(**args)
 

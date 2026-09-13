@@ -49,6 +49,11 @@ class DeepseekApiLLM(BaseLLM):
             args["model"] = model.id
         if "api_key" not in args or args["api_key"] == "":
             args["api_key"] = window.core.config.get("api_key_deepseek", "")
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return DeepSeek(**args)
 

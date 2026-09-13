@@ -1367,6 +1367,20 @@
         "step": null,
         "secret": false
     },
+    "model.restore_from_ctx": {
+        "section": "model",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.model.restore_from_ctx",
+        "description": "settings.model.restore_from_ctx.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false
+    },
     "max_output_tokens": {
         "section": "model",
         "type": "int",

@@ -94,6 +94,11 @@ class AzureOpenAILLM(BaseLLM):
             args["api_key"] = window.core.config.get("api_key", "")
         if "model" not in args:
             args["model"] = model.id
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         return LlamaAzureOpenAI(**args)
 

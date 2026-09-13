@@ -32,7 +32,11 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.api.openai.agents.client import get_custom_model_provider, set_openai_env
+from pygpt_net.provider.api.openai.agents.client import (
+    append_reasoning_model_settings,
+    get_custom_model_provider,
+    set_openai_env,
+)
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 from pygpt_net.provider.api.openai.agents.response import StreamHandler
 from pygpt_net.provider.api.openai.agents.experts import get_experts
@@ -410,6 +414,7 @@ Overall Task: {task}
         except Exception:
             pass
 
+        append_reasoning_model_settings(cfg, window, model)
         return OpenAIAgent(**cfg)
 
     def get_planner(
@@ -444,6 +449,7 @@ Overall Task: {task}
             allow_remote_tools=allow_remote_tools,
         )
         kwargs.update(tool_kwargs)  # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def get_refiner(
@@ -477,6 +483,7 @@ Overall Task: {task}
             allow_remote_tools=allow_remote_tools,
         )
         kwargs.update(tool_kwargs)
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     async def run(

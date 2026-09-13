@@ -14,6 +14,8 @@ import os
 
 from packaging.version import parse as parse_version, Version
 
+from pygpt_net.core.types.reasoning import legacy_key_parts
+
 # old patches moved here
 from .patches.patch_before_2_6_42 import Patch as PatchBefore2_6_42
 
@@ -707,6 +709,79 @@ class Patch:
             # < 2.8.17
             if old < parse_version("2.8.17"):
                 print("Migrating config from < 2.8.17...")
+
+                # Resolve legacy catalog references conservatively.  A custom
+                # model is allowed to have a real ID/key ending in -high/-low;
+                # only treat it as an old PyGPT variant when the trimmed bundled
+                # model exists and the loaded item's provider/model identity is
+                # compatible with that bundled model.
+                try:
+                    base_models = self.window.core.models.get_base() or {}
+                except Exception:
+                    base_models = {}
+                loaded_models = getattr(self.window.core.models, "items", {}) or {}
+
+                def _legacy_ref_parts(value):
+                    base_key, effort = legacy_key_parts(value)
+                    if not base_key or base_key not in base_models:
+                        return None, None
+                    current = loaded_models.get(value) if isinstance(loaded_models, dict) else None
+                    base = base_models.get(base_key)
+                    if current is not None and base is not None:
+                        current_identity = (
+                            str(getattr(current, "provider", "") or ""),
+                            str(getattr(current, "id", "") or ""),
+                        )
+                        base_identity = (
+                            str(getattr(base, "provider", "") or ""),
+                            str(getattr(base, "id", "") or ""),
+                        )
+                        if current_identity != base_identity:
+                            return None, None
+                    return base_key, effort
+
+                # Reasoning effort is a single runtime preference from 2.8.17.
+                # Preserve the old active bundled variant when possible, but
+                # never keep effort as per-model/context state.
+                if "model.reasoning_effort" not in data:
+                    _, old_effort = _legacy_ref_parts(data.get("model"))
+                    if old_effort is None:
+                        current_models = data.get("current_model")
+                        if isinstance(current_models, dict):
+                            _, old_effort = _legacy_ref_parts(
+                                current_models.get(data.get("mode"))
+                            )
+                    data["model.reasoning_effort"] = (
+                        old_effort
+                        or cfg_get_base("model.reasoning_effort")
+                        or "high"
+                    )
+                    updated = True
+
+                # Model restore is now explicitly opt-in. Existing profiles keep
+                # the currently selected model while browsing conversations.
+                if "model.restore_from_ctx" not in data:
+                    data["model.restore_from_ctx"] = False
+                    updated = True
+
+                # Normalize historical bundled model keys in config immediately.
+                def _normalize_model_ref(value):
+                    base_key, _ = _legacy_ref_parts(value)
+                    return base_key if base_key else value
+
+                old_model = data.get("model")
+                new_model = _normalize_model_ref(old_model)
+                if new_model != old_model:
+                    data["model"] = new_model
+                    updated = True
+
+                current_models = data.get("current_model")
+                if isinstance(current_models, dict):
+                    for mode_key, value in list(current_models.items()):
+                        normalized = _normalize_model_ref(value)
+                        if normalized != value:
+                            current_models[mode_key] = normalized
+                            updated = True
 
                 # Chat with Agents worker limit is configurable from 2.8.17.
                 # Keep 16 as the default for existing profiles; 0 means unlimited.

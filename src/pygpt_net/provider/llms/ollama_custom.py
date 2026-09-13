@@ -151,6 +151,10 @@ class Ollama(FunctionCallingLLM):
         default="5m",
         description="controls how long the model will stay loaded into memory following the request(default: 5m)",
     )
+    think: Optional[Union[bool, str]] = Field(
+        default=None,
+        description="Ollama thinking mode/level (for example low, medium or high).",
+    )
 
     _client: Optional[Client] = PrivateAttr()
     _async_client: Optional[AsyncClient] = PrivateAttr()
@@ -169,6 +173,7 @@ class Ollama(FunctionCallingLLM):
         async_client: Optional[AsyncClient] = None,
         is_function_calling_model: bool = True,
         keep_alive: Optional[Union[float, str]] = None,
+        think: Optional[Union[bool, str]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -182,6 +187,7 @@ class Ollama(FunctionCallingLLM):
             additional_kwargs=additional_kwargs or {},
             is_function_calling_model=is_function_calling_model,
             keep_alive=keep_alive,
+            think=think,
             **kwargs,
         )
 
@@ -217,6 +223,11 @@ class Ollama(FunctionCallingLLM):
                 host=self.base_url, timeout=self.request_timeout
             )
         return self._async_client
+
+    @property
+    def _think_kwargs(self) -> Dict[str, Any]:
+        """Return native Ollama thinking option only when explicitly enabled."""
+        return {"think": self.think} if self.think is not None else {}
 
     @property
     def _model_kwargs(self) -> Dict[str, Any]:
@@ -455,6 +466,7 @@ class Ollama(FunctionCallingLLM):
             tools=tools,
             options=self._model_kwargs,
             keep_alive=self.keep_alive,
+            **self._think_kwargs,
         )
         raw = _plain_dict(response)
         message = _plain_dict(raw.get("message") or {})
@@ -484,6 +496,7 @@ class Ollama(FunctionCallingLLM):
                 tools=tools,
                 options=self._model_kwargs,
                 keep_alive=self.keep_alive,
+                **self._think_kwargs,
             )
             response_txt = ""
             thinking_txt = ""
@@ -543,6 +556,7 @@ class Ollama(FunctionCallingLLM):
                 tools=tools,
                 options=self._model_kwargs,
                 keep_alive=self.keep_alive,
+                **self._think_kwargs,
             )
             response_txt = ""
             thinking_txt = ""
@@ -600,6 +614,7 @@ class Ollama(FunctionCallingLLM):
             tools=tools,
             options=self._model_kwargs,
             keep_alive=self.keep_alive,
+            **self._think_kwargs,
         )
         raw = _plain_dict(response)
         message = _plain_dict(raw.get("message") or {})

@@ -51,6 +51,7 @@ class OllamaCompletion(Ollama):
             format=format_value,
             options=self._model_kwargs,
             keep_alive=self.keep_alive,
+            **self._think_kwargs,
             **kwargs,
         )
         raw = _plain_dict(response)
@@ -80,6 +81,7 @@ class OllamaCompletion(Ollama):
                 format=format_value,
                 options=self._model_kwargs,
                 keep_alive=self.keep_alive,
+                **self._think_kwargs,
                 **kwargs,
             )
             for chunk in response:
@@ -112,6 +114,7 @@ class OllamaCompletion(Ollama):
             format=format_value,
             options=self._model_kwargs,
             keep_alive=self.keep_alive,
+            **self._think_kwargs,
             **kwargs,
         )
         raw = _plain_dict(response)
@@ -141,6 +144,7 @@ class OllamaCompletion(Ollama):
                 format=format_value,
                 options=self._model_kwargs,
                 keep_alive=self.keep_alive,
+                **self._think_kwargs,
                 **kwargs,
             )
             async for chunk in response:

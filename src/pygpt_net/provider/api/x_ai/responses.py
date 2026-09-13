@@ -142,6 +142,9 @@ class Responses:
             chat_kwargs["use_encrypted_content"] = True
         if isinstance(max_turns, int) and max_turns > 0:
             chat_kwargs["max_turns"] = max_turns
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model_item)
+        if reasoning_effort:
+            chat_kwargs["reasoning_effort"] = reasoning_effort
 
         chat = client.chat.create(**chat_kwargs)
 

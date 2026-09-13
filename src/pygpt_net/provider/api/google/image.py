@@ -22,6 +22,7 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 from pygpt_net.core.types.image import model_version_at_least
+from pygpt_net.core.types.reasoning import get_google_thinking_kwargs
 
 DEFAULT_GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image"
 
@@ -78,6 +79,7 @@ class Image:
         worker.mode = sub_mode
         worker.attachments = attachments or {}
         worker.model = model.id  # image model id
+        worker.model_item = model
         worker.input_prompt = prompt
         worker.model_prompt = prompt_model  # LLM for prompt rewriting
         worker.system_prompt = self.window.core.prompt.get('img')
@@ -141,6 +143,7 @@ class ImageWorker(QRunnable):
         self.mode = Image.MODE_GENERATE
         self.attachments: Dict[str, Any] = {}
         self.model = DEFAULT_GEMINI_IMAGE_MODEL
+        self.model_item = None
         self.model_prompt = None
         self.input_prompt = ""
         self.system_prompt = ""
@@ -621,6 +624,19 @@ class ImageWorker(QRunnable):
 
         return {"image": image}
 
+    def _gemini_thinking_config(self):
+        """Return native image-model thinking config for the selected ModelItem."""
+        if self.window is None or self.model_item is None:
+            return None
+        effort = self.window.core.models.get_reasoning_effort(self.model_item)
+        thinking = get_google_thinking_kwargs(self.model, effort)
+        if not thinking:
+            return None
+        try:
+            return gtypes.ThinkingConfig(**thinking)
+        except Exception:
+            return None
+
     def _gemini_generate_content(
             self,
             prompt: str,
@@ -659,6 +675,9 @@ class ImageWorker(QRunnable):
             kwargs: Dict[str, Any] = {}
             if send_config:
                 cfg_kwargs: Dict[str, Any] = {}
+                thinking_config = self._gemini_thinking_config()
+                if thinking_config is not None:
+                    cfg_kwargs["thinking_config"] = thinking_config
                 if modalities:
                     cfg_kwargs["response_modalities"] = modalities
                 if use_response_format and supports_response_format:
@@ -819,10 +838,17 @@ class ImageWorker(QRunnable):
         contents.extend(images)
 
         response = None
+        thinking_config = self._gemini_thinking_config()
+        base_config = (
+            gtypes.GenerateContentConfig(thinking_config=thinking_config)
+            if thinking_config is not None else None
+        )
         for attempt in range(3):
+            kwargs = {"config": base_config} if base_config is not None else {}
             response = self.client.models.generate_content(
                 model=self.model or self.DEFAULT_GEMINI_IMAGE_MODEL,
                 contents=contents,
+                **kwargs,
             )
             if self._gemini_response_has_image(response):
                 return response
@@ -838,7 +864,10 @@ class ImageWorker(QRunnable):
                 retry = self.client.models.generate_content(
                     model=self.model or self.DEFAULT_GEMINI_IMAGE_MODEL,
                     contents=contents,
-                    config=gtypes.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"]),
+                    config=gtypes.GenerateContentConfig(
+                        response_modalities=["TEXT", "IMAGE"],
+                        thinking_config=thinking_config,
+                    ),
                 )
                 response = retry
                 if self._gemini_response_has_image(retry):

@@ -160,6 +160,23 @@ class OpenAILLM(BaseLLM):
         return OpenAICompletion(**args)
 
     @staticmethod
+    def _merge_additional_kwargs(args: dict, **values) -> None:
+        """Merge provider request fields forwarded by LlamaIndex."""
+        extra = dict(args.get("additional_kwargs") or {})
+        extra.update({key: value for key, value in values.items() if value is not None})
+        args["additional_kwargs"] = extra
+
+    def _append_chat_reasoning_effort(self, window, model: ModelItem, args: dict) -> None:
+        effort = window.core.models.get_reasoning_effort(model)
+        if effort:
+            self._merge_additional_kwargs(args, reasoning_effort=effort)
+
+    def _append_responses_reasoning_effort(self, window, model: ModelItem, args: dict) -> None:
+        effort = window.core.models.get_reasoning_effort(model)
+        if effort:
+            self._merge_additional_kwargs(args, reasoning={"effort": effort})
+
+    @staticmethod
     def _append_responses_source_include(args: dict, tools: list) -> None:
         """Request the complete hosted Web Search source list when available."""
         web_types = {
@@ -240,11 +257,13 @@ class OpenAILLM(BaseLLM):
                 mode=MODE_LLAMA_INDEX,
                 args=args,
             )
+            self._append_responses_reasoning_effort(window, model, args)
             # Use the shared PyGPT Responses adapter here too. Besides Computer
             # Use it buffers provider source/citation URLs so Chat with Files can
             # persist them even when LlamaIndex chat/query engines hide raw metadata.
             return AgentOpenAIResponses(**args)
         else:
+            self._append_chat_reasoning_effort(window, model, args)
             return LlamaOpenAI(**args)
 
     def llama_chat_with_files(
@@ -309,8 +328,10 @@ class OpenAILLM(BaseLLM):
                 args=args,
             )
             if tools:
+                self._append_responses_reasoning_effort(window, model, args)
                 return AgentOpenAIResponses(**args)
 
+        self._append_chat_reasoning_effort(window, model, args)
         return LlamaOpenAI(**args)
 
     def llama_multimodal(

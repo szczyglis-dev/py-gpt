@@ -14,6 +14,7 @@ import os
 from typing import Optional, Dict, Any, List, Tuple
 
 from google.genai import types as gtypes
+from pygpt_net.core.types.reasoning import get_google_thinking_kwargs
 from google.genai.types import Content, Part
 
 from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER, MODE_RESEARCH
@@ -192,11 +193,21 @@ class Chat:
         # audio/TTS path where thinking config is not part of the response flow.
         if mode != MODE_AUDIO and model and str(model.id or "").lower().startswith("gemini"):
             try:
-                cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(include_thoughts=True)
+                thinking_kwargs = {"include_thoughts": True}
+                reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+                if reasoning_effort:
+                    thinking_kwargs.update(
+                        get_google_thinking_kwargs(model.id, reasoning_effort)
+                    )
+                cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(**thinking_kwargs)
             except Exception:
-                # Older google-genai releases may not expose ThinkingConfig yet;
-                # retain the existing request rather than breaking compatibility.
-                pass
+                # Older google-genai releases may not expose ThinkingConfig (or
+                # thinking_level) yet; retain the existing request rather than
+                # breaking compatibility.
+                try:
+                    cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(include_thoughts=True)
+                except Exception:
+                    pass
 
         cfg = gtypes.GenerateContentConfig(**cfg_kwargs)
         params = dict(model=model.id, contents=inputs, config=cfg)

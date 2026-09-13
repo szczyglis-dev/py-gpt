@@ -13,6 +13,7 @@ from agents import (
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
+from .client import append_reasoning_model_settings
 from .remote_tools import append_tools
 
 
@@ -95,4 +96,5 @@ def get_expert(
         is_expert_call=True,
     )
     kwargs.update(tool_kwargs)  # update kwargs with tools
+    append_reasoning_model_settings(kwargs, window, model)
     return OpenAIAgent(**kwargs)

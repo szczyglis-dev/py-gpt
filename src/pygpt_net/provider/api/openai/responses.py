@@ -134,14 +134,15 @@ class Responses:
         # OpenAI deliberately does not expose raw chain-of-thought; summary=auto
         # is the supported presentation/debugging surface in Responses API.
         model_id_lc = str(model.id or "").lower()
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model)
         is_reasoning_model = (
-            bool(model.extra and "reasoning_effort" in model.extra)
+            bool(getattr(model, "reasoning_effort", False))
             or model_id_lc.startswith(("o1", "o3", "o4", "gpt-5"))
         )
         if is_reasoning_model:
             response_kwargs['reasoning'] = {"summary": "auto"}
-            if model.extra and "reasoning_effort" in model.extra:
-                response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
+            if reasoning_effort:
+                response_kwargs['reasoning']['effort'] = reasoning_effort
 
         # append remote tools
         tools = api.remote_tools.append_to_tools(

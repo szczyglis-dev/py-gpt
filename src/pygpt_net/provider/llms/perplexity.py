@@ -114,6 +114,12 @@ class PerplexityLLM(BaseLLM):
             )
             args["additional_kwargs"] = additional_kwargs
 
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
+
         # OpenAILike accepts custom httpx clients, so the existing global
         # proxy/timeout handling can be reused without provider-specific code.
         args_injected = self.inject_llamaindex_http_clients(dict(args), cfg)

@@ -117,6 +117,18 @@ class Chat:
         if mcp_servers:
             params["mcp_servers"] = mcp_servers  # MCP connector servers per docs
 
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            # anthropic==0.75.0 exposes output_config only on the beta helper;
+            # stable Messages.create() rejects it as a Python keyword argument.
+            # Send the field through extra_body so the same code works with the
+            # pinned SDK and with newer SDKs where output_config is first-class.
+            extra_body = dict(params.get("extra_body") or {})
+            output_config = dict(extra_body.get("output_config") or {})
+            output_config["effort"] = reasoning_effort
+            extra_body["output_config"] = output_config
+            params["extra_body"] = extra_body
+
         # Request readable summarized thinking only where it does not interfere
         # with the app's separate client/server-tool continuation flow. Anthropic
         # requires thinking blocks/signatures to be preserved across tool turns;
@@ -144,7 +156,13 @@ class Chat:
                 }
 
         if thinking_cfg is not None:
-            params["thinking"] = thinking_cfg
+            # anthropic==0.75.0 only has the legacy typed thinking schema in
+            # Messages.create(). Newer adaptive/display fields can still be
+            # forwarded safely in the raw request body via extra_body.
+            extra_body = dict(params.get("extra_body") or {})
+            extra_body["thinking"] = thinking_cfg
+            params["extra_body"] = extra_body
+            params.pop("thinking", None)
             # Sampling temperature is incompatible with thinking on affected
             # Claude generations; default sampling is the safest common path.
             params.pop("temperature", None)
