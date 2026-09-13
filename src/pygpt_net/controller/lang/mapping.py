@@ -290,8 +290,11 @@ class Mapping:
         nodes['tip.output.tab.notepad'] = 'tip.output.tab.notepad'
         nodes['tip.input.attachments'] = 'tip.input.attachments'
         nodes['tip.input.attachments.uploaded'] = 'tip.input.attachments.uploaded'
+        nodes['tip.toolbox.presets'] = 'tip.toolbox.presets'
         nodes['tip.toolbox.prompt'] = 'tip.toolbox.prompt'
         nodes['tip.toolbox.assistants'] = 'tip.toolbox.assistants'
+        nodes['tip.toolbox.ctx'] = 'tip.toolbox.ctx'
+        nodes['tip.toolbox.mode'] = 'tip.toolbox.mode'
         nodes['plugin.settings.cmd.footer'] = 'cmd.tip'
 
         # tool: indexer
