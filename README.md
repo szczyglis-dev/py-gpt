@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.17** | build: **2026-09-12** | Python: **>=3.10, <3.14**
+Release: **2.8.17** | build: **2026-09-13** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2479,6 +2479,22 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.17 (2026-09-13)**
+
+- Fixed Ollama native tool calls.
+- Fixed runtime language switching.
+- Fixed tab tooltips.
+- Fixed chat reload race conditions.
+- Fixed streaming of final responses in Chat with Agents.
+- Moved max worker limits to Settings.
+- Simplified model configuration.
+- Added Text tool to Painter.
+- Moved Reasoning Effort to a global switch in the input field.
+- Refactored Agents and autonomous mode.
+- Updated translations and documentation.
+- Removed deprecated options.
+- Various UI fixes.
 
 **2.8.16 (2026-09-12)**
 
