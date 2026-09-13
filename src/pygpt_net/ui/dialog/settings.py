@@ -200,6 +200,12 @@ class Settings(BaseConfigDialog):
                 tab_order = (["general"] + [tid for tid in content_tabs if
                                             tid != "general"]) if "general" in content_tabs else list(content_tabs)
 
+                # keep Chat tabs in their intended order
+                if section_id == "ctx":
+                    preferred = ["list", "render", "options"]
+                    tab_order = ([tid for tid in preferred if tid in tab_order]
+                                 + [tid for tid in tab_order if tid not in preferred])
+
                 # keep legacy agent options separated at the end
                 if section_id == "agent" and "legacy" in tab_order:
                     tab_order = [tid for tid in tab_order if tid != "legacy"] + ["legacy"]

@@ -1009,7 +1009,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "upload.data_dir": {
         "section": "files",
@@ -1022,7 +1023,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "ctx.attachment.img": {
         "section": "files",
@@ -1035,7 +1037,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "ctx.attachment.project_share": {
         "section": "files",
@@ -1048,7 +1051,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "ctx.attachment.append_once": {
         "section": "files",
@@ -1061,7 +1065,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "ctx.attachment.auto_append": {
         "section": "files",
@@ -1074,7 +1079,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "ctx.attachment.summary.model": {
         "section": "files",
@@ -1093,7 +1099,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "rag"
     },
     "ctx.attachment.query.model": {
         "section": "files",
@@ -1112,7 +1119,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "rag"
     },
     "ctx.attachment.rag.history": {
         "section": "files",
@@ -1125,7 +1133,8 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "rag"
     },
     "ctx.attachment.rag.history.max_items": {
         "section": "files",
@@ -1138,7 +1147,8 @@
         "max": 100,
         "multiplier": 1,
         "step": 1,
-        "advanced": false
+        "advanced": false,
+        "tab": "rag"
     },
     "download.dir": {
         "section": "files",
@@ -1151,10 +1161,12 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "general"
     },
     "ctx.records.limit": {
         "section": "ctx",
+        "tab": "list",
         "type": "int",
         "slider": true,
         "label": "settings.ctx.records.limit",
@@ -1168,6 +1180,7 @@
     },
     "ctx.auto_summary.model": {
         "section": "ctx",
+        "tab": "list",
         "type": "combo",
         "use": "models",
         "use_params": {
@@ -1187,6 +1200,7 @@
     },
     "ctx.auto_summary": {
         "section": "ctx",
+        "tab": "list",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.auto_summary",
@@ -1200,6 +1214,7 @@
     },
     "ctx.records.folders.top": {
         "section": "ctx",
+        "tab": "list",
         "type": "bool",
         "slider": true,
         "label": "settings.ctx.records.folders.top",
@@ -1213,6 +1228,7 @@
     },
     "ctx.records.separators": {
         "section": "ctx",
+        "tab": "list",
         "type": "bool",
         "slider": true,
         "label": "settings.ctx.records.separators",
@@ -1226,6 +1242,7 @@
     },
     "ctx.records.groups.separators": {
         "section": "ctx",
+        "tab": "list",
         "type": "bool",
         "slider": true,
         "label": "settings.ctx.records.groups.separators",
@@ -1239,6 +1256,7 @@
     },
     "ctx.records.pinned.separators": {
         "section": "ctx",
+        "tab": "list",
         "type": "bool",
         "slider": true,
         "label": "settings.ctx.records.pinned.separators",
@@ -1252,6 +1270,7 @@
     },
     "use_context": {
         "section": "ctx",
+        "tab": "options",
         "type": "bool",
         "slider": false,
         "label": "settings.use_context",
@@ -1265,6 +1284,7 @@
     },
     "lock_modes": {
         "section": "ctx",
+        "tab": "options",
         "type": "bool",
         "slider": false,
         "label": "settings.lock_modes",
@@ -1278,6 +1298,7 @@
     },
     "ctx.search_content": {
         "section": "ctx",
+        "tab": "list",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.search_content",
@@ -1291,6 +1312,7 @@
     },
     "ctx.sources": {
         "section": "ctx",
+        "tab": "render",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.sources",
@@ -1304,6 +1326,7 @@
     },
     "ctx.code_interpreter": {
         "section": "ctx",
+        "tab": "render",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.code_interpreter",
@@ -1317,6 +1340,7 @@
     },
     "ctx.reasoning.show_realtime": {
         "section": "ctx",
+        "tab": "render",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.reasoning.show_realtime",
@@ -1330,6 +1354,7 @@
     },
     "ctx.reasoning.hide_after_response": {
         "section": "ctx",
+        "tab": "render",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.reasoning.hide_after_response",
@@ -1343,6 +1368,7 @@
     },
     "ctx.use_extra": {
         "section": "ctx",
+        "tab": "render",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.use_extra",
@@ -1356,6 +1382,7 @@
     },
     "ctx.urls.internal": {
         "section": "ctx",
+        "tab": "options",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.urls.internal",
