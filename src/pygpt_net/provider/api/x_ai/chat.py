@@ -21,7 +21,9 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 
 from xai_sdk.chat import system as xsystem, user as xuser, assistant as xassistant, image as ximage
 
@@ -173,6 +175,8 @@ class Chat:
         :param response: Response object from SDK or HTTP (dict)
         :param ctx: CtxItem to fill
         """
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+
         # Text
         txt = getattr(response, "content", None)
         if not txt and isinstance(response, dict):
@@ -210,19 +214,20 @@ class Chat:
 
         ctx.output = (str(txt or "")).strip()
 
-        try:
-            reasoning = self._extract_reasoning_content(response)
-            if reasoning:
-                store_reasoning(
-                    ctx=ctx,
-                    provider="xai",
-                    text=reasoning,
-                    kind="reasoning_summary",
-                    raw=False,
-                    visible=True,
-                )
-        except Exception:
-            pass
+        if show_reasoning:
+            try:
+                reasoning = self._extract_reasoning_content(response)
+                if reasoning:
+                    store_reasoning(
+                        ctx=ctx,
+                        provider="xai",
+                        text=reasoning,
+                        kind="reasoning_summary",
+                        raw=False,
+                        visible=True,
+                    )
+            except Exception:
+                pass
 
         # Tool calls
         calls = []
@@ -370,7 +375,8 @@ class Chat:
                         "reasoning_tokens": u.get("reasoning", 0),
                         "total_reported": u.get("total"),
                     }
-                    ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
+                    if show_reasoning:
+                        ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
                     return
 
             uattr = getattr(response, "usage", None)
@@ -387,7 +393,8 @@ class Chat:
                         "reasoning_tokens": u.get("reasoning", 0),
                         "total_reported": u.get("total"),
                     }
-                    ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
+                    if show_reasoning:
+                        ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
                     return
 
             proto = getattr(response, "proto", None)
@@ -408,7 +415,8 @@ class Chat:
                     "reasoning_tokens": r,
                     "total_reported": t,
                 }
-                ensure_reasoning_metadata(ctx, "xai", r)
+                if show_reasoning:
+                    ensure_reasoning_metadata(ctx, "xai", r)
         except Exception:
             pass
 
@@ -526,13 +534,14 @@ class Chat:
 
         text = ""
         reasoning = ""
+        collect_reasoning = is_realtime_reasoning_enabled(self.window)
         calls: List[dict] = []
         try:
             choices = data.get("choices") or []
             if choices:
                 msg = (choices[0].get("message") or {})
                 rc = msg.get("reasoning_content")
-                if isinstance(rc, str):
+                if collect_reasoning and isinstance(rc, str):
                     reasoning = rc.strip()
                 mc = msg.get("content")
                 if isinstance(mc, str):
@@ -627,6 +636,7 @@ class Chat:
             payload["max_tokens"] = int(max_tokens)
         if reasoning_effort:
             payload["reasoning_effort"] = reasoning_effort
+        collect_reasoning = is_realtime_reasoning_enabled(self.window)
 
         tools_payload = self._make_tools_payload(tools or [])
         if tools_payload:
@@ -696,7 +706,7 @@ class Chat:
                                 rc = delta.get("reasoning_content")
                                 if rc is None:
                                     rc = message.get("reasoning_content")
-                                if rc is not None:
+                                if collect_reasoning and rc is not None:
                                     yield _mk_chunk(reasoning_content=str(rc))
                                 if "content" in delta and delta["content"] is not None:
                                     yield _mk_chunk(delta_text=str(delta["content"]))
@@ -728,7 +738,7 @@ class Chat:
                         try:
                             if isinstance(obj.get("delta"), dict):
                                 d = obj["delta"]
-                                if d.get("reasoning_content") is not None:
+                                if collect_reasoning and d.get("reasoning_content") is not None:
                                     yield _mk_chunk(reasoning_content=str(d["reasoning_content"]))
                                 if "content" in d and d["content"] is not None:
                                     yield _mk_chunk(delta_text=str(d["content"]))
@@ -736,7 +746,7 @@ class Chat:
                                 if tc:
                                     yield _mk_chunk(tool_calls=tc)
                             if isinstance(obj.get("message"), dict):
-                                if obj["message"].get("reasoning_content") is not None:
+                                if collect_reasoning and obj["message"].get("reasoning_content") is not None:
                                     yield _mk_chunk(reasoning_content=str(obj["message"]["reasoning_content"]))
                                 mc = obj["message"].get("content")
                                 if isinstance(mc, str):

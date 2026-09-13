@@ -19,7 +19,9 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 from .utils import append_ctx_urls, extract_web_fetch_urls, extract_web_search_urls
 
 import anthropic
@@ -110,6 +112,7 @@ class Chat:
             params["mcp_servers"] = mcp_servers  # MCP connector servers per docs
 
         reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
         if reasoning_effort:
             # anthropic==0.75.0 exposes output_config only on the beta helper;
             # stable Messages.create() rejects it as a Python keyword argument.
@@ -129,7 +132,7 @@ class Chat:
         no_tools = not tools and not mcp_servers and mode != MODE_COMPUTER
         model_id_lc = str(model.id or "").lower()
         thinking_cfg = None
-        if no_tools:
+        if no_tools and show_reasoning:
             # Claude 4.6+ and Claude 5 use adaptive thinking.
             version_match = re.search(r"-4-(\d+)(?:-|$)", model_id_lc)
             is_adaptive = (
@@ -182,15 +185,17 @@ class Chat:
         :param ctx: CtxItem to update
         """
         ctx.output = self.extract_text(response)
-        reasoning = self.extract_reasoning(response)
-        if reasoning:
-            store_reasoning(
-                ctx, provider="anthropic", text=reasoning,
-                kind="thinking_summary", raw=False, visible=True,
-            )
-            signatures = self.extract_thinking_signatures(response)
-            if signatures:
-                ctx.extra["reasoning"]["signatures"] = signatures
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+        if show_reasoning:
+            reasoning = self.extract_reasoning(response)
+            if reasoning:
+                store_reasoning(
+                    ctx, provider="anthropic", text=reasoning,
+                    kind="thinking_summary", raw=False, visible=True,
+                )
+                signatures = self.extract_thinking_signatures(response)
+                if signatures:
+                    ctx.extra["reasoning"]["signatures"] = signatures
 
         calls = self.extract_tool_calls(response, ctx=ctx)
         if calls:
@@ -256,7 +261,8 @@ class Chat:
                     "reasoning_tokens": thinking_tokens or 0,
                     "server_tool_use": server_tool_use,
                 }
-                ensure_reasoning_metadata(ctx, "anthropic", thinking_tokens)
+                if show_reasoning:
+                    ensure_reasoning_metadata(ctx, "anthropic", thinking_tokens)
         except Exception:
             pass
 

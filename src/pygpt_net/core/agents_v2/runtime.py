@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 13:45:00                  #
+# Updated Date: 2026.09.13 13:52:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -93,10 +93,12 @@ class AgentsV2Runtime:
 
         The global hidden-tool policy covers orchestration plumbing and plugin
         commands declared with ``hidden=True``. Such tools may still emit logs or
-        their own semantic statuses, but never a synthetic ``Using tool`` row.
+        their own semantic statuses. Names explicitly listed in
+        ``HIDDEN_TOOLS_REALTIME_ONLY`` are the sole exception and may appear in a
+        transient ``Using tool`` row while execution is live.
         """
         name = str(tool_name or "").strip()
-        return bool(name and not self.window.core.command.is_tool_hidden(name))
+        return bool(name and self.window.core.command.is_tool_realtime_visible(name))
 
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window

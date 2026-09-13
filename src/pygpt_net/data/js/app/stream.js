@@ -64,10 +64,10 @@ class StreamEngine {
 		this.isStreaming = false;
 
 		// Live provider reasoning visibility. Provider reasoning is streamed through
-		// <think>...</think>. Timing is injected by Python; the user-facing switch
-		// only controls rendering and never discards the stored reasoning metadata.
+		// <think>...</think> only when explicitly enabled by the user. Python uses
+		// the same setting to decide whether readable reasoning is requested/stored.
 		const reasoningCfg = (this.cfg && this.cfg.REASONING) ? this.cfg.REASONING : {};
-		this.reasoningEnabled = reasoningCfg.SHOW_REALTIME !== false;
+		this.reasoningEnabled = reasoningCfg.SHOW_REALTIME === true;
 		this.reasoningHideAfterResponse = reasoningCfg.HIDE_AFTER_RESPONSE !== false;
 		this.reasoningThinking = false;
 		this.reasoningVisible = false;
@@ -800,7 +800,7 @@ class StreamEngine {
 
 	// Apply the current live-reasoning state to rendered <think> nodes. The newest
 	// block is the only one eligible for display. A disabled setting is a hard UI
-	// switch: all reasoning stays stored but every <think> node remains hidden.
+	// switch; Python also avoids requesting/persisting readable provider reasoning.
 	// Showing still uses a subtle fade-in, while hiding uses a real layout slide-up
 	// (height -> 0), so the answer below moves upward together with the reasoning.
 	_syncReasoningVisibility(root) {
@@ -2796,6 +2796,7 @@ class StreamEngine {
 		// Track think boundaries before rendering. The grace-period timer starts on
 		// the first real response text outside <think>, not on </think> itself.
 		const reasoningState = this._updateReasoningVisibilityFromChunk(s);
+		const reasoningOpened = reasoningState.changed && this.reasoningThinking;
 		if (reasoningState.hasResponseText && !this.reasoningThinking) {
 			this._scheduleReasoningHide(msg);
 		}
@@ -2812,6 +2813,17 @@ class StreamEngine {
 
 		// Buffer the chunk unless caller says it's already buffered (recursive tail call case).
 		if (!alreadyBuffered) this._appendChunk(s);
+
+		// Materialize the reasoning wrapper synchronously as soon as <think> is
+		// received. Waiting for the regular snapshot scheduler leaves the raw tag
+		// briefly visible, especially after a hidden tool result.
+		if (reasoningOpened && this.reasoningEnabled && !this.fenceOpen && !this.codeStream.open) {
+			try {
+				this.renderSnapshot(msg);
+				try { this.raf.cancel('SE:snapshot'); } catch (_) {}
+				this.snapshotScheduled = false;
+			} catch (_) {}
+		}
 
 		// Update fence state based on the new text.
 		const change = this.updateFenceHeuristic(s);

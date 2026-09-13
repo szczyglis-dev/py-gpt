@@ -321,8 +321,12 @@ class Runtime {
 		state.root.replaceChildren(frag);
 
 		try {
-			this.customMarkup.apply(state.root, this.renderer.MD_STREAM || this.renderer.MD);
+			// Streaming custom markup must also materialize an opener that has no
+			// closer yet. This makes <think> become a CSS reasoning block from the
+			// very first tag, including post-tool inline partials.
+			this.customMarkup.applyStream(state.root, this.renderer.MD_STREAM || this.renderer.MD);
 		} catch (_) {}
+		try { this.stream._syncReasoningVisibility(state.root); } catch (_) {}
 		try {
 			this.highlighter.observeNewCode(state.root, {
 				deferLastIfStreaming: true,
@@ -351,7 +355,9 @@ class Runtime {
 			const host = this._findPartialStreamHost(parentId, partId, true);
 			if (!host) {
 				const finalLatch = this._agentsV2FinalActive;
-				if (!state || !state.fallback) this.api_beginStream(true);
+				// Python owns loader visibility and knows whether this is hidden
+				// reasoning or actual response text. Do not hide the loader here.
+				if (!state || !state.fallback) this.api_beginStream(false);
 				this._agentsV2FinalActive = finalLatch;
 				state = { fallback: true, text: '' };
 				this._partialStreams.set(key, state);
@@ -367,8 +373,15 @@ class Runtime {
 			this.api_appendStream('', value);
 			return;
 		}
+		let reasoningState = null;
+		try { reasoningState = this.stream._updateReasoningVisibilityFromChunk(value); } catch (_) {}
 		state.text += value;
 		this._renderPartialStream(state);
+		try {
+			if (reasoningState && reasoningState.hasResponseText && !this.stream.reasoningThinking) {
+				this.stream._scheduleReasoningHide(state.msg || null, state.root || null);
+			}
+		} catch (_) {}
 	};
 
 	_statusMessageHost = (parentId, create = false) => this._workflowMessageHost(parentId, create);

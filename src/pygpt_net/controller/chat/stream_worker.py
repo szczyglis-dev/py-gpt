@@ -24,8 +24,9 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.google.utils import capture_google_usage
 from pygpt_net.provider.api.reasoning import (
     close_stream_reasoning, cleanup_stream_reasoning, ensure_reasoning_metadata,
-    is_tagged_reasoning_model, persist_stream_reasoning,
-    strip_and_store_tagged_reasoning, strip_stream_reasoning,
+    is_realtime_reasoning_enabled, is_tagged_reasoning_model,
+    persist_stream_reasoning, strip_and_store_tagged_reasoning,
+    strip_stream_reasoning, strip_tagged_reasoning,
 )
 
 # Import provider-specific stream processors
@@ -82,6 +83,7 @@ class WorkerState:
     reasoning_kind: Optional[str] = None
     reasoning_raw: bool = False
     reasoning_open: bool = False
+    reasoning_enabled: bool = True
 
     # --- XAI SDK only ---
     xai_last_response: Any = None  # holds final response from xai_sdk.chat.stream()
@@ -110,6 +112,7 @@ class StreamWorker(QRunnable):
         emit_chunk = self.signals.chunk.emit
 
         state = WorkerState()
+        state.reasoning_enabled = is_realtime_reasoning_enabled(win)
         state.generator = self.stream
         state.img_path = core.image.gen_unique_path(ctx)
 
@@ -389,11 +392,14 @@ class StreamWorker(QRunnable):
         model = core.models.get(ctx.model) if getattr(ctx, "model", None) else None
         if is_tagged_reasoning_model(model):
             provider = str(getattr(model, "provider", "") or "local")
-            output = strip_and_store_tagged_reasoning(
-                ctx,
-                output,
-                provider=provider,
-            )
+            if state.reasoning_enabled:
+                output = strip_and_store_tagged_reasoning(
+                    ctx,
+                    output,
+                    provider=provider,
+                )
+            else:
+                output = strip_tagged_reasoning(output)
         if state.out is not None:
             try:
                 state.out.close()
@@ -469,13 +475,14 @@ class StreamWorker(QRunnable):
         # Store provider-supplied readable reasoning separately from the actual
         # assistant output so it can be rendered after reload without polluting
         # subsequent model context.
-        persist_stream_reasoning(ctx, state)
-        if state.usage_payload:
-            ensure_reasoning_metadata(
-                ctx,
-                state.reasoning_provider or state.usage_vendor or "",
-                state.usage_payload.get("reasoning", 0),
-            )
+        if state.reasoning_enabled:
+            persist_stream_reasoning(ctx, state)
+            if state.usage_payload:
+                ensure_reasoning_metadata(
+                    ctx,
+                    state.reasoning_provider or state.usage_vendor or "",
+                    state.usage_payload.get("reasoning", 0),
+                )
 
         # Provider/stream errors are unfinished responses as well. Preserve that
         # fact in the durable extra metadata so a later WebView/history rebuild

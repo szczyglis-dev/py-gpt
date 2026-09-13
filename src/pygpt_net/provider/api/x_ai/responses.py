@@ -19,7 +19,9 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 
 # xAI SDK chat helpers (system/user/assistant/image) for message building
 from xai_sdk.chat import (
@@ -185,6 +187,8 @@ class Responses:
         :param response: Response object from SDK or dict
         :param ctx: CtxItem to fill
         """
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+
         # Output text
         out = ""
         try:
@@ -199,19 +203,20 @@ class Responses:
         # Grok 4.6 can return a readable summarized reasoning trace separately
         # from the final answer.  Keep it outside ctx.output so it is rendered
         # for the user but is not replayed as ordinary assistant text.
-        try:
-            reasoning = self._extract_reasoning_content(response)
-            if reasoning:
-                store_reasoning(
-                    ctx=ctx,
-                    provider="xai",
-                    text=reasoning,
-                    kind="reasoning_summary",
-                    raw=False,
-                    visible=True,
-                )
-        except Exception:
-            pass
+        if show_reasoning:
+            try:
+                reasoning = self._extract_reasoning_content(response)
+                if reasoning:
+                    store_reasoning(
+                        ctx=ctx,
+                        provider="xai",
+                        text=reasoning,
+                        kind="reasoning_summary",
+                        raw=False,
+                        visible=True,
+                    )
+            except Exception:
+                pass
 
         # Citations (list of urls)
         try:
@@ -281,7 +286,8 @@ class Responses:
                     "reasoning_tokens": u.get("reasoning", 0),
                     "total_reported": u.get("total"),
                 }
-                ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
+                if show_reasoning:
+                    ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
         except Exception:
             pass
 

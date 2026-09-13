@@ -164,7 +164,7 @@
   "ctx.list.expanded": [],
   "ctx.list.sections.collapsed": [],
   "ctx.reasoning.hide_after_response": true,
-  "ctx.reasoning.show_realtime": true,
+  "ctx.reasoning.show_realtime": false,
   "ctx.records.filter": "all",
   "ctx.records.filter.labels": [
     0,

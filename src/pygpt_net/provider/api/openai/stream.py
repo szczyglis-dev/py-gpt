@@ -162,7 +162,7 @@ def process_api_chat(ctx, state, chunk) -> Optional[str]:
     # Readable reasoning content is not part of the official OpenAI Chat
     # Completions contract, but some OpenAI-compatible providers expose it.
     # Handle it generically without depending on that non-standard field.
-    if delta:
+    if delta and bool(getattr(state, "reasoning_enabled", True)):
         reasoning_content = getattr(delta, "reasoning_content", None)
         if reasoning_content is None and isinstance(delta, dict):
             reasoning_content = delta.get("reasoning_content")
@@ -371,6 +371,8 @@ def process_api_chat_responses(ctx, core, state, chunk, etype: Optional[str]) ->
             })
 
     elif etype in ("response.reasoning_text.delta", "response.reasoning_summary_text.delta"):
+        if not bool(getattr(state, "reasoning_enabled", True)):
+            return None
         model_id = str(getattr(ctx, "model", "") or "").lower()
         provider = "xai" if model_id.startswith("grok") else "openai"
         is_raw = (

@@ -1321,7 +1321,7 @@
         "slider": false,
         "label": "settings.ctx.reasoning.show_realtime",
         "description": "settings.ctx.reasoning.show_realtime.desc",
-        "value": true,
+        "value": false,
         "min": null,
         "max": null,
         "multiplier": null,

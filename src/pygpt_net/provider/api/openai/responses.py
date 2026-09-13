@@ -29,7 +29,9 @@ from pygpt_net.core.types import (
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.preset import PresetItem
@@ -130,19 +132,23 @@ class Responses:
         # tools prepare
         tools = api.tools.prepare_responses_api(model, functions)
 
-        # Reasoning models: request the provider-supported readable summary.
-        # OpenAI deliberately does not expose raw chain-of-thought; summary=auto
-        # is the supported presentation/debugging surface in Responses API.
+        # Reasoning effort controls model compute independently of the optional
+        # readable summary. Never request that summary when live reasoning is off.
         model_id_lc = str(model.id or "").lower()
         reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
         is_reasoning_model = (
             bool(getattr(model, "reasoning_effort", False))
             or model_id_lc.startswith(("o1", "o3", "o4", "gpt-5"))
         )
         if is_reasoning_model:
-            response_kwargs['reasoning'] = {"summary": "auto"}
+            reasoning_cfg = {}
+            if show_reasoning:
+                reasoning_cfg["summary"] = "auto"
             if reasoning_effort:
-                response_kwargs['reasoning']['effort'] = reasoning_effort
+                reasoning_cfg["effort"] = reasoning_effort
+            if reasoning_cfg:
+                response_kwargs['reasoning'] = reasoning_cfg
 
         # append remote tools
         tools = api.remote_tools.append_to_tools(
@@ -192,7 +198,7 @@ class Responses:
         if system_prompt:
             response_kwargs['instructions'] = system_prompt
 
-        if mode == MODE_COMPUTER:
+        if mode == MODE_COMPUTER and show_reasoning:
             response_kwargs.setdefault('reasoning', {})["summary"] = "concise"
 
         model_id = (model.get_ollama_model() or model.id or "").strip() if model.is_ollama() else (model.id or "")
@@ -496,6 +502,7 @@ class Responses:
         """
         output = ""
         force_func_call = False  # force function call flag
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
 
         if mode in [
             MODE_CHAT,
@@ -519,7 +526,8 @@ class Responses:
         try:
             details = getattr(response.usage, "output_tokens_details", None)
             reasoning_tokens = getattr(details, "reasoning_tokens", 0) if details else 0
-            ensure_reasoning_metadata(ctx, "openai", reasoning_tokens)
+            if show_reasoning:
+                ensure_reasoning_metadata(ctx, "openai", reasoning_tokens)
         except Exception:
             pass
 
@@ -584,7 +592,7 @@ class Responses:
                 if is_call:
                     force_func_call = True  # force function call for computer use
 
-            elif output.type == "reasoning":
+            elif output.type == "reasoning" and show_reasoning:
                 summaries = []
                 for summary in getattr(output, "summary", None) or []:
                     if getattr(summary, "type", "") == "summary_text" and getattr(summary, "text", None):

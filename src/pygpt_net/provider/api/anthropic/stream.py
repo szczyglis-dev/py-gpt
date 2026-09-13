@@ -107,7 +107,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                         ctx.images.append(p)
 
     def _store_thinking_signature(signature):
-        if not signature:
+        if not signature or not bool(getattr(state, "reasoning_enabled", True)):
             return
         if not isinstance(getattr(ctx, "extra", None), dict):
             ctx.extra = {}

@@ -22,7 +22,9 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 
 
 class Chat:
@@ -62,6 +64,7 @@ class Chat:
         multimodal_ctx = context.multimodal_ctx
         mode = context.mode
         ctx = context.ctx or CtxItem()
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
         computer_use_active = self._is_computer_use_active(mode, model)
         if not isinstance(ctx.extra, dict):
             ctx.extra = {}
@@ -182,26 +185,29 @@ class Chat:
                         prebuilt_voice_config=gtypes.PrebuiltVoiceConfig(voice_name=voice_name)
                     )
                 )
-        # Gemini exposes summarized thoughts when include_thoughts is enabled.
-        # This does not expose raw private chain-of-thought. Keep it off for the
-        # audio/TTS path where thinking config is not part of the response flow.
+        # Gemini can return readable summarized thoughts via include_thoughts.
+        # Keep that request strictly opt-in; reasoning effort remains independent.
         if mode != MODE_AUDIO and model and str(model.id or "").lower().startswith("gemini"):
             try:
-                thinking_kwargs = {"include_thoughts": True}
+                thinking_kwargs = {}
+                if show_reasoning:
+                    thinking_kwargs["include_thoughts"] = True
                 reasoning_effort = self.window.core.models.get_reasoning_effort(model)
                 if reasoning_effort:
                     thinking_kwargs.update(
                         get_google_thinking_kwargs(model.id, reasoning_effort)
                     )
-                cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(**thinking_kwargs)
+                if thinking_kwargs:
+                    cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(**thinking_kwargs)
             except Exception:
                 # Older google-genai releases may not expose ThinkingConfig (or
-                # thinking_level) yet; retain the existing request rather than
-                # breaking compatibility.
-                try:
-                    cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(include_thoughts=True)
-                except Exception:
-                    pass
+                # thinking_level) yet. Never fall back to requesting summaries
+                # when the live-reasoning setting is disabled.
+                if show_reasoning:
+                    try:
+                        cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(include_thoughts=True)
+                    except Exception:
+                        pass
 
         cfg = gtypes.GenerateContentConfig(**cfg_kwargs)
         params = dict(model=model.id, contents=inputs, config=cfg)
@@ -269,15 +275,15 @@ class Chat:
                 pass
 
             # Deep Research agent must use background=True; stream=True enables live progress updates.
+            agent_config: Dict[str, Any] = {"type": "deep-research"}
+            if show_reasoning:
+                agent_config["thinking_summaries"] = "auto"
             create_kwargs: Dict[str, Any] = {
                 "agent": model.id,
                 "input": interactions_input if interactions_input else (str(prompt or "") or " "),
                 "background": True,
                 "stream": stream,
-                "agent_config": {
-                    "type": "deep-research",
-                    "thinking_summaries": "auto"
-                }
+                "agent_config": agent_config,
             }
 
             # Continue conversation on server using previous_interaction_id if available
@@ -333,12 +339,13 @@ class Chat:
 
         # ---- chat / computer ----
         ctx.output = self.extract_text(response) or ""
-        reasoning = self.extract_reasoning(response)
-        if reasoning:
-            store_reasoning(
-                ctx, provider="google", text=reasoning,
-                kind="thought_summary", raw=False, visible=True,
-            )
+        if show_reasoning:
+            reasoning = self.extract_reasoning(response)
+            if reasoning:
+                store_reasoning(
+                    ctx, provider="google", text=reasoning,
+                    kind="thought_summary", raw=False, visible=True,
+                )
 
         # 1) Extract tool calls and store in ctx.tool_calls (backward-compatible shape)
         calls = self.extract_tool_calls(response)
@@ -403,7 +410,8 @@ class Chat:
                     or getattr(usage, "reasoning_tokens", 0)
                     or 0
                 )
-                ensure_reasoning_metadata(ctx, "google", reasoning_tokens)
+                if show_reasoning:
+                    ensure_reasoning_metadata(ctx, "google", reasoning_tokens)
         except Exception:
             pass
 

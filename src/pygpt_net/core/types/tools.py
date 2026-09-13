@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 21:45:00                  #
+# Updated Date: 2026.09.13 13:52:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -32,6 +32,13 @@ HIDDEN_TOOL_NAMES = {
     "swarm_start",
     "swarm_status",
 }
+
+# Hidden tools listed here remain hidden everywhere (durable storage, history,
+# Tool/Tools blocks, reloads, etc.) but may be exposed by the dedicated live
+# status path while they are actually executing. This list is an exception to
+# presentation only; it must never be used to relax the normal hidden-tool
+# persistence/rendering policy.
+HIDDEN_TOOLS_REALTIME_ONLY = set()
 
 # Code-level persistence policy for hidden tools. When False, hidden tool calls
 # and their display/result cache are kept only for the live execution lifecycle
@@ -68,6 +75,12 @@ def is_hidden_tool(name: Optional[str]) -> bool:
         value
         and (value in HIDDEN_TOOL_NAMES or value in _REGISTERED_HIDDEN_TOOL_NAMES)
     )
+
+
+def is_hidden_tool_realtime_only(name: Optional[str]) -> bool:
+    """Return True when a hidden tool may be named only in a live status row."""
+    value = str(name or "").strip()
+    return bool(value and value in HIDDEN_TOOLS_REALTIME_ONLY)
 
 TOOL_EXPERT_CALL_NAME = "expert_call"
 TOOL_EXPERT_CALL_DESCRIPTION = (

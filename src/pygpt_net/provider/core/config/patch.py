@@ -594,13 +594,13 @@ class Patch:
                     current_computer = str(current_models.get("computer", "") or "")
                     normalized = current_computer.replace("_", "-")
                     if normalized.startswith("computer-use-preview"):
-                        current_models["computer"] = "gpt-5.6-sol"
+                        current_models["computer"] = "gpt-5.6-sol-medium"
                         updated = True
 
                 current_model = str(data.get("model", "") or "")
                 if data.get("mode") == "computer" \
                         and current_model.replace("_", "-").startswith("computer-use-preview"):
-                    data["model"] = "gpt-5.6-sol"
+                    data["model"] = "gpt-5.6-sol-medium"
                     updated = True
 
                 # Project attachments are now opt-in. Existing profiles should
@@ -722,6 +722,14 @@ class Patch:
             # < 2.8.17
             if old < parse_version("2.8.17"):
                 print("Migrating config from < 2.8.17...")
+
+                # Readable reasoning is opt-in from 2.8.17. Besides hiding the
+                # UI, this controls whether providers are asked for reasoning
+                # summaries at all, so reset existing profiles to the new safe
+                # default during migration.
+                if data.get("ctx.reasoning.show_realtime") is not False:
+                    data["ctx.reasoning.show_realtime"] = False
+                    updated = True
 
                 # Resolve legacy catalog references conservatively.  A custom
                 # model is allowed to have a real ID/key ending in -high/-low;

@@ -25,7 +25,8 @@ from pygpt_net.core.types import (
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.reasoning import (
-    is_tagged_reasoning_model, strip_and_store_tagged_reasoning,
+    is_realtime_reasoning_enabled, is_tagged_reasoning_model,
+    strip_and_store_tagged_reasoning, strip_tagged_reasoning,
 )
 from pygpt_net.item.model import ModelItem
 
@@ -445,7 +446,10 @@ class Chat:
         model = self.window.core.models.get(ctx.model) if getattr(ctx, "model", None) else None
         if is_tagged_reasoning_model(model):
             provider = str(getattr(model, "provider", "") or "local")
-            output = strip_and_store_tagged_reasoning(ctx, output, provider=provider)
+            if is_realtime_reasoning_enabled(self.window):
+                output = strip_and_store_tagged_reasoning(ctx, output, provider=provider)
+            else:
+                output = strip_tagged_reasoning(output)
 
         ctx.output = output  # set output text
         ctx.set_tokens(

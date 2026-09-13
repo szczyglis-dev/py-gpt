@@ -886,7 +886,7 @@ class Body:
             f'window.USER_MSG_COLLAPSE_HEIGHT_PX={user_msg_collapse_height};'
             f'document.documentElement.style.setProperty("--user-msg-collapse-max-h", "{user_msg_collapse_height}px");'
             f'window.EXTRA_ITEMS_VISIBLE_LIMIT={int(self.EXTRA_ITEMS_VISIBLE_LIMIT)};'
-            f'window.REASONING_SHOW_REALTIME={_json_dumps(bool(cfg_get("ctx.reasoning.show_realtime", True)))};'
+            f'window.REASONING_SHOW_REALTIME={_json_dumps(bool(cfg_get("ctx.reasoning.show_realtime", False)))};'
             f'window.REASONING_HIDE_AFTER_RESPONSE={_json_dumps(bool(cfg_get("ctx.reasoning.hide_after_response", True)))};'
             f'window.REASONING_FADE_OUT_DELAY_MS={int(self.REASONING_FADE_OUT_DELAY_MS)};'
             f'window.REASONING_FADE_DURATION_MS={int(self.REASONING_FADE_DURATION_MS)};'

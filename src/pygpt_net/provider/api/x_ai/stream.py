@@ -326,39 +326,40 @@ def process_xai_sdk_chunk(ctx, core, state, item) -> Optional[str]:
     # ``chunk.reasoning_content``.  Keep it in the shared <think> pipeline;
     # encrypted reasoning is a separate transport payload and is never shown.
     reasoning_prefix = ""
-    try:
-        reasoning_content = getattr(chunk, "reasoning_content", None)
-        if reasoning_content is None and isinstance(chunk, dict):
-            reasoning_content = chunk.get("reasoning_content")
-        if reasoning_content is None:
-            delta_obj = getattr(chunk, "delta", None)
-            if isinstance(delta_obj, dict):
-                reasoning_content = delta_obj.get("reasoning_content")
-            elif delta_obj is not None:
-                reasoning_content = getattr(delta_obj, "reasoning_content", None)
-        if reasoning_content is None:
-            choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
-            if choices:
-                first = choices[0]
-                if isinstance(first, dict):
-                    d = first.get("delta") or first.get("message") or {}
-                    if isinstance(d, dict):
-                        reasoning_content = d.get("reasoning_content")
-                else:
-                    d = getattr(first, "delta", None) or getattr(first, "message", None)
-                    if d is not None:
-                        reasoning_content = getattr(d, "reasoning_content", None)
-        reasoning_text = _stringify_content(reasoning_content)
-        if reasoning_text:
-            reasoning_prefix = stream_reasoning_delta(
-                state,
-                reasoning_text,
-                provider="xai",
-                kind="reasoning_summary",
-                raw=False,
-            ) or ""
-    except Exception:
-        reasoning_prefix = ""
+    if bool(getattr(state, "reasoning_enabled", True)):
+        try:
+            reasoning_content = getattr(chunk, "reasoning_content", None)
+            if reasoning_content is None and isinstance(chunk, dict):
+                reasoning_content = chunk.get("reasoning_content")
+            if reasoning_content is None:
+                delta_obj = getattr(chunk, "delta", None)
+                if isinstance(delta_obj, dict):
+                    reasoning_content = delta_obj.get("reasoning_content")
+                elif delta_obj is not None:
+                    reasoning_content = getattr(delta_obj, "reasoning_content", None)
+            if reasoning_content is None:
+                choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
+                if choices:
+                    first = choices[0]
+                    if isinstance(first, dict):
+                        d = first.get("delta") or first.get("message") or {}
+                        if isinstance(d, dict):
+                            reasoning_content = d.get("reasoning_content")
+                    else:
+                        d = getattr(first, "delta", None) or getattr(first, "message", None)
+                        if d is not None:
+                            reasoning_content = getattr(d, "reasoning_content", None)
+            reasoning_text = _stringify_content(reasoning_content)
+            if reasoning_text:
+                reasoning_prefix = stream_reasoning_delta(
+                    state,
+                    reasoning_text,
+                    provider="xai",
+                    kind="reasoning_summary",
+                    raw=False,
+                ) or ""
+        except Exception:
+            reasoning_prefix = ""
 
     def _visible_text(value) -> Optional[str]:
         """Return normal text preceded by any reasoning emitted in this chunk."""

@@ -369,19 +369,20 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                         )
                         if rendered:
                             response_parts.append(rendered)
-                        _ensure_list_attr(state, "google_thought_summaries")
-                        try:
-                            state.google_thought_summaries.append(thought_txt)
-                        except Exception:
-                            pass
-                        try:
-                            if not hasattr(ctx, "extra") or ctx.extra is None:
-                                ctx.extra = {}
-                            if "google_thought_summaries" not in ctx.extra or not isinstance(ctx.extra["google_thought_summaries"], list):
-                                ctx.extra["google_thought_summaries"] = []
-                            ctx.extra["google_thought_summaries"].append(thought_txt)
-                        except Exception:
-                            pass
+                        if bool(getattr(state, "reasoning_enabled", True)):
+                            _ensure_list_attr(state, "google_thought_summaries")
+                            try:
+                                state.google_thought_summaries.append(thought_txt)
+                            except Exception:
+                                pass
+                            try:
+                                if not hasattr(ctx, "extra") or ctx.extra is None:
+                                    ctx.extra = {}
+                                if "google_thought_summaries" not in ctx.extra or not isinstance(ctx.extra["google_thought_summaries"], list):
+                                    ctx.extra["google_thought_summaries"] = []
+                                ctx.extra["google_thought_summaries"].append(thought_txt)
+                            except Exception:
+                                pass
 
                 # Function call delta (Interactions API tool/function calling)
                 elif delta_type == "function_call":

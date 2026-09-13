@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 09:00:00                  #
+# Updated Date: 2026.09.13 13:52:00                  #
 # ================================================== #
 
 import copy
@@ -25,6 +25,7 @@ from pygpt_net.core.events import Event
 from pygpt_net.core.types.tools import (
     PERSIST_HIDDEN_TOOL_CALLS,
     is_hidden_tool as is_hidden_tool_name,
+    is_hidden_tool_realtime_only,
     register_hidden_tool_definition,
 )
 from pygpt_net.item.ctx import CtxItem
@@ -101,11 +102,38 @@ class Command:
         return result
 
     def visible_tool_names(self, names: List[str]) -> List[str]:
-        """Return only names that may be surfaced in conversation UI statuses."""
+        """Return only names allowed on normal persisted/replayed UI surfaces."""
         return [
             str(name)
             for name in (names or [])
             if str(name) and not self.is_tool_hidden(str(name))
+        ]
+
+    def is_tool_realtime_visible(
+            self,
+            name: str,
+            definition: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        """Return whether a tool name may be exposed by a transient live status.
+
+        Normal tools are visible as before. Hidden tools stay hidden unless their
+        name is explicitly listed in ``HIDDEN_TOOLS_REALTIME_ONLY``. The exception
+        applies only to callers using this realtime-specific predicate; all normal
+        persistence/history/render paths continue to use ``is_tool_hidden()``.
+        """
+        value = str(name or "").strip()
+        if not value:
+            return False
+        if not self.is_tool_hidden(value, definition):
+            return True
+        return is_hidden_tool_realtime_only(value)
+
+    def realtime_visible_tool_names(self, names: List[str]) -> List[str]:
+        """Return tool names allowed on the transient realtime status surface."""
+        return [
+            str(name)
+            for name in (names or [])
+            if str(name) and self.is_tool_realtime_visible(str(name))
         ]
 
     def tool_calls_for_storage(self, tool_calls: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

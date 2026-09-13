@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 16:35:00                  #
+# Updated Date: 2026.09.13 13:52:00                  #
 # ================================================== #
 
 import json
@@ -210,10 +210,14 @@ class Renderer(BaseRenderer):
         # recreates ``#_loader_`` with the default ``hidden`` class, so a
         # STATE_BUSY emitted while the page is reloading would otherwise be
         # visually lost.  Keep the desired state on the Python side and
-        # restore it when the page finishes loading.  STREAM_APPEND(begin=True)
-        # clears this flag because JS hides the loader on the first response
-        # chunk.
+        # restore it when the page finishes loading. Reasoning-only chunks do
+        # not count as visible activity when live reasoning is disabled.
         self._loading_visible: dict[int, bool] = {}
+
+        # Track <think> boundaries independently for every live stream so the
+        # request spinner can stay visible while hidden reasoning is arriving.
+        # Keys are ("main", pid) or ("partial", pid, parent_id, part_key).
+        self._reasoning_activity_state: dict[tuple, dict] = {}
 
         # Pid-related cached methods
         self._get_pid = None
@@ -235,6 +239,7 @@ class Renderer(BaseRenderer):
         """Prepare renderer"""
         self.pids = {}
         self._loading_visible = {}
+        self._reasoning_activity_state = {}
         self._workflow_statuses = {}
         self._workflow_status_seq = 0
 
@@ -898,12 +903,10 @@ class Renderer(BaseRenderer):
             streamed_final = ctx.get_agents_v2_final_output()
             if streamed_final is not None:
                 output = streamed_final
-        # Reasoning/thinking returned by providers is persisted separately from
-        # ctx.output so it does not contaminate conversation history. Persisted
-        # reasoning is shown only as a fallback when the regular output is empty
-        # and real-time reasoning display is enabled. The same setting therefore
-        # acts as a master UI switch for <think> blocks without deleting metadata.
-        if final_agent_output is None and self.window.core.config.get("ctx.reasoning.show_realtime", True):
+        # Readable provider reasoning is requested/persisted only when live
+        # reasoning is enabled. In that mode it may also be used as a fallback
+        # when the regular assistant output is empty.
+        if final_agent_output is None and self.window.core.config.get("ctx.reasoning.show_realtime", False):
             output = ctx.get_display_output(output or "")
         return str(output).strip() if output else None
 
@@ -955,11 +958,24 @@ class Renderer(BaseRenderer):
             self._hide_previous_agent_action_icons(meta, ctx)
         pctx.item = ctx
 
+        if begin:
+            # Clear the previous turn's batching/reasoning state before looking
+            # at the first chunk of the new stream.
+            self._stream_reset(pid)
+
+        has_response_activity = False
         if text_chunk:
+            has_response_activity = self._chunk_has_response_activity(
+                ("main", pid),
+                str(text_chunk),
+            )
+        if has_response_activity:
             self._hide_loading_on_activity(meta, pid=pid)
 
         if begin:
-            # JS beginStream(true) recreates the transient stream container.
+            # JS beginStream() recreates the transient stream container. Pass
+            # true only when this first chunk is actually visible activity; a
+            # hidden <think> stream must not dismiss the request spinner.
             # Rebind it to the durable ctx id and replay UI-only workflow rows
             # immediately afterwards, otherwise a status shown before the first
             # token disappears or is later reattached below message controls.
@@ -975,16 +991,17 @@ class Renderer(BaseRenderer):
                 parent_json = json.dumps(parent_id, ensure_ascii=False)
                 header_json = json.dumps(pctx.header or "", ensure_ascii=False)
                 records_json = json.dumps(status_records, ensure_ascii=False, default=str)
+                chunk_js = "true" if has_response_activity else "false"
                 self.get_output_node(meta).page().runJavaScript(
                     "if (typeof window.freezeWorkflowStatus !== 'undefined') "
                     f"freezeWorkflowStatus({parent_json});"
-                    "if (typeof window.beginStream !== 'undefined') beginStream(true);"
+                    "if (typeof window.beginStream !== 'undefined') "
+                    f"beginStream({chunk_js});"
                     "if (typeof window.bindWorkflowStream !== 'undefined') "
                     f"bindWorkflowStream({parent_json}, {header_json}, {records_json});"
                 )
             except Exception:
                 pass
-            self._stream_reset(pid)
             self.update_names(meta, ctx)
 
         if not text_chunk:
@@ -1015,8 +1032,6 @@ class Renderer(BaseRenderer):
             self.append_chunk(meta, parent_ctx, text_chunk, begin)
             return
 
-        if text_chunk:
-            self._hide_loading_on_activity(meta, pid=pid)
         pctx = self.pids[pid]
         pctx.item = parent_ctx
         key = (pid, str(parent_id), str(part_key or "live"))
@@ -1037,6 +1052,15 @@ class Renderer(BaseRenderer):
             except Exception:
                 pass
             self._partial_stream_started.discard(key)
+
+        has_response_activity = False
+        if text_chunk:
+            has_response_activity = self._chunk_has_response_activity(
+                ("partial",) + key,
+                str(text_chunk),
+            )
+        if has_response_activity:
+            self._hide_loading_on_activity(meta, pid=pid)
 
         if not text_chunk:
             return
@@ -1132,6 +1156,16 @@ class Renderer(BaseRenderer):
             if buf is not None:
                 buf.clear()
             self._partial_stream_started.discard(key)
+
+        for state_key in list(self._reasoning_activity_state):
+            if not state_key or state_key[0] != "partial":
+                continue
+            if pid is not None and len(state_key) > 1 and state_key[1] != pid:
+                continue
+            raw_key = tuple(state_key[1:])
+            if keep is not None and raw_key == keep:
+                continue
+            self._reasoning_activity_state.pop(state_key, None)
 
     def flush_part_streams(self, meta: Optional[CtxMeta] = None):
         """Flush active inline partial buffers before stream completion."""
@@ -1272,6 +1306,80 @@ class Renderer(BaseRenderer):
             )
         except Exception:
             pass
+
+    def _realtime_reasoning_enabled(self) -> bool:
+        """Return True when reasoning is intentionally visible during streaming."""
+        try:
+            return bool(self.window.core.config.get("ctx.reasoning.show_realtime", False))
+        except Exception:
+            return False
+
+    @staticmethod
+    def _reasoning_partial_tag_suffix(text: str) -> str:
+        """Return a trailing fragment that can still become a <think> boundary."""
+        value = str(text or "")
+        if not value:
+            return ""
+        tags = ("<think>", "</think>")
+        max_len = min(len(value), max(len(tag) for tag in tags) - 1)
+        for size in range(max_len, 0, -1):
+            suffix = value[-size:]
+            if any(tag.startswith(suffix) for tag in tags):
+                return suffix
+        return ""
+
+    def _chunk_has_response_activity(self, key: tuple, text: str) -> bool:
+        """Return whether a streamed chunk contains visible assistant response text.
+
+        The parser keeps <think> state across chunks, including split opening or
+        closing tags. When live reasoning is enabled, reasoning itself is visible
+        activity and preserves the legacy behavior. When disabled, only text
+        outside <think> may dismiss the request spinner.
+        """
+        raw = str(text or "")
+        if not raw:
+            return False
+
+        state = self._reasoning_activity_state.setdefault(
+            key,
+            {"inside": False, "carry": ""},
+        )
+        value = str(state.get("carry") or "") + raw
+        state["carry"] = ""
+        inside = bool(state.get("inside", False))
+        has_response = False
+        pos = 0
+
+        while pos < len(value):
+            open_at = value.find("<think>", pos)
+            close_at = value.find("</think>", pos)
+            next_at = -1
+            is_open = False
+
+            if open_at != -1 and (close_at == -1 or open_at < close_at):
+                next_at = open_at
+                is_open = True
+            elif close_at != -1:
+                next_at = close_at
+
+            if next_at == -1:
+                tail = value[pos:]
+                carry = self._reasoning_partial_tag_suffix(tail)
+                visible_tail = tail[:-len(carry)] if carry else tail
+                if not inside and visible_tail.strip():
+                    has_response = True
+                state["carry"] = carry
+                break
+
+            if not inside and value[pos:next_at].strip():
+                has_response = True
+            inside = is_open
+            pos = next_at + (len("<think>") if is_open else len("</think>"))
+
+        state["inside"] = inside
+        if self._realtime_reasoning_enabled():
+            return bool(raw.strip())
+        return has_response
 
     def _workflow_single_status_live(self) -> bool:
         """Return current live single-status policy from Settings."""
@@ -2353,10 +2461,13 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem] = None,
     ):
         """Show an animated tool row inside the chronological message body."""
-        names_list = self.window.core.command.visible_tool_names(list(tool_names or []))
-        # Hidden tools are intentionally invisible, but they must not retire the
-        # neutral request spinner. Returning before _workflow_status_add() keeps
-        # the current loader state untouched while the hidden tool executes.
+        names_list = self.window.core.command.realtime_visible_tool_names(
+            list(tool_names or [])
+        )
+        # Non-exempt hidden tools are intentionally invisible, but they must not
+        # retire the neutral request spinner. Returning before
+        # _workflow_status_add() keeps the current loader state untouched while
+        # the hidden tool executes.
         if not names_list:
             return
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
@@ -2587,6 +2698,7 @@ class Renderer(BaseRenderer):
                 pass
         self._stream_header[pid] = ""
         self._stream_last_flush[pid] = 0.0
+        self._reasoning_activity_state.pop(("main", pid), None)
 
     def _stream_push(self, pid: int, header: str, chunk: str):
         """

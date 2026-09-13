@@ -683,8 +683,9 @@ class Ctx:
             tool_input=None,
             tool_output=None,
             extra: Optional[dict] = None,
+            persist: bool = True,
     ) -> CtxItemPartTask:
-        """Create and persist one task under a partial item."""
+        """Create one task under a partial item, optionally without DB persistence."""
         part = part or self.ensure_part(item, agent_id=agent_id, name=name)
         task = CtxItemPartTask(
             parent_item_part_id=part.id, agent_id=agent_id, name=name, task_name=task_name,
@@ -693,7 +694,7 @@ class Ctx:
             extra=dict(extra or {}),
         )
         part.add_task(task)
-        if part.id is not None:
+        if persist and part.id is not None:
             self.provider.append_part_task(task)
         return task
 
@@ -781,8 +782,13 @@ class Ctx:
             name = str(fn.get("name") or call.get("name") or "tool")
             args = fn.get("arguments", call.get("arguments", {}))
             hidden = self.window.core.command.is_tool_hidden(name, call)
-            if hidden and not PERSIST_HIDDEN_TOOL_CALLS:
-                continue
+            # Hidden tools still need a runtime task while the current provider
+            # tool chain is active. Stateless/native APIs require every emitted
+            # function call to have a matching function result, even when the
+            # call is intentionally omitted from durable history and the UI.
+            # Keep such tasks in memory only; DB persistence remains governed by
+            # PERSIST_HIDDEN_TOOL_CALLS.
+            persist_task = bool(PERSIST_HIDDEN_TOOL_CALLS or not hidden)
             task_ui_visible = bool(ui_visible and not hidden)
 
             # OpenAI Responses exposes two different identifiers for a function
@@ -846,7 +852,9 @@ class Ctx:
                     "tool_round": next_tool_round,
                     "ui_visible": task_ui_visible,
                     "provider_history": bool(provider_history),
+                    "runtime_only": bool(hidden and not PERSIST_HIDDEN_TOOL_CALLS),
                 },
+                persist=persist_task,
             )
             tasks.append(task)
         if tasks and update_legacy_cache and isinstance(item.extra, dict):
@@ -872,10 +880,9 @@ class Ctx:
         for response in results or []:
             req = response.get("request") if isinstance(response, dict) else None
             name = str(req.get("cmd") or "") if isinstance(req, dict) else ""
-            if (name
-                    and self.window.core.command.is_tool_hidden(name)
-                    and not PERSIST_HIDDEN_TOOL_CALLS):
-                continue
+            # Hidden runtime-only tasks must be completed too. Their output is
+            # required for the immediate provider continuation, but update_part_task()
+            # remains a no-op because these tasks intentionally have no DB id.
             task = None
             if name and by_name.get(name):
                 task = by_name[name].pop(0)
