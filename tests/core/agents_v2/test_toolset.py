@@ -34,6 +34,7 @@ def make_runtime():
         stop_worker=AsyncMock(),
         remove_worker=AsyncMock(),
         set_status=AsyncMock(),
+        request_workflow_finish=AsyncMock(),
         finish_workflow=AsyncMock(),
         swarm_status=AsyncMock(),
         start_swarm=AsyncMock(),
@@ -70,6 +71,7 @@ def test_orchestrator_tools_expose_worker_lifecycle_then_normal_tools(monkeypatc
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
         "local:orchestrator",
     ]
+    assert tools[-2].async_fn is runtime.request_workflow_finish
     runtime.tool_factory.build_orchestrator.assert_called_once_with("orchestrator")
 
 

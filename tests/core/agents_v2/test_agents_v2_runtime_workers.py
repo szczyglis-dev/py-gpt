@@ -41,6 +41,9 @@ def make_runtime():
     runtime.run_id = "run"
     runtime.finished = False
     runtime.final_answer = ""
+    runtime.workflow_final_requested = False
+    runtime.workflow_final_stream_started = False
+    runtime.workflow_final_hint = ""
     runtime.shared_context_text = ""
     runtime.runtime_system_context = ""
     runtime.emitter = MagicMock()
@@ -163,31 +166,63 @@ def test_agents_v2_runtime_finish_workflow_rejects_running_or_unused_workers():
     assert runtime.finished is False
 
 
-def test_agents_v2_runtime_finish_workflow_requires_non_empty_final_answer():
+def test_agents_v2_runtime_request_workflow_finish_accepts_empty_payload_and_arms_final_response():
     runtime = make_runtime()
 
-    payload = json.loads(asyncio.run(runtime.finish_workflow("   ")))
+    result = asyncio.run(runtime.request_workflow_finish())
 
-    assert payload["error"] == "final_answer is empty."
+    assert result.startswith("Finalization accepted.")
+    assert runtime.workflow_final_requested is True
+    assert runtime.workflow_final_stream_started is False
+    assert runtime.workflow_final_hint == ""
     assert runtime.finished is False
+    assert runtime.final_answer == ""
+    runtime.emitter.clear_status.assert_called_once_with()
+    runtime.emitter.stream_final.assert_not_awaited()
 
 
-def test_agents_v2_runtime_finish_workflow_appends_final_answer_once_and_marks_finished():
+def test_agents_v2_runtime_finish_workflow_keeps_legacy_hint_without_materializing_final_output():
     runtime = make_runtime()
-    runtime.emitter.text = "intermediate text"
-
-    final_part = SimpleNamespace(uuid="final-part")
-    runtime._prepare_final_part = MagicMock(return_value=final_part)
 
     result = asyncio.run(runtime.finish_workflow(" final answer "))
 
-    assert result.startswith("Workflow marked as finished")
-    assert runtime.finished is True
-    assert runtime.final_answer == "final answer"
+    assert result.startswith("Finalization accepted.")
+    assert runtime.workflow_final_requested is True
+    assert runtime.workflow_final_stream_started is False
+    assert runtime.workflow_final_hint == "final answer"
+    assert runtime.finished is False
+    assert runtime.final_answer == ""
+    runtime.emitter.clear_status.assert_called_once_with()
+    runtime.emitter.stream_final.assert_not_awaited()
+
+
+def test_agents_v2_runtime_finish_workflow_rejects_second_finalization_request():
+    runtime = make_runtime()
+    runtime.workflow_final_requested = True
+
+    payload = json.loads(asyncio.run(runtime.finish_workflow("ignored")))
+
+    assert payload["error"] == "Workflow finalization is already accepted."
+    assert runtime.workflow_final_hint == ""
+    runtime.emitter.clear_status.assert_not_called()
+
+
+def test_agents_v2_runtime_begin_workflow_final_stream_prepares_final_part_once():
+    runtime = make_runtime()
+    runtime.workflow_final_requested = True
+    runtime.emitter.begin_final_stream = MagicMock()
+    final_part = SimpleNamespace(uuid="final-part")
+    runtime._prepare_final_part = MagicMock(return_value=final_part)
+    runtime._actor_part = MagicMock(return_value=final_part)
+
+    first = runtime.begin_workflow_final_stream()
+    second = runtime.begin_workflow_final_stream()
+
+    assert first is final_part
+    assert second is final_part
+    assert runtime.workflow_final_stream_started is True
     runtime._prepare_final_part.assert_called_once_with()
-    runtime.emitter.stream_final.assert_awaited_once_with(
-        "final answer", part_uuid="final-part"
-    )
+    runtime.emitter.begin_final_stream.assert_called_once_with()
 
 
 def test_agents_v2_runtime_cleanup_cancels_pending_tasks_and_clears_workers():

@@ -270,6 +270,9 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     assert runtime.index_id is None
     assert runtime.shared_context_text == "shared"
     assert runtime.runtime_system_context == "runtime"
+    assert runtime.workflow_final_requested is False
+    assert runtime.workflow_final_stream_started is False
+    assert runtime.workflow_final_hint == ""
     assert isinstance(runtime.timeline, RuntimeTimeline)
     assert isinstance(runtime.tool_history, RuntimeToolHistory)
     assert isinstance(runtime.context_api, RuntimeContext)

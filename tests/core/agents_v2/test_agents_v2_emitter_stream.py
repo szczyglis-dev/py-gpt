@@ -112,3 +112,55 @@ def test_agents_v2_emitter_execute_plugin_returns_cancelled_when_stop_is_request
 
     assert result == "Execution cancelled."
     assert get_tool_request(tool_ctx) is None
+
+
+def test_agents_v2_emitter_begin_final_stream_clears_working_draft_and_blocks_late_statuses():
+    emitter, signals = make_emitter()
+    emitter.append("working draft")
+    emitter.status("using tool", source="orchestrator")
+    signals.response.emit.reset_mock()
+
+    assert emitter.begin_final_stream() is True
+    emitter.status("late status", source="worker")
+    emitter.append("final", part_uuid="final-part")
+    emitter._flush_stream()
+
+    events = emitted_events(signals)
+    assert emitter.final_started is True
+    assert emitter.text == "final"
+    assert [event.name for event in events].count(KernelEvent.AGENT_V2_FINAL_BEGIN) == 1
+    status_events = [event for event in events if event.name == KernelEvent.AGENT_V2_STATUS]
+    assert [(event.data["status"], event.data["source"]) for event in status_events] == [
+        ("", "orchestrator"),
+    ]
+    append_events = [event for event in events if event.name == KernelEvent.AGENT_V2_APPEND]
+    assert append_events[-1].data["chunk"] == "final"
+    assert append_events[-1].data["begin"] is True
+    assert append_events[-1].data["part_uuid"] == "final-part"
+
+
+def test_agents_v2_emitter_append_streamed_splits_large_post_tool_delta_when_streaming_enabled():
+    signals = SimpleNamespace(response=MagicMock())
+    emitter = RuntimeEmitter(
+        context=SimpleNamespace(stream=True),
+        extra={},
+        signals=signals,
+    )
+    emitter._stream_emit_chars = 512
+    emitter._final_stream_chunk_chars = 8
+    emitter._final_stream_delay = 0
+
+    asyncio.run(emitter.append_streamed(
+        "one two three four five",
+        part_uuid="part-1",
+        ensure_incremental=True,
+    ))
+    emitter._flush_stream()
+
+    append_events = [
+        event for event in emitted_events(signals)
+        if event.name == KernelEvent.AGENT_V2_APPEND
+    ]
+    assert len(append_events) > 1
+    assert "".join(event.data["chunk"] for event in append_events) == "one two three four five"
+    assert all(event.data["part_uuid"] == "part-1" for event in append_events)
