@@ -594,13 +594,13 @@ class Patch:
                     current_computer = str(current_models.get("computer", "") or "")
                     normalized = current_computer.replace("_", "-")
                     if normalized.startswith("computer-use-preview"):
-                        current_models["computer"] = "gpt-5.6-sol-medium"
+                        current_models["computer"] = "gpt-5.6-sol"
                         updated = True
 
                 current_model = str(data.get("model", "") or "")
                 if data.get("mode") == "computer" \
                         and current_model.replace("_", "-").startswith("computer-use-preview"):
-                    data["model"] = "gpt-5.6-sol-medium"
+                    data["model"] = "gpt-5.6-sol"
                     updated = True
 
                 # Project attachments are now opt-in. Existing profiles should

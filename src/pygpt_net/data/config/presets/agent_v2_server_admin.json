@@ -20,7 +20,7 @@
   "research": false,
   "computer": false,
   "filename": "agent_v2_server_admin",
-  "model": "gpt-5.6-sol-high",
+  "model": "gpt-5.6-sol",
   "tools": {
     "function": []
   },

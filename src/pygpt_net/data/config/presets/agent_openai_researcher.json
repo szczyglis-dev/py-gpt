@@ -18,7 +18,7 @@
   "research": false,
   "computer": false,
   "filename": "agent_openai_researcher",
-  "model": "o3-mini-high",
+  "model": "o3-mini",
   "tools": {
     "function": []
   },
