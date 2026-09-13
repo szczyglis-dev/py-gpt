@@ -329,6 +329,27 @@ class Chat:
             attachments=attachments,
         )
 
+        # Native tool-result continuations are already reconstructed by Context as
+        # ``assistant(tool_calls) -> tool(result)``.  The internal reply prompt is
+        # only a transport envelope for the plugin result and must not be appended
+        # again as a normal user message.  Doing so produces
+        # ``... -> tool(result) -> user(result)``; OpenAI-compatible Ollama/Gemma
+        # is especially sensitive to that invalid continuation shape and may return
+        # no final assistant content after a successfully executed tool.
+        last_role = getattr(history[-1], "role", None) if history else None
+        if hasattr(last_role, "value"):
+            last_role = last_role.value
+        native_tool_continuation = bool(
+            allow_native_tool_calls
+            and self.prev_message is not None
+            and last_role == MessageRole.TOOL.value
+        )
+        if native_tool_continuation:
+            self.log(
+                "Native tool continuation: tool result already present in history; "
+                "skipping synthetic user reply."
+            )
+
         self.prev_message = None  # reset previous message
         memory = self.get_memory_buffer(history, llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
@@ -399,11 +420,12 @@ class Chat:
                     )
                 else:
                     history.insert(0, self.context.add_system(system_prompt))
-                    history.append(self.context.add_user(
-                        query,
-                        attachments=context.attachments,
-                        allow_images=model.is_image_input(),
-                    ))
+                    if not native_tool_continuation:
+                        history.append(self.context.add_user(
+                            query,
+                            attachments=context.attachments,
+                            allow_images=model.is_image_input(),
+                        ))
                     if stream: # TOOLS + STREAM + NO INDEX
                         # IMPORTANT: stream chat with tools not supported by all providers
                         if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):

@@ -360,6 +360,16 @@ class Ollama(FunctionCallingLLM):
         if isinstance(user_msg, str):
             user_msg = ChatMessage(role=MessageRole.USER, content=user_msg)
 
+        # FunctionCallingLLM normally passes ``chat_history``, while PyGPT's
+        # direct Chat with Files path calls ``chat_with_tools(..., messages=...)``.
+        # Accept both forms. Ignoring the ``messages`` alias would send the first
+        # native Ollama request (and, more importantly, the post-tool continuation)
+        # without the reconstructed conversation/tool-result history.
+        if chat_history is None:
+            supplied_messages = kwargs.get("messages")
+            if supplied_messages is not None:
+                chat_history = list(supplied_messages)
+
         messages = list(chat_history or [])
         if user_msg:
             messages.append(user_msg)

@@ -37,6 +37,7 @@ class ReactWorkflowAgent(BaseAgent):
         :return: Agent provider instance
         """
         from llama_index.core.agent.workflow import ReActAgent as Agent
+        from .react_output_parser import PyGPTReActOutputParser
 
         tools = kwargs.get("tools", [])
         verbose = kwargs.get("verbose", False)
@@ -69,5 +70,6 @@ class ReactWorkflowAgent(BaseAgent):
             chat_history=chat_history,
             max_iterations=max_iterations,
             system_prompt=system_prompt,
+            output_parser=PyGPTReActOutputParser(),
             verbose=verbose,
         )

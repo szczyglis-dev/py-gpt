@@ -105,6 +105,27 @@ class Context:
                         and item.extra
                         and isinstance(item.extra, dict)):
                     if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
+                        # A native tool-call response may contain no assistant text at all
+                        # (Ollama/Gemma commonly returns only ``tool_calls``). In that case
+                        # ``item.final_output`` is empty, so no assistant message was appended
+                        # above. The follow-up must still contain the exact provider message:
+                        #
+                        #   user -> assistant(tool_calls) -> tool(result)
+                        #
+                        # Insert/replace it once per tool round, before the first tool result.
+                        prev_tool_message_inserted = False
+
+                        def ensure_prev_tool_message():
+                            nonlocal prev_tool_message_inserted
+                            if prev_tool_message_inserted:
+                                return
+                            last_msg = messages[-1] if messages else None
+                            if last_msg and last_msg.role == MessageRole.ASSISTANT:
+                                messages[-1] = prev_message
+                            else:
+                                messages.append(prev_message)
+                            prev_tool_message_inserted = True
+
                         for tool_call in item.extra["tool_calls"]:
                             if "function" in tool_call:
                                 if "id" not in tool_call or "name" not in tool_call["function"]:
@@ -114,12 +135,7 @@ class Context:
                                         for tool_output in item.extra["tool_output"]:
                                             if ("cmd" in tool_output
                                                     and tool_output["cmd"] == tool_call["function"]["name"]):
-                                                last_msg = messages[-1] if messages else None
-                                                if last_msg and last_msg.role == "assistant":
-                                                    if prev_message:
-                                                        last_msg = prev_message  # prev message with tool calls
-                                                        messages[-1] = last_msg
-
+                                                ensure_prev_tool_message()
                                                 msg = ChatMessage(
                                                     role=MessageRole.TOOL,
                                                     content=str(tool_output),
@@ -129,12 +145,7 @@ class Context:
                                                 break
                                             elif "result" in tool_output:
                                                 # if result is present, append it as function call output
-                                                last_msg = messages[-1] if messages else None
-                                                if last_msg and last_msg.role == "assistant":
-                                                    if prev_message:
-                                                        last_msg = prev_message  # prev message with tool calls
-                                                        messages[-1] = last_msg
-
+                                                ensure_prev_tool_message()
                                                 msg = ChatMessage(
                                                     role=MessageRole.TOOL,
                                                     content=str(tool_output["result"]),
