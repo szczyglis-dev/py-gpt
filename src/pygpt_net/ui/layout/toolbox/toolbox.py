@@ -12,6 +12,7 @@
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget, QSizePolicy
 
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
 from .assistants import Assistants
@@ -52,12 +53,18 @@ class ToolboxMain:
         ui = self.window.ui
         nodes = ui.nodes
 
+        # mode / model
+        tip = HelpLabel(trans('tip.toolbox.mode'), self.window)
+        tip.setAlignment(Qt.AlignCenter)
+        nodes['tip.toolbox.mode'] = tip
+
         # presets / assistants
         toolbox_mode = QWidget(self.window)
         layout = QVBoxLayout(toolbox_mode)
         self.banner.setup(layout)  # banner is inserted only after a successful remote load
         layout.addWidget(self.mode.setup())  # modes
         layout.addWidget(self.model.setup())  # models
+        layout.addWidget(tip)
         layout.addWidget(self.presets.setup(), 1)  # presets / agents
         layout.addWidget(self.assistants.setup(), 1)  # assistants
         layout.setContentsMargins(0, 0, 0, 0)
@@ -88,7 +95,7 @@ class ToolboxMain:
         splitter.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         splitter.setMinimumWidth(self.MIN_WIDTH)
         splitter.addWidget(toolbox_mode)  # mode/model
-        splitter.addWidget(bottom_widget)  # system prompt and mode-specific footer controls
+        splitter.addWidget(bottom_widget)  # system prompt, footer (names, temp, logo, etc.)
         ui.splitters['toolbox'] = splitter
 
         return splitter

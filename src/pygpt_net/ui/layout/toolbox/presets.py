@@ -15,7 +15,7 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QSizePolicy
 
 from pygpt_net.core.types import MODE_EXPERT
-from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
 
 from pygpt_net.ui.layout.toolbox.footer import Footer
@@ -79,10 +79,14 @@ class Presets:
         nodes[self.id].selection_locked = self.window.controller.presets.preset_change_locked
         nodes[self.id].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        nodes['tip.toolbox.presets'] = HelpLabel(trans('tip.toolbox.presets'), self.window)
+        nodes['tip.toolbox.presets'].setAlignment(Qt.AlignCenter)
+
         layout = QVBoxLayout()
         layout.addStretch()
         layout.addLayout(header)
         layout.addWidget(nodes[self.id], 1)
+        layout.addWidget(nodes['tip.toolbox.presets'])
         layout.setContentsMargins(2, 5, 5, 5)
 
         self.window.ui.models[self.id] = self.create_model(self.window)
