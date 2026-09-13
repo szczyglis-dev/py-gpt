@@ -223,7 +223,6 @@ class ImageWorker(QRunnable):
                     system_prompt=self.system_prompt,
                     model=self.model_prompt,  # model instance
                     max_tokens=200,
-                    temperature=1.0,
                 )
                 event = KernelEvent(KernelEvent.CALL, {
                     'context': bridge_context,

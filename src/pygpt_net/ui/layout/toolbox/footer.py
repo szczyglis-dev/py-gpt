@@ -16,7 +16,6 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePolicy, QHBoxLayout
 
 from pygpt_net.ui.widget.textarea.name import NameInput
-from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.audio.input_button import VoiceControlButton
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
@@ -58,13 +57,6 @@ class Footer:
 
         :return: QHBoxLayout
         """
-        # bottom
-        option = dict(self.window.controller.settings.editor.get_options()["temperature"])
-        self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"), self.window)
-        self.window.ui.config['global']['current_temperature'] = \
-            OptionSlider(self.window, 'global', 'current_temperature', option)
-        self.window.ui.add_hook("update.global.current_temperature", self.window.controller.mode.hook_global_temperature)
-
         # voice control btn
         self.window.ui.nodes['voice.control.btn'] = VoiceControlButton(self.window)
         self.window.ui.nodes['voice.control.btn'].setVisible(False)

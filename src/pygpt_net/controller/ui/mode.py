@@ -166,8 +166,6 @@ class Mode:
 
         # prompt editor toolbox visibility
         if is_agent:
-            # Autonomous Agent does not expose a per-preset temperature.
-            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(False)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
@@ -178,7 +176,6 @@ class Mode:
         elif is_agent_v2:
             presets_editor.toggle_tab("personalize", False)
             presets_editor.toggle_tab("remote_tools", False)
-            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
@@ -190,7 +187,6 @@ class Mode:
         elif is_expert:
             presets_editor.toggle_tab("personalize", False)
             presets_editor.toggle_tab("remote_tools", False)
-            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
@@ -200,7 +196,6 @@ class Mode:
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
         elif is_agent_llama:
-            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(True)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
@@ -209,7 +204,6 @@ class Mode:
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         elif is_agent_openai:
-            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
@@ -222,8 +216,6 @@ class Mode:
                 ui_nodes['preset.editor.idx'].setVisible(True)
             else:
                 ui_nodes['preset.editor.idx'].setVisible(False)
-
-            ui_nodes['preset.editor.temperature'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)

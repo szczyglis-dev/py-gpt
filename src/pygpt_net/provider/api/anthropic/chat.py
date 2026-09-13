@@ -96,9 +96,6 @@ class Chat:
             betas.add("files-api-2025-04-14")
 
         max_tokens = context.max_tokens if context.max_tokens else 1024
-        temperature = self.window.core.config.get('temperature')
-        top_p = self.window.core.config.get('top_p')
-
         params: Dict[str, Any] = {
             "model": model.id,
             "messages": msgs,
@@ -107,11 +104,6 @@ class Chat:
         # Add optional fields only if provided
         if system_prompt:
             params["system"] = system_prompt  # SDK expects string or blocks, not None
-        # Claude 4.x: top_p is rejected when temperature is also present.
-        # Opus 4.x and claude-3-7-sonnet have deprecated temperature entirely (extended thinking).
-        _no_temp = ("claude-opus-4-", "claude-3-7-sonnet", "claude-fable-5", "claude-opus-5", "claude-sonnet-5")
-        if temperature is not None and not any(model.id.startswith(p) for p in _no_temp):
-            params["temperature"] = temperature
         if tools:  # only include when non-empty list
             params["tools"] = tools  # must be a valid list per API
         if mcp_servers:
@@ -163,9 +155,6 @@ class Chat:
             extra_body["thinking"] = thinking_cfg
             params["extra_body"] = extra_body
             params.pop("thinking", None)
-            # Sampling temperature is incompatible with thinking on affected
-            # Claude generations; default sampling is the safest common path.
-            params.pop("temperature", None)
 
         if mode == MODE_AUDIO:
             stream = False  # no native TTS

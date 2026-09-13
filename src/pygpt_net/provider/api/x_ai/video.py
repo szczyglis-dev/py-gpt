@@ -173,7 +173,6 @@ class VideoWorker(QRunnable):
                         system_prompt=self.system_prompt,
                         model=self.model_prompt,
                         max_tokens=200,
-                        temperature=1.0,
                     )
                     ev = KernelEvent(KernelEvent.CALL, {'context': bridge_context, 'extra': {}})
                     self.window.dispatch(ev)

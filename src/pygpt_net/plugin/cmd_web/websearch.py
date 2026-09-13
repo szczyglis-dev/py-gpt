@@ -174,7 +174,6 @@ class WebSearch:
                     system_prompt=sys_prompt,
                     model=model,
                     max_tokens=max_tokens,
-                    temperature=0.0,
                 )
                 event = KernelEvent(KernelEvent.CALL, {
                     'context': bridge_context,

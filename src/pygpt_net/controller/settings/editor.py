@@ -15,7 +15,6 @@ from typing import Optional, Any, Dict
 from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import Event
-from pygpt_net.core.types import MODE_AGENT
 from pygpt_net.utils import trans
 
 
@@ -119,17 +118,6 @@ class Editor:
             )
             self.window.core.config.set(key, value)
 
-            # Keep temperature synchronized with ordinary presets only.
-            # Autonomous Agent uses the global model setting directly and has
-            # no per-preset temperature.
-            if key == "temperature" and self.window.core.config.get('mode') != MODE_AGENT:
-                preset_id = self.window.core.config.get('preset')
-                if preset_id is not None and preset_id != "":
-                    if preset_id in self.window.core.presets.items:
-                        preset = self.window.core.presets.items[preset_id]
-                        preset.temperature = value
-                        self.window.core.presets.save(preset_id)
-                        self.window.controller.mode.update_temperature(value)  # update current temperature
 
         if not self.window.core.config.get('layout.tray'):
             self.window.core.config.set('layout.tray.minimize', False)

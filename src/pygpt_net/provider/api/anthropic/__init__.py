@@ -194,7 +194,6 @@ class ApiAnthropic:
             ctx = context.ctx
             prompt = context.prompt
             system_prompt = context.system_prompt
-            temperature = context.temperature
             history = context.history
             functions = context.external_functions
             model = context.model or self.window.core.models.from_defaults()
@@ -219,8 +218,6 @@ class ApiAnthropic:
             }
             if system_prompt:
                 params["system"] = system_prompt
-            if temperature is not None:
-                params["temperature"] = temperature
             if tools:  # only include when non-empty list
                 params["tools"] = tools
 

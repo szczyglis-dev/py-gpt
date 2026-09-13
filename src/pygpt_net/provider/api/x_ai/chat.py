@@ -116,7 +116,6 @@ class Chat:
                 messages=sdk_messages,
                 tools=tools_prepared or None,
                 search_parameters=None,  # Live Search removed from Chat Completions; handled via Agent Tools in Responses API
-                temperature=context.temperature,
                 max_tokens=context.max_tokens,
                 system_prompt=system_prompt,
                 history=context.history,
@@ -153,7 +152,6 @@ class Chat:
             multimodal_ctx=multimodal_ctx,
             tools=tools_prepared or [],
             search_parameters=None,  # Live Search removed from Chat Completions; handled via Agent Tools in Responses API
-            temperature=context.temperature,
             max_tokens=context.max_tokens,
             reasoning_effort=reasoning_effort,
         )
@@ -470,7 +468,6 @@ class Chat:
         multimodal_ctx: Optional[MultimodalContext],
         tools: List[dict],
         search_parameters: Optional[Dict[str, Any]],
-        temperature: Optional[float],
         max_tokens: Optional[int],
         reasoning_effort: Optional[str] = None,
     ) -> Tuple[str, List[dict], List[str], Optional[dict], str]:
@@ -495,7 +492,6 @@ class Chat:
         payload: Dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "temperature": temperature if temperature is not None else self.window.core.config.get('temperature'),
         }
         if max_tokens:
             payload["max_tokens"] = int(max_tokens)
@@ -592,7 +588,6 @@ class Chat:
         messages: Optional[list] = None,
         tools: Optional[List[dict]] = None,
         search_parameters: Optional[Dict[str, Any]] = None,
-        temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         system_prompt: Optional[str] = None,
         history: Optional[List[CtxItem]] = None,
@@ -626,7 +621,6 @@ class Chat:
         payload: Dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "temperature": temperature if temperature is not None else self.window.core.config.get('temperature'),
             "stream": True,
         }
         if max_tokens:

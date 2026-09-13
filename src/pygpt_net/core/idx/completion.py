@@ -92,12 +92,7 @@ class Completion:
         if model.provider != "openai":
             return {}
 
-        kwargs = {
-            "temperature": self.window.core.config.get("temperature"),
-            "top_p": self.window.core.config.get("top_p"),
-            "frequency_penalty": self.window.core.config.get("frequency_penalty"),
-            "presence_penalty": self.window.core.config.get("presence_penalty"),
-        }
+        kwargs = {}
 
         if user_name:
             kwargs["stop"] = [f"{user_name}:"]

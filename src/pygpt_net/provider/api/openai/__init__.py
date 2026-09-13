@@ -304,7 +304,6 @@ class ApiOpenAI:
         mode = context.mode
         prompt = context.prompt
         system_prompt = context.system_prompt
-        temperature = context.temperature
         functions = context.external_functions
         history = context.history
         model = context.model
@@ -342,10 +341,6 @@ class ApiOpenAI:
             response = client.chat.completions.create(
                 messages=messages,
                 model=model_id,
-                temperature=temperature,
-                top_p=1.0,
-                frequency_penalty=0.0,
-                presence_penalty=0.0,
                 **additional_kwargs,
             )
             # extract tool calls

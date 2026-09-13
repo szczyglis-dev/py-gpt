@@ -211,7 +211,6 @@ class JsonFileProvider(BaseProvider):
             MODE_AUDIO: item.audio,
             MODE_RESEARCH: item.research,
             MODE_COMPUTER: item.computer,
-            'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
             'tools': item.tools,
@@ -299,8 +298,6 @@ class JsonFileProvider(BaseProvider):
             item.prompt = data['prompt']
         if 'remote_tools' in data:
             item.remote_tools = data['remote_tools']
-        if 'temperature' in data:
-            item.temperature = data['temperature']
         if 'tools' in data:
             item.tools = data['tools']
         if 'user_name' in data:

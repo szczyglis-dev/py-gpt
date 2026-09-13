@@ -26,7 +26,6 @@ def call_memory_model(plugin, prompt: str, system_prompt: str, extra: dict) -> s
         system_prompt=system_prompt,
         model=model,
         max_tokens=8192,
-        temperature=0.0,
         stream=False,
         force=True,
     )

@@ -44,6 +44,19 @@ class Patch:
             current = data['__meta__']['version']
         old = parse_version(current)
 
+        # Remove obsolete global sampling controls even when the stored config
+        # already has the current version. They are no longer exposed or sent
+        # by PyGPT and should not linger in user config files.
+        for key in (
+            "presence_penalty",
+            "frequency_penalty",
+            "temperature",
+            "top_p",
+        ):
+            if key in data:
+                del data[key]
+                updated = True
+
         # check if config file is older than current app version
         if old < version:
 

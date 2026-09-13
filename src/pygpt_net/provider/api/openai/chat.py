@@ -112,16 +112,6 @@ class Chat:
         # tools / functions
         tools = self.window.core.api.openai.tools.prepare(model, functions)
 
-        # fix: o1 compatibility
-        if (model.id is not None
-                and not model.id.startswith("o1")
-                and not model.id.startswith("o3")
-                and not model.id.startswith("o4")
-                and model.is_gpt()):
-            response_kwargs['presence_penalty'] = self.window.core.config.get('presence_penalty')
-            response_kwargs['frequency_penalty'] = self.window.core.config.get('frequency_penalty')
-            response_kwargs['temperature'] = self.window.core.config.get('temperature')
-            response_kwargs['top_p'] = self.window.core.config.get('top_p')
 
         # Runtime reasoning effort is a single global preference and is sent
         # only for models which explicitly support changing it.

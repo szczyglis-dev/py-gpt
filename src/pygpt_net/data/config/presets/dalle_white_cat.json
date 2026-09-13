@@ -3,7 +3,6 @@
   "ai_name": "",
   "user_name": "",
   "prompt": "a fluffy cat sitting comfortably on a sunny windowsill, with warm sunlight highlighting its fur, looking curiously outside",
-  "temperature": 1.0,
   "chat": false,
   "completion": false,
   "img": true,

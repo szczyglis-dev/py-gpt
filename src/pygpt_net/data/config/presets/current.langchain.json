@@ -3,7 +3,6 @@
   "ai_name": "Assistant",
   "user_name": "Human",
   "prompt": "",
-  "temperature": 1.0,
   "chat": false,
   "completion": false,
   "img": false,

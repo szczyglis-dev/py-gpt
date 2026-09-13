@@ -79,7 +79,6 @@ class PresetsDebug:
                 MODE_EXPERT: preset.expert,
                 MODE_AUDIO: preset.audio,
                 MODE_RESEARCH: preset.research,
-                'temperature': preset.temperature,
                 'version': preset.version,
             }
             debug.add(self.id, str(key), str(data))

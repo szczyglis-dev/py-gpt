@@ -201,7 +201,6 @@ class Preset(BaseConfigDialog):
             "filename",
             "name",
             "model",
-            "temperature",
             "agent_provider",
             "agent_provider_openai",
             "idx",

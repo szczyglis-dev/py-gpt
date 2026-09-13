@@ -3,7 +3,6 @@
   "ai_name": "Batman",
   "user_name": "Joker",
   "prompt": "Batman is a superhero from Gotham City.\n\nJoker: who are you?\nBatman: I'm Batman!",
-  "temperature": 1.0,
   "img": false,
   "chat": false,
   "completion": true,

@@ -430,16 +430,12 @@ class Presets:
             cfg.set('user_name', preset.user_name)
             cfg.set('ai_name', preset.ai_name)
             cfg.set('prompt', preset.prompt)
-            if mode != MODE_AGENT:
-                cfg.set('temperature', preset.temperature)
             cfg.set('agent.llama.provider', preset.agent_provider)
             cfg.set('agent.openai.provider', preset.agent_provider_openai)
             cfg.set('agent.llama.idx', preset.idx)
             return
         cfg.set('user_name', None)
         cfg.set('ai_name', None)
-        if mode != MODE_AGENT:
-            cfg.set('temperature', 1.0)
         if mode == MODE_CHAT:
             cfg.set('prompt', w.core.prompt.get('default'))
         else:
@@ -510,7 +506,6 @@ class Presets:
         self.select_default()
         self.update_current()
         self.update_data()
-        w.controller.mode.update_temperature()
         self.update_list()
         self.select_current()
         if no_scroll:
@@ -620,15 +615,11 @@ class Presets:
         w.core.config.set('ai_name', "")
         w.core.config.set('user_name', "")
         mode = w.core.config.get('mode')
-        if mode != MODE_AGENT:
-            w.core.config.set('temperature', 1.0)
         if preset and preset in w.core.presets.items:
             p = w.core.presets.items[preset]
             p.ai_name = ""
             p.user_name = ""
             p.prompt = ""
-            if mode != MODE_AGENT:
-                p.temperature = 1.0
             self.refresh()
         w.update_status(trans('status.preset.cleared'))
         if mode == MODE_ASSISTANT:

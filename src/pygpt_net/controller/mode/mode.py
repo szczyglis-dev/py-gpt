@@ -180,50 +180,6 @@ class Mode:
         c.presets.select_default()
         c.assistant.select_default()
 
-    def update_temperature(self, temperature: float = None):
-        """
-        Update current temperature field
-
-        :param temperature: current temperature
-        :type temperature: float or None
-        """
-        if temperature is None:
-            cfg = self.window.core.config
-            preset_id = cfg.get('preset')
-            if preset_id is None or preset_id == "":
-                temperature = 1.0  # default temperature
-            else:
-                items = self.window.core.presets.items
-                if preset_id in items:
-                    temperature = float(items[preset_id].temperature or 1.0)
-        '''
-        self.window.controller.config.slider.on_update("global", "current_temperature", option, temperature,
-                                                       hooks=False)  # disable hooks to prevent circular update
-        '''
-
-    def hook_global_temperature(
-            self,
-            key: str,
-            value,
-            caller,
-            *args,
-            **kwargs
-    ):
-        """Hook: on update current temperature global field"""
-        if caller != "slider":
-            return  # accept call only from slider (has already validated min/max)
-
-        temperature = value / 100
-        cfg = self.window.core.config
-        cfg.set("temperature", temperature)
-        preset_id = cfg.get('preset')
-        if cfg.get('mode') != MODE_AGENT and preset_id is not None and preset_id != "":
-            items = self.window.core.presets.items
-            if preset_id in items:
-                preset = items[preset_id]
-                preset.temperature = temperature
-                self.window.core.presets.save(preset_id)
-
     def switch_inline(
             self,
             mode: str,

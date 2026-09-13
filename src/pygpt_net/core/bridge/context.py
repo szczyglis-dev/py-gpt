@@ -82,7 +82,6 @@ class BridgeContext:
     stream: bool = False  # stream enabled
     system_prompt: str = "" # system prompt
     system_prompt_raw: str = ""  # system prompt without plugins addons
-    temperature: float = 1.0  # temperature
     thread_id: str = "" # OpenAI Assistants thread ID for chat mode
     tools_outputs: list = field(default_factory=list)  # list of tools outputs
 
@@ -116,7 +115,6 @@ class BridgeContext:
         self.stream = kwargs.get("stream", False)
         self.system_prompt = kwargs.get("system_prompt", "")
         self.system_prompt_raw = kwargs.get("system_prompt_raw", "")
-        self.temperature = kwargs.get("temperature", 1.0)
         self.thread_id = kwargs.get("thread_id", "")
         self.tools_outputs = list(kwargs.get("tools_outputs", []))
 
@@ -153,7 +151,6 @@ class BridgeContext:
             "stream": self.stream,
             "system_prompt": self.system_prompt,
             "system_prompt_raw": self.system_prompt_raw,
-            "temperature": self.temperature,
             "thread_id": self.thread_id,
             "tools_outputs": self.tools_outputs,
         }

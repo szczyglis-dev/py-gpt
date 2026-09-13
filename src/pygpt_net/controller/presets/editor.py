@@ -160,15 +160,6 @@ class Editor:
                 "type": "bool_list",
                 "use": "remote_tools_openai",
             },
-            "temperature": {
-                "type": "float",
-                "slider": True,
-                "label": "preset.temperature",
-                "min": 0,
-                "max": 2,
-                "step": 1,
-                "multiplier": 100,
-            },
             "prompt": {
                 "type": "textarea",
                 "label": "",
@@ -215,10 +206,6 @@ class Editor:
         }
         self.hidden_by_mode = {  # hidden fields by mode
             MODE_CHAT: ["idx"],
-            MODE_AGENT: ["temperature"],
-            MODE_AGENT_LLAMA: ["temperature"],
-            MODE_AGENT_OPENAI: ["temperature"],
-            MODE_AGENT_V2: ["temperature"],
         }
         self.id = "preset"
         self.current = None
@@ -1390,10 +1377,6 @@ class Editor:
         for key in self.options:
             if key == "tool.function":
                 continue  # assigned separately
-            if mode == MODE_AGENT and key == "temperature":
-                # Legacy Autonomous Agent no longer has a per-preset
-                # temperature. Keep any existing serialized value untouched.
-                continue
             data_dict[key] = get_value(
                 parent_id=self.id,
                 key=key,
@@ -1427,8 +1410,6 @@ class Editor:
         config.set('ai_name', preset.ai_name)
         config.set('user_name', preset.user_name)
         config.set('prompt', preset.prompt)
-        if config.get('mode') != MODE_AGENT:
-            config.set('temperature', preset.temperature)
 
     @Slot()
     def from_current(self):
@@ -1453,13 +1434,6 @@ class Editor:
             option=self.options["prompt"],
             value=get_config('prompt'),
         )
-        if get_config('mode') != MODE_AGENT:
-            apply_value(
-                parent_id=self.id,
-                key="temperature",
-                option=self.options["temperature"],
-                value=get_config('temperature'),
-            )
         apply_value(
             parent_id=self.id,
             key="model",

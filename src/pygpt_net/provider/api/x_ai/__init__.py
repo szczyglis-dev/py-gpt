@@ -352,7 +352,6 @@ class ApiXAI:
             ctx = context.ctx
             prompt = context.prompt
             system_prompt = context.system_prompt
-            temperature = context.temperature
             history = context.history
             functions = context.external_functions
             model = context.model or self.window.core.models.from_defaults()
@@ -370,7 +369,6 @@ class ApiXAI:
                     attachments=context.attachments,
                     multimodal_ctx=context.multimodal_ctx,
                     tools=tools,
-                    temperature=temperature,
                     max_tokens=context.max_tokens,
                     search_parameters=None,
                     reasoning_effort=self.window.core.models.get_reasoning_effort(model),

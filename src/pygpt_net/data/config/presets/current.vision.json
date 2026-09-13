@@ -3,7 +3,6 @@
   "ai_name": "",
   "user_name": "",
   "prompt": "You are a helpful assistant.",
-  "temperature": 1.0,
   "chat": false,
   "completion": false,
   "img": false,

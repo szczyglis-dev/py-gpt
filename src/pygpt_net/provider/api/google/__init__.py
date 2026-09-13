@@ -243,7 +243,6 @@ class ApiGoogle:
             ctx = context.ctx
             prompt = context.prompt
             system_prompt = context.system_prompt
-            temperature = context.temperature
             history = context.history
             functions = context.external_functions
             model = context.model or self.window.core.models.from_defaults()
@@ -267,8 +266,6 @@ class ApiGoogle:
                 multimodal_ctx=context.multimodal_ctx,
             )
             cfg = genai.types.GenerateContentConfig(
-                temperature=temperature if temperature is not None else self.window.core.config.get('temperature'),
-                top_p=self.window.core.config.get('top_p'),
                 max_output_tokens=context.max_tokens if context.max_tokens else None,
                 system_instruction=system_prompt if system_prompt else None,
                 tools=tools if tools else None,

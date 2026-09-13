@@ -88,8 +88,6 @@ class Chat:
                 ])
             ]
             trans_cfg = gtypes.GenerateContentConfig(
-                temperature=self.window.core.config.get('temperature'),
-                top_p=self.window.core.config.get('top_p'),
                 max_output_tokens=context.max_tokens if context.max_tokens else None,
             )
             trans_resp = client.models.generate_content(
@@ -144,15 +142,11 @@ class Chat:
         if model and isinstance(model.id, str) and "-image" in model.id:
             tools = None
 
-        # Sampling
-        temperature = self.window.core.config.get('temperature')
-        top_p = self.window.core.config.get('top_p')
+        # Output limit
         max_tokens = context.max_tokens if context.max_tokens else None
 
         # Base config
         cfg_kwargs: Dict[str, Any] = dict(
-            temperature=temperature,
-            top_p=top_p,
             max_output_tokens=max_tokens,
             system_instruction=system_prompt if system_prompt else None,
             tools=tools if tools else None,
@@ -166,7 +160,7 @@ class Chat:
             inputs = [Content(role="user", parts=[Part.from_text(text=str(prompt or ""))])]
 
             # Remove params not used by TTS flow
-            for key in ("temperature", "top_p", "max_output_tokens", "system_instruction", "tools"):
+            for key in ("max_output_tokens", "system_instruction", "tools"):
                 if key in cfg_kwargs:
                     del cfg_kwargs[key]
 
@@ -227,8 +221,6 @@ class Chat:
                         ])
                     ]
                     trans_cfg = gtypes.GenerateContentConfig(
-                        temperature=self.window.core.config.get('temperature'),
-                        top_p=self.window.core.config.get('top_p'),
                         max_output_tokens=context.max_tokens if context.max_tokens else None,
                     )
                     trans_resp = client.models.generate_content(

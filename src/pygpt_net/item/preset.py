@@ -49,7 +49,6 @@ class PresetItem:
     prompt: str = ""
     research: bool = False
     remote_tools: List[Any] = field(default_factory=list)
-    temperature: float = 1.0
     tools: Dict[str, Any] = field(default_factory=lambda: {"function": []})
     uuid: Optional[str] = None
     user_name: str = ""
@@ -89,7 +88,6 @@ class PresetItem:
         self.prompt = ""
         self.research = False
         self.remote_tools = []
-        self.temperature = 1.0
         self.tools = {
             "function": [],
         }
@@ -145,7 +143,6 @@ class PresetItem:
             "prompt": self.prompt,
             "remote_tools": self.remote_tools,
             "research": self.research,
-            "temperature": self.temperature,
             "tool.function": self.tools["function"],
             "user_name": self.user_name,
             "uuid": str(self.uuid),
@@ -224,8 +221,6 @@ class PresetItem:
             self.remote_tools = data["remote_tools"]
         if "research" in data:
             self.research = data["research"]
-        if "temperature" in data:
-            self.temperature = data["temperature"]
         if "tool.function" in data:
             self.tools["function"] = data["tool.function"]
         if "user_name" in data:

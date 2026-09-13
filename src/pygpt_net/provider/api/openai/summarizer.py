@@ -62,7 +62,6 @@ class Summarizer:
             system_prompt=system_prompt,
             model=model,
             max_tokens=500,
-            temperature=0.0,
             force=True,  # even if kernel stopped!
         )
         event = KernelEvent(KernelEvent.FORCE_CALL, {

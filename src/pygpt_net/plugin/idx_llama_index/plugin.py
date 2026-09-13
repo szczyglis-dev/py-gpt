@@ -163,7 +163,6 @@ class Plugin(BasePlugin):
             system_prompt=sys_prompt,
             model=model,
             max_tokens=self.get_option_value("prepare_question_max_tokens"),
-            temperature=0.0,
         )
         event = KernelEvent(KernelEvent.CALL, {
             'context': bridge_context,

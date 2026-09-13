@@ -367,7 +367,6 @@ class Plugin(BasePlugin):
                     system_prompt=sys_prompt,
                     max_tokens=max_tokens,
                     model=model,
-                    temperature=0.0,
                 )
                 event = KernelEvent(KernelEvent.CALL, {
                     'context': bridge_context,

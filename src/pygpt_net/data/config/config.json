@@ -221,7 +221,6 @@
   "font_size.ctx": 12,
   "font_size.input": 16,
   "font_size.toolbox": 12,
-  "frequency_penalty": 0.0,
   "func_call.native": true,
   "img.aspect_ratio": "auto",
   "img.remix": false,
@@ -417,7 +416,6 @@
     "voice_control": false,
     "wikipedia": false
   },
-  "presence_penalty": 0.0,
   "preset": "current.chat",
   "preset.plugins": "",
   "presets.drag_and_drop.enabled": true,
@@ -582,10 +580,8 @@
       "tool_id": "html_canvas"
     }
   },
-  "temperature": 1.0,
   "theme": "dark_darker",
   "theme.style": "chatgpt",
-  "top_p": 1.0,
   "updater.check.bg": true,
   "updater.check.bg.last_time": "",
   "updater.check.bg.last_version": "",

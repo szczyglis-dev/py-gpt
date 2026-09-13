@@ -186,7 +186,6 @@ class Mapping:
         nodes['preset.name.label'] = 'preset.name'
         nodes['preset.ai_name.label'] = 'preset.ai_name'
         nodes['preset.user_name.label'] = 'preset.user_name'
-        nodes['preset.temperature.label'] = 'preset.temperature'
         nodes['preset.prompt.label'] = 'preset.prompt'
         nodes['preset.idx.label'] = 'preset.idx'
         nodes['preset.agent_provider.label'] = 'preset.agent_provider'
@@ -291,11 +290,8 @@ class Mapping:
         nodes['tip.output.tab.notepad'] = 'tip.output.tab.notepad'
         nodes['tip.input.attachments'] = 'tip.input.attachments'
         nodes['tip.input.attachments.uploaded'] = 'tip.input.attachments.uploaded'
-        nodes['tip.toolbox.presets'] = 'tip.toolbox.presets'
         nodes['tip.toolbox.prompt'] = 'tip.toolbox.prompt'
         nodes['tip.toolbox.assistants'] = 'tip.toolbox.assistants'
-        nodes['tip.toolbox.ctx'] = 'tip.toolbox.ctx'
-        nodes['tip.toolbox.mode'] = 'tip.toolbox.mode'
         nodes['plugin.settings.cmd.footer'] = 'cmd.tip'
 
         # tool: indexer

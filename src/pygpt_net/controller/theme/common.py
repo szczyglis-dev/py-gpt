@@ -73,10 +73,7 @@ class Common:
             'tip.output.tab.files',
             'tip.output.tab.notepad',
             'tip.toolbox.assistants',
-            'tip.toolbox.ctx',
             # 'tip.toolbox.indexes',
-            'tip.toolbox.mode',
-            'tip.toolbox.presets',
             'tip.toolbox.prompt',
             'agent.v2.mode.tip',
         ]
