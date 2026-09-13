@@ -66,6 +66,11 @@ class Settings(BaseConfigDialog):
 
         # settings section tabs
         self.window.ui.tabs['settings.section'] = QTabWidget()
+        # Keep references to nested section tabs together with their locale keys.
+        # They are required by the runtime language switcher because these tabs
+        # are created only once, during dialog setup.
+        self.window.ui.tabs['settings.section.tabs'] = {}
+        self.window.ui.tabs['settings.section.tab_keys'] = {}
         options_get = self.window.controller.settings.editor.get_options
 
         # build settings tabs
@@ -210,14 +215,16 @@ class Settings(BaseConfigDialog):
                 if section_id == "agent" and "legacy" in tab_order:
                     tab_order = [tid for tid in tab_order if tid != "legacy"] + ["legacy"]
 
+                tab_keys = []
                 for tab_id in tab_order:
                     if tab_id == "general":
                         if section_id == "agent":
-                            name_key = trans("settings.section.agent.general")
+                            locale_key = "settings.section.agent.general"
                         else:
-                            name_key = trans("settings.section.tab.general")
+                            locale_key = "settings.section.tab.general"
                     else:
-                        name_key = trans("settings.section." + section_id + "." + tab_id)
+                        locale_key = "settings.section." + section_id + "." + tab_id
+                    name_key = trans(locale_key)
                     tab_name = name_key
                     trans_key = name_key.replace(" ", "_").lower()
                     translated = trans(trans_key)
@@ -227,6 +234,10 @@ class Settings(BaseConfigDialog):
                     scroll_widget.setLayout(content_tabs[tab_id])
                     scroll_tabs[tab_id].setWidget(scroll_widget)
                     tab_widget.addTab(scroll_tabs[tab_id], tab_name)
+                    tab_keys.append(locale_key)
+
+                self.window.ui.tabs['settings.section.tabs'][section_id] = tab_widget
+                self.window.ui.tabs['settings.section.tab_keys'][section_id] = tab_keys
 
                 area = QVBoxLayout()
                 area.addWidget(self.add_line())

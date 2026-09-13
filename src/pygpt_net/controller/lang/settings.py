@@ -66,6 +66,23 @@ class Settings:
         for i, section_id in enumerate(sections.keys()):
             tabs.setTabText(i, tr(f'settings.section.{section_id}'))
 
+        # Nested tabs inside a settings section are persistent widgets too, so
+        # their captions must be explicitly refreshed when language changes.
+        section_tabs = ui_tabs.get('settings.section.tabs', {})
+        section_tab_keys = ui_tabs.get('settings.section.tab_keys', {})
+        for section_id, section_tabs_widget in section_tabs.items():
+            locale_keys = section_tab_keys.get(section_id, [])
+            for i, locale_key in enumerate(locale_keys):
+                if i >= section_tabs_widget.count():
+                    break
+                name_key = tr(locale_key)
+                tab_name = name_key
+                trans_key = name_key.replace(" ", "_").lower()
+                translated = tr(trans_key)
+                if translated != trans_key:
+                    tab_name = translated
+                section_tabs_widget.setTabText(i, tab_name)
+
         idx = tabs.currentIndex()
         w.settings.refresh_list()
         ctrl_settings.set_by_tab(idx)

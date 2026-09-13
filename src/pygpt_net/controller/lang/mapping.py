@@ -47,6 +47,26 @@ class Mapping:
             except Exception:
                 pass
 
+    def _apply_tooltips(self, items, targets):
+        """Apply translated tooltips, including nested toggle controls."""
+        t = trans
+        for k, key in items.items():
+            widget = targets.get(k)
+            if widget is None:
+                continue
+            try:
+                value = t(key)
+                widget.setToolTip(value)
+
+                # ToggleLabel stores the interactive checkbox in ``box``.
+                # A tooltip assigned directly to that child overrides the
+                # parent's tooltip, so it must be refreshed as well.
+                box = getattr(widget, 'box', None)
+                if box is not None and hasattr(box, 'setToolTip'):
+                    box.setToolTip(value)
+            except Exception:
+                pass
+
     def apply(self):
         """Apply mapped keys"""
         if not self.mapping:
@@ -60,7 +80,7 @@ class Mapping:
         self._apply_map(m['menu.text'], ui.menu, 'text', 'setText')
         self._apply_map(m['menu.tooltip'], ui.menu, 'toolTip', 'setToolTip')
         self._apply_map(m['dialog.title'], ui.dialog, 'windowTitle', 'setWindowTitle')
-        self._apply_map(m['tooltip'], ui.nodes, 'toolTip', 'setToolTip')
+        self._apply_tooltips(m['tooltip'], ui.nodes)
         self._apply_map(m['placeholder'], ui.nodes, 'placeholderText', 'setPlaceholderText')
 
         tab_tools = self.window.controller.tools.get_tab_tools()
