@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 21:45:00                  #
+# Updated Date: 2026.09.13 15:14:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from pygpt_net.core.types import MODE_EXPERT, TOOL_EXPERT_CALL_NAME
 
 from .emitter import RuntimeEmitter
 from .runtime import AgentsV2Runtime
+from .utils import result_text
 
 
 class _ResponseSignalProxy:
@@ -182,6 +183,6 @@ class ExpertAgentBridge:
                 response=result,
                 actor_id="orchestrator",
             )
-            return runtime._result_text(result)
+            return result_text(result)
         finally:
             await runtime.cleanup()

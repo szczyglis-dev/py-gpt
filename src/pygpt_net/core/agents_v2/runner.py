@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 11:00:00                  #
+# Updated Date: 2026.09.13 15:14:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ from llama_index.core.agent.workflow import AgentStream, ToolCall, ToolCallResul
 
 from .emitter import RuntimeEmitter
 from .runtime import AgentsV2Runtime
+from .utils import result_text
 
 
 class Runner:
@@ -194,7 +195,7 @@ class Runner:
                         response=result,
                         actor_id="orchestrator",
                     )
-                    fallback = runtime._result_text(result)
+                    fallback = result_text(result)
                     runtime.verbose_text(runtime.main_event("RESULT"), fallback)
 
                     if runtime.uses_workflow_finish:
