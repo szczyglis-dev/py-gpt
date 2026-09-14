@@ -13,6 +13,8 @@ class UserCollapseManager {
 		this.threshold = Utils.g('USER_MSG_COLLAPSE_HEIGHT_PX', 350);
 		// Track processed .msg elements to allow cheap remeasure on resize if needed.
 		this._processed = new Set();
+		this._remeasureTimer = null;
+		this._fontsReadyScheduled = false;
 
 		// Visual indicator is now purely CSS-based (mask fade) – no inline "..." text injected anymore.
 	}
@@ -182,6 +184,33 @@ class UserCollapseManager {
 		this._ensureEllipsisEl(msg, null);
 	}
 
+	// Re-check heights after the initial page/layout/font pass. On application
+	// startup the first conversation can be inserted while WebEngine is still
+	// settling its viewport/font metrics; measuring only that first frame can
+	// incorrectly classify a short user message as collapsible.
+	_scheduleStableRemeasure() {
+		if (this._remeasureTimer !== null) {
+			try { clearTimeout(this._remeasureTimer); } catch (_) {}
+		}
+
+		const remeasure = () => {
+			this._remeasureTimer = null;
+			this._afterLayout(() => this._afterLayout(() => this.remeasureAll()));
+		};
+		this._remeasureTimer = setTimeout(remeasure, 80);
+
+		if (!this._fontsReadyScheduled) {
+			this._fontsReadyScheduled = true;
+			try {
+				if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+					document.fonts.ready.then(() => {
+						this._afterLayout(() => this.remeasureAll());
+					}).catch(() => {});
+				}
+			} catch (_) {}
+		}
+	}
+
 	// Apply collapse to all user messages under root.
 	apply(root) {
 		const scope = root || document;
@@ -196,6 +225,7 @@ class UserCollapseManager {
 			if (!st) continue;
 			this._update(msg, st.content, st.toggle);
 		}
+		this._scheduleStableRemeasure();
 	}
 
 	// Update collapsed/expanded state depending on content height.
