@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.02 16:00:00                  #
+# Updated Date: 2026.09.14 10:30:00                  #
 # ================================================== #
 
+import threading
 import time
 
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QEventLoop, QTimer, Qt
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QEventLoop, QTimer, Qt, QThread
 from PySide6.QtGui import QImage
 
 class CaptureSignals(QObject):
@@ -22,6 +23,18 @@ class CaptureSignals(QObject):
     stopped = Signal()
     capture = Signal(object)
     error = Signal(object)
+
+
+class CaptureThread(QThread):
+    """Dedicated camera thread with a force-stop fallback owned by the controller."""
+
+    def __init__(self, worker, parent=None):
+        super().__init__(parent)
+        self.worker = worker
+
+    def run(self):
+        if self.worker is not None:
+            self.worker.run()
 
 
 class CaptureWorker(QRunnable):
@@ -51,6 +64,8 @@ class CaptureWorker(QRunnable):
 
         # Timing (shared)
         self._last_emit = 0.0
+        self._stop_event = threading.Event()
+        self._done_event = threading.Event()
 
     # =========================
     # Qt Multimedia path
@@ -130,15 +145,38 @@ class CaptureWorker(QRunnable):
             return False
 
     def _teardown_qt(self):
-        """Release Qt camera pipeline."""
+        """Release Qt camera pipeline in the camera thread."""
+        sink = self.sink
+        session = self.session
+        camera = self.camera
         try:
-            if self.sink is not None:
+            if sink is not None:
                 try:
-                    self.sink.videoFrameChanged.disconnect(self.on_qt_frame_changed)
+                    sink.videoFrameChanged.disconnect(self.on_qt_frame_changed)
                 except Exception:
                     pass
-            if self.camera is not None and self.camera.isActive():
-                self.camera.stop()
+            if camera is not None:
+                try:
+                    camera.errorOccurred.disconnect(self._on_qt_camera_error)
+                except Exception:
+                    pass
+                try:
+                    if camera.isActive():
+                        camera.stop()
+                except Exception:
+                    pass
+            # Detach the pipeline explicitly before dropping Python references.
+            # This is important on Linux/GStreamer where the capture session may
+            # otherwise keep the device/backend alive after the preview is hidden.
+            if session is not None:
+                try:
+                    session.setVideoOutput(None)
+                except Exception:
+                    pass
+                try:
+                    session.setCamera(None)
+                except Exception:
+                    pass
         except Exception:
             pass
         finally:
@@ -267,12 +305,21 @@ class CaptureWorker(QRunnable):
             self._fps_interval = 1.0 / float(target_fps)
 
             cap = cv2.VideoCapture(idx)
+            # Publish the handle immediately so request_stop() can release it
+            # even while backend initialization is still in progress.
+            self.cv_cap = cap
             if not cap or not cap.isOpened():
+                self._teardown_cv2()
+                return False
+            if self._should_stop():
+                self._teardown_cv2()
                 return False
 
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, target_w)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, target_h)
-            self.cv_cap = cap
+            if self._should_stop():
+                self._teardown_cv2()
+                return False
             return True
         except Exception as e:
             self.window.core.debug.log(e)
@@ -280,13 +327,57 @@ class CaptureWorker(QRunnable):
 
     def _teardown_cv2(self):
         """Release OpenCV capture."""
+        cap = self.cv_cap
         try:
-            if self.cv_cap is not None and self.cv_cap.isOpened():
-                self.cv_cap.release()
+            if cap is not None:
+                # release() is intentionally unconditional and idempotent.  A
+                # concurrent request_stop() may already have released it to
+                # unblock a driver-level read().
+                cap.release()
         except Exception:
             pass
         finally:
             self.cv_cap = None
+
+    def request_stop(self):
+        """Request capture shutdown and actively unblock the current backend."""
+        self._stop_event.set()
+
+        # QEventLoop.quit() is safe to call from another thread.  Quitting both
+        # loops avoids waiting for the polling timer/probe timeout during app exit.
+        for loop in (self._probe_loop, self.loop):
+            try:
+                if loop is not None:
+                    loop.quit()
+            except Exception:
+                pass
+
+        # VideoCapture.read() may be blocked in the camera driver. Never call
+        # release() synchronously from the GUI thread: some backends serialize
+        # release/read and could freeze the UI too. A daemon helper attempts to
+        # unblock the read while the dedicated QThread remains force-terminable.
+        cap = self.cv_cap
+        if cap is not None:
+            self.cv_cap = None
+
+            def release_capture():
+                try:
+                    cap.release()
+                except Exception:
+                    pass
+
+            threading.Thread(
+                target=release_capture,
+                name="PyGPTCameraRelease",
+                daemon=True,
+            ).start()
+
+    def wait_done(self, timeout: float = None) -> bool:
+        """Wait until run() has completed its backend teardown."""
+        return self._done_event.wait(timeout)
+
+    def is_done(self) -> bool:
+        return self._done_event.is_set()
 
     # =========================
     # Runner
@@ -296,12 +387,18 @@ class CaptureWorker(QRunnable):
         """Run capture using Qt first; fall back to OpenCV if needed."""
         self.allow_finish = True
         self._last_emit = 0.0
+        self._done_event.clear()
 
         used_backend = None
         try:
+            if self._should_stop():
+                return
+
             # Try Qt Multimedia
             if self._init_qt():
-                if self._probe_qt_start(timeout_ms=1500):
+                if self._should_stop():
+                    self._teardown_qt()
+                elif self._probe_qt_start(timeout_ms=1500):
                     # Qt confirmed working; start main event-driven loop
                     used_backend = 'qt'
                     self.initialized = True
@@ -321,15 +418,17 @@ class CaptureWorker(QRunnable):
                     if self.signals is not None:
                         self.signals.stopped.emit()
                 else:
-                    # Fallback to OpenCV if no frames arrive quickly
-                    print("QT camera init failed, trying CV2 fallback...")
+                    # Fallback to OpenCV only when the camera was not stopped
+                    # while the Qt backend was probing.
                     self._teardown_qt()
-            else:
+                    if not self._should_stop():
+                        print("QT camera init failed, trying CV2 fallback...")
+            elif not self._should_stop():
                 # Qt init failed outright, fallback to CV2
                 print("QT camera init failed, trying CV2 fallback...")
 
-            # Try OpenCV fallback if Qt was not used
-            if used_backend is None:
+            # Try OpenCV fallback if Qt was not used and shutdown was not requested.
+            if used_backend is None and not self._should_stop():
                 if self._init_cv2():
                     used_backend = 'cv2'
                     self.initialized = True
@@ -345,7 +444,10 @@ class CaptureWorker(QRunnable):
                         if self._should_stop():
                             break
 
-                        ok, frame = self.cv_cap.read()
+                        cap = self.cv_cap
+                        if cap is None:
+                            break
+                        ok, frame = cap.read()
                         if not ok or frame is None:
                             continue
 
@@ -364,9 +466,12 @@ class CaptureWorker(QRunnable):
                     self.allow_finish = False
 
         except Exception as e:
-            self.window.core.debug.log(e)
-            if self.signals is not None:
-                self.signals.error.emit(e)
+            # A forced/released OpenCV handle can race with read(); that is a
+            # normal shutdown path, not a camera error worth surfacing to UI.
+            if not self._should_stop():
+                self.window.core.debug.log(e)
+                if self.signals is not None:
+                    self.signals.error.emit(e)
         finally:
             # Cleanup resources
             try:
@@ -390,6 +495,7 @@ class CaptureWorker(QRunnable):
                     self.signals.unfinished.emit()
 
             self.cleanup()
+            self._done_event.set()
 
     def _poll_stop_qt(self):
         """Check stop flags while running Qt pipeline."""
@@ -410,6 +516,13 @@ class CaptureWorker(QRunnable):
 
         :return: True if should stop
         """
+        if self._stop_event.is_set():
+            return True
+        try:
+            if QThread.currentThread().isInterruptionRequested():
+                return True
+        except Exception:
+            pass
         try:
             if getattr(self.window, 'is_closing', False):
                 return True
@@ -423,6 +536,7 @@ class CaptureWorker(QRunnable):
         """Cleanup resources after worker execution."""
         sig = self.signals
         self.signals = None
+        self.window = None
         try:
             if sig is not None:
                 sig.deleteLater()

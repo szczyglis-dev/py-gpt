@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 15:05:00                  #
+# Updated Date: 2026.09.14 10:30:00                  #
 # ================================================== #
 
 import datetime
@@ -18,7 +18,7 @@ from PySide6.QtCore import Slot, QObject
 from PySide6.QtGui import QImage, QPixmap, Qt
 
 from pygpt_net.core.events import AppEvent, KernelEvent
-from pygpt_net.core.camera.worker import CaptureWorker
+from pygpt_net.core.camera.worker import CaptureThread, CaptureWorker
 from pygpt_net.core.types import MODE_ASSISTANT
 from pygpt_net.utils import trans
 
@@ -37,6 +37,8 @@ class Camera(QObject):
         self.is_capture = False
         self.stop = False
         self.auto = False
+        self.worker = None
+        self.thread = None
 
     def setup(self):
         """Setup camera"""
@@ -316,6 +318,10 @@ class Camera(QObject):
             return
 
         self.is_capture = True
+        # A previous worker may still be winding down after a fast off/on
+        # toggle. Clear the controller stop flag now; that worker still has its
+        # own stop event set and cannot be revived.
+        self.stop = False
         self.window.core.config.set('vision.capture.enabled', True)
         """
         self.window.controller.config.checkbox.apply(
@@ -444,36 +450,123 @@ class Camera(QObject):
         self.window.ui.nodes['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
 
     def start(self):
-        """Start camera thread"""
+        """Start camera in its own thread."""
         if self.thread_started:
             return
 
-        # prepare thread
+        # Never stack a new capture backend on top of a thread which is still
+        # winding down. This also keeps camera resources out of the global
+        # QThreadPool, whose shutdown waits for every runnable to return.
+        if self.thread is not None and self.thread.isRunning():
+            return
+
         self.stop = False
 
-        # worker
         worker = CaptureWorker()
         worker.window = self.window
+        thread = CaptureThread(worker, self)
 
-        # signals
         worker.signals.capture.connect(self.handle_capture)
-        worker.signals.finished.connect(self.handle_stop)
         worker.signals.unfinished.connect(self.handle_unfinished)
-        worker.signals.stopped.connect(self.handle_stop)
         worker.signals.error.connect(self.handle_error)
+        thread.finished.connect(
+            lambda current_thread=thread, current_worker=worker:
+            self.handle_thread_finished(current_thread, current_worker)
+        )
 
-        # start
-        self.window.threadpool.start(worker)
+        self.worker = worker
+        self.thread = thread
         self.thread_started = True
+        thread.start()
         self.window.dispatch(AppEvent(AppEvent.CAMERA_ENABLED))  # app event
 
     def stop_capture(self):
-        """Stop camera capture thread"""
-        if not self.thread_started:
+        """Request camera capture shutdown and release the backend immediately."""
+        worker = self.worker
+        thread = self.thread
+        if not self.thread_started and (thread is None or not thread.isRunning()):
             return
 
         self.stop = True
+        if worker is not None:
+            worker.request_stop()
+        if thread is not None and thread.isRunning():
+            thread.requestInterruption()
         self.window.dispatch(AppEvent(AppEvent.CAMERA_DISABLED))  # app event
+
+    def shutdown(self, timeout_ms: int = 1500):
+        """Synchronously release camera resources during application shutdown.
+
+        Normal capture stop is cooperative.  On application exit we additionally
+        wait for the dedicated camera thread and use QThread.terminate() only as
+        a final escape hatch for a camera driver stuck inside a blocking read.
+        """
+        self.is_capture = False
+        self.stop = True
+        self.frame = None
+
+        worker = self.worker
+        thread = self.thread
+        if worker is not None:
+            worker.request_stop()
+        if thread is None:
+            self.thread_started = False
+            self.worker = None
+            return
+
+        try:
+            if thread.isRunning():
+                thread.requestInterruption()
+                thread.quit()
+                if not thread.wait(max(0, int(timeout_ms))):
+                    # One more release attempt can unblock OpenCV/V4L2/GStreamer
+                    # after the cooperative wait has expired.
+                    if worker is not None:
+                        worker.request_stop()
+                    if not thread.wait(300):
+                        self.window.core.debug.log(
+                            "Camera thread did not stop in time; forcing termination."
+                        )
+                        thread.terminate()
+                        thread.wait(500)
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+        finally:
+            self.thread_started = False
+            try:
+                thread.worker = None
+            except Exception:
+                pass
+            if self.thread is thread:
+                self.thread = None
+            if self.worker is worker:
+                self.worker = None
+
+    def handle_thread_finished(self, thread, worker):
+        """Finalize controller state after the camera thread really exits."""
+        if self.thread is not thread:
+            return
+        self.thread_started = False
+        self.thread = None
+        self.worker = None
+        try:
+            thread.worker = None
+        except Exception:
+            pass
+        self.hide_camera(False)
+        try:
+            thread.deleteLater()
+        except RuntimeError:
+            pass
+
+        # If the user switched the camera back on before the old backend fully
+        # stopped, start a fresh backend only after the old thread is gone.
+        if self.is_capture and not getattr(self.window, 'is_closing', False):
+            self.start()
+            self.show_camera()
 
     @Slot(object)
     def handle_error(self, err: Any):
@@ -483,7 +576,8 @@ class Camera(QObject):
         :param err: error message
         """
         self.window.core.debug.log(err)
-        self.window.ui.dialogs.alert(err)
+        if not getattr(self.window, 'is_closing', False):
+            self.window.ui.dialogs.alert(err)
 
     @Slot(object)
     def handle_capture(self, frame):
@@ -497,21 +591,28 @@ class Camera(QObject):
 
     @Slot()
     def handle_stop(self):
-        """On capture stopped signal"""
-        self.thread_started = False
-        self.hide_camera(False)
+        """Backward-compatible stop handler; thread.finished owns lifecycle state."""
+        if self.thread is None or not self.thread.isRunning():
+            self.thread_started = False
+            self.hide_camera(False)
 
     @Slot()
     def handle_unfinished(self):
-        """On capture unfinished (never started) signal"""
+        """On capture unfinished (never started) signal."""
+        if getattr(self.window, 'is_closing', False):
+            return
         if self.window.core.platforms.is_snap():
             self.window.ui.dialogs.open(
                 'snap_camera',
                 width=400,
                 height=200
             )
-        self.thread_started = False
-        self.disable_capture()
+        self.is_capture = False
+        self.window.core.config.set('vision.capture.enabled', False)
+        self.window.ui.menu['video.capture'].setChecked(False)
+        self.window.ui.nodes['icon.video.capture'].set_icon(":/icons/webcam_off.svg")
+        self.window.ui.nodes['video.preview'].setVisible(False)
+        self.blank_screen()
 
     def capture_allowed(self) -> bool:
         """

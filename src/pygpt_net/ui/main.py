@@ -101,6 +101,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup signals
         self.statusChanged.connect(self.update_status)
         self.stateChanged.connect(self.update_state)
+        # Tray Exit calls QApplication.quit() directly and therefore may bypass
+        # closeEvent(). Keep shutdown attached to the application lifecycle too.
+        self.app.aboutToQuit.connect(self.shutdown)
 
     def handle_engine_args(self):
         """Handle launcher arguments"""
@@ -349,6 +352,11 @@ class MainWindow(QMainWindow, QtStyleTools):
             return
         self.is_closing = True
         print("Closing...")
+        print("Stopping camera...")
+        try:
+            self.controller.camera.shutdown()
+        except Exception as e:
+            self.core.debug.log(e)
         print("Sending terminate signal to all...")
         self.controller.kernel.terminate()
         print("Saving context and projects...")
