@@ -24,7 +24,7 @@ It supports chat, **Chat with Agents** and other agent workflows, completions, C
 
 https://github.com/user-attachments/assets/22972e34-dc9f-451d-ae64-23a91e945e97
 
-**Screenshots** (version `2.8.4`, build `2026-08-16`):
+**Screenshots** (version `2.8.18`, build `2026-09-15`):
 
 Dark theme:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
@@ -498,9 +498,7 @@ To index your files, copy or upload them into the active `data` directory and in
 
 ![v2_idx1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx1.png)
 
-After the file(s) are indexed (embedded in vector store), you can use context from them in chat mode:
-
-![v2_idx2](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx2.png)
+After the file(s) are indexed (embedded in vector store), you can use context from them in chat mode.
 
 Built-in file loaders: 
 
