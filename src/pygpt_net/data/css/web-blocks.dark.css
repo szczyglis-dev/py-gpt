@@ -99,3 +99,11 @@ code {{
 .msg-box .name-header.name-bot {{
     color: #cfcfcf;
 }}
+/* Attachment/project mentions in user messages */
+.mention-anchor {{
+    color: #79e29a !important;
+    background: rgba(121, 226, 154, 0.10);
+    border-radius: 4px;
+    padding: 1px 3px;
+    font-weight: 600;
+}}

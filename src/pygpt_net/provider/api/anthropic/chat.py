@@ -641,8 +641,8 @@ class Chat:
         prior_user_text = ""
         if len(items) >= 2 and getattr(items[-2], "final_input", None):
             prior_user_text = str(items[-2].final_input)
-        elif getattr(last, "input", None):
-            prior_user_text = str(last.input)
+        elif getattr(last, "final_input", None):
+            prior_user_text = str(last.final_input)
 
         user_msg_1 = None
         if prior_user_text:

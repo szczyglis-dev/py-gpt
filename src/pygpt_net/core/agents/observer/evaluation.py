@@ -140,7 +140,7 @@ class Evaluation:
             if self.is_input(ctx):  # ensure ctx is input
                 if not use_prev and "agent_evaluate" in ctx.extra:  # exclude evaluation inputs
                     continue
-                last_input = ctx.input
+                last_input = ctx.final_input
         return last_input
 
     def is_input(self, ctx: CtxItem) -> bool:
@@ -173,7 +173,7 @@ class Evaluation:
         task = ""
         for ctx in history:
             if self.is_input(ctx):
-                task = ctx.input
+                task = ctx.final_input
                 break
         return task
 

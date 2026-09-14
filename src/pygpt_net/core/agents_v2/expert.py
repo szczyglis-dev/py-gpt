@@ -129,8 +129,8 @@ class ExpertAgentBridge:
         )
         messages: List[ChatMessage] = []
         for item in items:
-            if getattr(item, "input", None):
-                messages.append(ChatMessage(role=MessageRole.USER, content=str(item.input)))
+            if getattr(item, "final_input", None):
+                messages.append(ChatMessage(role=MessageRole.USER, content=str(item.final_input)))
             if getattr(item, "output", None):
                 messages.append(ChatMessage(role=MessageRole.ASSISTANT, content=str(item.output)))
         return messages

@@ -22,6 +22,7 @@ from llama_index.core import Document
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
+from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxMeta, CtxItem, group_additional_ctx_items
 
@@ -301,7 +302,7 @@ class Context:
         """
         meta = ctx.meta
         meta_path = self.get_dir(meta)
-        query = str(ctx.input)
+        query = str(ctx.final_input)
         if not os.path.exists(meta_path) or not os.path.isdir(meta_path):
             return ""
         idx_path = os.path.join(self.get_dir(meta), self.dir_index)
@@ -381,7 +382,7 @@ class Context:
         :param history: history
         :return: query result
         """
-        query = str(ctx.input)
+        query = str(ctx.final_input)
         content = self.get_context_text(ctx, filename=True)
         if not content:
             return ""
@@ -711,7 +712,7 @@ class Context:
         docs = []
         if attachment.type == AttachmentItem.TYPE_FILE:
             loader_kwargs = {
-                "prompt": prompt,
+                "prompt": mentions_to_model_text(prompt),
             }  # extra loader kwargs
             content, docs = self.window.core.idx.indexing.read_text_content(
                 path=path,

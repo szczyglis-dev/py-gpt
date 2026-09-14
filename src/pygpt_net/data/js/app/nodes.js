@@ -138,16 +138,17 @@ class NodesManager {
 		const isWrapped = (trimmed.startsWith('<div') && /class=["']msg-box msg-user["']/.test(trimmed));
 		if (!isWrapped) {
 			// Treat incoming payload as plain text (escape + convert newlines to <br>).
-			const safe = (typeof Utils !== 'undefined' && Utils.escapeHtml) ?
-				Utils.escapeHtml(html) :
-				String(html).replace(/[&<>"']/g, m => ({
-					'&': '&amp;',
-					'<': '&lt;',
-					'>': '&gt;',
-					'"': '&quot;',
-					"'": '&#039;'
-				} [m]));
-			const body = safe.replace(/\r?\n/g, '<br>');
+			const body = (typeof Utils !== 'undefined' && Utils.renderMentionText) ?
+				Utils.renderMentionText(html) :
+				((typeof Utils !== 'undefined' && Utils.escapeHtml) ?
+					Utils.escapeHtml(html) :
+					String(html).replace(/[&<>"']/g, m => ({
+						'&': '&amp;',
+						'<': '&lt;',
+						'>': '&gt;',
+						'"': '&quot;',
+						"'": '&#039;'
+					} [m])).replace(/\r?\n/g, '<br>'));
 			// Minimal, margin-less user message (no empty msg-extra to avoid extra spacing).
 			html = `<div class="msg-box msg-user"><div class="msg"><p style="margin:0">${body}</p></div></div>`;
 		}

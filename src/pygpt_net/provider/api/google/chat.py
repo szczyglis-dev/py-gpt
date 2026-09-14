@@ -717,8 +717,8 @@ class Chat:
             if getattr(prev, "final_input", None):
                 prior_user_text = str(prev.final_input)
 
-        if not prior_user_text and getattr(last_item, "input", None):
-            prior_user_text = str(last_item.input)
+        if not prior_user_text and getattr(last_item, "final_input", None):
+            prior_user_text = str(last_item.final_input)
 
         if not prior_user_text:
             prior_user_text = "..."

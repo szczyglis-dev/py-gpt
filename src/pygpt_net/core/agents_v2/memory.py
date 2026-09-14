@@ -302,8 +302,8 @@ class OrchestratorMemoryStore:
 
         messages: List[ChatMessage] = []
         for item in items:
-            if item.input:
-                messages.append(ChatMessage(role=MessageRole.USER, content=str(item.input)))
+            if item.final_input:
+                messages.append(ChatMessage(role=MessageRole.USER, content=str(item.final_input)))
             output = str(getattr(item, "output", None) or "").strip()
             if output:
                 source_id = 0

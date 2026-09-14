@@ -240,7 +240,7 @@ class AgentsV2Runtime:
         # user-visible CtxItem here would feed a plugin result back through
         # KernelEvent.REPLY_RETURN and accidentally start a second Agents v2 run.
         self.orchestrator_actor.tool_ctx.set_input(
-            str(getattr(self.context.ctx, "input", "") or self.context.prompt or ""),
+            str(getattr(self.context.ctx, "final_input", None) or self.context.prompt or ""),
             "orchestrator",
         )
         self.orchestrator_actor.tool_ctx.set_output("", self.main_agent_name)

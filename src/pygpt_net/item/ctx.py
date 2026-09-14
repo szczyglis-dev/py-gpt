@@ -11,8 +11,10 @@
 
 import copy
 import datetime
+import html
 import json
 import os
+import re
 import time
 
 from typing import Optional
@@ -21,6 +23,17 @@ from uuid import uuid4
 
 from .ctx_part import CtxItemPart
 from .ctx_part_task import CtxItemPartTask
+
+
+_MENTION_TAG_RE = re.compile(
+    r"<(attachment|file_context)>(.*?)</\1>",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _mentions_to_model_text(text: str) -> str:
+    """Flatten durable UI mention markers to values used by model history."""
+    return _MENTION_TAG_RE.sub(lambda match: html.unescape(match.group(2)), str(text or ""))
 
 
 def _additional_ctx_archive_key(item: dict):
@@ -267,9 +280,10 @@ class CtxItem:
         """
         if self.input is None:
             return None
+        value = self.input
         if self.hidden_input:
-            return "\n\n".join([self.input, self.hidden_input])
-        return self.input
+            value = "\n\n".join([value, self.hidden_input])
+        return _mentions_to_model_text(value)
 
     @property
     def final_output(self) -> Optional[str]:

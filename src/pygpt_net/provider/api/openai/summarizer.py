@@ -33,7 +33,8 @@ class Summarizer:
         max_chars = 700
         model = self.window.core.models.from_defaults()
         system_prompt = self.window.core.prompt.get('ctx.auto_summary.system')
-        truncated_input = str(ctx.input)[:max_chars] + '...' if len(str(ctx.input)) > max_chars else str(ctx.input)
+        model_input = str(ctx.final_input or '')
+        truncated_input = model_input[:max_chars] + '...' if len(model_input) > max_chars else model_input
         truncated_output = str(ctx.output)[:max_chars] + '...' if len(str(ctx.output)) > max_chars else str(ctx.output)
 
         if not truncated_input and (not truncated_output or truncated_output == "None"):

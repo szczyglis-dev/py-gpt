@@ -559,3 +559,33 @@ QSlider::add-page:vertical {{
   background: #3a3a3a;
   border-radius: 2px;
 }}
+
+/* Input @mentions */
+#chatInput {{
+  qproperty-mentionColor: #79e29a;
+}}
+.mention-popup {{
+  background: #202020;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+}}
+.mention-popup-list {{
+  background: #202020;
+  border: none;
+  padding: 2px;
+}}
+.mention-popup-list::item {{
+  color: #d0d0d0;
+  padding: 6px 8px;
+  min-height: 20px;
+  border-radius: 5px;
+}}
+.mention-popup-list::item:selected {{
+  color: #ffffff;
+  background: #333333;
+}}
+.mention-popup-list::item:disabled {{
+  color: #818181;
+  background: transparent;
+  font-weight: bold;
+}}

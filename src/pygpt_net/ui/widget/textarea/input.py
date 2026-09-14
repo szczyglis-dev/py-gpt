@@ -13,8 +13,8 @@ from typing import Optional, Union, Tuple
 import math
 import os
 
-from PySide6.QtCore import Qt, QSize, QTimer, QEvent, QPoint
-from PySide6.QtGui import QAction, QIcon, QImage, QTextCursor
+from PySide6.QtCore import Qt, QSize, QTimer, QEvent, QPoint, Property
+from PySide6.QtGui import QAction, QIcon, QImage, QTextCursor, QTextCharFormat, QTextFormat, QColor
 from PySide6.QtWidgets import (
     QTextEdit,
     QApplication,
@@ -27,11 +27,26 @@ from PySide6.QtWidgets import (
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
 from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, DirectoryPasteHandler
+from pygpt_net.core.text.mentions import (
+    KIND_ATTACHMENT,
+    KIND_FILE_CONTEXT,
+    decode_value as decode_mention_value,
+    iter_tags as iter_mention_tags,
+    label_for as mention_label_for,
+    make_tag as make_mention_tag,
+)
+from pygpt_net.ui.widget.textarea.mention import MentionEntry, MentionPopup
 
 
 class ChatInput(QTextEdit):
 
     REASONING_EFFORT_KEY = "reasoning_effort"
+
+    MENTION_ID_PROP = QTextFormat.UserProperty + 201
+    MENTION_KIND_PROP = QTextFormat.UserProperty + 202
+    MENTION_VALUE_PROP = QTextFormat.UserProperty + 203
+    MENTION_LABEL_PROP = QTextFormat.UserProperty + 204
+    MENTION_SCAN_LIMIT = 5000
 
     ICON_PASTE = QIcon(":/icons/paste.svg")
     ICON_VOLUME = QIcon(":/icons/volume.svg")
@@ -51,6 +66,19 @@ class ChatInput(QTextEdit):
         """
         super().__init__(window)
         self.window = window
+
+        # Mention state. The actual durable value lives in QTextCharFormat user
+        # properties; QSS controls only its visual color.
+        self._mention_color = QColor("#39a85a")
+        self._mention_formatting = False
+        self._mention_loading = False
+        self._mention_trigger_pos = None
+        self._mention_entries = []
+        self._mention_source_key = None
+        self._mention_seq = 0
+        self._mention_popup = MentionPopup(self)
+        self._mention_popup.selected.connect(self._accept_mention_entry)
+
         self.setAcceptRichText(False)
         self.setPlaceholderText(trans("input.placeholder"))
         self.setFocus()
@@ -60,6 +88,7 @@ class ChatInput(QTextEdit):
         self._text_top_padding = 10
         self.textChanged.connect(self.window.controller.ui.update_tokens)
         self.setProperty('class', 'layout-input')
+        self.setObjectName('chatInput')
 
         if self.window.core.platforms.is_windows():
             self._text_top_padding = 8
@@ -156,6 +185,8 @@ class ChatInput(QTextEdit):
         self._tokens_timer.setInterval(1500)
         self._tokens_timer.timeout.connect(self.window.controller.ui.update_tokens)
         self.textChanged.connect(self._on_text_changed_tokens)
+        self.textChanged.connect(self._on_mention_text_changed)
+        self.cursorPositionChanged.connect(self._on_mention_cursor_changed)
 
         # Paste/input safety limits
         self._paste_max_chars = 1000000000  # hard cap to prevent pathological pastes from freezing/crashing
@@ -174,6 +205,457 @@ class ChatInput(QTextEdit):
         self._history_index = -1     # -1 when not navigating; otherwise index of current history item
         self._history_active = False
         self._history_saved_current = ""  # snapshot of the current typed text before entering history nav
+
+    def _get_mention_color(self):
+        return self._mention_color
+
+    def _set_mention_color(self, color):
+        """QSS-backed color for mention anchors inside the QTextEdit."""
+        try:
+            value = color if isinstance(color, QColor) else QColor(color)
+            if not value.isValid():
+                return
+            self._mention_color = value
+            if hasattr(self, "_mention_formatting"):
+                QTimer.singleShot(0, self._refresh_mention_formats)
+        except Exception:
+            pass
+
+    mentionColor = Property(QColor, _get_mention_color, _set_mention_color)
+
+    @staticmethod
+    def _cursor_selected_text(cursor: QTextCursor) -> str:
+        """Return QTextCursor text with paragraph separators normalized to LF."""
+        return cursor.selectedText().replace("\u2029", "\n").replace("\u2028", "\n")
+
+    def _insert_plain_cursor(self, cursor: QTextCursor, text: str):
+        """Insert plain text while keeping LF semantics predictable in QTextDocument."""
+        if not text:
+            return
+        parts = str(text).split("\n")
+        for idx, part in enumerate(parts):
+            if part:
+                cursor.insertText(part)
+            if idx < len(parts) - 1:
+                cursor.insertBlock()
+
+    def _new_mention_format(self, entry: MentionEntry) -> QTextCharFormat:
+        self._mention_seq += 1
+        fmt = QTextCharFormat()
+        fmt.setProperty(self.MENTION_ID_PROP, f"m{self._mention_seq}")
+        fmt.setProperty(self.MENTION_KIND_PROP, entry.kind)
+        fmt.setProperty(self.MENTION_VALUE_PROP, entry.value)
+        fmt.setProperty(self.MENTION_LABEL_PROP, entry.label)
+        fmt.setForeground(self._mention_color)
+        fmt.setFontWeight(600)
+        return fmt
+
+    def _insert_mention_cursor(self, cursor: QTextCursor, entry: MentionEntry):
+        fmt = self._new_mention_format(entry)
+        cursor.insertText("@" + entry.label, fmt)
+        # Never let subsequent normal typing inherit mention metadata.
+        cursor.setCharFormat(QTextCharFormat())
+
+    def _insert_serialized_cursor(self, cursor: QTextCursor, text: str):
+        raw = str(text or "")
+        last = 0
+        for match in iter_mention_tags(raw):
+            self._insert_plain_cursor(cursor, raw[last:match.start()])
+            kind = str(match.group(1) or "").lower()
+            value = decode_mention_value(match.group(2))
+            label = mention_label_for(kind, value)
+            if label:
+                self._insert_mention_cursor(
+                    cursor,
+                    MentionEntry(
+                        kind=kind,
+                        label=label,
+                        value=value,
+                        is_dir=(kind == KIND_FILE_CONTEXT and value.replace("\\", "/").endswith("/")),
+                    ),
+                )
+            else:
+                self._insert_plain_cursor(cursor, match.group(0))
+            last = match.end()
+        self._insert_plain_cursor(cursor, raw[last:])
+
+    def set_mention_text(self, text: str):
+        """Set input from durable text, restoring mention metadata and styling."""
+        self._mention_loading = True
+        try:
+            self._mention_popup.hide()
+            self._mention_trigger_pos = None
+            self._mention_source_key = None
+            self.clear()
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.Start)
+            self._insert_serialized_cursor(cursor, str(text or ""))
+            cursor.movePosition(QTextCursor.End)
+            self.setTextCursor(cursor)
+        finally:
+            self._mention_loading = False
+        self._refresh_mention_formats()
+        self._schedule_auto_resize()
+
+    def append_mention_text(self, text: str, separator: str = "\n"):
+        """Append durable text while restoring any mention tags as UI anchors."""
+        text = str(text or "").strip()
+        if not text:
+            return
+        self._mention_loading = True
+        try:
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.End)
+            if self.toPlainText().strip():
+                self._insert_plain_cursor(cursor, separator)
+            self._insert_serialized_cursor(cursor, text)
+            cursor.movePosition(QTextCursor.End)
+            self.setTextCursor(cursor)
+        finally:
+            self._mention_loading = False
+        self._refresh_mention_formats()
+        self.setFocus()
+
+    def _collect_mention_groups(self):
+        """Collect contiguous QTextDocument fragments carrying the same mention id."""
+        groups = []
+        current = None
+        block = self.document().begin()
+        while block.isValid():
+            iterator = block.begin()
+            while not iterator.atEnd():
+                fragment = iterator.fragment()
+                if fragment.isValid():
+                    fmt = fragment.charFormat()
+                    mention_id = fmt.property(self.MENTION_ID_PROP)
+                    if mention_id:
+                        mention_id = str(mention_id)
+                        kind = str(fmt.property(self.MENTION_KIND_PROP) or "")
+                        value = str(fmt.property(self.MENTION_VALUE_PROP) or "")
+                        label = str(fmt.property(self.MENTION_LABEL_PROP) or "")
+                        start = fragment.position()
+                        end = start + fragment.length()
+                        if current is not None and current["id"] == mention_id and current["end"] == start:
+                            current["end"] = end
+                        else:
+                            if current is not None:
+                                groups.append(current)
+                            current = {
+                                "id": mention_id,
+                                "kind": kind,
+                                "value": value,
+                                "label": label,
+                                "start": start,
+                                "end": end,
+                            }
+                    else:
+                        if current is not None:
+                            groups.append(current)
+                            current = None
+                iterator += 1
+            if current is not None:
+                groups.append(current)
+                current = None
+            block = block.next()
+        return groups
+
+    def _validate_mention_groups(self, clean_invalid: bool = False):
+        valid = []
+        invalid = []
+        doc = self.document()
+        for group in self._collect_mention_groups():
+            kind = group["kind"]
+            if kind not in (KIND_ATTACHMENT, KIND_FILE_CONTEXT) or not group["label"] or not group["value"]:
+                invalid.append(group)
+                continue
+            cursor = QTextCursor(doc)
+            cursor.setPosition(group["start"])
+            cursor.setPosition(group["end"], QTextCursor.KeepAnchor)
+            actual = self._cursor_selected_text(cursor)
+            if actual == "@" + group["label"]:
+                valid.append(group)
+            else:
+                invalid.append(group)
+
+        if clean_invalid and invalid:
+            for group in invalid:
+                cursor = QTextCursor(doc)
+                cursor.setPosition(group["start"])
+                cursor.setPosition(group["end"], QTextCursor.KeepAnchor)
+                cursor.setCharFormat(QTextCharFormat())
+        return valid
+
+    def _refresh_mention_formats(self):
+        if self._mention_formatting or self._mention_loading:
+            return
+        self._mention_formatting = True
+        try:
+            valid = self._validate_mention_groups(clean_invalid=True)
+            for group in valid:
+                cursor = QTextCursor(self.document())
+                cursor.setPosition(group["start"])
+                cursor.setPosition(group["end"], QTextCursor.KeepAnchor)
+                fmt = QTextCharFormat()
+                fmt.setForeground(self._mention_color)
+                fmt.setFontWeight(600)
+                cursor.mergeCharFormat(fmt)
+        finally:
+            self._mention_formatting = False
+
+    def serialize_mentions(self) -> str:
+        """Return input text with valid UI mention anchors converted to model-facing tags."""
+        valid = self._validate_mention_groups(clean_invalid=False)
+        if not valid:
+            return self.toPlainText()
+
+        doc = self.document()
+        result = []
+        pos = 0
+        for group in valid:
+            if group["start"] < pos:
+                continue
+            cursor = QTextCursor(doc)
+            cursor.setPosition(pos)
+            cursor.setPosition(group["start"], QTextCursor.KeepAnchor)
+            result.append(self._cursor_selected_text(cursor))
+            result.append(make_mention_tag(group["kind"], group["value"]))
+            pos = group["end"]
+
+        cursor = QTextCursor(doc)
+        cursor.setPosition(pos)
+        cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+        result.append(self._cursor_selected_text(cursor))
+        return "".join(result)
+
+    def _on_mention_text_changed(self):
+        if self._mention_loading or self._mention_formatting:
+            return
+        self._refresh_mention_formats()
+        QTimer.singleShot(0, self._refresh_mention_popup)
+
+    def _on_mention_cursor_changed(self):
+        if self._mention_loading:
+            return
+        QTimer.singleShot(0, self._refresh_mention_popup)
+
+    def _find_mention_trigger(self):
+        """Return (at_pos, end_pos, query) for the nearest live @ trigger."""
+        current = self.textCursor()
+        if current.hasSelection():
+            return None
+        block = current.block()
+        block_start = block.position()
+        probe = QTextCursor(current)
+        at_cursor = None
+
+        while probe.position() > block_start:
+            probe.clearSelection()
+            if not probe.movePosition(QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor):
+                break
+            char = self._cursor_selected_text(probe)
+            if char == "@":
+                at_cursor = QTextCursor(probe)
+                break
+            probe.setPosition(probe.selectionStart())
+
+        if at_cursor is None:
+            return None
+        if at_cursor.charFormat().property(self.MENTION_ID_PROP):
+            return None
+
+        at_pos = at_cursor.selectionStart()
+        end_pos = current.position()
+
+        # Avoid triggering inside an e-mail/path/identifier: foo@bar, ./@name, etc.
+        if at_pos > block_start:
+            prev = QTextCursor(self.document())
+            prev.setPosition(at_pos)
+            prev.movePosition(QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
+            prev_char = self._cursor_selected_text(prev)
+            if prev_char and (prev_char.isalnum() or prev_char in "_./\\-"):
+                return None
+
+        query_cursor = QTextCursor(self.document())
+        query_cursor.setPosition(at_cursor.selectionEnd())
+        query_cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+        query = self._cursor_selected_text(query_cursor)
+        if "\n" in query or "\t" in query or len(query) > 200:
+            return None
+        return at_pos, end_pos, query
+
+    def _get_mention_source_key(self):
+        core = self.window.core
+        try:
+            mode = core.config.get("mode")
+        except Exception:
+            mode = None
+        try:
+            meta = core.ctx.get_current_meta()
+        except Exception:
+            meta = None
+        return (
+            mode,
+            getattr(meta, "id", None),
+            getattr(meta, "group_id", None),
+        )
+
+    def _build_mention_entries(self) -> list:
+        entries = []
+        seen = set()
+        core = self.window.core
+        mode = core.config.get("mode")
+        meta = core.ctx.get_current_meta()
+
+        attachment_items = []
+        try:
+            attachment_items.extend(core.attachments.get_all(mode, only_files=True).values())
+        except Exception:
+            pass
+        try:
+            attachment_items.extend(core.attachments.get_from_meta_ctx(mode, meta))
+        except Exception:
+            pass
+
+        for item in attachment_items:
+            extra = getattr(item, "extra", None)
+            if isinstance(extra, dict) and extra.get("append_to_ctx", True) is False:
+                continue
+            name = str(getattr(item, "name", None) or "").strip()
+            path = str(getattr(item, "path", None) or "").strip()
+            if not name and path:
+                name = os.path.basename(path.rstrip("/\\"))
+            if not name or any(ch in name for ch in "\r\n\t"):
+                continue
+            key = (KIND_ATTACHMENT, name.casefold())
+            if key in seen:
+                continue
+            seen.add(key)
+            entries.append(MentionEntry(KIND_ATTACHMENT, name, name, False))
+
+        try:
+            root = core.filesystem.get_data_dir(ctx=meta, create=False)
+        except Exception:
+            root = None
+
+        count = 0
+        if root and os.path.isdir(root):
+            root_abs = os.path.abspath(root)
+            try:
+                for current_root, dirs, files in os.walk(root_abs, followlinks=False):
+                    dirs[:] = sorted(
+                        [d for d in dirs if not os.path.islink(os.path.join(current_root, d))],
+                        key=str.casefold,
+                    )
+                    files = sorted(files, key=str.casefold)
+
+                    for name in dirs:
+                        full = os.path.join(current_root, name)
+                        rel = os.path.relpath(full, root_abs).replace(os.sep, "/").rstrip("/") + "/"
+                        if any(ch in rel for ch in "\r\n\t"):
+                            continue
+                        value = core.filesystem.make_local(full, ctx=meta).replace("\\", "/").rstrip("/") + "/"
+                        key = (KIND_FILE_CONTEXT, value.casefold())
+                        if key not in seen:
+                            seen.add(key)
+                            entries.append(MentionEntry(KIND_FILE_CONTEXT, rel, value, True))
+                            count += 1
+                            if count >= self.MENTION_SCAN_LIMIT:
+                                return entries
+
+                    for name in files:
+                        full = os.path.join(current_root, name)
+                        if os.path.islink(full):
+                            continue
+                        rel = os.path.relpath(full, root_abs).replace(os.sep, "/")
+                        if any(ch in rel for ch in "\r\n\t"):
+                            continue
+                        value = core.filesystem.make_local(full, ctx=meta).replace("\\", "/")
+                        key = (KIND_FILE_CONTEXT, value.casefold())
+                        if key not in seen:
+                            seen.add(key)
+                            entries.append(MentionEntry(KIND_FILE_CONTEXT, rel, value, False))
+                            count += 1
+                            if count >= self.MENTION_SCAN_LIMIT:
+                                return entries
+            except Exception as e:
+                try:
+                    core.debug.log(e)
+                except Exception:
+                    pass
+        return entries
+
+    def _refresh_mention_popup(self):
+        if self._mention_loading or not self.hasFocus():
+            self._mention_popup.hide()
+            self._mention_trigger_pos = None
+            self._mention_source_key = None
+            return
+
+        trigger = self._find_mention_trigger()
+        if trigger is None:
+            self._mention_popup.hide()
+            self._mention_trigger_pos = None
+            self._mention_source_key = None
+            return
+
+        at_pos, _end_pos, query = trigger
+        source_key = self._get_mention_source_key()
+        if (self._mention_trigger_pos != at_pos
+                or self._mention_source_key != source_key):
+            self._mention_trigger_pos = at_pos
+            self._mention_source_key = source_key
+            self._mention_entries = self._build_mention_entries()
+            self._mention_popup.set_entries(self._mention_entries)
+
+        if not self._mention_popup.apply_filter(query):
+            return
+
+        anchor = QTextCursor(self.document())
+        anchor.setPosition(at_pos)
+        rect = self.cursorRect(anchor)
+        global_pos = self.viewport().mapToGlobal(rect.topLeft())
+        self._mention_popup.show_above(global_pos)
+        self.setFocus()
+
+    def _accept_mention_entry(self, entry: MentionEntry):
+        trigger = self._find_mention_trigger()
+        if trigger is None:
+            return
+        at_pos, end_pos, _query = trigger
+
+        next_char = ""
+        after = QTextCursor(self.document())
+        after.setPosition(end_pos)
+        if after.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor):
+            next_char = self._cursor_selected_text(after)
+
+        self._mention_loading = True
+        try:
+            cursor = QTextCursor(self.document())
+            cursor.setPosition(at_pos)
+            cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+            cursor.beginEditBlock()
+            try:
+                cursor.removeSelectedText()
+                self._insert_mention_cursor(cursor, entry)
+                # Add a separator at end/before another word, but do not create
+                # awkward whitespace before punctuation when inserting in-place.
+                if (not next_char
+                        or (not next_char.isspace()
+                            and (next_char.isalnum() or next_char in "@_"))):
+                    cursor.insertText(" ")
+            finally:
+                cursor.endEditBlock()
+            self.setTextCursor(cursor)
+            self._mention_popup.hide()
+            self._mention_trigger_pos = None
+            self._mention_source_key = None
+        finally:
+            self._mention_loading = False
+
+        self._refresh_mention_formats()
+        self.setFocus()
+        self._schedule_auto_resize()
 
     def _on_text_changed_tokens(self):
         """Schedule token count update with debounce."""
@@ -464,6 +946,22 @@ class ChatInput(QTextEdit):
         key = event.key()
         mods = event.modifiers()
 
+        # Mention picker owns navigation/accept keys while visible.
+        if self._mention_popup.isVisible():
+            if key == Qt.Key_Up:
+                self._mention_popup.move_selection(-1)
+                return
+            if key == Qt.Key_Down:
+                self._mention_popup.move_selection(1)
+                return
+            if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
+                if self._mention_popup.choose_current():
+                    return
+            if key == Qt.Key_Escape:
+                self._mention_popup.hide()
+                self._mention_trigger_pos = None
+                return
+
         # --- History navigation and recall ---
         # Ctrl/Command + Up/Down navigates history regardless of current text.
         if key in (Qt.Key_Up, Qt.Key_Down) and (mods & (Qt.ControlModifier | Qt.MetaModifier)):
@@ -494,15 +992,11 @@ class ChatInput(QTextEdit):
 
                 if mode == 2:
                     if has_shift_or_ctrl:
-                        text_before_send = self.toPlainText()
                         self.window.controller.chat.input.send_input()
-                        self._on_prompt_sent(text_before_send)
                         handled = True
                 else:
                     if not has_shift_or_ctrl:
-                        text_before_send = self.toPlainText()
                         self.window.controller.chat.input.send_input()
-                        self._on_prompt_sent(text_before_send)
                         handled = True
 
                 self.setFocus()
@@ -515,6 +1009,23 @@ class ChatInput(QTextEdit):
 
         if not handled:
             super().keyPressEvent(event)
+
+    def _hide_mention_after_focus_out(self):
+        # A click in the non-focusable popup can briefly move focus away from
+        # QTextEdit before QListWidget emits itemClicked. Defer closing by one
+        # event-loop turn so mouse selection can finish first.
+        if self.hasFocus():
+            return
+        if self._mention_popup.underMouse():
+            QTimer.singleShot(80, self._hide_mention_after_focus_out)
+            return
+        self._mention_popup.hide()
+        self._mention_trigger_pos = None
+        self._mention_source_key = None
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        QTimer.singleShot(0, self._hide_mention_after_focus_out)
 
     def wheelEvent(self, event):
         """
@@ -1766,8 +2277,8 @@ class ChatInput(QTextEdit):
             return True
 
     def _set_text_and_move_end(self, text: str):
-        """Set text and move cursor to the end."""
-        self.setPlainText(text or "")
+        """Set durable history text and restore UI mention anchors."""
+        self.set_mention_text(text or "")
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         self.setTextCursor(cursor)
@@ -1777,9 +2288,9 @@ class ChatInput(QTextEdit):
         if self._history_active:
             return
         try:
-            self._history_saved_current = self.toPlainText()
+            self._history_saved_current = self.serialize_mentions()
         except Exception:
-            self._history_saved_current = ""
+            self._history_saved_current = self.toPlainText()
         self._history_active = True
         self._history_index = len(self._history)
 

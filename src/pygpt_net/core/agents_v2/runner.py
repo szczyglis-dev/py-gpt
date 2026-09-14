@@ -69,7 +69,7 @@ class Runner:
         runtime.debug_event_count = 0
         runtime.debug_event_types = {}
         emitter.begin()
-        current_input = str(getattr(context.ctx, "input", "") or context.prompt or "")
+        current_input = str(getattr(context.ctx, "final_input", None) or context.prompt or "")
         runtime.verbose_text("USER INPUT", current_input)
         history = runtime.memory_store.load_history(
             context.ctx,

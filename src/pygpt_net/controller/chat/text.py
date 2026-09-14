@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
+from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -270,7 +271,7 @@ class Text:
                 multimodal_ctx=multimodal_ctx,  # multimodal context
                 parent_mode=base_mode,
                 preset=controller.presets.get_current(),  # current preset
-                prompt=text,  # input text
+                prompt=mentions_to_model_text(text),  # provider-facing input text
                 stream=stream,  # is stream enabled
                 system_prompt=sys_prompt,
                 system_prompt_raw=sys_prompt_raw,  # for llama-index (query mode only)

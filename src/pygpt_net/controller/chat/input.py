@@ -112,8 +112,16 @@ class Input:
         dispatch(event)
         stop = event.data.get('stop', False)
 
-        # get text from input
-        text = self.window.ui.nodes['input'].toPlainText().strip()
+        # Get the visible text and the durable/model-facing variant.
+        # Valid @mentions are serialized as attachment/file_context tags only
+        # at the send boundary; the QTextEdit itself remains human-readable.
+        input_node = self.window.ui.nodes['input']
+        display_text = input_node.toPlainText().strip()
+        if hasattr(input_node, "serialize_mentions"):
+            text = input_node.serialize_mentions().strip()
+        else:
+            text = display_text
+        history_text = text
 
         if not force:
             dispatch(AppEvent(AppEvent.INPUT_SENT))  # app event
@@ -122,8 +130,8 @@ class Input:
 
         # listen for stop command
         if self.generating \
-                and text is not None \
-                and text.lower().strip() in self.stop_commands:
+                and display_text is not None \
+                and display_text.lower().strip() in self.stop_commands:
             self.window.controller.kernel.stop()  # TODO: to chat main
             dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
@@ -153,6 +161,17 @@ class Input:
         # _pin_user_chat may have synchronized a different visible chat, so use
         # that chat's restored mode for the actual send/attachment pipeline.
         mode = self.window.core.config.get('mode')
+
+        # Store prompt history only once the manual send has actually claimed a
+        # chat. History keeps the durable form so recalling it can restore the
+        # semantic mention type instead of guessing from visible @text.
+        try:
+            # force=True is used by edit-submit; preserve the existing behavior
+            # where replacing an old turn does not create a new history entry.
+            if not force and hasattr(input_node, "on_prompt_sent"):
+                input_node.on_prompt_sent(history_text)
+        except Exception as e:
+            self.window.core.debug.log(e)
 
         # if attachments, return here - send will be handled via signal after upload
         if self.handle_attachment(mode, text):

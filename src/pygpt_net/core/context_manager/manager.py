@@ -629,7 +629,7 @@ class ContextManager:
     def _item_tokens(self, item, model_id: str, mode: str) -> int:
         try:
             if str(getattr(item, "mode", "") or mode) == MODE_AGENT_V2:
-                user = str(getattr(item, "input", None) or "")
+                user = str(getattr(item, "final_input", None) or "")
                 assistant = self._assistant_snapshot(item)
                 return int(self.window.core.tokens.from_text(user + "\n" + assistant, model_id) or 0)
             return int(self.window.core.tokens.from_ctx(item, mode or MODE_CHAT, model_id) or 0)
@@ -751,7 +751,7 @@ class ContextManager:
             # Do not persist hidden_input (RAG payload / one-turn runtime
             # context) into continuation memory. Preserve the user's durable
             # message and the useful assistant/workflow state only.
-            user = str(getattr(item, "input", None) or "").strip()
+            user = str(getattr(item, "final_input", None) or "").strip()
             assistant = self._assistant_snapshot(item)
             if not user and not assistant:
                 continue

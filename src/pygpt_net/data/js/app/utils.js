@@ -21,6 +21,53 @@ class Utils {
 		return d.innerHTML;
 	}
 
+	static escapeHtmlAttr(s) {
+		return Utils.escapeHtml(s)
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+
+	// Decode the limited XML entities used by durable attachment/file mention tags.
+	static decodeMentionValue(s) {
+		return String(s ?? '')
+			.replace(/&lt;/g, '<')
+			.replace(/&gt;/g, '>')
+			.replace(/&quot;/g, '"')
+			.replace(/&#x27;|&#39;/g, "'")
+			.replace(/&amp;/g, '&');
+	}
+
+	// Render durable <attachment>/<file_context> tags as safe colored @mentions.
+	static renderMentionText(s) {
+		const raw = String(s ?? '');
+		const re = /<(attachment|file_context)>([\s\S]*?)<\/\1>/gi;
+		let out = '';
+		let last = 0;
+		let match;
+
+		while ((match = re.exec(raw)) !== null) {
+			out += Utils.escapeHtml(raw.slice(last, match.index));
+			const kind = String(match[1] || '').toLowerCase();
+			const value = Utils.decodeMentionValue(match[2] || '');
+			let label = value;
+			if (kind === 'file_context') {
+				let normalized = value.replace(/\\/g, '/');
+				const lower = normalized.toLowerCase();
+				const prefix = '%workdir%/data/';
+				if (lower.startsWith(prefix)) normalized = normalized.slice(prefix.length);
+				else if (lower === '%workdir%/data') normalized = 'data/';
+				else if (lower.startsWith('data/')) normalized = normalized.slice(5);
+				label = normalized || value;
+			}
+			const cls = (kind === 'attachment') ? 'mention-attachment' : 'mention-file-context';
+			out += `<span class="mention-anchor ${cls}" title="${Utils.escapeHtmlAttr(value)}">@${Utils.escapeHtml(label)}</span>`;
+			last = re.lastIndex;
+		}
+
+		out += Utils.escapeHtml(raw.slice(last));
+		return out.replace(/\r?\n/g, '<br>');
+	}
+
 	// Counts the number of newline characters in a string.
 	static countNewlines(s) {
 		if (!s) return 0;

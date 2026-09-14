@@ -94,7 +94,7 @@ class NodeTemplateEngine {
 		const personalize = !!(block && block.extra && block.extra.personalize === true);
 		const nameHeader = personalize ? this._nameHeader('user', inp.name || '', inp.avatar_img || null) : '';
 
-		const content = this._escapeHtml(inp.text || '').replace(/\r?\n/g, '<br>');
+		const content = (typeof Utils !== 'undefined' && Utils.renderMentionText) ? Utils.renderMentionText(inp.text || '') : this._escapeHtml(inp.text || '').replace(/\r?\n/g, '<br>');
 
 		// Use existing copy icon and locale strings to keep public API stable.
 		const I = (this.cfg && this.cfg.ICONS) || {};

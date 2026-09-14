@@ -37,7 +37,7 @@ class Memory:
         """
         messages = []
 
-        input_prompt = context.ctx.input
+        input_prompt = context.ctx.final_input
         history = context.history
         mode = context.mode
         model = context.model
@@ -93,7 +93,7 @@ class Memory:
         """
         messages = []
 
-        input_prompt = context.ctx.input
+        input_prompt = context.ctx.final_input
         history = context.history
         mode = context.mode
         model = context.model

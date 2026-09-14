@@ -17,6 +17,7 @@ from PySide6.QtCore import Slot
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.image_state import remember_generated_image_path
 from pygpt_net.core.types import MODE_IMAGE
+from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.utils import trans
@@ -135,7 +136,7 @@ class Image:
             ctx=ctx,
             mode=MODE_IMAGE,
             model=model_data,  # model instance
-            prompt=text,
+            prompt=mentions_to_model_text(text),
             attachments=files,
         )
         try:

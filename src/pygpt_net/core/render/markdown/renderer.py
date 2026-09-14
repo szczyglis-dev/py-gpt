@@ -16,6 +16,7 @@ from typing import Optional, List
 from PySide6.QtGui import QTextCursor, QTextBlockFormat, QTextCharFormat
 
 from pygpt_net.core.render.base import BaseRenderer
+from pygpt_net.core.text.mentions import to_display_text as mentions_to_display_text
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
@@ -201,15 +202,17 @@ class Renderer(BaseRenderer):
         if ctx.input is None or ctx.input == "":
             return
 
+        display_input = mentions_to_display_text(ctx.input)
+
         if self.is_timestamp_enabled() \
                 and ctx.input_timestamp is not None:
             name = ""
             if ctx.input_name is not None \
                     and ctx.input_name != "":
                 name = ctx.input_name + " "
-            text = '{} > {}'.format(name, ctx.input)
+            text = '{} > {}'.format(name, display_input)
         else:
-            text = "> {}".format(ctx.input)
+            text = "> {}".format(display_input)
 
         # check if it is a command response
         is_cmd = False
@@ -227,7 +230,7 @@ class Renderer(BaseRenderer):
         else:
             # don't show user prefix if provided in internal call goal update
             if ctx.internal and ctx.input.startswith("user: "):
-                text = re.sub(r'^user: ', '> ', ctx.input)
+                text = re.sub(r'^user: ', '> ', display_input)
 
         self.append_raw(meta, ctx, text.strip(), "msg-user")
 

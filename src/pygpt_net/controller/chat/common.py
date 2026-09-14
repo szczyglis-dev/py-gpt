@@ -119,6 +119,11 @@ class Common:
         :param separator: text separator
         """
         node = self.window.ui.nodes['input']
+        if hasattr(node, "append_mention_text"):
+            node.append_mention_text(text, separator=separator)
+            self.window.controller.ui.update_tokens()
+            return
+
         prev_text = node.toPlainText()
         cur = node.textCursor()
         cur.movePosition(QTextCursor.End)
