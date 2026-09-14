@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 20:00:00                  #
+# Updated Date: 2026.09.14 09:35:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,9 @@ class Theme:
         self.menu = Menu(window)
         self.nodes = Nodes(window)
         self.current_theme = None
+        self.current_tooltips = None
+        self._current_material_signature = None
+        self._current_markdown_signature = None
 
     def setup(self):
         """Setup theme"""
@@ -97,20 +100,29 @@ class Theme:
 
         core.config.set('theme', name)
         core.config.save()
-        self.nodes.apply_all()
 
-        custom_themes = controller.theme.common.get_custom_themes_list()
-        is_custom = name in custom_themes
+        custom, is_custom = self._get_theme_assets(name)
+        material_signature = self._get_material_signature(name, custom, is_custom)
 
+        # Apply the expensive global Qt stylesheet only once.  Node-specific
+        # styles are applied afterwards so they are not immediately overwritten
+        # by qt-material.  Their web theme event is suppressed because
+        # markdown.update() below emits the single renderer refresh we need.
         self.apply(
             f'{name}.xml',
-            self.common.get_extra_css(name),
+            custom,
             is_custom=is_custom,
         )
-
+        self.nodes.apply_all(dispatch_theme=False)
         self.markdown.update(force=False)
         self.menu.update_list()
+        self.menu.update_density()
         self.menu.update_syntax()
+
+        self._remember_state(
+            material_signature=material_signature,
+            markdown_signature=self._get_markdown_signature(),
+        )
 
         if force:
             controller.ui.restore_state()
@@ -132,9 +144,13 @@ class Theme:
         core = self.window.core
         core.config.set('theme.style', name)
         core.config.save()
-        event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-        self.window.dispatch(event)
-        self.reload()
+
+        # A web style change only affects renderer CSS.  Re-applying the whole
+        # qt-material theme here is unnecessary and is especially expensive in
+        # profiles with many widgets/WebViews.
+        self.markdown.update(force=False)
+        self.menu.update_list()
+        self._remember_state(markdown_signature=self._get_markdown_signature())
 
     def toggle_option(
             self,
@@ -157,6 +173,7 @@ class Theme:
             cfg.set(name, state)
             window.controller.config.checkbox.apply('config', 'layout.tooltips', {'value': state})
             self.common.toggle_tooltips()
+            self.current_tooltips = state
         elif name == 'layout.density':
             val = int(value)
             cfg.set(name, val)
@@ -221,10 +238,10 @@ class Theme:
             self,
             theme: str = 'dark_teal.xml',
             custom: Optional[str] = None,
-            is_custom: bool = False
+            is_custom: bool = False,
     ):
         """
-        Update material theme and apply custom CSS
+        Update material theme and apply custom CSS.
 
         :param theme: material theme filename (e.g. dark_teal.xml)
         :param custom: additional stylesheet filename (e.g. style.css)
@@ -241,10 +258,16 @@ class Theme:
             'pyside6': True,
         }
 
+        material_theme = theme
         if is_custom:
-            theme = os.path.join(cfg.get_app_path(), 'data', 'themes', theme)
+            material_theme = os.path.join(cfg.get_app_path(), 'data', 'themes', theme)
 
-        window.apply_stylesheet(window, theme, invert_secondary=is_light, extra=extra)
+        window.apply_stylesheet(
+            window,
+            material_theme,
+            invert_secondary=is_light,
+            extra=extra,
+        )
 
         content_parts = []
         if custom is not None:
@@ -274,13 +297,120 @@ class Theme:
                 with open(path, 'r', encoding='utf-8') as file:
                     content_parts.append(file.read())
 
-        if custom is not None or is_custom:
-            if content_parts:
-                try:
-                    stylesheet = window.styleSheet()
-                    window.setStyleSheet(stylesheet + ''.join(content_parts).format(**os.environ))
-                except KeyError:
-                    pass
+        if (custom is not None or is_custom) and content_parts:
+            try:
+                stylesheet = window.styleSheet()
+                window.setStyleSheet(stylesheet + ''.join(content_parts).format(**os.environ))
+            except KeyError:
+                pass
+
+    @staticmethod
+    def _file_signature(path: str):
+        """Return a cheap signature for a theme/CSS file."""
+        try:
+            stat = os.stat(path)
+            return path, stat.st_mtime_ns, stat.st_size
+        except (OSError, TypeError):
+            return None
+
+    def _get_theme_assets(self, name: str):
+        """Return extra CSS name and whether the base theme is custom."""
+        custom = self.common.get_extra_css(name)
+        is_custom = name in self.common.get_custom_themes_list()
+        return custom, is_custom
+
+    def _get_material_signature(
+            self,
+            name: str,
+            custom: Optional[str],
+            is_custom: bool,
+    ):
+        """Build a change signature for the native Qt theme."""
+        cfg = self.window.core.config
+        core = self.window.core
+        app_path = cfg.get_app_path()
+        user_path = cfg.get_user_path()
+        is_light = str(name).startswith('light')
+        parts = [
+            str(name),
+            cfg.get('layout.density'),
+            bool(is_custom),
+            custom,
+        ]
+
+        if custom is not None:
+            parts.append(self._file_signature(os.path.join(app_path, 'data', 'css', custom)))
+            parts.append(self._file_signature(os.path.join(user_path, 'css', custom)))
+
+        if is_custom:
+            parts.append(self._file_signature(
+                os.path.join(app_path, 'data', 'themes', f'{name}.xml')
+            ))
+            parts.append(self._file_signature(
+                os.path.join(app_path, 'data', 'themes', f'{name}.css')
+            ))
+
+        if core.platforms.is_windows():
+            parts.append(self._file_signature(os.path.join(
+                app_path,
+                'data',
+                'css',
+                'fix_windows.light.css' if is_light else 'fix_windows.dark.css',
+            )))
+            if custom is not None and not cfg.is_compiled():
+                svg_supported = bool(core.platforms.is_svg_supported())
+                parts.append(('svg_supported', svg_supported))
+                if not svg_supported:
+                    parts.append(self._file_signature(os.path.join(
+                        app_path, 'data', 'css', 'fix_windows.css'
+                    )))
+                    parts.append(self._file_signature(os.path.join(
+                        user_path, 'css', 'fix_windows.css'
+                    )))
+
+        return tuple(parts)
+
+    def _get_markdown_signature(self):
+        """Build a signature for renderer CSS used by the active profile."""
+        cfg = self.window.core.config
+        app_path = cfg.get_app_path()
+        user_path = cfg.get_user_path()
+        theme = str(cfg.get('theme'))
+        web_style = str(cfg.get('theme.style', 'chatgpt'))
+        if web_style == 'blocks':
+            web_style = 'chatgpt'
+
+        if theme.startswith('light'):
+            color = '.light'
+        else:
+            color = '.dark'
+            if theme.endswith('darkest'):
+                color = '.darkest'
+
+        files = []
+        for base_name, suffix in (('markdown', ''), ('web', '-' + web_style)):
+            file_base = base_name + suffix + '.css'
+            file_color = base_name + suffix + color + '.css'
+            for root in (os.path.join(app_path, 'data'), user_path):
+                css_dir = os.path.join(root, 'css')
+                files.append(self._file_signature(os.path.join(css_dir, file_base)))
+                files.append(self._file_signature(os.path.join(css_dir, file_color)))
+
+        return theme, web_style, tuple(files)
+
+    def _remember_state(
+            self,
+            material_signature=None,
+            markdown_signature=None,
+    ):
+        """Remember active theme state for cheap profile synchronization."""
+        cfg = self.window.core.config
+        self.current_theme = cfg.get('theme')
+        self.current_tooltips = bool(cfg.get('layout.tooltips'))
+        if material_signature is not None:
+            self._current_material_signature = material_signature
+        if markdown_signature is not None:
+            self._current_markdown_signature = markdown_signature
 
     def style(self, element: str) -> str:
         """
@@ -293,12 +423,59 @@ class Theme:
 
     def reload_all(self):
         """
-        Reload all
+        Synchronize theme state after a profile/workdir reload.
+
+        Profile switching already reloads the rest of the application.  Do not
+        route it through setup() + update_style(), because that used to apply
+        the global qt-material stylesheet twice and emit multiple renderer theme
+        events for a single switch.
         """
-        if self.current_theme != self.window.core.config.get('theme'):
-            self.setup()
-            self.update_style()
-        self.update_syntax()
+        cfg = self.window.core.config
+
+        if cfg.get('theme.style') == 'blocks':
+            cfg.set('theme.style', 'chatgpt')
+            cfg.save()
+
+        name = cfg.get('theme')
+        custom, is_custom = self._get_theme_assets(name)
+        material_signature = self._get_material_signature(name, custom, is_custom)
+        markdown_signature = self._get_markdown_signature()
+
+        material_changed = material_signature != self._current_material_signature
+        markdown_changed = (
+            material_changed
+            or markdown_signature != self._current_markdown_signature
+        )
+        tooltips = bool(cfg.get('layout.tooltips'))
+        tooltips_changed = tooltips != self.current_tooltips
+
+        if material_changed:
+            self.current_theme = name
+            self.apply(
+                f'{name}.xml',
+                custom,
+                is_custom=is_custom,
+            )
+            self.nodes.apply_all(dispatch_theme=False)
+
+        # Preserve the single renderer refresh that a profile reload needs for
+        # profile-scoped render flags (syntax, blocks, etc.).  markdown.update()
+        # already emits it when renderer CSS/native theme changed.
+        if markdown_changed:
+            self.markdown.update(force=False)
+        else:
+            self.window.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
+
+        if tooltips_changed:
+            self.common.toggle_tooltips()
+
+        self.menu.update_list()
+        self.menu.update_density()
+        self.menu.update_syntax()
+        self._remember_state(
+            material_signature=material_signature,
+            markdown_signature=markdown_signature,
+        )
 
     def is_dark_theme(self) -> bool:
         """

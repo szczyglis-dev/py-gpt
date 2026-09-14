@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:40:00
+# Updated Date: 2026.09.14 09:35:00
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -48,8 +48,11 @@ class Nodes:
         elif type == 'font.ctx.list':
             nodes[key].setStyleSheet(theme.style('font.ctx.list'))
 
-    def apply_all(self):
-        """Apply stylesheets to nodes"""
+    def apply_all(self, dispatch_theme: bool = True):
+        """Apply stylesheets to nodes.
+
+        :param dispatch_theme: emit renderer theme-change event for web output
+        """
         w = self.window
         ui = w.ui
         ctrl = w.controller
@@ -142,7 +145,8 @@ class Nodes:
                     obj.update_zoom()
                 except Exception:
                     pass
-            w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
+            if dispatch_theme:
+                w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
 
         # font size, legacy (markdown)
         elif engine == 'legacy':

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.09.14 09:45:00                  #
 # ================================================== #
 
 from .access import Access
@@ -43,7 +43,7 @@ from .theme import Theme
 from .tools import Tools
 from .ui import UI
 
-from pygpt_net.utils import trans, mem_clean
+from pygpt_net.utils import trans, mem_clean, freeze_updates
 
 
 class Controller:
@@ -217,7 +217,10 @@ class Controller:
                 self.ui.update()
 
             self.kernel.restart()
-            self.theme.reload_all()  # do not reload theme if no change
+            # Applying a global QSS recursively repolishes the whole widget tree.
+            # Suppress intermediate paints while syncing the profile theme.
+            with freeze_updates(self.window):
+                self.theme.reload_all()  # do not reload theme if no change
 
         except Exception as e:
             self.window.core.debug.log(e)

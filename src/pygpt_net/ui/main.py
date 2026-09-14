@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 20:00:00                  #
+# Updated Date: 2026.09.14 10:15:00                  #
 # ================================================== #
 
 import os
@@ -301,6 +301,18 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param event
         :param all: True to dispatch to all plugins
         """
+        # Profile reload touches many controllers and some of them emit their
+        # own STATUS messages (including empty ones). Keep the profile reload
+        # status visible until settings.profile.after_update() confirms that
+        # the complete switch has finished. Resolving the translation here also
+        # makes the message follow a language changed by the target profile.
+        profile = getattr(getattr(self.controller, "settings", None), "profile", None)
+        if (
+                event.name == KernelEvent.STATUS
+                and getattr(profile, "switching", False)
+        ):
+            event.data["status"] = trans("dialog.profile.status.reloading")
+
         self.core.dispatcher.dispatch(event, all=all)
 
     def closeEvent(self, event):
