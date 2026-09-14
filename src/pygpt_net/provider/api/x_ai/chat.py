@@ -132,16 +132,34 @@ class Chat:
             chat_kwargs = {"model": model_id, "messages": sdk_messages}
             if reasoning_effort:
                 chat_kwargs["reasoning_effort"] = reasoning_effort
+            self.window.core.api.logger.log_input(
+                type="chat.create", provider="xai", kwargs=chat_kwargs,
+                input=sdk_messages, history=context.history, extra=extra,
+                model=model_id, path="client.chat.create",
+            )
             chat = client.chat.create(**chat_kwargs)
             try:
                 if hasattr(chat, "sample"):
-                    return chat.sample()
+                    response = chat.sample()
+                    self.window.core.api.logger.log_output(
+                        type="chat.sample", provider="xai", output=response, model=model_id,
+                    )
+                    return response
                 if hasattr(chat, "output_text"):
+                    self.window.core.api.logger.log_output(
+                        type="chat.create", provider="xai", output=chat, model=model_id,
+                    )
                     return chat
                 if hasattr(chat, "message"):
+                    self.window.core.api.logger.log_output(
+                        type="chat.create", provider="xai", output=chat, model=model_id,
+                    )
                     return chat
             except Exception:
                 pass
+            self.window.core.api.logger.log_output(
+                type="chat.create", provider="xai", output=chat, model=model_id,
+            )
             return chat
 
         # Otherwise HTTP non-stream for legacy function-calling/vision/tool-turns (without Live Search)
@@ -521,6 +539,12 @@ class Chat:
 
         data = {}
         try:
+            self.window.core.api.logger.log_input(
+                type="http.chat.completions", provider="xai",
+                kwargs={"headers": headers, "json": payload, "timeout": 180},
+                input=messages, history=history, model=model,
+                path=f"{base_url}/chat/completions",
+            )
             resp = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=180)
             if not resp.encoding:
                 resp.encoding = "utf-8"
@@ -528,6 +552,10 @@ class Chat:
                 self.window.core.debug.error(f"[xai.http] {resp.status_code} {resp.reason}: {resp.text}")
             resp.raise_for_status()
             data = resp.json() if resp.content else {}
+            self.window.core.api.logger.log_output(
+                type="http.chat.completions", provider="xai", output=data, model=model,
+                extra={"status_code": resp.status_code},
+            )
         except Exception as e:
             self.window.core.debug.error(f"[xai.http] error: {e}")
             return "", [], [], None, ""
@@ -784,6 +812,12 @@ class Chat:
         self_outer = self
 
         try:
+            self.window.core.api.logger.log_input(
+                type="http.chat.completions.stream", provider="xai",
+                kwargs={"headers": headers, "json": payload, "stream": True, "timeout": 300},
+                input=messages, history=history, model=model,
+                path=f"{base_url}/chat/completions",
+            )
             resp = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, stream=True, timeout=300)
             if not resp.encoding:
                 resp.encoding = "utf-8"

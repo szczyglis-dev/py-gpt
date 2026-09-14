@@ -98,6 +98,7 @@ class MistralAILLM(BaseLLM):
             )
             if endpoint:
                 args["endpoint"] = endpoint
+        self.log_llama_create(window, model, args, "MistralAIWithProxy", {"proxy": proxy})
         return MistralAIWithProxy(**args, proxy=proxy)
 
     def get_embeddings_model(

@@ -87,13 +87,24 @@ class Completion:
         if max_tokens > 0:
             response_kwargs['max_tokens'] = max_tokens
 
-        response = client.completions.create(
-            prompt=message,
-            model=model_id,
-            stop=stop,
-            stream=stream,
-            **response_kwargs
+        request_kwargs = {
+            "prompt": message,
+            "model": model_id,
+            "stop": stop,
+            "stream": stream,
+            **response_kwargs,
+        }
+        self.window.core.api.logger.log_input(
+            type="completions.create", provider=str(model.provider or "openai"),
+            kwargs=request_kwargs, input=message, history=context.history,
+            extra=extra, model=model_id, path="client.completions.create",
         )
+        response = client.completions.create(**request_kwargs)
+        if not stream:
+            self.window.core.api.logger.log_output(
+                type="completions.create", provider=str(model.provider or "openai"),
+                output=response, model=model_id,
+            )
         return response
 
     def build(

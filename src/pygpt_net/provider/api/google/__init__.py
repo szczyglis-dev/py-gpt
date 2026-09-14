@@ -102,6 +102,10 @@ class ApiGoogle:
             return self.client
 
         self.last_client_args = filtered
+        self.window.core.api.logger.log_input(
+            type="client.init", provider="google", kwargs=filtered,
+            model=getattr(model, "id", None), path="genai.Client",
+        )
         self.client = genai.Client(**filtered)
 
         return self.client
@@ -270,10 +274,19 @@ class ApiGoogle:
                 system_instruction=system_prompt if system_prompt else None,
                 tools=tools if tools else None,
             )
-            resp = client.models.generate_content(
-                model=model.id,
-                contents=inputs,
-                config=cfg,
+            request_kwargs = {
+                "model": model.id,
+                "contents": inputs,
+                "config": cfg,
+            }
+            self.window.core.api.logger.log_input(
+                type="models.generate_content", provider="google",
+                kwargs=request_kwargs, input=inputs, history=history, extra=extra,
+                model=model.id, path="client.models.generate_content",
+            )
+            resp = client.models.generate_content(**request_kwargs)
+            self.window.core.api.logger.log_output(
+                type="models.generate_content", provider="google", output=resp, model=model.id,
             )
 
             if ctx:

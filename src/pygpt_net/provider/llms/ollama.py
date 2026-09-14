@@ -113,6 +113,7 @@ class OllamaLLM(BaseLLM):
         if reasoning_effort:
             args["think"] = reasoning_effort
 
+        self.log_llama_create(window, model, args, "OllamaCompletion")
         return OllamaCompletion(**args)
 
     def llama(
@@ -180,6 +181,7 @@ class OllamaLLM(BaseLLM):
             args["context_window"] = int(ctx_size)
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
     def _llama_native(
@@ -227,6 +229,7 @@ class OllamaLLM(BaseLLM):
         if reasoning_effort:
             args["think"] = reasoning_effort
 
+        self.log_llama_create(window, model, args, "llama_index.llms.ollama.Ollama")
         return Ollama(**args)
 
     def llama_agent(

@@ -798,6 +798,25 @@ class Ctx:
             # the task's canonical ID and keep the provider item ID separately.
             provider_item_id = str(call.get("id") or "")
             call_id = str(call.get("call_id") or provider_item_id or f"{part.uuid}:{index}")
+            provider = ""
+            try:
+                model_item = self.window.core.models.get(item.model) if getattr(item, "model", None) else None
+                provider = str(getattr(model_item, "provider", "") or "")
+            except Exception:
+                pass
+            self.window.core.api.tool_logger.log_call(
+                name=name,
+                params=args,
+                call_id=call_id,
+                provider=provider,
+                actor=agent_id or agent_name or "",
+                raw=call,
+                extra={
+                    "provider_item_id": provider_item_id or None,
+                    "hidden": hidden,
+                    "tool_type": str(call.get("type") or "function"),
+                },
+            )
             lookup_ids = [value for value in (call_id, provider_item_id) if value]
             existing_task = next((existing[value] for value in lookup_ids if value in existing), None)
             if existing_task is not None:
@@ -893,6 +912,20 @@ class Ctx:
             if task is None:
                 continue
             result = response.get("result") if isinstance(response, dict) and "result" in response else response
+            provider = ""
+            try:
+                model_item = self.window.core.models.get(item.model) if getattr(item, "model", None) else None
+                provider = str(getattr(model_item, "provider", "") or "")
+            except Exception:
+                pass
+            tool_name = (task.extra or {}).get("tool_name") if isinstance(task.extra, dict) else None
+            self.window.core.api.tool_logger.log_result(
+                name=str(tool_name or task.task_name or task.name or name or "tool"),
+                response=response,
+                call_id=task.tool_call_id,
+                provider=provider,
+                actor=task.agent_id or "",
+            )
             # Persist the full structured plugin/tool response exactly as it is
             # forwarded through the tool-result loop. The plain-text output column
             # keeps a compact human-readable summary for quick inspection/UI.

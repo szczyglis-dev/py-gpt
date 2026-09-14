@@ -230,6 +230,8 @@ class WorkerRuntime:
 
     async def _worker_loop(self, state: WorkerState, task: str):
         handler = None
+        event_count = 0
+        event_types = {}
         try:
             shared_hint = ""
             if self.runtime.shared_context_text:
@@ -239,13 +241,26 @@ class WorkerRuntime:
                 )
             worker_input = self.runtime.build_user_message(f"Task from {self.runtime.main_agent_name}:\n{task}{shared_hint}")
             self.runtime.verbose.log("WORKER INPUT", worker_input, actor=state.id)
-            handler = state.agent.run(
-                user_msg=worker_input,
-                memory=state.memory,
-                max_iterations=self.runtime.worker_max_iterations,
-                early_stopping_method="generate",
+            run_kwargs = {
+                "user_msg": worker_input,
+                "memory": state.memory,
+                "max_iterations": self.runtime.worker_max_iterations,
+                "early_stopping_method": "generate",
+            }
+            self.runtime.window.core.api.logger.log_input(
+                type="llama_index.agent.run",
+                provider=str(getattr(self.runtime.model, "provider", "") or ""),
+                kwargs=run_kwargs,
+                input=worker_input,
+                model=getattr(self.runtime.model, "id", None),
+                path="worker_agent.run",
+                extra={"actor": state.id, "worker_name": state.name},
             )
+            handler = state.agent.run(**run_kwargs)
             async for event in handler.stream_events():
+                event_count += 1
+                event_name = type(event).__name__
+                event_types[event_name] = event_types.get(event_name, 0) + 1
                 self.runtime.verbose_event(event, actor=state.id)
                 if self.runtime.is_stopped() or state.stop_requested:
                     state.status = WorkerStatus.STOPPING
@@ -292,6 +307,16 @@ class WorkerRuntime:
             self.runtime.window.core.debug.log(exc)
             return ""
         finally:
+            self.runtime.window.core.api.logger.log_output(
+                type="llama_index.agent.run",
+                provider=str(getattr(self.runtime.model, "provider", "") or ""),
+                output=state.last_result,
+                chunks=event_count,
+                chunk_types=event_types,
+                error=state.error or None,
+                model=getattr(self.runtime.model, "id", None),
+                extra={"actor": state.id, "worker_name": state.name, "status": state.status.value},
+            )
             self.runtime.collect_llm_artifacts(getattr(state.agent, "llm", None), state)
             self.runtime.collect_artifacts(state.tool_ctx, state)
             self.runtime._store_worker_output(state)

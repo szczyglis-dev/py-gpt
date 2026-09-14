@@ -60,6 +60,17 @@ class Completion:
             user_name=ctx.input_name,
         )
 
+        self.window.core.api.logger.log_input(
+            type="llama_index.completion",
+            provider=model.provider,
+            kwargs=request_kwargs,
+            input=prompt,
+            history=context.history,
+            extra=extra,
+            model=model.id,
+            path="llm.stream_complete" if context.stream else "llm.complete",
+        )
+
         if context.stream:
             response = llm.stream_complete(prompt, **request_kwargs)
             ctx.stream = response
@@ -68,6 +79,12 @@ class Completion:
             return True
 
         response = llm.complete(prompt, **request_kwargs)
+        self.window.core.api.logger.log_output(
+            type="llama_index.completion",
+            provider=model.provider,
+            output=response,
+            model=model.id,
+        )
         if response is None:
             return False
 

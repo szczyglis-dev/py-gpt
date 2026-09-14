@@ -220,11 +220,13 @@ class LiteLLMProvider(BaseLLM):
         api_key = args.pop("api_key", "")
         api_base = args.pop("api_base", "")
         reasoning_effort = window.core.models.get_reasoning_effort(model)
-        return LiteLLMIndex(
-            model_name=model_name,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            api_key=api_key or None,
-            api_base=api_base or None,
-            reasoning_effort=reasoning_effort,
-        )
+        constructor_args = {
+            "model_name": model_name,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "api_key": api_key or None,
+            "api_base": api_base or None,
+            "reasoning_effort": reasoning_effort,
+        }
+        self.log_llama_create(window, model, constructor_args, "LiteLLMIndex")
+        return LiteLLMIndex(**constructor_args)

@@ -51,6 +51,7 @@ class DeepseekApiLLM(BaseLLM):
             additional_kwargs["reasoning_effort"] = reasoning_effort
             args["additional_kwargs"] = additional_kwargs
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "DeepSeek")
         return DeepSeek(**args)
 
     def get_embeddings_model(

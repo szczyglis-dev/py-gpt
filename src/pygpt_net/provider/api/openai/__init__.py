@@ -84,6 +84,10 @@ class ApiOpenAI:
         """
         # prepare client args by mode and model provider
         args = self.window.core.models.prepare_client_args(mode, model)
+        self.window.core.api.logger.log_input(
+            type="client.init", provider="openai", kwargs=args,
+            model=getattr(model, "id", None), path="OpenAI",
+        )
         self.client = OpenAI(**args)
         self.last_client_args = args  # store last args for debug
         return self.client
@@ -338,10 +342,20 @@ class ApiOpenAI:
             return None
 
         try:
-            response = client.chat.completions.create(
-                messages=messages,
-                model=model_id,
+            request_kwargs = {
+                "messages": messages,
+                "model": model_id,
                 **additional_kwargs,
+            }
+            self.window.core.api.logger.log_input(
+                type="chat.completions.create", provider=str(model.provider or "openai"),
+                kwargs=request_kwargs, input=messages, history=history,
+                extra=extra, model=model_id, path="client.chat.completions.create",
+            )
+            response = client.chat.completions.create(**request_kwargs)
+            self.window.core.api.logger.log_output(
+                type="chat.completions.create", provider=str(model.provider or "openai"),
+                output=response, model=model_id,
             )
             # extract tool calls
             if ctx and response.choices[0].message.tool_calls:

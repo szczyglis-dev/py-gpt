@@ -146,6 +146,7 @@ class GoogleLLM(BaseLLM):
         if isinstance(args.get("generation_config"), dict):
             args["generation_config"] = gtypes.GenerateContentConfig(**args["generation_config"])
 
+        self.log_llama_create(window, model, args, "PyGPTGoogleGenAI", {"pygpt_remote_tools": built_tools})
         return PyGPTGoogleGenAI(**args, pygpt_remote_tools=built_tools)
 
     def llama_chat_with_files(
@@ -214,6 +215,7 @@ class GoogleLLM(BaseLLM):
         if isinstance(args.get("generation_config"), dict):
             args["generation_config"] = gtypes.GenerateContentConfig(**args["generation_config"])
 
+        self.log_llama_create(window, model, args, "AgentGoogleGenAI", {"pygpt_remote_tools": remote})
         return AgentGoogleGenAI(
             **args,
             pygpt_remote_tools=remote,

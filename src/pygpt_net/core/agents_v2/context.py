@@ -178,6 +178,21 @@ class RuntimeContext:
         self.runtime.verbose.text("SYSTEM PROMPT", system_prompt, actor=actor)
         self.runtime.verbose.tool_inventory(tools, actor=actor)
         self.runtime.verbose.llm_state(llm, actor=actor)
+        model = self.runtime.model
+        self.runtime.window.core.api.logger.log_input(
+            type="llama_index.agent.create",
+            provider=str(getattr(model, "provider", "") or ""),
+            kwargs={
+                "agent_class": cls.__name__,
+                "name": name,
+                "description": description,
+                "system_prompt": system_prompt,
+                "tools": tools,
+                "allow_parallel_tool_calls": kwargs.get("allow_parallel_tool_calls", True),
+            },
+            model=getattr(model, "id", None),
+            path=f"llama_index.core.agent.workflow.{cls.__name__}",
+        )
         return cls(**kwargs)
 
     def _memory_token_limit(self) -> int:

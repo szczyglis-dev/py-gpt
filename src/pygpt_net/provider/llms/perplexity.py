@@ -115,10 +115,12 @@ class PerplexityLLM(BaseLLM):
         # proxy/timeout handling can be reused without provider-specific code.
         args_injected = self.inject_llamaindex_http_clients(dict(args), cfg)
         try:
+            self.log_llama_create(window, model, args_injected, "OpenAILike")
             return OpenAILike(**args_injected)
         except TypeError:
             # Compatibility with older OpenAILike releases that may not accept
             # injected httpx clients.
+            self.log_llama_create(window, model, args, "OpenAILike")
             return OpenAILike(**args)
 
     def llama_multimodal(

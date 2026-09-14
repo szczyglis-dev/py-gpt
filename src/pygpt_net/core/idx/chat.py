@@ -137,22 +137,33 @@ class Chat:
         )
         # query index
         tpl = self.get_custom_prompt(system_prompt)
+        query_engine_kwargs = {
+            "llm": llm,
+            "streaming": stream,
+            "verbose": verbose,
+        }
         if tpl is not None:
             self.log(f"Query index with custom prompt: {system_prompt}...")
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=stream,
-                text_qa_template=tpl,
-                verbose=verbose,
-            ).query(query)  # query with custom sys prompt
-        else:
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=stream,
-                verbose=verbose,
-            ).query(query)  # query with default prompt
+            query_engine_kwargs["text_qa_template"] = tpl
+        self.window.core.api.logger.log_input(
+            type="llama_index.query",
+            provider=model.provider,
+            kwargs=query_engine_kwargs,
+            input=query,
+            extra=extra,
+            model=model.id,
+            path="index.as_query_engine(...).query",
+        )
+        response = index.as_query_engine(**query_engine_kwargs).query(query)
 
         if response:
+            if not stream:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query",
+                    provider=model.provider,
+                    output=response,
+                    model=model.id,
+                )
             if stream:
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 ctx.stream = self.response.stream_with_llm_artifacts(
@@ -383,13 +394,24 @@ class Chat:
                     use_index = False # fallback to LLM if tools enabled but not using ReAct
             else:
                 # 2) if tools disabled, use index as chat engine
-                chat_engine = index.as_chat_engine(
-                    llm=llm,
-                    chat_mode=chat_mode,
-                    memory=memory,
-                    verbose=verbose,
-                    system_prompt=system_prompt,
+                chat_engine_kwargs = {
+                    "llm": llm,
+                    "chat_mode": chat_mode,
+                    "memory": memory,
+                    "verbose": verbose,
+                    "system_prompt": system_prompt,
+                }
+                self.window.core.api.logger.log_input(
+                    type="llama_index.index.chat",
+                    provider=model.provider,
+                    kwargs=chat_engine_kwargs,
+                    input=query,
+                    history=history,
+                    extra=extra,
+                    model=model.id,
+                    path="index.as_chat_engine(...).stream_chat" if stream else "index.as_chat_engine(...).chat",
                 )
+                chat_engine = index.as_chat_engine(**chat_engine_kwargs)
                 if stream:
                     response = chat_engine.stream_chat(query)
                 else:
@@ -430,26 +452,40 @@ class Chat:
                         # IMPORTANT: stream chat with tools not supported by all providers
                         if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):
                             self.log("Using with tools...")
-                            response = llm.stream_chat_with_tools(
-                                tools=tools,
-                                messages=history,
+                            request_kwargs = {"tools": tools, "messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.stream_chat_with_tools", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.stream_chat_with_tools",
                             )
+                            response = llm.stream_chat_with_tools(**request_kwargs)
                         else:
-                            response = llm.stream_chat(
-                                messages=history,
+                            request_kwargs = {"messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.stream_chat", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.stream_chat",
                             )
+                            response = llm.stream_chat(**request_kwargs)
                     else: # TOOLS + NO INDEX
                         # IMPORTANT: stream chat with tools not supported by all providers
                         if allow_native_tool_calls and hasattr(llm, "chat_with_tools"):
                             self.log("Using with tools...")
-                            response = llm.chat_with_tools(
-                                tools=tools,
-                                messages=history,
+                            request_kwargs = {"tools": tools, "messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.chat_with_tools", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.chat_with_tools",
                             )
+                            response = llm.chat_with_tools(**request_kwargs)
                         else:
-                            response = llm.chat(
-                                messages=history,
+                            request_kwargs = {"messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.chat", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.chat",
                             )
+                            response = llm.chat(**request_kwargs)
             else:
                 # NO TOOLS + NO INDEX
                 history.insert(0, self.context.add_system(system_prompt))
@@ -459,16 +495,31 @@ class Chat:
                     allow_images=model.is_image_input(),
                 ))
                 if stream:
-                    response = llm.stream_chat(
-                        messages=history,
+                    request_kwargs = {"messages": history}
+                    self.window.core.api.logger.log_input(
+                        type="llama_index.stream_chat", provider=model.provider,
+                        kwargs=request_kwargs, input=query, history=history, extra=extra,
+                        model=model.id, path="llm.stream_chat",
                     )
+                    response = llm.stream_chat(**request_kwargs)
                 else:
-                    response = llm.chat(
-                        messages=history,
+                    request_kwargs = {"messages": history}
+                    self.window.core.api.logger.log_input(
+                        type="llama_index.chat", provider=model.provider,
+                        kwargs=request_kwargs, input=query, history=history, extra=extra,
+                        model=model.id, path="llm.chat",
                     )
+                    response = llm.chat(**request_kwargs)
 
         # handle response, append output to ctx, etc.
         if response:
+            if not stream:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.chat",
+                    provider=model.provider,
+                    output=response,
+                    model=model.id,
+                )
             self.response.handle(
                 ctx=ctx,
                 model=model,
@@ -558,15 +609,29 @@ class Chat:
             "agent_provider": "react",  # use React workflow provider
             "agent_tools": tools,
         }
+        self.window.core.api.logger.log_input(
+            type="llama_index.react_agent",
+            provider=context.model.provider if context.model else "",
+            kwargs={"context": bridge_context, "extra": extra, "signals": None},
+            input=query,
+            history=history,
+            extra={"system_prompt": system_prompt, "tools": tools, "chat_mode": chat_mode},
+            model=context.model.id if context.model else None,
+            path="core.agents.runner.call_once",
+        )
         response_ctx = self.window.core.agents.runner.call_once(
             context=bridge_context,
             extra=extra,
             signals=None,
         )
-        if response_ctx:
-            return str(response_ctx.output)
-        else:
-            return "No response from agent."
+        output = str(response_ctx.output) if response_ctx else "No response from agent."
+        self.window.core.api.logger.log_output(
+            type="llama_index.react_agent",
+            provider=context.model.provider if context.model else "",
+            output=output,
+            model=context.model.id if context.model else None,
+        )
+        return output
 
     def is_stream_allowed(self, model: Optional[ModelItem] = None) -> bool:
         """
@@ -622,11 +687,18 @@ class Chat:
         output = None
         if len(files) > 0:
             self.log(f"Querying temporary in-memory index: {idx}...")
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=False,
-            ).query(query)  # query with default prompt
+            query_kwargs = {"llm": llm, "streaming": False}
+            self.window.core.api.logger.log_input(
+                type="llama_index.query_file", provider=model.provider,
+                kwargs=query_kwargs, input=query, model=model.id,
+                path="index.as_query_engine(...).query", extra={"path": path},
+            )
+            response = index.as_query_engine(**query_kwargs).query(query)
             if response:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query_file", provider=model.provider,
+                    output=response, model=model.id,
+                )
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
                 self.response.collect_llm_urls(ctx, llm)
@@ -685,11 +757,19 @@ class Chat:
         output = None
         if num > 0:
             self.log(f"Querying temporary in-memory index: {idx}...")
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=False,
-            ).query(query)  # query with default prompt
+            query_kwargs = {"llm": llm, "streaming": False}
+            self.window.core.api.logger.log_input(
+                type="llama_index.query_web", provider=model.provider,
+                kwargs=query_kwargs, input=query, model=model.id,
+                path="index.as_query_engine(...).query",
+                extra={"url": url, "content_type": type, "args": args},
+            )
+            response = index.as_query_engine(**query_kwargs).query(query)
             if response:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query_web", provider=model.provider,
+                    output=response, model=model.id,
+                )
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
                 self.response.collect_llm_urls(ctx, llm)
@@ -747,12 +827,18 @@ class Chat:
                 history,
             )
             memory = self.get_memory_buffer(history, llm)
-            response = index.as_chat_engine(
-                llm=llm,
-                streaming=False,
-                memory=memory,
-            ).chat(query)
+            chat_kwargs = {"llm": llm, "streaming": False, "memory": memory}
+            self.window.core.api.logger.log_input(
+                type="llama_index.query_attachment", provider=model.provider,
+                kwargs=chat_kwargs, input=query, history=history, model=model.id,
+                path="index.as_chat_engine(...).chat", extra={"path": path},
+            )
+            response = index.as_chat_engine(**chat_kwargs).chat(query)
             if response:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query_attachment", provider=model.provider,
+                    output=response, model=model.id,
+                )
                 output = str(response.response)
         return output
 

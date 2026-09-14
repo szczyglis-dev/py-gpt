@@ -192,6 +192,7 @@ class AnthropicLLM(BaseLLM):
         reasoning_effort = window.core.models.get_reasoning_effort(model)
         self._merge_reasoning_effort(args, reasoning_effort)
 
+        self.log_llama_create(window, model, args, "AnthropicWithProxy", {"proxy": proxy})
         return AnthropicWithProxy(**args, proxy=proxy)
 
     @staticmethod
@@ -362,6 +363,7 @@ class AnthropicLLM(BaseLLM):
         )
         reasoning_effort = window.core.models.get_reasoning_effort(model)
         self._merge_reasoning_effort(args, reasoning_effort)
+        self.log_llama_create(window, model, args, "AgentAnthropic", {"proxy": proxy})
         return AgentAnthropic(**args, proxy=proxy)
 
     def get_embeddings_model(

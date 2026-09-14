@@ -13,6 +13,7 @@ from .anthropic import ApiAnthropic
 from .google import ApiGoogle
 from .openai import ApiOpenAI
 from .x_ai import ApiXAI
+from pygpt_net.core.debug.loggers import ApiDebugLogger, ToolDebugLogger
 
 class Api:
 
@@ -23,6 +24,8 @@ class Api:
         :param window: Window instance
         """
         self.window = window
+        self.logger = ApiDebugLogger(window)
+        self.tool_logger = ToolDebugLogger(window)
         self.anthropic = ApiAnthropic(window)
         self.google = ApiGoogle(window)
         self.openai = ApiOpenAI(window)

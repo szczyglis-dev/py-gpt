@@ -434,12 +434,30 @@ class AgentAnthropic(Anthropic):
         all_kwargs.pop("stream", None)
 
         for turn in range(self.MAX_COMPUTER_TURNS + 1):
-            raw = await self._aclient.messages.create(
-                messages=anthropic_messages,
-                system=system_prompt,
-                stream=False,
+            request_kwargs = {
+                "messages": anthropic_messages,
+                "system": system_prompt,
+                "stream": False,
                 **all_kwargs,
-            )
+            }
+            runtime = self._pygpt_runtime
+            if runtime is not None:
+                runtime.window.core.api.logger.log_input(
+                    type="messages.create.continuation",
+                    provider="anthropic",
+                    kwargs=request_kwargs,
+                    input=anthropic_messages,
+                    model=getattr(self, "model", None),
+                    path="AsyncAnthropic.messages.create",
+                )
+            raw = await self._aclient.messages.create(**request_kwargs)
+            if runtime is not None:
+                runtime.window.core.api.logger.log_output(
+                    type="messages.create.continuation",
+                    provider="anthropic",
+                    output=raw,
+                    model=getattr(self, "model", None),
+                )
             calls = self._computer_calls(raw)
             if not calls:
                 return self._parse_response(raw)

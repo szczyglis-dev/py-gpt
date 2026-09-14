@@ -165,16 +165,26 @@ class Chat:
         # Decide whether to call stable or beta endpoint
         use_beta = len(betas) > 0
 
+        request_kwargs = dict(params)
         if stream:
-            if use_beta:
-                return client.beta.messages.create(stream=True, betas=list(betas), **params)
-            else:
-                return client.messages.create(stream=True, **params)
+            request_kwargs["stream"] = True
+        if use_beta:
+            request_kwargs["betas"] = list(betas)
+        path = "client.beta.messages.create" if use_beta else "client.messages.create"
+        self.window.core.api.logger.log_input(
+            type="messages.create", provider="anthropic", kwargs=request_kwargs,
+            input=msgs, history=context.history, extra=extra, model=model.id, path=path,
+        )
+        if use_beta:
+            response = client.beta.messages.create(**request_kwargs)
         else:
-            if use_beta:
-                return client.beta.messages.create(betas=list(betas), **params)
-            else:
-                return client.messages.create(**params)
+            response = client.messages.create(**request_kwargs)
+        if not stream:
+            self.window.core.api.logger.log_output(
+                type="messages.create", provider="anthropic",
+                output=response, model=model.id,
+            )
+        return response
 
     def unpack_response(self, mode: str, response: Message, ctx: CtxItem):
         """

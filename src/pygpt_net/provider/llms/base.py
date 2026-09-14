@@ -214,6 +214,27 @@ class BaseLLM:
             args["model_name"] = args.pop("model")
         return args
 
+    def log_llama_create(
+            self,
+            window,
+            model: Optional[ModelItem],
+            args: Optional[dict],
+            constructor: str,
+            extra: Optional[dict] = None,
+            kind: str = "llm",
+    ):
+        """Log final LlamaIndex constructor arguments when API input logging is enabled."""
+        kwargs = dict(args or {})
+        if extra:
+            kwargs.update(extra)
+        window.core.api.logger.log_input(
+            type=f"llama_index.{kind}.create",
+            provider=str(getattr(model, "provider", None) or self.id or ""),
+            kwargs=kwargs,
+            model=getattr(model, "id", None),
+            path=constructor,
+        )
+
     def completion(
             self,
             window,

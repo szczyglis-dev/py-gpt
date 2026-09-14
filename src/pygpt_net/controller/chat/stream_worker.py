@@ -74,6 +74,8 @@ class WorkerState:
     usage_payload: dict = field(default_factory=dict)
     google_stream_ref: Any = None
     tool_calls: list[dict] = field(default_factory=list)
+    chunk_count: int = 0
+    chunk_types: dict[str, int] = field(default_factory=dict)
 
     # --- Provider reasoning/thinking trace ---
     reasoning_buffer: Optional[io.StringIO] = None
@@ -144,6 +146,10 @@ class StreamWorker(QRunnable):
                             etype = chunk.event_type
                     else:
                         state.chunk_type = self._detect_chunk_type(chunk)
+
+                    state.chunk_count += 1
+                    chunk_label = str(etype or type(chunk).__name__)
+                    state.chunk_types[chunk_label] = state.chunk_types.get(chunk_label, 0) + 1
 
                     # process chunk according to type
                     response = self._process_chunk(ctx, core, state, chunk, etype)
@@ -483,6 +489,26 @@ class StreamWorker(QRunnable):
                     state.reasoning_provider or state.usage_vendor or "",
                     state.usage_payload.get("reasoning", 0),
                 )
+
+        # Emit one aggregate API output log for the whole stream. Individual
+        # deltas are intentionally never printed by the debug logger.
+        try:
+            provider = str(getattr(model, "provider", "") or "") if model is not None else ""
+            chunk_type = getattr(state.chunk_type, "value", str(state.chunk_type))
+            core.api.logger.log_output(
+                type=f"stream.{chunk_type}",
+                provider=provider,
+                output=ctx.output,
+                chunks=state.chunk_count,
+                chunk_types=state.chunk_types,
+                tool_calls=state.tool_calls,
+                usage=state.usage_payload or None,
+                error=state.error,
+                model=getattr(model, "id", getattr(ctx, "model", None)),
+                extra={"stopped": state.stopped},
+            )
+        except Exception as e:
+            core.debug.log(e)
 
         # Provider/stream errors are unfinished responses as well. Preserve that
         # fact in the durable extra metadata so a later WebView/history rebuild

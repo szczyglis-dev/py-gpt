@@ -59,6 +59,7 @@ class CustomLLM(BaseLLM):
             args["context_window"] = model.ctx
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
     def get_embeddings_model(

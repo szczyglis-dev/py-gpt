@@ -204,12 +204,23 @@ class Responses:
         model_id = (model.get_ollama_model() or model.id or "").strip() if model.is_ollama() else (model.id or "")
         if not model_id:
             raise ValueError("Model name is required for the API request.")
-        response = client.responses.create(
-            input=messages,
-            model=model_id,
-            stream=stream,
+        request_kwargs = {
+            "input": messages,
+            "model": model_id,
+            "stream": stream,
             **response_kwargs,
+        }
+        self.window.core.api.logger.log_input(
+            type="responses.create", provider=str(model.provider or "openai"),
+            kwargs=request_kwargs, input=messages, history=context.history,
+            extra=extra, model=model_id, path="client.responses.create",
         )
+        response = client.responses.create(**request_kwargs)
+        if not stream:
+            self.window.core.api.logger.log_output(
+                type="responses.create", provider=str(model.provider or "openai"),
+                output=response, model=model_id,
+            )
 
         # store previous response ID
         if not stream and response:

@@ -146,6 +146,7 @@ class OpenAILLM(BaseLLM):
         args.setdefault("is_function_calling_model", False)
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAICompletion")
         return OpenAICompletion(**args)
 
     @staticmethod
@@ -245,10 +246,12 @@ class OpenAILLM(BaseLLM):
             # Use the shared PyGPT Responses adapter here too. Besides Computer
             # Use it buffers provider source/citation URLs so Chat with Files can
             # persist them even when LlamaIndex chat/query engines hide raw metadata.
+            self.log_llama_create(window, model, args, "AgentOpenAIResponses")
             return AgentOpenAIResponses(**args)
         else:
             self._append_chat_reasoning_effort(window, model, args)
-            return LlamaOpenAI(**args)
+            self.log_llama_create(window, model, args, "llama_index.llms.openai.OpenAI")
+        return LlamaOpenAI(**args)
 
     def llama_chat_with_files(
             self,
@@ -309,9 +312,11 @@ class OpenAILLM(BaseLLM):
             )
             if tools:
                 self._append_responses_reasoning_effort(window, model, args)
+                self.log_llama_create(window, model, args, "AgentOpenAIResponses")
                 return AgentOpenAIResponses(**args)
 
         self._append_chat_reasoning_effort(window, model, args)
+        self.log_llama_create(window, model, args, "llama_index.llms.openai.OpenAI")
         return LlamaOpenAI(**args)
 
     def llama_multimodal(

@@ -171,18 +171,39 @@ class ExpertAgentBridge:
         )
 
         try:
-            handler = agent.run(
-                user_msg=runtime.build_user_message(instruction),
-                chat_history=self._history(context, instruction),
-                max_iterations=runtime.main_max_iterations,
-                early_stopping_method="generate",
+            expert_input = runtime.build_user_message(instruction)
+            expert_history = self._history(context, instruction)
+            run_kwargs = {
+                "user_msg": expert_input,
+                "chat_history": expert_history,
+                "max_iterations": runtime.main_max_iterations,
+                "early_stopping_method": "generate",
+            }
+            runtime.window.core.api.logger.log_input(
+                type="llama_index.agent.run",
+                provider=str(getattr(runtime.model, "provider", "") or ""),
+                kwargs=run_kwargs,
+                input=expert_input,
+                history=expert_history,
+                model=getattr(runtime.model, "id", None),
+                path="expert_agent.run",
+                extra={"actor": "orchestrator", "expert": name},
             )
+            handler = agent.run(**run_kwargs)
             result = await handler
             runtime.collect_llm_artifacts(
                 getattr(agent, "llm", None) or llm,
                 response=result,
                 actor_id="orchestrator",
             )
-            return result_text(result)
+            output = result_text(result)
+            runtime.window.core.api.logger.log_output(
+                type="llama_index.agent.run",
+                provider=str(getattr(runtime.model, "provider", "") or ""),
+                output=output,
+                model=getattr(runtime.model, "id", None),
+                extra={"actor": "orchestrator", "expert": name},
+            )
+            return output
         finally:
             await runtime.cleanup()

@@ -107,10 +107,13 @@ class Llm:
         # default model
         if llm is None:
             self.init()  # init env vars
-            llm = OpenAI(
-                temperature=0.0,
-                model=self.default_model,
+            fallback_args = {"temperature": 0.0, "model": self.default_model}
+            self.window.core.api.logger.log_input(
+                type="llama_index.llm.create", provider="openai",
+                kwargs=fallback_args, model=self.default_model,
+                path="llama_index.llms.openai.OpenAI",
             )
+            llm = OpenAI(**fallback_args)
         return llm
 
     def get_completion(
@@ -194,10 +197,13 @@ class Llm:
 
         if llm is None:
             self.init()
-            llm = OpenAI(
-                temperature=0.0,
-                model=self.default_model,
+            fallback_args = {"temperature": 0.0, "model": self.default_model}
+            self.window.core.api.logger.log_input(
+                type="llama_index.llm.create", provider="openai",
+                kwargs=fallback_args, model=self.default_model,
+                path="llama_index.llms.openai.OpenAI",
             )
+            llm = OpenAI(**fallback_args)
 
         # Provider agent adapters (OpenAI Responses, Google GenAI, Anthropic)
         # own the provider-native Computer Use continuation loop. Bind the same

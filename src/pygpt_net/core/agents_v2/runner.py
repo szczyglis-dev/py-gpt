@@ -99,6 +99,8 @@ class Runner:
 
         handler = None
         stop_task = None
+        event_count = 0
+        event_types = {}
         try:
             shared = ""
             if runtime.shared_context_text:
@@ -116,12 +118,23 @@ class Runner:
             # transport/finalization pass (0/unlimited already maps to sys.maxsize).
             if runtime.uses_workflow_finish and runtime.main_max_iterations_configured > 0:
                 main_max_iterations += 1
-            handler = main_agent.run(
-                user_msg=main_input,
-                chat_history=history,
-                max_iterations=main_max_iterations,
-                early_stopping_method="generate",
+            run_kwargs = {
+                "user_msg": main_input,
+                "chat_history": history,
+                "max_iterations": main_max_iterations,
+                "early_stopping_method": "generate",
+            }
+            runtime.window.core.api.logger.log_input(
+                type="llama_index.agent.run",
+                provider=str(getattr(runtime.model, "provider", "") or ""),
+                kwargs=run_kwargs,
+                input=main_input,
+                history=history,
+                model=getattr(runtime.model, "id", None),
+                path="main_agent.run",
+                extra={"actor": "orchestrator", "agent_mode": runtime.agent_mode.value},
             )
+            handler = main_agent.run(**run_kwargs)
 
             async def watch_stop():
                 while not runtime.finished:
@@ -144,6 +157,9 @@ class Runner:
 
             post_tool_stream = False
             async for event in handler.stream_events():
+                event_count += 1
+                event_name = type(event).__name__
+                event_types[event_name] = event_types.get(event_name, 0) + 1
                 # In managed modes workflow_finish only validates/arms the final
                 # response. The first non-empty AgentStream after that tool result
                 # is the real authoritative final answer, so prepare its durable
@@ -287,6 +303,20 @@ class Runner:
                     "agent_mode": runtime.agent_mode.value,
                 })
         finally:
+            runtime.window.core.api.logger.log_output(
+                type="llama_index.agent.run",
+                provider=str(getattr(runtime.model, "provider", "") or ""),
+                output=runtime.final_answer or runtime.last_orchestrator_output(),
+                chunks=event_count,
+                chunk_types=event_types,
+                model=getattr(runtime.model, "id", None),
+                extra={
+                    "actor": "orchestrator",
+                    "finished": runtime.finished,
+                    "stopped": runtime.is_stopped(),
+                    "agent_mode": runtime.agent_mode.value,
+                },
+            )
             runtime.verbose_log("RUNNER FINALIZE BEGIN", {
                 "finished": runtime.finished,
                 "stopped": runtime.is_stopped(),

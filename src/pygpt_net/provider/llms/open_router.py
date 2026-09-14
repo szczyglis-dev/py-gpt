@@ -81,4 +81,5 @@ class OpenRouterLLM(BaseLLM):
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         if model:
             args["model"] = window.core.models.get_openrouter_model(model)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)

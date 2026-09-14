@@ -3114,6 +3114,45 @@
       }
     ]
   },
+  "log.api.input": {
+    "section": "debug",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.log.api.input",
+    "description": "settings.log.api.input.desc",
+    "value": false,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "advanced": false
+  },
+  "log.api.output": {
+    "section": "debug",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.log.api.output",
+    "description": "settings.log.api.output.desc",
+    "value": false,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "advanced": false
+  },
+  "log.tools": {
+    "section": "debug",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.log.tools",
+    "description": "settings.log.tools.desc",
+    "value": false,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "advanced": false
+  },
   "log.ctx": {
     "section": "debug",
     "type": "bool",

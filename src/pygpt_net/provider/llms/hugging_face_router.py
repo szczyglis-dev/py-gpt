@@ -84,6 +84,7 @@ class HuggingFaceRouterLLM(BaseLLM):
             additional_kwargs["reasoning_effort"] = reasoning_effort
             args["additional_kwargs"] = additional_kwargs
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
     def llama_multimodal(

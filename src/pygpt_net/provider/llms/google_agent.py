@@ -344,11 +344,36 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
             self._client,
             **params,
         )
+        runtime = self._pygpt_runtime
+        if runtime is not None:
+            runtime.window.core.api.logger.log_input(
+                type="chats.create",
+                provider="google",
+                kwargs=chat_kwargs,
+                input=messages,
+                model=getattr(self, "model", None),
+                path="google.genai.aio.chats.create",
+            )
         chat = self._client.aio.chats.create(**chat_kwargs)
 
         try:
             payload = next_msg.parts if isinstance(next_msg, types.Content) else next_msg
+            if runtime is not None:
+                runtime.window.core.api.logger.log_input(
+                    type="chat.send_message",
+                    provider="google",
+                    input=payload,
+                    model=getattr(self, "model", None),
+                    path="google.genai.aio.chat.send_message",
+                )
             raw = await chat.send_message(payload)
+            if runtime is not None:
+                runtime.window.core.api.logger.log_output(
+                    type="chat.send_message",
+                    provider="google",
+                    output=raw,
+                    model=getattr(self, "model", None),
+                )
             self._capture_urls(raw)
 
             for turn in range(self.MAX_COMPUTER_TURNS + 1):
@@ -381,7 +406,22 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
                     }, actor="orchestrator")
 
                 response_parts = await self._execute_computer_calls(calls)
+                if runtime is not None:
+                    runtime.window.core.api.logger.log_input(
+                        type="chat.send_message.continuation",
+                        provider="google",
+                        input=response_parts,
+                        model=getattr(self, "model", None),
+                        path="google.genai.aio.chat.send_message",
+                    )
                 raw = await chat.send_message(response_parts)
+                if runtime is not None:
+                    runtime.window.core.api.logger.log_output(
+                        type="chat.send_message.continuation",
+                        provider="google",
+                        output=raw,
+                        model=getattr(self, "model", None),
+                    )
                 self._capture_urls(raw)
 
             raise RuntimeError(

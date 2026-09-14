@@ -123,6 +123,7 @@ class xAILLM(BaseLLM):
             additional_kwargs["reasoning_effort"] = reasoning_effort
             args["additional_kwargs"] = additional_kwargs
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
     def _llama_responses(
@@ -169,6 +170,7 @@ class xAILLM(BaseLLM):
         if ctx_size > 0 and "context_window" not in args:
             args["context_window"] = ctx_size
 
+        self.log_llama_create(window, model, args, "AgentXAIResponses")
         return AgentXAIResponses(**args)
 
     def llama_agent(

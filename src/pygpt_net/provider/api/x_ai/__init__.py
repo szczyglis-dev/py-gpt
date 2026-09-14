@@ -102,6 +102,10 @@ class ApiXAI:
             return self.client
 
         self.last_client_args = kwargs
+        self.window.core.api.logger.log_input(
+            type="client.init", provider="xai", kwargs=kwargs,
+            model=getattr(model, "id", None), path="xai_sdk.Client",
+        )
         self.client = xai_sdk.Client(**kwargs)
         return self.client
 
@@ -295,6 +299,11 @@ class ApiXAI:
             reasoning_effort = self.window.core.models.get_reasoning_effort(model)
             if reasoning_effort:
                 chat_kwargs["reasoning_effort"] = reasoning_effort
+            self.window.core.api.logger.log_input(
+                type="chat.create", provider="xai", kwargs=chat_kwargs,
+                input=prompt, history=history, extra=extra, model=model.id,
+                path="client.chat.create",
+            )
             chat = client.chat.create(**chat_kwargs)
 
             # Append history if enabled and no previous_response_id is used
@@ -314,6 +323,9 @@ class ApiXAI:
             )
 
             resp = chat.sample()
+            self.window.core.api.logger.log_output(
+                type="chat.sample", provider="xai", output=resp, model=model.id,
+            )
             # Extract client-side tool calls if any (leave server-side out)
             out = getattr(resp, "content", "") or ""
             if ctx:
@@ -392,8 +404,16 @@ class ApiXAI:
             reasoning_effort = self.window.core.models.get_reasoning_effort(model)
             if reasoning_effort:
                 chat_kwargs["reasoning_effort"] = reasoning_effort
+            self.window.core.api.logger.log_input(
+                type="chat.create", provider="xai", kwargs=chat_kwargs,
+                input=messages, history=history, extra=extra, model=model.id,
+                path="client.chat.create",
+            )
             chat = client.chat.create(**chat_kwargs)
             resp = chat.sample()
+            self.window.core.api.logger.log_output(
+                type="chat.sample", provider="xai", output=resp, model=model.id,
+            )
             return getattr(resp, "content", "") or ""
         except Exception as e:
             self.window.core.debug.log(e)

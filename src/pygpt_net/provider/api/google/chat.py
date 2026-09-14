@@ -93,10 +93,20 @@ class Chat:
             trans_cfg = gtypes.GenerateContentConfig(
                 max_output_tokens=context.max_tokens if context.max_tokens else None,
             )
-            trans_resp = client.models.generate_content(
-                model=transcribe_model,
-                contents=trans_inputs,
-                config=trans_cfg,
+            transcribe_kwargs = {
+                "model": transcribe_model,
+                "contents": trans_inputs,
+                "config": trans_cfg,
+            }
+            self.window.core.api.logger.log_input(
+                type="models.generate_content", provider="google",
+                kwargs=transcribe_kwargs, input=trans_inputs, history=context.history,
+                extra=extra, model=transcribe_model, path="client.models.generate_content",
+            )
+            trans_resp = client.models.generate_content(**transcribe_kwargs)
+            self.window.core.api.logger.log_output(
+                type="models.generate_content", provider="google",
+                output=trans_resp, model=transcribe_model,
             )
             transcribed_text = self.extract_text(trans_resp).strip()
             if transcribed_text:
@@ -229,10 +239,20 @@ class Chat:
                     trans_cfg = gtypes.GenerateContentConfig(
                         max_output_tokens=context.max_tokens if context.max_tokens else None,
                     )
-                    trans_resp = client.models.generate_content(
-                        model=transcribe_model,
-                        contents=trans_inputs,
-                        config=trans_cfg,
+                    transcribe_kwargs = {
+                        "model": transcribe_model,
+                        "contents": trans_inputs,
+                        "config": trans_cfg,
+                    }
+                    self.window.core.api.logger.log_input(
+                        type="models.generate_content", provider="google",
+                        kwargs=transcribe_kwargs, input=trans_inputs, history=context.history,
+                        extra=extra, model=transcribe_model, path="client.models.generate_content",
+                    )
+                    trans_resp = client.models.generate_content(**transcribe_kwargs)
+                    self.window.core.api.logger.log_output(
+                        type="models.generate_content", provider="google",
+                        output=trans_resp, model=transcribe_model,
                     )
                     transcribed_text = self.extract_text(trans_resp).strip()
                     if transcribed_text:
@@ -297,12 +317,38 @@ class Chat:
             if mcp_tools:
                 create_kwargs["tools"] = mcp_tools
 
-            return client.interactions.create(**create_kwargs)
+            self.window.core.api.logger.log_input(
+                type="interactions.create", provider="google", kwargs=create_kwargs,
+                input=create_kwargs.get("input"), history=context.history, extra=extra,
+                model=model.id, path="client.interactions.create",
+            )
+            response = client.interactions.create(**create_kwargs)
+            if not stream:
+                self.window.core.api.logger.log_output(
+                    type="interactions.create", provider="google",
+                    output=response, model=model.id,
+                )
+            return response
 
         if stream and mode != MODE_AUDIO:
+            self.window.core.api.logger.log_input(
+                type="models.generate_content_stream", provider="google", kwargs=params,
+                input=inputs, history=context.history, extra=extra,
+                model=model.id, path="client.models.generate_content_stream",
+            )
             return client.models.generate_content_stream(**params)
         else:
-            return client.models.generate_content(**params)
+            self.window.core.api.logger.log_input(
+                type="models.generate_content", provider="google", kwargs=params,
+                input=inputs, history=context.history, extra=extra,
+                model=model.id, path="client.models.generate_content",
+            )
+            response = client.models.generate_content(**params)
+            self.window.core.api.logger.log_output(
+                type="models.generate_content", provider="google",
+                output=response, model=model.id,
+            )
+            return response
 
     def unpack_response(
             self,

@@ -461,11 +461,28 @@ class AgentOpenAIResponses(OpenAIResponses):
                     ],
                 }, actor="orchestrator")
 
-            raw = await self._aclient.responses.create(
-                input=api_outputs,
-                stream=False,
+            request_kwargs = {
+                "input": api_outputs,
+                "stream": False,
                 **model_kwargs,
-            )
+            }
+            if runtime is not None:
+                runtime.window.core.api.logger.log_input(
+                    type="responses.create.continuation",
+                    provider="openai",
+                    kwargs=request_kwargs,
+                    input=api_outputs,
+                    model=getattr(self, "model", None),
+                    path="AsyncOpenAI.responses.create",
+                )
+            raw = await self._aclient.responses.create(**request_kwargs)
+            if runtime is not None:
+                runtime.window.core.api.logger.log_output(
+                    type="responses.create.continuation",
+                    provider="openai",
+                    output=raw,
+                    model=getattr(self, "model", None),
+                )
             parsed = self._parse_response_output(raw.output)
             parsed.raw = raw
             parsed.additional_kwargs["usage"] = getattr(raw, "usage", None)

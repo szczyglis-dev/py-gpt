@@ -167,12 +167,23 @@ class Chat:
         if not model_id:
             raise ValueError("Model name is required for the API request. Check that the selected model has a valid model ID.")
 
-        response = client.chat.completions.create(
-            messages=messages,
-            model=model_id,
-            stream=stream,
+        request_kwargs = {
+            "messages": messages,
+            "model": model_id,
+            "stream": stream,
             **response_kwargs,
+        }
+        self.window.core.api.logger.log_input(
+            type="chat.completions.create", provider=str(model.provider or "openai"),
+            kwargs=request_kwargs, input=messages, history=context.history,
+            extra=extra, model=model_id, path="client.chat.completions.create",
         )
+        response = client.chat.completions.create(**request_kwargs)
+        if not stream:
+            self.window.core.api.logger.log_output(
+                type="chat.completions.create", provider=str(model.provider or "openai"),
+                output=response, model=model_id,
+            )
         return response
 
     def build(

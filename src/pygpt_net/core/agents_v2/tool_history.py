@@ -47,6 +47,14 @@ class RuntimeToolHistory:
         actor_id, agent_name, current_task = self.runtime._actor_metadata(actor)
         value = self.runtime._new_tool_call_id(call_id)
         hidden = self.runtime.window.core.command.is_tool_hidden(name)
+        self.runtime.window.core.api.tool_logger.log_call(
+            name=name,
+            params=args,
+            call_id=value,
+            actor=actor,
+            raw={"name": name, "arguments": args, "call_id": value},
+            extra={"agents_v2": True, "hidden": hidden},
+        )
         if hidden and not PERSIST_HIDDEN_TOOL_CALLS:
             return value
         part = self.runtime._actor_part(actor, create=True)
@@ -90,6 +98,13 @@ class RuntimeToolHistory:
         actor_id, _agent_name, _task_name = self.runtime._actor_metadata(actor)
         name = str(name or "").strip()
         value = str(call_id).strip() if call_id not in (None, "") else ""
+        self.runtime.window.core.api.tool_logger.log_result(
+            name=name or "tool",
+            response=result,
+            call_id=value or None,
+            actor=actor,
+            extra={"agents_v2": True},
+        )
         task = self.runtime._persisted_tool_tasks.get(f"{actor_id}:{value}") if value else None
         main = getattr(self.runtime.context, "ctx", None)
         if task is None and main is not None:

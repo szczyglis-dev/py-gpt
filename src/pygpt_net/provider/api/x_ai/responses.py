@@ -148,6 +148,11 @@ class Responses:
         if reasoning_effort:
             chat_kwargs["reasoning_effort"] = reasoning_effort
 
+        self.window.core.api.logger.log_input(
+            type="chat.create", provider="xai", kwargs=chat_kwargs,
+            input=prompt, history=history, extra=extra, model=model_id,
+            path="client.chat.create",
+        )
         chat = client.chat.create(**chat_kwargs)
 
         # Append history (only when not continuing via previous_response_id)
@@ -175,6 +180,9 @@ class Responses:
 
         # NON-STREAM
         response = chat.sample()
+        self.window.core.api.logger.log_output(
+            type="chat.sample", provider="xai", output=response, model=model_id,
+        )
         return response
 
     # ---------- UNPACK (non-stream) ----------

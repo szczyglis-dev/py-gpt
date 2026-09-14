@@ -43,6 +43,7 @@ class ForgeLLM(BaseLLM):
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
     def get_embeddings_model(self, window, config: Optional[List[Dict]] = None) -> BaseEmbedding:

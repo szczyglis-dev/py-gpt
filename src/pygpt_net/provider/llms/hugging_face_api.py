@@ -136,6 +136,7 @@ class HuggingFaceApiLLM(BaseLLM):
             proxy = ""
         trust_env = cfg.get("api_native_hf.trust_env", False)
 
+        self.log_llama_create(window, model, args, "HuggingFaceInferenceAPIWithProxy", {"proxy": proxy, "trust_env": trust_env})
         return HuggingFaceInferenceAPIWithProxy(proxy=proxy, trust_env=trust_env, **args)
 
     def get_embeddings_model(
