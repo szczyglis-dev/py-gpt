@@ -805,6 +805,11 @@ class Patch:
             if old < parse_version("2.8.18"):
                 print("Migrating config from < 2.8.18...")
 
+                # Step-by-step progress prompting is opt-in from 2.8.18.
+                if "agent.v2.step_by_step" not in data:
+                    data["agent.v2.step_by_step"] = cfg_get_base("agent.v2.step_by_step")
+                    updated = True
+
                 # Theme palette was simplified to one Dark and one Light theme.
                 # Normalize every historical variant so removed theme assets are
                 # never referenced by upgraded profiles. Unknown/custom values

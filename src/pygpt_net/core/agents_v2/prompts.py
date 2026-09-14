@@ -10,8 +10,6 @@
 # ================================================== #
 
 
-ENABLE_STEP_BY_STEP_PROMPT = True
-
 STEP_BY_STEP_RULES = r"""
 TASK EXECUTION DISCIPLINE (mandatory)
 - Respect any mode-specific prerequisite contract first. If required information must be obtained before execution can
@@ -52,16 +50,37 @@ STEP_BY_STEP_BRIEF = (
 )
 
 
+class _OptionalStepByStepPrompt(str):
+    """String prompt with an alternate step-by-step-enabled rendering."""
+
+    def __new__(cls, prompt: str, default_brief: str = ""):
+        disabled = cls._render(prompt, False, default_brief)
+        obj = super().__new__(cls, disabled)
+        obj.step_by_step = cls._render(prompt, True, default_brief)
+        return obj
+
+    @staticmethod
+    def _render(prompt: str, enabled: bool, default_brief: str) -> str:
+        rules = f"\n{STEP_BY_STEP_RULES}\n" if enabled else ""
+        brief = STEP_BY_STEP_BRIEF if enabled else default_brief
+        return (
+            prompt
+            .replace("<step_by_step_rules>", rules)
+            .replace("<step_by_step_brief>", brief)
+            .strip()
+        )
+
+
 def _render_base_prompt(prompt: str, *, default_brief: str = "") -> str:
-    """Resolve optional step-by-step prompt placeholders."""
-    rules = f"\n{STEP_BY_STEP_RULES}\n" if ENABLE_STEP_BY_STEP_PROMPT else ""
-    brief = STEP_BY_STEP_BRIEF if ENABLE_STEP_BY_STEP_PROMPT else default_brief
-    return (
-        prompt
-        .replace("<step_by_step_rules>", rules)
-        .replace("<step_by_step_brief>", brief)
-        .strip()
-    )
+    """Build the default prompt while retaining its optional step-by-step form."""
+    return _OptionalStepByStepPrompt(prompt, default_brief)
+
+
+def resolve_step_by_step_prompt(prompt: str, enabled: bool) -> str:
+    """Return the step-by-step variant only for prompts that define one."""
+    if enabled and isinstance(prompt, _OptionalStepByStepPrompt):
+        return prompt.step_by_step
+    return str(prompt or "")
 
 PRIMARY_AGENT_BASE_PROMPT = _render_base_prompt(r"""
 You are the Primary Agent. You are the only agent that communicates with the user and you own the task from start to

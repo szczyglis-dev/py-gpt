@@ -71,6 +71,7 @@
   "agent.v2.show_tool_chain": false,
   "agent.v2.single_status.history": true,
   "agent.v2.single_status.live": true,
+  "agent.v2.step_by_step": false,
   "agent.v2.swarm.max_iterations": 4096,
   "agent.v2.verbose": false,
   "agent.v2.worker.max_iterations": 24,

@@ -21,6 +21,8 @@ from pygpt_net.utils import trans
 
 AGENT_V2_MODE_CONFIG_KEY = "agent.v2.mode"
 AGENT_V2_MODE_DEFAULT = "chat"
+AGENT_V2_STEP_BY_STEP_CONFIG_KEY = "agent.v2.step_by_step"
+AGENT_V2_STEP_BY_STEP_DEFAULT = False
 
 class Prompt:
     def __init__(self, window=None):
@@ -41,6 +43,11 @@ class Prompt:
             return
         value = combo.itemData(index) or AGENT_V2_MODE_DEFAULT
         self.window.core.config.set(AGENT_V2_MODE_CONFIG_KEY, str(value))
+        self.window.core.config.save()
+
+    def _on_agent_v2_step_by_step_changed(self, checked: bool) -> None:
+        """Persist optional step-by-step prompting for Chat with Agents."""
+        self.window.core.config.set(AGENT_V2_STEP_BY_STEP_CONFIG_KEY, bool(checked))
         self.window.core.config.save()
 
     def setup(self) -> QWidget:
@@ -104,10 +111,18 @@ class Prompt:
         nodes['agent.v2.mode.label'] = mode_label
         nodes['agent.v2.mode'] = mode_combo
 
-        mode_tip = HelpLabel(trans('agent.v2.mode.tip'), w)
-        mode_tip.setAlignment(Qt.AlignCenter)
-        mode_tip.setVisible(bool(w.core.config.get('layout.tooltips')))
-        nodes['agent.v2.mode.tip'] = mode_tip
+        step_by_step = ToggleLabel(
+            trans("agent.v2.step_by_step"),
+            parent=w,
+        )
+        step_by_step.setChecked(bool(
+            w.core.config.get(
+                AGENT_V2_STEP_BY_STEP_CONFIG_KEY,
+                AGENT_V2_STEP_BY_STEP_DEFAULT,
+            )
+        ))
+        step_by_step.box.toggled.connect(self._on_agent_v2_step_by_step_changed)
+        nodes['agent.v2.step_by_step'] = step_by_step
 
         mode_widget = QWidget()
         mode_layout = QVBoxLayout(mode_widget)
@@ -119,7 +134,7 @@ class Prompt:
         mode_select_layout.setContentsMargins(0, 0, 0, 0)
 
         mode_layout.addWidget(mode_select_widget)
-        mode_layout.addWidget(mode_tip)
+        mode_layout.addWidget(step_by_step)
         mode_layout.setContentsMargins(3, 0, 5, 0)
         mode_widget.setVisible(w.core.config.get("mode") == MODE_AGENT_V2)
         nodes['agent.v2.mode.widget'] = mode_widget

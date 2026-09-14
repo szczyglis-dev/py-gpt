@@ -177,6 +177,11 @@ class AgentsV2Runtime:
                 self.RETURN_TOOL_CALLS_TO_MAIN_CTX,
             )
         )
+        # Snapshot this UI option at run start so prompt composition stays
+        # deterministic even if the checkbox is changed while a run is active.
+        self.step_by_step_enabled = bool(
+            self.window.core.config.get("agent.v2.step_by_step", False)
+        )
         self.memory_store = AgentsV2MemoryStore(window)
         self.allow_local_tools = bool(getattr(self.preset, "agent_v2_allow_local_tools", True))
         self.allow_remote_tools = bool(getattr(self.preset, "agent_v2_allow_remote_tools", True))

@@ -13,7 +13,12 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .prompts import ORCHESTRATOR_BASE_PROMPT, PRIMARY_AGENT_BASE_PROMPT, SWARM_BASE_PROMPT
+from .prompts import (
+    ORCHESTRATOR_BASE_PROMPT,
+    PRIMARY_AGENT_BASE_PROMPT,
+    SWARM_BASE_PROMPT,
+    resolve_step_by_step_prompt,
+)
 
 
 class RuntimePromptBuilder:
@@ -64,7 +69,10 @@ class RuntimePromptBuilder:
         if rag_context:
             rag_context = "\n\n" + rag_context
 
-        base = str(base_prompt or "").strip()
+        base = resolve_step_by_step_prompt(
+            base_prompt,
+            bool(getattr(self.runtime, "step_by_step_enabled", False)),
+        ).strip()
         prefix = (base + "\n\n") if base else ""
         return (
             prefix

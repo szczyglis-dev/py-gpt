@@ -64,7 +64,6 @@ class Common:
             'tip.toolbox.mode',
             'tip.toolbox.presets',
             'tip.toolbox.prompt',
-            'agent.v2.mode.tip',
         ]
         state = self.window.core.config.get('layout.tooltips')
         if state:
