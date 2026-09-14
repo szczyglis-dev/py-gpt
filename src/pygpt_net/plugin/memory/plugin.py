@@ -116,6 +116,9 @@ Rules:
             "memory_key_list",
             "memory_key_search",
             "memory_key_remove",
+            "memory_ctx_get",
+            "memory_ctx_add",
+            "memory_ctx_replace",
         ]
         self.config = Config(self)
         self.store = Store()
@@ -278,6 +281,18 @@ Rules:
 
     def remove_memory_keys(self, keys, project_id: Optional[int] = None) -> list[str]:
         return self.key_store.remove(keys, project_id)
+
+    def get_ctx_memory(self, ctx: Optional[CtxItem]) -> str:
+        """Return compact notes scoped to exactly one conversation (ctx_meta)."""
+        return self.window.core.context_manager.get_notes(ctx=ctx)
+
+    def add_ctx_memory(self, ctx: Optional[CtxItem], text: str) -> str:
+        """Append one newline-separated note to the current conversation memory."""
+        return self.window.core.context_manager.add_notes(ctx, text)
+
+    def replace_ctx_memory(self, ctx: Optional[CtxItem], text: str) -> str:
+        """Replace compact notes for exactly one conversation."""
+        return self.window.core.context_manager.replace_notes(ctx, text)
 
     def should_auto_attach(self, project_id: Optional[int]) -> bool:
         if self.get_option_value("auto_attach"):

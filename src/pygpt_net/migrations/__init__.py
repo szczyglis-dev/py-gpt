@@ -31,6 +31,7 @@ from .Version20260907120000 import Version20260907120000  # 2.8.8+
 from .Version20260909193000 import Version20260909193000  # 2.8.13+ memory
 from .Version20260911120000 import Version20260911120000  # 2.8.14+ project workdir
 from .Version20260911150000 import Version20260911150000  # 2.8.14+ keyed memory
+from .Version20260914180000 import Version20260914180000  # 2.8.18+ conversation context memory
 
 class Migrations:
     def __init__(self):
@@ -66,4 +67,5 @@ class Migrations:
             Version20260909193000(),  # 2.8.13+ memory
             Version20260911120000(),  # 2.8.14+ project workdir
             Version20260911150000(),  # 2.8.14+ keyed memory
+            Version20260914180000(),  # 2.8.18+ conversation context memory
         ]

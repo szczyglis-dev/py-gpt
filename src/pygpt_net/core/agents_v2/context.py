@@ -119,13 +119,24 @@ class RuntimeContext:
             self.runtime.window.core.debug.log(exc)
             return ""
 
-    def get_llm(self, stream: bool = False, actor_id: str = "orchestrator"):
-        """Return provider LLM with native remote tools attached when enabled."""
+    def get_llm(
+            self,
+            stream: bool = False,
+            actor_id: str = "orchestrator",
+            allow_remote_tools: bool | None = None,
+    ):
+        """Return provider LLM, optionally overriding native remote-tool exposure."""
+        remote_tools = (
+            self.runtime.allow_remote_tools
+            if allow_remote_tools is None
+            else bool(allow_remote_tools)
+        )
         llm = self.runtime.window.core.idx.llm.get_agent(
             model=self.runtime.model,
             stream=stream,
-            allow_remote_tools=self.runtime.allow_remote_tools,
+            allow_remote_tools=remote_tools,
         )
+        llm = self.runtime.window.core.context_manager.configure_llm_for_rolling_context(llm)
         # Provider adapters that need access to the current workflow (for
         # example OpenAI Computer Use) are bound to this isolated runtime here.
         # Keep this opt-in so normal LlamaIndex providers remain untouched.
@@ -146,7 +157,7 @@ class RuntimeContext:
         self.runtime.verbose.log("LLM CREATED", {
             "stream": stream,
             "actor_id": actor_id,
-            "allow_remote_tools": self.runtime.allow_remote_tools,
+            "allow_remote_tools": remote_tools,
             "class": llm.__class__.__name__ if llm is not None else None,
         })
         return llm

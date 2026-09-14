@@ -309,6 +309,14 @@ class Output:
             'mode': mode,
         }, ctx=ctx))
 
+        # Schedule a compact conversation checkpoint when the unsummarized tail
+        # approaches the configured context-window threshold. This runs outside
+        # the active request and never removes durable conversation rows.
+        try:
+            self.window.core.context_manager.on_ctx_end(ctx)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+
         # RenderEvent.END may drop the render pin before the final RELOAD below.
         # Restore it while the request is still marked as generating so the
         # owning chat cannot be remapped to another focused chat tab.

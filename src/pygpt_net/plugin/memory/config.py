@@ -309,4 +309,64 @@ class Config(BaseConfig):
             description="Enable: remove one or more memory keys from the current global or project scope.",
             tooltip="Remove one or more stored memory keys from the current scope.",
         )
+        plugin.add_cmd(
+            "memory_ctx_get",
+            instruction=(
+                "read compact continuation notes for the CURRENT CONVERSATION only (one ctx_meta); "
+                "these are not global memory and not project memory"
+            ),
+            params=[],
+            enabled=True,
+            label="Read conversation notes",
+            description=(
+                "Enable: read compact continuation notes scoped only to the current conversation. "
+                "They are separate from global/project memory."
+            ),
+            tooltip="Read compact notes for this conversation only.",
+        )
+        plugin.add_cmd(
+            "memory_ctx_add",
+            instruction=(
+                "append a concise, important note for later continuation of the CURRENT CONVERSATION only; "
+                "use for goals, decisions, completed work, constraints, findings or pending work that must survive "
+                "context-window trimming; each addition is stored on a new line"
+            ),
+            params=[
+                {
+                    "name": "text",
+                    "type": "str",
+                    "description": "Concise continuation note to append for the current conversation.",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            label="Add conversation note",
+            description=(
+                "Enable: append a newline-separated compact note to the current conversation only. "
+                "Use for information that should survive context-window trimming."
+            ),
+            tooltip="Append a compact continuation note for this conversation only.",
+        )
+        plugin.add_cmd(
+            "memory_ctx_replace",
+            instruction=(
+                "replace all compact continuation notes for the CURRENT CONVERSATION only with a concise canonical "
+                "state; this does not modify global or project memory"
+            ),
+            params=[
+                {
+                    "name": "text",
+                    "type": "str",
+                    "description": "Complete replacement continuation notes for the current conversation.",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            label="Replace conversation notes",
+            description=(
+                "Enable: replace compact continuation notes for the current conversation only. "
+                "This does not change global/project memory."
+            ),
+            tooltip="Replace compact continuation notes for this conversation only.",
+        )
 

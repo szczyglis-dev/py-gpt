@@ -24,6 +24,35 @@ class RuntimeToolset:
     def __init__(self, runtime):
         self.runtime = runtime
 
+    @staticmethod
+    def _tool_name(tool) -> str:
+        metadata = getattr(tool, "metadata", None)
+        return str(getattr(metadata, "name", "") or "").strip()
+
+    def _with_context_tools(self, tools: List[FunctionTool]) -> List[FunctionTool]:
+        """Append core continuation tools when advanced context handling is on.
+
+        The Memory plugin may already expose commands with the same names. In
+        that case keep the plugin-bound tool and only fill missing definitions,
+        so enabling the core reliability feature never creates duplicate native
+        function names.
+        """
+        out = list(tools or [])
+        try:
+            extra = self.runtime.window.core.context_manager.build_agent_tools(
+                self.runtime.context.ctx
+            )
+        except Exception as exc:
+            self.runtime.window.core.debug.log(exc)
+            return out
+        existing = {self._tool_name(tool) for tool in out}
+        for tool in extra:
+            name = self._tool_name(tool)
+            if name and name not in existing:
+                out.append(tool)
+                existing.add(name)
+        return out
+
     def primary_agent_tools(self) -> List[FunctionTool]:
         """Build the Primary Agent surface: normal tools + one agent-as-tool bridge."""
         tools: List[FunctionTool] = list(
@@ -42,7 +71,7 @@ class RuntimeToolset:
                 "to inherit the current user-language contract."
             ),
         ))
-        return tools
+        return self._with_context_tools(tools)
 
     def orchestrator_tools(self) -> List[FunctionTool]:
         """Build the legacy Orchestrator surface with explicit worker lifecycle tools."""
@@ -112,7 +141,7 @@ class RuntimeToolset:
         # The Orchestrator remains a full PyGPT actor; delegation is a strategy,
         # not a capability boundary.
         tools.extend(self.runtime.tool_factory.build_orchestrator(self.runtime.orchestrator_actor))
-        return tools
+        return self._with_context_tools(tools)
 
     def swarm_tools(self) -> List[FunctionTool]:
         """Build Swarm surface: explicit lifecycle plus swarm declaration/status tools."""

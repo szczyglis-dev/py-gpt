@@ -2,7 +2,7 @@
   "__meta__": {
     "app.version": "2.8.18",
     "version": "2.8.18",
-    "updated_at": "2026-09-14T11:38:00"    
+    "updated_at": "2026-09-14T11:38:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -71,7 +71,7 @@
   "agent.v2.show_tool_chain": false,
   "agent.v2.single_status.history": true,
   "agent.v2.single_status.live": true,
-  "agent.v2.step_by_step": false,
+  "agent.v2.step_by_step": true,
   "agent.v2.swarm.max_iterations": 4096,
   "agent.v2.verbose": false,
   "agent.v2.worker.max_iterations": 24,
@@ -145,6 +145,10 @@
   "audio.transcribe.convert_video": true,
   "cmd": false,
   "context_threshold": 200,
+  "context.advanced.enabled": false,
+  "context.advanced.threshold": 75,
+  "context.advanced.target": 45,
+  "context.advanced.notes_max_chars": 24000,
   "ctx": "",
   "ctx.attachment.append_once": false,
   "ctx.attachment.auto_append": true,

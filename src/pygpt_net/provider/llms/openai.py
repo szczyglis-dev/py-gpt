@@ -247,7 +247,8 @@ class OpenAILLM(BaseLLM):
             # Use it buffers provider source/citation URLs so Chat with Files can
             # persist them even when LlamaIndex chat/query engines hide raw metadata.
             self.log_llama_create(window, model, args, "AgentOpenAIResponses")
-            return AgentOpenAIResponses(**args)
+            llm = AgentOpenAIResponses(**args)
+            return window.core.context_manager.configure_llm_for_rolling_context(llm)
         else:
             self._append_chat_reasoning_effort(window, model, args)
             self.log_llama_create(window, model, args, "llama_index.llms.openai.OpenAI")
@@ -313,7 +314,8 @@ class OpenAILLM(BaseLLM):
             if tools:
                 self._append_responses_reasoning_effort(window, model, args)
                 self.log_llama_create(window, model, args, "AgentOpenAIResponses")
-                return AgentOpenAIResponses(**args)
+                llm = AgentOpenAIResponses(**args)
+                return window.core.context_manager.configure_llm_for_rolling_context(llm)
 
         self._append_chat_reasoning_effort(window, model, args)
         self.log_llama_create(window, model, args, "llama_index.llms.openai.OpenAI")

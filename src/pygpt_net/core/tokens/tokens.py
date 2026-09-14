@@ -279,6 +279,10 @@ class Tokens:
         if mode in CHAT_MODES:
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)
+            current_ctx = self.window.core.ctx.get_last_item()
+            system_prompt = self.window.core.context_manager.prepare_system_prompt(
+                system_prompt, current_ctx, mode, model_data, internal=False
+            )
             if system_prompt:
                 system_tokens = self.from_prompt(system_prompt, "", model_id)
                 system_tokens += Tokens._const_tokens("system", model_id)
@@ -288,6 +292,10 @@ class Tokens:
         elif mode == MODE_COMPLETION:
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)
+            current_ctx = self.window.core.ctx.get_last_item()
+            system_prompt = self.window.core.context_manager.prepare_system_prompt(
+                system_prompt, current_ctx, mode, model_data, internal=False
+            )
             system_tokens = self.from_text(system_prompt, model_id)
             if input_prompt:
                 if user_name and ai_name:
@@ -301,10 +309,15 @@ class Tokens:
 
         used_tokens = system_tokens + input_tokens
 
-        max_current = max_total_tokens
-        model_ctx = self.window.core.models.get_num_ctx(model)
-        if max_current > model_ctx:
+        max_current = int(max_total_tokens or 0)
+        model_ctx = int(self.window.core.models.get_num_ctx(model) or 0)
+        # A configured value of 0 means "use the model limit" throughout the
+        # request path. Mirror that here so the live counter shows the same
+        # effective ceiling instead of treating an automatic limit as zero.
+        if max_current <= 0:
             max_current = model_ctx
+        elif model_ctx > 0:
+            max_current = min(max_current, model_ctx)
 
         threshold = self.window.core.config.get('context_threshold')
         max_to_check = max_current - threshold

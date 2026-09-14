@@ -1422,7 +1422,7 @@
     "advanced": false
   },
   "max_total_tokens": {
-    "section": "model",
+    "section": "context",
     "type": "int",
     "slider": true,
     "label": "settings.max_total_tokens",
@@ -1435,7 +1435,7 @@
     "advanced": false
   },
   "context_threshold": {
-    "section": "model",
+    "section": "context",
     "type": "int",
     "slider": true,
     "label": "settings.context_threshold",
@@ -1446,6 +1446,62 @@
     "multiplier": 1,
     "step": 1,
     "advanced": false
+  },
+  "context.advanced.enabled": {
+    "section": "context",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.context.advanced.enabled",
+    "description": "settings.context.advanced.enabled.desc",
+    "value": false,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "secret": false,
+    "advanced": false
+  },
+  "context.advanced.threshold": {
+    "section": "context",
+    "type": "int",
+    "slider": true,
+    "label": "settings.context.advanced.threshold",
+    "description": "settings.context.advanced.threshold.desc",
+    "value": 75,
+    "min": 20,
+    "max": 95,
+    "multiplier": 1,
+    "step": 1,
+    "secret": false,
+    "advanced": false
+  },
+  "context.advanced.target": {
+    "section": "context",
+    "type": "int",
+    "slider": true,
+    "label": "settings.context.advanced.target",
+    "description": "settings.context.advanced.target.desc",
+    "value": 45,
+    "min": 10,
+    "max": 90,
+    "multiplier": 1,
+    "step": 1,
+    "secret": false,
+    "advanced": true
+  },
+  "context.advanced.notes_max_chars": {
+    "section": "context",
+    "type": "int",
+    "slider": true,
+    "label": "settings.context.advanced.notes_max_chars",
+    "description": "settings.context.advanced.notes_max_chars.desc",
+    "value": 24000,
+    "min": 1000,
+    "max": 200000,
+    "multiplier": 1,
+    "step": 1000,
+    "secret": false,
+    "advanced": true
   },
   "func_call.native": {
     "section": "prompts",

@@ -810,16 +810,6 @@ class Patch:
                     data["agent.v2.step_by_step"] = cfg_get_base("agent.v2.step_by_step")
                     updated = True
 
-                # query_file is disabled by default from 2.8.18. Force the
-                # command off for existing profiles that explicitly stored it
-                # as enabled, while preserving any customized syntax/params.
-                plugins = data.get("plugins", {})
-                cmd_files = plugins.get("cmd_files", {}) if isinstance(plugins, dict) else {}
-                query_file = cmd_files.get("cmd.query_file") if isinstance(cmd_files, dict) else None
-                if isinstance(query_file, dict) and query_file.get("enabled") is not False:
-                    query_file["enabled"] = False
-                    updated = True
-
                 # Theme palette was simplified to one Dark and one Light theme.
                 # Normalize every historical variant so removed theme assets are
                 # never referenced by upgraded profiles. Unknown/custom values
@@ -828,7 +818,26 @@ class Patch:
                 new_theme = "light" if old_theme.startswith("light") else "dark"
                 if data.get("theme") != new_theme:
                     data["theme"] = new_theme
-                updated = True
+
+                for key in (
+                        "context.advanced.enabled",
+                        "context.advanced.threshold",
+                        "context.advanced.target",
+                        "context.advanced.notes_max_chars",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
+
+                # query_file is disabled from 2.8.18. Enforce this even for profiles
+                # already stamped with the current development version. Preserve all
+                # custom command parameters and change only the enabled flag.
+                plugins = data.get("plugins", {})
+                cmd_files = plugins.get("cmd_files", {}) if isinstance(plugins, dict) else {}
+                query_file = cmd_files.get("cmd.query_file") if isinstance(cmd_files, dict) else None
+                if isinstance(query_file, dict) and query_file.get("enabled") is not False:
+                    query_file["enabled"] = False
+                    updated = True
 
         # update file
         migrated = False

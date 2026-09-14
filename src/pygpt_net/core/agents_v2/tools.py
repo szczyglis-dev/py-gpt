@@ -235,6 +235,15 @@ class WorkerToolFactory:
                 name = str(item.get("name") or "").strip()
                 if not name or name in self.RESERVED or name in excluded:
                     continue
+                # Conversation-level continuation notes belong to the Primary
+                # Agent. Specialist workers keep their own rolling state in RAM
+                # and must not mutate the canonical memory_ctx row through the
+                # Memory plugin.
+                actor_id = str(getattr(worker, "id", "worker") or "worker")
+                if actor_id != "orchestrator" and name in {
+                    "memory_ctx_get", "memory_ctx_add", "memory_ctx_replace",
+                }:
+                    continue
                 description = str(item.get("desc") or name)
                 schema = json.loads(item.get("params") or "{}")
 

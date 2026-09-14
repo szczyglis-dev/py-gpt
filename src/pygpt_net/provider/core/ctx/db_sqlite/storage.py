@@ -428,9 +428,12 @@ class Storage:
             conn.execute(text("DELETE FROM ctx_item_partial_task"))
             conn.execute(text("DELETE FROM ctx_item_partial"))
             conn.execute(text("DELETE FROM ctx_item"))
+            # SQLite foreign-key enforcement is not guaranteed in legacy user
+            # databases, so clean per-conversation continuation memory explicitly.
+            conn.execute(text("DELETE FROM memory_ctx"))
             conn.execute(text("DELETE FROM ctx_meta"))
             if reset:  # reset table sequence (autoincrement)
-                conn.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('ctx_item_partial_task','ctx_item_partial','ctx_item','ctx_meta')"))
+                conn.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('ctx_item_partial_task','ctx_item_partial','ctx_item','memory_ctx','ctx_meta')"))
         return True
 
     def delete_meta_by_id(self, id: int) -> bool:
@@ -445,6 +448,7 @@ class Storage:
             conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.meta_id=:id)").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE meta_id=:id)").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_item WHERE meta_id = :id").bindparams(id=id))
+            conn.execute(text("DELETE FROM memory_ctx WHERE meta_id = :id").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_meta WHERE id = :id").bindparams(id=id))
         return True
 
@@ -458,9 +462,19 @@ class Storage:
         stmt = text("DELETE FROM ctx_item WHERE id = :id").bindparams(id=id)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            meta_row = conn.execute(
+                text("SELECT meta_id FROM ctx_item WHERE id = :id LIMIT 1").bindparams(id=id)
+            ).fetchone()
             conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT id FROM ctx_item_partial WHERE parent_item_id=:id)").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id=:id").bindparams(id=id))
             conn.execute(stmt)
+            if meta_row and meta_row[0] is not None:
+                # If the removed turn had already been rolled into continuation
+                # notes, those notes are no longer a faithful projection. Drop
+                # the checkpoint so the next request rebuilds from raw history.
+                conn.execute(text(
+                    "DELETE FROM memory_ctx WHERE meta_id = :meta_id AND last_item_id >= :item_id"
+                ).bindparams(meta_id=int(meta_row[0]), item_id=id))
         return True
 
     def delete_items_from(self, meta_id: int, item_id: int) -> bool:
@@ -482,6 +496,9 @@ class Storage:
             conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.id>=:item_id AND i.meta_id=:meta_id)").bindparams(item_id=item_id, meta_id=meta_id))
             conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE id>=:item_id AND meta_id=:meta_id)").bindparams(item_id=item_id, meta_id=meta_id))
             conn.execute(stmt)
+            conn.execute(text(
+                "DELETE FROM memory_ctx WHERE meta_id = :meta_id AND last_item_id >= :item_id"
+            ).bindparams(meta_id=meta_id, item_id=item_id))
         return True
 
     def delete_items_by_meta_id(self, id: int) -> bool:
@@ -499,6 +516,7 @@ class Storage:
             conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.meta_id=:id)").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE meta_id=:id)").bindparams(id=id))
             conn.execute(stmt)
+            conn.execute(text("DELETE FROM memory_ctx WHERE meta_id = :id").bindparams(id=id))
         return True
 
     def update_meta(self, meta: CtxMeta) -> bool:
@@ -1418,6 +1436,12 @@ class Storage:
                         SELECT id FROM ctx_meta WHERE group_id = :id
                     )
                 """).bindparams(id=id))
+                conn.execute(text("""
+                    DELETE FROM memory_ctx
+                    WHERE meta_id IN (
+                        SELECT id FROM ctx_meta WHERE group_id = :id
+                    )
+                """).bindparams(id=id))
                 conn.execute(text("DELETE FROM ctx_meta WHERE group_id = :id").bindparams(id=id))
             else:
                 conn.execute(text("""
@@ -1449,7 +1473,11 @@ class Storage:
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
-            conn.execute(text(f"DELETE FROM ctx_item WHERE meta_id = {meta_id}"))
+            conn.execute(text("DELETE FROM ctx_item WHERE meta_id = :meta_id").bindparams(meta_id=meta_id))
+            # Clearing a conversation must also clear its compact continuation
+            # state; otherwise the next message in the empty chat would inherit
+            # facts from content the user explicitly removed.
+            conn.execute(text("DELETE FROM memory_ctx WHERE meta_id = :meta_id").bindparams(meta_id=meta_id))
         return True
 
     def update_group(self, group: CtxGroup) -> bool:

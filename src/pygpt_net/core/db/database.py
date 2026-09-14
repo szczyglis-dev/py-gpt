@@ -187,6 +187,15 @@ class Database:
             'updated_at',
             'content',
         ]
+        columns["memory_ctx"] = [
+            'id',
+            'meta_id',
+            'updated_at',
+            'last_item_id',
+            'generation',
+            'revision',
+            'content',
+        ]
         columns["notepad"] = [
             'id',
             'idx',
@@ -359,6 +368,16 @@ class Database:
                 'columns': columns["memory_keys"],
                 'sort_by': columns["memory_keys"],
                 'search_fields': ['id', 'project_id', 'key', 'content'],
+                'timestamp_columns': ['updated_at'],
+                'json_columns': [],
+                'default_sort': 'updated_at',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'memory_ctx': {
+                'columns': columns["memory_ctx"],
+                'sort_by': columns["memory_ctx"],
+                'search_fields': ['id', 'meta_id', 'content'],
                 'timestamp_columns': ['updated_at'],
                 'json_columns': [],
                 'default_sort': 'updated_at',

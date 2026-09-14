@@ -23,6 +23,7 @@ from .core.camera import Camera
 # from .core.chain import Chain
 from .core.command import Command
 from .core.ctx import Ctx
+from .core.context_manager import ContextManager
 from .core.db import Database
 from .core.debug import Debug
 from .core.dispatcher import Dispatcher
@@ -76,6 +77,7 @@ class Core:
         self.config = Config(window)
         self.banners = Banners(window)
         self.ctx = Ctx(window)
+        self.context_manager = ContextManager(window)
         self.db = Database(window)
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)

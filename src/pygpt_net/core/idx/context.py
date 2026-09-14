@@ -66,7 +66,7 @@ class Context:
         model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
 
-        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)  # threshold and extra included
+        used_tokens = self.window.core.tokens.from_user(system_prompt, input_prompt)  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
         model_ctx = self.window.core.models.get_num_ctx(model_id)
 

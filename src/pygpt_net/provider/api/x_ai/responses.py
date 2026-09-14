@@ -82,6 +82,7 @@ class Responses:
         stream = context.stream
         history = context.history
         ctx = context.ctx or CtxItem()
+        self.window.core.context_manager.mark_request_generation(ctx)
 
         client = self.window.core.api.xai.get_client(context.mode, model_item)
 
@@ -129,8 +130,10 @@ class Responses:
         if has_images:
             store_messages = False
 
-        # previous_response_id from last history item or current ctx
-        prev_id = self._detect_previous_response_id(history, ctx)
+        # previous_response_id from last history item or current ctx. A context
+        # generation rollover deliberately breaks the server-side chain.
+        break_server_chain = self.window.core.context_manager.should_break_server_chain(history, ctx)
+        prev_id = None if break_server_chain else self._detect_previous_response_id(history, ctx)
 
         # Create chat session in SDK
         chat_kwargs: Dict[str, Any] = {
@@ -163,8 +166,11 @@ class Responses:
             history=history if prev_id is None else None,  # do not duplicate when chaining
         )
 
-        # If last turn contained client-side tool outputs, append them first
-        self._append_tool_results_from_ctx(chat, history)
+        # Client-side tool outputs are valid only as an immediate continuation of
+        # their matching call. After a generation rollover that call belongs to
+        # the old server chain, so replaying the result would orphan it.
+        if not break_server_chain:
+            self._append_tool_results_from_ctx(chat, history)
 
         # Append current user message (with images if any)
         self.append_current_user_sdk(
@@ -535,6 +541,8 @@ class Responses:
         Return last response id from history or current ctx when available.
         """
         try:
+            if self.window.core.context_manager.should_break_server_chain(history, ctx):
+                return None
             if history and len(history) > 0:
                 last = history[-1]
                 if last and last.msg_id:

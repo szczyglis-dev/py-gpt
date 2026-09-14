@@ -170,6 +170,17 @@ class Prompt:
         self.window.dispatch(event)
         sys_prompt = event.data['value']
 
+        # Advanced context handling is a core continuity layer, independent of
+        # whether the optional Memory plugin is enabled. It attaches compact
+        # per-conversation notes produced by older checkpointed turns.
+        sys_prompt = self.window.core.context_manager.prepare_system_prompt(
+            sys_prompt,
+            ctx=ctx,
+            mode=mode,
+            model=model,
+            internal=internal,
+        )
+
         # Experts are executed by LlamaIndex FunctionAgent/ReActAgent through the
         # Agents v2 runtime. Their tool schemas are owned by that runtime, so never
         # append the legacy PyGPT <tool> command syntax to an Expert system prompt.

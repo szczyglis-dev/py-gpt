@@ -96,6 +96,7 @@ class Responses:
             ctx = CtxItem()  # create empty context
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
+        self.window.core.context_manager.mark_request_generation(ctx)
 
         api = self.window.core.api.openai
         client = api.get_client(mode, model)
@@ -112,6 +113,7 @@ class Responses:
             user_name=user_name,
             multimodal_ctx=multimodal_ctx,
             is_expert_call=is_expert_call,  # use separated previous response ID for expert calls
+            current_ctx=ctx,
         )
         msg_tokens = self.window.core.tokens.from_messages(
             messages,
@@ -128,6 +130,12 @@ class Responses:
 
         # extra API kwargs
         response_kwargs = {}
+        if self.window.core.context_manager.enabled():
+            # The local checkpoint/generation mechanism normally rolls the
+            # conversation well before the hard model limit. ``auto`` is a
+            # provider-side last line of defence for server-only state (hosted
+            # tool items/reasoning) that cannot be estimated perfectly locally.
+            response_kwargs["truncation"] = "auto"
 
         # tools prepare
         tools = api.tools.prepare_responses_api(model, functions)
@@ -239,6 +247,7 @@ class Responses:
             user_name: Optional[str] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
             is_expert_call: bool = False,
+            current_ctx: Optional[CtxItem] = None,
     ) -> list:
         """
         Build list of chat messages
@@ -252,6 +261,7 @@ class Responses:
         :param user_name: username
         :param multimodal_ctx: Multimodal context
         :param is_expert_call: if True then expert call, use previous response ID from context
+        :param current_ctx: current durable context item, used by continuous-context generations
         :return: messages list
         """
         messages = []
@@ -285,8 +295,12 @@ class Responses:
                 max_ctx_tokens,
             )
 
+            break_server_chain = (
+                not is_expert_call
+                and self.window.core.context_manager.should_break_server_chain(items, current_ctx)
+            )
             has_response_id_in_last_item = False
-            if items and len(items) > 0:
+            if items and len(items) > 0 and not break_server_chain:
                 last_item = items[-1]
                 if last_item and last_item.msg_id:
                     has_response_id_in_last_item = True
@@ -335,7 +349,8 @@ class Responses:
                     is_last_item = item is items[-1] if items else False
 
                     # MCP approval request
-                    if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                    if (not break_server_chain and is_last_item and tool_call_native_enabled
+                            and item.extra and isinstance(item.extra, dict)):
                         if "mcp_approval_request" in item.extra and isinstance(item.extra["mcp_approval_request"], dict):
                             mcp_approval_request = item.extra["mcp_approval_request"]
                             if "id" in mcp_approval_request:
@@ -347,7 +362,8 @@ class Responses:
                                 messages.append(msg)
 
                     # tool calls
-                    if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                    if (not break_server_chain and is_last_item and tool_call_native_enabled
+                            and item.extra and isinstance(item.extra, dict)):
                         if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
                             for tool_call in item.extra["tool_calls"]:
                                 output_type = "function_call_output"
@@ -449,7 +465,8 @@ class Responses:
                                                 break
 
                     # --- previous message ID ---
-                    if (item.msg_id
+                    if (not break_server_chain
+                            and item.msg_id
                             and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
                         if is_expert_call:
                             self.prev_internal_response_id = item.msg_id

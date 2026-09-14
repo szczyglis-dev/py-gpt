@@ -111,19 +111,33 @@ class WorkerRuntime:
             language=language[:80],
             system_prompt=system_prompt or "",
             agent=None,
-            memory=Memory.from_defaults(
-                session_id=f"agents_v2_{self.runtime.run_id}_{wid}",
-                token_limit=self.runtime._memory_token_limit(),
-            ),
+            memory=None,
             tool_ctx=self.runtime._make_worker_ctx(wid),
         )
         llm = self.runtime.get_llm(stream=False, actor_id=wid)
+        worker_prompt = self.runtime._worker_prompt(
+            name, instruction, state.language, system_prompt or ""
+        )
+        worker_tools = self.runtime.tool_factory.build(state)
+        if self.runtime.window.core.context_manager.enabled():
+            state.memory = self.runtime.window.core.context_manager.build_agent_memory(
+                self.runtime,
+                actor_id=wid,
+                system_prompt=worker_prompt,
+                tools=worker_tools,
+                persistent=False,
+            )
+        else:
+            state.memory = Memory.from_defaults(
+                session_id=f"agents_v2_{self.runtime.run_id}_{wid}",
+                token_limit=self.runtime._memory_token_limit(),
+            )
         state.agent = self.runtime.build_agent(
             name=name,
             description=instruction[:512],
             llm=llm,
-            system_prompt=self.runtime._worker_prompt(name, instruction, state.language, system_prompt or ""),
-            tools=self.runtime.tool_factory.build(state),
+            system_prompt=worker_prompt,
+            tools=worker_tools,
         )
         self.runtime.workers[wid] = state
         if self.runtime.is_swarm_mode:

@@ -476,8 +476,13 @@ class AgentsV2Runtime:
     def _seed_artifact_seen(self):
         return self.artifact_api._seed_artifact_seen()
 
-    def get_llm(self, stream: bool = False, actor_id: str = "orchestrator"):
-        return self.context_api.get_llm(stream, actor_id)
+    def get_llm(
+            self,
+            stream: bool = False,
+            actor_id: str = "orchestrator",
+            allow_remote_tools: bool | None = None,
+    ):
+        return self.context_api.get_llm(stream, actor_id, allow_remote_tools)
 
     def build_agent(self, name: str, description: str, llm, system_prompt: str, tools):
         return self.context_api.build_agent(name, description, llm, system_prompt, tools)

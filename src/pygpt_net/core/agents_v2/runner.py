@@ -99,13 +99,30 @@ class Runner:
         rag_query = str(context.prompt or current_input)
         runtime.prefetch_rag_context(rag_query)
         llm = runtime.get_llm(stream=True, actor_id="orchestrator")
+        main_system_prompt = runtime.main_agent_prompt()
+        main_tools = runtime.main_agent_tools()
         main_agent = runtime.build_agent(
             name=runtime.main_agent_name,
             description=runtime.main_agent_description,
             llm=llm,
-            system_prompt=runtime.main_agent_prompt(),
-            tools=runtime.main_agent_tools(),
+            system_prompt=main_system_prompt,
+            tools=main_tools,
         )
+
+        main_memory = None
+        if runtime.window.core.context_manager.enabled():
+            # Bounded LlamaIndex Memory is required inside a single long agent
+            # run. Without it, top-level CTX_END checkpoints arrive too late: a
+            # tool-heavy workflow can exceed the provider context window before
+            # the user-visible turn has finished.
+            main_memory = runtime.window.core.context_manager.build_agent_memory(
+                runtime,
+                actor_id="orchestrator",
+                system_prompt=main_system_prompt,
+                tools=main_tools,
+                persistent=True,
+            )
+            await main_memory.aput_messages(history)
 
         handler = None
         stop_task = None
@@ -130,10 +147,16 @@ class Runner:
                 main_max_iterations += 1
             run_kwargs = {
                 "user_msg": main_input,
-                "chat_history": history,
                 "max_iterations": main_max_iterations,
                 "early_stopping_method": "generate",
             }
+            if main_memory is not None:
+                # Passing ``memory`` lets LlamaIndex manage the FIFO after every
+                # internal model/tool pass. The initial durable history was seeded
+                # through SafeAgentMemory above.
+                run_kwargs["memory"] = main_memory
+            else:
+                run_kwargs["chat_history"] = history
             runtime.window.core.api.logger.log_input(
                 type="llama_index.agent.run",
                 provider=str(getattr(runtime.model, "provider", "") or ""),

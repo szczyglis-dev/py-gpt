@@ -9,6 +9,7 @@ import re
 from typing import List, Optional
 
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
+from pygpt_net.core.context_manager.constants import SOURCE_ITEM_KWARG
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.types import MODE_AGENT_V2
@@ -201,7 +202,7 @@ class OrchestratorMemoryStore:
             clone.active_part = None
             clone.output = self._history_output(item)
             items.append(clone)
-        return items
+        return self.window.core.context_manager.filter_agents_v2_items(items, master_ctx)
 
     def count_history_tokens(
             self,
@@ -226,18 +227,27 @@ class OrchestratorMemoryStore:
             return 0, 0
 
         model_id = str(getattr(model, "id", "") or "")
+        notes_tokens = 0
+        try:
+            manager = self.window.core.context_manager
+            if manager.enabled():
+                notes = manager.notes_for_model(master_ctx, model=model)
+                if notes:
+                    notes_tokens = int(self.window.core.tokens.from_text(notes, model_id) or 0)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
         if max_tokens > 0:
             items = self.window.core.ctx.get_history(
                 items,
                 model_id,
                 MODE_AGENT_V2,
-                int(used_tokens or 0),
+                int(used_tokens or 0) + notes_tokens,
                 int(max_tokens or 0),
                 ignore_first=False,
             )
 
         from_ctx = self.window.core.tokens.from_ctx
-        total = sum(from_ctx(item, MODE_AGENT_V2, model_id) for item in items)
+        total = notes_tokens + sum(from_ctx(item, MODE_AGENT_V2, model_id) for item in items)
         return len(items), total
 
     def load_history(self, master_ctx: CtxItem, preset, model=None, current_input: str = "") -> List[ChatMessage]:
@@ -262,6 +272,18 @@ class OrchestratorMemoryStore:
                 # but the current user input must still be counted as USER, not
                 # accidentally as SYSTEM.
                 used_tokens = self.window.core.tokens.from_user("", current_input or "")
+                # Advanced Agents v2 injects compact continuation notes through
+                # the rolling Memory block rather than the system prompt. Reserve
+                # that space while selecting the initial replay tail so the first
+                # agent pass cannot overflow before Memory has a chance to flush.
+                try:
+                    manager = self.window.core.context_manager
+                    if manager.enabled():
+                        notes = manager.notes_for_model(master_ctx, model=model)
+                        if notes:
+                            used_tokens += int(self.window.core.tokens.from_text(notes, model_id) or 0)
+                except Exception as exc:
+                    self.window.core.debug.log(exc)
                 max_tokens = int(self.window.core.config.get("max_total_tokens") or 0)
                 model_ctx = int(getattr(model, "ctx", 0) or 0)
                 if model_ctx > 0 and (max_tokens <= 0 or max_tokens > model_ctx):
@@ -284,7 +306,19 @@ class OrchestratorMemoryStore:
                 messages.append(ChatMessage(role=MessageRole.USER, content=str(item.input)))
             output = str(getattr(item, "output", None) or "").strip()
             if output:
-                messages.append(ChatMessage(role=MessageRole.ASSISTANT, content=output))
+                source_id = 0
+                extra = getattr(item, "extra", None) or {}
+                if isinstance(extra, dict):
+                    try:
+                        source_id = int(extra.get("agents_v2_source_item_id") or 0)
+                    except (TypeError, ValueError):
+                        source_id = 0
+                kwargs = {SOURCE_ITEM_KWARG: source_id} if source_id > 0 else {}
+                messages.append(ChatMessage(
+                    role=MessageRole.ASSISTANT,
+                    content=output,
+                    additional_kwargs=kwargs,
+                ))
         return messages
 
 

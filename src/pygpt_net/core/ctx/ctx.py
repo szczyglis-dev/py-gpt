@@ -1842,8 +1842,10 @@ class Ctx:
         i = 0
         tokens = used_tokens
         context_tokens = 0
+        max_tokens = self.window.core.context_manager.fit_history_limit(model, max_tokens)
         from_ctx = self.window.core.tokens.from_ctx
-        expanded_items = self.expand_history(history_items, target_mode=mode)
+        source_items = self.window.core.context_manager.filter_history(history_items)
+        expanded_items = self.expand_history(source_items, target_mode=mode)
         for item in reversed(expanded_items):
             num = from_ctx(item, mode, model)
             new_total = tokens + num
@@ -1877,10 +1879,12 @@ class Ctx:
         """
         items = []
         tokens = used_tokens
+        max_tokens = self.window.core.context_manager.fit_history_limit(model, max_tokens)
         # Ignore the current durable turn before expansion. Otherwise a single
         # turn containing multiple partials would accidentally skip only its last
         # protocol fragment instead of the whole current item.
         source_items = history_items[:-1] if ignore_first and history_items else history_items
+        source_items = self.window.core.context_manager.filter_history(source_items)
         expanded_items = self.expand_history(source_items, target_mode=mode)
         from_ctx = self.window.core.tokens.from_ctx
         for item in reversed(expanded_items):

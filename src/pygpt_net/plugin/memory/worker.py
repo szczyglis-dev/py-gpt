@@ -165,6 +165,14 @@ class Worker(BaseWorker):
                     elif name == "memory_key_remove":
                         keys = self.get_memory_keys_param(item)
                         result = self.plugin.remove_memory_keys(keys, project_id)
+                    elif name == "memory_ctx_get":
+                        result = self.plugin.get_ctx_memory(self.ctx)
+                    elif name == "memory_ctx_add":
+                        value = str(self.get_param(item, "text", "") or "")
+                        result = self.plugin.add_ctx_memory(self.ctx, value)
+                    elif name == "memory_ctx_replace":
+                        value = str(self.get_param(item, "text", "") or "")
+                        result = self.plugin.replace_ctx_memory(self.ctx, value)
                     else:
                         continue
                     responses.append(self.make_response(item, result))
