@@ -9,7 +9,6 @@
 # Updated Date: 2026.09.11 23:55:00                  #
 # ================================================== #
 
-import copy
 import threading
 
 from PySide6.QtCore import Signal, Slot
@@ -49,9 +48,11 @@ class ExpertWorker(BaseWorker):
                     continue
 
                 params = item.get("params") if isinstance(item.get("params"), dict) else {}
+                # Keep the tool result compact: do not echo the Expert instruction
+                # or caller-supplied system prompt back into the model context.
                 request = {
                     "cmd": TOOL_EXPERT_CALL_NAME,
-                    "params": copy.deepcopy(params),
+                    "id": str(params.get("id") or "").strip(),
                 }
                 try:
                     result = self._call_expert(params)
