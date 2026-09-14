@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 22:22:00                  #
+# Updated Date: 2026.09.15 01:05:00                  #
 # ================================================== #
 
 from functools import partial
@@ -64,6 +64,11 @@ class Input:
         files_uploaded = self.setup_attachments_uploaded()
         files_ctx = self.setup_attachments_ctx()
 
+        # Create metadata/capability nodes before the tab widget. Only the
+        # capability icons are moved into the tab bar row; metadata stays in
+        # its existing footer position.
+        self._setup_footer_nodes()
+
         self.window.ui.tabs['input'] = InputTabs(self.window)
         tabs = self.window.ui.tabs['input']
         tabs.setMinimumHeight(self.min_height_input_tab)
@@ -78,6 +83,11 @@ class Input:
         tabs.setTabIcon(1, QIcon(":/icons/attachment.svg"))
         tabs.setTabIcon(2, upload_icon)
         tabs.setTabIcon(3, upload_icon)
+
+        # Keep only the compact capability/tool icons in the same row as the
+        # Input / Attachments / Uploaded tabs. Chat metadata (plugins, mode,
+        # model, token/context counter) remains in the footer below the input.
+        tabs.set_header_widget(self._setup_tabs_icons())
 
         widget = QWidget()
         layout = QVBoxLayout(widget)
@@ -190,8 +200,9 @@ class Input:
 
         Row 1:
         - left: chat metadata,
-        - center: capability/tool icons,
         - right: Plain text + Stream / Enter / Shift+Enter / Send.
+
+        Capability/tool icons are displayed in the input tab bar row.
 
         Row 2:
         - left: application status,
@@ -201,21 +212,15 @@ class Input:
         """
         nodes = self.window.ui.nodes
 
-        self._setup_footer_nodes()
-
-        # First row: metadata on the left, capability/tool icons in the
-        # visual center and input controls on the right.  Keep both side
-        # columns at the same minimum width so the icon group is centered
-        # independently of the controls on either side.
         metadata_layout = self._setup_footer_metadata()
-        icons_layout = self._setup_footer_icons()
         buttons_layout = self.setup_buttons()
 
+        # Preserve the existing metadata/control positions. The former center
+        # column is now just flexible space because its icons live above.
         top_layout = QGridLayout()
         top_layout.setContentsMargins(0, 0, 2, 0)
         top_layout.setHorizontalSpacing(8)
         top_layout.addLayout(metadata_layout, 0, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
-        top_layout.addLayout(icons_layout, 0, 1, alignment=Qt.AlignCenter)
         top_layout.addLayout(buttons_layout, 0, 2, alignment=Qt.AlignRight | Qt.AlignVCenter)
 
         side_width = max(metadata_layout.sizeHint().width(), buttons_layout.sizeHint().width())
@@ -358,12 +363,17 @@ class Input:
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         return layout
 
-    def _setup_footer_icons(self) -> QHBoxLayout:
-        """Build the capability/tool icon group for the row center."""
+    def _setup_tabs_icons(self) -> QWidget:
+        """Build capability/tool icons for the input tab bar row."""
         nodes = self.window.ui.nodes
 
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget()
+        widget.setObjectName('input-tabs-icons')
+        widget.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+
+        layout = QHBoxLayout(widget)
+        # +2 px bottom margin keeps the icons optically aligned with the tabs.
+        layout.setContentsMargins(6, 0, 4, 2)
         layout.setSpacing(5)
         layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.video.capture'], alignment=Qt.AlignVCenter)
@@ -371,8 +381,10 @@ class Input:
         layout.addWidget(nodes['icon.audio.output'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.interpreter'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.indexer'], alignment=Qt.AlignVCenter)
-        layout.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-        return layout
+        layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+        nodes['chat.icons.header'] = widget
+        return widget
 
     def setup_buttons(self) -> QHBoxLayout:
         """

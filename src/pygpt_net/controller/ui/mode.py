@@ -370,9 +370,17 @@ class Mode:
         return event.data['value']
 
     def show_chat_footer(self):
-        """Show chat footer"""
-        self.window.ui.nodes['chat.footer'].setVisible(True)
+        """Show chat footer and tab-row capability icons."""
+        nodes = self.window.ui.nodes
+        nodes['chat.footer'].setVisible(True)
+        icons = nodes.get('chat.icons.header')
+        if icons is not None:
+            icons.setVisible(True)
 
     def hide_chat_footer(self):
-        """Hide chat footer"""
-        self.window.ui.nodes['chat.footer'].setVisible(False)
+        """Hide chat footer and tab-row capability icons."""
+        nodes = self.window.ui.nodes
+        nodes['chat.footer'].setVisible(False)
+        icons = nodes.get('chat.icons.header')
+        if icons is not None:
+            icons.setVisible(False)
