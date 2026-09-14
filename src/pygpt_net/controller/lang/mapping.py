@@ -349,7 +349,7 @@ class Mapping:
         menu_title['menu.lang'] = 'menu.lang'
         menu_title['menu.debug'] = 'menu.debug'
         menu_title['menu.theme'] = 'menu.theme'
-        menu_title['theme.theme'] = 'menu.theme'
+        menu_title['theme.theme'] = 'menu.theme.color_theme'
         menu_title['theme.syntax'] = 'menu.theme.syntax'
         menu_title['theme.density'] = 'menu.theme.density'
         menu_title['theme.style'] = 'menu.theme.style'

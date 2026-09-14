@@ -48,7 +48,7 @@ class Theme:
         m['theme.layout.density'] = {}
         m['menu.theme'] = QMenu(trans("menu.theme"), w)
 
-        m['theme.theme'] = QMenu(trans("menu.theme"), w)
+        m['theme.theme'] = QMenu(trans("menu.theme.color_theme"), w)
 
         m['theme.style'] = QMenu(trans("menu.theme.style"), w)
 
