@@ -103,10 +103,10 @@ QListView::item {{
   min-height: 20px;
 }}
 
-/* Subtle hover for list/tree items (non-selected) */
+/* Light list/tree hover surface. */
 QListView::item:hover:!selected,
 QTreeView::item:hover:!selected {{
-  background-color: #f6f8fb;
+  background-color: #ebebeb;
 }}
 
 QCalendarWidget QWidget {{
@@ -162,6 +162,7 @@ QRadioButton::indicator:unchecked {{
 }}
 QHeaderView::section {{
   text-transform: none;
+  background-color: #efefef;
 }}
 
 QMenu::indicator {{
@@ -655,7 +656,16 @@ QMenuBar::item:disabled {{
   color: #818181;
 }}
 
-/* Context list: hovered row uses a white surface. */
+/* Context list uses the same light hover surface as other lists. */
 .ctx-list::item:hover:!selected {{
-  background-color: #fff;
+  background-color: #ebebeb;
+}}
+
+/* Files tool: selected rows stay light in the light theme. */
+.file-explorer QTreeView::item:selected,
+.file-explorer QTreeView::item:selected:focus {{
+  background-color: #dfe0e3;
+  selection-background-color: #dfe0e3;
+  color: #000000;
+  selection-color: #000000;
 }}
