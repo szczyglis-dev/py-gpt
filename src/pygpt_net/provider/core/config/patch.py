@@ -810,6 +810,16 @@ class Patch:
                     data["agent.v2.step_by_step"] = cfg_get_base("agent.v2.step_by_step")
                     updated = True
 
+                # query_file is disabled by default from 2.8.18. Force the
+                # command off for existing profiles that explicitly stored it
+                # as enabled, while preserving any customized syntax/params.
+                plugins = data.get("plugins", {})
+                cmd_files = plugins.get("cmd_files", {}) if isinstance(plugins, dict) else {}
+                query_file = cmd_files.get("cmd.query_file") if isinstance(cmd_files, dict) else None
+                if isinstance(query_file, dict) and query_file.get("enabled") is not False:
+                    query_file["enabled"] = False
+                    updated = True
+
                 # Theme palette was simplified to one Dark and one Light theme.
                 # Normalize every historical variant so removed theme assets are
                 # never referenced by upgraded profiles. Unknown/custom values

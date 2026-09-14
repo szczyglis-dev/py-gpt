@@ -157,7 +157,7 @@ class Config(BaseConfig):
                     "required": True,
                 },
             ],
-            enabled=True,
+            enabled=False,
             description="Enable: Query file with Llama-index",
             tab="indexing",
         )

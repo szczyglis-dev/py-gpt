@@ -1612,13 +1612,76 @@ class Ctx:
             })
         return outputs
 
-    def expand_history_item(self, item: CtxItem) -> List[CtxItem]:
+    def _compact_agents_v2_history_item(self, item: CtxItem) -> CtxItem:
+        """Return a mode-neutral history row for a durable Agents v2 turn.
+
+        Agents v2 stores a rich workflow trace in ``ctx_item_partial`` / task
+        rows so the UI can reconstruct tool calls, worker activity and interim
+        Primary Agent text after reload.  That trace is *not* ordinary chat
+        history and must not leak into another mode when the user switches the
+        same conversation to Chat/Audio/Research/etc.  Replaying it there can
+        inject huge tool inputs/results (for example entire files) and make both
+        the real request and the context-token counter grow by hundreds of
+        thousands of tokens.
+
+        Cross-mode history therefore exposes only the user-visible turn: the
+        original user input plus the authoritative final Agents v2 answer.  For
+        an interrupted turn without a final answer we keep textual partials as a
+        best-effort fallback, but never the hidden RAG input or tool protocol.
+        """
+        clone = copy.copy(item)
+        clone.parts = []
+        clone.active_part = None
+        clone.turn_parent = None
+        clone.turn_part = None
+        clone.turn_previous_part = None
+        clone.turn_continuation = False
+        clone.prev_ctx = None
+        clone.cmds = []
+        clone.cmds_before = []
+        clone.tool_calls = []
+        # Provider-side continuation IDs belong to the Agents v2 execution
+        # path and must never make another mode resume that protocol implicitly.
+        clone.msg_id = None
+        clone.response = None
+        clone.thread = None
+        clone.hidden_input = None
+        clone.hidden_output = None
+        clone.input = item.input
+
+        output = item.get_agents_v2_response_output()
+        if output is None:
+            output = item.get_agents_v2_final_output()
+        if output is None:
+            output = item.compose_output() if item.parts else item.output
+        clone.output = output
+
+        clone.extra = copy.deepcopy(item.extra) if isinstance(item.extra, dict) else {}
+        clone.extra.pop("tool_calls", None)
+        clone.extra.pop("tool_output", None)
+        clone.extra.pop("prev_tool_calls", None)
+        return clone
+
+    def expand_history_item(
+            self,
+            item: CtxItem,
+            target_mode: Optional[str] = None,
+    ) -> List[CtxItem]:
         """Project one durable turn to provider-facing protocol segments.
 
         A DB partial is a text fragment and may contain many sequential tool
         rounds. Those rounds are expanded only in memory so providers still see
         assistant-call -> tool-result ordering without extra ctx_item_partial rows.
+
+        Agents v2 is special: its durable partial/task rows describe an internal
+        multi-agent workflow, not portable provider history.  When another mode
+        consumes the same conversation, collapse those turns to user input +
+        final answer instead of replaying the internal trace.
         """
+        if (str(getattr(item, "mode", "") or "") == MODE_AGENT_V2
+                and target_mode not in (None, MODE_AGENT_V2)):
+            return [self._compact_agents_v2_history_item(item)]
+
         parts = list(getattr(item, "parts", None) or [])
         if not parts:
             return [item]
@@ -1747,11 +1810,15 @@ class Ctx:
             expanded[-1].hidden_output = item.hidden_output
         return expanded or [item]
 
-    def expand_history(self, history_items: List[CtxItem]) -> List[CtxItem]:
+    def expand_history(
+            self,
+            history_items: List[CtxItem],
+            target_mode: Optional[str] = None,
+    ) -> List[CtxItem]:
         """Project durable context turns to provider-facing history items."""
         result: List[CtxItem] = []
         for item in history_items:
-            result.extend(self.expand_history_item(item))
+            result.extend(self.expand_history_item(item, target_mode=target_mode))
         return result
 
     def count_history(
@@ -1776,7 +1843,7 @@ class Ctx:
         tokens = used_tokens
         context_tokens = 0
         from_ctx = self.window.core.tokens.from_ctx
-        expanded_items = self.expand_history(history_items)
+        expanded_items = self.expand_history(history_items, target_mode=mode)
         for item in reversed(expanded_items):
             num = from_ctx(item, mode, model)
             new_total = tokens + num
@@ -1814,7 +1881,7 @@ class Ctx:
         # turn containing multiple partials would accidentally skip only its last
         # protocol fragment instead of the whole current item.
         source_items = history_items[:-1] if ignore_first and history_items else history_items
-        expanded_items = self.expand_history(source_items)
+        expanded_items = self.expand_history(source_items, target_mode=mode)
         from_ctx = self.window.core.tokens.from_ctx
         for item in reversed(expanded_items):
             cost = from_ctx(item, mode, model)

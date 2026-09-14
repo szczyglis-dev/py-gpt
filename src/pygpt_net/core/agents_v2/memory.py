@@ -31,6 +31,27 @@ class OrchestratorMemoryStore:
     def get_meta(self, master_ctx: CtxItem, preset):
         return self.window.core.ctx.get_or_create_slave_meta(master_ctx, self._preset_key(preset))
 
+    def find_meta(self, master_ctx: CtxItem, preset):
+        """Return existing Agents v2 memory meta without creating a new one.
+
+        The live token counter is refreshed very frequently while the user types.
+        It must be able to inspect the same hidden Primary Agent memory that a run
+        will load, but merely displaying token usage must never create DB rows.
+        """
+        if master_ctx is None or master_ctx.meta is None:
+            return None
+        try:
+            values = self.window.core.ctx.provider.get_meta_by_root_id_and_preset_id(
+                master_ctx.meta.id,
+                self._preset_key(preset),
+            )
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+            return None
+        if not values:
+            return None
+        return next(iter(values.values()))
+
     @staticmethod
     def _compact_legacy_output(value: str) -> str:
         """Extract one useful assistant answer from pre-fix full-trace memory."""
@@ -157,6 +178,68 @@ class OrchestratorMemoryStore:
             output = self._compact_legacy_output(output)
         return output.strip()
 
+    def _projected_items(self, master_ctx: CtxItem, preset, create_meta: bool = True) -> List[CtxItem]:
+        """Return disposable model-facing memory rows for one conversation/preset.
+
+        Durable source turns intentionally retain tool calls/results for UI reload
+        and workflow inspection.  Agents v2 does *not* replay that protocol trace
+        on the next user turn.  Its actual long-term history is the hidden memory
+        stream projected here: user input plus Primary Agent prose and persisted
+        worker final responses.
+        """
+        meta = self.get_meta(master_ctx, preset) if create_meta else self.find_meta(master_ctx, preset)
+        if meta is None or meta.id is None:
+            return []
+        stored_items = self.window.core.ctx.provider.load(meta.id)
+
+        items: List[CtxItem] = []
+        for item in stored_items:
+            clone = copy.copy(item)
+            # Source partial/task rows are intentionally excluded.  _history_output
+            # has already projected only the text that the Primary Agent receives.
+            clone.parts = []
+            clone.active_part = None
+            clone.output = self._history_output(item)
+            items.append(clone)
+        return items
+
+    def count_history_tokens(
+            self,
+            master_ctx: CtxItem,
+            preset,
+            model,
+            used_tokens: int = 0,
+            max_tokens: int = 0,
+    ) -> tuple[int, int]:
+        """Count the history that Agents v2 will really send on the next run.
+
+        This deliberately uses the hidden Primary Agent memory projection instead
+        of ``Ctx.expand_history()``.  The latter expands durable tool-call/task
+        records and is correct for normal Chat provider history, but grossly
+        over-counts Agents v2 because those persisted tool payloads are not replayed
+        by ``Runner``.
+        """
+        if master_ctx is None or model is None:
+            return 0, 0
+        items = self._projected_items(master_ctx, preset, create_meta=False)
+        if not items:
+            return 0, 0
+
+        model_id = str(getattr(model, "id", "") or "")
+        if max_tokens > 0:
+            items = self.window.core.ctx.get_history(
+                items,
+                model_id,
+                MODE_AGENT_V2,
+                int(used_tokens or 0),
+                int(max_tokens or 0),
+                ignore_first=False,
+            )
+
+        from_ctx = self.window.core.tokens.from_ctx
+        total = sum(from_ctx(item, MODE_AGENT_V2, model_id) for item in items)
+        return len(items), total
+
     def load_history(self, master_ctx: CtxItem, preset, model=None, current_input: str = "") -> List[ChatMessage]:
         """Load Primary Agent history, including persisted specialist finals by partial.
 
@@ -166,24 +249,19 @@ class OrchestratorMemoryStore:
         restores the same chronology the Primary Agent saw during the live run:
         Primary Agent prose -> worker_context -> following Primary Agent prose.
         """
-        meta = self.get_meta(master_ctx, preset)
-        stored_items = self.window.core.ctx.provider.load(meta.id) if meta and meta.id is not None else []
-
         # Materialize enriched output on disposable copies *before* token-window
         # selection.  Otherwise max_total_tokens would count only the compact final
         # answer while the actual chat_history also contained worker responses.
-        items = []
-        for item in stored_items:
-            clone = copy.copy(item)
-            clone.parts = []
-            clone.active_part = None
-            clone.output = self._history_output(item)
-            items.append(clone)
+        items = self._projected_items(master_ctx, preset, create_meta=True)
 
         if model is not None and items:
             try:
                 model_id = model.id
-                used_tokens = self.window.core.tokens.from_user(current_input or "", "")
+                # ``from_user`` expects (system_prompt, input_prompt).  This
+                # history-window estimate has no system prompt available yet,
+                # but the current user input must still be counted as USER, not
+                # accidentally as SYSTEM.
+                used_tokens = self.window.core.tokens.from_user("", current_input or "")
                 max_tokens = int(self.window.core.config.get("max_total_tokens") or 0)
                 model_ctx = int(getattr(model, "ctx", 0) or 0)
                 if model_ctx > 0 and (max_tokens <= 0 or max_tokens > model_ctx):

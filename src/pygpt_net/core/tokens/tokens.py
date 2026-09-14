@@ -310,7 +310,30 @@ class Tokens:
         max_to_check = max_current - threshold
 
         ctx_len_all = self.window.core.ctx.count_items()
-        ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model_id, mode, used_tokens, max_to_check)
+        if mode == MODE_AGENT_V2:
+            # Agents v2 keeps a dedicated hidden Primary Agent memory. Durable
+            # conversation partials/tasks retain the complete workflow trace for
+            # UI reload/debugging, including tool inputs/results, but Runner does
+            # not replay those payloads on the next turn. Using generic
+            # count_prompt_items() here therefore makes the live counter explode
+            # after file/tool-heavy runs (often to hundreds of thousands of
+            # tokens) even though the real next request is much smaller.
+            try:
+                ctx_len, ctx_tokens = self.window.core.agents_v2.count_current_history_tokens(
+                    model=model_data,
+                    used_tokens=used_tokens,
+                    max_tokens=max_to_check,
+                )
+            except Exception as exc:
+                self.window.core.debug.log(exc)
+                ctx_len, ctx_tokens = 0, 0
+        else:
+            ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(
+                model_id,
+                mode,
+                used_tokens,
+                max_to_check,
+            )
 
         if not self.window.core.config.get('use_context'):
             ctx_tokens = 0

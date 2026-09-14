@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 14:58:00                  #
+# Updated Date: 2026.09.14 17:52:00                  #
 # ================================================== #
 
 
@@ -50,6 +50,39 @@ STEP_BY_STEP_BRIEF = (
 )
 
 
+AGENT_RUNTIME_POLICY = r"""
+<runtime_policy>
+- Prefer existing context over asking the user to repeat information that is already available.
+- Inspect relevant files, state, or evidence before modifying code or making consequential changes.
+- Search references and dependencies before changing public APIs, shared behavior, or cross-component contracts.
+- Make the smallest changes that fully satisfy the request and remain consistent with the existing architecture.
+- Do not modify unrelated files or behavior without a concrete reason.
+- Validate relevant outputs after changes and perform focused checks/tests whenever practical.
+- If a tool result or available context is sufficient to continue safely, proceed without asking for unnecessary confirmation.
+- During longer work, report concise factual progress and important discoveries without exposing hidden chain-of-thought.
+</runtime_policy>
+
+<context_policy>
+Use available context in this priority order unless the current task requires otherwise:
+1. Current user request.
+2. Current conversation and already established decisions.
+3. Active project/runtime context and shared attachments.
+4. Retrieved project knowledge or RAG context.
+5. Available long-term user/project memory.
+6. General model knowledge.
+Do not ask the user for information that is already reliably available in a higher-priority context source.
+</context_policy>
+
+<tool_policy>
+- Use tools when they materially improve correctness, verification, retrieval, or execution.
+- Do not repeat a tool call when the required result is already available and still valid.
+- For repository/code tasks, inspect/search the codebase before guessing file locations, APIs, or dependencies.
+- Prefer focused tool calls and targeted retrieval over broad or redundant operations.
+- Never fabricate tool results, verification, files, tests, external facts, or completed actions.
+</tool_policy>
+""".strip()
+
+
 class _OptionalStepByStepPrompt(str):
     """String prompt with an alternate step-by-step-enabled rendering."""
 
@@ -73,6 +106,15 @@ class _OptionalStepByStepPrompt(str):
 
 def _render_base_prompt(prompt: str, *, default_brief: str = "") -> str:
     """Build the default prompt while retaining its optional step-by-step form."""
+    marker = "\nADDITIONAL USER/PRESET INSTRUCTION\n"
+    if marker in prompt:
+        prompt = prompt.replace(
+            marker,
+            f"\n{AGENT_RUNTIME_POLICY}\n{marker}",
+            1,
+        )
+    else:
+        prompt = f"{prompt.rstrip()}\n\n{AGENT_RUNTIME_POLICY}"
     return _OptionalStepByStepPrompt(prompt, default_brief)
 
 
