@@ -38,6 +38,7 @@ class CalendarSelect(QCalendarWidget):
         self._header_background_color = QColor()
         self._header_font_bold = False
         self._hover_day_background_color = QColor()
+        self._hover_today_text_color = QColor()
         self.currentYear = QDate.currentDate().year()
         self.currentMonth = QDate.currentDate().month()
         self.currentDay = QDate.currentDate().day()
@@ -186,6 +187,19 @@ class CalendarSelect(QCalendarWidget):
         set_hover_day_background_color,
     )
 
+    def get_hover_today_text_color(self):
+        return self._hover_today_text_color
+
+    def set_hover_today_text_color(self, color):
+        self._hover_today_text_color = QColor(color)
+        self.updateCells()
+
+    hoverTodayTextColor = Property(
+        QColor,
+        get_hover_today_text_color,
+        set_hover_today_text_color,
+    )
+
     def set_tab(self, tab: Tab):
         """
         Set tab
@@ -275,7 +289,9 @@ class CalendarSelect(QCalendarWidget):
                 painter.save()
                 painter.fillRect(rect, self._hover_day_background_color)
                 if date == self._today:
-                    if self._today_text_color.isValid():
+                    if self._hover_today_text_color.isValid():
+                        painter.setPen(self._hover_today_text_color)
+                    elif self._today_text_color.isValid():
                         painter.setPen(self._today_text_color)
                     if self._today_font_bold:
                         font = painter.font()

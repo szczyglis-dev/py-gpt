@@ -85,7 +85,11 @@ QPushButton {{
 QPushButton:hover {{
   background-color: rgba(255, 255, 255, 15);
 }}
+QHeaderView {{
+  background-color: #202020;
+}}
 QHeaderView::section {{
+  background-color: #202020;
   text-transform: none;
 }}
 
@@ -155,6 +159,7 @@ QComboBox::item:checked {{
   qproperty-headerBackgroundColor: transparent;
   qproperty-headerFontBold: true;
   qproperty-hoverDayBackgroundColor: #1e1e1e;
+  qproperty-hoverTodayTextColor: #ffffff;
 }}
 QCalendarWidget QAbstractItemView::item:selected:focus,
 QCalendarWidget QAbstractItemView::item:selected {{
