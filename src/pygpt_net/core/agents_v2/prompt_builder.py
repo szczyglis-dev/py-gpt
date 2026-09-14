@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.15 00:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -31,6 +31,7 @@ class RuntimePromptBuilder:
             self,
             base_prompt: str = "",
             additional_system_prompt: Optional[str] = None,
+            include_project_rules: bool = False,
     ) -> str:
         """Compose the shared Agents v2 runtime envelope around an actor prompt.
 
@@ -69,6 +70,21 @@ class RuntimePromptBuilder:
         if rag_context:
             rag_context = "\n\n" + rag_context
 
+        project_rules = ""
+        if include_project_rules:
+            if not bool(getattr(self.runtime, "project_rules_loaded", False)):
+                self.runtime.project_rules_text = self.runtime.context_api.load_project_rules()
+                self.runtime.project_rules_loaded = True
+            rules = str(getattr(self.runtime, "project_rules_text", "") or "").strip()
+            if rules:
+                project_rules = (
+                    "\n\n<additional_project_rules source=\"%workdir%/AGENTS.md\">\n"
+                    "The following project-specific rules apply to the main agent for this "
+                    "workdir. Follow them in addition to the other system instructions.\n"
+                    + rules
+                    + "\n</additional_project_rules>"
+                )
+
         base = resolve_step_by_step_prompt(
             base_prompt,
             bool(getattr(self.runtime, "step_by_step_enabled", False)),
@@ -80,23 +96,37 @@ class RuntimePromptBuilder:
             + runtime_environment
             + rag_context
             + "\n\n<additional_system_prompt>\n" + additional + "\n</additional_system_prompt>"
+            + project_rules
         )
 
     def _compose_main_agent_prompt(self, base_prompt: str) -> str:
         """Backward-compatible wrapper for top-level Chat with Agents prompts."""
-        return self.runtime.compose_agent_system_prompt(base_prompt=base_prompt)
+        return self.compose_agent_system_prompt(
+            base_prompt=base_prompt,
+            include_project_rules=True,
+        )
 
     def primary_agent_prompt(self) -> str:
-        return self.runtime.compose_agent_system_prompt(base_prompt=PRIMARY_AGENT_BASE_PROMPT)
+        return self.compose_agent_system_prompt(
+            base_prompt=PRIMARY_AGENT_BASE_PROMPT,
+            include_project_rules=True,
+        )
 
     def orchestrator_prompt(self) -> str:
-        return self.runtime.compose_agent_system_prompt(base_prompt=ORCHESTRATOR_BASE_PROMPT)
+        return self.compose_agent_system_prompt(
+            base_prompt=ORCHESTRATOR_BASE_PROMPT,
+            include_project_rules=True,
+        )
 
     def swarm_prompt(self) -> str:
-        return self.runtime.compose_agent_system_prompt(base_prompt=SWARM_BASE_PROMPT)
+        return self.compose_agent_system_prompt(
+            base_prompt=SWARM_BASE_PROMPT,
+            include_project_rules=True,
+        )
 
     def main_agent_prompt(self) -> str:
         """Return the system prompt declared by the selected runtime strategy."""
-        return self.runtime.compose_agent_system_prompt(
+        return self.compose_agent_system_prompt(
             base_prompt=self.runtime.strategy.main_prompt,
+            include_project_rules=True,
         )

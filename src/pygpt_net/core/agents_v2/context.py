@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.15 00:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -28,6 +28,47 @@ class RuntimeContext:
 
     def __init__(self, runtime):
         self.runtime = runtime
+
+    def load_project_rules(self) -> str:
+        """Load optional AGENTS.md rules from the active conversation workdir.
+
+        The file is resolved against the CtxItem/project that started this runtime,
+        not against the project currently selected in the UI. Rules are runtime-only
+        and are intentionally exposed only to the top-level Chat with Agents actor.
+        """
+        ctx = getattr(self.runtime.context, "ctx", None)
+        try:
+            filesystem = self.runtime.window.core.filesystem
+            workdir = filesystem.get_data_dir(ctx=ctx, create=False)
+            path = os.path.join(workdir, "AGENTS.md")
+            if not os.path.isfile(path):
+                return ""
+
+            # AGENTS.md must physically remain inside the active workdir. This also
+            # prevents a symlink named AGENTS.md from silently importing rules from
+            # outside the project.
+            security = self.runtime.window.core.security
+            if not security.is_in_workdir(path, ctx=ctx):
+                self.runtime.verbose_log("PROJECT RULES SKIP", {
+                    "path": path,
+                    "reason": "AGENTS.md resolves outside the active workdir",
+                })
+                return ""
+
+            with open(path, "r", encoding="utf-8-sig", errors="replace") as handle:
+                rules = handle.read().strip()
+
+            if rules:
+                self.runtime.verbose_log("PROJECT RULES LOAD", {
+                    "path": path,
+                    "source": "%workdir%/AGENTS.md",
+                })
+                self.runtime.verbose_text("PROJECT RULES", rules)
+            return rules
+        except Exception as exc:
+            self.runtime.window.core.debug.log(exc)
+            self.runtime.verbose_log("PROJECT RULES ERROR", exc)
+            return ""
 
     def has_rag_index(self) -> bool:
         """Return True when the selected preset/runtime index can be queried."""

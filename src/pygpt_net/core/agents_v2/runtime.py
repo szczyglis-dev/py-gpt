@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 20:45:00                  #
+# Updated Date: 2026.09.15 00:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -205,6 +205,12 @@ class AgentsV2Runtime:
         self._persist_input_images()
         self.shared_context_text = self._build_shared_context()
         self.runtime_system_context = self._build_runtime_system_context()
+        # Project rules are loaded lazily by main_agent_prompt(), immediately
+        # before the first top-level agent input. Keeping the cache here avoids
+        # touching AGENTS.md in runtimes (for example Experts) that reuse this
+        # backend but do not use the Chat with Agents main prompt.
+        self.project_rules_text = ""
+        self.project_rules_loaded = False
         # BridgeWorker has already executed POST_PROMPT_END before Agents v2 is
         # started. Consume that final prompt verbatim so every enabled plugin
         # (Real Time, Files I/O, Extra Prompt, Vision, etc.) contributes exactly
