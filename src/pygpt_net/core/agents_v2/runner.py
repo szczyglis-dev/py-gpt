@@ -27,6 +27,10 @@ class Runner:
     def __init__(self, window=None):
         self.window = window
         self.last_error: Optional[Exception] = None
+        # Debug inspector hooks. current_runtime is live only for an active turn;
+        # last_runtime remains available after completion for post-run inspection.
+        self.current_runtime = None
+        self.last_runtime = None
 
     def get_error(self):
         return self.last_error
@@ -55,9 +59,15 @@ class Runner:
             except Exception:
                 pass
             return True
+        finally:
+            self.current_runtime = None
 
     async def _run(self, context, extra, signals, emitter: RuntimeEmitter):
         runtime = AgentsV2Runtime(self.window, context, extra, signals, emitter)
+        self.current_runtime = runtime
+        self.last_runtime = runtime
+        runtime.debug_event_count = 0
+        runtime.debug_event_types = {}
         emitter.begin()
         current_input = str(getattr(context.ctx, "input", "") or context.prompt or "")
         runtime.verbose_text("USER INPUT", current_input)
@@ -160,6 +170,8 @@ class Runner:
                 event_count += 1
                 event_name = type(event).__name__
                 event_types[event_name] = event_types.get(event_name, 0) + 1
+                runtime.debug_event_count = event_count
+                runtime.debug_event_types = dict(event_types)
                 # In managed modes workflow_finish only validates/arms the final
                 # response. The first non-empty AgentStream after that tool result
                 # is the real authoritative final answer, so prepare its durable
@@ -333,6 +345,30 @@ class Runner:
             runtime.collect_llm_artifacts(agent_llm or llm, actor_id="orchestrator")
             if agent_llm is not None and agent_llm is not llm:
                 runtime.collect_llm_artifacts(llm, actor_id="orchestrator")
+            # cleanup() intentionally clears live worker/swarm maps. Preserve a
+            # debug-only snapshot so the inspector still shows the completed flow.
+            runtime.debug_cleanup_snapshot = {
+                "finished": bool(runtime.finished),
+                "stopped": bool(runtime.is_stopped()),
+                "final_answer": str(runtime.final_answer or ""),
+                "workers": {
+                    wid: {
+                        **state.public_dict(include_result=True),
+                        "instruction": state.instruction,
+                        "system_prompt": state.system_prompt,
+                        "stop_requested": state.stop_requested,
+                        "task_done": bool(state.task.done()) if state.task is not None else None,
+                        "task_cancelled": bool(state.task.cancelled()) if state.task is not None else None,
+                    }
+                    for wid, state in list(runtime.workers.items())
+                },
+                "swarm_worker_numbers": dict(runtime._swarm_worker_numbers),
+                "worker_parent_parts": {
+                    str(k): getattr(v, "uuid", None)
+                    for k, v in runtime._worker_parent_parts.items()
+                },
+                "stored_worker_context_runs": list(runtime._stored_worker_context_runs),
+            }
             await runtime.cleanup()
             runtime.export_tool_calls_to_main_ctx()
             emitter.clear_status()

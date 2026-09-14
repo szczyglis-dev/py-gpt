@@ -411,6 +411,7 @@ class Mapping:
             menu_text['debug.assistants'] = 'menu.debug.assistants'
             menu_text['debug.ui'] = 'menu.debug.ui'
             menu_text['debug.agent'] = 'menu.debug.agent'
+            menu_text['debug.agents_v2'] = 'mode.agent_v2'
             menu_text['debug.events'] = 'menu.debug.events'
             menu_text['debug.db'] = 'menu.debug.db'
             menu_text['debug.logger'] = 'menu.debug.logger'
