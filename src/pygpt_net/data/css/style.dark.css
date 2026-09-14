@@ -147,14 +147,18 @@ QComboBox::item:checked {{
 .calendar {{
   qproperty-todayBackgroundColor: #ffffff;
   qproperty-todayTextColor: #000000;
+  qproperty-todayFontBold: false;
+  qproperty-inactiveDayBackgroundColor: transparent;
   qproperty-dayBorderColor: #292929;
+  qproperty-counterBackgroundColor: #464646;
+  qproperty-counterTextColor: #ffffff;
+  qproperty-headerBackgroundColor: transparent;
+  qproperty-headerFontBold: true;
+  qproperty-hoverDayBackgroundColor: #1e1e1e;
 }}
 QCalendarWidget QAbstractItemView::item:selected:focus,
 QCalendarWidget QAbstractItemView::item:selected {{
   background: #3a4045;
-}}
-QCalendarWidget QAbstractItemView::item:hover {{
-  background: #1e1e1e;
 }}
 
 /* Files tool: keep the whole explorer on the application surface. */

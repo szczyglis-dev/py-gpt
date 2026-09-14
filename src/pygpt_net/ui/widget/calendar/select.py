@@ -11,9 +11,9 @@
 
 from typing import Tuple
 
-from PySide6.QtCore import QRect, QDate, Property
-from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QIcon, QPixmap, QPen
-from PySide6.QtWidgets import QCalendarWidget, QMenu
+from PySide6.QtCore import QRect, QDate, Property, QEvent
+from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QCursor, QIcon, QPixmap, QPen, QPalette
+from PySide6.QtWidgets import QAbstractItemView, QCalendarWidget, QMenu
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
@@ -30,7 +30,14 @@ class CalendarSelect(QCalendarWidget):
         self.window = window
         self._today_background_color = QColor()
         self._today_text_color = QColor()
+        self._today_font_bold = False
+        self._inactive_day_background_color = QColor()
         self._day_border_color = QColor()
+        self._counter_background_color = QColor()
+        self._counter_text_color = QColor()
+        self._header_background_color = QColor()
+        self._header_font_bold = False
+        self._hover_day_background_color = QColor()
         self.currentYear = QDate.currentDate().year()
         self.currentMonth = QDate.currentDate().month()
         self.currentDay = QDate.currentDate().day()
@@ -51,16 +58,17 @@ class CalendarSelect(QCalendarWidget):
         self.tab = None
         self.installEventFilter(self)
 
+        self._calendar_view = self.findChild(QAbstractItemView, 'qt_calendar_calendarview')
+        if self._calendar_view is not None:
+            self._calendar_view.viewport().setMouseTracking(True)
+            self._calendar_view.viewport().installEventFilter(self)
+
         self._font_small = QFont('Lato', self.font_size)
         self._pen_label = QPen(QColor(0, 0, 0))
         self._pen_label.setWidth(1)
         self._default_status_bg = QColor(100, 100, 100)
         self._default_status_font = QColor(255, 255, 255)
-        self._theme_cached = None
-        self._counter_bg = QColor(240, 240, 240)
-        self._counter_font = QColor(0, 0, 0)
         self._today = QDate.currentDate()
-        self._update_theme_cache()
 
 
     def get_today_background_color(self):
@@ -81,6 +89,28 @@ class CalendarSelect(QCalendarWidget):
 
     todayTextColor = Property(QColor, get_today_text_color, set_today_text_color)
 
+    def get_today_font_bold(self):
+        return self._today_font_bold
+
+    def set_today_font_bold(self, value):
+        self._today_font_bold = bool(value)
+        self.updateCells()
+
+    todayFontBold = Property(bool, get_today_font_bold, set_today_font_bold)
+
+    def get_inactive_day_background_color(self):
+        return self._inactive_day_background_color
+
+    def set_inactive_day_background_color(self, color):
+        self._inactive_day_background_color = QColor(color)
+        self.updateCells()
+
+    inactiveDayBackgroundColor = Property(
+        QColor,
+        get_inactive_day_background_color,
+        set_inactive_day_background_color,
+    )
+
     def get_day_border_color(self):
         return self._day_border_color
 
@@ -89,6 +119,72 @@ class CalendarSelect(QCalendarWidget):
         self.updateCells()
 
     dayBorderColor = Property(QColor, get_day_border_color, set_day_border_color)
+
+    def get_counter_background_color(self):
+        return self._counter_background_color
+
+    def set_counter_background_color(self, color):
+        self._counter_background_color = QColor(color)
+        self.updateCells()
+
+    counterBackgroundColor = Property(
+        QColor,
+        get_counter_background_color,
+        set_counter_background_color,
+    )
+
+    def get_counter_text_color(self):
+        return self._counter_text_color
+
+    def set_counter_text_color(self, color):
+        self._counter_text_color = QColor(color)
+        self.updateCells()
+
+    counterTextColor = Property(QColor, get_counter_text_color, set_counter_text_color)
+
+    def get_header_background_color(self):
+        return self._header_background_color
+
+    def set_header_background_color(self, color):
+        self._header_background_color = QColor(color)
+        fmt = self.headerTextFormat()
+        if self._header_background_color.isValid():
+            fmt.setBackground(QBrush(self._header_background_color))
+        else:
+            fmt.clearBackground()
+        self.setHeaderTextFormat(fmt)
+
+    headerBackgroundColor = Property(
+        QColor,
+        get_header_background_color,
+        set_header_background_color,
+    )
+
+    def get_header_font_bold(self):
+        return self._header_font_bold
+
+    def set_header_font_bold(self, value):
+        self._header_font_bold = bool(value)
+        fmt = self.headerTextFormat()
+        fmt.setFontWeight(
+            QFont.Weight.Bold if self._header_font_bold else QFont.Weight.Normal
+        )
+        self.setHeaderTextFormat(fmt)
+
+    headerFontBold = Property(bool, get_header_font_bold, set_header_font_bold)
+
+    def get_hover_day_background_color(self):
+        return self._hover_day_background_color
+
+    def set_hover_day_background_color(self, color):
+        self._hover_day_background_color = QColor(color)
+        self.updateCells()
+
+    hoverDayBackgroundColor = Property(
+        QColor,
+        get_hover_day_background_color,
+        set_hover_day_background_color,
+    )
 
     def set_tab(self, tab: Tab):
         """
@@ -109,6 +205,14 @@ class CalendarSelect(QCalendarWidget):
             if self.tab is not None:
                 col_idx = self.tab.column_idx
                 self.window.controller.ui.tabs.on_column_focus(col_idx)
+
+        if (
+            self._calendar_view is not None
+            and source is self._calendar_view.viewport()
+            and event.type() in (QEvent.Type.MouseMove, QEvent.Type.Enter, QEvent.Type.Leave)
+        ):
+            self.updateCells()
+
         return super().eventFilter(source, event)
 
     def page_changed(self, year, month):
@@ -122,17 +226,6 @@ class CalendarSelect(QCalendarWidget):
         self.currentMonth = month
         self.window.controller.calendar.on_page_changed(year, month)
 
-    def _update_theme_cache(self):
-        theme = self.window.core.config.get("theme")
-        if theme != self._theme_cached:
-            self._theme_cached = theme
-            if isinstance(theme, str) and theme.startswith('dark'):
-                self._counter_bg = QColor(70, 70, 70)
-                self._counter_font = QColor(255, 255, 255)
-            else:
-                self._counter_bg = QColor(200, 200, 200)
-                self._counter_font = QColor(0, 0, 0)
-
     def paintCell(self, painter, rect, date: QDate):
         """
         On painting cell
@@ -141,12 +234,23 @@ class CalendarSelect(QCalendarWidget):
         :param rect: Rectangle
         :param date: Date
         """
-        self._update_theme_cache()
         cd = QDate.currentDate()
         if cd != self._today:
             self._today = cd
 
         super().paintCell(painter, rect, date)
+
+        is_inactive = date.year() != self.currentYear or date.month() != self.currentMonth
+        if (
+            is_inactive
+            and self._inactive_day_background_color.isValid()
+            and self._inactive_day_background_color.alpha() > 0
+        ):
+            painter.save()
+            painter.fillRect(rect, self._inactive_day_background_color)
+            painter.setPen(self.palette().color(QPalette.Disabled, QPalette.Text))
+            painter.drawText(rect, Qt.AlignCenter, str(date.day()))
+            painter.restore()
 
         if date == self._today:
             painter.save()
@@ -154,8 +258,35 @@ class CalendarSelect(QCalendarWidget):
                 painter.fillRect(rect, self._today_background_color)
             if self._today_text_color.isValid():
                 painter.setPen(self._today_text_color)
-                painter.drawText(rect, Qt.AlignCenter, str(date.day()))
+            if self._today_font_bold:
+                font = painter.font()
+                font.setBold(True)
+                painter.setFont(font)
+            painter.drawText(rect, Qt.AlignCenter, str(date.day()))
             painter.restore()
+
+        if (
+            self._calendar_view is not None
+            and self._hover_day_background_color.isValid()
+            and self._calendar_view.viewport().underMouse()
+        ):
+            cursor_pos = self._calendar_view.viewport().mapFromGlobal(QCursor.pos())
+            if rect.contains(cursor_pos):
+                painter.save()
+                painter.fillRect(rect, self._hover_day_background_color)
+                if date == self._today:
+                    if self._today_text_color.isValid():
+                        painter.setPen(self._today_text_color)
+                    if self._today_font_bold:
+                        font = painter.font()
+                        font.setBold(True)
+                        painter.setFont(font)
+                elif is_inactive:
+                    painter.setPen(self.palette().color(QPalette.Disabled, QPalette.Text))
+                else:
+                    painter.setPen(self.palette().color(QPalette.Active, QPalette.Text))
+                painter.drawText(rect, Qt.AlignCenter, str(date.day()))
+                painter.restore()
 
         ctx_count = self.counters['ctx'].get(date)
         if ctx_count is not None:
@@ -167,8 +298,10 @@ class CalendarSelect(QCalendarWidget):
                 20,
             )
             painter.save()
-            painter.fillRect(task_rect, self._counter_bg)
-            painter.setPen(self._counter_font)
+            if self._counter_background_color.isValid():
+                painter.fillRect(task_rect, self._counter_background_color)
+            if self._counter_text_color.isValid():
+                painter.setPen(self._counter_text_color)
             painter.setFont(self._font_small)
             painter.drawText(
                 task_rect,

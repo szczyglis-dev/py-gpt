@@ -10,7 +10,7 @@ body {{
     background: gray;
 }}
 ::-webkit-scrollbar-thumb:hover {{
-    background: #000;
+    background: #5a5a5a;
 }}
 ::-webkit-scrollbar-corner {{
     background: {QTMATERIAL_SECONDARYLIGHTCOLOR};

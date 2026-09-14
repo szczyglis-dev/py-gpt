@@ -28,35 +28,39 @@ QTreeView::item:selected:focus {{
 QTabBar {{
   text-transform: none;
 }}
-QTabBar::tab:selected {{
-  color: #000 !important;
+/* Tabs: inactive text stays muted; active tab is gray; hovered tabs are black. */
+QTabBar::tab {{
+  color: #525252;
 }}
-QTabBar::tab:top:selected,
-QTabBar::tab:top:hover {{
-  color: #000;
+QTabBar::tab:selected {{
+  color: #000000 !important;
+}}
+QTabBar::tab:hover:!selected {{
+  color: #000000;
+  border-bottom: 0px;
 }}
 QPushButton {{
   color: #3e3e3e;
   text-transform: none;
   background-color: {QTMATERIAL_SECONDARYCOLOR};
-  border: 1px solid #fff;
+  border: 1px solid #e7e7e7;
 }}
 QPushButton:hover {{
   background-color: rgba(0, 0, 0, 25);
 }}
 QLineEdit {{
   color: #000000; 
-  border: 1px solid #c0c0c0;
+  border: 1px solid #e7e7e7;
   background-color: #fff;
 }}
 QLineEdit::focus {{
   color: #000000; 
-  border: 1px solid #c0c0c0;
+  border: 1px solid #e7e7e7;
   background-color: #fff;
 }}
 QTextEdit {{
   color: #000000; 
-  border: 1px solid #c0c0c0;
+  border: 1px solid #e7e7e7;
   background-color: #fff;
 }}
 QMenu {{ 
@@ -263,34 +267,55 @@ QCalendarWidget QToolButton,
 QCalendarWidget QToolButton:hover {{
     border: none;
 }}
+/* Files tool: keep the whole explorer on the application surface. */
+.file-explorer,
 .file-explorer QTreeView,
+.file-explorer QHeaderView,
 .file-explorer QHeaderView::section,
 .file-explorer QTreeView::branch,
-.file-explorer QTreeView::branch:open {{
-  background: #fff;
+.file-explorer QAbstractScrollArea,
+.file-explorer QAbstractScrollArea::corner {{
+  background: #fcfcfc;
 }}
 .file-explorer QHeaderView::section {{
   padding-top: 6px;
   padding-bottom: 2px;
   height: 20px;
+}}
+.file-explorer QScrollBar:vertical,
+.file-explorer QScrollBar:horizontal,
+.file-explorer QScrollBar::add-page:vertical,
+.file-explorer QScrollBar::sub-page:vertical,
+.file-explorer QScrollBar::add-page:horizontal,
+.file-explorer QScrollBar::sub-page:horizontal,
+.file-explorer QScrollBar::add-line:vertical,
+.file-explorer QScrollBar::sub-line:vertical,
+.file-explorer QScrollBar::add-line:horizontal,
+.file-explorer QScrollBar::sub-line:horizontal,
+.file-explorer QScrollBar::corner {{
+  background: #fcfcfc;
 }} 
 QMenu::indicator {{
     border: 1px solid gray;
 }}
 .calendar {{
-  qproperty-todayBackgroundColor: #ffffff;
+  qproperty-todayBackgroundColor: #e3e3e3;
   qproperty-todayTextColor: #000000;
-  qproperty-dayBorderColor: #e2e2e2;
+  qproperty-todayFontBold: true;
+  qproperty-inactiveDayBackgroundColor: #f8f8f8;
+  qproperty-dayBorderColor: #efefef;
+  qproperty-counterBackgroundColor: #efefef;
+  qproperty-counterTextColor: #000000;
+  qproperty-headerBackgroundColor: #cdcdcd;
+  qproperty-headerFontBold: true;
+  qproperty-hoverDayBackgroundColor: #f1f1f1;
+}}
+QCalendarWidget QAbstractItemView::item {{
+    background: #f8f8f8;
 }}
 QCalendarWidget QAbstractItemView::item:selected:focus,
 QCalendarWidget QAbstractItemView::item:selected {{
     background: #ffffd4;
-}}
-QCalendarWidget QAbstractItemView::item:hover {{
-    background: #f6f6f6;
-}}
-.file-explorer QTreeView::branch {{
-  background: #fff;
 }}
 
 /* Node editor */
@@ -327,6 +352,8 @@ QListView#ComboPopupList {{
   border-radius: 10px;
   outline: 0;
   border: 0px solid #d6d6d6;
+  qproperty-currentSelectedBgColor: #e3e3e3;
+  qproperty-currentSelectedTextColor: #000000;
 }}
 
 QComboBox[name="SearchableCombo"] QAbstractItemView::item,
@@ -339,7 +366,7 @@ QListView#ComboPopupList::item {{
 
 QComboBox QAbstractItemView::item:selected,
 QListView#ComboPopupList::item:selected {{
-   background: #fff;
+   background: #e3e3e3;
    color: #000;
    selection-color: #000;
    font-weight: bold;
@@ -374,17 +401,26 @@ QTabBar {{
 .layout-output-web {{
   background-color: #fcfcfc !important;
 }}
-.layout-input,
+QPushButton,
+QToolButton,
 QLineEdit,
 QTextEdit,
 QComboBox,
 QListView,
 QTreeView,
 QMenu {{
-  background-color: #ffffff;
+  background-color: #efefef;
+}}
+.layout-input,
+.layout-input QTextEdit {{
+  background-color: #efefef;
+  border: 1px solid #e7e7e7;
+}}
+QLineEdit {{
+  border: 1px solid #e7e7e7;
 }}
 .ctx-list {{
-  background-color: #ffffff;
+  background-color: #f7f7f7;
   /* Semantic colors consumed by ContextList/ImportantItemDelegate. */
   qproperty-normalTextColor: #000000;
   qproperty-hoverTextColor: #000000;
@@ -393,7 +429,7 @@ QMenu {{
 }}
 QListView#ComboPopupList,
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
-  background: #ffffff;
+  background: #efefef;
 }}
 QWidget#ComboPopupWindow {{
   background: transparent;
@@ -445,6 +481,8 @@ QTreeView::item:selected {{
   font-weight: bold;
 }}
 QComboBox::item:selected {{
+  background: #e3e3e3;
+  selection-background-color: #e3e3e3;
   color: #000;
   selection-color: #000;
 }}
@@ -473,20 +511,151 @@ QWidget,
   background-color: #fcfcfc;
 }}
 QPushButton,
+QToolButton,
 QTextEdit,
 QLineEdit, 
 QListView, 
 QComboBox,
 QTreeView {{
-  background-color: #ffffff;
+  background-color: #efefef;
 }}
 QMenu {{ 
-  background-color: #ffffff;
+  background-color: #efefef;
 }}
 .layout-output-web {{
   background-color: #fcfcfc !important;
 }}
 .layout-input,
+.layout-input QTextEdit {{
+  background-color: #efefef;
+  border: 1px solid #e7e7e7;
+}}
 .ctx-list {{
-  background-color: #ffffff;
+  background-color: #f7f7f7;
+}}
+.ctx-list QScrollBar:vertical,
+.ctx-list QScrollBar:horizontal,
+.ctx-list QScrollBar::add-page:vertical,
+.ctx-list QScrollBar::sub-page:vertical,
+.ctx-list QScrollBar::add-page:horizontal,
+.ctx-list QScrollBar::sub-page:horizontal,
+.ctx-list QScrollBar::corner {{
+  background: #f7f7f7;
+}}
+
+
+/* Light input borders: match push buttons. */
+QLineEdit,
+QTextEdit,
+QPlainTextEdit {{
+  border: 1px solid #e7e7e7;
+}}
+
+/* Tabs: active and hovered text is black; hover never draws the active underline. */
+QTabBar::tab:selected {{
+  color: #000000 !important;
+}}
+QTabBar::tab:hover:!selected {{
+  color: #000000;
+  border-bottom-color: transparent;
+}}
+
+/* Slider track: keep the remaining range visible on the light surface. */
+QSlider::add-page:horizontal {{
+  background: #d1d1d1;
+  border-radius: 2px;
+}}
+QSlider::add-page:vertical {{
+  background: #d1d1d1;
+  border-radius: 2px;
+}}
+
+/* Light menu separators. */
+QMenu::separator {{
+  height: 1px;
+  background-color: #d7d7d7;
+  margin: 3px 0px;
+}}
+
+/* Text inputs use a slightly lifted surface and the same light border as buttons. */
+QLineEdit,
+QTextEdit,
+QPlainTextEdit {{
+  background-color: #efefef;
+  border: 1px solid #e7e7e7;
+}}
+QLineEdit:focus,
+QTextEdit:focus,
+QPlainTextEdit:focus {{
+  background-color: #efefef;
+  border: 1px solid #e7e7e7;
+}}
+.layout-input,
+.layout-input QTextEdit {{
+  background-color: #f7f7f7;
+  border: 1px solid #e7e7e7;
+}}
+
+/* Buttons keep the control surface but use the lighter outline. */
+QPushButton {{
+  border: 1px solid #e7e7e7;
+}}
+
+/*
+ * qt-material has orientation-specific tab selectors. Match that specificity
+ * so the selected tab is truly black; hover stays black without an underline.
+ */
+QTabBar::tab:selected,
+QTabBar::tab:top:selected,
+QTabBar::tab:bottom:selected,
+QTabBar::tab:left:selected,
+QTabBar::tab:right:selected {{
+  color: #000000;
+}}
+QTabBar::tab:hover:!selected,
+QTabBar::tab:top:hover:!selected,
+QTabBar::tab:bottom:hover:!selected,
+QTabBar::tab:left:hover:!selected,
+QTabBar::tab:right:hover:!selected {{
+  color: #000000;
+  border-bottom-color: transparent;
+}}
+
+/* Bottom chat input is intentionally borderless; other text inputs keep the light outline. */
+QLineEdit,
+QTextEdit,
+QPlainTextEdit {{
+  border: 1px solid #e7e7e7;
+}}
+QLineEdit:focus,
+QTextEdit:focus,
+QPlainTextEdit:focus {{
+  border: 1px solid #e7e7e7;
+}}
+.layout-input,
+.layout-input:focus,
+.layout-input QTextEdit,
+.layout-input QTextEdit:focus {{
+  background-color: #ededed;
+  border: none;
+}}
+
+/* Buttons: swap the normal and hover surfaces. */
+QPushButton {{
+  background-color: rgba(0, 0, 0, 25);
+  border: 1px solid #e7e7e7;
+}}
+QPushButton:hover {{
+  background-color: #d4d4d4;
+}}
+
+/* Disabled menu actions also cover section headers implemented as disabled QAction items. */
+QMenu::item:disabled,
+QMenuBar::item:disabled {{
+  color: #818181;
+}}
+
+/* Context list: hovered row uses a white surface. */
+.ctx-list::item:hover:!selected {{
+  background-color: #fff;
 }}
