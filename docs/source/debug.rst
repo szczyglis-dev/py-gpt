@@ -38,11 +38,14 @@ Additional logging switches are available in ``Config -> Settings -> Debug``:
 * ``Log conversation processing`` - logs detailed conversation-context input, output and processing information.
 * ``Log events`` - logs application event dispatch and handling.
 * ``Log plugin usage to console`` - logs plugin execution and usage details.
+* ``Log API inputs`` - logs provider/LlamaIndex request inputs and constructor arguments to the terminal. Known secrets are masked, but prompts, history, paths and other sensitive data may still be present.
+* ``Log API outputs`` - logs concise API response summaries; streamed responses are aggregated rather than printing every delta.
+* ``Log tool calls`` - logs tool calls and full tool results, including parameters, call IDs and returned payloads.
 * ``Log image and video generation to console`` - logs image and video generation activity.
 * ``Log attachments usage to console`` - logs attachment processing and usage details.
 * ``Log Agents usage to console`` - logs agent and expert execution details.
 * ``Log Chat with Agents workflow`` - logs a concise, human-readable Chat with Agents workflow trace, including important orchestration events, agent operations, tool names, statuses, waits and response previews. It omits stream chunks, full tool definitions and large JSON payloads.
-* ``Chat with Agents verbose (log full flow to console)`` - logs the complete Chat with Agents orchestration flow, including full system prompts, available tools and tool calls, worker operations and states, inputs, outputs, RAG context and workflow lifecycle. This output can contain sensitive prompt or tool data.
+* ``Log Chat with Agents (verbose mode, full output)`` - logs the complete Chat with Agents orchestration flow, including full system prompts, available tools and tool calls, worker operations and states, inputs, outputs, RAG context and workflow lifecycle. This output can contain sensitive prompt or tool data.
 * ``Log LlamaIndex usage to console`` - logs LlamaIndex indexing, querying and related activity.
 * ``Log Realtime sessions to console`` - logs real-time audio session activity and provider details.
 * ``Log legacy API usage to console`` - logs activity from legacy API code paths.
@@ -123,6 +126,7 @@ The following tables are available:
 * ``notepad`` - pages and contents of the built-in Notepad, including highlights and UI state.
 * ``memory`` - long-term data used by the ``Memory (inline)`` plugin; stores the global memory and separate per-project memories.
 * ``memory_keys`` - raw key/value long-term memory used by the ``Memory (inline)`` plugin; keys are isolated between global scope and individual projects.
+* ``memory_ctx`` - compact continuation state scoped to one conversation (``ctx_meta``), including the checkpoint floor, generation/revision metadata and notes used by experimental advanced context handling.
 * ``idx_ctx`` - indexing metadata that maps stored conversations to documents in configured vector indexes.
 * ``idx_file`` - indexing metadata for local files embedded into vector indexes.
 * ``idx_external`` - indexing metadata/content records for external or web sources added to indexes.

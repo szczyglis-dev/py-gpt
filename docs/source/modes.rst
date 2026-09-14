@@ -179,6 +179,24 @@ Agent modes
 .. warning::
    **Use Swarm with care.** This mode has no built-in limit on the number of agents that can be created. Requesting a large swarm can cause unexpectedly high API usage, token consumption, local or remote resource usage, many concurrent tool operations, and other unexpected effects. Start with a reasonable number of agents and supervise workflows that can modify files, execute code or system commands, or perform external actions.
 
+Step-by-step execution
+^^^^^^^^^^^^^^^^^^^^^^
+
+The ``Step by step`` switch shown below the Chat with Agents mode selector enables a stricter execution discipline for the main agent. When enabled, the runtime augments the built-in agent prompt so the agent prepares a concise high-level plan before substantive work, reports short factual progress updates during longer tasks, validates completed work before continuing, and revises the plan when new findings, failures, or worker results require it.
+
+The progress text is intentionally user-facing rather than hidden chain-of-thought. The agent is instructed to describe what it is doing and how it verified the result **without** exposing private reasoning and without numbered labels such as ``Step 1`` / ``Step 2``. Important worker/specialist output should be treated as work product that still needs verification when the conclusion matters.
+
+The switch is snapshotted when a Chat with Agents run starts, so changing it while a run is already in progress does not rewrite that run's prompt. It applies to the built-in Chat with Agents main-agent prompts; it does not turn ordinary Chat or legacy Agent modes into step-by-step workflows.
+
+Project rules with AGENTS.md
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Chat with Agents supports optional project-specific instructions in ``AGENTS.md``. Before processing the user's input, the top-level main agent checks for ``%workdir%/AGENTS.md`` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main agent system prompt as additional project rules.
+
+The workdir is resolved from the conversation that started the run, including a custom project data workdir, rather than from whichever project happens to be selected later in the UI. The file is read once for that run and is not stored in the conversation database. A symbolic link that resolves outside the active workdir is ignored.
+
+``AGENTS.md`` rules are intentionally applied only to the top-level **Chat with Agents** main agent. They are not automatically injected into worker agents or into Experts, even though Experts reuse the Agents v2 runtime. Put shared operational instructions in the main ``AGENTS.md`` and explicitly pass any worker-specific requirements when delegating work.
+
 Tools and provider capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

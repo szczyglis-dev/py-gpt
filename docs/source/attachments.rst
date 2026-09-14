@@ -23,6 +23,19 @@ You can use your own files (for example, to analyze them) during any conversatio
 .. image:: images/v2_file_input.png
    :width: 800
 
+Mentioning attachments and workdir files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The message input supports inline ``@`` mentions for attachments and for files or directories from the active data workdir. Type ``@`` to open a small scrollable picker above the input. Current attachments are shown first, followed by files and directories from the active workdir. Continue typing after ``@`` to filter the list; deleting characters updates the matches immediately. You can select an item with the mouse or with the keyboard (arrow keys plus ``Enter``/``Tab``; ``Esc`` closes the picker).
+
+Selected mentions are rendered with a distinct color in the input and in conversation history so they remain easy to identify. Directories are displayed with a trailing ``/``. Mention metadata is preserved when a stored message is reloaded or edited.
+
+Mentions are a user-interface reference, not an extra XML/prompt syntax exposed to the model. Before the request is sent, PyGPT converts an attachment mention to its plain attachment name and a workdir file/directory mention to its portable path, for example ``%workdir%/data/docs/spec.md``. The model therefore receives ordinary text such as ``Review report.pdf and %workdir%/data/docs/spec.md`` rather than internal mention tags or the leading ``@``.
+
+.. important::
+
+   Mentioning a workdir file or directory does **not** automatically read its contents into the prompt. It identifies the exact path the user is referring to. The model still needs an available file/tool path (for example ``Files I/O``), RAG/index access, or another supported mechanism to inspect that file. Attachment mentions continue to use the normal attachment-processing rules described below.
+
 You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and can be converted into text and/or indexed for use as additional context. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
 Text-based types:

@@ -59,7 +59,9 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Crontab / Task scheduler included.
 - Built-in **Python/OS** tool with real-time Python / IPython execution.
 - Manages files and attachments with options to upload, download, and organize.
-- Context history with the capability to revert to previous contexts (long-term memory).
+- Supports inline `@` mentions for current attachments and files/directories from the active workdir.
+- Context history with the capability to revert to previous contexts (long-term memory), plus optional **experimental** advanced context handling for very long conversations.
+- Supports project-specific `AGENTS.md` rules for the main agent in Chat with Agents.
 - Allows you to easily manage prompts with handy editable presets.
 - Provides an intuitive operation and interface.
 - Includes a notepad.
@@ -612,6 +614,18 @@ The **Mode** selector below the system prompt lets you choose how the agent work
 
 > **Warning:** Use **Swarm** with care. This mode has no built-in limit on the number of agents that can be created. Requesting a large swarm can cause unexpectedly high API usage, token consumption, resource usage, many concurrent tool operations, and other unexpected effects. Start with a reasonable number of agents and supervise workflows that can modify files, execute code or system commands, or perform external actions.
 
+### Step-by-step execution
+
+The **Step by step** switch below the Chat with Agents mode selector enables a stricter execution discipline for the main agent. When enabled, the agent prepares a concise high-level plan before substantive work, reports short factual progress updates during longer tasks, verifies completed work before continuing, and revises the plan when new findings, failures, or worker results require it.
+
+Progress updates are user-facing summaries, not hidden chain-of-thought. The agent is explicitly instructed not to expose private reasoning and not to label progress with numbered headings such as `Step 1` / `Step 2`. Important worker output should still be verified when the conclusion matters. The setting is snapshotted at the start of a run, so changing it does not rewrite a workflow that is already running.
+
+### Project rules with AGENTS.md
+
+Before processing the user input, the top-level Chat with Agents main agent checks for `%workdir%/AGENTS.md` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main system prompt as additional project rules. The path follows the conversation/project that started the run, including a custom project data workdir.
+
+`AGENTS.md` is read once per run and is not persisted to conversation history. A symlink that resolves outside the active workdir is ignored. The rules apply only to the top-level **Chat with Agents** main agent; they are not automatically injected into workers or Experts.
+
 ### Tools and provider capabilities
 
 Chat with Agents can use both local and provider-side capabilities:
@@ -974,6 +988,16 @@ When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation beca
 
 **PyGPT** features a continuous chat mode that maintains a long context of the ongoing dialogue. It preserves the entire conversation history and automatically appends it to each new message (prompt) you send to the AI. Additionally, you have the flexibility to revisit past conversations whenever you choose. The application keeps a record of your chat history, allowing you to resume discussions from the exact point you stopped.
 
+## Advanced context handling (experimental)
+
+> **Experimental:** Advanced context handling changes how long model-facing histories are compacted and continued. Keep it disabled if you need the legacy history-selection behavior, and verify important long-running workflows when enabling it for production work.
+
+Enable it in `Config -> Settings -> Context -> Enable advanced context handling`. When the unsummarized model-facing conversation approaches the configured threshold, PyGPT compacts older completed turns into conversation-scoped continuation notes and keeps a newer verbatim tail. The complete chat history remains stored in SQLite; only the history sent to the model is trimmed.
+
+Continuation notes are stored in `memory_ctx`, one row per conversation, and are separate from the Memory plugin's global/project long-term memory. They preserve compact state such as goals, constraints, decisions, completed work, important findings and pending work. `memory_ctx_get`, `memory_ctx_add` and `memory_ctx_replace` can read or maintain these notes. In Chat with Agents, the main agent also uses persistent bounded rolling memory backed by the same conversation notes, while worker rolling summaries stay runtime-local.
+
+The main settings are **Checkpoint threshold (%)** (default `75`), **Context tail after checkpoint (%)** (default `45`), and **Maximum continuation note characters** (default `24000`). Model-aware token limits and safety reserves are also applied at runtime.
+
 ## Handling multiple contexts
 
 On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PyGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
@@ -1015,6 +1039,14 @@ You can use your own files (for example, to analyze them) during any conversatio
 **Tip:** Project-wide attachment sharing is optional. Enable `Settings -> Files and attachments -> General -> Make attachments available in the whole project` to make attachments added in one chat available to all chats in the same project. The option is disabled by default; when disabled, attachments remain available only in the chat where they were added.
 
 ![v2_file_input](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
+
+### Mentioning attachments and workdir files
+
+Type `@` in the message input to open a scrollable mention picker. Current attachments are listed first, followed by files and directories from the active data workdir. Continue typing after `@` to filter the list; Backspace updates the matches. Select an item with the mouse or with the arrow keys plus `Enter`/`Tab`; `Esc` closes the popup. Selected mentions are rendered with a distinct color in the input and in conversation history, and directories are shown with a trailing `/`.
+
+Mentions are UI references rather than special syntax sent to the model. Before sending, an attachment mention becomes its plain filename and a workdir file/directory mention becomes its portable path, for example `%workdir%/data/docs/spec.md`. The leading `@` and internal mention metadata/tags are not sent to the model.
+
+**Important:** mentioning a workdir file does not automatically read the file into the prompt. It identifies the exact file or directory the user means. The model still needs an available file tool, RAG/index access, or another supported mechanism to inspect the content. Attachment mentions continue to follow the normal attachment-processing rules.
 
 You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and can be converted into text and/or indexed in the vector store. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
@@ -1406,7 +1438,7 @@ The following plugins are currently available:
 
 - `Mailer` - provides email access through configured mail services, including sending and reading messages where supported.
 
-- `Memory (inline)` - maintains compact database-backed long-term memory plus raw keyed memory, using a global scope outside projects and an isolated memory scope for each project.
+- `Memory (inline)` - provides compact global/per-project long-term memory, raw keyed memory, and conversation-scoped continuation notes (`memory_ctx`) used to preserve important state across long-context rollovers.
 
 - `MCP` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
 
@@ -1748,9 +1780,17 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
 ## Memory (inline)
 
-The **Memory (inline)** plugin provides project-aware long-term memory for conversations. It maintains a compact memory that can be updated automatically and a separate raw key/value store for explicitly saved information. Global memory and per-project memories are isolated from each other, and the plugin works independently of the `Tools` switch.
+The **Memory (inline)** plugin provides three separate memory scopes/mechanisms:
 
-For configuration options, memory scopes, automatic updates, and the complete reference for `memory_*` and `memory_key_*` tools, see the full documentation:
+- **Compact long-term memory** — one global memory outside projects and one isolated memory per project. It can be updated automatically with the configured memory model and is intended for durable reusable state rather than routine chat details.
+- **Keyed memory** — raw key/value records stored exactly as supplied. Keys are isolated between global and per-project scope and are retrieved explicitly with `memory_key_*` tools.
+- **Conversation continuation notes** — compact `memory_ctx` notes tied to exactly one conversation. They are separate from global/project memory and are intended to preserve goals, constraints, decisions, completed work, important findings and pending work across context-window trimming.
+
+The plugin works independently of the global `Tools` switch. Its compact-memory options include the update model, maximum memory size, refinement of manual `memory_add`, automatic attachment of global/project memory, and optional searching of keyed-memory content. Auto-attach applies only to compact global/project memory; keyed records and conversation notes are not automatically appended by those plugin options.
+
+Conversation-note tools are `memory_ctx_get()`, `memory_ctx_add(text)` and `memory_ctx_replace(text)`. With **experimental Advanced context handling**, PyGPT core can maintain the same conversation notes automatically during checkpoints. In Chat with Agents those core context tools remain available when advanced handling is enabled even if the optional Memory plugin is disabled.
+
+For full configuration details and the complete `memory_*`, `memory_key_*`, and `memory_ctx_*` tool reference, see:
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#memory-inline
 
@@ -2289,6 +2329,7 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Layout:** General, Code syntax
 - **Files and attachments:** General, RAG
 - **Chats:** List, Render, Options
+- **Context:** advanced context handling and continuation checkpoint settings (experimental)
 - **Remote tools:** OpenAI, Google, Anthropic, xAI
 - **Images and video:** Image, Video
 - **Vision and camera:** Camera
@@ -2446,7 +2487,7 @@ To get the new version, simply download it and start using it in place of the ol
 
 Most diagnostic options are available in `Config -> Settings -> Debug`. PyGPT writes application logs to `%workdir%/app.log`, and the log level can be set to `ERROR`, `WARNING`, `INFO`, or `DEBUG`. For startup troubleshooting, `--debug=1` forces `INFO` logging and `--debug=2` forces `DEBUG` logging.
 
-Additional switches can log conversation processing, events, plugin usage, attachments, image/video generation, LlamaIndex activity, Realtime sessions, legacy API paths, and agent workflows. For `Chat with Agents`, you can choose either a concise workflow trace or the full verbose flow. Full tracing can include prompts, tool arguments, retrieved context, and other sensitive data.
+Additional switches can log conversation processing, events, plugin usage, **API inputs**, **API outputs**, **tool calls/results**, attachments, image/video generation, LlamaIndex activity, Realtime sessions, legacy API paths, and agent workflows. For `Chat with Agents`, you can choose either a concise workflow trace or **Log Chat with Agents (verbose mode, full output)**. API/tool/full-agent traces can include prompts, paths, history, tool parameters/results, retrieved context, and other sensitive data; known API secrets are masked by the API-input logger.
 
 Enable `Show debug menu` to expose developer tools such as the live Logger/console, DB Viewer, application-state inspectors, Chromium diagnostics, and WebEngine DevTools. If a compiled build crashes or fails during startup, launch it from a terminal so stdout/stderr and Python/Qt diagnostics remain visible.
 

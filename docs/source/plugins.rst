@@ -1771,57 +1771,74 @@ SMTP Password.
 Memory (inline)
 ---------------
 
-The ``Memory (inline)`` plugin provides a compact long-term memory cache stored in the local SQLite database. It keeps one global memory outside projects and one separate memory row for each project. When the active conversation belongs to a project, the project-specific memory is used instead of the global memory. It also provides a separate raw key/value store in the ``memory_keys`` table. Keyed memory follows the same scope rule: outside projects it uses only global keyed records, while a project uses only that project's keyed records.
+The ``Memory (inline)`` plugin provides three related memory mechanisms:
+
+* **Compact long-term memory** - one global memory outside projects and one isolated memory row for each project. This memory is intended for durable, reusable facts/state and can be updated automatically with a configured model.
+* **Keyed memory** - raw database-backed key/value records in ``memory_keys``. Values are stored exactly as supplied and are never summarized or rewritten by the memory-update model. Keys are isolated between global and per-project scopes.
+* **Conversation continuation notes** - compact notes in ``memory_ctx`` scoped to exactly one conversation (one ``ctx_meta``). These notes are used to preserve goals, decisions, completed work, constraints, findings and pending work across context-window rollover. They are separate from both global memory and project memory.
 
 Because Memory is an inline plugin, it works independently of the ``Tools`` switch in the toolbox. Once enabled, its active commands can be exposed to the model regardless of the global ``Tools`` switch.
 
-After a completed conversation turn, the plugin can asynchronously update the active memory with the configured model. The updater treats memory as a canonical compact state rather than an append-only log: related facts are merged contextually, duplicates are consolidated, newer information can supersede obsolete entries, and routine or transient details are discarded. Outside projects, the update prompt focuses on durable information about the user. Inside a project, it keeps the project-oriented memory behavior.
+After a completed conversation turn, the plugin can asynchronously update the active global/project compact memory with the configured model. The updater treats memory as a canonical compact state rather than an append-only log: related facts are merged contextually, duplicates are consolidated, newer information can supersede obsolete entries, and routine or transient details are discarded. Outside projects, the update prompt focuses on durable information about the user. Inside a project, it keeps project-oriented durable state.
+
+Conversation continuation notes are different: they belong only to the current conversation and are not automatically shared with other chats. When the experimental ``Advanced context handling`` feature is enabled, PyGPT core can update these notes automatically as older turns are checkpointed. Chat with Agents also uses them as the persistent continuation block for the main agent's rolling context. The core Chat with Agents context tools remain available in advanced-context mode even when the Memory plugin itself is disabled; enabling Memory exposes the same ``memory_ctx_*`` operations through the plugin's inline command set as well.
 
 **Options**
 
 - ``Memory update model`` *model_update*
 
-Model used for automatic end-of-context memory updates and, when enabled, for refining manual ``memory_add`` calls.
+Model used for automatic end-of-context global/project memory updates and, when enabled, for refining manual ``memory_add`` calls. It is not the model that selects ordinary conversation history.
 
 - ``Maximum memory characters`` *max_chars*
 
-Target maximum memory size in characters. The model is asked to stay within this limit. *Default:* ``15000``. Storage allows an additional ``300``-character safety margin before hard truncation, so the default hard safety limit is ``15300`` characters. No line-count limit is applied.
+Target maximum size of the global/project compact memory in characters. The model is asked to stay within this limit. *Default:* ``15000``. Storage allows an additional ``300``-character safety margin before hard truncation, so the default hard safety limit is ``15300`` characters. This setting does not control ``memory_ctx`` continuation-note size; that is configured under ``Settings -> Context -> Maximum continuation note characters``.
 
 - ``Refine memory before adding`` *refine_add*
 
-Applies only to manual ``memory_add`` calls. When enabled, the configured memory update model merges and rewrites the added information into the existing memory instead of blindly appending raw text. Automatic end-of-context memory updates are always refined by the model regardless of this setting. *Default:* ``True``.
+Applies only to manual ``memory_add`` calls. When enabled, the configured memory update model merges and rewrites the added information into the existing global/project memory instead of blindly appending raw text. Automatic end-of-context memory updates are always refined by the model regardless of this setting. *Default:* ``True``.
 
 - ``Auto attach memory to every conversation`` *auto_attach*
 
-Automatically appends the active global or project memory to the system prompt in a ``<context_memory>...</context_memory>`` block. *Default:* ``False``.
+Automatically appends the active global or project compact memory to the system prompt in a ``<context_memory>...</context_memory>`` block. It does not auto-attach keyed records or ``memory_ctx`` notes. *Default:* ``False``.
 
 - ``Auto attach memory only in projects`` *auto_attach_project*
 
-Automatically appends memory to the system prompt when the current conversation belongs to a project. *Default:* ``True``.
+Automatically appends the project compact memory to the system prompt when the current conversation belongs to a project. It does not expose global memory as a fallback inside a project. *Default:* ``True``.
 
 - ``Search memory key content`` *key_search_content*
 
 Controls ``memory_key_search``. Key names are always searched with ``LIKE '%query%'``. When this option is enabled, stored key content is searched with the same ``LIKE`` expression as well. *Default:* ``False`` to avoid scanning stored content unless explicitly requested.
 
-**Keyed memory**
+**Compact global/project memory tools**
 
-Keyed memory is stored as raw database records and is never summarized, merged, or rewritten by the separate memory-update LLM. Each key is unique inside its global/project scope. The existing auto-attach options apply only to the compact memory; keyed records are retrieved explicitly through the keyed-memory tools. The write tools are intended only for genuinely important data that should be preserved for later use, not for routine logs or transient details.
+- ``memory_get`` - Reads the complete compact memory for the current global/project scope. Enabled by default.
+- ``memory_add`` - Selectively adds highly important, durable information. When refinement is enabled, the update model merges it contextually with existing memory instead of appending duplicate facts. Disabled by default.
+- ``memory_update`` - Replaces the complete compact memory content for the current scope. Disabled by default.
+- ``memory_clear`` - Clears the current compact memory. The model must first ask the user for explicit confirmation and may call the command only after confirmation. Enabled by default.
 
-**Tools**
+**Keyed memory tools**
 
-- ``memory_get`` - Reads the complete memory for the current global/project scope. Enabled by default.
-- ``memory_add`` - Selectively adds highly important, durable information. When refinement is enabled, the model merges it contextually with existing memory instead of appending duplicate facts. Disabled by default.
-- ``memory_update`` - Replaces the complete memory content for the current scope. Disabled by default.
-- ``memory_clear`` - Clears the current memory. The model must first ask the user for explicit confirmation and may call the command only after confirmation. Enabled by default.
 - ``memory_key_get(key|keys)`` - Reads raw keyed-memory records by one key or a list of keys. Enabled by default.
 - ``memory_key_add(key, content)`` - Creates a new keyed record. It never overwrites an existing key and stores ``content`` exactly as provided, without LLM processing. Enabled by default.
 - ``memory_key_append(key, content)`` - Appends ``content`` exactly as provided to an existing keyed record; no separator is inserted automatically. Enabled by default.
 - ``memory_key_update(key, content)`` - Replaces the raw content of an existing keyed record. Enabled by default.
 - ``memory_key_list()`` - Returns only the key names for the current scope; it does not return content. Enabled by default.
-- ``memory_key_search(query)`` - Returns a list of matching keyed records. It always searches key names with ``LIKE '%query%'`` and also searches content only when ``Search memory key content`` is enabled. Enabled by default.
+- ``memory_key_search(query)`` - Returns matching keyed records. It always searches key names and also searches content only when ``Search memory key content`` is enabled. Enabled by default.
 - ``memory_key_remove(key|keys)`` - Removes one key or a list of keys from the current scope. Enabled by default.
 
-The ``key``/``keys`` operations never fall back from project memory to global memory. A conversation inside a project sees only that project's keyed records, while a conversation outside projects sees only global keyed records.
+The keyed operations never fall back from project memory to global memory. A conversation inside a project sees only that project's keyed records, while a conversation outside projects sees only global keyed records.
+
+**Conversation continuation-note tools**
+
+- ``memory_ctx_get()`` - Reads compact continuation notes for the current conversation only. Enabled by default.
+- ``memory_ctx_add(text)`` - Appends one concise continuation note to the current conversation. Each addition is stored on a new line. Use it for important state that should survive history compaction, not for routine chatter. Enabled by default.
+- ``memory_ctx_replace(text)`` - Replaces the complete continuation-note state for the current conversation. Use it to consolidate stale or duplicated notes. It does not modify global/project memory. Enabled by default.
+
+``memory_ctx`` stores one row per conversation metadata record and tracks the compacted-history checkpoint/generation used by advanced context handling. Deleting or rewinding conversation history also invalidates the corresponding continuation state where required so stale compacted state is not replayed as newer history.
+
+.. note::
+
+   ``Advanced context handling`` is experimental and is configured in ``Config -> Settings -> Context``. The Memory plugin can access conversation continuation notes, but the core checkpoint/rolling-context mechanism is not dependent on the plugin being enabled.
 
 
 MCP

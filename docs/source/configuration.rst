@@ -274,6 +274,23 @@ Options
 
 * ``Open URLs in built-in browser``: Opens clicked links inside PyGPT's built-in Chromium browser rather than handing them to the operating system's default browser. Default: False.
 
+Context
+~~~~~~~
+
+.. warning::
+
+   The advanced context-handling options below are **experimental**. They alter how older model-facing conversation history is compacted when a conversation approaches the usable input-context limit. The complete stored chat history is not deleted.
+
+* ``Enable advanced context handling``: Enables rolling long-conversation management. Older completed turns can be compacted into per-conversation continuation notes stored in ``memory_ctx`` while only the model-facing history is trimmed. The durable ``ctx_item`` history remains stored. Default: False.
+
+* ``Checkpoint threshold (%)``: Creates a continuation checkpoint when the unsummarized model-facing conversation reaches this percentage of the usable input context budget. The effective budget accounts for the selected model and reserved output/safety headroom. Default: ``75``.
+
+* ``Context tail after checkpoint (%)``: Controls the target size of the recent unsummarized/verbatim conversation tail after older turns are compacted. It must remain below the checkpoint threshold; PyGPT also applies runtime safety bounds. Default: ``45``.
+
+* ``Maximum continuation note characters``: Sets the character safety ceiling for compact continuation notes associated with one conversation. These notes preserve goals, decisions, completed work, constraints, findings, identifiers, and pending work across context-window rollovers. Model-facing notes are also token-clipped when necessary for the selected model. Default: ``24000``.
+
+See ``Context and memory -> Advanced context handling (experimental)`` for the full behavior, including ``memory_ctx`` tools and Chat with Agents rolling memory.
+
 Remote tools
 ~~~~~~~~~~~~
 
@@ -708,6 +725,12 @@ Debug
 
 * ``Log plugin usage to console``: Prints plugin invocation/activity diagnostics to the console so plugin execution can be traced during development or troubleshooting. Default: False.
 
+* ``Log API inputs``: Logs provider and LlamaIndex API inputs to the terminal, including request arguments, paths, current input/history and LlamaIndex LLM constructor arguments. Known secrets are masked, but request data can still contain sensitive conversation or file information. Default: False.
+
+* ``Log API outputs``: Logs concise API response summaries to the terminal. Streaming responses are aggregated with chunk counts/types instead of logging every individual delta. Default: False.
+
+* ``Log tool calls``: Logs tool calls and full tool results to the terminal, including parameters, call IDs and response payloads. Tool payloads can contain sensitive data or large outputs. Default: False.
+
 * ``Log image and video generation to console``: Prints image- and video-generation request/activity diagnostics to the console. Use it to troubleshoot provider calls and generation flow. Default: False.
 
 * ``Log attachments usage to console``: Prints attachment-processing decisions and related activity to the console, helping diagnose upload, extraction, RAG, or native-attachment handling. Default: False.
@@ -716,7 +739,7 @@ Debug
 
 * ``Log Chat with Agents workflow``: Logs a concise Chat with Agents workflow trace, including orchestration events, tool names, statuses, waits, and response previews without full prompts or large payloads. Default: False.
 
-* ``Chat with Agents verbose (log full flow to console)``: Logs the complete Chat with Agents orchestration flow, including system prompts, tool calls, worker state, RAG context, inputs, and outputs. This may contain sensitive data. Default: False.
+* ``Log Chat with Agents (verbose mode, full output)``: Logs the complete Chat with Agents orchestration flow, including system prompts, tool availability and calls, worker operations/state, inputs, outputs, RAG context, and workflow lifecycle. This may contain sensitive data. Default: False.
 
 * ``Log LlamaIndex usage to console``: Prints LlamaIndex indexing, retrieval, and query-flow diagnostics to the console. Enable it when troubleshooting Chat with Files or vector-store behavior. Default: False.
 
