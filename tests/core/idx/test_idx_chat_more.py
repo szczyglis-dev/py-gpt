@@ -22,10 +22,12 @@ Chat = chat_mod.Chat
 class FakeModelItem:
     def __init__(self, id="fake-model"):
         self.id = id
+        self.provider = "openai"
 
 class FakeCtx:
     def __init__(self, input_text="hi"):
         self.input = input_text
+        self.final_input = input_text
         self.stream = None
         self.input_tokens = None
         self.output_tokens = None
@@ -112,7 +114,8 @@ def make_window(config_map=None):
     models = SimpleNamespace(is_tool_call_allowed=lambda mode, model: True, from_defaults=lambda: FakeModelItem())
     plugins = SimpleNamespace(get_option=lambda a,b: False)
     agents = SimpleNamespace(provider=SimpleNamespace(get=Mock()), tools=SimpleNamespace(prepare=Mock()), runner=SimpleNamespace(llama_workflow=SimpleNamespace(run=Mock())))
-    return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents), idx_logger_message=Mock())
+    api = SimpleNamespace(logger=SimpleNamespace(log_input=Mock(), log_output=Mock()))
+    return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents, api=api), idx_logger_message=Mock())
 
 def make_chat(monkeypatch, config_map=None, storage=None):
     monkeypatch.setattr(chat_mod, "Context", FakeContextClass)

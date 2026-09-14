@@ -20,7 +20,16 @@ def make_window(items=None):
         "max_total_tokens": 1000,
     }.get(key, default)
     window.core.tokens.from_user.return_value = 25
+    window.core.context_manager.enabled.return_value = False
+    window.core.context_manager.filter_agents_v2_items.side_effect = lambda values, master: values
     return window
+
+
+def memory_item(input_text="", output_text=""):
+    return SimpleNamespace(
+        input=input_text, final_input=input_text, output=output_text,
+        parts=[], active_part=None, extra={},
+    )
 
 
 def test_agents_v2_memory_preset_key_prefers_uuid_then_filename():
@@ -33,9 +42,9 @@ def test_agents_v2_memory_preset_key_prefers_uuid_then_filename():
 
 def test_agents_v2_memory_load_history_converts_hidden_turns_to_chat_messages():
     items = [
-        SimpleNamespace(input="user 1", output="assistant 1"),
-        SimpleNamespace(input="", output="assistant 2"),
-        SimpleNamespace(input="user 3", output=""),
+        memory_item("user 1", "assistant 1"),
+        memory_item("", "assistant 2"),
+        memory_item("user 3", ""),
     ]
     window = make_window(items)
     store = OrchestratorMemoryStore(window)
@@ -52,8 +61,8 @@ def test_agents_v2_memory_load_history_converts_hidden_turns_to_chat_messages():
 
 
 def test_agents_v2_memory_load_history_applies_model_context_window():
-    original = [SimpleNamespace(input="old", output="answer")]
-    clipped = [SimpleNamespace(input="kept", output="kept answer")]
+    original = [memory_item("old", "answer")]
+    clipped = [memory_item("kept", "kept answer")]
     window = make_window(original)
     window.core.ctx.get_history.return_value = clipped
     store = OrchestratorMemoryStore(window)
@@ -81,7 +90,7 @@ def test_agents_v2_memory_load_history_applies_model_context_window():
 
 
 def test_agents_v2_memory_load_history_logs_token_window_errors_and_keeps_history():
-    items = [SimpleNamespace(input="user", output="assistant")]
+    items = [memory_item("user", "assistant")]
     window = make_window(items)
     window.core.tokens.from_user.side_effect = RuntimeError("token failure")
     store = OrchestratorMemoryStore(window)

@@ -45,11 +45,10 @@ def test_profile_switch_skips_current_unless_forced_and_alerts_missing():
     window.ui.dialogs.alert.assert_called_once_with('Profile not found!')
 
 
-def test_profile_switch_uses_existing_workdir_or_after_update():
+def test_profile_switch_uses_existing_workdir_and_rejects_missing_target():
     ctrl, window = _profile(current='p0')
-    window.core.config.profile.get.return_value = {'name': 'Two'}
-    window.core.config.profile.get_current_workdir.return_value = '/work/two'
-    with patch('pygpt_net.controller.settings.profile.os.path.exists', return_value=True):
+    window.core.config.profile.get.return_value = {'name': 'Two', 'workdir': '/work/two'}
+    with patch('pygpt_net.controller.settings.profile.os.path.isdir', return_value=True):
         ctrl.switch('p2', force=True, save_current=True, is_create=True)
     window.controller.settings.save_all.assert_called_once_with(force=True)
     window.core.config.profile.set_current.assert_called_once_with('p2')
@@ -57,11 +56,14 @@ def test_profile_switch_uses_existing_workdir_or_after_update():
         '/work/two', force=True, profile_name='Two', is_create=True
     )
 
-    ctrl.after_update = MagicMock()
-    window.core.config.profile.get_current_workdir.return_value = '/missing'
-    with patch('pygpt_net.controller.settings.profile.os.path.exists', return_value=False):
+    window.controller.settings.workdir.update.reset_mock()
+    window.ui.dialogs.alert.reset_mock()
+    window.core.config.profile.get.return_value = {'name': 'Two', 'workdir': '/missing'}
+    with patch('pygpt_net.controller.settings.profile.os.path.isdir', return_value=False), \
+            patch('pygpt_net.controller.settings.profile.trans', return_value='Missing workdir: {path}'):
         ctrl.switch('p2', force=True, save_current=False)
-    ctrl.after_update.assert_called_once_with('Two')
+    window.ui.dialogs.alert.assert_called_once_with('Missing workdir: /missing')
+    window.controller.settings.workdir.update.assert_not_called()
 
 
 def test_profile_after_update_refreshes_ui_and_selection():

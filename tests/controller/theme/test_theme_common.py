@@ -30,7 +30,7 @@ def test_translate(mock_window):
     name = 'dark_teal'
     theme = Theme(mock_window)
     mock_window.core.config.data['lang'] = 'en'
-    assert theme.common.translate(name) == 'Dark: Teal'  # must have EN lang in config to pass!!!!!!!!
+    assert theme.common.translate(name) == 'Dark'  # must have EN lang in config to pass!!!!!!!!
 
 
 def test_get_themes_list(mock_window):

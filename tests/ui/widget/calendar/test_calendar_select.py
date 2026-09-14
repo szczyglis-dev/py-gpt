@@ -20,28 +20,19 @@ def test_set_tab_and_page_change_update_state_and_controller():
     window.controller.calendar.on_page_changed.assert_called_once_with(2026, 9)
 
 
-def test_theme_cache_updates_only_when_theme_changes():
-    config = MagicMock()
-    config.get.side_effect = ["dark", "dark", "light"]
+def test_calendar_color_properties_update_cached_values_and_cells():
     widget = SimpleNamespace(
-        window=SimpleNamespace(core=SimpleNamespace(config=config)),
-        _theme_cached=None,
-        _counter_bg=QColor(), _counter_font=QColor(),
+        _counter_background_color=QColor(),
+        _counter_text_color=QColor(),
+        updateCells=MagicMock(),
     )
 
-    CalendarSelect._update_theme_cache(widget)
-    assert widget._theme_cached == "dark"
-    assert widget._counter_bg == QColor(70, 70, 70)
-    assert widget._counter_font == QColor(255, 255, 255)
+    CalendarSelect.set_counter_background_color(widget, QColor(70, 70, 70))
+    CalendarSelect.set_counter_text_color(widget, QColor(255, 255, 255))
 
-    first_bg = widget._counter_bg
-    CalendarSelect._update_theme_cache(widget)
-    assert widget._counter_bg == first_bg
-
-    CalendarSelect._update_theme_cache(widget)
-    assert widget._theme_cached == "light"
-    assert widget._counter_bg == QColor(200, 200, 200)
-
+    assert widget._counter_background_color == QColor(70, 70, 70)
+    assert widget._counter_text_color == QColor(255, 255, 255)
+    assert widget.updateCells.call_count == 2
 
 def test_get_color_for_status_uses_mapping_or_defaults():
     mapped_bg = QColor(1, 2, 3)

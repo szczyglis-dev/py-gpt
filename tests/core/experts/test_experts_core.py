@@ -167,10 +167,7 @@ def test_expert_worker_run_collects_regular_tool_response(fake_window):
     responses = worker.reply_more.call_args.args[0]
     assert responses == [
         {
-            "request": {
-                "cmd": TOOL_EXPERT_CALL_NAME,
-                "params": {"id": "exp1", "instruction": "Do it"},
-            },
+            "request": {"cmd": TOOL_EXPERT_CALL_NAME, "id": "exp1"},
             "result": "Expert result",
         }
     ]
@@ -195,7 +192,7 @@ def test_expert_worker_run_converts_expert_error_to_tool_result(fake_window):
     fake_window.core.debug.log.assert_called_once()
     responses = worker.reply_more.call_args.args[0]
     assert len(responses) == 1
-    assert responses[0]["request"]["params"]["id"] == "expError"
+    assert responses[0]["request"]["id"] == "expError"
     assert "Test error" in responses[0]["result"]
     assert worker.signals is None
 

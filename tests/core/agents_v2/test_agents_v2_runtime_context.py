@@ -281,7 +281,7 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     assert isinstance(runtime.worker_api, WorkerRuntime)
     assert isinstance(runtime.toolset_api, RuntimeToolset)
     assert isinstance(runtime.prompt_api, RuntimePromptBuilder)
-    actor_ctx.set_input.assert_called_once_with("input", "orchestrator")
+    actor_ctx.set_input.assert_called_once_with("prompt", "orchestrator")
     actor_ctx.set_output.assert_called_once_with("", "Primary Agent")
 
 

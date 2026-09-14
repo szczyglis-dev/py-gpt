@@ -56,20 +56,13 @@ def test_chat_common_setup_migrates_invalid_send_mode_and_dispatches_renderer_sw
     assert common.initialized is True
 
 
-def test_chat_common_append_to_input_uses_qtextcursor_without_real_clipboard_or_io():
+def test_chat_common_append_to_input_uses_mention_aware_input_helper():
     common = _common()
     node = common.window.ui.nodes["input"]
-    cursor = MagicMock()
-    node.toPlainText.return_value = "existing"
-    node.textCursor.return_value = cursor
 
     common.append_to_input(" line1\nline2 ", separator=" ")
 
-    inserted = [c.args[0] for c in cursor.insertText.call_args_list]
-    assert inserted == [" line1", "line2"]
-    cursor.insertBlock.assert_called_once_with()
-    node.setTextCursor.assert_called_once_with(cursor)
-    node.setFocus.assert_called_once_with()
+    node.append_mention_text.assert_called_once_with(" line1\nline2 ", separator=" ")
     common.window.controller.ui.update_tokens.assert_called_once_with()
 
 

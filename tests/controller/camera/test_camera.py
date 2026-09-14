@@ -48,9 +48,16 @@ def test_setup_ui(mock_window):
 def test_start(mock_window):
     """Test start"""
     camera = Camera(mock_window)
-    camera.window.threadpool.start = MagicMock()
-    camera.start()
-    camera.window.threadpool.start.assert_called_once()
+    worker = MagicMock()
+    thread = MagicMock()
+    thread.isRunning.return_value = False
+    with patch("pygpt_net.controller.camera.camera.CaptureWorker", return_value=worker), \
+            patch("pygpt_net.controller.camera.camera.CaptureThread", return_value=thread):
+        camera.start()
+    thread.start.assert_called_once_with()
+    assert camera.worker is worker
+    assert camera.thread is thread
+    assert camera.thread_started is True
 
 
 def test_stop_capture(mock_window):

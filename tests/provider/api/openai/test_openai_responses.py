@@ -42,6 +42,7 @@ def dummy_window():
     window.core.config = SimpleNamespace()
     window.core.config.get = lambda key, default=None: config_dict.get(key, default)
     window.core.api = SimpleNamespace()
+    window.core.api.logger = SimpleNamespace(log_input=MagicMock(), log_output=MagicMock())
     window.core.api.openai = SimpleNamespace()
     window.core.api.openai.get_client = MagicMock()
     window.core.api.openai.tools = SimpleNamespace()
@@ -68,6 +69,11 @@ def dummy_window():
     window.core.ctx.get_history = MagicMock(return_value=[])
     window.core.ctx.get_current_meta = MagicMock(return_value=None)
     window.core.ctx.save = MagicMock()
+    window.core.context_manager = SimpleNamespace(
+        mark_request_generation=MagicMock(),
+        enabled=MagicMock(return_value=False),
+        should_break_server_chain=MagicMock(return_value=False),
+    )
     window.core.attachments = SimpleNamespace()
     window.core.attachments.native = SimpleNamespace()
     window.core.attachments.native.get_refs = MagicMock(return_value=[])

@@ -67,11 +67,11 @@ def _window():
         controller=SimpleNamespace(
             plugins=MagicMock(), debug=MagicMock(), kernel=MagicMock(), ctx=MagicMock(),
             notepad=MagicMock(), calendar=MagicMock(), painter=MagicMock(), layout=MagicMock(),
-            access=MagicMock(),
+            access=MagicMock(), camera=MagicMock(), settings=SimpleNamespace(profile=SimpleNamespace(switching=False)),
         ),
         tools=MagicMock(),
         core=SimpleNamespace(
-            config=MagicMock(), tabs=MagicMock(), presets=MagicMock(), dispatcher=MagicMock(),
+            config=MagicMock(), tabs=MagicMock(), presets=MagicMock(), dispatcher=MagicMock(), debug=MagicMock(),
         ),
         ui=SimpleNamespace(tray=MagicMock(), tray_menu={"restore": MagicMock()}),
         state="idle", is_post_update=False, is_closing=False,
@@ -116,7 +116,7 @@ def test_update_state_changes_tray_icon_only_for_new_state():
 
 def test_dispatch_forwards_all_flag():
     w = _window()
-    event = object()
+    event = SimpleNamespace(name="test")
     MainWindow.dispatch(w, event, all=True)
     w.core.dispatcher.dispatch.assert_called_once_with(event, all=True)
 

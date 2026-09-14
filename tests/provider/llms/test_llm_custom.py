@@ -22,7 +22,7 @@ def _window():
         core=SimpleNamespace(
             config=MagicMock(),
             models=MagicMock(),
-            api=SimpleNamespace(openai=MagicMock()),
+            api=SimpleNamespace(openai=MagicMock(), logger=MagicMock()),
         )
     )
 

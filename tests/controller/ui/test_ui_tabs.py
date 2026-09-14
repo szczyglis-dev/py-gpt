@@ -525,7 +525,7 @@ def test_move_tab(tabs, dummy_window):
         called_switch = True
     tabs.switch_tab_by_idx = fake_switch
     tabs.move_tab(3, 0, 1)
-    dummy_window.core.tabs.move_tab.assert_called_with(dummy_tab, 1)
+    dummy_window.core.tabs.move_tab.assert_called_with(dummy_tab, 1, new_idx=None)
     assert called is True
     assert called_switch is True
     tabs.on_column_changed = orig_on_column_changed

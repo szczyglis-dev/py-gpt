@@ -45,12 +45,12 @@ def test_theme_setup_builds_menu_tree_and_marks_loaded():
 
     assert widget._loaded is True
     assert set((
-        "menu.theme", "theme.style", "theme.dark", "theme.light", "theme.syntax",
+        "menu.theme", "theme.theme", "theme.style", "theme.syntax",
         "theme.density", "theme.tooltips", "theme.settings"
     )).issubset(ui_menu)
     ui_menu["theme.tooltips"].setChecked.assert_called_once_with(True)
     ui_menu["theme.settings"].setMenuRole.assert_called_once_with("no-role")
-    assert ui_menu["menu.theme"].addMenu.call_count == 5
+    assert ui_menu["menu.theme"].addMenu.call_count == 4
     assert ui_menu["menu.theme"].addAction.call_count == 2
 
 

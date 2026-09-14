@@ -31,7 +31,7 @@ class FakeTabs:
     def addTab(self, widget, icon, title):
         self._tabs.append(widget)
         return len(self._tabs) - 1
-    def insertTab(self, idx, widget, title):
+    def insertTab(self, idx, widget, *args):
         self._tabs.insert(idx, widget)
         return idx
     def removeTab(self, idx):

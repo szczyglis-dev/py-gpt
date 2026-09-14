@@ -34,6 +34,9 @@ def create_dummy_window():
     win.ui = MagicMock()
     win.ui.nodes = {'input': MagicMock()}
     win.ui.nodes['input'].toPlainText = MagicMock(return_value="dummy text")
+    win.ui.nodes['input'].serialize_mentions = MagicMock(
+        side_effect=lambda: win.ui.nodes['input'].toPlainText()
+    )
     win.ui.dialogs = MagicMock()
     win.ui.dialogs.alert = MagicMock()
     win.controller = MagicMock()

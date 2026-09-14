@@ -42,6 +42,13 @@ def make_runtime():
     runtime.tool_factory.build_orchestrator.side_effect = lambda actor: [
         SimpleNamespace(metadata=SimpleNamespace(name=f"local:{actor}"))
     ]
+    runtime.context = SimpleNamespace(ctx=SimpleNamespace())
+    runtime.window = SimpleNamespace(
+        core=SimpleNamespace(
+            context_manager=SimpleNamespace(build_agent_tools=MagicMock(return_value=[])),
+            debug=SimpleNamespace(log=MagicMock()),
+        )
+    )
     return runtime
 
 

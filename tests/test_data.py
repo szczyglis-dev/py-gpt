@@ -89,15 +89,12 @@ def test_css():
         "fix_windows.light.css",
         "web-blocks.css",
         "web-blocks.dark.css",
-        "web-blocks.darkest.css",
         "web-blocks.light.css",
         "web-chatgpt.css",
         "web-chatgpt.dark.css",
-        "web-chatgpt.darkest.css",
         "web-chatgpt.light.css",
         "web-chatgpt_wide.css",
         "web-chatgpt_wide.dark.css",
-        "web-chatgpt_wide.darkest.css",
         "web-chatgpt_wide.light.css",
     ]
     for file in files:

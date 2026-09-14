@@ -17,6 +17,8 @@ class DummyCtxItem:
     def __init__(self, input_value="", output_value="", extra=None):
         self.input = input_value
         self.output = output_value
+        self.final_input = input_value
+        self.final_output = output_value
         self.extra = extra
 
 @pytest.fixture

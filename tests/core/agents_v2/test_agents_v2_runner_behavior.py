@@ -147,6 +147,20 @@ def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(m
         export_tool_calls_to_main_ctx=MagicMock(),
         _actor_part=MagicMock(return_value=SimpleNamespace(uuid="final-part")),
         main_event=MagicMock(side_effect=lambda value: value),
+        last_orchestrator_output=MagicMock(return_value="final answer"),
+        _prepare_final_part=MagicMock(return_value=SimpleNamespace(uuid="final-part")),
+        _swarm_worker_numbers={},
+        _worker_parent_parts={},
+        _stored_worker_context_runs=set(),
+    )
+    runtime.model = SimpleNamespace(id="model", provider="openai")
+    runtime.window = SimpleNamespace(
+        core=SimpleNamespace(
+            context_manager=SimpleNamespace(enabled=MagicMock(return_value=False)),
+            api=SimpleNamespace(
+                logger=SimpleNamespace(log_input=MagicMock(), log_output=MagicMock())
+            ),
+        )
     )
 
     def begin_final_stream():

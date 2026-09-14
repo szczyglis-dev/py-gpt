@@ -35,14 +35,16 @@ def test_update(mock_window):
 
 def test_get_default(mock_window):
     """Test get default markdown"""
-    mock_window.core.config.data['theme'] = 'light'
+    mock_window.core.config.get = MagicMock(return_value='light')
+    mock_window.controller.theme.common.normalize_theme.return_value = 'light'
     theme = Theme(mock_window)
     assert theme.markdown.get_default() is not None
 
 
 def test_set_default(mock_window):
     """Test set default markdown"""
-    mock_window.core.config.data['theme'] = 'light'
+    mock_window.core.config.get = MagicMock(return_value='light')
+    mock_window.controller.theme.common.normalize_theme.return_value = 'light'
     theme = Theme(mock_window)
     theme.markdown.css['markdown'] = {}
     theme.markdown.set_default()

@@ -664,6 +664,8 @@ def test_count_prompt_items():
     ctx.window.core = MagicMock()
     ctx.window.core.tokens = MagicMock()
     ctx.window.core.tokens.from_ctx = MagicMock()
+    ctx.window.core.context_manager.fit_history_limit.side_effect = lambda model, limit: limit
+    ctx.window.core.context_manager.filter_history.side_effect = lambda values: values
 
     items = [
         CtxItem(),
@@ -704,6 +706,8 @@ def test_get_prompt_items():
     ctx.window.core = MagicMock()
     ctx.window.core.tokens = MagicMock()
     ctx.window.core.tokens.from_ctx = MagicMock()
+    ctx.window.core.context_manager.fit_history_limit.side_effect = lambda model, limit: limit
+    ctx.window.core.context_manager.filter_history.side_effect = lambda values: values
 
     item1 = CtxItem()
     item2 = CtxItem()
