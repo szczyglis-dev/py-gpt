@@ -387,14 +387,13 @@ NotepadOutput,
 .toolbox QRadioButton[toolboxHover="true"],
 .toolbox QComboBox[toolboxHover="true"],
 .toolbox QLineEdit[toolboxHover="true"],
-.toolbox QTextEdit[toolboxHover="true"],
-.toolbox QListView[toolboxHover="true"],
-.toolbox QTreeView[toolboxHover="true"] {{
+.toolbox QTextEdit[toolboxHover="true"] {{
   color: #ffffff;
 }}
-.toolbox QListView[toolboxHover="true"]::item,
-.toolbox QTreeView[toolboxHover="true"]::item {{
+.toolbox QListView::item:hover,
+.toolbox QTreeView::item:hover {{
   color: #ffffff;
+  selection-color: #ffffff;
 }}
 .toolbox QListView[toolboxHover="true"]::item:selected,
 .toolbox QTreeView[toolboxHover="true"]::item:selected {{
@@ -529,12 +528,13 @@ QMenu::item:selected {{
   selection-color: #c9c9c9;
   background-color: #454545;
 }}
-.toolbox QListView[toolboxHover="true"]::item,
-.toolbox QTreeView[toolboxHover="true"]::item {{
+.toolbox QListView::item:hover,
+.toolbox QTreeView::item:hover {{
   color: #ffffff;
+  selection-color: #ffffff;
 }}
-.toolbox QListView[toolboxHover="true"]::item:selected,
-.toolbox QTreeView[toolboxHover="true"]::item:selected {{
+.toolbox QListView::item:selected:hover,
+.toolbox QTreeView::item:selected:hover {{
   color: #ffffff;
   font-weight: bold;
   selection-color: #ffffff;

@@ -132,10 +132,6 @@ class ContextList(BaseList):
         self._hover_group_index: QPersistentModelIndex | None = None
         self._hover_section_action_index: QPersistentModelIndex | None = None
         self.setMouseTracking(True)
-        # Explicit whole-list hover state. Do not infer this from QCursor while
-        # painting: on a Leave event the last repaint can otherwise still see
-        # the cursor inside the viewport and leave rows painted white.
-        self._whole_list_hovered = False
         try:
             self.viewport().setMouseTracking(True)
         except Exception:
@@ -1388,23 +1384,8 @@ class ContextList(BaseList):
             self._drag_pending_from_multi = False
         super().mouseMoveEvent(event)
 
-    def enterEvent(self, event):
-        """Enable whole-list text hover and repaint visible rows."""
-        self._whole_list_hovered = True
-        self.viewport().update()
-        super().enterEvent(event)
-
     def viewportEvent(self, event):
         """Handle viewport repaint and add-action tooltips."""
-        if event.type() == QtCore.QEvent.Enter:
-            self._whole_list_hovered = True
-            self.viewport().update()
-        elif event.type() == QtCore.QEvent.Leave:
-            # The parent ContextList can still be hovered when moving onto its
-            # scrollbar, so do not clear the whole-area hover here. The parent
-            # leaveEvent is authoritative for leaving the complete ctx list.
-            self.viewport().update()
-
         if event.type() == QtCore.QEvent.ToolTip:
             pos = self._event_pos_to_point(event)
             index = self.indexAt(pos)
@@ -1447,8 +1428,7 @@ class ContextList(BaseList):
         return super().viewportEvent(event)
 
     def leaveEvent(self, event):
-        """Restore muted text when the pointer leaves the complete ctx list."""
-        self._whole_list_hovered = False
+        """Clear row/header hover actions when the pointer leaves the ctx list."""
         self._clear_hover_group()
         self._clear_hover_section_action()
         self.viewport().update()
@@ -2613,7 +2593,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                 palette,
                 QtGui.QPalette.Text,
             )
-        if bool(getattr(view, "_whole_list_hovered", False)):
+        if option.state & QtWidgets.QStyle.State_MouseOver:
             return self._resolved_view_color(
                 view,
                 "hoverTextColor",
