@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 18:30:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -34,7 +34,6 @@ class Patch:
         data = self.window.core.config.all()
         cfg_get_base = self.window.core.config.get_base
         remove_plugin_config = self.window.core.config.remove_plugin_config
-        patch_css = self.window.core.updater.patch_css
         current = "0.0.0"
         updated = False
         is_old = False
@@ -73,9 +72,6 @@ class Patch:
             if old < parse_version("2.6.43"):
                 print("Migrating config from < 2.6.43...")
                 # li div margin
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.6.44
@@ -95,29 +91,18 @@ class Patch:
             if old < parse_version("2.6.46"):
                 print("Migrating config from < 2.6.46...")
                 # output stream margin-top: 0
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
-                patch_css('style.dark.css', True)
-                patch_css('web-blocks.light.css', True)
-                patch_css('web-chatgpt.light.css', True)
-                patch_css('web-chatgpt_wide.light.css', True)
                 updated = True
 
             # < 2.6.48
             if old < parse_version("2.6.48"):
                 print("Migrating config from < 2.6.48...")
                 # reformat
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.6.51
             if old < parse_version("2.6.51"):
                 print("Migrating config from < 2.6.51...")
                 # calendar css
-                patch_css('style.dark.css', True)
                 updated = True
 
             # < 2.6.53
@@ -131,18 +116,6 @@ class Patch:
             if old < parse_version("2.6.56"):
                 print("Migrating config from < 2.6.56...")
                 # copy btn header
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
-                patch_css('web-blocks.light.css', True)
-                patch_css('web-chatgpt.light.css', True)
-                patch_css('web-chatgpt_wide.light.css', True)
-                patch_css('web-blocks.dark.css', True)
-                patch_css('web-chatgpt.dark.css', True)
-                patch_css('web-chatgpt_wide.dark.css', True)
-                patch_css('web-blocks.darkest.css', True)
-                patch_css('web-chatgpt.darkest.css', True)
-                patch_css('web-chatgpt_wide.darkest.css', True)
                 updated = True
 
             # < 2.6.57
@@ -179,16 +152,12 @@ class Patch:
             if old < parse_version("2.6.62"):
                 print("Migrating config from < 2.6.62...")
                 # add: node editor css
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
                 updated = True
 
             # < 2.6.65
             if old < parse_version("2.6.65"):
                 print("Migrating config from < 2.6.65...")
                 # add: status bar css
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
                 updated = True
 
             # < 2.6.66
@@ -202,24 +171,18 @@ class Patch:
             if old < parse_version("2.7.0"):
                 print("Migrating config from < 2.7.0...")
                 # add: combo boxes css
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
                 updated = True
 
             # < 2.7.1
             if old < parse_version("2.7.1"):
                 print("Migrating config from < 2.7.1...")
                 # update: combo boxes css
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
                 updated = True
 
             # < 2.7.2
             if old < parse_version("2.7.2"):
                 print("Migrating config from < 2.7.2...")
                 # fix: combo boxes css width
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
                 updated = True
 
             # < 2.7.3
@@ -234,8 +197,6 @@ class Patch:
             # < 2.7.4
             if old < parse_version("2.7.4"):
                 print("Migrating config from < 2.7.4...")
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.7.5
@@ -313,8 +274,6 @@ class Patch:
             if old < parse_version("2.8.1"):
                 print("Migrating config from < 2.8.1...")
                 # add: buttons hover css
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
                 to_add = [
                     "api_endpoint_forge",
                     "api_key_forge",
@@ -330,17 +289,6 @@ class Patch:
             if old < parse_version("2.8.2"):
                 print("Migrating config from < 2.8.2...")
                 # css chat, button border color
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
-                patch_css('web-blocks.css', True)
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt.dark.css', True)
-                patch_css('web-chatgpt.darkest.css', True)
-                patch_css('web-chatgpt.light.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-chatgpt_wide.dark.css', True)
-                patch_css('web-chatgpt_wide.darkest.css', True)
-                patch_css('web-chatgpt_wide.light.css', True)
                 to_add = [
                     "app_banners_api_url",
                 ]
@@ -421,9 +369,6 @@ class Patch:
                         and "<tool>" in saved_context_prompt):
                     idx_plugin["prompt"] = context_prompt
 
-                patch_css('web-blocks.css', True)
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
                 updated = True
 
             # < 2.8.4
@@ -480,9 +425,6 @@ class Patch:
             if old < parse_version("2.8.6"):
                 print("Migrating config from < 2.8.6...")
                 # grouped consecutive tool-call UI
-                patch_css('web-blocks.css', True)
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
                 updated = True
 
             # < 2.8.7
@@ -643,22 +585,10 @@ class Patch:
                     updated = True
 
                 # css chat, <code> background color, changed msg-user background color
-                patch_css('style.light.css', True)
-                patch_css('style.dark.css', True)
-                patch_css('web-blocks.css', True)
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt.dark.css', True)
-                patch_css('web-chatgpt.darkest.css', True)
-                patch_css('web-chatgpt.light.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-chatgpt_wide.dark.css', True)
-                patch_css('web-chatgpt_wide.darkest.css', True)
-                patch_css('web-chatgpt_wide.light.css', True)
 
             # < 2.8.14
             if old < parse_version("2.8.14"):
                 print("Migrating config from < 2.8.14...")
-                patch_css('style.light.css', True)
                 updated = True
 
             # < 2.8.15
@@ -870,6 +800,20 @@ class Patch:
                 if "llama.idx.react" in data:
                     del data["llama.idx.react"]
                     updated = True
+
+            # < 2.8.18
+            if old < parse_version("2.8.18"):
+                print("Migrating config from < 2.8.18...")
+
+                # Theme palette was simplified to one Dark and one Light theme.
+                # Normalize every historical variant so removed theme assets are
+                # never referenced by upgraded profiles. Unknown/custom values
+                # fall back to Dark, which is also the new application default.
+                old_theme = str(data.get("theme", "") or "").lower()
+                new_theme = "light" if old_theme.startswith("light") else "dark"
+                if data.get("theme") != new_theme:
+                    data["theme"] = new_theme
+                updated = True
 
         # update file
         migrated = False

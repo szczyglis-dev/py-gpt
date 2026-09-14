@@ -6,7 +6,7 @@
 QWidget {{
   color: #000;
   margin: 1px;
-  background-color: #eeeeee;
+  background-color: #fcfcfc;
 }}
 
 QListView, 
@@ -277,6 +277,11 @@ QCalendarWidget QToolButton:hover {{
 QMenu::indicator {{
     border: 1px solid gray;
 }}
+.calendar {{
+  qproperty-todayBackgroundColor: #ffffff;
+  qproperty-todayTextColor: #000000;
+  qproperty-dayBorderColor: #e2e2e2;
+}}
 QCalendarWidget QAbstractItemView::item:selected:focus,
 QCalendarWidget QAbstractItemView::item:selected {{
     background: #ffffd4;
@@ -349,10 +354,139 @@ QListView#ComboPopupList::item:disabled {{
 QComboBox QAbstractItemView::item:hover,
 QListView#ComboPopupList::item:hover {{ }}
 QWidget#ComboPopupWindow {{
-  background: red;
+  background: transparent;
   border: 0;
 }}
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
-  background: red;
+  background: #ffffff;
   border-radius: 10px;
+}}
+/* Canonical Light palette (2.8.18) */
+/* Structural surfaces use the same background as the application. */
+QWidget,
+QMainWindow,
+QSplitter,
+QFrame,
+QTabWidget,
+QTabBar {{
+  background-color: #fcfcfc;
+}}
+.layout-output-web {{
+  background-color: #fcfcfc !important;
+}}
+.layout-input,
+QLineEdit,
+QTextEdit,
+QComboBox,
+QListView,
+QTreeView,
+QMenu {{
+  background-color: #ffffff;
+}}
+.ctx-list {{
+  background-color: #ffffff;
+  /* Semantic colors consumed by ContextList/ImportantItemDelegate. */
+  qproperty-normalTextColor: #000000;
+  qproperty-hoverTextColor: #000000;
+  qproperty-activeTextColor: #000000;
+  qproperty-focusedSelectedTextColor: #ffffff;
+}}
+QListView#ComboPopupList,
+QListView#ComboPopupList > QWidget#ComboPopupViewport {{
+  background: #ffffff;
+}}
+QWidget#ComboPopupWindow {{
+  background: transparent;
+}}
+
+/* App scrollbars: transparent track, light handle */
+QScrollBar:vertical,
+QScrollBar:horizontal {{
+  background: transparent;
+  border: none;
+}}
+QScrollBar::handle:vertical,
+QScrollBar::handle:horizontal {{
+  background: #e2e2e2;
+  border: none;
+  border-radius: 3px;
+}}
+QScrollBar::handle:vertical:hover,
+QScrollBar::handle:horizontal:hover {{
+  background: #5a5a5a;
+}}
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical,
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {{
+  background: transparent;
+}}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {{
+  background: transparent;
+  border: none;
+  height: 0px;
+}}
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {{
+  background: transparent;
+  border: none;
+  width: 0px;
+}}
+QScrollBar::corner {{
+  background: transparent;
+}}
+
+/* Integrated Light theme overrides (formerly data/themes/light.css) */
+QListView::item:selected,
+QTreeView::item:selected {{
+  color: #000000;
+  selection-color: #000000;
+  font-weight: bold;
+}}
+QComboBox::item:selected {{
+  color: #000;
+  selection-color: #000;
+}}
+QComboBox::item:disabled {{
+  color: #818282;
+}}
+QListView::item:selected:focus, 
+QComboBox::item:selected:focus,
+QTreeView::item:selected:focus {{
+  color: #000000;
+  selection-color: #ffffff;
+  font-weight: bold;
+}}
+QListView::item::disabled {{
+   color: #959595;
+   font-weight: bold;
+}}
+QMenuBar::item:selected {{ 
+  color: #000000;
+}} 
+QMenu::item:selected {{ 
+  color: #000000;
+}} 
+QWidget,
+.layout-notepad {{
+  background-color: #fcfcfc;
+}}
+QPushButton,
+QTextEdit,
+QLineEdit, 
+QListView, 
+QComboBox,
+QTreeView {{
+  background-color: #ffffff;
+}}
+QMenu {{ 
+  background-color: #ffffff;
+}}
+.layout-output-web {{
+  background-color: #fcfcfc !important;
+}}
+.layout-input,
+.ctx-list {{
+  background-color: #ffffff;
 }}

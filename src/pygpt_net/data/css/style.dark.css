@@ -14,8 +14,20 @@ QTextEdit {{
 QTabBar {{
   text-transform: none;
 }}
+/* Tabs: inactive text stays muted; only the active tab is white. */
+QTabBar::tab {{
+  color: #c9c9c9;
+}}
+QTabBar::tab:selected {{
+  color: #ffffff;
+}}
+QTabBar::tab:hover:!selected {{
+  color: #ffffff;
+  border-bottom-color: transparent;
+}}
 QComboBox {{
   color: #fff;
+  font-weight: bold;
 }}
 QTreeView,
 QListView,
@@ -39,10 +51,12 @@ QTreeView::item:hover:!selected {{
 QListView::item:selected,
 QTreeView::item:selected {{
   color: #ffffff;
+  font-weight: bold;
   selection-color: #ffffff;
 }}
 QComboBox::item:selected {{
   color: #000;
+  font-weight: bold;
   selection-color: #000;
 }}
 QComboBox::item:disabled {{
@@ -129,21 +143,47 @@ QLineEdit {{
 QComboBox::item:checked {{
   font-weight: bold;
 }}
+/* Calendar */
+.calendar {{
+  qproperty-todayBackgroundColor: #ffffff;
+  qproperty-todayTextColor: #000000;
+  qproperty-dayBorderColor: #292929;
+}}
 QCalendarWidget QAbstractItemView::item:selected:focus,
 QCalendarWidget QAbstractItemView::item:selected {{
-    background: #3a4045;
+  background: #3a4045;
 }}
 QCalendarWidget QAbstractItemView::item:hover {{
-    background: #3a4045;
+  background: #1e1e1e;
+}}
+
+/* Files tool: keep the whole explorer on the application surface. */
+.file-explorer,
+.file-explorer QTreeView,
+.file-explorer QHeaderView,
+.file-explorer QHeaderView::section,
+.file-explorer QTreeView::branch,
+.file-explorer QAbstractScrollArea,
+.file-explorer QAbstractScrollArea::corner {{
+  background: #161616;
 }}
 .file-explorer QHeaderView::section {{
-  background: #262a2e;
   padding-top: 6px;
   padding-bottom: 2px;
   height: 20px;
 }}
-.file-explorer QTreeView::branch {{
-  background: #262a2e;
+.file-explorer QScrollBar:vertical,
+.file-explorer QScrollBar:horizontal,
+.file-explorer QScrollBar::add-page:vertical,
+.file-explorer QScrollBar::sub-page:vertical,
+.file-explorer QScrollBar::add-page:horizontal,
+.file-explorer QScrollBar::sub-page:horizontal,
+.file-explorer QScrollBar::add-line:vertical,
+.file-explorer QScrollBar::sub-line:vertical,
+.file-explorer QScrollBar::add-line:horizontal,
+.file-explorer QScrollBar::sub-line:horizontal,
+.file-explorer QScrollBar::corner {{
+  background: #161616;
 }}
 
 .DebugList::item:selected,
@@ -183,16 +223,18 @@ NodeEditor {{
 /* ComboBox */
 QComboBox QAbstractItemView {{
   border: 1px solid rgba(0,0,0,0.18);
+  background: #202020;
 }}
 
 QListView#ComboPopupList {{
   border-radius: 10px;
-  background: #1f2123;
+  background: #202020;
   border: 2px solid #4f5b62;
 }}
 
 QComboBox[name="SearchableCombo"] QAbstractItemView::item,
 QListView#ComboPopupList::item {{
+  font-weight: normal;
   min-height: 20px;
   padding: 8px 33px;
   margin: 0;
@@ -221,6 +263,290 @@ QWidget#ComboPopupWindow {{
   border: 0;
 }}
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
-  background: transparent;
+  background: #202020;
   border-radius: 0px;
+}}
+/* Canonical Dark palette (2.8.18) */
+/* Structural surfaces use the same background as the application. */
+QWidget,
+QMainWindow,
+QSplitter,
+QFrame,
+QTabWidget,
+QTabBar {{
+  background-color: #161616;
+}}
+
+/* Keep normal controls/lists on the existing dark control surface. */
+QLineEdit,
+QTextEdit,
+QComboBox,
+QListView,
+QTreeView,
+QMenu {{
+  background-color: #202020;
+}}
+.layout-output-web {{
+  background-color: #161616 !important;
+}}
+NotepadWidget,
+NotepadOutput,
+.layout-notepad {{
+  background-color: #161616;
+}}
+.layout-input,
+.layout-input QTextEdit {{
+  background-color: #242424;
+}}
+.ctx-list {{
+  background-color: #161616;
+  /* Semantic colors consumed by ContextList/ImportantItemDelegate. */
+  qproperty-normalTextColor: #c9c9c9;
+  qproperty-hoverTextColor: #ffffff;
+  qproperty-activeTextColor: #ffffff;
+  qproperty-focusedSelectedTextColor: #000000;
+}}
+
+/* Context list typography.
+   QSS owns both the semantic delegate colors (qproperty-*) and the native
+   per-row hover/selection surfaces. Python only resolves interaction state. */
+.ctx-list {{
+  selection-background-color: #454545;
+}}
+.ctx-list::item:hover:!selected {{
+  color: #ffffff;
+  selection-color: #ffffff;
+  background-color: rgba(255, 255, 255, 5);
+}}
+/* Active context without list focus keeps the original dark selection surface.
+   Its text color comes from qproperty-activeTextColor above. */
+.ctx-list::item:selected {{
+  background-color: #454545;
+  font-weight: bold;
+}}
+/* Only the real focused/current selection switches to a white surface. Its
+   text color comes from qproperty-focusedSelectedTextColor above. */
+.ctx-list::item:selected:focus,
+.ctx-list::item:hover:selected:focus {{
+  background-color: #ffffff;
+}}
+/* Section headers stay muted and never receive a row-hover background. */
+.ctx-list::item:disabled,
+.ctx-list::item:disabled:hover {{
+  color: #959595;
+  selection-color: #959595;
+  background-color: transparent;
+  font-weight: bold;
+}}
+
+/* Toolbox typography.
+   Each logical toolbox section gets toolboxHover independently. Lists keep a
+   separate inactive-selection surface; only a focused selection gets the
+   white surface + black text. */
+.toolbox QLabel,
+.toolbox QPushButton,
+.toolbox QToolButton,
+.toolbox QCheckBox,
+.toolbox QRadioButton,
+.toolbox QComboBox,
+.toolbox QLineEdit,
+.toolbox QTextEdit,
+.toolbox QListView,
+.toolbox QTreeView {{
+  color: #c9c9c9;
+}}
+.toolbox QListView,
+.toolbox QTreeView {{
+  selection-background-color: #454545;
+}}
+.toolbox QListView::item,
+.toolbox QTreeView::item {{
+  color: #c9c9c9;
+}}
+.toolbox QListView::item:selected,
+.toolbox QTreeView::item:selected {{
+  color: #c9c9c9;
+  font-weight: bold;
+  selection-color: #c9c9c9;
+  background-color: #454545;
+}}
+
+.toolbox QLabel[toolboxHover="true"],
+.toolbox QPushButton[toolboxHover="true"],
+.toolbox QToolButton[toolboxHover="true"],
+.toolbox QCheckBox[toolboxHover="true"],
+.toolbox QRadioButton[toolboxHover="true"],
+.toolbox QComboBox[toolboxHover="true"],
+.toolbox QLineEdit[toolboxHover="true"],
+.toolbox QTextEdit[toolboxHover="true"],
+.toolbox QListView[toolboxHover="true"],
+.toolbox QTreeView[toolboxHover="true"] {{
+  color: #ffffff;
+}}
+.toolbox QListView[toolboxHover="true"]::item,
+.toolbox QTreeView[toolboxHover="true"]::item {{
+  color: #ffffff;
+}}
+.toolbox QListView[toolboxHover="true"]::item:selected,
+.toolbox QTreeView[toolboxHover="true"]::item:selected {{
+  color: #ffffff;
+  font-weight: bold;
+  selection-color: #ffffff;
+  background-color: #454545;
+}}
+/* Focus always wins over section hover. */
+.toolbox QListView::item:selected:focus,
+.toolbox QListView[toolboxHover="true"]::item:selected:focus,
+.toolbox QTreeView::item:selected:focus,
+.toolbox QTreeView[toolboxHover="true"]::item:selected:focus {{
+  color: #000000;
+  font-weight: bold;
+  selection-color: #000000;
+  background-color: #ffffff;
+}}
+
+/* Keep intentionally-muted/help/link labels unchanged by section hover. */
+.toolbox .label-help,
+.toolbox .label-desc,
+.toolbox .label-chat-status,
+.toolbox .label-help[toolboxHover="true"],
+.toolbox .label-desc[toolboxHover="true"],
+.toolbox .label-chat-status[toolboxHover="true"] {{
+  color: #999;
+}}
+.toolbox .label-link,
+.toolbox .label-link[toolboxHover="true"] {{
+  color: #90d9ff;
+}}
+
+/* App scrollbars: transparent track, dark handle */
+QScrollBar:vertical,
+QScrollBar:horizontal {{
+  background: transparent;
+  border: none;
+}}
+QScrollBar::handle:vertical,
+QScrollBar::handle:horizontal {{
+  background: #292929;
+  border: none;
+  border-radius: 3px;
+}}
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical,
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {{
+  background: transparent;
+}}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {{
+  background: transparent;
+  border: none;
+  height: 0px;
+}}
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {{
+  background: transparent;
+  border: none;
+  width: 0px;
+}}
+QScrollBar::corner {{
+  background: transparent;
+}}
+
+/* Integrated Dark theme overrides (formerly data/themes/dark.css) */
+.layout-output-web {{
+  background-color: #161616 !important;
+}}
+
+QListView::item:selected,
+QTreeView::item:selected {{
+  color: #ffffff;
+  font-weight: bold;
+  selection-color: #ffffff;
+}}
+QComboBox::item:selected {{
+  color: #000;
+  font-weight: bold;
+  selection-color: #000;
+}}
+QComboBox::item:disabled {{
+  color: #d1d2d2;
+}}
+QListView::item:selected:focus, 
+QComboBox::item:selected:focus,
+QTreeView::item:selected:focus {{
+  color: #ffffff;
+  selection-color: #000000;
+}}
+QListView::item::disabled {{
+   color: #959595;
+   font-weight: bold;
+}}
+QMenuBar::item:selected {{ 
+  color: #000000;
+}} 
+QMenu::item:selected {{ 
+  color: #000000;
+}}
+
+/* Final scoped precedence for context/toolbox lists. */
+.ctx-list::item:hover:!selected {{
+  color: #ffffff;
+  selection-color: #ffffff;
+  background-color: rgba(255, 255, 255, 5);
+}}
+.ctx-list::item:selected {{
+  background-color: #454545;
+  font-weight: bold;
+}}
+.ctx-list::item:selected:focus,
+.ctx-list::item:hover:selected:focus {{
+  background-color: #ffffff;
+}}
+.ctx-list::item:disabled,
+.ctx-list::item:disabled:hover {{
+  color: #959595;
+  selection-color: #959595;
+  background-color: transparent;
+}}
+.toolbox QListView::item,
+.toolbox QTreeView::item {{
+  color: #c9c9c9;
+}}
+.toolbox QListView::item:selected,
+.toolbox QTreeView::item:selected {{
+  color: #c9c9c9;
+  font-weight: bold;
+  selection-color: #c9c9c9;
+  background-color: #454545;
+}}
+.toolbox QListView[toolboxHover="true"]::item,
+.toolbox QTreeView[toolboxHover="true"]::item {{
+  color: #ffffff;
+}}
+.toolbox QListView[toolboxHover="true"]::item:selected,
+.toolbox QTreeView[toolboxHover="true"]::item:selected {{
+  color: #ffffff;
+  font-weight: bold;
+  selection-color: #ffffff;
+  background-color: #454545;
+}}
+.toolbox QListView::item:selected:focus,
+.toolbox QListView[toolboxHover="true"]::item:selected:focus,
+.toolbox QTreeView::item:selected:focus,
+.toolbox QTreeView[toolboxHover="true"]::item:selected:focus {{
+  color: #000000;
+  font-weight: bold;
+  selection-color: #000000;
+  background-color: #ffffff;
+}}
+
+/* Slider track: keep the remaining range visible on the dark surface. */
+QSlider::add-page:horizontal {{
+  background: #3a3a3a;
+  border-radius: 2px;
+}}
+QSlider::add-page:vertical {{
+  background: #3a3a3a;
+  border-radius: 2px;
 }}

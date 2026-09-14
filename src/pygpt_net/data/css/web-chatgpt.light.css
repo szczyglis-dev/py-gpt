@@ -1,19 +1,19 @@
 body {{ 
     --copy-btn-bg-hover: rgb(225 225 225 / 76%);
     color: #000;
-    background-color: #fff;
+    background-color: #fcfcfc;
 }}
 ::-webkit-scrollbar {{
-    background: silver;
+    background: transparent;
 }}
 ::-webkit-scrollbar-thumb {{
-    background: gray;
+    background: #e2e2e2;
 }}
 ::-webkit-scrollbar-thumb:hover {{
-    background: #494949;
+    background: #5a5a5a;
 }}
 ::-webkit-scrollbar-corner {{
-    background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
+    background: transparent;
 }}
 p {{ 
     color: #000;

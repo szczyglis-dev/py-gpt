@@ -71,7 +71,6 @@ class Input:
         tabs.addTab(input_extra, trans('input.tab.extra'))
         tabs.currentChanged.connect(self.update_min_height)
 
-        tabs.setTabIcon(0, QIcon(":/icons/input.svg"))
         upload_icon = QIcon(":/icons/upload.svg")
         tabs.setTabIcon(1, QIcon(":/icons/attachment.svg"))
         tabs.setTabIcon(2, upload_icon)

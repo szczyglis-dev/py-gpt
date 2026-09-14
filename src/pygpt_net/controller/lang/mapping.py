@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 19:50:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -343,15 +343,13 @@ class Mapping:
         menu_title = {}
         menu_title['menu.app'] = 'menu.file'
         menu_title['menu.config'] = 'menu.config'
-        menu_title['config.edit.css'] = 'menu.config.edit.css'
         menu_title['config.edit.json'] = 'menu.config.edit.json'
         menu_title['config.profile'] = 'menu.config.profile'
         menu_title['config.models'] = 'menu.config.models'
         menu_title['menu.lang'] = 'menu.lang'
         menu_title['menu.debug'] = 'menu.debug'
         menu_title['menu.theme'] = 'menu.theme'
-        menu_title['theme.dark'] = 'menu.theme.dark'
-        menu_title['theme.light'] = 'menu.theme.light'
+        menu_title['theme.theme'] = 'menu.theme'
         menu_title['theme.syntax'] = 'menu.theme.syntax'
         menu_title['theme.density'] = 'menu.theme.density'
         menu_title['theme.style'] = 'menu.theme.style'
@@ -375,7 +373,6 @@ class Mapping:
         menu_text['config.access'] = 'menu.config.access'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'
-        menu_text['config.edit.css.restore'] = 'menu.config.edit.css.restore'
         menu_text['config.profile.edit'] = 'menu.config.profile.edit'
         menu_text['config.profile.new'] = 'menu.config.profile.new'
         menu_text['config.save'] = 'menu.config.save'

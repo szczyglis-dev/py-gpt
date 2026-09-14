@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 20:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import os
@@ -159,11 +159,8 @@ class Settings:
         id = 'editor'
         current_file = self.window.ui.dialog['config.editor'].file
 
-        # show/hide restart required label
-        if file.endswith('.css'):
-            self.window.ui.nodes['dialog.editor.label'].setVisible(False)
-        else:
-            self.window.ui.nodes['dialog.editor.label'].setVisible(True)
+        # JSON config edits may require a reload/restart.
+        self.window.ui.nodes['dialog.editor.label'].setVisible(True)
 
         if id in self.window.core.settings.active and self.window.core.settings.active[id]:
             if current_file == file:
@@ -187,16 +184,8 @@ class Settings:
         self.update()
 
     def prepare_file_editor(self, file: str):
-        """
-        Prepare file editor
-
-        :param file: JSON/CSS file to load
-        """
-        return  # allow defaults to all files
-        if file.endswith('.css'):
-            self.window.ui.nodes['editor.btn.default'].setVisible(True)
-        else:
-            self.window.ui.nodes['editor.btn.default'].setVisible(False)
+        """Prepare the JSON config editor."""
+        return
 
     def close(self, id: str):
         """

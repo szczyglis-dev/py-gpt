@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 20:10:00                  #
+# Updated Date: 2026.09.14 13:55:00                  #
 # ================================================== #
 
 import datetime
@@ -23,6 +23,44 @@ from pygpt_net.utils import trans
 
 
 class ContextList(BaseList):
+    # Theme-facing colors used by ImportantItemDelegate. They are intentionally
+    # exposed as Qt properties so QSS owns the palette while Python owns only
+    # interaction state. Null defaults fall back to the active Qt palette when
+    # no stylesheet provides an override.
+    _normal_text_color = QColor()
+    _hover_text_color = QColor()
+    _active_text_color = QColor()
+    _focused_selected_text_color = QColor()
+
+    def _set_theme_color(self, attr, value):
+        color = QColor(value) if not isinstance(value, QColor) else QColor(value)
+        setattr(self, attr, color)
+        try:
+            self.viewport().update()
+        except Exception:
+            pass
+
+    normalTextColor = QtCore.Property(
+        QColor,
+        lambda self: self._normal_text_color,
+        lambda self, value: self._set_theme_color("_normal_text_color", value),
+    )
+    hoverTextColor = QtCore.Property(
+        QColor,
+        lambda self: self._hover_text_color,
+        lambda self, value: self._set_theme_color("_hover_text_color", value),
+    )
+    activeTextColor = QtCore.Property(
+        QColor,
+        lambda self: self._active_text_color,
+        lambda self, value: self._set_theme_color("_active_text_color", value),
+    )
+    focusedSelectedTextColor = QtCore.Property(
+        QColor,
+        lambda self: self._focused_selected_text_color,
+        lambda self, value: self._set_theme_color("_focused_selected_text_color", value),
+    )
+
     def __init__(self, window=None, id=None):
         """
         Context select menu
@@ -94,6 +132,10 @@ class ContextList(BaseList):
         self._hover_group_index: QPersistentModelIndex | None = None
         self._hover_section_action_index: QPersistentModelIndex | None = None
         self.setMouseTracking(True)
+        # Explicit whole-list hover state. Do not infer this from QCursor while
+        # painting: on a Leave event the last repaint can otherwise still see
+        # the cursor inside the viewport and leave rows painted white.
+        self._whole_list_hovered = False
         try:
             self.viewport().setMouseTracking(True)
         except Exception:
@@ -1346,8 +1388,23 @@ class ContextList(BaseList):
             self._drag_pending_from_multi = False
         super().mouseMoveEvent(event)
 
+    def enterEvent(self, event):
+        """Enable whole-list text hover and repaint visible rows."""
+        self._whole_list_hovered = True
+        self.viewport().update()
+        super().enterEvent(event)
+
     def viewportEvent(self, event):
-        """Show add-action tooltips only when the pointer is over add.svg itself."""
+        """Handle viewport repaint and add-action tooltips."""
+        if event.type() == QtCore.QEvent.Enter:
+            self._whole_list_hovered = True
+            self.viewport().update()
+        elif event.type() == QtCore.QEvent.Leave:
+            # The parent ContextList can still be hovered when moving onto its
+            # scrollbar, so do not clear the whole-area hover here. The parent
+            # leaveEvent is authoritative for leaving the complete ctx list.
+            self.viewport().update()
+
         if event.type() == QtCore.QEvent.ToolTip:
             pos = self._event_pos_to_point(event)
             index = self.indexAt(pos)
@@ -1390,9 +1447,11 @@ class ContextList(BaseList):
         return super().viewportEvent(event)
 
     def leaveEvent(self, event):
-        """Restore normal row/header content when the pointer leaves the list."""
+        """Restore muted text when the pointer leaves the complete ctx list."""
+        self._whole_list_hovered = False
         self._clear_hover_group()
         self._clear_hover_section_action()
+        self.viewport().update()
         super().leaveEvent(event)
 
     def mouseReleaseEvent(self, event):
@@ -2314,9 +2373,6 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     - Attachment icon on the right side (centered vertically),
     - Pinned indicator (pin.svg icon) in the top-right corner (overlays if needed),
     - Label color as a full-height vertical bar on the left for labeled items,
-    - Group enclosure indicator for expanded groups:
-        - thin vertical bar (default 2 px) on the left side of child rows area,
-        - thin horizontal bar (default 2 px) at the bottom of the last child row.
     """
     def __init__(
             self,
@@ -2350,6 +2406,9 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         self._attach_spacing = 4
         self._label_bar_width = 4
         self._label_v_margin = 3
+        # Keep the color label slightly left of the text, matching the native
+        # delegate spacing used before explicit context-row text painting.
+        self._label_bar_x_offset = -3
 
         # Manual child indent to keep hierarchy visible when view indentation is 0
         self._child_indent = 15
@@ -2507,6 +2566,126 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                     return None
         return None
 
+    @staticmethod
+    def _resolved_view_color(view, property_name, palette, fallback_role):
+        """Resolve a theme color from a QSS-backed Qt property.
+
+        The delegate never embeds theme-specific RGB values. If a stylesheet
+        does not provide the property, use the active palette as a safe fallback.
+        """
+        try:
+            color = getattr(view, property_name)
+            if isinstance(color, QColor) and color.isValid():
+                return QColor(color)
+        except Exception:
+            pass
+        return QColor(palette.color(fallback_role))
+
+    def _context_text_color(self, option, item):
+        """Return the QSS-defined text color for ordinary context-list rows."""
+        if isinstance(item, (SectionItem, ShowMoreItem)):
+            return None
+        if not (option.state & QtWidgets.QStyle.State_Enabled):
+            return None
+
+        view = self.parent()
+        palette = option.palette
+        selected = bool(option.state & QtWidgets.QStyle.State_Selected)
+        has_item_focus = bool(option.state & QtWidgets.QStyle.State_HasFocus)
+        try:
+            view_has_focus = bool(view is not None and (view.hasFocus() or view.viewport().hasFocus()))
+        except Exception:
+            view_has_focus = False
+
+        # State priority is intentionally theme-agnostic. QSS decides what each
+        # semantic state looks like in Dark, Light, or any future built-in theme.
+        if selected and has_item_focus and view_has_focus:
+            return self._resolved_view_color(
+                view,
+                "focusedSelectedTextColor",
+                palette,
+                QtGui.QPalette.HighlightedText,
+            )
+        if selected:
+            return self._resolved_view_color(
+                view,
+                "activeTextColor",
+                palette,
+                QtGui.QPalette.Text,
+            )
+        if bool(getattr(view, "_whole_list_hovered", False)):
+            return self._resolved_view_color(
+                view,
+                "hoverTextColor",
+                palette,
+                QtGui.QPalette.Text,
+            )
+        return self._resolved_view_color(
+            view,
+            "normalTextColor",
+            palette,
+            QtGui.QPalette.Text,
+        )
+
+    def _paint_native_context_item(self, painter, option, index):
+        """Paint a regular context row with an explicit text color.
+
+        Qt's stylesheet engine can overwrite QPalette text roles while drawing
+        a QTreeView item. Paint the native item surface/decoration
+        first with an empty display string, then paint only its text ourselves.
+        Hover and selection backgrounds remain fully native.
+        """
+        opt = QtWidgets.QStyleOptionViewItem(option)
+        QtWidgets.QStyledItemDelegate.initStyleOption(self, opt, index)
+
+        item = None
+        try:
+            model = index.model()
+            item = model.itemFromIndex(index) if hasattr(model, "itemFromIndex") else None
+        except Exception:
+            item = None
+
+        color = self._context_text_color(opt, item)
+        if color is None:
+            super(ImportantItemDelegate, self).paint(painter, option, index)
+            return
+
+        text = opt.text
+        style = opt.widget.style() if opt.widget is not None else QtWidgets.QApplication.style()
+        text_rect = style.subElementRect(
+            QtWidgets.QStyle.SE_ItemViewItemText,
+            opt,
+            opt.widget,
+        )
+
+        # Let the current QStyle/QSS paint the row background, hover/selection
+        # surface and decoration, but not the display text.
+        opt.text = ""
+        style.drawControl(
+            QtWidgets.QStyle.CE_ItemViewItem,
+            opt,
+            painter,
+            opt.widget,
+        )
+
+        if not text or not text_rect.isValid():
+            return
+
+        painter.save()
+        try:
+            painter.setFont(opt.font)
+            painter.setPen(color)
+            fm = QtGui.QFontMetrics(opt.font)
+            rendered = fm.elidedText(
+                text,
+                opt.textElideMode,
+                max(0, text_rect.width()),
+            )
+            alignment = opt.displayAlignment or (QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+            painter.drawText(text_rect, int(alignment), rendered)
+        finally:
+            painter.restore()
+
     def paint(self, painter, option, index):
         # Section rows may optionally contain a fixed left title plus an
         # independently elidable, right-aligned secondary label.
@@ -2516,6 +2695,14 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
             item = model.itemFromIndex(index) if hasattr(model, "itemFromIndex") else None
         except Exception:
             item = None
+
+        # Do not synthesize State_MouseOver here. Native Qt hover is deliberately
+        # preserved so only the real row under the cursor receives row-hover
+        # background. Whole-list text brightening is painted explicitly for
+        # ordinary rows by _paint_native_context_item().
+        option = QtWidgets.QStyleOptionViewItem(option)
+        if isinstance(item, SectionItem):
+            option.state &= ~QtWidgets.QStyle.State_MouseOver
 
         # Project-list limit controls are clickable presentation rows but deliberately use
         # the exact disabled/bold typography of context-list headers. Paint it
@@ -2683,7 +2870,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
             # Paint base content
             painter.save()
             painter.translate(-2, 0)
-            super(ImportantItemDelegate, self).paint(painter, opt, index)
+            self._paint_native_context_item(painter, opt, index)
             painter.restore()
 
             # Draw right-side widgets with the required order:
@@ -2725,29 +2912,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
             painter.restore()
         else:
             # Default painting for non-group rows
-            super(ImportantItemDelegate, self).paint(painter, option, index)
-
-        # Group enclosure indicator (left bar) for child rows
-        if self._group_indicator_enabled and not is_group and is_child and self._group_indicator_width > 0:
-            try:
-                painter.save()
-                # Use solid fill for crisp 2px bars (no anti-alias blur)
-                painter.setRenderHint(QtGui.QPainter.Antialiasing, False)
-                color = self._group_indicator_color
-                painter.setPen(QtCore.Qt.NoPen)
-                painter.setBrush(color)
-
-                # Compute vertical bar geometry:
-                # Place the bar to the LEFT of the child content area, leaving a small gap.
-                child_left = option.rect.x()
-                bar_w = self._group_indicator_width
-                vbar_left = max(0, child_left - (self._group_indicator_gap + bar_w))
-                vbar_rect = QtCore.QRect(vbar_left, option.rect.y(), bar_w, option.rect.height())
-                painter.drawRect(vbar_rect)
-
-                painter.restore()
-            except Exception:
-                pass
+            self._paint_native_context_item(painter, option, index)
 
         # Custom data painting for non-group items only (labels, pinned, attachments).
         if not is_group:
@@ -2789,7 +2954,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                     bar_y = option.rect.y() + self._label_v_margin
                     bar_h = max(1, option.rect.height() - 2 * self._label_v_margin)
                     bar_rect = QtCore.QRect(
-                        option.rect.x(),
+                        option.rect.x() + self._label_bar_x_offset,
                         bar_y,
                         self._label_bar_width,
                         bar_h,

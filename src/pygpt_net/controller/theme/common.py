@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 13:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import os
@@ -25,34 +25,21 @@ class Common:
         self.window = window
 
     def get_extra_css(self, name: str) -> str:
-        """
-        Return custom css filename for specified theme
+        """Return the bundled application stylesheet for a theme."""
+        theme = self.normalize_theme(name)
+        return 'style.light.css' if theme == 'light' else 'style.dark.css'
 
-        :param name: theme name
-        :return: custom css filename (e.g. style.dark.css)
+    def normalize_theme(self, theme: str) -> str:
         """
-        # check per theme style css
-        if name is None:
-            name = ""
-        filename = 'style.css'
-        if filename is not None:
-            # per theme mode (light / dark)
-            tmp = None
-            if name.startswith('light_') or name == 'light':
-                tmp = 'style.light.css'
-            elif name.startswith('dark_') or name == 'dark':
-                tmp = 'style.dark.css'
-            if tmp is not None:
-                paths = []
-                paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
-                paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css'))
-                paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', tmp))
-                paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp))
-                for path in paths:
-                    if os.path.exists(path):
-                        filename = tmp
-                        break
-        return filename
+        Normalize legacy theme names to one of the two supported themes.
+
+        :param theme: stored theme name
+        :return: ``dark`` or ``light``
+        """
+        name = str(theme or '').lower()
+        if name.startswith('light'):
+            return 'light'
+        return 'dark'
 
     def is_light_theme(self) -> bool:
         """
@@ -60,8 +47,7 @@ class Common:
 
         :return: True if light theme, False otherwise
         """
-        theme = str(self.window.core.config.get('theme'))
-        return theme.startswith('light_') or theme == 'light'
+        return self.normalize_theme(self.window.core.config.get('theme')) == 'light'
 
     def toggle_tooltips(self):
         """Toggle visibility of static tooltips"""
@@ -105,10 +91,10 @@ class Common:
         :param theme: theme name
         :return: translated theme name
         """
-        return theme \
-            .replace('_', ' ').title() \
-            .replace('Dark ', trans('theme.dark') + ': ') \
-            .replace('Light ', trans('theme.light') + ': ')
+        theme = self.normalize_theme(theme)
+        if theme == 'light':
+            return trans('theme.light')
+        return trans('theme.dark')
 
     def get_style(self, element: str) -> str:
         """
@@ -133,42 +119,19 @@ class Common:
 
         :return: list of themes names
         """
-        return [
-            'dark_amber',
-            'dark_blue',
-            'dark_cyan',
-            'dark_lightgreen',
-            'dark_pink',
-            'dark_purple',
-            'dark_red',
-            'dark_teal',
-            'dark_yellow',
-            'light_amber',
-            'light_blue',
-            'light_cyan',
-            'light_cyan_500',
-            'light_lightgreen',
-            'light_pink',
-            'light_purple',
-            'light_red',
-            'light_teal',
-            'light_yellow',
-        ]
+        return ['light', 'dark']
 
     def get_custom_themes_list(self) -> List[str]:
         """
-        Return a list of custom themes
+        Return local theme assets used by the two supported themes.
 
-        :return: list of themes names
+        :return: list of theme names
         """
-        dir = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes')
-        if not os.path.exists(dir):
-            return []
-        themes = []
-        for file in os.listdir(dir):
-            if file.endswith('.xml'):
-                themes.append(file.replace('.xml', ''))
-        return sorted(themes)
+        directory = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes')
+        return [
+            name for name in ('dark', 'light')
+            if os.path.exists(os.path.join(directory, name + '.xml'))
+        ]
 
     def get_windows_fix(self) -> str:
         """
@@ -180,16 +143,13 @@ class Common:
         if self.window.core.platforms.is_svg_supported():
             return ''
 
-        filename = 'fix_windows.css'
-        paths = []
-        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', filename))
-        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', filename))
-        content = ''
-        for path in paths:
-            if os.path.exists(path):
-                with open(path) as file:
-                    content += file.read()
-        return content
+        path = os.path.join(
+            self.window.core.config.get_app_path(), 'data', 'css', 'fix_windows.css'
+        )
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as file:
+                return file.read()
+        return ''
 
     def get_styles_list(self) -> List[str]:
         """
@@ -199,20 +159,20 @@ class Common:
         """
         styles = []
         app_dir = os.path.join(self.window.core.config.get_app_path(), 'data', 'css')
-        user_dir = os.path.join(self.window.core.config.path, 'css')
-        for path in [app_dir, user_dir]:
-            if not os.path.exists(path):
+        if not os.path.exists(app_dir):
+            return styles
+        for filename in os.listdir(app_dir):
+            if not filename.startswith("web-") or not filename.endswith('.css'):
                 continue
-            for file in os.listdir(path):
-                if file.startswith("web-") and file.endswith('.css'):
-                    if file.endswith("darkest.css"):
-                        continue
-                    to_replace = ['web-', '.css', '.light', '.dark']
-                    for item in to_replace:
-                        file = file.replace(item, '')
-                    # 'blocks' is a retired web style; old profiles fall back to chatgpt.
-                    if file == 'blocks':
-                        continue
-                    if file not in styles:
-                        styles.append(file)
+            if filename.endswith('.darkest.css'):
+                continue
+            file = filename
+            to_replace = ['web-', '.css', '.light', '.dark']
+            for item in to_replace:
+                file = file.replace(item, '')
+            # 'blocks' is a retired web style; old profiles fall back to chatgpt.
+            if file == 'blocks':
+                continue
+            if file not in styles:
+                styles.append(file)
         return sorted(styles)

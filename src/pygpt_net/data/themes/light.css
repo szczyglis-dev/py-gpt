@@ -31,7 +31,7 @@ QMenu::item:selected {{
 }} 
 QWidget,
 .layout-notepad {{
-  background-color: #fff;
+  background-color: #fcfcfc;
 }}
 QPushButton,
 QTextEdit,
@@ -39,8 +39,15 @@ QLineEdit,
 QListView, 
 QComboBox,
 QTreeView {{
-  background-color: #efefef;
+  background-color: #ffffff;
 }}
 QMenu {{ 
-  background-color: #efefef;
+  background-color: #ffffff;
+}}
+.layout-output-web {{
+  background-color: #fcfcfc !important;
+}}
+.layout-input,
+.ctx-list {{
+  background-color: #ffffff;
 }}

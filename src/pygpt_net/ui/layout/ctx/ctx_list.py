@@ -69,6 +69,7 @@ class CtxList:
         nodes['ctx.new'] = new_btn
 
         ctx_list = ContextList(self.window, ctx_id)
+        ctx_list.setProperty('class', 'ctx-list')
         ctx_list.selection_locked = self.window.controller.ctx.context_change_locked
         nodes[ctx_id] = ctx_list
 

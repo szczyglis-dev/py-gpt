@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
@@ -98,22 +98,16 @@ class Menu:
             self._theme_group.triggered.connect(self._on_theme_triggered)
 
         themes = common.get_themes_list()
-        themes += common.get_custom_themes_list()
-        themes.sort()
 
         menu_theme_dict = menu['theme']
-        menu_dark = menu['theme.dark']
-        menu_light = menu['theme.light']
+        menu_theme = menu['theme.theme']
         for theme in themes:
             name = common.translate(theme)
             act = QAction(name, w, checkable=True)
             act.setData(theme)
             menu_theme_dict[theme] = act
             self._theme_group.addAction(act)
-            if theme.startswith('dark'):
-                menu_dark.addAction(act)
-            elif theme.startswith('light'):
-                menu_light.addAction(act)
+            menu_theme.addAction(act)
 
         self.loaded = True
 

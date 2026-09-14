@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2026.09.14 13:55:00                  #
 # ================================================== #
 
 import os
@@ -50,6 +50,9 @@ class Footer:
         self.video = Video(window)
         self.raw = Raw(window)
         self.split = Split(window)
+        # Logical hover sections exposed to ToolboxMain. Every direct footer
+        # block, including Split screen, is independent.
+        self.hover_sections = []
 
     def setup(self) -> QWidget:
         """
@@ -61,21 +64,28 @@ class Footer:
         self.window.ui.nodes['voice.control.btn'] = VoiceControlButton(self.window)
         self.window.ui.nodes['voice.control.btn'].setVisible(False)
 
-        # per mode options
+        # Per-mode options. Each direct block is an independent hover section
+        # instead of treating the complete footer as one large section.
+        sections = [
+            self.agent.setup(),
+            self.agent_llama.setup(),
+            self.raw.setup(),
+            self.image.setup(),
+            self.video.setup(),
+            self.indexes.setup_options(),
+            self.env.setup(),
+            self.window.ui.nodes['voice.control.btn'],
+            self.audio.setup(),
+            self.split.setup(),
+        ]
+
         widget = QWidget(self.window)
         rows = QVBoxLayout(widget)
-        rows.addWidget(self.agent.setup())
-        rows.addWidget(self.agent_llama.setup())
-        rows.addWidget(self.raw.setup())
-        rows.addWidget(self.image.setup())
-        rows.addWidget(self.video.setup())
-        rows.addWidget(self.indexes.setup_options())
-        rows.addWidget(self.env.setup())
-        rows.addWidget(self.window.ui.nodes['voice.control.btn'])
-        rows.addWidget(self.audio.setup())
-        rows.addWidget(self.split.setup())
+        for section in sections:
+            rows.addWidget(section)
 
         rows.setContentsMargins(2, 0, 0, 0)
+        self.hover_sections = sections
 
         return widget
 

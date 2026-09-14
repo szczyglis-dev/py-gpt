@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 09:35:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import os
@@ -44,6 +44,11 @@ class Theme:
         # Normalize the retired Blocks web style before any renderer CSS is loaded.
         if self.window.core.config.get("theme.style") == "blocks":
             self.window.core.config.set("theme.style", "chatgpt")
+            self.window.core.config.save()
+        current_theme = self.window.core.config.get('theme')
+        normalized_theme = self.common.normalize_theme(current_theme)
+        if normalized_theme != current_theme:
+            self.window.core.config.set('theme', normalized_theme)
             self.window.core.config.save()
         self.markdown.load()
         self.menu.setup_list()
@@ -90,6 +95,7 @@ class Theme:
         :param name: theme name
         :param force: force theme change (manual trigger)
         """
+        name = self.common.normalize_theme(name)
         self.current_theme = name
         window = self.window
         core = window.core
@@ -236,14 +242,14 @@ class Theme:
 
     def apply(
             self,
-            theme: str = 'dark_teal.xml',
+            theme: str = 'dark.xml',
             custom: Optional[str] = None,
             is_custom: bool = False,
     ):
         """
         Update material theme and apply custom CSS.
 
-        :param theme: material theme filename (e.g. dark_teal.xml)
+        :param theme: material theme filename (e.g. dark.xml)
         :param custom: additional stylesheet filename (e.g. style.css)
         :param is_custom: is custom base theme
         """
@@ -272,23 +278,13 @@ class Theme:
         content_parts = []
         if custom is not None:
             app_css = os.path.join(cfg.get_app_path(), 'data', 'css', custom)
-            user_css = os.path.join(cfg.get_user_path(), 'css', custom)
-
             if os.path.exists(app_css):
                 with open(app_css, 'r', encoding='utf-8') as file:
-                    content_parts.append(file.read())
-            if os.path.exists(user_css):
-                with open(user_css, 'r', encoding='utf-8') as file:
                     content_parts.append(file.read())
 
             if core.platforms.is_windows() and not cfg.is_compiled():
                 content_parts.append(self.common.get_windows_fix())
 
-        if is_custom:
-            theme_css = os.path.join(cfg.get_app_path(), 'data', 'themes', f'{base_name}.css')
-            if os.path.exists(theme_css):
-                with open(theme_css, 'r', encoding='utf-8') as file:
-                    content_parts.append(file.read())
 
         if core.platforms.is_windows():
             fix_css = 'fix_windows.light.css' if is_light else 'fix_windows.dark.css'
@@ -329,7 +325,6 @@ class Theme:
         cfg = self.window.core.config
         core = self.window.core
         app_path = cfg.get_app_path()
-        user_path = cfg.get_user_path()
         is_light = str(name).startswith('light')
         parts = [
             str(name),
@@ -340,14 +335,10 @@ class Theme:
 
         if custom is not None:
             parts.append(self._file_signature(os.path.join(app_path, 'data', 'css', custom)))
-            parts.append(self._file_signature(os.path.join(user_path, 'css', custom)))
 
         if is_custom:
             parts.append(self._file_signature(
                 os.path.join(app_path, 'data', 'themes', f'{name}.xml')
-            ))
-            parts.append(self._file_signature(
-                os.path.join(app_path, 'data', 'themes', f'{name}.css')
             ))
 
         if core.platforms.is_windows():
@@ -364,9 +355,6 @@ class Theme:
                     parts.append(self._file_signature(os.path.join(
                         app_path, 'data', 'css', 'fix_windows.css'
                     )))
-                    parts.append(self._file_signature(os.path.join(
-                        user_path, 'css', 'fix_windows.css'
-                    )))
 
         return tuple(parts)
 
@@ -374,27 +362,20 @@ class Theme:
         """Build a signature for renderer CSS used by the active profile."""
         cfg = self.window.core.config
         app_path = cfg.get_app_path()
-        user_path = cfg.get_user_path()
-        theme = str(cfg.get('theme'))
+        theme = self.common.normalize_theme(cfg.get('theme'))
         web_style = str(cfg.get('theme.style', 'chatgpt'))
         if web_style == 'blocks':
             web_style = 'chatgpt'
 
-        if theme.startswith('light'):
-            color = '.light'
-        else:
-            color = '.dark'
-            if theme.endswith('darkest'):
-                color = '.darkest'
+        color = '.light' if theme == 'light' else '.dark'
 
         files = []
         for base_name, suffix in (('markdown', ''), ('web', '-' + web_style)):
             file_base = base_name + suffix + '.css'
             file_color = base_name + suffix + color + '.css'
-            for root in (os.path.join(app_path, 'data'), user_path):
-                css_dir = os.path.join(root, 'css')
-                files.append(self._file_signature(os.path.join(css_dir, file_base)))
-                files.append(self._file_signature(os.path.join(css_dir, file_color)))
+            css_dir = os.path.join(app_path, 'data', 'css')
+            files.append(self._file_signature(os.path.join(css_dir, file_base)))
+            files.append(self._file_signature(os.path.join(css_dir, file_color)))
 
         return theme, web_style, tuple(files)
 
@@ -436,7 +417,11 @@ class Theme:
             cfg.set('theme.style', 'chatgpt')
             cfg.save()
 
-        name = cfg.get('theme')
+        stored_name = cfg.get('theme')
+        name = self.common.normalize_theme(stored_name)
+        if name != stored_name:
+            cfg.set('theme', name)
+            cfg.save()
         custom, is_custom = self._get_theme_assets(name)
         material_signature = self._get_material_signature(name, custom, is_custom)
         markdown_signature = self._get_markdown_signature()
@@ -484,4 +469,4 @@ class Theme:
         :return: True if dark theme, False otherwise
         """
         current = self.window.core.config.get('theme')
-        return current.startswith('dark')
+        return self.common.normalize_theme(current) == 'dark'

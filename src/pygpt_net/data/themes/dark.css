@@ -1,3 +1,6 @@
+.layout-output-web {{
+  background-color: #161616 !important;
+}}
 
 QListView::item:selected,
 QTreeView::item:selected {{

@@ -11,7 +11,7 @@
 
 from typing import Tuple
 
-from PySide6.QtCore import QRect, QDate
+from PySide6.QtCore import QRect, QDate, Property
 from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QIcon, QPixmap, QPen
 from PySide6.QtWidgets import QCalendarWidget, QMenu
 
@@ -28,6 +28,9 @@ class CalendarSelect(QCalendarWidget):
         """
         super().__init__(window)
         self.window = window
+        self._today_background_color = QColor()
+        self._today_text_color = QColor()
+        self._day_border_color = QColor()
         self.currentYear = QDate.currentDate().year()
         self.currentMonth = QDate.currentDate().month()
         self.currentDay = QDate.currentDate().day()
@@ -49,8 +52,6 @@ class CalendarSelect(QCalendarWidget):
         self.installEventFilter(self)
 
         self._font_small = QFont('Lato', self.font_size)
-        self._pen_today = QPen(QColor(0, 0, 0))
-        self._pen_today.setWidth(2)
         self._pen_label = QPen(QColor(0, 0, 0))
         self._pen_label.setWidth(1)
         self._default_status_bg = QColor(100, 100, 100)
@@ -60,6 +61,34 @@ class CalendarSelect(QCalendarWidget):
         self._counter_font = QColor(0, 0, 0)
         self._today = QDate.currentDate()
         self._update_theme_cache()
+
+
+    def get_today_background_color(self):
+        return self._today_background_color
+
+    def set_today_background_color(self, color):
+        self._today_background_color = QColor(color)
+        self.updateCells()
+
+    todayBackgroundColor = Property(QColor, get_today_background_color, set_today_background_color)
+
+    def get_today_text_color(self):
+        return self._today_text_color
+
+    def set_today_text_color(self, color):
+        self._today_text_color = QColor(color)
+        self.updateCells()
+
+    todayTextColor = Property(QColor, get_today_text_color, set_today_text_color)
+
+    def get_day_border_color(self):
+        return self._day_border_color
+
+    def set_day_border_color(self, color):
+        self._day_border_color = QColor(color)
+        self.updateCells()
+
+    dayBorderColor = Property(QColor, get_day_border_color, set_day_border_color)
 
     def set_tab(self, tab: Tab):
         """
@@ -121,8 +150,11 @@ class CalendarSelect(QCalendarWidget):
 
         if date == self._today:
             painter.save()
-            painter.setPen(self._pen_today)
-            painter.drawRect(rect)
+            if self._today_background_color.isValid():
+                painter.fillRect(rect, self._today_background_color)
+            if self._today_text_color.isValid():
+                painter.setPen(self._today_text_color)
+                painter.drawText(rect, Qt.AlignCenter, str(date.day()))
             painter.restore()
 
         ctx_count = self.counters['ctx'].get(date)
@@ -193,6 +225,13 @@ class CalendarSelect(QCalendarWidget):
                     5,
                 )
                 x += 7
+            painter.restore()
+
+        if self._day_border_color.isValid():
+            painter.save()
+            painter.setPen(QPen(self._day_border_color, 1))
+            painter.setBrush(Qt.NoBrush)
+            painter.drawRect(rect.adjusted(0, 0, -1, -1))
             painter.restore()
 
     def get_color_for_status(self, status: int) -> Tuple[QColor, QColor]:

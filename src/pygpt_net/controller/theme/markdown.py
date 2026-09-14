@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 13:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import os
@@ -92,23 +92,18 @@ class Markdown:
             if base_name == 'web':
                 suffix = "-" + web_style
                 self.web_style = web_style
-            theme = str(self.window.core.config.get('theme'))
+            theme = self.window.controller.theme.common.normalize_theme(
+                self.window.core.config.get('theme')
+            )
             name = str(base_name)
-            if theme.startswith('light'):
-                color = '.light'
-            else:
-                color = '.dark'
-                if base_name == 'web' and theme.endswith('darkest'):
-                    color = '.darkest'
+            color = '.light' if theme == 'light' else '.dark'
 
-            # load CSS, app + user
+            # Load bundled CSS only. User/workdir CSS overrides are no longer supported.
             file_base = name + suffix + '.css'
             file_color = name + suffix + color + '.css'
             paths = []
             paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_base))
             paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_color))
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', file_base))
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', file_color))
             content = ''
             for path in paths:
                 if os.path.exists(path) and os.path.isfile(path):
@@ -150,10 +145,10 @@ class Markdown:
             }
         }
 
-        theme = self.window.core.config.get('theme')
-        styles = colors['dark']
-        if theme.startswith('light'):
-            styles = colors['light']
+        theme = self.window.controller.theme.common.normalize_theme(
+            self.window.core.config.get('theme')
+        )
+        styles = colors[theme]
 
         return """
         a {{

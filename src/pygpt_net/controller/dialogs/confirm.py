@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -122,10 +122,6 @@ class Confirm:
         # audio cache clear
         elif type == 'audio.cache.clear':
             self.window.controller.audio.clear_cache(True)
-
-        # restore default CSS
-        elif type == 'restore.css':
-            self.window.controller.layout.restore_default_css(force=True)
 
         # profiles
         elif type == 'profile.reset':

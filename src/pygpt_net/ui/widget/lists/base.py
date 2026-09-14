@@ -62,7 +62,12 @@ class BaseList(QTreeView):
         super(BaseList, self).mousePressEvent(event)
 
     def focusOutEvent(self, event):
-        pass
+        """Refresh item selection styling when the list loses focus."""
+        super().focusOutEvent(event)
+        try:
+            self.viewport().update()
+        except RuntimeError:
+            pass
 
     def selectionCommand(self, index, event=None):
         """

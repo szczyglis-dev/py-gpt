@@ -1,19 +1,19 @@
 body {{ 
     --copy-btn-bg-hover: rgb(0 0 0 / 76%);
     color: #fff;
-    background-color: #232629;
+    background-color: #161616;
 }}
 ::-webkit-scrollbar {{
-    background: #232629;
+    background: transparent;
 }}
 ::-webkit-scrollbar-thumb {{
-    background: {QTMATERIAL_SECONDARYLIGHTCOLOR};
+    background: #292929;
 }}
 ::-webkit-scrollbar-thumb:hover {{
-    background: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+    background: #ffffff;
 }}
 ::-webkit-scrollbar-corner {{
-    background: #232629;
+    background: transparent;
 }}
 p {{ 
     color: #fff;
@@ -22,7 +22,8 @@ a {{
     color: #b5c3cd !important;
 }}
 a:hover {{
-    color: #b8cad7 !important;
+    color: #ffffff !important;
+    text-decoration: none;
 }}
 .msg-user {{
     background: #303030;
@@ -49,7 +50,7 @@ code {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}
 .code-wrapper ::-webkit-scrollbar {{
-    background: #303030;
+    background: transparent;
 }}
 .code-header-wrapper {{
     background-color: #303030;
@@ -108,7 +109,6 @@ code {{
 .msg-box .name-header.name-bot {{
     color: #cfcfcf;
 }}
-
 code {{
     background: #363737;
     padding: 6px;

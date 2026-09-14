@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 11:00:00                  #
+# Updated Date: 2026.09.14 13:55:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -30,6 +30,9 @@ class Prompt:
         :param window: Window instance
         """
         self.window = window
+        # Logical hover sections exposed to ToolboxMain. Keep visual-state
+        # grouping independent from layout grouping.
+        self.hover_sections = []
 
     def _on_agent_v2_mode_changed(self, index: int) -> None:
         """Persist the selected Agents v2 runtime strategy."""
@@ -124,13 +127,27 @@ class Prompt:
         nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), w)
         nodes['tip.toolbox.prompt'].setAlignment(Qt.AlignCenter)
 
+        # Keep System prompt and Agents v2 runtime mode as separate logical
+        # hover areas. The outer widget is layout-only and is deliberately not
+        # registered as a hover section.
+        prompt_section = QWidget()
+        prompt_section_layout = QVBoxLayout(prompt_section)
+        prompt_section_layout.addWidget(header_widget)
+        prompt_section_layout.addWidget(nodes['preset.prompt'])
+        prompt_section_layout.addWidget(nodes['tip.toolbox.prompt'])
+        prompt_section_layout.setContentsMargins(0, 0, 0, 0)
+        nodes['toolbox.prompt.section'] = prompt_section
+
         layout_widget = QWidget()
         layout = QVBoxLayout(layout_widget)
-        layout.addWidget(header_widget)
-        layout.addWidget(nodes['preset.prompt'])
-        layout.addWidget(nodes['tip.toolbox.prompt'])
+        layout.addWidget(prompt_section)
         layout.addWidget(nodes['agent.v2.mode.widget'])
         layout.setContentsMargins(2, 5, 5, 5)
+
+        self.hover_sections = [
+            prompt_section,
+            nodes['agent.v2.mode.widget'],
+        ]
 
         layout_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         return layout_widget
