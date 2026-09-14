@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 01:05:00                  #
+# Updated Date: 2026.09.15 01:40:00                  #
 # ================================================== #
 
 from functools import partial
@@ -372,8 +372,10 @@ class Input:
         widget.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
 
         layout = QHBoxLayout(widget)
-        # +2 px bottom margin keeps the icons optically aligned with the tabs.
-        layout.setContentsMargins(6, 0, 4, 2)
+        # Bias the centered icon row upward by ~2 px relative to the tabs.
+        # The corner widget is taller than the 16 px icons, so increasing only
+        # the bottom inset shifts the icons without changing their size.
+        layout.setContentsMargins(6, 0, 4, 6)
         layout.setSpacing(5)
         layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.video.capture'], alignment=Qt.AlignVCenter)
