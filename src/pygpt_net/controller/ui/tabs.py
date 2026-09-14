@@ -1033,7 +1033,8 @@ class Tabs:
             self,
             idx: int,
             column_idx: int,
-            new_column_idx: int
+            new_column_idx: int,
+            new_idx: int = None,
     ):
         """
         Move tab to another column
@@ -1041,10 +1042,11 @@ class Tabs:
         :param idx: tab index
         :param column_idx: column index
         :param new_column_idx: new column index
+        :param new_idx: optional insertion index in destination column
         """
         self.locked = True
         tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
-        self.window.core.tabs.move_tab(tab, new_column_idx)
+        self.window.core.tabs.move_tab(tab, new_column_idx, new_idx=new_idx)
         self.locked = False
         self.column_idx = new_column_idx
         self.on_column_changed()
