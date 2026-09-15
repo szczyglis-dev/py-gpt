@@ -1,20 +1,26 @@
-QSlider::add-page {{
-  background: transparent;
-}}
-QSlider::sub-page {{
-  background: transparent;
-}}
-QSlider::sub-page:disabled {{
-  background: transparent;
-}}
-
-/* Keep the horizontal slider remainder constrained to the track on Windows.
-   Without an explicit groove height, Qt can paint add-page across the full
-   slider widget height when only that sub-control has a custom background. */
+/*
+ * Windows/Qt can stretch a styled slider page over the full widget height.
+ * Define the complete horizontal track here instead of mixing native page
+ * painting with custom QSS. Both sides keep exactly the groove height.
+ */
 QSlider::groove:horizontal {{
+  background: #3a3a3a;
+  border: 0px;
   height: 4px;
+  margin: 0px;
+  border-radius: 2px;
+}}
+QSlider::sub-page:horizontal {{
+  background: #ffffff;
+  border: 0px;
+  height: 4px;
+  margin: 0px;
+  border-radius: 2px;
 }}
 QSlider::add-page:horizontal {{
   background: #3a3a3a;
+  border: 0px;
+  height: 4px;
+  margin: 0px;
   border-radius: 2px;
 }}
