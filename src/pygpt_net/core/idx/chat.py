@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.15 16:50:00                  #
 # ================================================== #
 
 import json
@@ -360,6 +360,21 @@ class Chat:
                 "Native tool continuation: tool result already present in history; "
                 "skipping synthetic user reply."
             )
+
+            # ``attach_runtime_file`` returns the protocol-required textual tool
+            # result plus an ephemeral local attachment. Tool-result messages do
+            # not have a portable image payload across LlamaIndex providers, so
+            # promote runtime images to a normal user multimodal message for the
+            # immediate follow-up, just like the Agents v2 main FunctionAgent.
+            # The attachment stays transport-only and is not persisted in ctx.
+            if model.is_image_input() and context.attachments:
+                runtime_message = self.context.add_runtime_images(context.attachments)
+                if runtime_message is not None:
+                    history.append(runtime_message)
+                    self.log(
+                        "Native tool continuation: appended runtime image(s) as "
+                        "a multimodal user message."
+                    )
 
         self.prev_message = None  # reset previous message
         memory = self.get_memory_buffer(history, llm)

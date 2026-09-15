@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 18:00:00                  #
+# Updated Date: 2026.09.15 16:50:00                  #
 # ================================================== #
 
 import os
@@ -198,6 +198,53 @@ class Context:
         return ChatMessage(
             role=MessageRole.USER,
             blocks=blocks,
+        )
+
+    def add_runtime_images(
+            self,
+            attachments: Dict[str, AttachmentItem] = None,
+    ) -> Optional[ChatMessage]:
+        """Build an ephemeral user multimodal message for images returned by a tool.
+
+        Native function/tool result payloads are text-only for a number of
+        LlamaIndex provider adapters. ``attach_runtime_file`` therefore carries
+        its local image separately in ``BridgeContext.attachments``. Promote
+        those transport-only images into a normal user multimodal message for
+        the immediate continuation, mirroring the Agents v2 main-agent path.
+
+        Runtime images deliberately do not touch ``self.attachments`` so
+        ``append_images()`` cannot persist them as normal chat attachments.
+
+        :param attachments: ephemeral runtime attachments from the tool reply
+        :return: ChatMessage when at least one valid runtime image exists
+        """
+        blocks = []
+        for attachment in (attachments or {}).values():
+            extra = getattr(attachment, "extra", None)
+            path = str(getattr(attachment, "path", "") or "")
+            if not (
+                    isinstance(extra, dict)
+                    and extra.get("runtime_tool_attachment") is True
+                    and path
+                    and os.path.isfile(path)
+                    and is_image(path)
+            ):
+                continue
+            blocks.append(ImageBlock(path=path))
+
+        if not blocks:
+            return None
+
+        return ChatMessage(
+            role=MessageRole.USER,
+            blocks=[
+                TextBlock(text=(
+                    "Runtime image attachment(s) from the preceding tool call are provided below. "
+                    "Inspect and use their visual content now to continue the current user task. "
+                    "Do not merely acknowledge that the image was attached."
+                )),
+                *blocks,
+            ],
         )
 
         """
