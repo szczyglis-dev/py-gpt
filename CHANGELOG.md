@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.8.18 (2026-09-15)
+
+- Extended the **Chat with Agents** workflow and added step-by-step execution mode.
+- Fixed context token count display.
+- Simplified themes to two built-in options: **Dark** and **Light**.
+- Added `@` mentions in the input field for referencing attachments, files, and directories.
+- Added **Advanced Context Handling** (experimental). Enable it in `Settings -> Context`. It extends the effective conversation context in real time using a memory cache and automatic context trimming.
+- Added support for `AGENTS.md` in the workdir root. See the documentation for more details.
+- Other fixes and improvements.
+
 ## 2.8.17 (2026-09-13)
 
 - Fixed Ollama native tool calls.

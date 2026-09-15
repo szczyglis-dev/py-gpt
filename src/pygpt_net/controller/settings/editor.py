@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 12:00:00                  #
+# Updated Date: 2026.09.15 01:50:00                  #
 # ================================================== #
 
 import copy
 from typing import Optional, Any, Dict
-
-from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
@@ -53,7 +51,6 @@ class Editor:
         self.window.ui.add_hook("update.config.zoom", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.enabled", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
-        self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.groups.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.pinned.separators", self.hook_update)
@@ -160,6 +157,7 @@ class Editor:
 
         # update search result or ctx layout if needed
         if (self.config_changed('ctx.search_content') or
+                self.config_changed('ctx.records.limit') or
                 self.config_changed('ctx.records.folders.top') or
                 self.config_changed('ctx.records.groups.separators') or
                 self.config_changed('ctx.records.pinned.separators') or
@@ -340,12 +338,6 @@ class Editor:
         elif key == "vision.capture.auto":
             self.window.core.config.set(key, value)
             self.window.ui.nodes['vision.capture.auto'].setChecked(value)
-
-        # update ctx limit
-        elif key.startswith('ctx.records.limit') and caller == "slider":
-            self.window.core.config.set(key, value)
-            self.window.controller.ctx.reset_loaded_total()  # reset paging
-            QTimer.singleShot(1000, lambda: self.window.controller.ctx.update(True, False))
 
         # update layout density
         elif key == "layout.density" and caller == "slider":

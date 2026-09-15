@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026-09-14 11:50:00                  #
+# Updated Date: 2026-09-15 11:50:00                  #
 # ================================================== #
 
 __author__ = "Marcin Szczygliński"
@@ -14,7 +14,7 @@ __copyright__ = "Copyright 2026, Marcin Szczygliński"
 __credits__ = ["Marcin Szczygliński"]
 __license__ = "MIT"
 __version__ = "2.8.18"
-__build__ = "2026-09-14"
+__build__ = "2026-09-15"
 __maintainer__ = "Marcin Szczygliński"
 __github__ = "https://github.com/szczyglis-dev/py-gpt"
 __report__ = "https://github.com/szczyglis-dev/py-gpt/issues"

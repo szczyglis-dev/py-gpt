@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2026.09.15 01:40:00                  #
 # ================================================== #
+
+import sys
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QSlider
@@ -76,6 +78,21 @@ class OptionSlider(QWidget):
         self.slider.setMinimum(self.min)
         self.slider.setMaximum(self.max)
         self.slider.setSingleStep(self.step)
+
+        # Qt/Windows can create a large amount of native style/timer work when
+        # a very large-range slider emits valueChanged for every mouse move.
+        # Context/output token sliders span millions of values, so commit those
+        # changes on release instead. Small sliders (font size, zoom, etc.) keep
+        # their existing live tracking behavior. Programmatic setValue() calls
+        # are unaffected by this setting.
+        if sys.platform.startswith('win'):
+            try:
+                slider_range = abs(int(self.max) - int(self.min))
+            except (TypeError, ValueError):
+                slider_range = 0
+            if slider_range >= 100000:
+                self.slider.setTracking(False)
+
         self.slider.setValue(self.value)
         self.slider.valueChanged.connect(
             lambda: self.window.controller.config.slider.on_update(

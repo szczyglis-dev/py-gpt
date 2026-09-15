@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.17** | build: **2026-09-13** | Python: **>=3.10, <3.14**
+Release: **2.8.18** | build: **2026-09-15** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2518,6 +2518,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.18 (2026-09-15)**
+
+- Extended the **Chat with Agents** workflow and added step-by-step execution mode.
+- Fixed context token count display.
+- Simplified themes to two built-in options: **Dark** and **Light**.
+- Added `@` mentions in the input field for referencing attachments, files, and directories.
+- Added **Advanced Context Handling** (experimental). Enable it in `Settings -> Context`. It extends the effective conversation context in real time using a memory cache and automatic context trimming.
+- Added support for `AGENTS.md` in the workdir root. See the documentation for more details.
+- Other fixes and improvements.
 
 **2.8.17 (2026-09-13)**
 
