@@ -106,6 +106,18 @@ class IndexWorker(QRunnable):
                 result, errors = self.window.core.idx.duplicate_project_index(
                     int(source_group_id), int(target_group_id)
                 )
+            elif self.type == "file_remove":
+                result = []
+                errors = []
+                paths = self.content if isinstance(self.content, list) else [self.content]
+                for path in paths:
+                    if self.window.controller.idx.is_stopped():
+                        break
+                    try:
+                        self.window.core.idx.remove_file(self.idx, path)
+                        result.append(path)
+                    except Exception as e:
+                        errors.append(f"{path}: {e}")
             elif self.type == "web":
                 result, errors = self.window.core.idx.index_web(
                     idx=self.idx,

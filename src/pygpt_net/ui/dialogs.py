@@ -42,6 +42,7 @@ from pygpt_net.ui.dialog.url import Url
 from pygpt_net.ui.dialog.workdir import Workdir
 from pygpt_net.ui.widget.dialog.alert import AlertDialog
 from pygpt_net.ui.widget.dialog.confirm import ConfirmDialog
+from pygpt_net.ui.widget.dialog.loader import LoaderDialog
 
 class Dialogs:
     def __init__(self, window=None):
@@ -109,6 +110,7 @@ class Dialogs:
 
         self.window.ui.dialog['alert'] = AlertDialog(self.window)
         self.window.ui.dialog['confirm'] = ConfirmDialog(self.window)
+        self.window.ui.dialog['loader'] = LoaderDialog(self.window)
 
     def post_setup(self):
         """Post setup dialogs (after plugins and rest of data is registered)"""
@@ -154,6 +156,51 @@ class Dialogs:
         msg = self.window.core.debug.parse_alert(msg)
         self.window.ui.dialog['alert'].message.setPlainText(msg)
         self.window.ui.dialog['alert'].show()
+
+    def show_loader(
+            self,
+            message: str = None,
+            show_cancel: bool = False,
+            on_cancel=None,
+            on_finished=None,
+            modal: bool = True,
+    ):
+        """
+        Show the shared progress loader.
+
+        :param message: message displayed above the progress bar
+        :param show_cancel: show the optional Cancel button
+        :param on_cancel: callback invoked when cancellation is requested
+        :param on_finished: callback invoked with QDialog result code on close
+        :param modal: block interaction with the parent window
+        :return: LoaderDialog instance or None
+        """
+        if threading.current_thread() is not threading.main_thread():
+            print("FAIL-SAFE: Attempt to open loader from not-main thread. Aborting...")
+            return None
+        dialog = self.window.ui.dialog.get('loader')
+        if dialog is None:
+            return None
+        return dialog.start(
+            message=message,
+            show_cancel=show_cancel,
+            on_cancel=on_cancel,
+            on_finished=on_finished,
+            modal=modal,
+        )
+
+    def finish_loader(self, result=None):
+        """Close the shared progress loader and run its finished callback."""
+        if threading.current_thread() is not threading.main_thread():
+            print("FAIL-SAFE: Attempt to close loader from not-main thread. Aborting...")
+            return
+        dialog = self.window.ui.dialog.get('loader')
+        if dialog is None:
+            return
+        if result is None:
+            dialog.finish()
+        else:
+            dialog.finish(result)
 
     def open_editor(self, id: str, data_id: str, width: int = 400, height: int = 400):
         """

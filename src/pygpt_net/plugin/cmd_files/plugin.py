@@ -25,7 +25,7 @@ class Plugin(BasePlugin):
         self.id = "cmd_files"
         self.is_common_plugin = True
         self.name = "Files I/O"
-        self.description = "Provides commands to read and write files"
+        self.description = "Provides access to the file system on your computer.\nProvides commands to read and write files"
         self.prefix = "I/O"
         self.order = 100
         self.allowed_cmds = [

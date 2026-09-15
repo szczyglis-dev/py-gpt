@@ -72,7 +72,12 @@ class Layout:
             if widget is None:
                 continue
             try:
-                widget.setText(value)
+                if hasattr(widget, "set_mention_text"):
+                    widget.set_mention_text(value)
+                elif hasattr(widget, "setText"):
+                    widget.setText(value)
+                else:
+                    widget.setPlainText(value)
             except Exception as e:
                 print("Error while restoring field state: " + str(e))
                 self.window.core.debug.log(e)
@@ -85,7 +90,10 @@ class Layout:
             widget = ui_nodes.get(node_id)
             if widget is None:
                 continue
-            data[node_id] = widget.toPlainText()
+            if hasattr(widget, "serialize_mentions"):
+                data[node_id] = widget.serialize_mentions()
+            else:
+                data[node_id] = widget.toPlainText()
         self.window.core.config.set('layout.text_nodes', data)
 
     def tabs_save(self):
