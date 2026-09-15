@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 16:40:00                  #
+# Updated Date: 2026.09.15 13:40:00                  #
 # ================================================== #
 
 import base64
@@ -384,6 +384,12 @@ class Chat:
             return
 
         # ---- chat / computer ----
+        # `show_reasoning` is intentionally resolved in this method as well.
+        # `unpack_response()` is called independently from `send()` (e.g. via
+        # provider redirect/quick calls used by inline tools), so it must not
+        # depend on a local variable created in `send()`.
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+
         ctx.output = self.extract_text(response) or ""
         if show_reasoning:
             reasoning = self.extract_reasoning(response)
