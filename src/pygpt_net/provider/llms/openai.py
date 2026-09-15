@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:18:00                  #
+# Updated Date: 2026.09.15 17:35:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -297,29 +297,31 @@ class OpenAILLM(BaseLLM):
         exactly through the same PyGPT remote-tools builder used by normal Chat.
         Local FunctionAgent tools are merged by LlamaIndex at request time.
         """
-        from llama_index.llms.openai import OpenAI as LlamaOpenAI
         from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
 
         args = self.prepare_openai_compatible_args(window, model)
         args = self.inject_llamaindex_http_clients(args, window.core.config)
 
+        # Agents v2 always uses OpenAI Responses for the native OpenAI provider.
+        # FunctionAgent always exposes local function tools (for example
+        # shared_context/delegate_task), even when all provider-native remote tools
+        # are disabled. Falling back to Chat Completions in that case breaks newer
+        # reasoning models (e.g. GPT-5.6), which reject function tools together
+        # with reasoning_effort on /v1/chat/completions. Responses supports both
+        # local function calling and provider-native tools on one stable path.
         if allow_remote_tools:
-            tools = self._append_responses_remote_tools(
+            self._append_responses_remote_tools(
                 window=window,
                 model=model,
                 stream=stream,
                 mode=MODE_AGENT_V2,
                 args=args,
             )
-            if tools:
-                self._append_responses_reasoning_effort(window, model, args)
-                self.log_llama_create(window, model, args, "AgentOpenAIResponses")
-                llm = AgentOpenAIResponses(**args)
-                return window.core.context_manager.configure_llm_for_rolling_context(llm)
 
-        self._append_chat_reasoning_effort(window, model, args)
-        self.log_llama_create(window, model, args, "llama_index.llms.openai.OpenAI")
-        return LlamaOpenAI(**args)
+        self._append_responses_reasoning_effort(window, model, args)
+        self.log_llama_create(window, model, args, "AgentOpenAIResponses")
+        llm = AgentOpenAIResponses(**args)
+        return window.core.context_manager.configure_llm_for_rolling_context(llm)
 
     def llama_multimodal(
             self,
