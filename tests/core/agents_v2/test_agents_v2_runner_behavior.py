@@ -198,3 +198,6 @@ def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(m
     emitter.accept_streamed_final.assert_called_once_with()
     emitter.stream_final.assert_not_called()
     runtime.cleanup.assert_awaited_once_with()
+    runtime.memory_store.begin_turn.assert_not_called()
+    runtime.memory_store.complete_turn.assert_not_called()
+    runtime.orchestrator_memory_output.assert_not_called()

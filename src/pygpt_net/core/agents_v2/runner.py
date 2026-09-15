@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 16:45:00                  #
+# Updated Date: 2026.09.15 20:45:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -73,25 +73,11 @@ class Runner:
         runtime.verbose_text("USER INPUT", current_input)
         history = runtime.memory_store.load_history(
             context.ctx,
-            context.preset,
             model=context.model,
             current_input=current_input,
         )
         runtime.verbose_log(runtime.main_event("HISTORY"), history)
 
-        # Persist the user side immediately after previous history is loaded. If
-        # execution is interrupted while a tool is running, the input-only memory
-        # row survives and is available on the next turn.
-        memory_turn = runtime.memory_store.begin_turn(
-            context.ctx,
-            context.preset,
-            current_input,
-        )
-        runtime.verbose_log("MEMORY BEGIN", {
-            "input": current_input,
-            "memory_item_id": getattr(memory_turn, "id", None),
-            "agent_mode": runtime.agent_mode.value,
-        })
 
         # Match Agents/Chat with Files RAG behavior: retrieve relevant context
         # before the first main-agent call and inject it into both the main agent
@@ -328,15 +314,6 @@ class Runner:
 
                 final_text = runtime.final_answer or runtime.last_orchestrator_output()
                 runtime.verbose_text(runtime.main_event("FINAL TEXT"), final_text)
-                memory_output = runtime.orchestrator_memory_output(final_text)
-                runtime.memory_store.complete_turn(memory_turn, memory_output)
-                runtime.verbose_log("MEMORY COMPLETE", {
-                    "input": current_input,
-                    "final_output": final_text,
-                    "assistant_output": memory_output,
-                    "memory_item_id": getattr(memory_turn, "id", None),
-                    "agent_mode": runtime.agent_mode.value,
-                })
         finally:
             runtime.window.core.api.logger.log_output(
                 type="llama_index.agent.run",

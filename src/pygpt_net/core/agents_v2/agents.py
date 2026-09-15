@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 15:00:00                  #
+# Updated Date: 2026.09.15 20:45:00                  #
 # ================================================== #
 
 from types import SimpleNamespace
@@ -176,11 +176,9 @@ class AgentsV2:
                 master_ctx = items[-1]
         if master_ctx is None or master_ctx.meta is None:
             return 0, 0
-        preset = self.window.controller.presets.get_current()
         return self.memory_store.count_history_tokens(
             master_ctx,
-            preset,
-            model,
+            model=model,
             used_tokens=used_tokens,
             max_tokens=max_tokens,
         )

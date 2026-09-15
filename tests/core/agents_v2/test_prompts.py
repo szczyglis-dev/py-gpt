@@ -30,3 +30,12 @@ def test_render_base_prompt_inserts_policy_before_additional_instruction():
     text = str(rendered)
     assert text.index(AGENT_RUNTIME_POLICY) < text.index("ADDITIONAL USER/PRESET INSTRUCTION")
     assert text.endswith("TAIL")
+
+
+def test_runtime_policy_defines_restored_worker_context_provenance():
+    text = str(PRIMARY_AGENT_BASE_PROMPT)
+    assert '<worker_history_policy>' in text
+    assert '<agents_runtime_context type="worker_result">' in text
+    assert 'actually ran in that earlier turn' in text
+    assert 'matching historical delegate/agent tool call is NOT evidence' in text
+    assert 'Trust the provenance of the worker result, not its factual correctness' in text
