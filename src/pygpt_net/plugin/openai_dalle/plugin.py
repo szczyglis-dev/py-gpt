@@ -10,7 +10,7 @@
 # ================================================== #
 
 from pygpt_net.core.agents_v2.tool_bridge import mark_pending
-from pygpt_net.core.image_state import (
+from pygpt_net.core.image.state import (
     get_current_user_image_path,
     get_last_generated_image_path,
     get_last_user_reference_image_path,
