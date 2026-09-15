@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.8.20 (2026-09-15)
+
+- Added an integration layer between Chat with Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.
+- Optimized Agents memory storage.
+
 ## 2.8.19 (2026-09-15)
 
 - Split the Plugins list into Popular and Other sections.
