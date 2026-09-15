@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 20:20:00                  #
+# Updated Date: 2026.09.15 10:56:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -202,6 +202,105 @@ class Tabs:
                 out.setVisible(True)
         self.debug()
 
+    def finalize_profile_reload(self):
+        """
+        Re-apply the active tab state after the whole profile reload has finished.
+
+        Tabs/contexts are restored early enough that the remaining controllers can
+        use them during reload.  Some of those later steps (notably renderer/theme
+        synchronization) can invalidate the already restored WebView or leave the
+        footer visibility at an intermediate tab state.  Rebuild only the currently
+        displayed chat outputs here and then re-apply the active tab UI.
+
+        This intentionally does not call ``ctx.load()``: doing so would restore the
+        mode/model stored in the conversation and could overwrite profile-level
+        settings which were explicitly restored at the end of Controller.reload().
+        """
+        w = self.window
+        layout = w.ui.layout
+
+        # Rebuild the chat currently displayed in each active output column.
+        # fresh_output() recreates/rebinds the WebView; refresh_output() fills it
+        # from the target meta without changing the globally selected context.
+        split = bool(w.core.config.get("layout.split", False))
+        max_columns = len(getattr(layout, "columns", []))
+        columns = range(max_columns if split else min(max_columns, 1))
+        for column_idx in columns:
+            tabs = layout.get_tabs_by_idx(column_idx)
+            if tabs is None:
+                continue
+            idx = tabs.currentIndex()
+            if idx < 0:
+                continue
+            tab = w.core.tabs.get_tab_by_index(idx, column_idx)
+            if tab is None or tab.type != Tab.TAB_CHAT or tab.data_id is None:
+                continue
+            meta = w.core.ctx.get_meta_by_id(tab.data_id)
+            if meta is None:
+                continue
+            w.controller.ctx.fresh_output(meta)
+            w.controller.ctx.refresh_output(meta)
+
+        # The active tab owns footer/chat-only visibility. Re-read the actual
+        # QTabWidget selection instead of trusting values cached before reload.
+        # When split-screen is disabled, column 1 still exists as a hidden
+        # QTabWidget and can transiently steal the logical column during the
+        # rebuild. Column 0 is unconditionally the active/visible column then.
+        active_column = self.column_idx if split else 0
+        self._pending_focus_idx = None
+        tabs = layout.get_tabs_by_idx(active_column)
+        if tabs is None:
+            active_column = 0
+            tabs = layout.get_tabs_by_idx(active_column)
+        if tabs is not None:
+            idx = tabs.currentIndex()
+            if idx >= 0:
+                self.current = idx
+                self.column_idx = active_column
+
+        w.controller.ui.mode.update()
+        w.controller.ui.vision.update()
+        tab = self.get_current_tab()
+        if tab is not None:
+            w.controller.audio.on_tab_changed(tab)
+
+        # Re-apply the footer from the *resolved* active tab and repopulate its
+        # chat metadata. During profile reload those labels can be cleared while
+        # UI.update_*() still holds the previous cached strings, so a normal
+        # update sees "no change" and skips setText(). That leaves Plugins /
+        # mode / model / token-context info empty until ctx.load() is triggered
+        # by a manual click on the conversation list.
+        if tab is not None and tab.type == Tab.TAB_CHAT:
+            w.controller.ui.mode.show_chat_footer()
+
+            ui = w.controller.ui
+            ui._last_input_string = None
+            ui._last_chat_model = None
+            ui._last_chat_label = None
+
+            # Plugin count does not use the UI string cache, but it is profile-
+            # dependent and must be recalculated after the new plugin config is
+            # loaded.
+            w.controller.plugins.update_info()
+            ui.update_chat_label()
+            ui.update_tokens()
+
+            # Restore the mode/context label for the chat actually displayed in
+            # the active tab without calling ctx.load() (which would also change
+            # profile-level mode/model state).
+            meta_id = getattr(tab, "data_id", None)
+            meta = w.core.ctx.get_meta_by_id(meta_id) if meta_id is not None else None
+            if meta is not None:
+                mode = meta.mode or w.core.config.get("mode")
+                w.controller.ctx.common.update_label(mode, meta.assistant)
+            else:
+                w.controller.ctx.common.update_label_by_current()
+        else:
+            w.controller.ui.mode.hide_chat_footer()
+
+        self.update_current()
+        self.debug()
+
     def _request_active(self) -> bool:
         """Return True while a chat request owns a split-view tab."""
         try:
@@ -267,6 +366,14 @@ class Tabs:
         :param column_idx: column index
         """
         if idx == -1:
+            return
+
+        # Both output columns exist even when split-screen is disabled. During
+        # profile/UI rebuilds the hidden second QTabWidget can emit
+        # currentChanged and must not become the logical active column. If it
+        # does, mode.update() treats the hidden tab as current and can hide the
+        # chat metadata/footer for the actually visible chat in column 0.
+        if column_idx != 0 and not self.is_split_screen_enabled():
             return
 
         w = self.window
@@ -447,6 +554,13 @@ class Tabs:
         """Column changed event"""
         if self.locked:
             return
+
+        # With split-screen disabled column 0 is the only visible/active
+        # output, regardless of any stale focus event emitted by the hidden
+        # second column during a profile reload.
+        if not self.is_split_screen_enabled():
+            self.column_idx = 0
+
         layout = self.window.ui.layout
         tabs = layout.get_tabs_by_idx(self.column_idx)
         tabs.set_active(True)
@@ -504,6 +618,12 @@ class Tabs:
         widget that just gained it (e.g. text inputs). The actual switch is
         performed in _apply_column_focus().
         """
+        # The hidden second column can still receive/emit focus-related events
+        # while split-screen is off (especially while WebViews are rebuilt).
+        # Never allow such an event to change the logical active column.
+        if not self.is_split_screen_enabled():
+            idx = 0
+
         if idx == self.column_idx:
             # A stale deferred focus for the other column may still be queued.
             # Cancel it when the user has already returned to this column; the
@@ -524,7 +644,11 @@ class Tabs:
         self._focus_sync_scheduled = False
         idx = self._pending_focus_idx
         self._pending_focus_idx = None
-        if idx is None or idx == self.column_idx:
+        if idx is None:
+            return
+        if not self.is_split_screen_enabled():
+            idx = 0
+        if idx == self.column_idx:
             return
 
         # Capture the widget that currently has focus (the one user clicked into)

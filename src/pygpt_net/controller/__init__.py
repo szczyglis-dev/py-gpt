@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 09:45:00                  #
+# Updated Date: 2026.09.15 10:56:00                  #
 # ================================================== #
 
 from .access import Access
@@ -221,6 +221,13 @@ class Controller:
             # Suppress intermediate paints while syncing the profile theme.
             with freeze_updates(self.window):
                 self.theme.reload_all()  # do not reload theme if no change
+
+            # Tab/context restoration happens before all controllers have
+            # finished reloading.  Re-apply the final active-tab state only now,
+            # after renderer/theme synchronization, so the footer/status area
+            # and the visible chat WebView do not stay in an intermediate state
+            # until the user clicks another conversation/tab.
+            self.ui.tabs.finalize_profile_reload()
 
         except Exception as e:
             self.window.core.debug.log(e)
