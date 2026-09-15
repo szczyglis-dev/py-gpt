@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.18** | build: **2026-09-15** | Python: **>=3.10, <3.14**
+Release: **2.8.19** | build: **2026-09-15** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2515,6 +2515,22 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.19 (2026-09-15)**
+
+- Split the Plugins list into Popular and Other sections.
+- Optimized and simplified the Plugin Settings dialog.
+- Fixed status visibility on non-chat tabs.
+- Fixed footer state restoration after changing profiles.
+- Fixed a Google `show_reasoning` error when used as a background vision model.
+- Fixed @mention restoration after application startup.
+- Fixed runtime WebView restoration when returning from plain text view on another tab.
+- Fixed RAG engine LLM selection in Chat with Agents.
+- Added support for runtime attachment and image appending from the workdir.
+- Added token counters and usage tracking to Chat with Agents.
+- Improved image attachment @mentions.
+- Added loaders for heavy operations such as indexing and embedding.
+- Updated CSS styles and translations.
+
 **2.8.18 (2026-09-15)**
 
 - Extended the **Chat with Agents** workflow and added step-by-step execution mode.
@@ -2557,51 +2573,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added LLM provider fallbacks to **OpenAILike** when a model is not yet supported by the native LlamaIndex integrations for OpenAI, Google, Anthropic, or xAI.
 - Added keyed memory storage to the **Memory** plugin.
 - Fixed collection of used URLs and attachments in **Chat with Files**.
-
-**2.8.14 (2026-09-10)**
-
-- Security, stability, and provider fixes - PR [#208](https://github.com/szczyglis-dev/py-gpt/pull/208) by [@atharvaHJoshi](https://github.com/atharvaHJoshi).
-- Fixed list selectors for vision models by removing checks for the deprecated vision mode.
-- Fixed the halt and acknowledgement flow in Computer Use.
-- Moved the native Perplexity LlamaIndex provider to the shared OpenAI-compatible wrapper.
-- Fixed legacy beta headers for Anthropic in Chat with Files mode.
-- Fixed support for remote tools and Computer Use in Chat with Files mode.
-- Fixed race conditions and restart loops in the IPython plugin.
-- Added splitter anchors to the CSS in the light theme.
-- Added a new model: `gpt-image-2.5`.
-- Added an **Insert date/time** option to the Notepad right-click menu.
-- Added support for Completion-only mode with models and providers other than OpenAI `gpt-3.5-instruct`.
-- Added support for local Jupyter/IPython in compiled builds.
-- Set IPython’s default stdin to `DEVNULL` when running code with interactive input to prevent freezes.
-- Added support for Computer Use in Realtime + Audio, Legacy Agents, and Autonomous modes.
-- Various UI and CSS fixes.
-
-**2.8.13 (2026-09-09)**
-
-- Fixed issue with empty parameters in the Anthropic API remote tool for computer use.
-- Added support for the use of computer use remote tool in Chat with Agents for Anthropic and Google.
-- Added **OSINT v2** preset to Chat with Agents.
-- Added a new plugin: **Memory (inline)**.
-- Updated IPython Dockerfile: included default installation of pandas, matplotlib, scikit-learn, and other useful libraries.
-- Integrated Google remote tool - MCP.
-- Added validation for pasting large directory attachments.
-- Enhanced CSS in chat view for better aesthetics.
-- Improved handling of multiple tabs.
-- Fixed issue with hiding date separators in context list view.
-- Corrected profile switch components restoration.
-- Other fixes.
-
-**2.8.12 (2026-09-08)**
-
-- Improved, extended, and fixed several bugs in the following modes: Chat, Realtime + Audio, Computer Use, Autonomous Agent, and Chat with Agents.
-- Added new models: **GPT-6 Astra** and **Claude Fable 5.1**.
-- Added a new remote tool in **Settings**: **Computer Use**, which allows you to control the computer in standard Chat mode.
-- Added item limits, a **Show more** option, and collapsible items to the project list.
-- Model responses are now split into partials and stored in the database.
-- Fixed multi-column context handling.
-- Fixed sandbox image URLs.
-- Removed redundant tool input/output from message footers.
-- Removed old and deprecated models.
 
 # Credits and links
 

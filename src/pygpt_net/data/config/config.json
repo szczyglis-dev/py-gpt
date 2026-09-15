@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "app.version": "2.8.18",
-    "version": "2.8.18",
+    "app.version": "2.8.19",
+    "version": "2.8.19",
     "updated_at": "2026-09-15T11:38:00"
   },
   "access.audio.event.speech": false,
@@ -373,7 +373,7 @@
     "cmd_api": false,
     "cmd_code_interpreter": false,
     "cmd_custom": false,
-    "cmd_files": false,
+    "cmd_files": true,
     "cmd_history": false,
     "cmd_mouse_control": false,
     "cmd_serial": false,

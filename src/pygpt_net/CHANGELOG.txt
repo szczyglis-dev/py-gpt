@@ -1,3 +1,19 @@
+2.8.19 (2026-09-15)
+
+- Split the Plugins list into Popular and Other sections.
+- Optimized and simplified the Plugin Settings dialog.
+- Fixed status visibility on non-chat tabs.
+- Fixed footer state restoration after changing profiles.
+- Fixed a Google `show_reasoning` error when used as a background vision model.
+- Fixed @mention restoration after application startup.
+- Fixed runtime WebView restoration when returning from plain text view on another tab.
+- Fixed RAG engine LLM selection in Chat with Agents.
+- Added support for runtime attachment and image appending from the workdir.
+- Added token counters and usage tracking to Chat with Agents.
+- Improved image attachment @mentions.
+- Added loaders for heavy operations such as indexing and embedding.
+- Updated CSS styles and translations.
+
 2.8.18 (2026-09-15)
 
 - Extended the Chat with Agents workflow and added step-by-step execution mode.
