@@ -121,6 +121,14 @@ class Custom:
                 key = mode_keys.get(str(combo.itemData(i) or ''))
                 if key:
                     combo.setItemText(i, trans(key))
+            combo.setToolTip(trans('agent.v2.mode.tooltip'))
+
+        step_by_step = self.window.ui.nodes.get('agent.v2.step_by_step')
+        if step_by_step is not None:
+            step_tooltip = trans('agent.v2.step_by_step.tooltip')
+            step_by_step.setToolTip(step_tooltip)
+            step_by_step.box.setToolTip(step_tooltip)
+            step_by_step.label.setToolTip(step_tooltip)
 
         # painter drawing modes (combo + RMB submenu)
         try:

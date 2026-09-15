@@ -93,6 +93,7 @@ class Prompt:
         ):
             mode_combo.addItem(text, data)
         mode_combo.setMinimumWidth(40)
+        mode_combo.setToolTip(trans("agent.v2.mode.tooltip"))
 
         configured_mode = str(
             w.core.config.get(AGENT_V2_MODE_CONFIG_KEY, AGENT_V2_MODE_DEFAULT) or AGENT_V2_MODE_DEFAULT
@@ -121,6 +122,10 @@ class Prompt:
                 AGENT_V2_STEP_BY_STEP_DEFAULT,
             )
         ))
+        step_tooltip = trans("agent.v2.step_by_step.tooltip")
+        step_by_step.setToolTip(step_tooltip)
+        step_by_step.box.setToolTip(step_tooltip)
+        step_by_step.label.setToolTip(step_tooltip)
         step_by_step.box.toggled.connect(self._on_agent_v2_step_by_step_changed)
         nodes['agent.v2.step_by_step'] = step_by_step
 
