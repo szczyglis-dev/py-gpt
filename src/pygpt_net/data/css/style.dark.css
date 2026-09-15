@@ -607,3 +607,11 @@ QMenu::separator {{
   background: transparent;
   font-weight: bold;
 }}
+
+/* Disabled push buttons stay visible and clearly inactive. */
+QPushButton:disabled,
+QPushButton:disabled:hover {{
+  color: #8a8a8a;
+  background-color: #2a2a2a;
+  border: 1px solid #454545;
+}}

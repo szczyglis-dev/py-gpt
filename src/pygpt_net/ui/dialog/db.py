@@ -626,6 +626,12 @@ class DataBrowser(QWidget):
 
         current_page = self.current_offset // limit + 1
         self.page_input.setText(str(current_page))
+
+        # Pagination controls must always remain visible. Availability only
+        # affects whether a button is enabled; it must never remove the
+        # control from the layout when there is no previous/next page.
+        self.prev_button.setVisible(True)
+        self.next_button.setVisible(True)
         self.prev_button.setEnabled(self.current_offset > 0)
         self.next_button.setEnabled(self.current_offset + limit < total_rows)
 

@@ -701,3 +701,11 @@ QMenuBar::item:disabled {{
   background: transparent;
   font-weight: bold;
 }}
+
+/* Disabled push buttons stay visible and clearly inactive. */
+QPushButton:disabled,
+QPushButton:disabled:hover {{
+  color: #8a8a8a;
+  background-color: #eeeeee;
+  border: 1px solid #d8d8d8;
+}}
