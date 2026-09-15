@@ -145,18 +145,30 @@ def test_toggle(mock_window):
 
 
 def test_set_by_tab(mock_window):
-    """Test set current plugin by tab index"""
+    """Test set current plugin by stable tab identity."""
     plugins = Plugins(mock_window)
-    mock_window.core.plugins.get_ids = MagicMock(return_value=['test'])
-    mock_window.core.plugins.has_options = MagicMock(return_value=True)
-    mock_window.ui.models['plugin.list'] = MagicMock()
-    mock_window.ui.nodes['plugin.list'] = MagicMock()
-    plugins.settings.current_plugin = 'test'
+    tabs = MagicMock()
+    tabs.count.return_value = 1
+    tab = MagicMock()
+    tab.property.return_value = 'test'
+    tabs.widget.return_value = tab
+    mock_window.ui.tabs.get.return_value = tabs
+
+    model = MagicMock()
+    model.rowCount.return_value = 1
+    index = MagicMock()
+    index.data.return_value = 'test'
+    model.index.return_value = index
+    node = MagicMock()
+    mock_window.ui.models.get.return_value = model
+    mock_window.ui.nodes.get.return_value = node
+
     plugins.set_by_tab(0)
-    mock_window.core.plugins.get_ids.assert_called_once()
-    mock_window.core.plugins.has_options.assert_called_once_with('test')
-    mock_window.ui.models['plugin.list'].index.assert_called_once_with(0, 0)
-    mock_window.ui.nodes['plugin.list'].setCurrentIndex.assert_called_once()
+
+    assert plugins.settings.current_plugin == 'test'
+    model.index.assert_called_once_with(0, 0)
+    node.setCurrentIndex.assert_called_once_with(index)
+    mock_window.core.plugins.get_ids.assert_not_called()
 
 
 def test_get_tab_idx(mock_window):

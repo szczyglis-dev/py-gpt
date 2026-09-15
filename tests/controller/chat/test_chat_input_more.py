@@ -268,6 +268,7 @@ def test_send_calls_execute():
     context.prompt = "dummy prompt"
     context.ctx = "prev_ctx"
     context.multimodal_ctx = "mm_ctx"
+    context.attachments = {"runtime": "attachment"}
     inp.execute = MagicMock()
     extra = {"force": True, "reply": True, "internal": True, "parent_id": 42}
     inp.send(context, extra)
@@ -281,6 +282,7 @@ def test_send_calls_execute():
         mode_override=None,
         model_override=None,
         agent_continue=False,
+        runtime_attachments={"runtime": "attachment"},
     )
 
 def test_send_internal_reply_preserves_origin_mode_and_model():
@@ -309,6 +311,7 @@ def test_send_internal_reply_preserves_origin_mode_and_model():
         mode_override=MODE_LLAMA_INDEX,
         model_override="origin-model",
         agent_continue=False,
+        runtime_attachments={},
     )
 
 
@@ -368,6 +371,7 @@ def test_execute_handle_allowed():
         mode_override=None,
         model_override=None,
         agent_continue=False,
+        runtime_attachments=None,
     )
 
 def test_execute_empty_text():

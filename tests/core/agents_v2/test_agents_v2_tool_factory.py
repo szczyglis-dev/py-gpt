@@ -215,7 +215,8 @@ def test_agents_v2_tool_factory_rag_tool_reuses_chat_index(monkeypatch):
     query_engine = object()
     index = MagicMock()
     index.as_query_engine.return_value = query_engine
-    runtime.window.core.idx.chat.get_index.return_value = (index, object())
+    llm = object()
+    runtime.window.core.idx.chat.get_index.return_value = (index, llm)
     captured = {}
 
     class FakeQueryEngineTool:
@@ -234,4 +235,4 @@ def test_agents_v2_tool_factory_rag_tool_reuses_chat_index(monkeypatch):
     assert captured["query_engine"] is query_engine
     assert captured["metadata"].name == "query_index"
     assert "idx-1" in captured["metadata"].description
-    index.as_query_engine.assert_called_once_with(similarity_top_k=3)
+    index.as_query_engine.assert_called_once_with(llm=llm, similarity_top_k=3)

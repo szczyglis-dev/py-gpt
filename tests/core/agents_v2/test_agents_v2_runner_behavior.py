@@ -145,6 +145,7 @@ def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(m
         orchestrator_memory_output=MagicMock(return_value="memory output"),
         cleanup=AsyncMock(),
         export_tool_calls_to_main_ctx=MagicMock(),
+        apply_token_usage=MagicMock(return_value=(10, 5, 15)),
         _actor_part=MagicMock(return_value=SimpleNamespace(uuid="final-part")),
         main_event=MagicMock(side_effect=lambda value: value),
         last_orchestrator_output=MagicMock(return_value="final answer"),

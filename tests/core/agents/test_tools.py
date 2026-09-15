@@ -29,7 +29,7 @@ def fake_window():
             fake_index = MagicMock()
             fake_query_engine = MagicMock()
             fake_query_engine.query = lambda q: "fake query result"
-            fake_index.as_query_engine = lambda similarity_top_k: fake_query_engine
+            fake_index.as_query_engine = lambda llm=None, similarity_top_k=3: fake_query_engine
             return fake_index
         return None
     window.core.idx.storage = MagicMock()

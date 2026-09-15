@@ -84,12 +84,15 @@ def test_settings_and_plugin_lists_switch_matching_tab():
     plugin = SimpleNamespace(window=MagicMock())
     value = MagicMock()
     value.row.return_value = 2
+    value.data.return_value = "plugin.test"
+    plugin.window.controller.plugins.get_tab_idx.return_value = 2
 
     SettingsSectionList.click(settings, value)
     PluginList.click(plugin, value)
 
     settings.window.ui.tabs["settings.section"].setCurrentIndex.assert_called_once_with(2)
     settings.window.controller.settings.set_by_tab.assert_called_once_with(2)
+    plugin.window.controller.plugins.get_tab_idx.assert_called_once_with("plugin.test")
     plugin.window.ui.tabs["plugin.settings"].setCurrentIndex.assert_called_once_with(2)
     plugin.window.controller.plugins.set_by_tab.assert_called_once_with(2)
 

@@ -27,6 +27,8 @@ class DummyContext:
     def __init__(self, mode=None, model=None):
         self.ctx = DummyCtx()
         self.prompt = "hello"
+        self.prompt_mentions = ""
+        self.attachments = {}
         self.mode = mode
         self.model = model
         self.idx = None

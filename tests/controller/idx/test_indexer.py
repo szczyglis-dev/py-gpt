@@ -126,7 +126,7 @@ def test_index_file(mock_window):
     idx.index_file("file.txt", "base", True)
 
     mock_window.core.idx.resolve_idx.assert_called_once_with("base")
-    idx.index_path.assert_called_once_with("file.txt", "base")
+    idx.index_path.assert_called_once_with("file.txt", "base", show_loader=False)
 
 
 def test_clear_by_idx(mock_window):

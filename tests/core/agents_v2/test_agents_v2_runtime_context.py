@@ -26,6 +26,7 @@ def bare_runtime():
     runtime.window = MagicMock()
     runtime.context = SimpleNamespace(ctx=None, attachments={})
     runtime.model = None
+    runtime.strategy = SimpleNamespace(main_name="Primary Agent", main_description="Primary agent")
     runtime.index_id = None
     runtime.rag_context_text = ""
     runtime.verbose = MagicMock()

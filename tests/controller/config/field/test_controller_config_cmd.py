@@ -15,54 +15,47 @@ def _cmd():
     return Cmd(window), cfg
 
 
-def test_cmd_apply_normalizes_invalid_value_and_updates_all_widgets():
+def test_cmd_apply_invalid_value_disables_tool_without_mutating_metadata():
     handler, cfg = _cmd()
     option = {"value": None}
 
     handler.apply("parent", "command", option)
 
-    assert option["value"] == {"enabled": False, "instruction": "", "params": []}
-    assert cfg.params.items == []
-    cfg.params.model.updateData.assert_called_once_with([])
+    assert option["value"] is None
     cfg.enabled.box.setChecked.assert_called_once_with(False)
-    cfg.instruction.setText.assert_called_once_with("")
+    cfg.params.model.updateData.assert_not_called()
+    cfg.instruction.setText.assert_not_called()
 
 
-def test_cmd_apply_fills_missing_defaults_without_replacing_dict():
+def test_cmd_apply_reads_only_enabled_flag_from_tool_value():
     handler, cfg = _cmd()
-    value = {"enabled": True, "params": [{"name": "x"}]}
+    value = {"enabled": True, "instruction": "fixed", "params": [{"name": "x"}]}
     option = {"value": value}
 
     handler.apply("parent", "command", option)
 
     assert option["value"] is value
-    assert value["instruction"] == ""
-    cfg.params.model.updateData.assert_called_once_with([{"name": "x"}])
+    assert value == {"enabled": True, "instruction": "fixed", "params": [{"name": "x"}]}
     cfg.enabled.box.setChecked.assert_called_once_with(True)
+    cfg.params.model.updateData.assert_not_called()
 
 
-def test_cmd_apply_row_accepts_base_or_params_key():
+def test_cmd_apply_row_is_noop_for_read_only_tool_parameters():
     handler, cfg = _cmd()
 
-    handler.apply_row("parent", "command.params", {"params": {"x": 1}}, 3)
+    assert handler.apply_row("parent", "command.params", {"params": {"x": 1}}, 3) is None
 
-    cfg.params.update_item.assert_called_once_with(3, {"x": 1})
+    cfg.params.update_item.assert_not_called()
 
 
-def test_cmd_get_value_reads_widget_state():
+def test_cmd_get_value_returns_enabled_state_only():
     handler, cfg = _cmd()
     cfg.enabled.box.isChecked.return_value = True
-    cfg.instruction.toPlainText.return_value = "do it"
-    cfg.params.model.items = [{"name": "p"}]
 
-    assert handler.get_value("parent", "command", {}) == {
-        "enabled": True,
-        "instruction": "do it",
-        "params": [{"name": "p"}],
-    }
+    assert handler.get_value("parent", "command", {}) is True
 
 
-def test_cmd_to_options_converts_dict_and_cmd_schemas_and_preserves_explicit_labels():
+def test_cmd_to_options_converts_dict_but_not_cmd_schema():
     handler, _ = _cmd()
 
     dict_result = handler.to_options("root", {
@@ -77,15 +70,13 @@ def test_cmd_to_options_converts_dict_and_cmd_schemas_and_preserves_explicit_lab
     assert dict_result["b"]["label"] == "root.b"
     assert dict_result["c"]["label"] == "custom"
 
-    cmd_result = handler.to_options("root", {
+    assert handler.to_options("root", {
         "type": "cmd",
         "params_keys": {
             "path": "text",
             "count": {"type": "int"},
         },
-    })
-    assert cmd_result["path"] == {"label": "dictionary.cmd.param.path", "type": "text"}
-    assert cmd_result["count"]["label"] == "dictionary.cmd.param.count"
+    }) == {}
 
 
 def test_cmd_to_options_returns_empty_for_unsupported_or_empty_schema():
@@ -93,4 +84,4 @@ def test_cmd_to_options_returns_empty_for_unsupported_or_empty_schema():
 
     assert handler.to_options("root", {"type": "dict"}) == {}
     assert handler.to_options("root", {"type": "cmd"}) == {}
-    assert handler.to_options("root", {"type": "other"}) is None
+    assert handler.to_options("root", {"type": "other"}) == {}

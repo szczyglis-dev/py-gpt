@@ -77,8 +77,8 @@ def test_register_applies_saved_values_removes_stale_and_registers_dict_options(
     assert manager.plugins["p"].initial_options["x"]["value"] == "default"
     cfg.save.assert_called_once_with()
     calls = dialogs.register_dictionary.call_args_list
+    assert len(calls) == 1
     assert calls[0].args[:2] == ("mapping", "plugin.p")
-    assert calls[1].args[:2] == ("run.params", "plugin.p")
 
 
 def test_apply_all_options_restores_initial_values_and_removes_invalid_user_keys():

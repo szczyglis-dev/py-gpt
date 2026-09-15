@@ -51,4 +51,4 @@ def test_lang_plugins_apply_translates_enabled_plugin_and_refreshes_current_tab(
     bool_widget.box.setText.assert_called_once_with("tr:enabled.label")
     window.plugin_settings.update_list.assert_called_once_with("plugin.list", window.core.plugins.plugins)
     window.controller.plugins.set_by_tab.assert_called_once_with(3)
-    disabled.setup.assert_not_called()
+    disabled.setup.assert_called_once_with()
