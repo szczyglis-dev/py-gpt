@@ -49,7 +49,7 @@ profile workdir. Conversations outside projects, and projects with
 directory.
 
 The active project data workdir is resolved at runtime. The ``Files`` tab,
-``Files I/O``, Code interpreter (v2), filesystem-aware tools and model-facing data
+``Files I/O``, Python code interpreter, filesystem-aware tools and model-facing data
 paths use the data directory that belongs to the current conversation. In
 Docker sandboxes the same host directory is exposed as ``/data``. Switching to
 a conversation in another project therefore changes the effective ``data``

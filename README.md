@@ -43,7 +43,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Internet access via `DuckDuckGo`, `Google` and `Microsoft Bing`.
 - Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing` and `xAI Grok Voice`.
-- Plugins support with built-in plugins like `Files I/O`, `Code interpreter (v2)`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
+- Plugins support with built-in plugins like `Files I/O`, `Python code interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - MCP support.
 - Camera capture for real-time image analysis in Chat and other supported modes, controlled from the `Audio / Video` menu.
 - Image analysis via vision models.
@@ -492,7 +492,7 @@ For a visualization from OpenAI's page, see this picture:
 
 Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
 
-To index your files, copy or upload them into the active `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with a custom data workdir, the project directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with Files (RAG, inline)` plugin.
+To index your files, copy or upload them into the active `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with a custom data workdir, the project directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `RAG (inline)` plugin.
 
 ![v2_idx1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx1.png)
 
@@ -565,7 +565,7 @@ Project-aware indexing is also available outside automatic context indexing:
 
 - In **Chat with Files**, select **Current project** to query the active project's isolated index.
 - In the **Files** tab, `RMB -> Embed into index -> Current project` indexes the selected file or directory into the active project.
-- The **Chat with Files (RAG, inline)** and **Files I/O** plugins can automatically use the active project index when their **Use project index if in use** option is enabled (default: enabled).
+- The **RAG (inline)** and **Files I/O** plugins can automatically use the active project index when their **Use project index if in use** option is enabled (default: enabled).
 - The project context menu provides **Update project index** and **Truncate project index** actions. Updating continues incrementally; truncating removes the project's index data and resets its indexing state.
 - Deleting a project also removes its project index. Duplicating a project rebuilds a corresponding isolated index only when the source project had one.
 
@@ -631,7 +631,7 @@ Chat with Agents can use both local and provider-side capabilities:
 - Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with **Allow local tools** and **Allow remote tools**.
 - Models with native function calling use it when available; the runtime can fall back to a ReAct agent for compatible models without native function calling.
 
-Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Code interpreter (v2), system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
+Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python code interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
 ### Settings
 
@@ -814,7 +814,7 @@ Includes built-in agents (Workflow):
 - FunctionAgent
 - ReAct
 - Structured Planner (sub-tasks)
-- CodeAct (connected to Code interpreter (v2) plugin)
+- CodeAct (connected to Python code interpreter plugin)
 - Supervisor + worker
 
 
@@ -1004,7 +1004,7 @@ Conversations can be organized into projects. By default, projects use the share
 
 A project workdir overrides **only the logical `data` directory** used by conversations in that project. It does not replace the profile/application workdir. Files such as `config.json`, `models.json`, `db.sqlite`, logs and other profile-level directories such as `tmp`, `cache`, `css`, `locale` and fonts continue to use the base profile workdir. Conversations outside projects, and projects with **Use shared workdir** enabled, use the normal `<profile workdir>/data` directory.
 
-The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Code interpreter (v2)**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
+The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Python code interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
 
 ## Clearing history
 
@@ -1118,7 +1118,7 @@ When using RAG to query attachments, the documents are indexed into a temporary 
 
 The active `data` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with LlamaIndex. The project override applies only to this logical data root; it does not move profile-level paths such as `tmp`, configuration files, the database or other application directories.
 
-The `Files I/O` and `Code interpreter (v2)` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
+The `Files I/O` and `Python code interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1404,17 +1404,17 @@ The following plugins are currently available:
 
 - `Audio input` - adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
 
-- `Audio output` - adds text-to-speech output using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
+- `Audio output` - enables speech synthesis for every received response using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
-- `Chat with Files (RAG, inline)` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
+- `RAG (inline)` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 
-- `Code interpreter (v2)` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+- `Python code interpreter` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
 
-- `Context history (calendar, inline)` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
+- `Conversation history (inline)` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 
 - `Crontab / Task scheduler` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
 
@@ -1494,7 +1494,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-input
 
 ## Audio output
 
-The plugin lets you turn text into speech using OpenAI TTS or providers such as `Microsoft Azure`, `Google Cloud TTS`, `Google GenAI TTS`, `Eleven Labs`, and `xAI TTS`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+When enabled, the plugin synthesizes every received response as speech using OpenAI TTS or providers such as `Microsoft Azure`, `Google Cloud TTS`, `Google GenAI TTS`, `Eleven Labs`, and `xAI TTS`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
 Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
@@ -1534,15 +1534,15 @@ The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud AP
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#bitbucket
 
-## Chat with Files (RAG, inline)
+## RAG (inline)
 
 Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context. The plugin also provides the `Image model` setting used by the Image (vision) data loader when API mode is active (default: `gpt-4o`). Audio/video transcription is not configured here; it uses the provider selected in the `Audio input` plugin.
 
 When **Use project index if in use** is enabled (default), the plugin automatically queries the isolated **Current project** index whenever the active conversation belongs to a project. Outside a project it uses the configured regular index or indexes.
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-with-files-rag-inline
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#rag-inline
 
-## Code interpreter (v2)
+## Python code interpreter
 
 ### Executing Code
 
@@ -1554,7 +1554,7 @@ To use IPython in sandbox mode, Docker must be installed on your system. The act
 
 **IPython system commands:** The `ipython_sys_exec` tool is available for executing operating-system commands inside the active IPython environment. It is similar to `sys_exec` from the `System (OS)` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, `ipython_sys_exec` executes the command inside that Docker container.
 
-**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless `sudo` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the `Code interpreter (v2)` plugin settings.
+**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless `sudo` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the `Python code interpreter` plugin settings.
 
 
 You can find the installation instructions here: https://docs.docker.com/engine/install/
@@ -1577,16 +1577,16 @@ sudo snap connect pygpt:docker docker:docker-daemon
 
 ![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
 
-**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Code interpreter (v2)` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python code interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
 
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
 
 **Tip:** Remember to enable the `Tools` switch to allow tools from plugins to be executed.
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#code-interpreter-v2
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#python-code-interpreter
 
-## Context history (calendar, inline)
+## Conversation history (inline)
 
 Provides access to context history database.
 Plugin also provides access to reading and creating day notes.
@@ -1603,7 +1603,7 @@ Example prompts:
 
 ```Show me the contents of conversation ID 123.```
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#context-history-calendar-inline
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#conversation-history-inline
 
 ## Crontab / Task scheduler
 
@@ -2097,15 +2097,15 @@ Remote vector stores management.
 ## Python/OS
 
 
-This tool allows you to run Python code directly from within the app. It is integrated with the `Code interpreter (v2)` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
+This tool allows you to run Python code directly from within the app. It is integrated with the `Python code interpreter` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
 
-**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Code interpreter (v2)` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python code interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
 
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
 ## HTML/JS Canvas
 
-Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Code interpreter (v2)` plugin.
+Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Python code interpreter` plugin.
 
 ## Translator
 

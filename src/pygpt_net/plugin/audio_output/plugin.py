@@ -29,7 +29,7 @@ class Plugin(BasePlugin):
         self.is_common_plugin = True
         self.name = "Audio Output"
         self.type = ['audio.output']
-        self.description = "Enables audio/voice output (speech synthesis)"
+        self.description = "Enables speech synthesis for every received response."
         self.prefix = "Audio Output"
         self.input_text = None
         self.playback = None

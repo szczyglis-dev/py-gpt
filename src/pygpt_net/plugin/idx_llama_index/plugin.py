@@ -27,7 +27,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "idx_llama_index"
         self.is_common_plugin = True
-        self.name = "Llama-index (inline)"
+        self.name = "RAG (inline)"
         self.description = "Integrates Llama-index storage in any chat"
         self.prefix = "Idx"
         self.allowed_cmds = [

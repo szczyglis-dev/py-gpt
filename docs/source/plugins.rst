@@ -10,12 +10,12 @@ The following plugins are currently available:
 
 * ``API calls`` - connects models to external services through user-defined API endpoints, request methods, parameters, and payloads.
 * ``Audio input`` - adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
-* ``Audio output`` - adds text-to-speech output using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
+* ``Audio output`` - enables speech synthesis for every received response using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
 * ``Autonomous mode`` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 * ``Bitbucket`` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
-* ``Chat with Files (RAG, inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
-* ``Code interpreter (v2)`` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
-* ``Context history (calendar, inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
+* ``RAG (inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
+* ``Python code interpreter`` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+* ``Conversation history (inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 * ``Crontab / Task scheduler`` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
 * ``Custom commands`` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
 * ``Experts (inline)`` - exposes enabled Expert presets through the regular ``expert_call`` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Chat with Agents.
@@ -295,7 +295,7 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 Audio output
 -------------------------
 
-The plugin lets you turn text into speech using OpenAI TTS or providers such as ``Microsoft Azure``, ``Google Cloud TTS``, ``Google GenAI TTS``, ``Eleven Labs``, and ``xAI TTS``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+When enabled, the plugin synthesizes every received response as speech using OpenAI TTS or providers such as ``Microsoft Azure``, ``Google Cloud TTS``, ``Google GenAI TTS``, ``Eleven Labs``, and ``xAI TTS``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
 Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
 
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
@@ -625,8 +625,8 @@ The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud AP
   Search repositories using Bitbucket Query Language (BBQL).
 
 
-Chat with Files (RAG, inline)
--------------------------------------
+RAG (inline)
+------------
 
 Plugin integrates ``LlamaIndex`` storage in any chat and provides additional knowledge into context.
 
@@ -679,7 +679,7 @@ When enabled and the current conversation belongs to a project, the plugin queri
 Indexes to use outside an active project, or when project-index usage is disabled. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
 
 
-Code interpreter (v2)
+Python code interpreter
 -------------------------
 
 **Executing Code**
@@ -692,7 +692,7 @@ To use IPython in sandbox mode, Docker must be installed on your system. When th
 
 **IPython system commands:** The ``ipython_sys_exec`` tool is available for executing operating-system commands inside the active IPython environment. It is similar to ``sys_exec`` from the ``System (OS)`` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, ``ipython_sys_exec`` executes the command inside that Docker container.
 
-**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless ``sudo`` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the ``Code interpreter (v2)`` plugin settings.
+**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless ``sudo`` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the ``Python code interpreter`` plugin settings.
 
 
 You can find the installation instructions here: https://docs.docker.com/engine/install/
@@ -718,7 +718,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
    :width: 600
 
 .. important::
-   Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the ``Code interpreter (v2)`` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+   Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the ``Python code interpreter`` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
 
    Docker installation: https://docs.docker.com/engine/install/
 
@@ -877,7 +877,7 @@ Allows ``render_html_output`` command execution. If enabled, it allows to render
 Allows ``get_html_output`` command execution. If enabled, it allows retrieval current output from HTML Canvas. *Default:* ``True``
 
 
-Context history (calendar, inline)
+Conversation history (inline)
 ----------------------------------
 
 Provides access to context history database.

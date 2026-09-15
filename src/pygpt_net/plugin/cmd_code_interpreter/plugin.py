@@ -45,7 +45,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_code_interpreter"
         self.is_common_plugin = True
-        self.name = "Code Interpreter (v2)"
+        self.name = "Python Code Interpreter"
         self.description = "Provides Python/HTML/JS code execution"
         self.prefix = "Code"
         self.type = [

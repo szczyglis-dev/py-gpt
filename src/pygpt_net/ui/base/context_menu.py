@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:00:00                  #
+# Updated Date: 2026.09.15 14:00:00                  #
 # ================================================== #
 from typing import Union
 
@@ -87,7 +87,7 @@ class ContextMenu:
         """
         menu = QMenu(trans('text.context_menu.insert_datetime'), parent)
         now = QDateTime.currentDateTime()
-        formats = ('time', 'date', 'datetime')
+        formats = ('datetime', 'date', 'time')
 
         cursor = target.textCursor()
         cursor_position = cursor.position()
@@ -110,7 +110,7 @@ class ContextMenu:
 
         lang = self.window.core.config.get_lang() if self.window is not None else 'en'
         locale = QLocale(lang)
-        weekday = locale.dayName(now.date().dayOfWeek())
+        weekday = locale.dayName(now.date().dayOfWeek(), QLocale.FormatType.ShortFormat).rstrip('.')
         if weekday:
             weekday = weekday[:1].upper() + weekday[1:]
 
