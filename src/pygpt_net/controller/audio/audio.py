@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 07:00:00                  #
+# Updated Date: 2026.09.15 11:05:00                  #
 # ================================================== #
 
 import os
@@ -31,11 +31,6 @@ class Audio:
         """
         self.window = window
         self.ui = UI(window)
-        self.input_allowed_tabs = [
-            Tab.TAB_NOTEPAD,
-            Tab.TAB_CHAT,
-            Tab.TAB_TOOL_CALENDAR,
-        ]
         self.muted = False
 
     def setup(self):
@@ -143,12 +138,11 @@ class Audio:
 
         :param tab: Tab instance (current tab)
         """
-        # input button visibility
+        # Audio input is application-wide and remains available on every
+        # output tab. handle_audio_input() still applies the normal simple vs.
+        # advanced-input visibility rules and notepad-specific continuous UI.
         if self.is_input_enabled():
-            if tab.type in self.input_allowed_tabs:
-                self.handle_audio_input(True)  # show btn
-            else:
-                self.handle_audio_input(False) # hide btn
+            self.handle_audio_input(True)
 
     def enable_output(self):
         """Enable audio output"""

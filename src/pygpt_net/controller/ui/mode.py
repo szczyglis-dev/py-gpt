@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 12:30:00                  #
+# Updated Date: 2026.09.15 11:05:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -370,17 +370,32 @@ class Mode:
         return event.data['value']
 
     def show_chat_footer(self):
-        """Show chat footer and tab-row capability icons."""
+        """Show chat-only footer controls while keeping global footer UI visible."""
         nodes = self.window.ui.nodes
         nodes['chat.footer'].setVisible(True)
+        metadata = nodes.get('chat.footer.metadata')
+        if metadata is not None:
+            metadata.setVisible(True)
+        controls = nodes.get('chat.footer.controls')
+        if controls is not None:
+            controls.setVisible(True)
         icons = nodes.get('chat.icons.header')
         if icons is not None:
             icons.setVisible(True)
 
     def hide_chat_footer(self):
-        """Hide chat footer and tab-row capability icons."""
+        """Hide only chat-only controls on non-chat tabs."""
         nodes = self.window.ui.nodes
-        nodes['chat.footer'].setVisible(False)
+
+        # Status/footer, audio UI and capability/tool icons are application-wide
+        # controls and must remain available regardless of the active output tab.
+        nodes['chat.footer'].setVisible(True)
+        metadata = nodes.get('chat.footer.metadata')
+        if metadata is not None:
+            metadata.setVisible(False)
+        controls = nodes.get('chat.footer.controls')
+        if controls is not None:
+            controls.setVisible(False)
         icons = nodes.get('chat.icons.header')
         if icons is not None:
-            icons.setVisible(False)
+            icons.setVisible(True)

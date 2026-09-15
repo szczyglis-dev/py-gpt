@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 01:40:00                  #
+# Updated Date: 2026.09.15 11:05:00                  #
 # ================================================== #
 
 from functools import partial
@@ -215,15 +215,36 @@ class Input:
         metadata_layout = self._setup_footer_metadata()
         buttons_layout = self.setup_buttons()
 
+        # Keep chat-only metadata and controls in separate widgets. Non-chat
+        # output tabs hide both of these, while the global status, audio UI and
+        # capability/tool icons remain available.
+        nodes['chat.footer.metadata'] = QWidget()
+        nodes['chat.footer.metadata'].setLayout(metadata_layout)
+        nodes['chat.footer.controls'] = QWidget()
+        nodes['chat.footer.controls'].setLayout(buttons_layout)
+
         # Preserve the existing metadata/control positions. The former center
         # column is now just flexible space because its icons live above.
         top_layout = QGridLayout()
         top_layout.setContentsMargins(0, 0, 2, 0)
         top_layout.setHorizontalSpacing(8)
-        top_layout.addLayout(metadata_layout, 0, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
-        top_layout.addLayout(buttons_layout, 0, 2, alignment=Qt.AlignRight | Qt.AlignVCenter)
+        top_layout.addWidget(
+            nodes['chat.footer.metadata'],
+            0,
+            0,
+            alignment=Qt.AlignLeft | Qt.AlignVCenter,
+        )
+        top_layout.addWidget(
+            nodes['chat.footer.controls'],
+            0,
+            2,
+            alignment=Qt.AlignRight | Qt.AlignVCenter,
+        )
 
-        side_width = max(metadata_layout.sizeHint().width(), buttons_layout.sizeHint().width())
+        side_width = max(
+            nodes['chat.footer.metadata'].sizeHint().width(),
+            nodes['chat.footer.controls'].sizeHint().width(),
+        )
         top_layout.setColumnMinimumWidth(0, side_width)
         top_layout.setColumnMinimumWidth(2, side_width)
         top_layout.setColumnStretch(0, 1)
