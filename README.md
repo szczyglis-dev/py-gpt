@@ -20,10 +20,6 @@ It supports chat, **Chat with Agents** and other agent workflows, completions, C
 
 **PyGPT** also provides speech synthesis through `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI`, plus speech recognition with `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Bing` and `xAI Grok Voice`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
-**Showcase** (mp4, version `2.8.3`, build `2026-08-16`):
-
-https://github.com/user-attachments/assets/22972e34-dc9f-451d-ae64-23a91e945e97
-
 **Screenshots** (version `2.8.18`, build `2026-09-15`):
 
 Dark theme:
