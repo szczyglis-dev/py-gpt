@@ -386,10 +386,13 @@ class WorkerToolFactory:
         try:
             # Reuse Chat with Files index loading so virtual project RAG and empty-index
             # fallback follow the same lifecycle as the rest of PyGPT.
-            index, _llm = core.idx.chat.get_index(idx, self.runtime.model, stream=False)
+            index, llm = core.idx.chat.get_index(idx, self.runtime.model, stream=False)
             if index is None:
                 return None
-            query_engine = index.as_query_engine(similarity_top_k=3)
+            query_engine = index.as_query_engine(
+                llm=llm,
+                similarity_top_k=3,
+            )
             return QueryEngineTool(
                 query_engine=query_engine,
                 metadata=ToolMetadata(

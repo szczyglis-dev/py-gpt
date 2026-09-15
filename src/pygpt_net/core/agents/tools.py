@@ -110,7 +110,10 @@ class Tools:
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
             index = self.window.core.idx.storage.get(storage_idx, llm, embed_model)
             if index is not None:
-                query_engine = index.as_query_engine(similarity_top_k=3)
+                query_engine = index.as_query_engine(
+                    llm=llm,
+                    similarity_top_k=3,
+                )
                 tool = [
                     QueryEngineTool(
                         query_engine=query_engine,
@@ -432,7 +435,10 @@ class Tools:
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=self.context.model)
             index = self.window.core.idx.storage.get(storage_idx, llm, embed_model)
             if index is not None:
-                query_engine = index.as_query_engine(similarity_top_k=3)
+                query_engine = index.as_query_engine(
+                    llm=llm,
+                    similarity_top_k=3,
+                )
                 response = query_engine.query(params["query"])
                 print(f"[Plugin] Query engine response: {response}")
                 self.log(f"[Plugin] Query engine response: {response}")
