@@ -38,6 +38,7 @@ class CalendarSelect(QCalendarWidget):
         self._header_background_color = QColor()
         self._header_font_bold = False
         self._hover_day_background_color = QColor()
+        self._hover_today_background_color = QColor()
         self._hover_today_text_color = QColor()
         self.currentYear = QDate.currentDate().year()
         self.currentMonth = QDate.currentDate().month()
@@ -187,6 +188,19 @@ class CalendarSelect(QCalendarWidget):
         set_hover_day_background_color,
     )
 
+    def get_hover_today_background_color(self):
+        return self._hover_today_background_color
+
+    def set_hover_today_background_color(self, color):
+        self._hover_today_background_color = QColor(color)
+        self.updateCells()
+
+    hoverTodayBackgroundColor = Property(
+        QColor,
+        get_hover_today_background_color,
+        set_hover_today_background_color,
+    )
+
     def get_hover_today_text_color(self):
         return self._hover_today_text_color
 
@@ -287,7 +301,10 @@ class CalendarSelect(QCalendarWidget):
             cursor_pos = self._calendar_view.viewport().mapFromGlobal(QCursor.pos())
             if rect.contains(cursor_pos):
                 painter.save()
-                painter.fillRect(rect, self._hover_day_background_color)
+                hover_background = self._hover_day_background_color
+                if date == self._today and self._hover_today_background_color.isValid():
+                    hover_background = self._hover_today_background_color
+                painter.fillRect(rect, hover_background)
                 if date == self._today:
                     if self._hover_today_text_color.isValid():
                         painter.setPen(self._hover_today_text_color)

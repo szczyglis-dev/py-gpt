@@ -159,7 +159,8 @@ QComboBox::item:checked {{
   qproperty-headerBackgroundColor: transparent;
   qproperty-headerFontBold: true;
   qproperty-hoverDayBackgroundColor: #1e1e1e;
-  qproperty-hoverTodayTextColor: #ffffff;
+  qproperty-hoverTodayBackgroundColor: #e7fdad;
+  qproperty-hoverTodayTextColor: #000000;
 }}
 QCalendarWidget QAbstractItemView::item:selected:focus,
 QCalendarWidget QAbstractItemView::item:selected {{
@@ -286,10 +287,19 @@ QTabBar {{
   background-color: #161616;
 }}
 
-/* Keep normal controls/lists on the existing dark control surface. */
+/* Input controls use the lifted dark input surface. */
 QLineEdit,
 QTextEdit,
+QPlainTextEdit,
 QComboBox,
+QSpinBox,
+QDoubleSpinBox,
+QDateEdit,
+QTimeEdit {{
+  background-color: #242424;
+}}
+
+/* Lists and menus keep the darker control surface. */
 QListView,
 QTreeView,
 QMenu {{

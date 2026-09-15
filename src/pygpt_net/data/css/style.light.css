@@ -310,6 +310,8 @@ QMenu::indicator {{
   qproperty-headerBackgroundColor: #cdcdcd;
   qproperty-headerFontBold: true;
   qproperty-hoverDayBackgroundColor: #f1f1f1;
+  qproperty-hoverTodayBackgroundColor: #e7fdad;
+  qproperty-hoverTodayTextColor: #000000;
 }}
 QCalendarWidget QAbstractItemView::item {{
     background: #f8f8f8;
