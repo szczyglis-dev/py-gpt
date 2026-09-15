@@ -27,6 +27,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_history"
+        self.is_common_plugin = True
         self.name = "Context history (calendar, inline)"
         self.type = ["cmd.inline"]
         self.description = "Provides real-time access to context history database"

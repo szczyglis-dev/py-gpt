@@ -58,6 +58,7 @@ class BasePlugin(QObject):
         self.parent = None
         self.enabled = False
         self.use_locale = False
+        self.is_common_plugin = False
         self.order = 0
 
     def setup(self) -> Dict[str, Any]:

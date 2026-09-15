@@ -122,6 +122,10 @@ class Plugins:
         win.plugin_settings.update_list('plugin.list', plugins_dict)
         ctrl_plugins.set_by_tab(idx)
 
+        # Plugin names can sort differently between languages, so rebuild the
+        # two menu sections after all plugin locale domains have been reloaded.
+        ctrl_plugins.rebuild_menu()
+
         # Refresh the enabled-plugins summary after all plugin locale domains
         # have been reloaded, so names in its tooltip switch language live.
         ctrl_plugins.update_info()

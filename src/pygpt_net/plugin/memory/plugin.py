@@ -98,6 +98,7 @@ Rules:
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "memory"
+        self.is_common_plugin = True
         self.name = "Memory (inline)"
         self.type = ["cmd.inline"]
         self.description = "Provides global and per-project long-term memory backed by the local database."

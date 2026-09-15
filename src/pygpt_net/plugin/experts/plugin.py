@@ -23,6 +23,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "experts"
+        self.is_common_plugin = True
         self.name = "Experts (inline)"
         self.description = "Enables inline experts in current mode."
         self.prefix = "Experts"

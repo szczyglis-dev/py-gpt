@@ -43,6 +43,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_dalle"
+        self.is_common_plugin = True
         self.name = "Image generation"
         self.description = "Integrates image generation with any chat"
         self.prefix = "Image"

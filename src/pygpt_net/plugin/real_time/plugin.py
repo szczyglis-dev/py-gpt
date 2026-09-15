@@ -22,6 +22,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "real_time"
+        self.is_common_plugin = True
         self.name = "Real Time"
         self.type = ["time"]
         self.description = "Appends current time and date to every system prompt."

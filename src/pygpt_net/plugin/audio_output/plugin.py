@@ -26,6 +26,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "audio_output"
+        self.is_common_plugin = True
         self.name = "Audio Output"
         self.type = ['audio.output']
         self.description = "Enables audio/voice output (speech synthesis)"

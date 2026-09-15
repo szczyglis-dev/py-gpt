@@ -570,6 +570,14 @@ QSlider::add-page:vertical {{
   border-radius: 2px;
 }}
 
+
+/* Dark menu separators. */
+QMenu::separator {{
+  height: 1px;
+  background-color: #4a4a4a;
+  margin: 3px 0px;
+}}
+
 /* Input @mentions */
 #chatInput {{
   qproperty-mentionColor: #79e29a;

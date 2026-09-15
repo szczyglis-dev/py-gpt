@@ -28,6 +28,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "mcp"
+        self.is_common_plugin = True
         self.name = "MCP"
         self.description = "Use remote tools via MCP"
         self.prefix = "RemoteTool"

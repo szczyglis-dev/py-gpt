@@ -381,6 +381,8 @@ class Mapping:
         menu_text['plugins.presets.new'] = 'menu.plugins.presets.new'
         menu_text['plugins.presets.edit'] = 'menu.plugins.presets.edit'
         menu_text['plugins.settings'] = 'menu.plugins.settings'
+        menu_text['menu.plugins.section.common'] = 'menu.plugins.section.common'
+        menu_text['menu.plugins.section.other'] = 'menu.plugins.section.other'
         menu_text['info.about'] = 'menu.info.about'
         menu_text['info.changelog'] = 'menu.info.changelog'
         menu_text['info.updates'] = 'menu.info.updates'

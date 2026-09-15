@@ -20,6 +20,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "agent"
+        self.is_common_plugin = True
         self.name = "Autonomous mode"
         self.description = "Enables inline autonomous mode (Agent) in current mode. " \
                            "WARNING: Please use with caution - this mode, when connected with other plugins, " \

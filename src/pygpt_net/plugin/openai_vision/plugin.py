@@ -31,6 +31,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_vision"
+        self.is_common_plugin = True
         self.name = "Vision (inline)"
         self.type = [
             "vision",

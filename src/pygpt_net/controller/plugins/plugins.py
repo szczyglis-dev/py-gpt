@@ -89,20 +89,106 @@ class Plugins:
         self.handle_types()
 
     def setup_menu(self):
-        """Set up plugins menu"""
+        """Set up plugins menu."""
         pm = self.window.core.plugins
         ui_menu = self.window.ui.menu
         menu_plugins = ui_menu['plugins']
-        for pid in pm.get_ids(sort=True):
-            if pid in menu_plugins:
-                continue
+
+        for pid in pm.get_ids():
             name = pm.get_name(pid)
             tooltip = pm.get_desc(pid)
-            act = QAction(name, self.window, checkable=True)
-            act.triggered.connect(lambda checked=None, id=pid: self.toggle(id))
+            act = menu_plugins.get(pid)
+            if act is None:
+                act = QAction(name, self.window, checkable=True)
+                act.triggered.connect(lambda checked=None, id=pid: self.toggle(id))
+                menu_plugins[pid] = act
+            else:
+                act.setText(name)
             act.setToolTip(tooltip)
-            menu_plugins[pid] = act
-            ui_menu['menu.plugins'].addAction(act)
+
+        self.rebuild_menu()
+
+    def rebuild_menu(self):
+        """Rebuild plugin actions grouped into popular and other plugins."""
+        pm = self.window.core.plugins
+        ui_menu = self.window.ui.menu
+        menu = ui_menu['menu.plugins']
+        menu_plugins = ui_menu['plugins']
+
+        section_common = ui_menu.get('menu.plugins.section.common')
+        if section_common is None:
+            section_common = QAction(trans('menu.plugins.section.common'), self.window)
+            section_common.setEnabled(False)
+            section_font = section_common.font()
+            section_font.setBold(True)
+            section_common.setFont(section_font)
+            ui_menu['menu.plugins.section.common'] = section_common
+        else:
+            section_common.setText(trans('menu.plugins.section.common'))
+
+        section_other = ui_menu.get('menu.plugins.section.other')
+        if section_other is None:
+            section_other = QAction(trans('menu.plugins.section.other'), self.window)
+            section_other.setEnabled(False)
+            section_font = section_other.font()
+            section_font.setBold(True)
+            section_other.setFont(section_font)
+            ui_menu['menu.plugins.section.other'] = section_other
+        else:
+            section_other.setText(trans('menu.plugins.section.other'))
+
+        separator_common = ui_menu.get('menu.plugins.section.common.separator')
+        if separator_common is None:
+            separator_common = QAction(self.window)
+            separator_common.setSeparator(True)
+            ui_menu['menu.plugins.section.common.separator'] = separator_common
+
+        separator_other = ui_menu.get('menu.plugins.section.other.separator')
+        if separator_other is None:
+            separator_other = QAction(self.window)
+            separator_other.setSeparator(True)
+            ui_menu['menu.plugins.section.other.separator'] = separator_other
+
+        separator_end = ui_menu.get('menu.plugins.section.end.separator')
+        if separator_end is None:
+            separator_end = QAction(self.window)
+            separator_end.setSeparator(True)
+            ui_menu['menu.plugins.section.end.separator'] = separator_end
+
+        managed_actions = list(menu_plugins.values()) + [
+            section_common,
+            section_other,
+            separator_common,
+            separator_other,
+            separator_end,
+        ]
+        for action in managed_actions:
+            menu.removeAction(action)
+
+        common_ids = []
+        other_ids = []
+        for pid in pm.get_ids():
+            plugin = pm.get(pid)
+            if plugin is not None and bool(getattr(plugin, 'is_common_plugin', False)):
+                common_ids.append(pid)
+            else:
+                other_ids.append(pid)
+
+        sort_key = lambda pid: pm.get_name(pid).casefold()
+        common_ids.sort(key=sort_key)
+        other_ids.sort(key=sort_key)
+
+        ordered_actions = [separator_common, section_common]
+        ordered_actions.extend(menu_plugins[pid] for pid in common_ids if pid in menu_plugins)
+        ordered_actions.extend([separator_other, section_other])
+        ordered_actions.extend(menu_plugins[pid] for pid in other_ids if pid in menu_plugins)
+        ordered_actions.append(separator_end)
+
+        # Presets and Settings are created by the menu setup before plugin
+        # actions. Re-append only the managed plugin actions so these two
+        # entries always stay at the top of the Plugins menu.
+        for action in ordered_actions:
+            menu.addAction(action)
 
     def setup_config(self, silent: bool = False):
         """

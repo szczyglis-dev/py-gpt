@@ -26,6 +26,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "idx_llama_index"
+        self.is_common_plugin = True
         self.name = "Llama-index (inline)"
         self.description = "Integrates Llama-index storage in any chat"
         self.prefix = "Idx"
