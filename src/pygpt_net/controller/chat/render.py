@@ -657,12 +657,34 @@ class Render:
 
     def switch(self) -> None:
         """
-        Switch renderer (markdown/web <==> plain text) - active, TODO: remove from settings, leave only checkbox
+        Switch renderer (markdown/web <==> plain text) - active, TODO: remove from settings, leave only checkbox.
+
+        Renderer selection must happen *before* any renderer/theme operation.
+        In particular, switching to plain text used to call
+        ``theme.markdown.clear()`` while the Web renderer was still active.
+        That cleared every WebView, including chats hidden behind other tabs,
+        while only the currently visible chats were rebuilt afterwards.  Those
+        hidden WebViews still reported ``loaded=True`` and therefore remained
+        empty when their tab was selected later.
+
+        Plain text has its own output widgets, so there is no reason to destroy
+        the Web/Markdown contents when switching to it.  Keep those views intact
+        and rebuild only the chats currently visible in each output column.
         """
         plain = self.window.core.config.get('render.plain')
         nodes = self.window.ui.nodes
+
+        # Select the target renderer first. Theme/render events below must be
+        # delivered to the renderer that is about to become visible, not to the
+        # one we are leaving.
         if plain:
-            self.window.controller.theme.markdown.clear()
+            self.renderer = self.plaintext_renderer
+        elif self.engine == "web":
+            self.renderer = self.web_renderer
+        else:
+            self.renderer = self.markdown_renderer
+
+        if plain:
             nodes['output.timestamp'].setVisible(True)
             outputs = nodes.get('output', {})
             outputs_plain = nodes.get('output_plain', {})
@@ -676,6 +698,7 @@ class Render:
                     continue
         else:
             nodes['output.timestamp'].setVisible(False)
+            # Apply the current theme to the renderer that is becoming active.
             self.window.controller.theme.markdown.update(force=True)
             outputs = nodes.get('output', {})
             outputs_plain = nodes.get('output_plain', {})
@@ -688,18 +711,11 @@ class Render:
                 except Exception:
                     continue
 
-        if plain:
-            self.renderer = self.plaintext_renderer
-        else:
-            if self.engine == "web":
-                self.renderer = self.web_renderer
-            else:
-                self.renderer = self.markdown_renderer
-
         # Do not reload only the globally selected context here. In split view
         # each column can have a different active chat and its own output PID.
         # Rebuild the selected chat in every column with the newly selected
-        # renderer, without changing global context/focus.
+        # renderer, without changing global context/focus. Hidden tabs keep their
+        # existing WebView content and therefore need no eager rebuild.
         self._refresh_active_chat_outputs()
 
     def _refresh_active_chat_outputs(self) -> None:
