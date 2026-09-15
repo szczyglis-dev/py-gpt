@@ -2384,11 +2384,11 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         self._pin_diameter = 4
         self._pin_margin = 3
         self._attach_spacing = 4
-        self._label_bar_width = 4
+        self._label_bar_width = 6
         self._label_v_margin = 3
         # Keep the color label slightly left of the text, matching the native
         # delegate spacing used before explicit context-row text painting.
-        self._label_bar_x_offset = -3
+        self._label_bar_x_offset = -5
 
         # Manual child indent to keep hierarchy visible when view indentation is 0
         self._child_indent = 15
@@ -2773,6 +2773,10 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         if isinstance(item, SectionItem) and getattr(item, 'section_key', None):
             self._paint_split_section(painter, option, index, item)
             return
+
+        # Give every regular row 2 px more room for the left color label.
+        # Section headers return above and intentionally keep their original geometry.
+        option.rect.adjust(2, 0, 0, 0)
 
         # Shift children by +15 px to keep them visually nested.
         is_child = index.parent().isValid()
