@@ -115,6 +115,27 @@ class Ollama(FunctionCallingLLM):
 
     """
 
+    _pygpt_runtime: Any = PrivateAttr(default=None)
+    _pygpt_actor_id: str = PrivateAttr(default="orchestrator")
+
+    def bind_agents_v2_runtime(self, runtime, actor_id: str = "orchestrator"):
+        self._pygpt_runtime = runtime
+        self._pygpt_actor_id = str(actor_id or "orchestrator")
+        return self
+
+    def bind_agents_v2_actor(self, actor_id: str = "orchestrator"):
+        self._pygpt_actor_id = str(actor_id or "orchestrator")
+        return self
+
+    def _capture_agents_v2_usage(self, raw: Any) -> None:
+        runtime = self._pygpt_runtime
+        if runtime is None:
+            return
+        try:
+            runtime.record_token_usage(raw, actor_id=self._pygpt_actor_id)
+        except Exception:
+            pass
+
     base_url: str = Field(
         default="http://localhost:11434",
         description="Base url the model is hosted under.",
@@ -483,6 +504,7 @@ class Ollama(FunctionCallingLLM):
         token_counts = self._get_response_token_counts(raw)
         if token_counts:
             raw["usage"] = token_counts
+            self._capture_agents_v2_usage(raw)
         return ChatResponse(
             message=ChatMessage(
                 blocks=self._blocks_from_native_message(message),
@@ -518,6 +540,11 @@ class Ollama(FunctionCallingLLM):
                 delta = str(message.get("content") or "")
                 thinking_delta = str(message.get("thinking") or "")
                 new_calls = [_tool_call_dict(x) for x in (message.get("tool_calls") or [])]
+                token_counts = self._get_response_token_counts(raw)
+                if token_counts:
+                    raw["usage"] = token_counts
+                    if bool(raw.get("done", False)):
+                        self._capture_agents_v2_usage(raw)
                 if not delta and not thinking_delta and not new_calls:
                     continue
                 response_txt += delta
@@ -532,9 +559,6 @@ class Ollama(FunctionCallingLLM):
                         continue
                     seen_tool_calls.add(key)
                     all_tool_calls.append(call)
-                token_counts = self._get_response_token_counts(raw)
-                if token_counts:
-                    raw["usage"] = token_counts
                 yield ChatResponse(
                     message=ChatMessage(
                         blocks=self._blocks_from_native_message(
@@ -578,6 +602,11 @@ class Ollama(FunctionCallingLLM):
                 delta = str(message.get("content") or "")
                 thinking_delta = str(message.get("thinking") or "")
                 new_calls = [_tool_call_dict(x) for x in (message.get("tool_calls") or [])]
+                token_counts = self._get_response_token_counts(raw)
+                if token_counts:
+                    raw["usage"] = token_counts
+                    if bool(raw.get("done", False)):
+                        self._capture_agents_v2_usage(raw)
                 if not delta and not thinking_delta and not new_calls:
                     continue
                 response_txt += delta
@@ -592,9 +621,6 @@ class Ollama(FunctionCallingLLM):
                         continue
                     seen_tool_calls.add(key)
                     all_tool_calls.append(call)
-                token_counts = self._get_response_token_counts(raw)
-                if token_counts:
-                    raw["usage"] = token_counts
                 yield ChatResponse(
                     message=ChatMessage(
                         blocks=self._blocks_from_native_message(
@@ -631,6 +657,7 @@ class Ollama(FunctionCallingLLM):
         token_counts = self._get_response_token_counts(raw)
         if token_counts:
             raw["usage"] = token_counts
+            self._capture_agents_v2_usage(raw)
         return ChatResponse(
             message=ChatMessage(
                 blocks=self._blocks_from_native_message(message),

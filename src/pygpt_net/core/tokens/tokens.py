@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.09.15 16:45:00                  #
 # ================================================== #
 
 from typing import Tuple, List
@@ -283,6 +283,22 @@ class Tokens:
             system_prompt = self.window.core.context_manager.prepare_system_prompt(
                 system_prompt, current_ctx, mode, model_data, internal=False
             )
+
+            # Agents v2 must show the real main-agent system footprint before
+            # the first request of the turn is sent. Compose a temporary prompt
+            # from the current state using the same RuntimePromptBuilder as the
+            # real runtime. Nothing is cached on CtxItem and no agent/LLM is
+            # started here.
+            if mode == MODE_AGENT_V2:
+                try:
+                    system_prompt = self.window.core.agents_v2.build_main_system_prompt_preview(
+                        system_prompt=system_prompt,
+                        model=model_data,
+                        current_ctx=current_ctx,
+                    )
+                except Exception as exc:
+                    self.window.core.debug.log(exc)
+
             if system_prompt:
                 system_tokens = self.from_prompt(system_prompt, "", model_id)
                 system_tokens += Tokens._const_tokens("system", model_id)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 20:45:00                  #
+# Updated Date: 2026.09.15 16:45:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -394,6 +394,17 @@ class Runner:
             }
             await runtime.cleanup()
             runtime.export_tool_calls_to_main_ctx()
+            # The footer/status token summary represents one complete Agents v2
+            # user turn: user input -> every orchestrator/worker LLM pass -> final
+            # response. Commit it only now so no partial/intermediate usage leaks
+            # into the UI while the workflow is still running.
+            if runtime.finished and str(runtime.final_answer or runtime.last_orchestrator_output()).strip():
+                turn_usage = runtime.apply_token_usage()
+                runtime.verbose_log("TURN TOKEN USAGE", {
+                    "input_tokens": turn_usage[0],
+                    "output_tokens": turn_usage[1],
+                    "total_tokens": turn_usage[2],
+                })
             emitter.clear_status()
             final_part = runtime._actor_part("orchestrator", create=False)
             final_part_uuid = getattr(final_part, "uuid", None) if final_part is not None else None

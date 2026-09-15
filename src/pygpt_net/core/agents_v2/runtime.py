@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 00:05:00                  #
+# Updated Date: 2026.09.15 16:10:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -36,6 +36,7 @@ from .timeline import RuntimeTimeline
 from .tools import WorkerToolFactory
 from .tool_history import RuntimeToolHistory
 from .toolset import RuntimeToolset
+from .usage import RuntimeUsage
 from .utils import effective_iteration_limit
 from .verbose import AgentsV2VerboseLogger
 from .workers import WorkerRuntime
@@ -110,6 +111,7 @@ class AgentsV2Runtime:
         self.context_api = RuntimeContext(self)
         self.status_api = RuntimeStatus(self)
         self.artifact_api = RuntimeArtifacts(self)
+        self.usage_api = RuntimeUsage(self)
         self.worker_api = WorkerRuntime(self)
         self.toolset_api = RuntimeToolset(self)
         self.prompt_api = RuntimePromptBuilder(self)
@@ -553,6 +555,14 @@ class AgentsV2Runtime:
             actor_id: Optional[str] = None,
     ):
         return self.artifact_api.collect_llm_artifacts(llm, worker, response, actor_id)
+
+    def record_token_usage(self, response: Any, actor_id: str = "orchestrator") -> bool:
+        """Add provider-reported usage from one completed LLM request to this turn."""
+        return self.usage_api.capture(response, actor_id=actor_id)
+
+    def apply_token_usage(self) -> tuple[int, int, int]:
+        """Commit aggregate usage only after the whole Agents v2 turn is complete."""
+        return self.usage_api.apply_to_context()
 
     def collect_artifacts(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
         return self.artifact_api.collect_artifacts(source_ctx, worker)

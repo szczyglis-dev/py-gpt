@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.09 18:30:00                  #
+# Updated Date: 2026.09.15 16:10:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -39,6 +39,7 @@ class AgentAnthropic(Anthropic):
     MAX_COMPUTER_TURNS: ClassVar[int] = 1000
 
     _pygpt_runtime: Any = PrivateAttr(default=None)
+    _pygpt_actor_id: str = PrivateAttr(default="orchestrator")
     _pygpt_urls: list[str] = PrivateAttr(default_factory=list)
 
     def __init__(self, *args, proxy: str = None, **kwargs):
@@ -63,7 +64,51 @@ class AgentAnthropic(Anthropic):
         self._pygpt_runtime = runtime
         return self
 
+    def bind_agents_v2_runtime(self, runtime, actor_id: str = "orchestrator"):
+        self._pygpt_runtime = runtime
+        self._pygpt_actor_id = str(actor_id or "orchestrator")
+        return self
+
+    def bind_agents_v2_actor(self, actor_id: str = "orchestrator"):
+        self._pygpt_actor_id = str(actor_id or "orchestrator")
+        return self
+
+    @classmethod
+    def _usage_response_complete(cls, response: Any) -> bool:
+        """Return True only at an Anthropic request boundary with final usage.
+
+        LlamaIndex keeps the message_start usage metadata on every subsequent
+        streaming ChatResponse. Counting every chunk would multiply prompt usage,
+        so streamed responses are accepted only once stop_reason is available.
+        Full SDK/non-stream responses carry usage directly and are already final.
+        """
+        raw = cls._get(response, "raw", None)
+        target = raw if raw is not None else response
+        direct_usage = cls._get(target, "usage", None)
+        if direct_usage is not None:
+            # RawMessageStartEvent also has usage, but no terminal stop reason.
+            event_type = target.__class__.__name__
+            if event_type in {"RawMessageStartEvent", "MessageStartEvent"}:
+                return False
+            if isinstance(target, dict):
+                event_type = str(target.get("type") or "")
+                if event_type in {"message_start", "content_block_delta", "content_block_stop"}:
+                    return False
+            return True
+
+        message = cls._get(response, "message", None)
+        additional = cls._get(message, "additional_kwargs", None) or {}
+        usage = cls._get(additional, "usage", None)
+        stop_reason = cls._get(additional, "stop_reason", None)
+        return usage is not None and stop_reason not in (None, "")
+
     def _capture_pygpt_urls(self, response: Any) -> None:
+        runtime = self._pygpt_runtime
+        if runtime is not None and self._usage_response_complete(response):
+            try:
+                runtime.record_token_usage(response, actor_id=self._pygpt_actor_id)
+            except Exception:
+                pass
         try:
             append_unique_urls(
                 self._pygpt_urls,
@@ -76,9 +121,6 @@ class AgentAnthropic(Anthropic):
         urls = list(self._pygpt_urls)
         self._pygpt_urls.clear()
         return urls
-
-    def bind_agents_v2_runtime(self, runtime):
-        return self.bind_computer_runtime(runtime)
 
     @staticmethod
     def _metadata_aliases(model_name: str) -> list[str]:
@@ -458,6 +500,7 @@ class AgentAnthropic(Anthropic):
                     output=raw,
                     model=getattr(self, "model", None),
                 )
+            self._capture_pygpt_urls(raw)
             calls = self._computer_calls(raw)
             if not calls:
                 return self._parse_response(raw)

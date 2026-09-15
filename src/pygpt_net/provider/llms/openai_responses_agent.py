@@ -118,9 +118,16 @@ class AgentOpenAIResponses(OpenAIResponses):
         append_unique_urls(self._pygpt_urls, urls)
 
     def _capture_raw_urls(self, raw: Any) -> None:
-        """Capture URLs from a Responses API event or final Response object."""
+        """Capture URLs and provider usage from a Responses API event/response."""
         if raw is None:
             return
+        runtime = self._pygpt_runtime
+        if runtime is not None:
+            try:
+                runtime.record_token_usage(raw, actor_id=self._pygpt_actor_id)
+            except Exception:
+                # Usage accounting is observational and must never break a request.
+                pass
         try:
             self._append_urls(extract_openai_urls(raw))
         except Exception:

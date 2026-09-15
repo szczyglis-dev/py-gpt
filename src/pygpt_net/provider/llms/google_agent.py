@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.10 11:50:00                  #
+# Updated Date: 2026.09.15 16:10:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -44,14 +44,50 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
     MAX_COMPUTER_TURNS: ClassVar[int] = 1000
 
     _pygpt_runtime: Any = PrivateAttr(default=None)
+    _pygpt_actor_id: str = PrivateAttr(default="orchestrator")
     _pygpt_local_function_names: set[str] = PrivateAttr(default_factory=set)
 
     def bind_computer_runtime(self, runtime):
         self._pygpt_runtime = runtime
         return self
 
-    def bind_agents_v2_runtime(self, runtime):
-        return self.bind_computer_runtime(runtime)
+    def bind_agents_v2_runtime(self, runtime, actor_id: str = "orchestrator"):
+        self._pygpt_runtime = runtime
+        self._pygpt_actor_id = str(actor_id or "orchestrator")
+        return self
+
+    def bind_agents_v2_actor(self, actor_id: str = "orchestrator"):
+        self._pygpt_actor_id = str(actor_id or "orchestrator")
+        return self
+
+    @classmethod
+    def _usage_response_complete(cls, raw: Any) -> bool:
+        usage = cls._get(raw, "usage_metadata", None) or cls._get(raw, "usageMetadata", None)
+        if usage is None:
+            return False
+        candidates = cls._get(raw, "candidates", None) or []
+        if not candidates:
+            # Gemini streaming may emit a final usage-only chunk.
+            return True
+        for candidate in candidates:
+            reason = cls._get(candidate, "finish_reason", None)
+            if reason is None:
+                reason = cls._get(candidate, "finishReason", None)
+            value = str(getattr(reason, "value", reason) or "").strip().upper()
+            if value and value not in {"0", "FINISH_REASON_UNSPECIFIED", "UNSPECIFIED"}:
+                return True
+        return False
+
+    def _capture_urls(self, raw: Any) -> None:
+        super()._capture_urls(raw)
+        if not self._usage_response_complete(raw):
+            return
+        runtime = self._pygpt_runtime
+        if runtime is not None:
+            try:
+                runtime.record_token_usage(raw, actor_id=self._pygpt_actor_id)
+            except Exception:
+                pass
 
     @staticmethod
     def _get(value: Any, key: str, default=None):
