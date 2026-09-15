@@ -124,7 +124,7 @@ class Bridge:
             context.model = self.window.controller.model.switch_inline(mode, model)
 
         # Resolve semantic @mentions only after the final inline mode/model has
-        # been selected. Image attachment mentions are mapped to Image #N only
+        # been selected. Image attachment mentions are mapped to Attached Image #N only
         # when the actual request model accepts image input; otherwise the
         # original attachment filename remains provider-facing text.
         if context.prompt_mentions:

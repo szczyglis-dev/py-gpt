@@ -76,7 +76,7 @@ def label_for(kind: str, value: str) -> str:
 
 
 def _image_attachment_mentions(attachments: Optional[Mapping[str, Any]]) -> dict[str, str]:
-    """Build filename -> ``Image #N`` mapping in provider attachment order.
+    """Build filename -> ``Attached Image #N`` mapping in provider attachment order.
 
     Only local image attachments that can actually be sent are counted. The
     mapping is runtime-only; durable mention tags keep the original filename.
@@ -98,7 +98,7 @@ def _image_attachment_mentions(attachments: Optional[Mapping[str, Any]]) -> dict
         if not name:
             name = os.path.basename(path.rstrip("/\\"))
         if name:
-            labels.setdefault(name.casefold(), f"Image #{image_index}")
+            labels.setdefault(name.casefold(), f"Attached Image #{image_index}")
 
     return labels
 
@@ -112,7 +112,7 @@ def to_model_text(
     File/directory mentions become their stored path. Attachment mentions
     normally become the attachment filename. When current attachments are
     supplied, mentions that resolve to image attachments become stable
-    ``Image #N`` labels, where ``N`` follows the same attachment iteration
+    ``Attached Image #N`` labels, where ``N`` follows the same attachment iteration
     order used by multimodal provider payload builders.
     """
     raw = str(text or "")
