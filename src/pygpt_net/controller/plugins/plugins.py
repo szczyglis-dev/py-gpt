@@ -11,6 +11,7 @@
 
 from typing import List, Dict, Any, Optional
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 
 from pygpt_net.core.types import (
@@ -249,30 +250,59 @@ class Plugins:
 
     def set_by_tab(self, idx: int):
         """
-        Set current plugin by tab index
+        Set current plugin by tab index.
+
+        Plugin identity is read from the tab widget itself instead of being
+        inferred from a freshly sorted plugin list. This is important after a
+        runtime language change, when translated names may sort differently.
 
         :param idx: tab index
         """
-        pm = self.window.core.plugins
-        plugin_idx = 0
-        for pid in pm.get_ids(sort=True):
-            if pm.has_options(pid):
-                if plugin_idx == idx:
-                    self.settings.current_plugin = pid
-                    break
-                plugin_idx += 1
-        current = self.window.ui.models['plugin.list'].index(idx, 0)
-        self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
+        tabs = self.window.ui.tabs.get('plugin.settings')
+        if tabs is None or idx < 0 or idx >= tabs.count():
+            return
+
+        tab = tabs.widget(idx)
+        plugin_id = tab.property('plugin_id') if tab is not None else None
+
+        # Compatibility fallback for a dialog created before plugin_id was
+        # attached to tabs.
+        if not plugin_id:
+            ids = self.window.core.plugins.get_ids(sort=True)
+            if idx >= len(ids):
+                return
+            plugin_id = ids[idx]
+
+        self.settings.current_plugin = plugin_id
+
+        # The visible list may have a different order than the tabs after
+        # retranslation. Select the row by stable plugin id, never by idx.
+        model = self.window.ui.models.get('plugin.list')
+        node = self.window.ui.nodes.get('plugin.list')
+        if model is None or node is None:
+            return
+        for row in range(model.rowCount()):
+            current = model.index(row, 0)
+            if current.data(Qt.UserRole) == plugin_id:
+                node.setCurrentIndex(current)
+                break
 
     def get_tab_idx(self, plugin_id: str) -> Optional[int]:
         """
-        Get plugin tab index
+        Get plugin tab index by stable plugin id.
 
         :param plugin_id: plugin id
         :return: tab index or None if not found
         """
-        pm = self.window.core.plugins
-        for i, pid in enumerate(pm.get_ids(sort=True)):
+        tabs = self.window.ui.tabs.get('plugin.settings')
+        if tabs is not None:
+            for i in range(tabs.count()):
+                tab = tabs.widget(i)
+                if tab is not None and tab.property('plugin_id') == plugin_id:
+                    return i
+
+        # Compatibility fallback before the plugin settings dialog is built.
+        for i, pid in enumerate(self.window.core.plugins.get_ids(sort=True)):
             if pid == plugin_id:
                 return i
         return None
@@ -494,7 +524,11 @@ class Plugins:
                 cfg_plugins[pid] = {}
             dest = cfg_plugins[pid]
             for key, opt in plugin.options.items():
-                dest[key] = opt['value']
+                if opt.get('type') == 'cmd':
+                    value = opt.get('value')
+                    dest[key] = bool(value.get('enabled', False)) if isinstance(value, dict) else bool(value)
+                else:
+                    dest[key] = opt['value']
 
         for key in list(cfg_plugins.keys()):
             if key not in pm.plugins:

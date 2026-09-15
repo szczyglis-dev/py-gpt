@@ -44,6 +44,18 @@ class Plugins:
 
         for plugin_id in plugin_ids:
             plugin = plugins_dict[plugin_id]
+
+            # Tool widgets contain generic labels from the main locale domain,
+            # so refresh them for every plugin, not only localized plugins.
+            parent_id = f'plugin.{plugin_id}'
+            cfg_plugin = ui_config.get(parent_id, {})
+            for option_id, option in plugin.setup().items():
+                if option.get('type') != 'cmd' or option_id not in cfg_plugin:
+                    continue
+                widget = cfg_plugin[option_id]
+                if hasattr(widget, 'update_locale'):
+                    widget.update_locale()
+
             if not plugin.use_locale:
                 continue
             domain = f'plugin.{plugin_id}'
@@ -71,6 +83,11 @@ class Plugins:
 
             cfg_domain = ui_config.get(domain)
             for option_id, option in options.items():
+                # Command widgets localize their own generic labels and
+                # plugin-specific descriptions in update_locale().
+                if option.get('type') == 'cmd':
+                    continue
+
                 label_key = f'plugin.{plugin_id}.{option_id}.label'
                 desc_key = f'plugin.{plugin_id}.{option_id}.desc'
 

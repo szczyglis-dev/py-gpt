@@ -136,8 +136,15 @@ class Settings:
                     key=key,
                     option=opt,
                 )
-                plugin.options[key]['value'] = value
-                dst[key] = value
+                if opt.get('type') == 'cmd':
+                    enabled = bool(value.get('enabled', False)) if isinstance(value, dict) else bool(value)
+                    current = plugin.options[key].get('value')
+                    if isinstance(current, dict):
+                        current['enabled'] = enabled
+                    dst[key] = enabled
+                else:
+                    plugin.options[key]['value'] = value
+                    dst[key] = value
 
         stale = set(plugins_cfg.keys()) - set(plugins.keys())
         for pid in stale:

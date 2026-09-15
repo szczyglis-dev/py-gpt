@@ -97,8 +97,6 @@ class Placeholder:
         t = option["type"]
         if t == "dict" and "keys" in option:
             self._apply_suboptions(option["keys"])
-        elif t == "cmd" and "params_keys" in option:
-            self._apply_suboptions(option["params_keys"])
         elif t in ("combo", "bool_list"):
             use = option.get("use")
             if use is not None:

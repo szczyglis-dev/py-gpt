@@ -123,17 +123,6 @@ class BasePlugin(QObject):
         kwargs["cmd"] = cmd
         kwargs["value"] = cmd_syntax
 
-        kwargs["params_keys"] = {
-            "name": "text",
-            "type": {
-                "type": "combo",
-                "use": "var_types",
-                "keys": {},
-            },
-            "description": "text",
-            "required": "bool",
-        }
-
         return self.add_option(name, "cmd", **kwargs)
 
     def has_cmd(

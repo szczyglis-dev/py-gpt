@@ -6,20 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.15 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout
 
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.element.labels import DescLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
-from pygpt_net.ui.widget.option.dictionary import OptionDict
-from pygpt_net.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.ui.widget.option.tool_info import ToolInfo
 from pygpt_net.utils import trans
+
 
 class OptionCmd(QWidget):
     def __init__(
@@ -31,7 +31,9 @@ class OptionCmd(QWidget):
             option: dict = None
     ):
         """
-        Command dictionary option widget
+        Tool option widget. Only the enabled state is editable; the tool
+        instruction and parameter schema are read-only metadata defined by
+        the plugin itself.
 
         :param window: main window
         :param plugin: plugin instance
@@ -41,119 +43,80 @@ class OptionCmd(QWidget):
         """
         super(OptionCmd, self).__init__(window)
         self.window = window
+        self.plugin = plugin
         self.id = id
         self.parent_id = parent_id
-        self.option = option  # option data
+        self.option = option
+        self.cmd_id = option['id'].replace("cmd.", "")
 
-        # TODO: implement cmd type option
-        # print(self.option)
-
-        key = option['id']
-        cmd_id = option['id'].replace("cmd.", "")
-        txt_desc = option['description']
-        txt_tooltip = option['tooltip']
-
-        # locale
-        if plugin.use_locale:
-            domain = 'plugin.' + plugin.id
-            txt_desc = trans(key + '.description', False, domain)
-            txt_tooltip = trans(key + '.tooltip', False, domain)
-            # check if translation exists
-            if txt_desc == key + '.description':
-                txt_desc = trans("settings.cmd.field.desc").format(cmd=cmd_id)
-            if txt_tooltip == key + '.tooltip':
-                txt_tooltip = trans("settings.cmd.field.tooltip").format(cmd=cmd_id)
-
-        # enable
-        option_enabled = {}
-        option_enabled["type"] = "bool"
-        option_enabled["label"] = trans("settings.cmd.field.enable").format(cmd=cmd_id)
-        option_enabled["description"] = ""
-        option_enabled["value"] = True
-
-        # params
-        option_params = {}
-        option_params["name"] = "params"
-        option_params["type"] = "dict"
-        option_params["keys"] = self.option["params_keys"]
-        option_params["value"] = []
-        if self.option["value"] is not None and "params" in self.option["value"]:
-            option_params["value"] = self.option["value"]["params"]
-        option_params["tooltip"] = ""
-
-        # instruction
-        option_instruction = {}
-        option_instruction["type"] = "textarea"
-        option_instruction["label"] = "Instruction"
-        option_instruction["value"] = ""
-
-        # keys
+        # enable checkbox - this is the only editable field for a tool
+        option_enabled = {
+            "type": "bool",
+            "label": "",
+            "description": "",
+            "value": True,
+        }
         key_enabled = self.id + ".enabled"
-        key_params = self.id + ".params"
-        key_instruction = self.id + ".instruction"
+        self.enabled = OptionCheckbox(
+            self.window,
+            parent_id,
+            key_enabled,
+            option_enabled,
+            icon=":/icons/build.svg",
+        )
 
-        label_key = self.parent_id + '.' + id + '.label'
+        # description
         desc_key = self.parent_id + '.' + id + '.desc'
-
-        self.window.ui.nodes[desc_key] = DescLabel(txt_desc, self.window)
+        self.window.ui.nodes[desc_key] = DescLabel("", self.window)
         self.window.ui.nodes[desc_key].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.nodes[desc_key].setWordWrap(True)
         self.window.ui.nodes[desc_key].setMaximumHeight(40)
         self.window.ui.nodes[desc_key].setContentsMargins(35, 0, 0, 0)
+        self.desc_key = desc_key
 
-        instr_key = "settings.cmd.field.instruction"
-        params_key = "settings.cmd.field.params"
-        instr_label = QLabel(trans(instr_key))
-        instr_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        params_label = QLabel(trans(params_key))
-        params_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        # read-only tool definition (no input fields / dictionaries)
+        self.info = ToolInfo(self.window, self.option)
 
-        # widgets
-        self.enabled = OptionCheckbox(self.window, parent_id, key_enabled, option_enabled, icon = ":/icons/build.svg")  # enable checkbox
-        self.params = OptionDict(self.window, parent_id, key_params, option_params)  # command params
-        self.instruction = OptionTextarea(self.window, parent_id, key_instruction, option_instruction)  # command instruction
+        group_id = self.parent_id + '.' + id + '.config'
+        self.group = CollapsedGroup(self.window, group_id, None, False, None)
+        self.group.box.setIcon(QIcon(":/icons/expand.svg"))
+        self.group.add_widget(self.info)
+        self.group.layout.setContentsMargins(25, 0, 0, 0)
+        self.window.ui.groups[group_id] = self.group
 
-        # layout
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.enabled)
         self.layout.addWidget(self.window.ui.nodes[desc_key])
-
-        params_layout = QVBoxLayout()
-        params_layout.addWidget(instr_label)
-        params_layout.addWidget(self.instruction)
-        params_layout.addWidget(params_label)
-        params_layout.addWidget(self.params)
-
-        group_id = self.parent_id + '.' + id + '.config'
-        group = CollapsedGroup(self.window, group_id, None, False, None)
-        group.box.setText(trans('settings.cmd.config.collapse'))
-        group.box.setIcon(QIcon(":/icons/expand.svg"))
-        group.add_layout(params_layout)
-        group.layout.setContentsMargins(25, 0, 0, 0)
-
-        # add to groups
-        self.window.ui.groups[group_id] = group
-
-        self.layout.addWidget(group)
+        self.layout.addWidget(self.group)
         self.setLayout(self.layout)
 
-        # show tooltip only if different from description
-        # if txt_tooltip != txt_desc:
-            # self.setToolTip(txt_tooltip)
+        self.update_locale()
 
-        # update
-        self.update()
+    def _description(self) -> str:
+        """Return localized tool description with a generic fallback."""
+        txt_desc = self.option.get('description', '')
+        key = self.option['id']
+        if self.plugin.use_locale:
+            domain = 'plugin.' + self.plugin.id
+            translated = trans(key + '.description', False, domain)
+            if translated != key + '.description':
+                txt_desc = translated
+            elif not txt_desc:
+                txt_desc = trans("settings.cmd.field.desc").format(cmd=self.cmd_id)
+        return txt_desc
+
+    def update_locale(self):
+        """Refresh generic and plugin-specific translated texts."""
+        self.enabled.setText(trans("settings.cmd.field.enable").format(cmd=self.cmd_id))
+        self.window.ui.nodes[self.desc_key].setText(self._description())
+        self.group.box.setText(trans('settings.cmd.config.collapse'))
+        self.info.update_locale()
 
     def update_item(self, idx, data):
-        """
-        Update item in params list
-
-        :param idx: Item index
-        :param data: Item data
-        """
-        self.params.update_item(idx, data)
+        """Compatibility no-op: tool parameters are read-only."""
+        return
 
     def update(self):
-        """Update widget"""
-        pass
+        """Refresh widget locale-dependent content."""
+        self.update_locale()

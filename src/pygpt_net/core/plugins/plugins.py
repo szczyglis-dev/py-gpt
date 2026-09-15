@@ -114,19 +114,28 @@ class Plugins:
             self.plugins[plugin_id].initial_options = copy.deepcopy(plugin.options)
 
         try:
-            removed = False
+            changed = False
             cfg = self.window.core.config
             plugins_cfg = cfg.get('plugins')
             if plugin_id in plugins_cfg:
                 p_cfg = plugins_cfg[plugin_id]
                 for key in list(p_cfg):
                     if hasattr(self.plugins[plugin_id], 'options') and key in self.plugins[plugin_id].options:
-                        self.plugins[plugin_id].options[key]['value'] = p_cfg[key]
+                        option = self.plugins[plugin_id].options[key]
+                        stored = p_cfg[key]
+                        if option.get('type') == 'cmd':
+                            enabled = self._cmd_enabled(option, stored)
+                            self._set_cmd_enabled(option, enabled)
+                            if not isinstance(stored, bool) or stored != enabled:
+                                p_cfg[key] = enabled
+                                changed = True
+                        else:
+                            option['value'] = stored
                     else:
-                        removed = True
+                        changed = True
                         del p_cfg[key]
 
-            if removed:
+            if changed:
                 cfg.save()
 
             self.register_options(plugin_id, self.plugins[plugin_id].options if hasattr(self.plugins[plugin_id], 'options') else {})
@@ -135,8 +144,8 @@ class Plugins:
             print('Error while loading plugin options: {}'.format(plugin_id))
 
     def apply_all_options(self):
-        """Apply all options to plugins"""
-        removed = False
+        """Apply all options to plugins. Tool config persists only enabled state."""
+        changed = False
         user_config = self.window.core.config.get('plugins')
         for plugin_id, plugin in self.plugins.items():
             if hasattr(plugin, 'initial_options'):
@@ -145,13 +154,44 @@ class Plugins:
                 ucfg = user_config[plugin_id]
                 for key in list(ucfg):
                     if hasattr(plugin, 'options') and key in plugin.options:
-                        plugin.options[key]['value'] = ucfg[key]
+                        option = plugin.options[key]
+                        stored = ucfg[key]
+                        if option.get('type') == 'cmd':
+                            enabled = self._cmd_enabled(option, stored)
+                            self._set_cmd_enabled(option, enabled)
+                            if not isinstance(stored, bool) or stored != enabled:
+                                ucfg[key] = enabled
+                                changed = True
+                        else:
+                            option['value'] = stored
                     else:
-                        print("removed")
-                        removed = True
+                        changed = True
                         del ucfg[key]
-        if removed:
+        if changed:
             self.window.core.config.save()
+
+    @staticmethod
+    def _cmd_enabled(option: Dict[str, Any], stored: Any = None) -> bool:
+        """Resolve tool enabled state from new bool or legacy dict config."""
+        default = False
+        value = option.get('value')
+        if isinstance(value, dict):
+            default = bool(value.get('enabled', False))
+        if isinstance(stored, bool):
+            return stored
+        if isinstance(stored, dict):
+            return bool(stored.get('enabled', default))
+        return default
+
+    @staticmethod
+    def _set_cmd_enabled(option: Dict[str, Any], enabled: bool):
+        """Update enabled flag without replacing plugin-defined tool metadata."""
+        value = option.get('value')
+        if not isinstance(value, dict):
+            value = {"instruction": "", "params": [], "enabled": bool(enabled)}
+            option['value'] = value
+            return
+        value['enabled'] = bool(enabled)
 
     def register_options(self, plugin_id: str, options: Dict[str, dict]):
         """
@@ -160,13 +200,11 @@ class Plugins:
         :param plugin_id: plugin id
         :param options: options dict
         """
-        dict_types = ("dict", "cmd")
         for key, option in options.items():
-            if option.get('type') in dict_types:
-                key_name = f"{key}.params" if option['type'] == "cmd" else key
+            if option.get('type') == "dict":
                 parent = f"plugin.{plugin_id}"
-                option['label'] = key_name
-                self.window.ui.dialogs.register_dictionary(key_name, parent, option)
+                option['label'] = key
+                self.window.ui.dialogs.register_dictionary(key, parent, option)
 
     def unregister(self, plugin_id: str):
         """
@@ -461,19 +499,28 @@ class Plugins:
         if self.presets is None:
             self.load_presets()
 
-        removed = False
+        changed = False
         if self.presets is not None:
             for _preset_id, preset in self.presets.items():
                 preset_config = preset["config"]
                 for config_preset, cfg_values in preset_config.items():
                     if config_preset in self.plugins:
+                        plugin = self.plugins[config_preset]
                         for key in list(cfg_values):
-                            if key not in self.plugins[config_preset].options:
-                                removed = True
+                            if key not in plugin.options:
+                                changed = True
                                 cfg_values.pop(key)
-        if removed:
+                                continue
+                            option = plugin.options[key]
+                            if option.get('type') == 'cmd':
+                                stored = cfg_values[key]
+                                enabled = self._cmd_enabled(option, stored)
+                                if not isinstance(stored, bool) or stored != enabled:
+                                    cfg_values[key] = enabled
+                                    changed = True
+        if changed:
             self.save_presets()
-            print("[FIX] Removed invalid keys from plugin presets.")
+            print("[FIX] Updated plugin preset config.")
 
     def remove_preset_values(self, plugin_id: str, key: str):
         """
