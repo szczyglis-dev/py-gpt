@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.ui.widget.element.group import CollapsedGroup
+from pygpt_net.ui.widget.element.labels import DescLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
@@ -94,12 +95,10 @@ class OptionCmd(QWidget):
         label_key = self.parent_id + '.' + id + '.label'
         desc_key = self.parent_id + '.' + id + '.desc'
 
-        self.window.ui.nodes[desc_key] = QLabel(txt_desc)
+        self.window.ui.nodes[desc_key] = DescLabel(txt_desc, self.window)
         self.window.ui.nodes[desc_key].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.nodes[desc_key].setWordWrap(True)
         self.window.ui.nodes[desc_key].setMaximumHeight(40)
-        self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
-        self.window.ui.nodes[desc_key].setProperty('class', 'label-help')
         self.window.ui.nodes[desc_key].setContentsMargins(35, 0, 0, 0)
 
         instr_key = "settings.cmd.field.instruction"
