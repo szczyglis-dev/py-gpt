@@ -289,6 +289,7 @@ class Tokens:
             # from the current state using the same RuntimePromptBuilder as the
             # real runtime. Nothing is cached on CtxItem and no agent/LLM is
             # started here.
+            extra = 0
             if mode == MODE_AGENT_V2:
                 try:
                     system_prompt = self.window.core.agents_v2.build_main_system_prompt_preview(
@@ -296,12 +297,14 @@ class Tokens:
                         model=model_data,
                         current_ctx=current_ctx,
                     )
+                    extra += 400  # extra input context from agentic tools
                 except Exception as exc:
                     self.window.core.debug.log(exc)
 
             if system_prompt:
                 system_tokens = self.from_prompt(system_prompt, "", model_id)
                 system_tokens += Tokens._const_tokens("system", model_id)
+                system_tokens += extra
             if input_prompt:
                 input_tokens = self.from_prompt(input_prompt, "", model_id)
                 input_tokens += Tokens._const_tokens("user", model_id)
