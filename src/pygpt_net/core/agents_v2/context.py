@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 00:05:00                  #
+# Updated Date: 2026.09.15 15:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -21,6 +21,77 @@ from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRol
 from pygpt_net.utils import is_image
 
 from .utils import supports_function_calling
+
+
+class MainFunctionAgent(FunctionAgent):
+    """FunctionAgent variant that keeps runtime images visible to the top-level agent.
+
+    LlamaIndex 0.14.x stores FunctionTool outputs in the agent scratchpad as
+    ``role=tool`` messages. OpenAI Responses function_call_output is textual, so
+    ImageBlock values in such a message are discarded by the provider adapter.
+    Workers keep the stock FunctionAgent path that already works in PyGPT; only
+    the top-level workflow actor (Primary Agent / Orchestrator / Swarm
+    Orchestrator) normalizes runtime images into a following user multimodal
+    message while preserving the protocol-required textual tool result.
+    """
+
+    async def handle_tool_call_results(self, ctx, results, memory) -> None:
+        scratchpad = await ctx.store.get(self.scratchpad_key, default=[])
+        promoted_images = []
+
+        for tool_call_result in results:
+            blocks = list(getattr(tool_call_result.tool_output, "blocks", None) or [])
+            image_blocks = [block for block in blocks if isinstance(block, ImageBlock)]
+            tool_blocks = [block for block in blocks if not isinstance(block, ImageBlock)]
+
+            # Preserve a protocol-valid textual tool output even when a tool
+            # happens to return only an image. attach_runtime_file normally also
+            # returns a TextBlock, so this is only a defensive fallback.
+            if not tool_blocks:
+                tool_blocks = [TextBlock(text=(
+                    str(getattr(tool_call_result.tool_output, "content", "") or "")
+                    or "Runtime image attached for native analysis."
+                ))]
+
+            scratchpad.append(ChatMessage(
+                role=MessageRole.TOOL,
+                blocks=tool_blocks,
+                additional_kwargs={"tool_call_id": tool_call_result.tool_id},
+            ))
+            promoted_images.extend(image_blocks)
+
+            # Match FunctionAgent's normal return_direct behavior. Runtime image
+            # attachment tools are not return_direct, but do not change semantics
+            # for any other plugin tool that is.
+            if (
+                    tool_call_result.return_direct
+                    and tool_call_result.tool_name != "handoff"
+            ):
+                scratchpad.append(ChatMessage(
+                    role=MessageRole.ASSISTANT,
+                    content=str(tool_call_result.tool_output.content),
+                    additional_kwargs={"tool_call_id": tool_call_result.tool_id},
+                ))
+                break
+
+        if promoted_images:
+            # Tool/function-result payloads are text-only in a number of APIs.
+            # A normal user multimodal message is portable and is consumed by
+            # the very next top-level model pass. The instruction also makes it
+            # explicit that attaching is not itself task completion.
+            scratchpad.append(ChatMessage(
+                role=MessageRole.USER,
+                blocks=[
+                    TextBlock(text=(
+                        "Runtime image attachment(s) from the preceding tool call are provided below. "
+                        "Inspect and use their visual content now to continue the current user task. "
+                        "Do not merely acknowledge that the image was attached."
+                    )),
+                    *promoted_images,
+                ],
+            ))
+
+        await ctx.store.set(self.scratchpad_key, scratchpad)
 
 
 class RuntimeContext:
@@ -206,6 +277,17 @@ class RuntimeContext:
     def build_agent(self, name: str, description: str, llm, system_prompt: str, tools):
         """Prefer native tool calling and retain ReAct as a compatibility fallback."""
         cls = FunctionAgent if supports_function_calling(llm) else ReActAgent
+        # Runtime tool outputs of the top-level actor may contain ImageBlocks
+        # (for example attach_runtime_file). Keep workers on the stock
+        # FunctionAgent path that already works for them, and normalize media
+        # only for the workflow's single user-facing main actor. This must be
+        # based on the resolved strategy name, not only PRIMARY_AGENT mode: in
+        # ORCHESTRATOR and SWARM modes the same actor is named differently.
+        if (
+                cls is FunctionAgent
+                and str(name) == str(self.runtime.main_agent_name)
+        ):
+            cls = MainFunctionAgent
         kwargs = {
             "name": name,
             "description": description,
@@ -218,7 +300,7 @@ class RuntimeContext:
         # OpenAI-style call ids. Sequential calls keep the scratchpad mapping
         # deterministic (and avoid Gemma4 multi-call parser edge cases) while workers
         # themselves can still execute concurrently.
-        if cls is FunctionAgent and self.runtime.model is not None and self.runtime.model.is_ollama():
+        if issubclass(cls, FunctionAgent) and self.runtime.model is not None and self.runtime.model.is_ollama():
             kwargs["allow_parallel_tool_calls"] = False
         actor = "orchestrator" if str(name).lower() in {"orchestrator", "primary agent"} else str(name)
         self.runtime.verbose.log("AGENT BUILD", {
