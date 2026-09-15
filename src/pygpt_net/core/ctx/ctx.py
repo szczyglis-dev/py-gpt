@@ -929,12 +929,18 @@ class Ctx:
             # Persist the full structured plugin/tool response exactly as it is
             # forwarded through the tool-result loop. The plain-text output column
             # keeps a compact human-readable summary for quick inspection/UI.
-            task.tool_output = copy.deepcopy(response)
+            stored_response = copy.deepcopy(response)
+            if isinstance(stored_response, dict):
+                # Runtime attachment paths are transport-only metadata consumed
+                # by controller.kernel.reply before the next model request. Keep
+                # the durable tool transcript identical to the model-visible JSON.
+                stored_response.pop("agent_runtime_attachments", None)
+            task.tool_output = stored_response
             task.output = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, default=str)
             if not isinstance(task.extra, dict):
                 task.extra = {}
             task.extra["status"] = "completed"
-            task.extra["response"] = response
+            task.extra["response"] = stored_response
             task.touch()
             self.update_part_task(task)
             completed.append(task)

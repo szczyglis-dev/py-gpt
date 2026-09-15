@@ -356,6 +356,29 @@ class Chat:
                                                     is_tool_output = True
                                                     break
 
+        # A Files I/O tool may attach a local image only for this continuation.
+        # Tool messages do not have a portable image payload across compatible
+        # chat APIs, so send the image immediately after the tool result as a
+        # normal multimodal user message. The attachment remains runtime-only.
+        if is_tool_output and model.is_image_input() and attachments:
+            runtime_images = {
+                key: attachment
+                for key, attachment in attachments.items()
+                if isinstance(getattr(attachment, "extra", None), dict)
+                and attachment.extra.get("runtime_tool_attachment") is True
+                and getattr(attachment, "path", None)
+                and self.window.core.api.openai.vision.is_image(attachment.path)
+            }
+            if runtime_images:
+                runtime_content = self.window.core.api.openai.vision.build_content(
+                    content="Image attachment returned by the preceding tool for native analysis.",
+                    attachments=runtime_images,
+                )
+                messages.append({
+                    "role": "user",
+                    "content": runtime_content,
+                })
+
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
             content = str(prompt)

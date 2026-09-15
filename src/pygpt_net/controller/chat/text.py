@@ -48,6 +48,7 @@ class Text:
             mode_override: Optional[str] = None,
             model_override: Optional[str] = None,
             agent_continue: bool = False,
+            runtime_attachments: Optional[dict] = None,
     ) -> CtxItem:
         """
         Send text message
@@ -60,6 +61,7 @@ class Text:
         :param mode_override: originating mode for an internal tool reply/agent continuation
         :param model_override: originating model key for an internal tool reply/agent continuation
         :param agent_continue: autonomous Agent continuation within the current durable turn
+        :param runtime_attachments: ephemeral tool-produced attachments for this provider call only
         :return: CtxItem instance
         """
         self.window.update_status(trans("status.sending"))
@@ -251,7 +253,11 @@ class Text:
         # --------------------- BRIDGE CALL ---------------------
 
         try:
-            files = core.attachments.get_all(mode)  # get attachments
+            # Work on a copy: runtime tool attachments must exist only for this
+            # provider call and must never appear in the global attachment UI/state.
+            files = dict(core.attachments.get_all(mode))
+            if runtime_attachments:
+                files.update(runtime_attachments)
             num_files = len(files)
             if num_files > 0:
                 log(f"Attachments ({mode}): {num_files}")

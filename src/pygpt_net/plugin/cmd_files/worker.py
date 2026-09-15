@@ -140,7 +140,7 @@ class Worker(BaseWorker):
                         elif item["cmd"] == "send_file":
                             response = self.cmd_send_file(item)
 
-                        # attach file to the current Agents v2 runtime only
+                        # attach file to the immediate next model request as runtime-only input
                         elif item["cmd"] == "attach_runtime_file":
                             response = self.cmd_attach_runtime_file(item)
 
@@ -1052,7 +1052,7 @@ class Worker(BaseWorker):
         return self.make_response(item, result)
 
     def cmd_attach_runtime_file(self, item: dict) -> dict:
-        """Attach local file(s) to the current agent tool result without touching global chat attachments."""
+        """Attach local file(s) to the immediate next model request without touching global chat attachments."""
         try:
             params = item.get("params") or {}
             if "path" not in params:
@@ -1085,7 +1085,7 @@ class Worker(BaseWorker):
                 return self.make_response(item, result)
 
             names = [entry["name"] for entry in attachments]
-            result = "Attached to current agent runtime: {}".format(", ".join(names))
+            result = "Attached for native analysis in the next model request: {}".format(", ".join(names))
             if missing:
                 result += ". Not found: {}".format(", ".join(missing))
 

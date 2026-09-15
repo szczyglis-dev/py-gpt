@@ -94,8 +94,9 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "send_file",
             instruction=(
-                "send file as a normal chat attachment; in an Agents v2 run, use attach_runtime_file instead "
-                "when you need the file available immediately in the current agent/model loop"
+                "send file as a normal persistent chat attachment; use attach_runtime_file instead when a local "
+                "file should be passed only to the immediate next model request for native analysis without adding "
+                "it to the persistent chat attachment list"
             ),
             params=[
                 {
@@ -111,24 +112,28 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "attach_runtime_file",
             instruction=(
-                "attach one or more existing local files to the current agent runtime so you can inspect them "
-                "immediately in this same tool/agent loop; use this for screenshots, images, PDFs or other files "
-                "created or found during the current task"
+                "attach one or more existing local files as runtime-only attachments to the next model request; "
+                "use this especially when you need the active multimodal model to inspect a local image natively "
+                "(for example a PNG/JPEG/WebP screenshot) instead of reading or describing it through read_file; "
+                "the attachment is available immediately after this tool result in normal Chat and agent loops, "
+                "does not need to be added to the persistent chat attachment list, and is analyzed only when the "
+                "active model/provider supports that attachment type"
             ),
             params=[
                 {
                     "name": "path",
                     "type": "list",
-                    "description": "path(s) to local files to attach to the current agent runtime",
+                    "description": "path(s) to local files to attach to the immediate next model request",
                     "required": True,
                 },
             ],
             enabled=True,
-            description="Enable: Attach file to current agent runtime",
+            description="Enable: Attach runtime file for model analysis",
         )
         plugin.add_cmd(
             "read_file",
-            instruction="read data from files",
+            instruction=("read data from files; when a local image should be visually inspected by the active "
+                         "multimodal model, use attach_runtime_file instead of read_file"),
             params=[
                 {
                     "name": "path",

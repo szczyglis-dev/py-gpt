@@ -10,12 +10,15 @@
 # ================================================== #
 
 import json
+import os
+import uuid
 from typing import Optional, Dict, Any, List
 
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import PERSIST_HIDDEN_TOOL_CALLS
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.core.agents_v2.tool_bridge import pop as pop_agent_v2_request
 
 class Reply:
@@ -146,6 +149,76 @@ class Reply:
 
         return ctx.results
 
+    @staticmethod
+    def _extract_runtime_attachments(value: Any) -> List[Dict[str, str]]:
+        """Collect runtime-only attachments embedded in plugin responses."""
+        out: List[Dict[str, str]] = []
+
+        def walk(node):
+            if isinstance(node, dict):
+                marked = node.get("agent_runtime_attachments")
+                if isinstance(marked, (list, tuple)):
+                    for entry in marked:
+                        if isinstance(entry, dict):
+                            path = str(entry.get("path") or "").strip()
+                            name = str(entry.get("name") or os.path.basename(path)) if path else ""
+                        else:
+                            path = str(entry or "").strip()
+                            name = os.path.basename(path) if path else ""
+                        if path:
+                            out.append({"path": path, "name": name})
+                for key, child in node.items():
+                    if key != "agent_runtime_attachments":
+                        walk(child)
+            elif isinstance(node, (list, tuple)):
+                for child in node:
+                    walk(child)
+
+        walk(value)
+        unique: List[Dict[str, str]] = []
+        seen = set()
+        for entry in out:
+            path = entry["path"]
+            if path in seen:
+                continue
+            seen.add(path)
+            unique.append(entry)
+        return unique
+
+    @staticmethod
+    def _strip_runtime_attachment_markers(value: Any) -> Any:
+        """Remove transport-only attachment metadata from model-visible tool JSON."""
+        if isinstance(value, dict):
+            return {
+                key: Reply._strip_runtime_attachment_markers(child)
+                for key, child in value.items()
+                if key != "agent_runtime_attachments"
+            }
+        if isinstance(value, list):
+            return [Reply._strip_runtime_attachment_markers(child) for child in value]
+        if isinstance(value, tuple):
+            return tuple(Reply._strip_runtime_attachment_markers(child) for child in value)
+        return value
+
+    def _build_runtime_attachments(self, value: Any) -> Dict[str, AttachmentItem]:
+        """Convert plugin runtime attachment markers into ephemeral provider attachments."""
+        attachments: Dict[str, AttachmentItem] = {}
+        for entry in self._extract_runtime_attachments(value):
+            path = entry.get("path")
+            if not path or not os.path.isfile(path):
+                continue
+            item = AttachmentItem()
+            item.id = f"runtime-{uuid.uuid4()}"
+            item.name = entry.get("name") or os.path.basename(path)
+            item.path = path
+            item.send = True
+            item.extra = {
+                "runtime_tool_attachment": True,
+                "append_to_ctx": False,
+            }
+            attachments[item.id] = item
+        return attachments
+
     def append(self, ctx: CtxItem):
         """
         Add reply to stack
@@ -188,8 +261,14 @@ class Reply:
         # one partial may now contain several sequential tool rounds, and replaying
         # all older outputs would resend previous function results to the model.
 
+        # Runtime attachments are transport-only. Keep the ordinary tool result in
+        # the protocol transcript, but carry local files separately so the next
+        # provider request can send images as real multimodal input.
+        runtime_attachments = self._build_runtime_attachments(results)
+        model_results = self._strip_runtime_attachment_markers(results)
+
         # prepare data to send as reply
-        tool_data = json.dumps(results, ensure_ascii=False, default=str)
+        tool_data = json.dumps(model_results, ensure_ascii=False, default=str)
         if (len(self.reply_stack) < 2
                 and self.reply_ctx.extra_ctx
                 and core.config.get("ctx.use_extra")):
@@ -220,6 +299,7 @@ class Reply:
         context = BridgeContext()
         context.ctx = prev_ctx
         context.prompt = str(tool_data)
+        context.attachments = runtime_attachments
         dispatch(KernelEvent(KernelEvent.REPLY_RETURN, {
             'context': context,
             'extra': {

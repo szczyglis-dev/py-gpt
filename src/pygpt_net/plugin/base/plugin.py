@@ -473,6 +473,9 @@ class BasePlugin(QObject):
         ctx.reply = True
 
         extras = {k: v for k, v in response.items() if k not in self._IGNORE_EXTRA_KEYS}
+        # Runtime attachments are transport metadata for the immediate next model
+        # request. Do not persist local paths inside the durable tool transcript.
+        extras.pop("agent_runtime_attachments", None)
         request = response.get("request") if isinstance(response, dict) else None
         tool_name = ""
         if isinstance(request, dict) and request.get("cmd"):

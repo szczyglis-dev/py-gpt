@@ -240,6 +240,7 @@ class Input:
             mode_override=origin_mode if (is_internal_reply or is_agent_continue) else None,
             model_override=origin_model if (is_internal_reply or is_agent_continue) else None,
             agent_continue=is_agent_continue,
+            runtime_attachments=context.attachments if is_internal_reply else None,
         )
 
     def execute(
@@ -253,6 +254,7 @@ class Input:
             mode_override: Optional[str] = None,
             model_override: Optional[str] = None,
             agent_continue: bool = False,
+            runtime_attachments: Optional[dict] = None,
     ):
         """
         Execute send input text to API
@@ -266,6 +268,7 @@ class Input:
         :param mode_override: originating mode for an internal tool reply/agent continuation
         :param model_override: originating model key for an internal tool reply/agent continuation
         :param agent_continue: keep an autonomous Agent iteration in the same durable turn
+        :param runtime_attachments: ephemeral files produced by a tool for the immediate next model request
         """
         core = self.window.core
         controller = self.window.controller
@@ -374,6 +377,7 @@ class Input:
                 mode_override=mode_override,
                 model_override=model_override,
                 agent_continue=agent_continue,
+                runtime_attachments=runtime_attachments,
             )  # text mode: OpenAI, LlamaIndex, etc.
 
     def handle_attachment(self, mode: str, text: str) -> bool:
