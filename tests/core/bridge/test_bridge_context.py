@@ -103,3 +103,25 @@ def test_dump_returns_json_and_handles_exceptions(monkeypatch):
     monkeypatch.setattr(mod.BridgeContext, "dump", lambda self: "DUMPED", raising=True)
     bc3 = mod.BridgeContext()
     assert str(bc3) == "DUMPED"
+
+def test_bridge_context_keeps_prompt_mentions_runtime_only(monkeypatch):
+    mod = get_mod()
+
+    class DummyCtx:
+        pass
+
+    class DummyModel:
+        pass
+
+
+    monkeypatch.setattr(mod, "CtxItem", DummyCtx, raising=False)
+    monkeypatch.setattr(mod, "ModelItem", DummyModel, raising=False)
+    bc = mod.BridgeContext(
+        prompt="provider prompt",
+        prompt_mentions="<attachment>photo.png</attachment>",
+    )
+
+    assert bc.prompt_mentions == "<attachment>photo.png</attachment>"
+    data = bc.to_dict()
+    assert data["prompt"] == "provider prompt"
+    assert "prompt_mentions" not in data

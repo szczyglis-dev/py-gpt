@@ -27,3 +27,23 @@ def test_flash_lite_is_limited_to_1k_family():
 def test_video_resolution_and_aspect_ratio_maps_are_identity_maps():
     assert mod.VIDEO_AVAILABLE_RESOLUTIONS["1080p"] == "1080p"
     assert mod.VIDEO_AVAILABLE_ASPECT_RATIOS["16:9"] == "16:9"
+
+
+def test_model_version_at_least_parses_numbered_model_family():
+    from pygpt_net.core.types.image import model_version_at_least
+
+    assert model_version_at_least("openai/gpt-image-2", "gpt-image-", (2, 0)) is True
+    assert model_version_at_least("gpt-image-2.1-preview", "gpt-image-", (2, 1)) is True
+    assert model_version_at_least("gpt-image-1", "gpt-image-", (2, 0)) is False
+    assert model_version_at_least("other-2", "gpt-image-", (2, 0)) is False
+
+
+def test_get_future_image_resolutions_returns_forward_family_fallbacks_only():
+    from pygpt_net.core.types.image import get_future_image_resolutions
+
+    assert "3840x2160" in get_future_image_resolutions("gpt-image-3")
+    assert "2048x2048" in get_future_image_resolutions("imagen-5.0")
+    assert "4096x4096" in get_future_image_resolutions("gemini-4-pro-image")
+    assert set(get_future_image_resolutions("grok-imagine-image-3")) == {"1k", "2k"}
+    assert get_future_image_resolutions("gpt-image-1") is None
+    assert get_future_image_resolutions("unknown") is None

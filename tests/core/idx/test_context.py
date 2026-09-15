@@ -44,3 +44,60 @@ def test_get_messages(mock_window):
     assert messages[2].content == "test3"
     assert messages[3].role == "assistant"
     assert messages[3].content == "test4"
+
+
+def test_add_runtime_images_promotes_only_transport_images(tmp_path, monkeypatch, mock_window):
+    from pygpt_net.item.attachment import AttachmentItem
+    import pygpt_net.core.idx.context as context_module
+
+    image = tmp_path / "runtime.png"
+    image.write_bytes(b"png")
+    normal = tmp_path / "normal.png"
+    normal.write_bytes(b"png")
+    text = tmp_path / "runtime.txt"
+    text.write_text("x")
+    monkeypatch.setattr(context_module, "is_image", lambda path: str(path).endswith(".png"))
+
+    runtime = AttachmentItem(
+        id="runtime", path=str(image), extra={"runtime_tool_attachment": True},
+    )
+    ordinary = AttachmentItem(
+        id="ordinary", path=str(normal), extra={},
+    )
+    non_image = AttachmentItem(
+        id="text", path=str(text), extra={"runtime_tool_attachment": True},
+    )
+
+    core = Context(mock_window)
+    message = core.add_runtime_images({"r": runtime, "o": ordinary, "t": non_image})
+
+    assert message is not None
+    assert message.role == "user"
+    assert "Inspect and use their visual content now" in message.blocks[0].text
+    assert [str(block.path) for block in message.blocks[1:]] == [str(image)]
+    assert core.get_attachments() == {}
+
+
+def test_add_runtime_images_returns_none_for_missing_or_non_runtime_files(tmp_path, mock_window):
+    from pygpt_net.item.attachment import AttachmentItem
+
+    ordinary = tmp_path / "ordinary.png"
+    ordinary.write_bytes(b"png")
+    core = Context(mock_window)
+
+    assert core.add_runtime_images({
+        "ordinary": AttachmentItem(path=str(ordinary), extra={}),
+        "missing": AttachmentItem(path=str(tmp_path / "missing.png"), extra={"runtime_tool_attachment": True}),
+    }) is None
+
+
+def test_extract_urls_and_accessors_keep_only_image_urls_for_mixed_text(mock_window):
+    core = Context(mock_window)
+    text = "see https://example.com/a.png and https://example.com/page"
+    assert core.extract_urls(text) == ["https://example.com/a.png"]
+    assert core.extract_urls("https://example.com/page") == ["https://example.com/page"]
+
+    core.attachments = {"a": "/tmp/a.png"}
+    core.urls = ["https://example.com/a.png"]
+    assert core.get_attachments() == {"a": "/tmp/a.png"}
+    assert core.get_urls() == ["https://example.com/a.png"]

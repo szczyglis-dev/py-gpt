@@ -264,3 +264,55 @@ def test_apply_rate_limit_with_sleep(monkeypatch):
     sleep_arg = sleep_mock.call_args[0][0]
     assert sleep_arg == pytest.approx(extra.total_seconds(), rel=1e-3)
     window.core.debug.debug.assert_called()
+
+def test_request_resolves_image_attachment_mentions_after_final_model_selection(tmp_path, monkeypatch):
+    window = make_window()
+
+    class ImageModel:
+        def is_supported(self, mode):
+            return True
+
+        def is_image_input(self):
+            return True
+
+    image = tmp_path / "photo.png"
+    image.write_bytes(b"png")
+    context = DummyContext(mode=mod.MODE_CHAT, model=ImageModel())
+    context.prompt_mentions = "inspect <attachment>photo.png</attachment>"
+    context.attachments = {
+        "image": SimpleNamespace(path=str(image), name="photo.png"),
+    }
+    worker = SimpleNamespace(run=Mock())
+    monkeypatch.setattr(mod.Bridge, "get_worker", lambda self: worker)
+    monkeypatch.setattr(mod.Bridge, "apply_rate_limit", lambda self: None)
+
+    assert Bridge(window).request(context) is True
+
+    assert context.prompt == "inspect Attached Image #1"
+    assert worker.context is context
+
+
+def test_request_flattens_attachment_mentions_to_filename_for_text_only_model(tmp_path, monkeypatch):
+    window = make_window()
+
+    class TextModel:
+        def is_supported(self, mode):
+            return True
+
+        def is_image_input(self):
+            return False
+
+    image = tmp_path / "photo.png"
+    image.write_bytes(b"png")
+    context = DummyContext(mode=mod.MODE_CHAT, model=TextModel())
+    context.prompt_mentions = "inspect <attachment>photo.png</attachment>"
+    context.attachments = {
+        "image": SimpleNamespace(path=str(image), name="photo.png"),
+    }
+    worker = SimpleNamespace(run=Mock())
+    monkeypatch.setattr(mod.Bridge, "get_worker", lambda self: worker)
+    monkeypatch.setattr(mod.Bridge, "apply_rate_limit", lambda self: None)
+
+    assert Bridge(window).request(context) is True
+
+    assert context.prompt == "inspect photo.png"

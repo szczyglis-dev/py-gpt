@@ -15,6 +15,8 @@ from unittest.mock import Mock, MagicMock
 import pytest
 
 from pygpt_net.core.types import MODE_LLAMA_INDEX
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 
 chat_mod = importlib.import_module("pygpt_net.core.idx.chat")
 Chat = chat_mod.Chat
@@ -383,3 +385,47 @@ def test_get_metadata_filters_and_limits():
     assert len(meta) == 3
     assert all("score" in v for v in meta.values())
     mp.undo()
+
+
+def test_call_agent_runs_react_agent_and_returns_output(monkeypatch):
+    chat = make_chat(monkeypatch)
+    model = ModelItem("agent-model")
+    context = SimpleNamespace(model=model)
+    response_ctx = SimpleNamespace(output="agent answer")
+    call_once = Mock(return_value=response_ctx)
+    chat.window.core.agents.runner.call_once = call_once
+    tools = []
+    item = CtxItem()
+    item.input = "question"
+
+    output = chat.call_agent(
+        context=context,
+        tools=tools,
+        ctx=item,
+        query="question",
+        history=["history"],
+        llm=object(),
+        index=None,
+        system_prompt="system",
+    )
+
+    assert output == "agent answer"
+    call = call_once.call_args.kwargs
+    assert call["extra"]["agent_provider"] == "react"
+    assert call["extra"]["agent_tools"] is tools
+    assert call["context"].prompt == "question"
+    assert call["context"].history == ["history"]
+    chat.window.core.api.logger.log_input.assert_called_once()
+    chat.window.core.api.logger.log_output.assert_called_once()
+
+
+def test_call_agent_returns_fallback_when_runner_has_no_context(monkeypatch):
+    chat = make_chat(monkeypatch)
+    chat.window.core.agents.runner.call_once = Mock(return_value=None)
+    context = SimpleNamespace(model=ModelItem("agent-model"))
+    item = CtxItem()
+    item.input = "q"
+
+    assert chat.call_agent(
+        context=context, tools=[], ctx=item, query="q", history=[]
+    ) == "No response from agent."
