@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 16:20:00                  #
+# Updated Date: 2026.09.15 14:00:00
 # ================================================== #
 
 from typing import Optional
@@ -271,7 +271,8 @@ class Text:
                 multimodal_ctx=multimodal_ctx,  # multimodal context
                 parent_mode=base_mode,
                 preset=controller.presets.get_current(),  # current preset
-                prompt=mentions_to_model_text(text),  # provider-facing input text
+                prompt=mentions_to_model_text(text),  # provider-facing default text
+                prompt_mentions=text,  # durable mention form for late multimodal mapping
                 stream=stream,  # is stream enabled
                 system_prompt=sys_prompt,
                 system_prompt_raw=sys_prompt_raw,  # for llama-index (query mode only)

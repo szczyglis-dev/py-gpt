@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:20:00
+# Updated Date: 2026.09.15 14:00:00
 # ================================================== #
 
 import os
@@ -136,7 +136,7 @@ class Image:
             ctx=ctx,
             mode=MODE_IMAGE,
             model=model_data,  # model instance
-            prompt=mentions_to_model_text(text),
+            prompt=mentions_to_model_text(text, attachments=files),
             attachments=files,
         )
         try:

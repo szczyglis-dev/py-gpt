@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.09.15 14:00:00
 # ================================================== #
 
 import json
@@ -76,7 +76,8 @@ class BridgeContext:
     multimodal_ctx: MultimodalContext = field(default_factory=lambda: MultimodalContext())  # AudioContext
     parent_mode: Optional[Any] = None  # real mode (global)
     preset: Optional[Any] = None  # PresetItem
-    prompt: str = "" # user input prompt
+    prompt: str = "" # provider-facing user input prompt
+    prompt_mentions: str = "" # runtime durable mention form (never persisted)
     reply_context: Optional[Any] = None  # ReplyContext
     request: bool = False  # use normal request instead of quick call
     stream: bool = False  # stream enabled
@@ -110,6 +111,7 @@ class BridgeContext:
         self.parent_mode = kwargs.get("parent_mode", None)
         self.preset = kwargs.get("preset", None)
         self.prompt = kwargs.get("prompt", "")
+        self.prompt_mentions = kwargs.get("prompt_mentions", "")
         self.reply_context = kwargs.get("reply_ctx", kwargs.get("reply_context", None))
         self.request = kwargs.get("request", False)
         self.stream = kwargs.get("stream", False)

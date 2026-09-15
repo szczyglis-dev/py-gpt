@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 17:55:00                  #
+# Updated Date: 2026.09.15 14:00:00
 # ================================================== #
 
 import copy
@@ -15,6 +15,7 @@ import weakref
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 
+from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_V2,
@@ -121,6 +122,19 @@ class Bridge:
         # inline: model switch
         if mode in allowed_model_change:
             context.model = self.window.controller.model.switch_inline(mode, model)
+
+        # Resolve semantic @mentions only after the final inline mode/model has
+        # been selected. Image attachment mentions are mapped to Image #N only
+        # when the actual request model accepts image input; otherwise the
+        # original attachment filename remains provider-facing text.
+        if context.prompt_mentions:
+            if context.model is not None and context.model.is_image_input():
+                context.prompt = mentions_to_model_text(
+                    context.prompt_mentions,
+                    attachments=context.attachments,
+                )
+            else:
+                context.prompt = mentions_to_model_text(context.prompt_mentions)
 
         # debug
         self.window.core.debug.info("[bridge] After inline...")
