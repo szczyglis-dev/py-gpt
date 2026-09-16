@@ -283,6 +283,23 @@ Options
 Context
 ~~~~~~~
 
+The ``Context`` settings are organized into three tabs: ``General``, ``Tools``, and ``Advanced handling``.
+
+General
+^^^^^^^
+
+* ``Max total tokens``: Sets an application-level ceiling for the total token budget used when preparing a request, including conversation context and output allowance where applicable. Set ``0`` to disable this extra limit and rely on the model/provider context window.
+
+* ``Context threshold``: Reserves part of the model context window for the generated answer instead of filling the entire window with prompt/history tokens. Increasing it can reduce how much old context is included but leaves more room for completion.
+
+Tools
+^^^^^
+
+Tool-call persistence and replay options are grouped in this tab. ``Store tool calls in database`` controls durable storage, while ``Restore tool calls in runtime`` and ``Restore tool calls from history`` independently control replay for the active in-memory conversation and for history reloaded from the database. See ``Context and memory -> Tool call storage`` for details.
+
+Advanced handling
+^^^^^^^^^^^^^^^^^
+
 .. warning::
 
    The advanced context-handling options below are **experimental**. They alter how older model-facing conversation history is compacted when a conversation approaches the usable input-context limit. The complete stored chat history is not deleted.
@@ -382,10 +399,6 @@ Models
 * ``Restore used model from stored conversation``: Restores the model saved with a conversation or preset when it is loaded. Disable it to keep the currently selected model. Default: False.
 
 * ``Max output tokens``: Caps the number of tokens PyGPT asks the model to generate in a single response where the provider/API supports an output-token limit. Set ``0`` to avoid applying an application-level cap. Default: 0.
-
-* ``Max total tokens``: Sets an application-level ceiling for the total token budget used when preparing a request, including conversation context and output allowance where applicable. Set ``0`` to disable this extra limit and rely on the model/provider context window. Default: 0.
-
-* ``Context threshold``: Reserves part of the model context window for the generated answer instead of filling the entire window with prompt/history tokens. Increasing it can reduce how much old context is included but leaves more room for completion. Default: 200.
 
 Prompts
 ~~~~~~~

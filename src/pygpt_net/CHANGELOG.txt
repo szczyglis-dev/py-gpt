@@ -1,4 +1,5 @@
 2.8.22 (2026-09-16)
+- Split Context settings into General, Tools, and Advanced handling tabs.
 - Added Agent Workflows for Chat with Agents with editable built-in profiles and UUID-based custom agent workflows.
 - Added independent system and Step-by-step prompts for custom Chat with Agents profiles using the Orchestrator runtime/tool surface.
 - Added Agent Workflows access from Config and from the Chat with Agents toolbox.

@@ -32,6 +32,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 ## Features
 
+- Split Context settings into General, Tools, and Advanced handling tabs.
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
@@ -1000,7 +1001,7 @@ When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation beca
 
 > **Experimental:** Advanced context handling changes how long model-facing histories are compacted and continued. Keep it disabled if you need the legacy history-selection behavior, and verify important long-running workflows when enabling it for production work.
 
-Enable it in `Config -> Settings -> Context -> Enable advanced context handling`. When the unsummarized model-facing conversation approaches the configured threshold, PyGPT compacts older completed turns into conversation-scoped continuation notes and keeps a newer verbatim tail. The complete chat history remains stored in SQLite; only the history sent to the model is trimmed.
+Enable it in `Config -> Settings -> Context -> Advanced handling -> Enable advanced context handling`. When the unsummarized model-facing conversation approaches the configured threshold, PyGPT compacts older completed turns into conversation-scoped continuation notes and keeps a newer verbatim tail. The complete chat history remains stored in SQLite; only the history sent to the model is trimmed.
 
 Continuation notes are stored in `memory_ctx`, one row per conversation, and are separate from the Memory plugin's global/project long-term memory. They preserve compact state such as goals, constraints, decisions, completed work, important findings and pending work. `memory_ctx_get`, `memory_ctx_add` and `memory_ctx_replace` can read or maintain these notes. In Chat with Agents, the main agent also uses persistent bounded rolling memory backed by the same conversation notes, while worker rolling summaries stay runtime-local.
 
@@ -1036,7 +1037,7 @@ On the application side, the context is stored in the `SQLite` database located 
 Tool requests and results can contain large payloads, for example file contents, generated data, or long command output. These payloads can significantly increase the size of the context database. Their persistence can be configured in:
 
 ```ini
-Config -> Settings -> Context -> Store tool calls in database
+Config -> Settings -> Context -> Tools -> Store tool calls in database
 ```
 
 The available modes are:
@@ -1049,7 +1050,7 @@ The storage policy applies to all modes that use tools, including Chat, Chat wit
 
 **Restore tool calls in runtime** controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
-By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore persisted tool protocol after reloading a conversation, enable **Restore tool calls from history** in `Settings -> Context`. This option applies only to history restored from the database, requires **Store full input/output**, and is ignored when tool calls are not stored or are stored truncated.
+By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore persisted tool protocol after reloading a conversation, enable **Restore tool calls from history** in `Settings -> Context -> Tools`. This option applies only to history restored from the database, requires **Store full input/output**, and is ignored when tool calls are not stored or are stored truncated.
 
 Once a conversation begins, a title for the chat is generated and displayed on the list to the left. This process is similar to `ChatGPT`, where the subject of the conversation is summarized, and a title for the thread is created based on that summary. You can change the name of the thread at any time.
 
@@ -2360,7 +2361,7 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Layout:** General, Code syntax
 - **Files and attachments:** General, RAG
 - **Chats:** List, Render, Options
-- **Context:** advanced context handling and continuation checkpoint settings (experimental)
+- **Context:** General, Tools, Advanced handling
 - **Remote tools:** OpenAI, Google, Anthropic, xAI
 - **Images and video:** Image, Video
 - **Vision and camera:** Camera
@@ -2556,6 +2557,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.8.22 (2026-09-16)**
 
+- Split Context settings into **General**, **Tools**, and **Advanced handling** tabs.
 - Added Agent Workflows for Chat with Agents, including editable built-in prompts and UUID-based custom agent workflows.
 - Added custom Chat with Agents profiles with independent system and Step-by-step prompts using the Orchestrator runtime/tool surface.
 - Added Agent Workflows access from Config and from the Chat with Agents toolbox.

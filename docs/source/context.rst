@@ -5,6 +5,11 @@ Short and long-term memory
 --------------------------
 **PyGPT** features a continuous chat mode that maintains a long context of the ongoing dialogue. It preserves the entire conversation history and automatically appends it to each new message (prompt) you send to the AI. Additionally, you have the flexibility to revisit past conversations whenever you choose. The application keeps a record of your chat history, allowing you to resume discussions from the exact point you stopped.
 
+Settings layout
+---------------
+
+The ``Config -> Settings -> Context`` section is divided into ``General``, ``Tools``, and ``Advanced handling`` tabs. ``General`` contains the main context-size sliders, ``Tools`` contains tool-call storage/replay controls, and ``Advanced handling`` contains the experimental long-context checkpoint settings.
+
 Advanced context handling (experimental)
 -----------------------------------------
 
@@ -12,7 +17,7 @@ Advanced context handling (experimental)
 
    **Advanced context handling is experimental.** It changes how long model-facing histories are compacted and continued. Keep it disabled if you need the legacy history-selection behavior, and verify important long-running workflows when enabling it for production work.
 
-Advanced context handling is designed for conversations and agent workflows that approach the model's usable input-context limit. Enable it in ``Config -> Settings -> Context -> Enable advanced context handling``. The full durable conversation remains stored in the SQLite history; only the history sent to the model is compacted.
+Advanced context handling is designed for conversations and agent workflows that approach the model's usable input-context limit. Enable it in ``Config -> Settings -> Context -> Advanced handling -> Enable advanced context handling``. The full durable conversation remains stored in the SQLite history; only the history sent to the model is compacted.
 
 When the unsummarized model-facing conversation reaches the configured checkpoint threshold, PyGPT creates compact **conversation-scoped continuation notes** from older completed turns and advances a checkpoint. Newer turns remain verbatim in the active context tail, while turns already represented by the checkpoint are omitted from subsequent model-facing history. The notes preserve useful state such as goals, constraints, decisions, completed work, important findings, identifiers, and pending work. They are stored in the ``memory_ctx`` table with one row per conversation (``ctx_meta``).
 
@@ -84,7 +89,7 @@ Tool requests and results can contain large payloads, for example file contents,
 
 .. code-block:: ini
 
-   Config -> Settings -> Context -> Store tool calls in database
+   Config -> Settings -> Context -> Tools -> Store tool calls in database
 
 The available modes are:
 
@@ -96,4 +101,4 @@ The storage policy applies to all modes that use tools, including Chat, Chat wit
 
 ``Restore tool calls in runtime`` controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
-By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore persisted tool protocol after reloading a conversation, enable ``Restore tool calls from history`` in ``Settings -> Context``. This option applies only to history restored from the database, requires ``Store full input/output``, and is ignored when tool calls are not stored or are stored truncated.
+By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore persisted tool protocol after reloading a conversation, enable ``Restore tool calls from history`` in ``Settings -> Context -> Tools``. This option applies only to history restored from the database, requires ``Store full input/output``, and is ignored when tool calls are not stored or are stored truncated.
