@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.18 21:00:00                  #
+# Updated Date: 2026.09.16 11:30:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
+from .prompts import get_inline_plugin_prompts
 
 
 class Config(BaseConfig):
@@ -23,27 +24,6 @@ class Config(BaseConfig):
 
         :param plugin: plugin instance
         """
-        prompt = """AUTONOMOUS MODE:
-- Execute the user's task as one autonomous run.
-- Work iteratively: take the next useful action, inspect the result, then continue until the task is complete.
-- Use available tools when useful and prefer native tool/function calls when supported.
-- Verify tool results instead of assuming success.
-- Do not simulate user replies or a self-dialogue and do not repeat earlier text just to continue.
-- If user input is required, pause/wait instead of guessing.
-- When complete, provide the final user-facing result and finish the run with goal_update(status=\"finished\") when available.
-"""
-        extended_prompt = """AUTONOMOUS MODE:
-- Execute the user's task as one autonomous run until complete, paused, failed, or limited by the configured iteration count.
-- Break complex work into practical subtasks, but act on them instead of narrating an artificial internal debate.
-- On each iteration, review what is already done and perform the next useful action.
-- Use available tools whenever they improve correctness or are required to complete the task. Prefer native tool/function calls when supported.
-- Inspect every tool result and adapt the next step to the actual result.
-- Avoid repeating previous assistant content. Keep intermediate output focused on useful progress and artifacts.
-- Do not expose private chain-of-thought or forced self-critique.
-- If more user information is required, finish the current response with goal_update(status=\"wait\") when available.
-- If the task cannot be completed, use goal_update(status=\"failed\"); for an intentional pause use status=\"pause\".
-- When all requested work is complete, provide the final user-facing result and use goal_update(status=\"finished\") when available.
-"""
         plugin.add_option(
             "iterations",
             type="int",
@@ -63,20 +43,9 @@ class Config(BaseConfig):
             "name": "text",
             "prompt": "textarea",
         }
-        items = [
-            {
-                "enabled": True,
-                "name": "Default",
-                "prompt": prompt,
-            },
-            {
-                "enabled": False,
-                "name": "Extended",
-                "prompt": extended_prompt,
-            },
-        ]
-        desc = "Prompt used to instruct how to handle autonomous mode, you can create as many prompts as you want." \
-               "First active prompt on list will be used to handle autonomous mode."
+        items = get_inline_plugin_prompts()
+        desc = "Prompt used to instruct how to handle autonomous mode. You can create as many prompts as you want. " \
+               "The first active prompt on the list will be used to handle autonomous mode."
         tooltip = desc
         plugin.add_option(
             "prompts",

@@ -15,6 +15,7 @@ import os
 from packaging.version import parse as parse_version, Version
 
 from pygpt_net.core.types.reasoning import legacy_key_parts
+from pygpt_net.plugin.agent.prompts import get_inline_plugin_prompts
 
 # old patches moved here
 from .patches.patch_before_2_6_42 import Patch as PatchBefore2_6_42
@@ -862,6 +863,27 @@ class Patch:
                     if key not in data:
                         data[key] = cfg_get_base(key)
                         updated = True
+
+                # Autonomous inline plugin now uses the same canonical instruction
+                # as the built-in Autonomous mode (Settings -> Prompts). Reset only
+                # its saved prompt list; keep iterations and other plugin options.
+                prompts = get_inline_plugin_prompts()
+                plugins = data.get("plugins")
+                if isinstance(plugins, dict):
+                    agent_plugin = plugins.get("agent")
+                    if isinstance(agent_plugin, dict) and agent_plugin.get("prompts") != prompts:
+                        agent_plugin["prompts"] = copy.deepcopy(prompts)
+                        updated = True
+
+                # Plugin presets can override the global plugin config. Reset the
+                # same saved option there so selecting an existing preset cannot
+                # restore the pre-2.8.21 Autonomous prompt set.
+                if self.window.core.plugins.update_param_in_presets(
+                        "agent",
+                        "prompts",
+                        copy.deepcopy(prompts),
+                ):
+                    updated = True
 
         # update file
         migrated = False

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 20:25:00                  #
+# Updated Date: 2026.09.16 11:30:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -123,9 +123,7 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         legacy = self.window.controller.agent.legacy
-        pre_prompt = ("AUTONOMOUS MODE IS ACTIVE.\n"
-                      "Apply the following execution rules throughout this run:\n\n")
-        return pre_prompt + legacy.on_system_prompt(
+        return legacy.on_system_prompt(
             prompt,
             append_prompt=legacy.normalize_instruction_prompt(self.get_first_active_prompt()),
             auto_stop=self.get_option_value("auto_stop"),
