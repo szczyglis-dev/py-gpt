@@ -12,6 +12,7 @@
 from types import SimpleNamespace
 
 from .context import RuntimeContext
+from .editor import AgentEditor
 from .memory import AgentsV2MemoryStore
 from .mode import AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
 from .prompt_builder import RuntimePromptBuilder
@@ -47,9 +48,12 @@ class _PromptPreviewRuntime:
             attachments=attachments or {},
             idx=index_id,
         )
-        self.agent_mode = AgentMode.coerce(
-            window.core.config.get(AGENT_MODE_CONFIG_KEY, AGENT_MODE_CONFIG_DEFAULT)
+        selected_agent_id, self.agent_mode, self.agent_definition = (
+            window.core.agents_v2.editor.resolve_selection(
+                window.core.config.get(AGENT_MODE_CONFIG_KEY, AGENT_MODE_CONFIG_DEFAULT)
+            )
         )
+        self.agent_id = selected_agent_id
         self.strategy = get_agent_strategy(self.agent_mode)
         self.allow_local_tools = bool(
             getattr(preset, "agent_v2_allow_local_tools", True)
@@ -118,6 +122,7 @@ class AgentsV2:
     def __init__(self, window=None):
         self.window = window
         self.runner = Runner(window)
+        self.editor = AgentEditor(window)
         # Stateless helper shared by the live UI token estimator. Runtime turns
         # may still instantiate/use their own facade; both read the same hidden
         # DB-backed Primary Agent memory.

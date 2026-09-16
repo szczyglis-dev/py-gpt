@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "app.version": "2.8.21",
-    "version": "2.8.21",
+    "app.version": "2.8.22",
+    "version": "2.8.22",
     "updated_at": "2026-09-16T11:38:00"
   },
   "access.audio.event.speech": false,
@@ -69,6 +69,7 @@
   "agent.v2.max_iterations": 48,
   "agent.v2.max_workers": 16,
   "agent.v2.mode": "chat",
+  "agent.v2.custom_agents": [],
   "agent.v2.prompt.orchestrator.custom": "",
   "agent.v2.prompt.primary.custom": "",
   "agent.v2.prompt.step_by_step.custom": "",

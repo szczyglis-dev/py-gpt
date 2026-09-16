@@ -12,6 +12,7 @@
 from .agents import AgentsV2
 from .contracts import RuntimeInput, RuntimeOutput
 from .delegation import AgentDelegateBridge
+from .editor import AgentEditor, CUSTOM_AGENTS_CONFIG_KEY
 from .mode import AGENT_MODE, AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
 from .runtime import AgentsV2Runtime
 from .strategy import AgentRuntimeStrategy, AgentToolSurface, get_agent_strategy
@@ -25,6 +26,8 @@ __all__ = [
     "AgentToolSurface",
     "get_agent_strategy",
     "AgentDelegateBridge",
+    "AgentEditor",
+    "CUSTOM_AGENTS_CONFIG_KEY",
     "AgentMode",
     "AGENT_MODE",
     "AGENT_MODE_CONFIG_KEY",

@@ -49,8 +49,14 @@ class Confirm:
         )
         confirm_dialog.close()
 
-        # settings: Chat with Agents custom prompts
-        if type == 'settings.agent.v2.prompt.defaults':
+        # Chat with Agents workflows editor
+        if type == 'agents_v2.editor.delete':
+            self.window.controller.agents_v2.editor.delete(id, force=True)
+        elif type == 'agents_v2.editor.defaults':
+            self.window.controller.agents_v2.editor.load_defaults(force=True, agent_id=id)
+
+        # settings: Chat with Agents custom prompts (legacy UI path)
+        elif type == 'settings.agent.v2.prompt.defaults':
             self.window.controller.settings.editor.load_agent_prompt_default(id, force=True)
 
         # app

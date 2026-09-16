@@ -129,6 +129,13 @@ class Custom:
             step_by_step.setToolTip(step_tooltip)
             step_by_step.box.setToolTip(step_tooltip)
             step_by_step.label.setToolTip(step_tooltip)
+        manage_agents = self.window.ui.nodes.get('agent.v2.manage')
+        if manage_agents is not None:
+            manage_agents.setToolTip(trans('toolbox.agent.v2.manage.tooltip'))
+        try:
+            self.window.agents_v2_editor.retranslate()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
 
         # painter drawing modes (combo + RMB submenu)
         try:

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.21** | build: **2026-09-16** | Python: **>=3.10, <3.14**
+Release: **2.8.22** | build: **2026-09-16** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -600,9 +600,9 @@ In the `Settings -> Indexes / RAG -> Data loaders` section you can define the ad
 
 **Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)`, `Agent (OpenAI)`, and `Agent (Autonomous)` modes.
 
-The **Mode** selector below the system prompt lets you choose how the agent workflow operates. The default is **Chat**.
+The **Workflow** selector below the system prompt lets you choose how the agent workflow operates. The default is **Chat**.
 
-### Agent modes
+### Agent workflows
 
 - **Chat** - the default mode. A primary agent talks directly with the user, uses available tools, and can delegate selected tasks to background workers when useful. This is the best general-purpose option when you want a normal agent conversation with multi-agent assistance available on demand.
 - **Orchestrator** - a dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can run concurrently. This mode is useful for structured, multi-stage tasks where explicit coordination and verification are important. The Orchestrator runtime supports up to `16` workers by default. You can change this limit in `Settings -> Agents and experts -> Chat with Agents -> Max workers (Chat / Orchestrator)`; set it to `0` for no worker limit.
@@ -612,15 +612,17 @@ The **Mode** selector below the system prompt lets you choose how the agent work
 
 ### Step-by-step execution
 
-The **Step by step** switch below the Chat with Agents mode selector enables a stricter execution discipline for the main agent. When enabled, the agent prepares a concise high-level plan before substantive work, reports short factual progress updates during longer tasks, verifies completed work before continuing, and revises the plan when new findings, failures, or worker results require it.
+The **Step by step** switch below the Chat with Agents workflow selector enables a stricter execution discipline for the main agent. When enabled, the agent prepares a concise high-level plan before substantive work, reports short factual progress updates during longer tasks, verifies completed work before continuing, and revises the plan when new findings, failures, or worker results require it.
 
 Progress updates are user-facing summaries, not hidden chain-of-thought. The agent is explicitly instructed not to expose private reasoning and not to label progress with numbered headings such as `Step 1` / `Step 2`. Important worker output should still be verified when the conclusion matters. The setting is snapshotted at the start of a run, so changing it does not rewrite a workflow that is already running.
 
-### Custom main-agent prompts
+### Agent Workflows
 
-Open `Settings -> Agents and experts -> Chat with Agents -> Advanced` to override the built-in prompts used by the Chat with Agents main actor. Separate custom text areas are available for the Chat primary agent, the Orchestrator, the Swarm Orchestrator, and the Step-by-step instruction. A non-empty custom value replaces the corresponding built-in role prompt/instruction; an empty field keeps the built-in default.
+Open `Config -> Agent Workflows...` to manage Chat with Agents workflows. You can also open the same editor with the settings icon to the right of the `Step by step` switch in the toolbox. The built-in **Chat**, **Orchestrator**, and **Swarm** profiles are always listed first and cannot be deleted. Their runtime strategies remain fixed, but their main system prompt and Step-by-step override can be edited. Existing built-in prompt overrides keep using the same configuration keys as earlier releases, so existing profiles remain compatible.
 
-Each custom prompt field includes **From defaults**. If the field is empty, it immediately copies the current built-in prompt into the textarea. If the field already contains text, PyGPT asks for confirmation before overwriting it. Save Settings to persist the copied or edited prompt.
+Use **New** to add your own agent profile. Custom agents are stored in `config.json` under `agent.v2.custom_agents` and each entry has a UUID, name, main system prompt, and its own Step-by-step prompt. A custom agent uses the **Orchestrator** runtime/tool surface, so its workflow can use `agent_create`, `agent_update`, `agent_run`, `agent_status`, `agent_list`, `agent_wait`, `agent_stop`, `agent_remove`, `workflow_status`, and `workflow_finish`, plus enabled local/remote tools, `shared_context`, and `query_index` when available.
+
+Custom agents do not receive an implicit built-in main role prompt when their system-prompt field is empty. **From defaults** loads the built-in Orchestrator prompt and the default Step-by-step instruction as a starting point. The editor includes a Help reference for agent workflow tools and runtime context/placeholder blocks such as `%workdir%`, `<runtime_capabilities>`, `<runtime_environment>`, `<additional_system_prompt>`, `<additional_project_rules>`, `<additional_context>`, `<rag_access>`, `<workflow_language>`, and `<worker_identity>`. Saving the editor refreshes the toolbox selector immediately; custom profiles are listed after the three built-ins.
 
 ### Project rules with AGENTS.md
 
@@ -2148,7 +2150,7 @@ A built-in web browser based on Chromium, allowing you to open webpages directly
 
 **Legacy modes only:** Agents Builder is used by the legacy `Agent (LlamaIndex)` and `Agent (OpenAI)` workflows. It is not used by the modern `Chat with Agents` mode.
 
-To launch the Agent Editor, navigate to:
+To launch Agents Builder, navigate to:
 
 `Tools -> Agents Builder`
 
@@ -2363,6 +2365,8 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Agents and experts:** Chat with Agents, Agents, Autonomous, Legacy
 - **Security:** General, Computer use, Linux, Windows, macOS
 
+Chat with Agents workflows are managed separately in `Config -> Agent Workflows...`; the Chat with Agents Settings page contains runtime/history/limit options rather than prompt textareas.
+
 In **Chats -> Render**, **Stream** controls whether answers are displayed while they are being generated, and **Show time in plain text mode** controls response timestamps for the plain-text renderer. Plain-text mode itself is toggled with the first `text` icon in the input-tab icon row; its tooltip changes between **Switch to plain text** and **Switch to normal view** depending on the active renderer.
 
 The **Embeddings** tab uses the selected global provider plus `Default embedding models`; its global `**kwargs` and `ENV` fields are optional overrides placed in **Advanced**, not required credentials/model configuration.
@@ -2545,6 +2549,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.22 (2026-09-16)**
+
+- Added Agent Workflows for Chat with Agents, including editable built-in prompts and UUID-based custom agent workflows.
+- Added custom Chat with Agents profiles with independent system and Step-by-step prompts using the Orchestrator runtime/tool surface.
+- Added Agent Workflows access from Config and from the Chat with Agents toolbox.
+- Moved Chat with Agents prompt editing out of Settings while preserving existing built-in prompt configuration keys.
+- Added Agent Workflows documentation, help reference, migration support, and translations.
 
 **2.8.21 (2026-09-16)**
 

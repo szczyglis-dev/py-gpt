@@ -11,6 +11,7 @@
 
 from .access import Access
 from .agent import Agent
+from .agents_v2 import AgentsV2
 from .assistant import Assistant
 from .attachment import Attachment
 from .audio import Audio
@@ -56,6 +57,7 @@ class Controller:
         self.window = window
         self.access = Access(window)
         self.agent = Agent(window)
+        self.agents_v2 = AgentsV2(window)
         self.assistant = Assistant(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
@@ -124,6 +126,7 @@ class Controller:
         self.settings.setup()
         self.plugins.settings.setup()
         self.model.editor.setup()
+        self.agents_v2.setup()
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
@@ -188,6 +191,7 @@ class Controller:
             self.presets.reload()
             self.idx.reload()
             self.agent.reload()
+            self.agents_v2.reload()
             self.calendar.reload()
             self.plugins.reload()
             self.painter.reload()

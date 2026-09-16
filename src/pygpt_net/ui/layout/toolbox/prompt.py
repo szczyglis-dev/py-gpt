@@ -9,8 +9,9 @@
 # Updated Date: 2026.09.14 13:55:00                  #
 # ================================================== #
 
-from PySide6.QtGui import Qt
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QComboBox
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QComboBox, QPushButton
 
 from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
@@ -86,22 +87,19 @@ class Prompt:
         # ``Chat``. The whole row is visible only in Agents v2 mode.
         mode_label = TitleLabel(trans("agent.v2.mode.label"))
         mode_combo = QComboBox()
-        for text, data in (
-            (trans("agent.v2.mode.chat"), "chat"),
-            (trans("agent.v2.mode.orchestrator"), "orchestrator"),
-            (trans("agent.v2.mode.swarm"), "swarm"),
-        ):
-            mode_combo.addItem(text, data)
+        for agent in w.core.agents_v2.editor.get_agents():
+            if agent.get("built_in"):
+                text = trans(str(agent.get("label_key") or ""))
+            else:
+                text = str(agent.get("name") or agent.get("id") or "")
+            mode_combo.addItem(text, agent["id"])
         mode_combo.setMinimumWidth(40)
         mode_combo.setToolTip(trans("agent.v2.mode.tooltip"))
 
         configured_mode = str(
             w.core.config.get(AGENT_V2_MODE_CONFIG_KEY, AGENT_V2_MODE_DEFAULT) or AGENT_V2_MODE_DEFAULT
-        ).strip().lower()
-        # Compatibility with internal/legacy strategy names if a config was
-        # edited manually before the UI selector existed.
-        if configured_mode in ("primary", "primary_agent", "primary-agent"):
-            configured_mode = "chat"
+        ).strip()
+        configured_mode, _, _ = w.core.agents_v2.editor.resolve_selection(configured_mode)
         mode_index = mode_combo.findData(configured_mode)
         if mode_index < 0:
             mode_index = mode_combo.findData(AGENT_V2_MODE_DEFAULT)
@@ -129,6 +127,19 @@ class Prompt:
         step_by_step.box.toggled.connect(self._on_agent_v2_step_by_step_changed)
         nodes['agent.v2.step_by_step'] = step_by_step
 
+        manage_agents = QPushButton(QIcon(":/icons/settings.svg"), "")
+        icon_size = 20
+        manage_agents.setFlat(True)
+        manage_agents.setStyleSheet("QPushButton { border: none; padding: 0; }")
+        manage_agents.setIconSize(QSize(icon_size, icon_size))
+        manage_agents.setFixedSize(icon_size, icon_size)
+        manage_agents.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        manage_agents.setFocusPolicy(Qt.NoFocus)
+        manage_agents.setCursor(Qt.PointingHandCursor)
+        manage_agents.setToolTip(trans("toolbox.agent.v2.manage.tooltip"))
+        manage_agents.clicked.connect(w.controller.agents_v2.editor.open)
+        nodes['agent.v2.manage'] = manage_agents
+
         mode_widget = QWidget()
         mode_layout = QVBoxLayout(mode_widget)
 
@@ -138,8 +149,14 @@ class Prompt:
         mode_select_layout.addWidget(mode_combo, 1)
         mode_select_layout.setContentsMargins(0, 0, 0, 0)
 
+        step_widget = QWidget()
+        step_layout = QHBoxLayout(step_widget)
+        step_layout.addWidget(step_by_step, 1)
+        step_layout.addWidget(manage_agents, 0, Qt.AlignRight | Qt.AlignVCenter)
+        step_layout.setContentsMargins(0, 0, 0, 0)
+
         mode_layout.addWidget(mode_select_widget)
-        mode_layout.addWidget(step_by_step)
+        mode_layout.addWidget(step_widget)
         mode_layout.setContentsMargins(3, 0, 5, 0)
         mode_widget.setVisible(w.core.config.get("mode") == MODE_AGENT_V2)
         nodes['agent.v2.mode.widget'] = mode_widget

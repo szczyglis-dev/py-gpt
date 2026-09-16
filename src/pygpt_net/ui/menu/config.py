@@ -47,6 +47,11 @@ class Config:
         m['config.settings'].setMenuRole(QAction.MenuRole.NoRole)
 
         m['config.models'] = QMenu(tr("menu.config.models"), w)
+        m['config.agents'] = QAction(icon_settings, tr("menu.config.agents"), w)
+        m['config.agents'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.agents'].triggered.connect(
+            lambda: w.controller.agents_v2.editor.toggle_editor()
+        )
 
         m['config.access'] = QAction(icon_access, tr("menu.config.access"), w)
         m['config.access'].setMenuRole(QAction.MenuRole.NoRole)
@@ -128,6 +133,7 @@ class Config:
         menu = m['menu.config']
         menu.addAction(m['config.settings'])
         menu.addMenu(m['config.models'])
+        menu.addAction(m['config.agents'])
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])

@@ -81,9 +81,10 @@ class Mode:
             configured_agent_mode = str(
                 self.window.core.config.get(AGENT_V2_MODE_CONFIG_KEY, AGENT_V2_MODE_DEFAULT)
                 or AGENT_V2_MODE_DEFAULT
-            ).strip().lower()
-            if configured_agent_mode in ("primary", "primary_agent", "primary-agent"):
-                configured_agent_mode = "chat"
+            ).strip()
+            configured_agent_mode, _, _ = self.window.core.agents_v2.editor.resolve_selection(
+                configured_agent_mode
+            )
             idx = agent_v2_mode_combo.findData(configured_agent_mode)
             if idx < 0:
                 idx = agent_v2_mode_combo.findData(AGENT_V2_MODE_DEFAULT)

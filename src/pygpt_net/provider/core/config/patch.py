@@ -887,6 +887,19 @@ class Patch:
                 ):
                     updated = True
 
+            # < 2.8.22
+            if old < parse_version("2.8.22"):
+                print("Migrating config from < 2.8.22...")
+
+                # The three built-in Chat with Agents profiles intentionally keep
+                # using their existing prompt override keys introduced in 2.8.21.
+                # Only user-defined Agent Workflows entries need a new storage key.
+                # This makes the migration lossless for existing custom prompts.
+                key = "agent.v2.custom_agents"
+                if key not in data or not isinstance(data.get(key), list):
+                    data[key] = copy.deepcopy(cfg_get_base(key) or [])
+                    updated = True
+
         # update file
         migrated = False
         if updated:

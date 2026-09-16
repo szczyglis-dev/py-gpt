@@ -14,6 +14,7 @@ import threading
 from PySide6.QtCore import Qt
 
 from pygpt_net.ui.dialog.about import About
+from pygpt_net.ui.dialog.agents import Agents as AgentsV2Editor
 from pygpt_net.ui.dialog.applog import AppLog
 from pygpt_net.ui.dialog.assistant import Assistant
 from pygpt_net.ui.dialog.changelog import Changelog
@@ -108,6 +109,7 @@ class Dialogs:
         self.window.plugin_settings = Plugins(self.window)
         self.window.plugin_presets = PresetPlugins(self.window)
         self.window.model_settings = Models(self.window)
+        self.window.agents_v2_editor = AgentsV2Editor(self.window)
         self.window.model_importer = ModelsImporter(self.window)
         self.window.remote_store = RemoteStore(self.window)
 

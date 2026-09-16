@@ -162,7 +162,7 @@ Chat with Agents
 
 **Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older ``Agent (LlamaIndex)``, ``Agent (OpenAI)``, and ``Agent (Autonomous)`` modes.
 
-The **Mode** selector below the system prompt controls how the workflow operates. The default mode is **Chat**.
+The **Workflow** selector below the system prompt controls how the workflow operates. The default workflow is **Chat**.
 
 Agent modes
 ^^^^^^^^^^^
@@ -182,20 +182,24 @@ Agent modes
 Step-by-step execution
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The ``Step by step`` switch shown below the Chat with Agents mode selector enables a stricter execution discipline for the main agent. When enabled, the runtime augments the built-in agent prompt so the agent prepares a concise high-level plan before substantive work, reports short factual progress updates during longer tasks, validates completed work before continuing, and revises the plan when new findings, failures, or worker results require it.
+The ``Step by step`` switch shown below the Chat with Agents workflow selector enables a stricter execution discipline for the main agent. When enabled, the runtime augments the built-in agent prompt so the agent prepares a concise high-level plan before substantive work, reports short factual progress updates during longer tasks, validates completed work before continuing, and revises the plan when new findings, failures, or worker results require it.
 
 The progress text is intentionally user-facing rather than hidden chain-of-thought. The agent is instructed to describe what it is doing and how it verified the result **without** exposing private reasoning and without numbered labels such as ``Step 1`` / ``Step 2``. Important worker/specialist output should be treated as work product that still needs verification when the conclusion matters.
 
 The switch is snapshotted when a Chat with Agents run starts, so changing it while a run is already in progress does not rewrite that run's prompt. It applies to the Chat with Agents main agent; it does not turn ordinary Chat or legacy Agent modes into step-by-step workflows.
 
-Custom main-agent prompts
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Agent Workflows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The built-in system prompts used by the Chat with Agents main actor can be overridden in ``Settings -> Agents and experts -> Chat with Agents -> Advanced``. Four text areas are available: ``Chat primary agent system prompt (custom)``, ``Orchestrator system prompt (custom)``, ``Swarm orchestrator system prompt (custom)``, and ``Step-by-step instruction (custom)``.
+Open ``Config -> Agent Workflows...`` to manage Chat with Agents workflows. The same editor can be opened with the settings icon shown to the right of the ``Step by step`` switch in the Chat with Agents toolbox. The three built-in profiles -- **Chat**, **Orchestrator**, and **Swarm** -- are always shown first and cannot be deleted. Their names and runtime strategies stay fixed, but their main system prompt and shared Step-by-step override can be edited.
 
-A custom field is active only when it contains non-whitespace text. The first three fields replace the built-in role prompt for their corresponding Chat, Orchestrator, or Swarm mode. The fourth field replaces the built-in step-by-step execution instruction whenever the ``Step by step`` switch is enabled. Leaving any field empty keeps the corresponding built-in default. Runtime capabilities, the normal preset/plugin system prompt, RAG/runtime context, and project ``AGENTS.md`` rules are still composed around the selected main-agent prompt by the runtime.
+The built-in prompt overrides remain stored under the same configuration keys used by earlier releases, so existing custom Chat/Orchestrator/Swarm prompts continue to work after upgrading. Leaving a built-in main prompt empty keeps its built-in default. The built-in Chat, Orchestrator and Swarm profiles share one Step-by-step override; the editor marks this explicitly.
 
-Each field has a ``From defaults`` button. When the field is empty, the button copies the current built-in prompt into the editor immediately. When the field already contains text, PyGPT asks for confirmation before replacing it. Loading a default only changes the Settings editor; use the normal Settings save action to persist the value. This makes the built-in prompt a convenient starting point for a customized version without changing the source file.
+Use **New** to create a user-defined agent profile. Custom profiles are stored in ``config.json`` under ``agent.v2.custom_agents`` and are identified by UUID. Each custom profile has an editable name, its own main system prompt, and its own Step-by-step prompt. Custom profiles use the **Orchestrator** runtime/tool surface, which means their prompt can define a complete worker-management workflow with tools such as ``agent_create``, ``agent_update``, ``agent_run``, ``agent_status``, ``agent_list``, ``agent_wait``, ``agent_stop``, ``agent_remove``, ``workflow_status``, and ``workflow_finish``. Enabled plugin/provider tools, ``shared_context`` and ``query_index`` are also available when allowed by the current preset/runtime.
+
+A custom profile has no implicit built-in main role prompt: if its system-prompt field is empty, PyGPT does not substitute Chat, Orchestrator or Swarm instructions. Use **From defaults** when you want a starting template; for custom profiles it loads the built-in Orchestrator prompt together with the default Step-by-step instruction. The editor also includes an in-place Help reference for the agent workflow tools and runtime context blocks such as ``%workdir%``, ``<runtime_capabilities>``, ``<runtime_environment>``, ``<additional_system_prompt>``, ``<additional_project_rules>``, ``<additional_context>``, ``<rag_access>``, ``<workflow_language>``, and ``<worker_identity>``.
+
+Saving Agent Workflows immediately refreshes the workflow selector in the toolbox. Built-in profiles remain the first three entries; custom profiles follow them in their saved order. Selecting a custom profile stores its UUID in ``agent.v2.mode`` and the runtime resolves that UUID to the profile's prompts and Orchestrator execution surface.
 
 Project rules with AGENTS.md
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

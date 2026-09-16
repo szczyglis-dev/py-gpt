@@ -607,15 +607,7 @@ Chat with Agents
 
 * ``Worker max iterations``: Maximum number of iterations for each worker agent in any Chat with Agents mode. Set ``0`` for no application-level iteration limit. Default: ``24``.
 
-* ``Chat primary agent system prompt (custom)``: Replaces the built-in Primary Agent role prompt in Chat mode when non-empty. Leave it empty to keep the built-in prompt. Default: empty.
-
-* ``Orchestrator system prompt (custom)``: Replaces the built-in main Orchestrator role prompt in Orchestrator mode when non-empty. Leave it empty to keep the built-in prompt. Default: empty.
-
-* ``Swarm orchestrator system prompt (custom)``: Replaces the built-in Swarm Orchestrator role prompt in Swarm mode when non-empty. Leave it empty to keep the built-in prompt. Default: empty.
-
-* ``Step-by-step instruction (custom)``: Replaces the built-in step-by-step execution instruction when the ``Step by step`` switch is enabled and this field is non-empty. Leave it empty to keep the built-in instruction. Default: empty.
-
-The four custom prompt fields are placed in **Advanced**. Each includes a ``From defaults`` button that copies the corresponding built-in prompt/instruction into the textarea. If the textarea is already non-empty, PyGPT asks for confirmation before overwriting the current custom text. The copied value is persisted only after saving Settings.
+Main-agent prompt editing is no longer part of the Chat with Agents **Advanced** settings. Use ``Config -> Agent Workflows...`` (or the settings icon next to the toolbox ``Step by step`` switch) to edit the built-in Chat/Orchestrator/Swarm prompt overrides and to create user-defined agent workflows. Existing built-in prompt override keys remain compatible with older profiles. Custom agents are stored separately in ``config.json`` under ``agent.v2.custom_agents``. See :doc:`modes` -> **Chat with Agents / Agent Workflows** for the editor, custom-agent runtime, tool and prompt details.
 
 An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling iteration limits can increase latency, token/API usage, and tool execution. The Chat/Orchestrator worker limit controls the number of workers created in those workflows; ``0`` removes that limit. Swarm is not constrained by this setting and uses its separately declared worker count.
 

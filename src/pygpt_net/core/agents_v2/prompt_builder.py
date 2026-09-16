@@ -37,6 +37,7 @@ class RuntimePromptBuilder:
             base_prompt: str = "",
             additional_system_prompt: Optional[str] = None,
             include_project_rules: bool = False,
+            apply_step_by_step: bool = True,
     ) -> str:
         """Compose the shared Agents v2 runtime envelope around an actor prompt.
 
@@ -56,6 +57,7 @@ class RuntimePromptBuilder:
 
         capabilities = [
             f"agent_mode={self.runtime.agent_mode.value}",
+            f"agent_profile={getattr(self.runtime, 'agent_id', self.runtime.agent_mode.value)}",
             f"selected_model={getattr(self.runtime.model, 'id', '')}",
             f"allow_local_tools={self.runtime.allow_local_tools}",
             f"allow_remote_tools={self.runtime.allow_remote_tools}",
@@ -90,17 +92,20 @@ class RuntimePromptBuilder:
                     + "\n</additional_project_rules>"
                 )
 
-        step_by_step_rules = str(
-            self.runtime.window.core.config.get(
-                CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
-                "",
-            ) or ""
-        ).strip()
-        base = resolve_step_by_step_prompt(
-            base_prompt,
-            bool(getattr(self.runtime, "step_by_step_enabled", False)),
-            step_by_step_rules,
-        ).strip()
+        if apply_step_by_step:
+            step_by_step_rules = str(
+                self.runtime.window.core.config.get(
+                    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
+                    "",
+                ) or ""
+            ).strip()
+            base = resolve_step_by_step_prompt(
+                base_prompt,
+                bool(getattr(self.runtime, "step_by_step_enabled", False)),
+                step_by_step_rules,
+            ).strip()
+        else:
+            base = str(base_prompt or "").strip()
         prefix = (base + "\n\n") if base else ""
         return (
             prefix
@@ -153,7 +158,20 @@ class RuntimePromptBuilder:
         )
 
     def main_agent_prompt(self) -> str:
-        """Return the configured system prompt for the selected runtime strategy."""
+        """Return the configured system prompt for the selected agent profile."""
+        custom = getattr(self.runtime, "agent_definition", None)
+        if custom is not None:
+            base = str(custom.get("system_prompt") or "").strip()
+            if bool(getattr(self.runtime, "step_by_step_enabled", False)):
+                step_prompt = str(custom.get("step_by_step_prompt") or "").strip()
+                if step_prompt:
+                    base = (base + "\n\n" + step_prompt).strip() if base else step_prompt
+            return self.compose_agent_system_prompt(
+                base_prompt=base,
+                include_project_rules=True,
+                apply_step_by_step=False,
+            )
+
         mode = str(getattr(self.runtime.agent_mode, "value", "") or "")
         if mode == "primary_agent":
             return self.primary_agent_prompt()

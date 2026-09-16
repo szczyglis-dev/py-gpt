@@ -129,7 +129,7 @@ Agents Builder (beta)
 
 **Legacy modes only:** Agents Builder is used by the legacy ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` workflows. It is not used by the modern ``Chat with Agents`` mode.
 
-To launch the Agent Editor, navigate to:
+To launch Agents Builder, navigate to:
 
 **Tools -> Agents Builder**
 

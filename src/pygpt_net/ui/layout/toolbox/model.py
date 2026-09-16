@@ -70,6 +70,7 @@ class Model:
         nodes['prompt.model.settings'].setFixedSize(icon_size, icon_size)
         nodes['prompt.model.settings'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         nodes['prompt.model.settings'].setFocusPolicy(Qt.NoFocus)
+        nodes['prompt.model.settings'].setCursor(Qt.PointingHandCursor)
         nodes['prompt.model.settings'].setToolTip(trans('toolbox.model.edit.tooltip'))
         nodes['prompt.model.settings'].clicked.connect(self._open_settings)
 

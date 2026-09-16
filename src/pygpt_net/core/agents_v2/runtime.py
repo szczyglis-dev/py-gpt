@@ -125,7 +125,9 @@ class AgentsV2Runtime:
                 AGENT_MODE_CONFIG_KEY,
                 AGENT_MODE_CONFIG_DEFAULT,
             )
-        self.agent_mode = AgentMode.coerce(requested_mode or AGENT_MODE)
+        self.agent_id, self.agent_mode, self.agent_definition = (
+            self.window.core.agents_v2.editor.resolve_selection(requested_mode or AGENT_MODE)
+        )
         self.strategy = get_agent_strategy(self.agent_mode)
         self.model = context.model
         self.preset = context.preset
@@ -254,6 +256,8 @@ class AgentsV2Runtime:
         self.orchestrator_actor.tool_ctx.set_output("", self.main_agent_name)
         self.verbose.log("RUNTIME INIT", {
             "agent_mode": self.agent_mode.value,
+            "agent_id": self.agent_id,
+            "agent_name": self.main_agent_name,
             "model": getattr(self.model, "id", None),
             "provider": getattr(self.model, "provider", None) if self.model is not None else None,
             "preset": getattr(self.preset, "name", None) or getattr(self.preset, "id", None),
@@ -349,10 +353,14 @@ class AgentsV2Runtime:
 
     @property
     def main_agent_name(self) -> str:
+        if self.agent_definition is not None:
+            return str(self.agent_definition.get("name") or "Custom Agent")
         return self.strategy.main_name
 
     @property
     def main_agent_description(self) -> str:
+        if self.agent_definition is not None:
+            return "Custom Chat with Agents workflow"
         return self.strategy.main_description
 
     def main_event(self, suffix: str) -> str:
