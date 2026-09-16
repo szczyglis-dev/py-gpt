@@ -2557,15 +2557,13 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.8.22 (2026-09-16)**
 
-- Split Context settings into **General**, **Tools**, and **Advanced handling** tabs.
-- Added Agent Workflows for Chat with Agents, including editable built-in prompts and UUID-based custom agent workflows.
-- Added custom Chat with Agents profiles with independent system and Step-by-step prompts using the Orchestrator runtime/tool surface.
-- Added Agent Workflows access from Config and from the Chat with Agents toolbox.
-- Moved Chat with Agents prompt editing out of Settings while preserving existing built-in prompt configuration keys.
-- Added Agent Workflows documentation, help reference, migration support, and translations.
-- Added a direct `Config -> MCP...` shortcut to MCP plugin settings.
-- Added a separate **Restore tool calls in runtime** setting for replaying completed tool protocol during the active in-memory conversation, independently of database storage and restore settings.
-- Added **Display tool calls JSON** in Chats -> Render; disabling it replaces expandable tool input/output blocks with one aggregated live Tool/Tools status.
+- Reorganized Context settings into **General**, **Tools**, and **Advanced handling**.
+- Added **Agent Workflows** for Chat with Agents with editable built-in workflows, custom UUID-based profiles, independent prompts, toolbox/Config access, migration support, documentation, and translations.
+- Moved Chat with Agents prompt editing from Settings to Agent Workflows.
+- Added direct `Config -> MCP...` access to MCP settings.
+- Added **Restore tool calls in runtime**, independent from database storage and history restore.
+- Added **Display tool calls JSON** in Chats -> Render, with aggregated Tool/Tools status when disabled.
+- Improved attachment handling.
 
 **2.8.21 (2026-09-16)**
 

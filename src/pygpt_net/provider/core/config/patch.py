@@ -44,13 +44,6 @@ class Patch:
             current = data['__meta__']['version']
         old = parse_version(current)
 
-        # Backfill render-only options even for profiles already carrying the
-        # current application version (useful during same-release development).
-        key = "ctx.tool_calls.show_json"
-        if key not in data:
-            data[key] = cfg_get_base(key)
-            updated = True
-
         # Remove obsolete global sampling controls even when the stored config
         # already has the current version. They are no longer exposed or sent
         # by PyGPT and should not linger in user config files.
@@ -913,6 +906,12 @@ class Patch:
                 key = "context.tool_calls.restore_runtime"
                 if key not in data:
                     data[key] = True
+                    updated = True
+
+                # Display tool call JSON payloads by default.
+                key = "ctx.tool_calls.show_json"
+                if key not in data:
+                    data[key] = cfg_get_base(key)
                     updated = True
 
         # update file
