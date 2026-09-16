@@ -90,6 +90,14 @@ class Mapping:
         except Exception:
             pass
 
+        # The token-counter tooltip contains live values, so it cannot be
+        # represented by one static mapping key. Rebuild it after a locale
+        # switch to refresh both translated labels and current token counts.
+        try:
+            self.window.controller.ui.update_tokens()
+        except Exception:
+            pass
+
         tab_tools = self.window.controller.tools.get_tab_tools()
         t = trans
         for k, v in tab_tools.items():
@@ -449,7 +457,6 @@ class Mapping:
         dialog_title['tool.indexer'] = 'tool.indexer.title'
 
         tooltips = {}
-        tooltips['input.counter'] = 'tip.tokens.input'
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
         tooltips['icon.video.capture'] = 'icon.video.capture'

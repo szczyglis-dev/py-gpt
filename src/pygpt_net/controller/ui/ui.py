@@ -48,6 +48,7 @@ class UI:
         self.splitter_output_size_files = None
 
         self._last_input_string = None
+        self._last_input_counter_tooltip = None
         self._last_chat_model = None
         self._last_chat_label = None
 
@@ -196,10 +197,26 @@ class UI:
         else:
             max_str = "∞"
 
-        input_string = f"{short_num(input_tokens)} + {short_num(system_tokens)} + {short_num(ctx_tokens)} + {short_num(extra_tokens)} + {short_num(attachments_tokens)} = {short_num(sum_tokens)} / {max_str}"
+        input_string = f"~ {short_num(sum_tokens)} / {max_str}"
         if input_string != self._last_input_string:
             ui_nodes['input.counter'].setText(input_string)
             self._last_input_string = input_string
+
+        # Keep the footer compact and move the detailed estimated-token
+        # breakdown into the tooltip. Use the same compact k/M/B formatting
+        # in both places. The leading '~' on TOTAL marks the estimate.
+        tooltip_max = short_num(max_current) if max_current > 0 else "∞"
+        tooltip = (
+            f"{trans('tip.tokens.system_prompt')}: {short_num(system_tokens)}\n"
+            f"{trans('tip.tokens.user_input')}: {short_num(input_tokens)}\n"
+            f"{trans('tip.tokens.context')}: {short_num(ctx_tokens)}\n"
+            f"{trans('tip.tokens.attachment')}: {short_num(attachments_tokens)}\n"
+            f"{trans('tip.tokens.extra')}: {short_num(extra_tokens)}\n\n"
+            f"{trans('tip.tokens.total')}: ~ {short_num(sum_tokens)} / {tooltip_max}"
+        )
+        if tooltip != self._last_input_counter_tooltip:
+            ui_nodes['input.counter'].setToolTip(tooltip)
+            self._last_input_counter_tooltip = tooltip
 
         # Update Input tab tooltip with live "<chars> chars (~<tokens> tokens)" string
         try:
