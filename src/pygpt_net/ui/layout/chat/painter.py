@@ -215,7 +215,8 @@ class Painter:
 
         if nodes.get('painter.btn.clear') is None:
             btn = QPushButton(QIcon(":/icons/close.svg"), trans('painter.btn.clear'))
-            btn.clicked.connect(ui.painter.clear_image)
+            # Use the same undo-aware path as the Painter context-menu Clear action.
+            btn.clicked.connect(ui.painter.action_clear)
             nodes['painter.btn.clear'] = btn
         top.addWidget(nodes['painter.btn.clear'])
 
