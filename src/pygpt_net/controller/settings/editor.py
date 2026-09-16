@@ -205,6 +205,17 @@ class Editor:
                 self.config_changed('ctx.reasoning.hide_after_response')):
             self.window.controller.chat.render.reload()
 
+        # Response timestamps are now configured in Chats -> Render and apply
+        # only to the plain-text renderer. Refresh them immediately when that
+        # renderer is active; normal Web/Markdown output intentionally ignores
+        # this setting.
+        if (self.config_changed('output_timestamp')
+                and self.window.core.config.get('render.plain')):
+            self.window.controller.chat.common.apply_timestamp(
+                bool(self.window.core.config.get('output_timestamp')),
+                initialized=True,
+            )
+
         # update global shortcuts
         if self.config_changed('access.shortcuts'):
             self.window.setup_global_shortcuts()

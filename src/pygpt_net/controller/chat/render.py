@@ -699,7 +699,6 @@ class Render:
             self.renderer = self.markdown_renderer
 
         if plain:
-            nodes['output.timestamp'].setVisible(True)
             outputs = nodes.get('output', {})
             outputs_plain = nodes.get('output_plain', {})
             for pid, w_plain in outputs_plain.items():
@@ -711,7 +710,6 @@ class Render:
                 except Exception:
                     continue
         else:
-            nodes['output.timestamp'].setVisible(False)
             # Apply the current theme to the renderer that is becoming active.
             self.window.controller.theme.markdown.update(force=True)
             outputs = nodes.get('output', {})

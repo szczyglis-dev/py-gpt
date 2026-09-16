@@ -277,7 +277,8 @@ class Body:
 
         :return: True if enabled, False otherwise.
         """
-        return self.window.core.config.get('output_timestamp')
+        config = self.window.core.config
+        return bool(config.get('render.plain') and config.get('output_timestamp'))
 
     def prepare_styles(self) -> str:
         """

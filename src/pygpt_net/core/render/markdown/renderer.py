@@ -621,7 +621,8 @@ class Renderer(BaseRenderer):
 
         :return: True if timestamp is enabled
         """
-        return self.window.core.config.get('output_timestamp')
+        config = self.window.core.config
+        return bool(config.get('render.plain') and config.get('output_timestamp'))
 
     def get_output_node(self, meta: CtxMeta) -> ChatOutput:
         """

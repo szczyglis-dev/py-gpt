@@ -1310,6 +1310,34 @@
     "step": null,
     "advanced": false
   },
+  "stream": {
+    "section": "ctx",
+    "tab": "render",
+    "type": "bool",
+    "slider": false,
+    "label": "input.stream",
+    "description": "settings.stream.desc",
+    "value": true,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "advanced": false
+  },
+  "output_timestamp": {
+    "section": "ctx",
+    "tab": "render",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.output_timestamp",
+    "description": "settings.output_timestamp.desc",
+    "value": false,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "advanced": false
+  },
   "ctx.sources": {
     "section": "ctx",
     "tab": "render",

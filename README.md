@@ -2355,6 +2355,8 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Agents and experts:** Chat with Agents, Agents, Autonomous, Legacy
 - **Security:** General, Computer use, Linux, Windows, macOS
 
+In **Chats -> Render**, **Stream** controls whether answers are displayed while they are being generated, and **Show time in plain text mode** controls response timestamps for the plain-text renderer. Plain-text mode itself is toggled with the first `text` icon in the input-tab icon row; its tooltip changes between **Switch to plain text** and **Switch to normal view** depending on the active renderer.
+
 The **Embeddings** tab uses the selected global provider plus `Default embedding models`; its global `**kwargs` and `ENV` fields are optional overrides placed in **Advanced**, not required credentials/model configuration.
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:

@@ -255,6 +255,12 @@ List
 Render
 ^^^^^^
 
+* ``Stream``: Streams model responses as they are generated instead of waiting for the complete answer before displaying it. Disable it to wait for the full response. Default: True.
+
+* ``Show time in plain text mode``: Shows timestamps next to messages when the plain-text renderer is active. Default: False.
+
+The plain-text renderer itself is switched on or off with the ``text`` icon in the input-tab icon row. The icon tooltip changes between ``Switch to plain text`` and ``Switch to normal view`` according to the active renderer.
+
 * ``Show RAG sources``: Appends source nodes/documents returned by RAG retrieval to the rendered answer when source metadata is available. Default: True.
 
 * ``Show Code Interpreter output``: Displays execution results returned by provider-side Code Interpreter tools as part of the conversation. Default: True.

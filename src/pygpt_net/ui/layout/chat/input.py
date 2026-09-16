@@ -13,7 +13,7 @@ from functools import partial
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QWidget, \
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QRadioButton, QWidget, \
     QGridLayout, QSizePolicy, QLabel
 
 from pygpt_net.ui.layout.chat.attachments import Attachments
@@ -200,7 +200,7 @@ class Input:
 
         Row 1:
         - left: chat metadata,
-        - right: Plain text + Stream / Enter / Shift+Enter / Send.
+        - right: Enter / Shift+Enter / Send.
 
         Capability/tool icons are displayed in the input tab bar row.
 
@@ -297,6 +297,10 @@ class Input:
         ctrl = self.window.controller
         tools = self.window.tools
 
+        nodes['icon.plain'] = IconLabel(":/icons/text.svg", window=self.window)
+        nodes['icon.plain'].clicked.connect(ctrl.chat.common.toggle_plain_view)
+        ctrl.chat.common.update_plain_view_tooltip()
+
         nodes['icon.video.capture'] = IconLabel(":/icons/webcam.svg", window=self.window)
         nodes['icon.video.capture'].setToolTip(trans("icon.video.capture"))
         nodes['icon.video.capture'].clicked.connect(lambda: ctrl.camera.toggle_capture())
@@ -329,12 +333,6 @@ class Input:
 
         nodes['chat.plugins'] = ChatStatusLabel("")
         nodes['chat.plugins'].setSizePolicy(min_policy)
-
-        nodes['output.timestamp'] = QCheckBox(trans('output.timestamp'))
-        nodes['output.timestamp'].toggled.connect(ctrl.chat.common.toggle_timestamp)
-
-        nodes['output.raw'] = QCheckBox(trans('output.raw'))
-        nodes['output.raw'].toggled.connect(ctrl.chat.common.toggle_raw)
 
         nodes['input.counter'] = ChatStatusLabel("")
         nodes['input.counter'].setToolTip(trans('tip.tokens.input'))
@@ -398,6 +396,7 @@ class Input:
         # the bottom inset shifts the icons without changing their size.
         layout.setContentsMargins(6, 0, 4, 6)
         layout.setSpacing(5)
+        layout.addWidget(nodes['icon.plain'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.video.capture'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.audio.input'], alignment=Qt.AlignVCenter)
@@ -424,9 +423,6 @@ class Input:
         nodes['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
         nodes['input.send_shift_enter'].toggled.connect(partial(self._on_send_mode_toggled, 2))
 
-        nodes['input.stream'] = QCheckBox(trans('input.stream'))
-        nodes['input.stream'].toggled.connect(controller.chat.common.toggle_stream)
-
         nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
         nodes['input.send_btn'].clicked.connect(controller.chat.input.send_input)
 
@@ -445,9 +441,6 @@ class Input:
         nodes['ui.input.buttons'] = QHBoxLayout()
         nodes['ui.input.buttons'].setContentsMargins(0, 0, 0, 0)
         nodes['ui.input.buttons'].setSpacing(6)
-        nodes['ui.input.buttons'].addWidget(nodes['output.timestamp'], alignment=Qt.AlignVCenter)
-        nodes['ui.input.buttons'].addWidget(nodes['output.raw'], alignment=Qt.AlignVCenter)
-        nodes['ui.input.buttons'].addWidget(nodes['input.stream'], alignment=Qt.AlignVCenter)
         nodes['ui.input.buttons'].addWidget(nodes['input.send_enter'], alignment=Qt.AlignVCenter)
         nodes['ui.input.buttons'].addWidget(nodes['input.send_shift_enter'], alignment=Qt.AlignVCenter)
         nodes['ui.input.buttons'].addWidget(nodes['input.send_btn'], alignment=Qt.AlignVCenter)

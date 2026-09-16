@@ -300,10 +300,8 @@ class Mode:
             ui_nodes['idx.options'].setVisible(False)
 
         if is_media:
-            ui_nodes['input.stream'].setVisible(False)
             ui_nodes['input.counter'].setVisible(False)
         else:
-            ui_nodes['input.stream'].setVisible(True)
             ui_nodes['input.counter'].setVisible(True)
 
         show = self.is_vision(mode)

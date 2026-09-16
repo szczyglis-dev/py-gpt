@@ -83,6 +83,13 @@ class Mapping:
         self._apply_tooltips(m['tooltip'], ui.nodes)
         self._apply_map(m['placeholder'], ui.nodes, 'placeholderText', 'setPlaceholderText')
 
+        # Plain-text toggle uses a state-dependent tooltip, so refresh it
+        # after every locale mapping pass instead of assigning one static key.
+        try:
+            self.window.controller.chat.common.update_plain_view_tooltip()
+        except Exception:
+            pass
+
         tab_tools = self.window.controller.tools.get_tab_tools()
         t = trans
         for k, v in tab_tools.items():
@@ -109,9 +116,7 @@ class Mapping:
         nodes = {}
 
         # output
-        nodes['output.timestamp'] = 'output.timestamp'
         nodes['output.edit'] = 'output.edit'
-        nodes['output.raw'] = 'output.raw'
 
         # painter
         nodes['painter.btn.brush'] = 'painter.mode.paint'
@@ -161,7 +166,6 @@ class Mapping:
         nodes['input.update_btn'] = 'input.btn.update'
         nodes['input.cancel_btn'] = 'input.btn.cancel'
         nodes['input.stop_btn'] = 'input.btn.stop'
-        nodes['input.stream'] = 'input.stream'
 
         # interpreter
         nodes['interpreter.all'] = 'interpreter.all'

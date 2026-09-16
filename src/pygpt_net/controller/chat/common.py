@@ -44,12 +44,6 @@ class Common:
         nodes = self.window.ui.nodes
         config = self.window.core.config
 
-        # stream mode
-        if config.get('stream'):
-            nodes['input.stream'].setChecked(True)
-        else:
-            nodes['input.stream'].setChecked(False)
-
         # send with enter/shift
         mode = config.get('send_mode')
         if mode not in (1, 2):
@@ -70,35 +64,14 @@ class Common:
         else:
             nodes['cmd.enabled'].setChecked(False)
 
-        # output timestamps
-        is_timestamp = config.get('output_timestamp')
-        nodes['output.timestamp'].setChecked(is_timestamp)
-        if is_timestamp:
-            data = {
-                "initialized": self.initialized,
-            }
-            event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
-            self.window.dispatch(event)
+        # Output timestamps are a plain-text renderer option. The setting now
+        # lives in Settings -> Chats -> Render rather than in the input footer.
+        if config.get('render.plain') and config.get('output_timestamp'):
+            self.apply_timestamp(True, initialized=self.initialized)
 
-        # raw (plain) output
-        plain = config.get('render.plain')
-        nodes['output.raw'].setChecked(plain)
-        if plain:
-            nodes['output.timestamp'].setVisible(True)
-            for pid in nodes['output']:
-                try:
-                    nodes['output'][pid].setVisible(False)
-                    nodes['output_plain'][pid].setVisible(True)
-                except Exception as e:
-                    pass
-        else:
-            nodes['output.timestamp'].setVisible(False)
-            for pid in nodes['output']:
-                try:
-                    nodes['output'][pid].setVisible(True)
-                    nodes['output_plain'][pid].setVisible(False)
-                except Exception as e:
-                    pass
+        # Plain/normal output selection is controlled by the text icon in the
+        # input tab header. Renderer visibility is synchronized by ON_SWITCH.
+        self.update_plain_view_tooltip()
 
         event = RenderEvent(RenderEvent.ON_SWITCH)
         self.window.dispatch(event)  # switch renderer if needed
@@ -381,22 +354,23 @@ class Common:
                     return False
         return True
 
-    def toggle_timestamp(self, value: bool):
-        """
-        Toggle timestamp display
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('output_timestamp', value)
-        self.window.core.config.save()
+    def apply_timestamp(self, value: bool, initialized: bool = True):
+        """Apply the plain-text timestamp setting to the active renderer."""
         data = {
-            "initialized": True
+            "initialized": initialized,
         }
         if value:
             event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
         else:
             event = RenderEvent(RenderEvent.ON_TS_DISABLE, data)
         self.window.dispatch(event)
+
+    def toggle_timestamp(self, value: bool):
+        """Persist and apply the plain-text timestamp setting."""
+        self.window.core.config.set('output_timestamp', value)
+        self.window.core.config.save()
+        if self.window.core.config.get('render.plain'):
+            self.apply_timestamp(value, initialized=True)
 
     def toggle_edit_icons(self, value: bool):
         """
@@ -415,25 +389,29 @@ class Common:
             event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
         self.window.dispatch(event)
 
-    def toggle_raw(self, value: bool):
-        """
-        Toggle raw (plain) output
+    def update_plain_view_tooltip(self):
+        """Update the text-view toggle tooltip for the current renderer mode."""
+        node = self.window.ui.nodes.get('icon.plain')
+        if node is None:
+            return
+        if self.window.core.config.get('render.plain'):
+            node.setToolTip(trans('icon.plain.switch_to_normal'))
+        else:
+            node.setToolTip(trans('icon.plain.switch_to_plain'))
 
-        :param value: value of the checkbox
-        """
+    def toggle_plain_view(self):
+        """Switch between normal Web/Markdown output and plain-text output."""
+        value = not bool(self.window.core.config.get('render.plain'))
+        self.toggle_raw(value)
+
+    def toggle_raw(self, value: bool):
+        """Toggle raw (plain-text) output."""
         self.window.core.config.set('render.plain', value)
         self.window.core.config.save()
 
-        # update checkbox in settings dialog
-        self.window.controller.config.checkbox.apply(
-            'config',
-            'render.plain',
-            {
-                'value': value
-            },
-        )
         event = RenderEvent(RenderEvent.ON_SWITCH)
         self.window.dispatch(event)
+        self.update_plain_view_tooltip()
 
         # restore previous font size
         self.window.controller.ui.update_font_size()
