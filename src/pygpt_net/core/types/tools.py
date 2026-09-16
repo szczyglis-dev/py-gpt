@@ -15,6 +15,7 @@ from typing import Any, Optional
 
 TOOL_CALL_STORAGE_CONFIG_KEY = "context.tool_calls.store"
 TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY = "context.tool_calls.restore"
+TOOL_CALL_RUNTIME_RESTORE_CONFIG_KEY = "context.tool_calls.restore_runtime"
 CTX_TOOL_HISTORY_EXTRA_KEY = "tool_history"
 TOOL_CALL_STORAGE_TRUNCATE_CHARS = 20
 TOOL_CALL_STORAGE_TRUNCATE_SUFFIX = "...."

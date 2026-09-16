@@ -1045,9 +1045,11 @@ The available modes are:
 - `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved.
 - `Store full input/output` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
 
-The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence; an active multi-step tool execution continues to use the complete in-memory request and result.
+The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence.
 
-By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore the previous replay behavior, enable **Restore tool calls from history** in `Settings -> Context`. This option requires **Store full input/output**; it is ignored when tool calls are not stored or are stored truncated.
+**Restore tool calls in runtime** controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
+
+By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore persisted tool protocol after reloading a conversation, enable **Restore tool calls from history** in `Settings -> Context`. This option applies only to history restored from the database, requires **Store full input/output**, and is ignored when tool calls are not stored or are stored truncated.
 
 Once a conversation begins, a title for the chat is generated and displayed on the list to the left. This process is similar to `ChatGPT`, where the subject of the conversation is summarized, and a title for the thread is created based on that summary. You can change the name of the thread at any time.
 
@@ -2560,6 +2562,7 @@ may consume additional tokens that are not displayed in the main window.
 - Moved Chat with Agents prompt editing out of Settings while preserving existing built-in prompt configuration keys.
 - Added Agent Workflows documentation, help reference, migration support, and translations.
 - Added a direct `Config -> MCP...` shortcut to MCP plugin settings.
+- Added a separate **Restore tool calls in runtime** setting for replaying completed tool protocol during the active in-memory conversation, independently of database storage and restore settings.
 
 **2.8.21 (2026-09-16)**
 

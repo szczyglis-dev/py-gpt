@@ -1499,6 +1499,20 @@
       }
     ]
   },
+  "context.tool_calls.restore_runtime": {
+    "section": "context",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.context.tool_calls.restore_runtime",
+    "description": "settings.context.tool_calls.restore_runtime.desc",
+    "value": true,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "secret": false,
+    "advanced": false
+  },
   "context.tool_calls.restore": {
     "section": "context",
     "type": "bool",

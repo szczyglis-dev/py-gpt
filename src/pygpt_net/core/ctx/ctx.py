@@ -36,6 +36,7 @@ from pygpt_net.core.types import (
     PERSIST_HIDDEN_TOOL_CALLS,
     CTX_TOOL_HISTORY_EXTRA_KEY,
     TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY,
+    TOOL_CALL_RUNTIME_RESTORE_CONFIG_KEY,
     TOOL_CALL_STORAGE_CONFIG_KEY,
     ToolCallStorageMode,
     should_persist_ctx_partials,
@@ -2191,43 +2192,71 @@ class Ctx:
         except (AttributeError, RuntimeError):
             return False
 
+    def should_restore_tool_calls_in_runtime(self) -> bool:
+        """Return whether completed live turns may replay tool protocol.
+
+        This setting applies only to turns that still belong to the active
+        in-memory conversation. It is intentionally independent from durable
+        database storage and restore policies.
+        """
+        try:
+            return bool(self.window.core.config.get(
+                TOOL_CALL_RUNTIME_RESTORE_CONFIG_KEY,
+                True,
+            ))
+        except (AttributeError, RuntimeError):
+            return True
+
     def expand_history(
             self,
             history_items: List[CtxItem],
             target_mode: Optional[str] = None,
             active_continuation_parent: Optional[CtxItem] = None,
     ) -> List[CtxItem]:
-        """Project durable turns to provider history.
+        """Project conversation turns to provider-facing history.
 
-        By default completed turns are flattened to conversational history and
-        persisted tool protocol is not replayed. The Context setting
-        ``Restore tool calls from history`` can opt back into the previous replay
-        behaviour, but only while full tool input/output storage is enabled. The
+        Runtime items (``CtxItem.live``) may keep their complete tool-call/result
+        protocol across subsequent turns for as long as the conversation remains
+        in memory. This is controlled independently by ``Restore tool calls in
+        runtime`` and is not affected by the database storage policy.
+
+        Items restored from durable history have ``live == False``. For those
+        items, persisted tool protocol is replayed only when ``Restore tool calls
+        from history`` is enabled and full tool input/output was stored. The
         durable parent of the *current* ephemeral continuation is always expanded
-        because it still owns the complete runtime protocol required to finish
-        the in-flight tool loop.
+        because it owns the complete runtime protocol required to finish the
+        in-flight tool loop.
         """
         result: List[CtxItem] = []
         restore_persisted_tools = self.should_restore_tool_calls_from_history()
+        restore_runtime_tools = self.should_restore_tool_calls_in_runtime()
         for item in history_items:
             is_active_continuation = (
                 active_continuation_parent is not None
                 and item is active_continuation_parent
             )
+            is_live_runtime_item = bool(getattr(item, "live", False))
             interrupted = self.is_response_interrupted(item)
             incomplete_tool_protocol = self.has_pending_provider_tool_calls(item)
+            if is_active_continuation:
+                replay_config_allows = True
+            elif is_live_runtime_item:
+                replay_config_allows = restore_runtime_tools
+            else:
+                replay_config_allows = restore_persisted_tools
+
             replay_allowed = (
-                (is_active_continuation or restore_persisted_tools)
+                replay_config_allows
                 and not interrupted
                 and (is_active_continuation or not incomplete_tool_protocol)
             )
             if replay_allowed:
                 result.extend(self._expand_live_history_item(item, target_mode=target_mode))
             else:
-                # Interrupted/incomplete historical tool rounds are always flattened,
-                # even when persisted tool-call replay is enabled. The *active*
-                # continuation remains exempt because it owns the runtime protocol
-                # that is currently being completed.
+                # Interrupted/incomplete historical tool rounds are always flattened.
+                # The active continuation is exempt because it owns the runtime
+                # protocol currently being completed. Loaded DB items are also
+                # flattened unless explicit persisted-tool replay is enabled.
                 result.extend(self.expand_history_item(item, target_mode=target_mode))
         return result
 

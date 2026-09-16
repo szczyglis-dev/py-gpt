@@ -900,6 +900,14 @@ class Patch:
                     data[key] = copy.deepcopy(cfg_get_base(key) or [])
                     updated = True
 
+                # Keep the live in-memory behaviour introduced in 2.8.22
+                # explicit and configurable. Existing profiles default to replaying
+                # completed tool protocol during the active conversation.
+                key = "context.tool_calls.restore_runtime"
+                if key not in data:
+                    data[key] = True
+                    updated = True
+
         # update file
         migrated = False
         if updated:
