@@ -287,7 +287,10 @@ def test_is_timestamp_enabled(mock_window):
     """Test is timestamp enabled"""
     render = Render(mock_window)
     mock_window.core.config.data['output_timestamp'] = True
+    mock_window.core.config.data['render.plain'] = True
     assert render.is_timestamp_enabled() is True
+    mock_window.core.config.data['render.plain'] = False
+    assert render.is_timestamp_enabled() is False
 
 
 def test_get_input_node(mock_window):

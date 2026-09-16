@@ -27,8 +27,13 @@ def _window():
 def test_info_initial_state_contains_known_dialog_ids():
     info = Info(_window())
 
-    assert info.ids == ["about", "changelog", "license"]
-    assert info.active == {"about": False, "changelog": False, "license": False}
+    assert info.ids == ["about", "changelog", "license", "system_info"]
+    assert info.active == {
+        "about": False,
+        "changelog": False,
+        "license": False,
+        "system_info": False,
+    }
 
 
 def test_info_toggle_opens_about_and_prepares_content():
@@ -41,6 +46,19 @@ def test_info_toggle_opens_about_and_prepares_content():
     window.ui.dialogs.about.prepare.assert_called_once_with()
     window.ui.dialogs.open.assert_called_once_with("info.about", width=640, height=480)
     assert info.active["about"] is True
+    info.update_menu.assert_called_once_with()
+
+
+def test_info_toggle_opens_system_info_and_prepares_content():
+    window = _window()
+    info = Info(window)
+    info.update_menu = MagicMock()
+
+    info.toggle("system_info", width=620, height=440)
+
+    window.ui.dialogs.system_info.prepare.assert_called_once_with()
+    window.ui.dialogs.open.assert_called_once_with("info.system_info", width=620, height=440)
+    assert info.active["system_info"] is True
     info.update_menu.assert_called_once_with()
 
 

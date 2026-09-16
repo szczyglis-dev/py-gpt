@@ -46,12 +46,11 @@ def test_chat_common_setup_migrates_invalid_send_mode_and_dispatches_renderer_sw
     common.setup()
 
     common.window.core.config.set.assert_called_once_with("send_mode", 1)
-    common.window.ui.nodes["input.stream"].setChecked.assert_called_once_with(True)
+    common.window.ui.nodes["input.stream"].setChecked.assert_not_called()
     common.window.ui.nodes["input.send_enter"].setChecked.assert_called_once_with(True)
     common.window.ui.nodes["input.send_shift_enter"].setChecked.assert_called_once_with(False)
     events = [c.args[0] for c in common.window.dispatch.call_args_list]
-    assert events[0].name == RenderEvent.ON_TS_ENABLE
-    assert events[-1].name == RenderEvent.ON_SWITCH
+    assert [event.name for event in events] == [RenderEvent.ON_SWITCH]
     common.window.ui.nodes["input"].setFocus.assert_called_once_with()
     assert common.initialized is True
 
@@ -266,12 +265,15 @@ def test_chat_common_toggle_render_options_dispatch_expected_events():
     event = common.window.dispatch.call_args.args[0]
     assert event.name == RenderEvent.ON_EDIT_DISABLE
 
+    # Isolate persistence performed by toggle_raw(); the previous toggles
+    # also persist their respective config changes.
+    common.window.core.config.save.reset_mock()
     common.toggle_raw(True)
     event = common.window.dispatch.call_args.args[0]
     assert event.name == RenderEvent.ON_SWITCH
-    common.window.controller.config.checkbox.apply.assert_called_once_with(
-        "config", "render.plain", {"value": True}
-    )
+    common.window.core.config.set.assert_called_with("render.plain", True)
+    common.window.core.config.save.assert_called_once_with()
+    common.window.controller.config.checkbox.apply.assert_not_called()
     common.window.controller.ui.update_font_size.assert_called_once_with()
 
 

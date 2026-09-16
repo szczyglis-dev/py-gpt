@@ -79,10 +79,17 @@ def body_instance(fake_window):
     return b
 
 def test_is_timestamp_enabled():
-    config_data = {"app_path": "/fake/app", "output_timestamp": True}
+    config_data = {"app_path": "/fake/app", "output_timestamp": True, "render.plain": True}
     win = FakeWindow(config_data)
     b = Body(win)
     assert b.is_timestamp_enabled() is True
+
+    config_data["render.plain"] = False
+    win = FakeWindow(config_data)
+    b = Body(win)
+    assert b.is_timestamp_enabled() is False
+
+    config_data["render.plain"] = True
     config_data["output_timestamp"] = False
     win = FakeWindow(config_data)
     b = Body(win)

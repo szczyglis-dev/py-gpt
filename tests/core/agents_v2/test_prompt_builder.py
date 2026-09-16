@@ -23,6 +23,12 @@ def make_runtime():
         max_workers_configured=4,
         is_swarm_mode=False,
         runtime_system_context="filesystem instructions",
+        step_by_step_enabled=False,
+        window=SimpleNamespace(
+            core=SimpleNamespace(
+                config=SimpleNamespace(get=MagicMock(return_value="")),
+            ),
+        ),
         strategy=get_agent_strategy(AgentMode.PRIMARY_AGENT),
     )
     runtime._rag_prompt_context = MagicMock(return_value="<rag_context>retrieved</rag_context>")

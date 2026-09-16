@@ -89,7 +89,7 @@ def test_lang_mapping_get_mapping_contains_expected_sections_and_stable_keys():
         "tooltip",
         "placeholder",
     }
-    assert result["nodes"]["output.timestamp"] == "output.timestamp"
+    assert "output.timestamp" not in result["nodes"]
     assert result["nodes"]["input.send_btn"] == "input.btn.send"
     assert result["menu.title"]["menu.theme"] == "menu.theme"
     assert result["dialog.title"]["info.about"] == "dialog.about.title"

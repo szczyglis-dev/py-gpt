@@ -438,7 +438,8 @@ def test_assistant_snapshot_prefers_parts_and_worker_context_without_raw_tool_pa
         output="fallback",
     )
 
-    snapshot = ContextManager._assistant_snapshot(item)
+    manager = make_manager()
+    snapshot = manager._assistant_snapshot(item)
 
     assert snapshot == "step\n\n[Coder] patched\n\n[Researcher] found"
 
@@ -451,8 +452,9 @@ def test_assistant_snapshot_falls_back_to_agent_response_then_output():
         parts=[], output="raw", get_agents_v2_response_output=lambda: "",
     )
 
-    assert ContextManager._assistant_snapshot(with_agent) == "agent final"
-    assert ContextManager._assistant_snapshot(without_agent) == "raw"
+    manager = make_manager()
+    assert manager._assistant_snapshot(with_agent) == "agent final"
+    assert manager._assistant_snapshot(without_agent) == "raw"
 
 
 def test_build_snapshot_uses_durable_input_and_assistant_state_only():

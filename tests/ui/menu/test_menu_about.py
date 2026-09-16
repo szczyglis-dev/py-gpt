@@ -23,7 +23,7 @@ def test_setup_registers_info_and_donate_actions_and_menus():
         menuBar=MagicMock(),
     )
     window.menuBar.return_value.addMenu.return_value = about_menu
-    actions = [_action() for _ in range(15)]
+    actions = [_action() for _ in range(16)]
 
     with patch("pygpt_net.ui.menu.about.QAction", side_effect=actions) as action_cls, \
          patch("pygpt_net.ui.menu.about.QIcon", return_value=MagicMock()), \
@@ -35,7 +35,7 @@ def test_setup_registers_info_and_donate_actions_and_menus():
     expected = {
         "info.about", "info.changelog", "info.updates", "info.report", "info.website", "info.docs",
         "info.pypi", "info.snap", "info.ms_store", "info.github", "info.discord", "info.license",
-        "donate.coffee", "donate.paypal", "donate.github", "menu.about", "menu.donate",
+        "info.system_info", "donate.coffee", "donate.paypal", "donate.github", "menu.about", "menu.donate",
     }
     assert expected <= set(window.ui.menu)
     assert window.ui.menu["menu.about"] is about_menu
@@ -53,7 +53,7 @@ def test_setup_callbacks_dispatch_to_info_controller_and_launcher():
         menuBar=MagicMock(),
     )
     window.menuBar.return_value.addMenu.return_value = about_menu
-    actions = [_action() for _ in range(15)]
+    actions = [_action() for _ in range(16)]
     with patch("pygpt_net.ui.menu.about.QAction", side_effect=actions) as action_cls, \
          patch("pygpt_net.ui.menu.about.QIcon", return_value=MagicMock()), \
          patch("pygpt_net.ui.menu.about.trans", side_effect=lambda key: key):
@@ -66,12 +66,14 @@ def test_setup_callbacks_dispatch_to_info_controller_and_launcher():
 
     fire("info.about")
     fire("info.license")
+    fire("info.system_info")
     fire("info.updates")
     fire("info.docs")
     fire("donate.github")
 
     info.toggle.assert_any_call("about", width=400, height=500)
     info.toggle.assert_any_call("license", width=500, height=480)
+    info.toggle.assert_any_call("system_info", width=620, height=440)
     launcher.check_updates.assert_called_once()
     info.goto_docs.assert_called_once()
     info.donate.assert_called_once_with("github")

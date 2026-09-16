@@ -9,7 +9,7 @@
 # Updated Date: 2024.01.28 12:00:00                  #
 # ================================================== #
 
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 from tests.mocks import mock_window
 from pygpt_net.controller import UI
@@ -75,10 +75,13 @@ def test_update_tokens(mock_window):
     mock_window.controller.chat.attachment.get_current_tokens = MagicMock(return_value=0)
     ui = UI(mock_window)
     ui.update_tokens()
-    mock_window.core.config.set("lang", "en")
-    mock_window.ui.nodes['input.counter'].setText.assert_has_calls([
-        call('133 + 222 + 41 + 35 + 0 = 71 / 822')
-    ])  # must have EN lang in config to pass!!!!!!!!
+    mock_window.ui.nodes['input.counter'].setText.assert_called_once_with('~ 71 / 822')
+    tooltip = mock_window.ui.nodes['input.counter'].setToolTip.call_args.args[0]
+    assert "222" in tooltip
+    assert "133" in tooltip
+    assert "41" in tooltip
+    assert "35" in tooltip
+    assert "~ 71 / 822" in tooltip
 
 
 def test_store_state(mock_window):
