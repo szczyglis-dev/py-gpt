@@ -36,7 +36,13 @@ class Banner:
 
     @Slot(object)
     def set_items(self, items: List[Dict[str, Any]]):
-        items = list(items or [])
+        # A banner record without a downloaded image is not displayable. Do not
+        # create the fixed-height widget for such records, otherwise the toolbox
+        # keeps an empty 36 px slot even though no banner is visible.
+        items = [
+            item for item in list(items or [])
+            if self._is_displayable(item)
+        ]
         if not items:
             self._remove_widget()
             return
@@ -59,17 +65,35 @@ class Banner:
 
         self.widget.set_items(items)
 
+    @staticmethod
+    def _is_displayable(item: Dict[str, Any]) -> bool:
+        """Return True only when the banner has an image Qt can render."""
+        path = str(item.get("path") or "")
+        if not path or not os.path.isfile(path):
+            return False
+        if path.lower().endswith(".gif"):
+            return QMovie(path).isValid()
+        return not QPixmap(path).isNull()
+
     def _remove_widget(self):
         if self.widget is None:
             self.window.ui.nodes.pop("toolbox.banner", None)
             return
 
         self.widget.stop()
+        self.widget.hide()
         if self.layout is not None:
             self.layout.removeWidget(self.widget)
+        self.widget.setParent(None)
         self.window.ui.nodes.pop("toolbox.banner", None)
         self.widget.deleteLater()
         self.widget = None
+
+        # Recalculate the toolbox immediately so Mode moves to the top as soon
+        # as the last banner disappears instead of keeping stale layout space.
+        if self.layout is not None:
+            self.layout.invalidate()
+            self.layout.activate()
 
 
 class BannerWidget(QLabel):
