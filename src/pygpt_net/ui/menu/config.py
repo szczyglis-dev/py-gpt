@@ -53,6 +53,12 @@ class Config:
             lambda: w.controller.agents_v2.editor.toggle_editor()
         )
 
+        m['config.mcp'] = QAction(icon_settings, tr("menu.config.mcp"), w)
+        m['config.mcp'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.mcp'].triggered.connect(
+            lambda: w.controller.plugins.settings.open_plugin('mcp')
+        )
+
         m['config.access'] = QAction(icon_access, tr("menu.config.access"), w)
         m['config.access'].setMenuRole(QAction.MenuRole.NoRole)
 
@@ -134,6 +140,7 @@ class Config:
         menu.addAction(m['config.settings'])
         menu.addMenu(m['config.models'])
         menu.addAction(m['config.agents'])
+        menu.addAction(m['config.mcp'])
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])

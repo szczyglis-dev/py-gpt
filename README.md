@@ -1825,6 +1825,8 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#memory-inline
 
 With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Model Context Protocol` servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server. Tool discovery caching is enabled by default with a 300-second TTL.
 
+To configure MCP connections, open `Config -> MCP...` for a direct shortcut, or use `Plugins -> Settings -> MCP`. Both open the same MCP plugin settings. Use either path when connecting PyGPT to an external service or tool server through MCP.
+
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
 ## Mouse and keyboard
@@ -2557,6 +2559,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added Agent Workflows access from Config and from the Chat with Agents toolbox.
 - Moved Chat with Agents prompt editing out of Settings while preserving existing built-in prompt configuration keys.
 - Added Agent Workflows documentation, help reference, migration support, and translations.
+- Added a direct `Config -> MCP...` shortcut to MCP plugin settings.
 
 **2.8.21 (2026-09-16)**
 

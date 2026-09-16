@@ -70,12 +70,22 @@ class Settings:
 
     def open_plugin(self, id: str):
         """
-        Open plugin settings dialog
+        Open plugin settings dialog and select the requested plugin.
 
         :param id: plugin id
         """
         self.current_plugin = id
         self.open()
+
+        # Building the dialog selects its first tab by default, which can
+        # overwrite current_plugin on the first open. Resolve the requested
+        # stable plugin id after setup and explicitly select it.
+        idx = self.window.controller.plugins.get_tab_idx(id)
+        tabs = self.window.ui.tabs.get('plugin.settings')
+        if tabs is None or idx is None:
+            return
+        tabs.setCurrentIndex(idx)
+        self.window.controller.plugins.set_by_tab(idx)
 
     def init(self):
         """Initialize plugin settings options"""

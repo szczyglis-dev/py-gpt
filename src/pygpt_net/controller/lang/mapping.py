@@ -381,6 +381,7 @@ class Mapping:
         menu_text['app.exit'] = 'menu.file.exit'
         menu_text['config.settings'] = 'menu.config.settings'
         menu_text['config.agents'] = 'menu.config.agents'
+        menu_text['config.mcp'] = 'menu.config.mcp'
         menu_text['config.models.edit'] = 'menu.config.models.edit'
         menu_text['config.models.import.provider'] = 'menu.config.models.import.provider'
         menu_text['config.access'] = 'menu.config.access'

@@ -1846,6 +1846,8 @@ MCP
 
 With the ``MCP`` plugin, you can connect **PyGPT** to remote tools exposed by Model Context Protocol servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server and optionally cache discovery results for speed.
 
+To configure MCP connections, use the direct shortcut ``Config -> MCP...``. It opens the same MCP configuration available through ``Plugins -> Settings -> MCP``. Use either entry point when you want to connect PyGPT to an external service or tool server through MCP.
+
 How it works
 ^^^^^^^^^^^^
 
