@@ -1671,6 +1671,37 @@ class Ctx:
         clone.extra.pop("prev_tool_calls", None)
         return clone
 
+    @staticmethod
+    def is_response_interrupted(item: Optional[CtxItem]) -> bool:
+        """Return True when a turn was explicitly interrupted by the user/runtime."""
+        if item is None:
+            return False
+        extra = getattr(item, "extra", None)
+        return bool(
+            getattr(item, "stopped", False)
+            or (isinstance(extra, dict) and extra.get("response_interrupted"))
+        )
+
+    @staticmethod
+    def has_pending_provider_tool_calls(item: Optional[CtxItem]) -> bool:
+        """Return True when persisted/live tool protocol has a call without output."""
+        if item is None:
+            return False
+        for part in getattr(item, "parts", None) or []:
+            for task in getattr(part, "tasks", None) or []:
+                extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+                if extra.get("provider_history") is False:
+                    continue
+                if not getattr(task, "tool_call_id", None) and not extra.get("tool_name"):
+                    continue
+                completed = bool(
+                    getattr(task, "tool_output", None) is not None
+                    or extra.get("status") == "completed"
+                )
+                if not completed:
+                    return True
+        return False
+
     def _expand_live_history_item(
             self,
             item: CtxItem,
@@ -1691,6 +1722,9 @@ class Ctx:
         consumes the same conversation, collapse those turns to user input +
         final answer instead of replaying the internal trace.
         """
+        if self.is_response_interrupted(item):
+            return self.expand_history_item(item, target_mode=target_mode)
+
         if (str(getattr(item, "mode", "") or "") == MODE_AGENT_V2
                 and target_mode not in (None, MODE_AGENT_V2)):
             return [self._compact_agents_v2_history_item(item)]
@@ -1878,6 +1912,11 @@ class Ctx:
         clone.results = []
         clone.tool_calls = []
         clone.extra = copy.deepcopy(clone.extra) if isinstance(clone.extra, dict) else {}
+        if self.is_response_interrupted(item) or self.has_pending_provider_tool_calls(item):
+            # Never continue a stateful provider chain from an aborted/incomplete
+            # response. OpenAI Responses rejects a previous_response_id whose
+            # final output contains a function_call without function_call_output.
+            clone.msg_id = None
         for key in (
                 "tool_calls",
                 "tool_output",
@@ -1936,9 +1975,20 @@ class Ctx:
                 active_continuation_parent is not None
                 and item is active_continuation_parent
             )
-            if is_active_continuation or restore_persisted_tools:
+            interrupted = self.is_response_interrupted(item)
+            incomplete_tool_protocol = self.has_pending_provider_tool_calls(item)
+            replay_allowed = (
+                (is_active_continuation or restore_persisted_tools)
+                and not interrupted
+                and (is_active_continuation or not incomplete_tool_protocol)
+            )
+            if replay_allowed:
                 result.extend(self._expand_live_history_item(item, target_mode=target_mode))
             else:
+                # Interrupted/incomplete historical tool rounds are always flattened,
+                # even when persisted tool-call replay is enabled. The *active*
+                # continuation remains exempt because it owns the runtime protocol
+                # that is currently being completed.
                 result.extend(self.expand_history_item(item, target_mode=target_mode))
         return result
 

@@ -71,6 +71,17 @@ class Responses:
         self.instruction = None
         self.mcp_tools = None
 
+    @staticmethod
+    def _can_resume_server_response(item: Optional[CtxItem]) -> bool:
+        """Return whether ``item.msg_id`` is safe as previous_response_id."""
+        if item is None or not getattr(item, "msg_id", None):
+            return False
+        extra = getattr(item, "extra", None)
+        return not bool(
+            getattr(item, "stopped", False)
+            or (isinstance(extra, dict) and extra.get("response_interrupted"))
+        )
+
     def send(
             self,
             context: BridgeContext,
@@ -306,7 +317,7 @@ class Responses:
             has_response_id_in_last_item = False
             if items and len(items) > 0 and not break_server_chain:
                 last_item = items[-1]
-                if last_item and last_item.msg_id:
+                if self._can_resume_server_response(last_item):
                     has_response_id_in_last_item = True
 
             for item in items:
@@ -470,7 +481,7 @@ class Responses:
 
                     # --- previous message ID ---
                     if (not break_server_chain
-                            and item.msg_id
+                            and self._can_resume_server_response(item)
                             and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
                         if is_expert_call:
                             self.prev_internal_response_id = item.msg_id

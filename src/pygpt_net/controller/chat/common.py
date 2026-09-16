@@ -255,6 +255,10 @@ class Common:
             "value": False,
         }))  # stop audio input
         controller.kernel.halt = True
+        # Drop any partial tool-result batch collected before STOP after the
+        # kernel is halted. Late REPLY_ADD events are rejected from this point,
+        # so stale results cannot survive until the next request resumes it.
+        controller.kernel.replies.clear()
         # Wake provider-native Computer Use continuations waiting for user
         # acknowledgement so they can observe the stopped kernel and exit.
         try:
@@ -265,11 +269,43 @@ class Common:
         # TOOL_END only hides the legacy loader and does not remove the status
         # containers introduced by the partial-item flow.
         current_ctx = core.ctx.get_last_item()
+        request_meta = core.ctx.output.get_request_meta()
         current_meta = (
-            core.ctx.output.get_request_meta()
+            request_meta
             or getattr(current_ctx, "meta", None)
             or core.ctx.get_current_meta()
         )
+
+        # A Responses API response that ended in a function_call cannot be used
+        # as previous_response_id until every call has a matching output. If the
+        # user aborts while a tool is executing (or while its continuation is
+        # streaming), the durable root still owns that response ID. Explicitly
+        # break the server-side chain here. This marker is independent of the
+        # configured tool-call DB storage mode, so it also protects "do not
+        # store" and truncated histories.
+        if (current_ctx is not None
+                and core.ctx.output.has_request()
+                and controller.chat.input.generating):
+            ctx_meta = getattr(current_ctx, "meta", None)
+            same_owner = (
+                request_meta is None
+                or ctx_meta is None
+                or getattr(request_meta, "id", None) is None
+                or getattr(ctx_meta, "id", None) == getattr(request_meta, "id", None)
+            )
+            ctx_extra = current_ctx.extra if isinstance(getattr(current_ctx, "extra", None), dict) else {}
+            if same_owner and not bool(ctx_extra.get("response_final")):
+                if not isinstance(getattr(current_ctx, "extra", None), dict):
+                    current_ctx.extra = {}
+                current_ctx.msg_id = None
+                current_ctx.stopped = True
+                current_ctx.extra["response_interrupted"] = True
+                current_ctx.extra.pop("response_final", None)
+                try:
+                    core.ctx.update_item(current_ctx)
+                except Exception as e:
+                    core.debug.log(e)
+
         dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": current_meta, "immediate": True}))
         dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": current_meta, "ctx": current_ctx}))
         dispatch(RenderEvent(RenderEvent.TOOL_END))
