@@ -71,7 +71,27 @@ class CalendarSelect(QCalendarWidget):
         self._default_status_bg = QColor(100, 100, 100)
         self._default_status_font = QColor(255, 255, 255)
         self._today = QDate.currentDate()
+        self._highlighted_weekday = None
+        self._sync_today_weekday_header()
 
+    def _sync_today_weekday_header(self):
+        """Highlight today's weekday header using the normal day-hover background."""
+        today = QDate.currentDate()
+        weekday = today.dayOfWeek()
+
+        # Remove an old explicit weekday background first (e.g. after midnight).
+        if self._highlighted_weekday is not None and self._highlighted_weekday != weekday:
+            fmt = self.weekdayTextFormat(Qt.DayOfWeek(self._highlighted_weekday))
+            fmt.clearBackground()
+            self.setWeekdayTextFormat(Qt.DayOfWeek(self._highlighted_weekday), fmt)
+
+        fmt = self.weekdayTextFormat(Qt.DayOfWeek(weekday))
+        if self._hover_day_background_color.isValid():
+            fmt.setBackground(QBrush(self._hover_day_background_color))
+        else:
+            fmt.clearBackground()
+        self.setWeekdayTextFormat(Qt.DayOfWeek(weekday), fmt)
+        self._highlighted_weekday = weekday
 
     def get_today_background_color(self):
         return self._today_background_color
@@ -155,6 +175,7 @@ class CalendarSelect(QCalendarWidget):
         else:
             fmt.clearBackground()
         self.setHeaderTextFormat(fmt)
+        self._sync_today_weekday_header()
 
     headerBackgroundColor = Property(
         QColor,
@@ -172,6 +193,7 @@ class CalendarSelect(QCalendarWidget):
             QFont.Weight.Bold if self._header_font_bold else QFont.Weight.Normal
         )
         self.setHeaderTextFormat(fmt)
+        self._sync_today_weekday_header()
 
     headerFontBold = Property(bool, get_header_font_bold, set_header_font_bold)
 
@@ -180,6 +202,7 @@ class CalendarSelect(QCalendarWidget):
 
     def set_hover_day_background_color(self, color):
         self._hover_day_background_color = QColor(color)
+        self._sync_today_weekday_header()
         self.updateCells()
 
     hoverDayBackgroundColor = Property(
@@ -265,6 +288,7 @@ class CalendarSelect(QCalendarWidget):
         cd = QDate.currentDate()
         if cd != self._today:
             self._today = cd
+            self._sync_today_weekday_header()
 
         super().paintCell(painter, rect, date)
 

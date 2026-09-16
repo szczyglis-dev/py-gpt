@@ -109,7 +109,7 @@ class Plugins:
         self.rebuild_menu()
 
     def rebuild_menu(self):
-        """Rebuild plugin actions grouped into popular and other plugins."""
+        """Rebuild plugin actions grouped into base and other plugins."""
         pm = self.window.core.plugins
         ui_menu = self.window.ui.menu
         menu = ui_menu['menu.plugins']
