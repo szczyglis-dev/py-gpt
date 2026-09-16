@@ -3029,6 +3029,20 @@
     "advanced": false,
     "tab": "general"
   },
+  "agent.v2.display_full_workflow": {
+    "section": "agent",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.agent.v2.display_full_workflow",
+    "description": "settings.agent.v2.display_full_workflow.desc",
+    "value": true,
+    "min": 0,
+    "max": 0,
+    "multiplier": 1,
+    "step": 1,
+    "advanced": false,
+    "tab": "general"
+  },
   "agent.v2.restore_full_history": {
     "section": "agent",
     "type": "bool",

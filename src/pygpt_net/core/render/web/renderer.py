@@ -892,10 +892,10 @@ class Renderer(BaseRenderer):
             else:
                 output = ctx.extra["output"]  # final output only
 
-        # Agents v2 persists working orchestrator prose for future orchestrator
-        # memory, but completed chat rendering is final-answer-only. Prefer the
-        # compact ctx_item.output after completion; during live final streaming
-        # fall back to the current final partial.
+        # Agents v2 keeps the compact authoritative final in ctx_item.output.
+        # Full-workflow display, when enabled, is reconstructed separately from
+        # durable partials by _build_partial_timeline(); this baseline output stays
+        # final-only so model-facing/storage semantics are not coupled to the UI.
         final_agent_output = ctx.get_agents_v2_response_output()
         if final_agent_output is not None:
             output = final_agent_output
@@ -3526,6 +3526,16 @@ class Renderer(BaseRenderer):
             )
         )
 
+    def _display_full_agent_workflow_for_ctx(self, ctx: CtxItem) -> bool:
+        """Return whether completed Chat with Agents partials stay visible.
+
+        This is a UI-only preference. It does not change durable partial storage
+        or the separate model-facing history replay policy.
+        """
+        if str(getattr(ctx, "mode", "") or "") != MODE_AGENT_V2:
+            return False
+        return bool(self.window.core.config.get("agent.v2.display_full_workflow", True))
+
     def _show_tool_chain_for_ctx(self, ctx: CtxItem) -> bool:
         """Return whether persisted tool calls should be rendered for this turn.
 
@@ -3869,7 +3879,10 @@ class Renderer(BaseRenderer):
             ctx,
             include_workflow_statuses=replay_statuses,
             include_tool_calls=show_tool_chain,
-            final_only_text=completed_agents_v2_output is not None,
+            final_only_text=(
+                completed_agents_v2_output is not None
+                and not self._display_full_agent_workflow_for_ctx(ctx)
+            ),
             final_output_text=completed_agents_v2_output,
             compact_workflow_statuses=bool(
                 rebuild

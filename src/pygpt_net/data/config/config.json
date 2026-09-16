@@ -64,6 +64,7 @@
   "agent.openai.provider": "openai_agent_base",
   "agent.openai.response.split": true,
   "agent.output.render.all": true,
+  "agent.v2.display_full_workflow": true,
   "agent.v2.log_workflow": false,
   "agent.v2.max_iterations": 48,
   "agent.v2.max_workers": 16,
