@@ -427,6 +427,13 @@ class Tabs:
                         w.controller.ctx.load(meta.id)
                     else:
                         w.controller.ctx.select_on_list_only(meta.id)
+
+            # A chat restored while another tab (e.g. Notepad) was visible can
+            # have its user-message heights measured against a transient hidden
+            # WebView geometry.  Re-measure after Qt has shown the chat widget;
+            # the delayed second pass also covers late Chromium layout/font work.
+            QTimer.singleShot(0, lambda pid=tab.pid: w.controller.chat.render.remeasure_user_messages(pid))
+            QTimer.singleShot(120, lambda pid=tab.pid: w.controller.chat.render.remeasure_user_messages(pid))
         elif tab.type == Tab.TAB_TOOL_PAINTER:
             if core.config.get('vision.capture.enabled'):
                 w.controller.camera.enable_capture()

@@ -646,6 +646,20 @@ class Render:
         """
         if self.get_engine() == "web":
             self.web_renderer.on_js_ready(pid)
+            # If this page finished initializing after its tab was selected,
+            # perform the visible-layout correction now as well.
+            QTimer.singleShot(0, lambda pid=pid: self.remeasure_user_messages(pid))
+
+    def remeasure_user_messages(self, pid: int) -> None:
+        """Re-evaluate user-message collapse for the currently visible chat tab."""
+        if self.window.core.config.get('render.plain') or self.get_engine() != "web":
+            return
+
+        tab = self.window.controller.ui.tabs.get_current_tab()
+        if tab is None or tab.type != Tab.TAB_CHAT or tab.pid != pid:
+            return
+
+        self.web_renderer.remeasure_user_messages(pid)
 
     def get_engine(self) -> str:
         """

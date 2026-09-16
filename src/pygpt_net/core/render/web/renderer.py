@@ -1940,6 +1940,50 @@ class Renderer(BaseRenderer):
             pass
         self._stream_reset(pid)
 
+    def remeasure_user_messages(self, pid: Optional[int]) -> None:
+        """
+        Re-evaluate user-message auto-collapse after a hidden WebView becomes visible.
+
+        A chat restored while another output tab is active can be laid out with an
+        invalid/transient viewport.  In that state short user messages may be
+        classified as taller than the collapse threshold.  Re-run the existing
+        collapse manager after two animation frames, when Chromium has the final
+        visible-tab geometry.
+
+        :param pid: chat tab PID
+        """
+        if pid is None:
+            return
+        node = self.get_output_node_by_pid(pid)
+        if node is None:
+            return
+        script = r"""
+            (() => {
+                const run = () => {
+                    try {
+                        if (typeof runtime === 'undefined' ||
+                            !runtime.nodes || !runtime.nodes._userCollapse) return;
+                        const mgr = runtime.nodes._userCollapse;
+                        mgr.apply(document);
+                        mgr.remeasureAll();
+                    } catch (_) {}
+                };
+                try {
+                    if (typeof requestAnimationFrame === 'function') {
+                        requestAnimationFrame(() => requestAnimationFrame(run));
+                    } else {
+                        setTimeout(run, 0);
+                    }
+                } catch (_) {
+                    setTimeout(run, 0);
+                }
+            })();
+        """
+        try:
+            node.page().runJavaScript(script)
+        except Exception:
+            pass
+
     def clear_nodes(self, pid: Optional[int]):
         """
         Clear nodes list
