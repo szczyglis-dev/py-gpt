@@ -13,10 +13,51 @@ from typing import Tuple
 
 from PySide6.QtCore import QRect, QDate, Property, QEvent
 from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QCursor, QIcon, QPixmap, QPen, QPalette
-from PySide6.QtWidgets import QAbstractItemView, QCalendarWidget, QMenu
+from PySide6.QtWidgets import QAbstractItemView, QCalendarWidget, QMenu, QStyledItemDelegate
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
+
+
+class CalendarViewDelegate(QStyledItemDelegate):
+    """Keep Qt's calendar delegate and add the current-weekday header background."""
+
+    def __init__(self, calendar, base_delegate, parent=None):
+        super().__init__(parent)
+        self.calendar = calendar
+        self.base_delegate = base_delegate
+
+    def paint(self, painter, option, index):
+        # Preserve the native/private QCalendarWidget rendering for every item.
+        self.base_delegate.paint(painter, option, index)
+
+        if not self.calendar.is_today_weekday_header(index):
+            return
+
+        color = self.calendar.get_hover_day_background_color()
+        if not color.isValid() or color.alpha() == 0:
+            return
+
+        # QTextCharFormat background on weekday headers is not reliably painted
+        # by QCalendarWidget (notably with stylesheets). Paint only this header
+        # cell explicitly, then redraw its text so all other calendar rendering
+        # remains untouched.
+        painter.save()
+        painter.fillRect(option.rect, color)
+
+        font = QFont(option.font)
+        if self.calendar.get_header_font_bold():
+            font.setBold(True)
+        painter.setFont(font)
+        painter.setPen(option.palette.color(QPalette.ColorRole.Text))
+
+        text = index.data(Qt.ItemDataRole.DisplayRole)
+        if text is not None:
+            painter.drawText(option.rect, Qt.AlignmentFlag.AlignCenter, str(text))
+        painter.restore()
+
+    def sizeHint(self, option, index):
+        return self.base_delegate.sizeHint(option, index)
 
 
 class CalendarSelect(QCalendarWidget):
@@ -61,9 +102,18 @@ class CalendarSelect(QCalendarWidget):
         self.installEventFilter(self)
 
         self._calendar_view = self.findChild(QAbstractItemView, 'qt_calendar_calendarview')
+        self._calendar_base_delegate = None
+        self._calendar_delegate = None
         if self._calendar_view is not None:
             self._calendar_view.viewport().setMouseTracking(True)
             self._calendar_view.viewport().installEventFilter(self)
+            self._calendar_base_delegate = self._calendar_view.itemDelegate()
+            self._calendar_delegate = CalendarViewDelegate(
+                self,
+                self._calendar_base_delegate,
+                self._calendar_view,
+            )
+            self._calendar_view.setItemDelegate(self._calendar_delegate)
 
         self._font_small = QFont('Lato', self.font_size)
         self._pen_label = QPen(QColor(0, 0, 0))
@@ -71,27 +121,32 @@ class CalendarSelect(QCalendarWidget):
         self._default_status_bg = QColor(100, 100, 100)
         self._default_status_font = QColor(255, 255, 255)
         self._today = QDate.currentDate()
-        self._highlighted_weekday = None
         self._sync_today_weekday_header()
 
+    @staticmethod
+    def _enum_value(value):
+        """Return an int for Qt enum values across supported PySide6 versions."""
+        if hasattr(value, 'value'):
+            return int(value.value)
+        return int(value)
+
+    def is_today_weekday_header(self, index) -> bool:
+        """Return True for the weekday-header cell matching the current day."""
+        if index is None or not index.isValid() or index.row() != 0:
+            return False
+        if self.horizontalHeaderFormat() == QCalendarWidget.NoHorizontalHeader:
+            return False
+
+        first_day = self._enum_value(self.firstDayOfWeek())
+        today_weekday = QDate.currentDate().dayOfWeek()
+        today_column = (today_weekday - first_day) % 7
+        return index.column() == today_column
+
     def _sync_today_weekday_header(self):
-        """Highlight today's weekday header using the normal day-hover background."""
-        today = QDate.currentDate()
-        weekday = today.dayOfWeek()
-
-        # Remove an old explicit weekday background first (e.g. after midnight).
-        if self._highlighted_weekday is not None and self._highlighted_weekday != weekday:
-            fmt = self.weekdayTextFormat(Qt.DayOfWeek(self._highlighted_weekday))
-            fmt.clearBackground()
-            self.setWeekdayTextFormat(Qt.DayOfWeek(self._highlighted_weekday), fmt)
-
-        fmt = self.weekdayTextFormat(Qt.DayOfWeek(weekday))
-        if self._hover_day_background_color.isValid():
-            fmt.setBackground(QBrush(self._hover_day_background_color))
-        else:
-            fmt.clearBackground()
-        self.setWeekdayTextFormat(Qt.DayOfWeek(weekday), fmt)
-        self._highlighted_weekday = weekday
+        """Refresh the current weekday header highlight."""
+        self._today = QDate.currentDate()
+        if self._calendar_view is not None:
+            self._calendar_view.viewport().update()
 
     def get_today_background_color(self):
         return self._today_background_color
