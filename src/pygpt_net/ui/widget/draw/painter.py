@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 15:55:00
+# Updated Date: 2026.09.16 14:00:00
 # ================================================== #
 
 import datetime
@@ -1446,12 +1446,19 @@ class PainterWidget(QWidget):
     def _finalize_crop(self):
         """Finalize crop with current selection rectangle."""
         self._stop_autoscroll()
-        if not self.cropping or self._selectionRect.isNull() or self._selectionRect.width() <= 1 or self._selectionRect.height() <= 1:
+        if not self.cropping or self._selectionRect.isNull():
+            self.cancel_crop()
+            return
+
+        # QRect keeps the drag direction. A selection drawn right-to-left or
+        # bottom-to-top therefore has a negative width/height until normalized.
+        # Validate only after normalization so cropping works in every direction.
+        sel = self._selectionRect.normalized()
+        if sel.width() <= 1 or sel.height() <= 1:
             self.cancel_crop()
             return
 
         self._ensure_layers()
-        sel = self._selectionRect.normalized()
 
         new_base = self.baseCanvas.copy(sel)
         new_draw = self.drawingLayer.copy(sel)
