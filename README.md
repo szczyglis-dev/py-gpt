@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.20** | build: **2026-09-15** | Python: **>=3.10, <3.14**
+Release: **2.8.21** | build: **2026-09-16** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2546,6 +2546,21 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.21 (2026-09-16)**
+
+- Fixed restoring hidden chats from collapsed columns.
+- Added tool call storage settings in Settings -> Context, with Disable, Truncate, and Full modes.
+- Added history restore mode settings in Settings -> Agents -> Chat with Agents.
+- Added a distinct background highlight for the current day of the week in Calendar.
+- Added Undo support to the Clear Image button in Painter.
+- Added a System Info dialog to the About menu.
+- Added support for custom instructions and system prompts in Chat with Agents under Settings -> Agents -> Chat with Agents -> Advanced.
+- Optimized database storage.
+- Simplified the token counter display.
+- Moved the Stream checkbox to Settings -> Context -> Render.
+- Moved the Plain Text mode switch to the icon bar above the input field.
+- Various UI fixes and improvements.
+
 **2.8.20 (2026-09-15)**
 
 - Added an integration layer between Chat with Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.
@@ -2566,49 +2581,6 @@ may consume additional tokens that are not displayed in the main window.
 - Improved image attachment @mentions.
 - Added loaders for heavy operations such as indexing and embedding.
 - Updated CSS styles and translations.
-
-**2.8.18 (2026-09-15)**
-
-- Extended the **Chat with Agents** workflow and added step-by-step execution mode.
-- Fixed context token count display.
-- Simplified themes to two built-in options: **Dark** and **Light**.
-- Added `@` mentions in the input field for referencing attachments, files, and directories.
-- Added **Advanced Context Handling** (experimental). Enable it in `Settings -> Context`. It extends the effective conversation context in real time using a memory cache and automatic context trimming.
-- Added support for `AGENTS.md` in the workdir root. See the documentation for more details.
-- Other fixes and improvements.
-
-**2.8.17 (2026-09-13)**
-
-- Fixed Ollama native tool calls.
-- Fixed runtime language switching.
-- Fixed tab tooltips.
-- Fixed chat reload race conditions.
-- Fixed streaming of final responses in Chat with Agents.
-- Moved max worker limits to Settings.
-- Simplified model configuration.
-- Added Text tool to Painter.
-- Moved Reasoning Effort to a global switch in the input field.
-- Refactored Agents and autonomous mode.
-- Updated translations and documentation.
-- Removed deprecated options.
-- Various UI fixes.
-
-**2.8.16 (2026-09-12)**
-
-- Experts are now full-featured agents, using the same agent runtime and capabilities as agents in Chat with Agents.
-- Experts are now available as tools across all supported modes, allowing them to be invoked directly from anywhere in the application.
-
-**2.8.15 (2026-09-11)**
-
-- Renamed **Agents v2 (beta)** mode to **Chat with Agents**.
-- Added 3 separate submodes to **Chat with Agents**:
-  - **Chat** - allows natural conversation with the primary agent, with delegated agents used when needed.
-  - **Orchestrator** - the previous Agents v2 behavior, where the primary agent acts only as an orchestrator for other agents.
-  - **Swarm** - allows creating and running a dynamically defined group of specialized agents/workers in parallel in the background. Swarm mode can run continuously with a defined number of parallel agents.
-- Added the ability to configure a custom working directory per project. Right-click a project in the project list and select a custom workdir.
-- Added LLM provider fallbacks to **OpenAILike** when a model is not yet supported by the native LlamaIndex integrations for OpenAI, Google, Anthropic, or xAI.
-- Added keyed memory storage to the **Memory** plugin.
-- Fixed collection of used URLs and attachments in **Chat with Files**.
 
 # Credits and links
 

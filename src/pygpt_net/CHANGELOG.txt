@@ -1,3 +1,18 @@
+2.8.21 (2026-09-16)
+
+- Fixed restoring hidden chats from collapsed columns.
+- Added tool call storage settings in Settings -> Context, with Disable, Truncate, and Full modes.
+- Added history restore mode settings in Settings -> Agents -> Chat with Agents.
+- Added a distinct background highlight for the current day of the week in Calendar.
+- Added Undo support to the Clear Image button in Painter.
+- Added a System Info dialog to the About menu.
+- Added support for custom instructions and system prompts in Chat with Agents under Settings -> Agents -> Chat with Agents -> Advanced.
+- Optimized database storage.
+- Simplified the token counter display.
+- Moved the Stream checkbox to Settings -> Context -> Render.
+- Moved the Plain Text mode switch to the icon bar above the input field.
+- Various UI fixes and improvements.
+
 2.8.20 (2026-09-15)
 
 - Added an integration layer between Chat with Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.

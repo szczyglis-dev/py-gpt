@@ -105,12 +105,12 @@ QListView::item {{
 
 /* Debug dialogs: subtle whole-row selection. */
 .DebugList::item:selected,
-.DebugList::item:selected:focus {
+.DebugList::item:selected:focus {{
   background-color: #e2f2cf;
   color: #0e0e0e;
   selection-background-color: #e2f2cf;
   selection-color: #0e0e0e;
-}
+}}
 
 /* Database viewer: subtle whole-row selection. */
 .DatabaseList::item:selected,
