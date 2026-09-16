@@ -55,7 +55,6 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Crontab / Task scheduler included.
 - Built-in **Python/OS** tool with real-time Python / IPython execution.
 - Manages files and attachments with options to upload, download, and organize.
-- Supports inline `@` mentions for current attachments and files/directories from the active workdir.
 - Context history with the capability to revert to previous contexts (long-term memory), plus optional **experimental** advanced context handling for very long conversations.
 - Supports project-specific `AGENTS.md` rules for the main agent in Chat with Agents.
 - Allows you to easily manage prompts with handy editable presets.
