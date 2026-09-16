@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.04.17 01:00:00                  #
+# Updated Date: 2026.09.16 14:00:00                  #
 # ================================================== #
 
 import json
@@ -25,7 +25,6 @@ class DatabaseTableModel(QAbstractTableModel):
         self._headers = headers
         self._timestamp_columns = timestamp_columns or []
         self._convert_timestamps = convert_timestamps
-
     def data(self, index, role):
         if role == Qt.DisplayRole:
             value = self._data[index.row()][index.column()]
@@ -70,6 +69,9 @@ class DatabaseList(QTableView):
         self.viewer_current_field = None
         self.selection = None
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # Keep the exact clicked cell as currentIndex(), but select its whole row
+        # so row navigation remains visible regardless of model BackgroundRole/QSS.
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.verticalHeader().setVisible(False)
         self.setWordWrap(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -79,7 +81,7 @@ class DatabaseList(QTableView):
         self.customContextMenuRequested.connect(
             lambda: self.create_context_menu(self)
         )
-        self.setProperty("class", "DebugList")
+        self.setProperty("class", "DebugList DatabaseList")
 
     def on_data_begin(self):
         """

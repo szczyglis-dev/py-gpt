@@ -103,6 +103,24 @@ QListView::item {{
   min-height: 20px;
 }}
 
+/* Debug dialogs: subtle whole-row selection. */
+.DebugList::item:selected,
+.DebugList::item:selected:focus {
+  background-color: #e2f2cf;
+  color: #0e0e0e;
+  selection-background-color: #e2f2cf;
+  selection-color: #0e0e0e;
+}
+
+/* Database viewer: subtle whole-row selection. */
+.DatabaseList::item:selected,
+.DatabaseList::item:selected:focus {{
+  background-color: #e2f2cf;
+  color: #0e0e0e;
+  selection-background-color: #e2f2cf;
+  selection-color: #0e0e0e;
+}}
+
 /* Light list/tree hover surface. */
 QListView::item:hover:!selected,
 QTreeView::item:hover:!selected {{

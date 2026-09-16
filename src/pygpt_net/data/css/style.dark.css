@@ -202,6 +202,15 @@ QCalendarWidget QAbstractItemView::item:selected {{
   selection-color: #000000;
 }}
 
+/* Database viewer: subtle whole-row selection. */
+.DatabaseList::item:selected,
+.DatabaseList::item:selected:focus {{
+  background-color: #3d3d3d;
+  color: #ffffff;
+  selection-background-color: #3d3d3d;
+  selection-color: #ffffff;
+}}
+
 QCalendarWidget QMenu::item:selected:focus,
 QCalendarWidget QMenu::item:selected {{
     background: #3a4045;

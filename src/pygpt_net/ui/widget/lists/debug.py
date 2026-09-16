@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.09.16 14:30:00                  #
 # ================================================== #
 
 import json
@@ -33,6 +33,9 @@ class DebugList(QTableView):
         self.viewer_current = None
         self.selection = None
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # Preserve the exact clicked index for the value viewer, while making
+        # the active record easier to follow across the debug table.
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.verticalHeader().setVisible(False)
         self.setWordWrap(True)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
