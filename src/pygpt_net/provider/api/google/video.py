@@ -20,6 +20,7 @@ from google.genai import types as gtypes
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from pygpt_net.core.events import KernelEvent
+from pygpt_net.provider.core.model.compat import version_at_least
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -359,28 +360,20 @@ class VideoWorker(QRunnable):
         return None
 
     def _is_veo3(self, model_id: str) -> bool:
-        mid = str(model_id or "").lower()
-        return mid.startswith("veo-3.")
+        # Veo 3+ uses the newest request path; future generations inherit it.
+        return version_at_least(model_id, "veo-", (3, 0))
 
     def _supports_image_to_video(self, model_id: str) -> bool:
         """Return True if the model supports image->video."""
         mid = str(model_id or "").lower()
-        return any(p in mid for p in (
-            "veo-2.0",
-            "veo-3.0-generate",
-            "veo-3.0-fast-generate",
-            "veo-3.1-generate",
-            "veo-3.1-fast-generate",
-        ))
+        return "veo-2.0" in mid or version_at_least(mid, "veo-", (3, 0))
 
     def _duration_for_model(self, model_id: str, requested: int) -> int:
         """Adjust duration constraints to model-specific limits."""
         mid = str(model_id or "").lower()
         if "veo-2.0" in mid:
             return max(5, min(8, int(requested or 8)))
-        if "veo-3.1" in mid:
-            return max(4, min(8, int(requested or 8)))
-        if "veo-3.0" in mid:
+        if version_at_least(mid, "veo-", (3, 0)):
             return max(4, min(8, int(requested or 8)))
         return int(requested or 8)
 
@@ -448,7 +441,7 @@ class VideoWorker(QRunnable):
 
         # Gemini Developer API path
         if not use_vertex:
-            if "veo-3.1" in mid:
+            if version_at_least(mid, "veo-", (3, 1)):
                 return model_id
             # Prefer 3.1 preview if user selected older Veo
             return "veo-3.1-generate-preview"

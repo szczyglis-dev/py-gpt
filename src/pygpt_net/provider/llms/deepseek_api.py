@@ -45,6 +45,7 @@ class DeepseekApiLLM(BaseLLM):
         """
         from pygpt_net.provider.llms.llama_index.deepseek import DeepSeek
         args = self.prepare_openai_compatible_args(window, model)
+        args.setdefault("is_function_calling_model", bool(model.tool_calls))
         reasoning_effort = window.core.models.get_reasoning_effort(model)
         if reasoning_effort:
             additional_kwargs = dict(args.get("additional_kwargs") or {})

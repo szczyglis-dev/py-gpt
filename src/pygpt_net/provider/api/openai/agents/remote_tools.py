@@ -31,6 +31,7 @@ from pygpt_net.core.types import (
     OPENAI_REMOTE_TOOL_DISABLE_MCP,
 )
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.core.model.compat import supports_future_computer_mode
 from pygpt_net.item.preset import PresetItem
 
 from pygpt_net.provider.llms.agent_computer import build_openai_agent_computer_tool
@@ -53,7 +54,8 @@ def is_computer_tool(
             model.id.startswith("computer-use")
             or (
                 window.core.config.get("remote_tools.computer_use", False)
-                and model.has_mode(MODE_COMPUTER)
+                and (model.has_mode(MODE_COMPUTER)
+                     or supports_future_computer_mode(model.provider, model.id))
             )
         )
     else:
@@ -62,7 +64,9 @@ def is_computer_tool(
             tools_list = [preset_remote_tool.strip() for preset_remote_tool in preset.remote_tools.split(",") if
                           preset_remote_tool.strip()]
             return "computer_use" in tools_list and (
-                model.id.startswith("computer-use") or model.has_mode(MODE_COMPUTER)
+                model.id.startswith("computer-use")
+                or model.has_mode(MODE_COMPUTER)
+                or supports_future_computer_mode(model.provider, model.id)
             )
 
 
@@ -199,7 +203,8 @@ def get_remote_tools(
             model.id.startswith("computer-use")
             or (
                 window.core.config.get("remote_tools.computer_use", False)
-                and model.has_mode(MODE_COMPUTER)
+                and (model.has_mode(MODE_COMPUTER)
+                     or supports_future_computer_mode(model.provider, model.id))
             )
         )
     else:
@@ -223,7 +228,9 @@ def get_remote_tools(
     # Expert presets may list Computer Use explicitly, but only expose it on
     # models that actually advertise the Computer capability.
     if enabled["computer_use"] and not (
-            model.id.startswith("computer-use") or model.has_mode(MODE_COMPUTER)
+            model.id.startswith("computer-use")
+            or model.has_mode(MODE_COMPUTER)
+            or supports_future_computer_mode(model.provider, model.id)
     ):
         enabled["computer_use"] = False
 

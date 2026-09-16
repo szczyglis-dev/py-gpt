@@ -398,16 +398,9 @@ class ImageWorker(QRunnable):
         return "imagen" in mid and "generate" in mid
 
     def _imagen_supports_negative_prompt(self, model_id: str) -> bool:
-        """
-        Return True if the Imagen model supports native negative_prompt.
-        Supported: imagen-3.0-generate-001, imagen-3.0-fast-generate-001, imagen-3.0-capability-001.
-        """
-        mid = str(model_id or "").lower()
-        return any(x in mid for x in (
-            "imagen-3.0-generate-001",
-            "imagen-3.0-fast-generate-001",
-            "imagen-3.0-capability-001",
-        ))
+        """Return True for Imagen 3+ models with native negative_prompt."""
+        mid = str(model_id or "").lower().split("/")[-1]
+        return model_version_at_least(mid, "imagen-", (3, 0))
 
     def _imagen_generate(self, prompt: str, num: int, resolution: str):
         """Imagen text-to-image."""

@@ -22,6 +22,7 @@ from pygpt_net.core.types import (
     OPENAI_COMPATIBLE_PROVIDERS,
     MULTIMODAL_VIDEO,
 )
+from pygpt_net.provider.core.model.compat import is_openai_o_series
 
 @dataclass(slots=True)
 class ModelItem:
@@ -218,10 +219,7 @@ class ModelItem:
 
         if (self.id.startswith("gpt-")
                 or self.id.startswith("chatgpt")
-                or self.id.startswith("o1")
-                or self.id.startswith("o3")
-                or self.id.startswith("o4")
-                or self.id.startswith("o5")
+                or is_openai_o_series(self.id)
                 or self.id.startswith("codex-")
                 or self.id.startswith("computer-use")):
             return True

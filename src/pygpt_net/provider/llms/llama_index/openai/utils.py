@@ -32,6 +32,12 @@ from llama_index.core.base.llms.types import (
 )
 from llama_index.core.bridge.pydantic import BaseModel
 
+from pygpt_net.provider.core.model.compat import (
+    is_openai_o_series,
+    is_openai_reasoning_model_id,
+    version_at_least,
+)
+
 DEFAULT_OPENAI_API_TYPE = "open_ai"
 DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
 DEFAULT_OPENAI_API_VERSION = ""
@@ -208,8 +214,15 @@ def is_json_schema_supported(model: str) -> bool:
         if not hasattr(completions, "_type_to_response_format"):
             return False
 
-        return not model.startswith("o1-mini") and any(
-            model.startswith(m) for m in JSON_SCHEMA_MODELS
+        if model.startswith("o1-mini"):
+            return False
+        if any(model.startswith(m) for m in JSON_SCHEMA_MODELS):
+            return True
+        # Preserve support for future reasoning/GPT generations instead of
+        # requiring every newly released model to be added to this vendored list.
+        return (
+            is_openai_reasoning_model_id(model)
+            or version_at_least(model, "gpt-", (4, 1))
         )
     except ImportError:
         return False
@@ -292,6 +305,15 @@ def openai_modelname_to_contextsize(modelname: str) -> int:
             "Please choose another model."
         )
     if modelname not in ALL_AVAILABLE_MODELS:
+        # LlamaIndex's bundled registry inevitably lags new OpenAI releases.
+        # For newer chat/reasoning families use a conservative 128k fallback;
+        # PyGPT's own model metadata remains the authoritative token limit.
+        if (
+                is_openai_o_series(modelname)
+                or version_at_least(modelname, "gpt-", (4, 1))
+                or modelname.startswith(("chatgpt-", "codex-"))
+        ):
+            return 128000
         raise ValueError(
             f"Unknown model {modelname!r}. Please provide a valid OpenAI model name in:"
             f" {', '.join(ALL_AVAILABLE_MODELS.keys())}"
@@ -300,7 +322,13 @@ def openai_modelname_to_contextsize(modelname: str) -> int:
 
 
 def is_chat_model(model: str) -> bool:
-    return model in CHAT_MODELS
+    if model in CHAT_MODELS:
+        return True
+    return (
+        is_openai_o_series(model)
+        or version_at_least(model, "gpt-", (4, 1))
+        or model.startswith(("chatgpt-", "codex-"))
+    )
 
 
 def is_function_calling_model(model: str) -> bool:

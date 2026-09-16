@@ -82,6 +82,8 @@ from llama_index.core.llms.llm import ToolSelection, Model
 from llama_index.core.llms.utils import parse_partial_json
 from llama_index.core.prompts import PromptTemplate
 from llama_index.core.program.utils import FlexibleModel
+from pygpt_net.provider.core.model.compat import is_openai_reasoning_model_id
+
 from .utils import (
     O1_MODELS,
     create_retry_decorator,
@@ -411,7 +413,7 @@ class OpenAIResponses(FunctionCallingLLM):
             "user": self.user,
         }
 
-        if self.model in O1_MODELS and self.reasoning_options is not None:
+        if is_openai_reasoning_model_id(self.model) and self.reasoning_options is not None:
             model_kwargs["reasoning"] = self.reasoning_options
 
         # priority is class args > additional_kwargs > runtime args

@@ -14,6 +14,7 @@ import re
 
 from packaging.version import parse as parse_version, Version
 
+from pygpt_net.provider.core.model.compat import supports_future_computer_mode
 from pygpt_net.core.types.reasoning import (
     LEGACY_REASONING_SUFFIXES,
     get_provider_efforts,
@@ -481,7 +482,7 @@ class Patch:
                 # all reasoning variants are migrated as well.
                 for model in data.values():
                     model_id = str(getattr(model, "id", "") or "")
-                    if (model_id.startswith("gpt-5.6-") or model_id == "gpt-6-astra") \
+                    if supports_future_computer_mode("openai", model_id) \
                             and not model.has_mode(MODE_COMPUTER):
                         model.add_mode(MODE_COMPUTER)
                         updated = True
@@ -490,41 +491,19 @@ class Patch:
                 # Normalize the optional ``models/`` prefix so imported/custom user
                 # model IDs are migrated as well. Gemini 3.8 Flash is included for
                 # user-defined models even though it is not yet in the bundled catalog.
-                google_computer_models = {
-                    "gemini-3.8-flash",
-                    "gemini-3.7-flash",
-                    "gemini-3.5-flash-lite",
-                    "gemini-3.5-flash",
-                    "gemini-3-flash-preview",
-                    "gemini-2.5-computer-use-preview-10-2025",
-                }
                 for model in data.values():
                     model_id = str(getattr(model, "id", "") or "").lower()
-                    if model_id.startswith("models/"):
-                        model_id = model_id[7:]
-                    if model_id in google_computer_models and not model.has_mode(MODE_COMPUTER):
+                    if supports_future_computer_mode("google", model_id) \
+                            and not model.has_mode(MODE_COMPUTER):
                         model.add_mode(MODE_COMPUTER)
                         updated = True
 
                 # Anthropic Computer Use support mirrors the model families handled
                 # by provider/api/anthropic/computer.py. Prefix matching also covers
                 # dated API IDs and user models stored under custom keys.
-                anthropic_computer_prefixes = (
-                    "claude-fable-5",
-                    "claude-mythos-5",
-                    "claude-opus-5",
-                    "claude-sonnet-5",
-                    "claude-opus-4-8",
-                    "claude-opus-4-7",
-                    "claude-opus-4-6",
-                    "claude-sonnet-4-6",
-                    "claude-opus-4-5",
-                    "claude-sonnet-4-5",
-                    "claude-haiku-4-5",
-                )
                 for model in data.values():
                     model_id = str(getattr(model, "id", "") or "").lower()
-                    if any(model_id.startswith(prefix) for prefix in anthropic_computer_prefixes) \
+                    if supports_future_computer_mode("anthropic", model_id) \
                             and not model.has_mode(MODE_COMPUTER):
                         model.add_mode(MODE_COMPUTER)
                         updated = True

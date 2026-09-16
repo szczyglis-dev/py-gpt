@@ -11,11 +11,11 @@
 
 import json
 import os
-import re
 from typing import Optional, Dict, Any, List, Set
 
 from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
+from pygpt_net.provider.core.model.compat import supports_anthropic_adaptive_thinking
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
@@ -133,13 +133,8 @@ class Chat:
         model_id_lc = str(model.id or "").lower()
         thinking_cfg = None
         if no_tools and show_reasoning:
-            # Claude 4.6+ and Claude 5 use adaptive thinking.
-            version_match = re.search(r"-4-(\d+)(?:-|$)", model_id_lc)
-            is_adaptive = (
-                bool(version_match and int(version_match.group(1)) >= 6)
-                or bool(re.search(r"-(?:opus|sonnet|fable|haiku|mythos)-5(?:-|$)", model_id_lc))
-            )
-            if is_adaptive:
+            # Claude 4.6+ and later generations use adaptive thinking.
+            if supports_anthropic_adaptive_thinking(model_id_lc):
                 thinking_cfg = {"type": "adaptive", "display": "summarized"}
             # Claude 4.5 / 3.7 use legacy fixed-budget extended thinking.
             elif ("-4-5" in model_id_lc or "claude-3-7-sonnet" in model_id_lc) and max_tokens > 1024:

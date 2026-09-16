@@ -12,6 +12,8 @@
 from importlib import import_module
 from typing import Any
 
+from pygpt_net.provider.core.model.compat import is_openai_reasoning_model_id
+
 
 class LlamaIndexLLMProxy:
     """Runtime compatibility proxy for stale LlamaIndex model registries.
@@ -125,17 +127,7 @@ class LlamaIndexLLMProxy:
         if bool(getattr(model, "reasoning_effort", False)):
             return True
 
-        name = str(model_name or "").lower()
-        if name.startswith(("o1", "o3", "o4", "o5")):
-            return True
-
-        if not name.startswith("gpt-"):
-            return False
-        version = name[4:].split("-", 1)[0].split(".", 1)[0]
-        try:
-            return int(version) >= 5
-        except (TypeError, ValueError):
-            return False
+        return is_openai_reasoning_model_id(model_name)
 
     @staticmethod
     def _registry_contains(module: Any, name: str, model_name: str) -> bool:

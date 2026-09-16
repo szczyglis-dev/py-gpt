@@ -16,6 +16,7 @@ from typing import Optional, Dict, Any, Iterable
 from pygpt_net.core.types import MODE_CHAT, MODE_COMPUTER, MODE_RESEARCH
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.core.model.compat import supports_xai_native_files
 
 
 class Native:
@@ -96,8 +97,7 @@ class Native:
         if provider == "anthropic" and cfg.get("api_native_anthropic", False):
             return provider
         if provider == "x_ai" and cfg.get("api_native_xai", False):
-            model_id = str(model.id or "").lower()
-            if model_id.startswith("grok-4") and "imagine" not in model_id:
+            if supports_xai_native_files(model.id):
                 return provider
         return None
 

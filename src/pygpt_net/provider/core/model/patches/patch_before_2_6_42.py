@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
     MODE_COMPUTER,
     MODE_EXPERT
 )
+from pygpt_net.provider.core.model.compat import is_openai_o_series
 
 
 class Patch:
@@ -336,7 +337,7 @@ class Patch:
                 for id in data:
                     model = data[id]
                     # OpenAI
-                    if model.id.startswith("gpt-") or model.id.startswith("o1-"):
+                    if model.id.startswith("gpt-") or is_openai_o_series(model.id):
                         # langchain
                         is_endpoint = False
                         is_version = False
@@ -593,10 +594,7 @@ class Patch:
                         model.provider = "ollama"
                     if (model.id.startswith("gpt-")
                       or model.id.startswith("chatgpt")
-                      or model.id.startswith("o1")
-                      or model.id.startswith("o3")
-                      or model.id.startswith("o4")
-                      or model.id.startswith("o5")
+                      or is_openai_o_series(model.id)
                       or model.id.startswith("dall-e")):
                         model.provider = "openai"
                     if model.id.startswith("claude-"):
@@ -619,8 +617,8 @@ class Patch:
                         if 'provider' in model.llama_index:
                             del model.llama_index['provider']
 
-                    # add llama_index mode to o1, o3
-                    if model.id.startswith("o1") or model.id.startswith("o3"):
+                    # add llama_index mode to OpenAI o-series models
+                    if is_openai_o_series(model.id):
                         if "llama_index" not in model.mode:
                             model.mode.append("llama_index")
 

@@ -14,20 +14,11 @@ import json
 from google.genai import types as gtypes
 
 from pygpt_net.core.types import MODE_COMPUTER
+from pygpt_net.provider.core.model.compat import supports_future_computer_mode
 from pygpt_net.item.model import ModelItem
 
 
 class RemoteTools:
-    # Models supported by the Generate Content Computer Use API used by this adapter.
-    COMPUTER_USE_MODELS = {
-        "gemini-3.8-flash",
-        "gemini-3.7-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.5-flash",
-        "gemini-3-flash-preview",
-        "gemini-2.5-computer-use-preview-10-2025",
-    }
-
     def __init__(self, window=None):
         """
         Remote Tools helpers for Google GenAI.
@@ -41,7 +32,7 @@ class RemoteTools:
         model_id = str(getattr(model, "id", "") or "").lower()
         if model_id.startswith("models/"):
             model_id = model_id[7:]
-        if model_id in self.COMPUTER_USE_MODELS:
+        if supports_future_computer_mode("google", model_id):
             return True
         return bool(model and model.has_mode(MODE_COMPUTER))
 

@@ -15,6 +15,8 @@ import base64
 
 from .base import BaseProvider
 
+from pygpt_net.provider.core.model.compat import version_at_least
+
 
 class GoogleGenAITextToSpeech(BaseProvider):
     def __init__(self, *args, **kwargs):
@@ -29,7 +31,7 @@ class GoogleGenAITextToSpeech(BaseProvider):
         self.id = "google_genai_tts"
         self.name = "Google GenAI TTS"
 
-        # Supported preview TTS models (fallback to flash if invalid)
+        # Known preview TTS models; later numbered Gemini TTS models are accepted too.
         self.allowed_models = [
             "gemini-2.5-flash-preview-tts",
             "gemini-2.5-pro-preview-tts",
@@ -85,7 +87,10 @@ class GoogleGenAITextToSpeech(BaseProvider):
         # Validate/select model
         model = self.plugin.get_option_value("google_genai_tts_model") or "gemini-2.5-flash-preview-tts"
         model = self._normalize_model_name(model)
-        if model not in self.allowed_models:
+        if model not in self.allowed_models and not (
+                "tts" in model.lower()
+                and version_at_least(model, "gemini-", (2, 5))
+        ):
             model = "gemini-2.5-flash-preview-tts"
 
         # Validate/select voice

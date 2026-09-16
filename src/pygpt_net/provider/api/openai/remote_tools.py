@@ -22,6 +22,7 @@ from pygpt_net.core.types import (
 )
 
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.core.model.compat import supports_future_computer_mode
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 
@@ -101,7 +102,8 @@ class RemoteTools:
                 or model.id.startswith("computer-use")
                 or (
                     self.window.core.config.get("remote_tools.computer_use", False)
-                    and model.has_mode(MODE_COMPUTER)
+                    and (model.has_mode(MODE_COMPUTER)
+                         or supports_future_computer_mode(model.provider, model.id))
                 )
             )
         else:
@@ -118,7 +120,9 @@ class RemoteTools:
         # Never expose Computer Use through an expert preset on a model that
         # does not advertise the Computer capability.
         if enabled["computer_use"] and not (
-                model.id.startswith("computer-use") or model.has_mode(MODE_COMPUTER)
+                model.id.startswith("computer-use")
+                or model.has_mode(MODE_COMPUTER)
+                or supports_future_computer_mode(model.provider, model.id)
         ):
             enabled["computer_use"] = False
 

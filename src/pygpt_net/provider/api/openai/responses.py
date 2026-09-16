@@ -27,6 +27,10 @@ from pygpt_net.core.types import (
     OPENAI_DISABLE_TOOLS,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
+from pygpt_net.provider.core.model.compat import (
+    is_openai_reasoning_model_id,
+    supports_future_computer_mode,
+)
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.api.reasoning import (
@@ -147,7 +151,7 @@ class Responses:
         show_reasoning = is_realtime_reasoning_enabled(self.window)
         is_reasoning_model = (
             bool(getattr(model, "reasoning_effort", False))
-            or model_id_lc.startswith(("o1", "o3", "o4", "gpt-5"))
+            or is_openai_reasoning_model_id(model_id_lc)
         )
         if is_reasoning_model:
             reasoning_cfg = {}
@@ -824,7 +828,8 @@ class Responses:
                     preset_computer_use = "computer_use" in preset_tools
 
                 remote_computer_use = bool(
-                    model.has_mode(MODE_COMPUTER)
+                    (model.has_mode(MODE_COMPUTER)
+                     or supports_future_computer_mode(model.provider, model.id))
                     and (
                         self.window.core.config.get("remote_tools.computer_use", False)
                         or preset_computer_use

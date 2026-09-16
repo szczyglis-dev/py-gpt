@@ -22,6 +22,7 @@ from openai import OpenAI
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from pygpt_net.core.events import KernelEvent
+from pygpt_net.provider.core.model.compat import version_at_least
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -388,7 +389,7 @@ class VideoWorker(QRunnable):
         model = (model_id or "").lower()
         portrait = ar in ("9:16", "9x16", "portrait")
 
-        if "sora-2-pro" in model:
+        if "-pro" in model and version_at_least(model, "sora-", (2, 0)):
             if "1024" in res or "1080" in res or "1792" in res or "hd" in res:
                 return "1024x1792" if portrait else "1792x1024"
 

@@ -25,6 +25,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.core.model.compat import is_openai_reasoning_model_id
 
 
 class OpenAILLM(BaseLLM):
@@ -94,8 +95,7 @@ class OpenAILLM(BaseLLM):
 
             @staticmethod
             def _is_reasoning_model(model_id: str) -> bool:
-                model_id = str(model_id or "").lower()
-                return model_id.startswith(("o1", "o3", "o4", "gpt-5", "gpt-6"))
+                return is_openai_reasoning_model_id(model_id)
 
             def _get_model_kwargs(self, **kwargs):
                 params = super()._get_model_kwargs(**kwargs)

@@ -14,6 +14,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from pygpt_net.core.types import MODE_COMPUTER
+from pygpt_net.provider.core.model.compat import supports_future_computer_mode
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -214,9 +215,10 @@ class Computer:
         if any(model_id.startswith(prefix) for prefix in self.COMPUTER_20250124_MODELS):
             return "computer_20250124"
 
-        # Future/custom Anthropic models explicitly marked as Computer-capable are
-        # treated like whitelisted models. Known IDs above still select their exact
-        # legacy tool version; unknown capable models use the newest supported toolset.
+        # Future Claude generations inherit the newest stable toolset. Explicit
+        # model metadata remains a fallback for custom/non-standard IDs.
+        if supports_future_computer_mode("anthropic", model_id):
+            return "computer_toolset_20260801"
         if model is not None and hasattr(model, "has_mode") and model.has_mode(MODE_COMPUTER):
             return "computer_toolset_20260801"
         return None

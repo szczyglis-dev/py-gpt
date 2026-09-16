@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
     OPENAI_DISABLE_TOOLS,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
+from pygpt_net.provider.core.model.compat import is_openai_reasoning_model_id
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.reasoning import (
     is_realtime_reasoning_enabled, is_tagged_reasoning_model,
@@ -136,10 +137,10 @@ class Chat:
             response_kwargs['tools'] = tools
 
         if max_tokens > 0:
-            if model.id is None or (not model.id.startswith("o1") and not model.id.startswith("o3")):
-                response_kwargs['max_tokens'] = max_tokens
-            else:
+            if is_openai_reasoning_model_id(model.id):
                 response_kwargs['max_completion_tokens'] = max_tokens
+            else:
+                response_kwargs['max_tokens'] = max_tokens
 
         # audio mode
         if mode in [MODE_AUDIO]:
