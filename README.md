@@ -32,7 +32,6 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 ## Features
 
-- Split Context settings into General, Tools, and Advanced handling tabs.
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
