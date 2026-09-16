@@ -186,7 +186,16 @@ The ``Step by step`` switch shown below the Chat with Agents mode selector enabl
 
 The progress text is intentionally user-facing rather than hidden chain-of-thought. The agent is instructed to describe what it is doing and how it verified the result **without** exposing private reasoning and without numbered labels such as ``Step 1`` / ``Step 2``. Important worker/specialist output should be treated as work product that still needs verification when the conclusion matters.
 
-The switch is snapshotted when a Chat with Agents run starts, so changing it while a run is already in progress does not rewrite that run's prompt. It applies to the built-in Chat with Agents main-agent prompts; it does not turn ordinary Chat or legacy Agent modes into step-by-step workflows.
+The switch is snapshotted when a Chat with Agents run starts, so changing it while a run is already in progress does not rewrite that run's prompt. It applies to the Chat with Agents main agent; it does not turn ordinary Chat or legacy Agent modes into step-by-step workflows.
+
+Custom main-agent prompts
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The built-in system prompts used by the Chat with Agents main actor can be overridden in ``Settings -> Agents and experts -> Chat with Agents -> Advanced``. Four text areas are available: ``Chat primary agent system prompt (custom)``, ``Orchestrator system prompt (custom)``, ``Swarm orchestrator system prompt (custom)``, and ``Step-by-step instruction (custom)``.
+
+A custom field is active only when it contains non-whitespace text. The first three fields replace the built-in role prompt for their corresponding Chat, Orchestrator, or Swarm mode. The fourth field replaces the built-in step-by-step execution instruction whenever the ``Step by step`` switch is enabled. Leaving any field empty keeps the corresponding built-in default. Runtime capabilities, the normal preset/plugin system prompt, RAG/runtime context, and project ``AGENTS.md`` rules are still composed around the selected main-agent prompt by the runtime.
+
+Each field has a ``From defaults`` button. When the field is empty, the button copies the current built-in prompt into the editor immediately. When the field already contains text, PyGPT asks for confirmation before replacing it. Loading a default only changes the Settings editor; use the normal Settings save action to persist the value. This makes the built-in prompt a convenient starting point for a customized version without changing the source file.
 
 Project rules with AGENTS.md
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

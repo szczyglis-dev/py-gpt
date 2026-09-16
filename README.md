@@ -616,6 +616,12 @@ The **Step by step** switch below the Chat with Agents mode selector enables a s
 
 Progress updates are user-facing summaries, not hidden chain-of-thought. The agent is explicitly instructed not to expose private reasoning and not to label progress with numbered headings such as `Step 1` / `Step 2`. Important worker output should still be verified when the conclusion matters. The setting is snapshotted at the start of a run, so changing it does not rewrite a workflow that is already running.
 
+### Custom main-agent prompts
+
+Open `Settings -> Agents and experts -> Chat with Agents -> Advanced` to override the built-in prompts used by the Chat with Agents main actor. Separate custom text areas are available for the Chat primary agent, the Orchestrator, the Swarm Orchestrator, and the Step-by-step instruction. A non-empty custom value replaces the corresponding built-in role prompt/instruction; an empty field keeps the built-in default.
+
+Each custom prompt field includes **From defaults**. If the field is empty, it immediately copies the current built-in prompt into the textarea. If the field already contains text, PyGPT asks for confirmation before overwriting it. Save Settings to persist the copied or edited prompt.
+
 ### Project rules with AGENTS.md
 
 Before processing the user input, the top-level Chat with Agents main agent checks for `%workdir%/AGENTS.md` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main system prompt as additional project rules. The path follows the conversation/project that started the run, including a custom project data workdir.

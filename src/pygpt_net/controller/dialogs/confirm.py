@@ -49,8 +49,12 @@ class Confirm:
         )
         confirm_dialog.close()
 
+        # settings: Chat with Agents custom prompts
+        if type == 'settings.agent.v2.prompt.defaults':
+            self.window.controller.settings.editor.load_agent_prompt_default(id, force=True)
+
         # app
-        if type == 'app.log.clear':
+        elif type == 'app.log.clear':
             self.window.ui.dialogs.app_log.clear(force=True)
 
         # presets

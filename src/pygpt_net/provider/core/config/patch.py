@@ -854,6 +854,10 @@ class Patch:
                         "context.tool_calls.store",
                         "context.tool_calls.restore",
                         "agent.v2.restore_full_history",
+                        "agent.v2.prompt.primary.custom",
+                        "agent.v2.prompt.orchestrator.custom",
+                        "agent.v2.prompt.swarm.custom",
+                        "agent.v2.prompt.step_by_step.custom",
                 ):
                     if key not in data:
                         data[key] = cfg_get_base(key)

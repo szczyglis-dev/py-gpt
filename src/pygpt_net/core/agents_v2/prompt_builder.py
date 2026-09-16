@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 00:05:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -14,9 +14,14 @@ from __future__ import annotations
 from typing import Optional
 
 from .prompts import (
+    CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
+    CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
+    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
+    CUSTOM_SWARM_PROMPT_CONFIG_KEY,
     ORCHESTRATOR_BASE_PROMPT,
     PRIMARY_AGENT_BASE_PROMPT,
     SWARM_BASE_PROMPT,
+    build_custom_main_prompt,
     resolve_step_by_step_prompt,
 )
 
@@ -85,9 +90,16 @@ class RuntimePromptBuilder:
                     + "\n</additional_project_rules>"
                 )
 
+        step_by_step_rules = str(
+            self.runtime.window.core.config.get(
+                CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
+                "",
+            ) or ""
+        ).strip()
         base = resolve_step_by_step_prompt(
             base_prompt,
             bool(getattr(self.runtime, "step_by_step_enabled", False)),
+            step_by_step_rules,
         ).strip()
         prefix = (base + "\n\n") if base else ""
         return (
@@ -106,26 +118,49 @@ class RuntimePromptBuilder:
             include_project_rules=True,
         )
 
+    def _configured_main_prompt(self, default_prompt: str, config_key: str) -> str:
+        """Return a custom role prompt when configured, otherwise the built-in prompt."""
+        custom = str(self.runtime.window.core.config.get(config_key, "") or "").strip()
+        if custom:
+            return build_custom_main_prompt(custom)
+        return default_prompt
+
     def primary_agent_prompt(self) -> str:
         return self.compose_agent_system_prompt(
-            base_prompt=PRIMARY_AGENT_BASE_PROMPT,
+            base_prompt=self._configured_main_prompt(
+                PRIMARY_AGENT_BASE_PROMPT,
+                CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
+            ),
             include_project_rules=True,
         )
 
     def orchestrator_prompt(self) -> str:
         return self.compose_agent_system_prompt(
-            base_prompt=ORCHESTRATOR_BASE_PROMPT,
+            base_prompt=self._configured_main_prompt(
+                ORCHESTRATOR_BASE_PROMPT,
+                CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
+            ),
             include_project_rules=True,
         )
 
     def swarm_prompt(self) -> str:
         return self.compose_agent_system_prompt(
-            base_prompt=SWARM_BASE_PROMPT,
+            base_prompt=self._configured_main_prompt(
+                SWARM_BASE_PROMPT,
+                CUSTOM_SWARM_PROMPT_CONFIG_KEY,
+            ),
             include_project_rules=True,
         )
 
     def main_agent_prompt(self) -> str:
-        """Return the system prompt declared by the selected runtime strategy."""
+        """Return the configured system prompt for the selected runtime strategy."""
+        mode = str(getattr(self.runtime.agent_mode, "value", "") or "")
+        if mode == "primary_agent":
+            return self.primary_agent_prompt()
+        if mode == "orchestrator":
+            return self.orchestrator_prompt()
+        if mode == "swarm":
+            return self.swarm_prompt()
         return self.compose_agent_system_prompt(
             base_prompt=self.runtime.strategy.main_prompt,
             include_project_rules=True,

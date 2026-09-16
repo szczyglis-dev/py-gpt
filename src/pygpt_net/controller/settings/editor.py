@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 01:50:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 import copy
@@ -482,6 +482,27 @@ class Editor:
             )
             return
         self.window.core.settings.load_default_editor_app()
+
+    def load_agent_prompt_default(self, key: str, force: bool = False):
+        """Load a built-in Chat with Agents prompt into its custom textarea."""
+        widget = self.window.ui.config.get('config', {}).get(key)
+        if widget is None or not hasattr(widget, 'setPlainText'):
+            return
+
+        current = str(widget.toPlainText() or "").strip()
+        if current and not force:
+            self.window.ui.dialogs.confirm(
+                type='settings.agent.v2.prompt.defaults',
+                id=key,
+                msg=trans('settings.agent.v2.prompt.from_defaults.confirm'),
+            )
+            return
+
+        from pygpt_net.core.agents_v2.prompts import get_default_custom_prompt
+        default_prompt = get_default_custom_prompt(key)
+        if default_prompt:
+            widget.setPlainText(default_prompt)
+            widget.setFocus()
 
     def get_sections(self) -> Dict[str, dict]:
         """

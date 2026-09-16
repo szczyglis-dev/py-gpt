@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -60,6 +60,11 @@ class Settings:
                 node2 = ui_nodes.get(desc)
                 if node2 is not None:
                     node2.setText(t_desc)
+
+            if option.get('from_defaults'):
+                button = ui_nodes.get(f"settings.{opt_id}.from_defaults")
+                if button is not None:
+                    button.setText(tr('settings.agent.v2.prompt.from_defaults'))
 
         sections = w.core.settings.get_sections()
         tabs = ui_tabs['settings.section']

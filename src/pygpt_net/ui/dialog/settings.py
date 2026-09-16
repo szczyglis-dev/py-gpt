@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 18:00:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -134,6 +134,18 @@ class Settings(BaseConfigDialog):
                     options[key] = add_option(widget, f)
                 elif t in ('textarea', 'dict'):
                     options[key] = add_row_option(widget, f)
+                    if t == 'textarea' and f.get('from_defaults'):
+                        node_id = f"settings.{key}.from_defaults"
+                        self.window.ui.nodes[node_id] = QPushButton(
+                            trans('settings.agent.v2.prompt.from_defaults')
+                        )
+                        self.window.ui.nodes[node_id].setAutoDefault(False)
+                        self.window.ui.nodes[node_id].clicked.connect(
+                            lambda _checked=False, config_key=key:
+                            self.window.controller.settings.editor.load_agent_prompt_default(config_key)
+                        )
+                        # label, textarea, button, description
+                        options[key].insertWidget(2, self.window.ui.nodes[node_id])
                     if t == 'dict':
                         # register dict to editor:
                         register_dictionary(

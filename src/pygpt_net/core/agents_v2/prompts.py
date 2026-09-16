@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 21:20:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 
@@ -19,8 +19,8 @@ TASK EXECUTION DISCIPLINE (mandatory)
   concise high-level plan to the user. Keep the plan current and revise it when discoveries, failures, worker/specialist
   results or changed requirements make another sequence more reliable. Present the plan as natural prose or unnumbered
   bullets; do not number its steps.
-- USER-VISIBLE PROGRESS MUST NOT expose step numbering or step labels. Never write labels such as "Step 1", "Step 2",
-  "Krok 1", "Phase 1", "Step 1 complete", "Krok 1 zakończony", or equivalent numbered/ordinal headings. Do not
+- USER-VISIBLE PROGRESS MUST NOT expose step numbering or step labels. Never write labels such as "Step 1", "Step 2", 
+"Phase 1", "Step 1 complete", or equivalent numbered/ordinal headings. Do not
   announce internal step indices. Do not prefix progress notes with structural workflow headings such as
   "Implementation:", "Verification:", "Completed:", or equivalents. Use ordinary natural-language sentences that say
   what you are doing now, what you have just checked/completed, and what you will do next.
@@ -101,18 +101,39 @@ class _OptionalStepByStepPrompt(str):
     def __new__(cls, prompt: str, default_brief: str = ""):
         disabled = cls._render(prompt, False, default_brief)
         obj = super().__new__(cls, disabled)
+        obj.template = prompt
+        obj.default_brief = default_brief
         obj.step_by_step = cls._render(prompt, True, default_brief)
         return obj
 
     @staticmethod
-    def _render(prompt: str, enabled: bool, default_brief: str) -> str:
-        rules = f"\n{STEP_BY_STEP_RULES}\n" if enabled else ""
+    def _render(
+            prompt: str,
+            enabled: bool,
+            default_brief: str,
+            step_by_step_rules: str = "",
+    ) -> str:
+        if enabled:
+            custom_rules = str(step_by_step_rules or "").strip()
+            rules_text = custom_rules or STEP_BY_STEP_RULES
+            rules = f"\n{rules_text}\n"
+        else:
+            rules = ""
         brief = STEP_BY_STEP_BRIEF if enabled else default_brief
         return (
             prompt
             .replace("<step_by_step_rules>", rules)
             .replace("<step_by_step_brief>", brief)
             .strip()
+        )
+
+    def render(self, enabled: bool, step_by_step_rules: str = "") -> str:
+        """Render this prompt with the requested step-by-step instruction."""
+        return self._render(
+            self.template,
+            enabled,
+            self.default_brief,
+            step_by_step_rules,
         )
 
 
@@ -130,11 +151,25 @@ def _render_base_prompt(prompt: str, *, default_brief: str = "") -> str:
     return _OptionalStepByStepPrompt(prompt, default_brief)
 
 
-def resolve_step_by_step_prompt(prompt: str, enabled: bool) -> str:
-    """Return the step-by-step variant only for prompts that define one."""
-    if enabled and isinstance(prompt, _OptionalStepByStepPrompt):
-        return prompt.step_by_step
+def resolve_step_by_step_prompt(
+        prompt: str,
+        enabled: bool,
+        step_by_step_rules: str = "",
+) -> str:
+    """Return the optional step-by-step variant for a main-agent prompt."""
+    if isinstance(prompt, _OptionalStepByStepPrompt):
+        return prompt.render(enabled, step_by_step_rules)
     return str(prompt or "")
+
+
+def build_custom_main_prompt(prompt: str) -> str:
+    """Wrap a custom main-agent role prompt with optional step-by-step support."""
+    prompt = str(prompt or "").strip()
+    if not prompt:
+        return ""
+    return _OptionalStepByStepPrompt(
+        prompt + "\n\n<step_by_step_rules>",
+    )
 
 PRIMARY_AGENT_BASE_PROMPT = _render_base_prompt(r"""
 You are the Primary Agent. You are the only agent that communicates with the user and you own the task from start to
@@ -475,6 +510,24 @@ RULES
     caveats and next actions useful to the Orchestrator.
 11. Do not declare the overall user task finished. Only the Orchestrator can finalize the workflow.
 """.strip()
+
+
+CUSTOM_PRIMARY_PROMPT_CONFIG_KEY = "agent.v2.prompt.primary.custom"
+CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY = "agent.v2.prompt.orchestrator.custom"
+CUSTOM_SWARM_PROMPT_CONFIG_KEY = "agent.v2.prompt.swarm.custom"
+CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY = "agent.v2.prompt.step_by_step.custom"
+
+_CUSTOM_PROMPT_DEFAULTS = {
+    CUSTOM_PRIMARY_PROMPT_CONFIG_KEY: str(PRIMARY_AGENT_BASE_PROMPT),
+    CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY: str(ORCHESTRATOR_BASE_PROMPT),
+    CUSTOM_SWARM_PROMPT_CONFIG_KEY: str(SWARM_BASE_PROMPT),
+    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY: STEP_BY_STEP_RULES,
+}
+
+
+def get_default_custom_prompt(config_key: str) -> str:
+    """Return editable built-in prompt text for a custom prompt setting."""
+    return str(_CUSTOM_PROMPT_DEFAULTS.get(str(config_key or ""), ""))
 
 # Backward-compatible worker prompt symbol. The runtime selects the mode-specific prompt explicitly.
 WORKER_BASE_PROMPT = PRIMARY_AGENT_WORKER_BASE_PROMPT
