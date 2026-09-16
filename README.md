@@ -644,7 +644,7 @@ Local plugin execution is integrated with the normal PyGPT command/tool system, 
 
 Agent-related application settings are organized under `Settings -> Agents and experts`. The **Chat with Agents** section contains settings for this workflow. **Show full tool-chain in Chat with Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
 
-**Display full agent workflow** is enabled by default. When enabled, completed Chat with Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This option affects UI rendering only and does not change database storage or the separate model-facing history policy below.
+**Display full agent workflow** is disabled by default. When enabled, completed Chat with Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This option affects UI rendering only and does not change database storage or the separate model-facing history policy below.
 
 **Restore full workflow history on next request** controls what is sent back to the main agent from completed Chat with Agents turns on later requests. It is enabled by default for backward compatibility. When enabled, PyGPT restores the full persisted workflow, including intermediate main-agent output and worker results, which can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored. The complete workflow remains stored in the database and available to the UI, but omitting it from model-facing history saves tokens at the cost of less detailed workflow context. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots use the same policy.
 
@@ -1249,22 +1249,11 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - `gpt-4-turbo` (OpenAI)
 - `gpt-4o` (OpenAI)
 - `gpt-4o-mini` (OpenAI)
-- `gpt-5.3-codex (high)` (OpenAI)
-- `gpt-5.3-codex (low)` (OpenAI)
-- `gpt-5.3-codex (medium)` (OpenAI)
-- `gpt-5.3-codex (xhigh)` (OpenAI)
-- `gpt-5.6-luna (high)` (OpenAI)
-- `gpt-5.6-luna (low)` (OpenAI)
-- `gpt-5.6-luna (medium)` (OpenAI)
-- `gpt-5.6-sol (high)` (OpenAI)
-- `gpt-5.6-sol (low)` (OpenAI)
-- `gpt-5.6-sol (medium)` (OpenAI)
-- `gpt-5.6-terra (high)` (OpenAI)
-- `gpt-5.6-terra (low)` (OpenAI)
-- `gpt-5.6-terra (medium)` (OpenAI)
-- `gpt-6-astra (high)` (OpenAI)
-- `gpt-6-astra (low)` (OpenAI)
-- `gpt-6-astra (medium)` (OpenAI)
+- `gpt-5.3-codex` (OpenAI)
+- `gpt-5.6-luna` (OpenAI)
+- `gpt-5.6-sol` (OpenAI)
+- `gpt-5.6-terra` (OpenAI)
+- `gpt-6-astra` (OpenAI)
 - `gpt-image-1` (OpenAI)
 - `gpt-image-1.5` (OpenAI)
 - `gpt-image-2` (OpenAI)
@@ -1276,9 +1265,7 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - `o1` (OpenAI)
 - `o1-pro` (OpenAI)
 - `o3` (OpenAI)
-- `o3-mini (high)` (OpenAI)
-- `o3-mini (low)` (OpenAI)
-- `o3-mini (medium)` (OpenAI)
+- `o3-mini` (OpenAI)
 - `o3-pro` (OpenAI)
 - `o4-mini` (OpenAI)
 - `sora-2` (OpenAI)
@@ -2367,12 +2354,6 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Indexes / RAG:** General, Vector Store, Chat, Embeddings, File indexing, Context indexing, Data loaders, Clear and truncate
 - **Agents and experts:** Chat with Agents, Agents, Autonomous, Legacy
 - **Security:** General, Computer use, Linux, Windows, macOS
-
-Chat with Agents workflows are managed separately in `Config -> Agent Workflows...`; the Chat with Agents Settings page contains runtime/history/limit options rather than prompt textareas.
-
-In **Chats -> Render**, **Stream** controls whether answers are displayed while they are being generated, and **Show time in plain text mode** controls response timestamps for the plain-text renderer. **Display tool calls JSON** (enabled by default) controls whether completed tool calls are rendered as expandable input/output JSON blocks; when disabled, executing tools are represented only by one aggregated **Tool/Tools** status row. This is a display-only option and does not disable tool execution, storage, or model-facing tool protocol. Plain-text mode itself is toggled with the first `text` icon in the input-tab icon row; its tooltip changes between **Switch to plain text** and **Switch to normal view** depending on the active renderer.
-
-The **Embeddings** tab uses the selected global provider plus `Default embedding models`; its global `**kwargs` and `ENV` fields are optional overrides placed in **Advanced**, not required credentials/model configuration.
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:
 
