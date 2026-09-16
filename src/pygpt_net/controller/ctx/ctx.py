@@ -1396,8 +1396,15 @@ class Ctx:
             "Project '{}' created.".format(name)
         )
         self.window.ui.dialog['create'].close()
-        # self.select_group(id)
         self.group_id = id
+
+        # A newly created project should be immediately usable: keep it
+        # expanded, create a fresh context inside it and switch to that context.
+        # Existing contexts passed via meta_id remain in the project as before.
+        if id is not None:
+            self.window.ui.nodes['ctx.list'].expanded_items.add(id)
+            self.store_expanded_groups()
+            self.new(group_id=id)
 
     def duplicate_group(self, id: int):
         """Duplicate a project and rebuild its project index only if the source has one."""
