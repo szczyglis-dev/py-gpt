@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.09.16 08:40:00                  #
 # ================================================== #
 import sys
 
@@ -1582,9 +1582,9 @@ class OptionCombo(QWidget):
                         if not isinstance(key, str):
                             key = str(key)
                         if key.startswith("separator::"):
-                            self.combo.addSeparator(value)
+                            self.combo.addSeparator(trans(value))
                         else:
-                            self.combo.addItem(value, key)
+                            self.combo.addItem(trans(value), key)
                 else:
                     if isinstance(item, str) and item.startswith("separator::"):
                         self.combo.addSeparator(item.split("separator::", 1)[1])
@@ -1595,9 +1595,9 @@ class OptionCombo(QWidget):
                 if not isinstance(key, str):
                     key = str(key)
                 if key.startswith("separator::"):
-                    self.combo.addSeparator(value)
+                    self.combo.addSeparator(trans(value))
                 else:
-                    self.combo.addItem(value, key)
+                    self.combo.addItem(trans(value), key)
 
         self._apply_initial_selection()
 

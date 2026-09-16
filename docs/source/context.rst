@@ -76,3 +76,22 @@ You can clear the entire memory (all contexts) by selecting the menu option:
 Context storage
 -----------------
 On the application side, the context is stored in the ``SQLite`` database located in the base profile/application workdir (``db.sqlite``). A project data-workdir override does not move this database.
+
+Tool call storage
+~~~~~~~~~~~~~~~~~
+
+Tool requests and results can contain large payloads, for example file contents, generated data, or long command output. These payloads can significantly increase the size of the context database. Their persistence can be configured in:
+
+.. code-block:: ini
+
+   Config -> Settings -> Context -> Store tool calls in database
+
+The available modes are:
+
+* ``Do not store`` - tool calls and results are used normally during the live request, but are not written to durable history.
+* ``Store truncated`` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends ``....``. Object keys and nesting are preserved.
+* ``Store full input/output`` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
+
+The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence; an active multi-step tool execution continues to use the complete in-memory request and result.
+
+By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore the previous replay behavior, enable ``Restore tool calls from history`` in ``Settings -> Context``. This option requires ``Store full input/output``; it is ignored when tool calls are not stored or are stored truncated.

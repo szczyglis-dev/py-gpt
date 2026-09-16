@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 22:00:00                  #
+# Updated Date: 2026.09.16 07:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -914,12 +914,20 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def insert_part_task(self, task: CtxItemPartTask) -> int:
+    def insert_part_task(self, task: CtxItemPartTask) -> Optional[int]:
+        # Tool calls are runtime objects first. The user may choose not to keep
+        # them in durable history at all; in that mode leave the task in memory
+        # with ``id=None`` so the active provider/tool loop can still complete.
+        command = self.window.core.command
+        if not command.should_store_tool_task(task):
+            return None
+
         db = self.window.core.db.get_db()
         now = int(time.time())
         if not task.created_at:
             task.created_at = now
         task.updated_at = now
+        stored = command.tool_task_values_for_storage(task)
         stmt = text("""
             INSERT INTO ctx_item_partial_task
             (uuid, parent_item_part_id, agent_id, name, task_name, task_summary, input, output,
@@ -928,9 +936,10 @@ class Storage:
                     :tool_call_id, :tool_input, :tool_output, :extra, :created_at, :updated_at)
         """).bindparams(
             uuid=task.uuid, parent=task.parent_item_part_id, agent_id=task.agent_id, name=task.name,
-            task_name=task.task_name, task_summary=task.task_summary, input=task.input, output=task.output,
-            tool_call_id=task.tool_call_id, tool_input=pack_item_value(task.tool_input),
-            tool_output=pack_item_value(task.tool_output), extra=pack_item_value(task.extra),
+            task_name=task.task_name, task_summary=task.task_summary,
+            input=stored["input"], output=stored["output"],
+            tool_call_id=task.tool_call_id, tool_input=pack_item_value(stored["tool_input"]),
+            tool_output=pack_item_value(stored["tool_output"]), extra=pack_item_value(stored["extra"]),
             created_at=int(task.created_at or now), updated_at=int(task.updated_at or now),
         )
         with db.begin() as conn:
@@ -943,6 +952,18 @@ class Storage:
             return False
         task.updated_at = int(time.time())
         db = self.window.core.db.get_db()
+        command = self.window.core.command
+        if not command.should_store_tool_task(task):
+            # The policy can be changed while a tool is still running. If a row
+            # was created before switching to "Do not store", remove it on the
+            # next write rather than leaving a half-persisted call in history.
+            stmt = text("DELETE FROM ctx_item_partial_task WHERE id=:id").bindparams(id=task.id)
+            with db.begin() as conn:
+                conn.execute(stmt)
+            task.id = None
+            return True
+
+        stored = command.tool_task_values_for_storage(task)
         stmt = text("""
             UPDATE ctx_item_partial_task SET agent_id=:agent_id, name=:name, task_name=:task_name,
                 task_summary=:task_summary, input=:input, output=:output, tool_call_id=:tool_call_id,
@@ -950,9 +971,10 @@ class Storage:
                 updated_at=:updated_at WHERE id=:id
         """).bindparams(
             id=task.id, agent_id=task.agent_id, name=task.name, task_name=task.task_name,
-            task_summary=task.task_summary, input=task.input, output=task.output, tool_call_id=task.tool_call_id,
-            tool_input=pack_item_value(task.tool_input), tool_output=pack_item_value(task.tool_output),
-            extra=pack_item_value(task.extra), updated_at=task.updated_at,
+            task_summary=task.task_summary, input=stored["input"], output=stored["output"],
+            tool_call_id=task.tool_call_id,
+            tool_input=pack_item_value(stored["tool_input"]), tool_output=pack_item_value(stored["tool_output"]),
+            extra=pack_item_value(stored["extra"]), updated_at=task.updated_at,
         )
         with db.begin() as conn:
             conn.execute(stmt)

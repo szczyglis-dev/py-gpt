@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.16 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -838,6 +838,22 @@ class Patch:
                 if isinstance(query_file, dict) and query_file.get("enabled") is not False:
                     query_file["enabled"] = False
                     updated = True
+
+            # < 2.8.21
+            if old < parse_version("2.8.21"):
+                print("Migrating config from < 2.8.21...")
+
+                # Tool request/result payloads can be very large. Existing
+                # profiles keep the historical full-storage behaviour until the
+                # user explicitly selects a smaller persistence policy. Historical
+                # tool-protocol replay remains opt-in and disabled by default.
+                for key in (
+                        "context.tool_calls.store",
+                        "context.tool_calls.restore",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
 
         # update file
         migrated = False

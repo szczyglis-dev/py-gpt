@@ -1447,6 +1447,44 @@
     "step": 1,
     "advanced": false
   },
+  "context.tool_calls.store": {
+    "section": "context",
+    "type": "combo",
+    "slider": false,
+    "label": "settings.context.tool_calls.store",
+    "description": "settings.context.tool_calls.store.desc",
+    "value": "full",
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "advanced": false,
+    "keys": [
+      {
+        "none": "settings.context.tool_calls.store.none"
+      },
+      {
+        "truncated": "settings.context.tool_calls.store.truncated"
+      },
+      {
+        "full": "settings.context.tool_calls.store.full"
+      }
+    ]
+  },
+  "context.tool_calls.restore": {
+    "section": "context",
+    "type": "bool",
+    "slider": false,
+    "label": "settings.context.tool_calls.restore",
+    "description": "settings.context.tool_calls.restore.desc",
+    "value": false,
+    "min": null,
+    "max": null,
+    "multiplier": null,
+    "step": null,
+    "secret": false,
+    "advanced": false
+  },
   "context.advanced.enabled": {
     "section": "context",
     "type": "bool",

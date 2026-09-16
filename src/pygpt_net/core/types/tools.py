@@ -6,10 +6,34 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 19:52:00                  #
+# Updated Date: 2026.09.16 08:45:00                  #
 # ================================================== #
 
+from enum import Enum
 from typing import Any, Optional
+
+
+TOOL_CALL_STORAGE_CONFIG_KEY = "context.tool_calls.store"
+TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY = "context.tool_calls.restore"
+TOOL_CALL_STORAGE_TRUNCATE_CHARS = 20
+TOOL_CALL_STORAGE_TRUNCATE_SUFFIX = "...."
+
+
+
+class ToolCallStorageMode(str, Enum):
+    """Durable database policy for tool requests and results."""
+
+    DO_NOT_STORE = "none"
+    STORE_TRUNCATED = "truncated"
+    STORE_FULL = "full"
+
+    @classmethod
+    def from_value(cls, value: Any) -> "ToolCallStorageMode":
+        try:
+            return cls(str(value or "").strip().lower())
+        except ValueError:
+            # Preserve the historical behaviour for missing/invalid config.
+            return cls.STORE_FULL
 
 
 # Mouse & Keyboard tools are intentionally transient. Computer-control flows can

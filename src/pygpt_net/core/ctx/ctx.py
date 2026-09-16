@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 22:00:00                  #
+# Updated Date: 2026.09.16 08:45:00                  #
 # ================================================== #
 
 import copy
@@ -34,6 +34,9 @@ from pygpt_net.core.types import (
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
     PERSIST_HIDDEN_TOOL_CALLS,
+    TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY,
+    TOOL_CALL_STORAGE_CONFIG_KEY,
+    ToolCallStorageMode,
 )
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
 from pygpt_net.item.ctx_part import CtxItemPart
@@ -1668,12 +1671,16 @@ class Ctx:
         clone.extra.pop("prev_tool_calls", None)
         return clone
 
-    def expand_history_item(
+    def _expand_live_history_item(
             self,
             item: CtxItem,
             target_mode: Optional[str] = None,
     ) -> List[CtxItem]:
-        """Project one durable turn to provider-facing protocol segments.
+        """Rebuild provider protocol only for the currently active continuation.
+
+        This is intentionally runtime-only. Historical completed turns are flattened
+        by ``expand_history_item`` and never replay persisted tool calls/results.
+
 
         A DB partial is a text fragment and may contain many sequential tool
         rounds. Those rounds are expanded only in memory so providers still see
@@ -1816,15 +1823,123 @@ class Ctx:
             expanded[-1].hidden_output = item.hidden_output
         return expanded or [item]
 
+    def expand_history_item(
+            self,
+            item: CtxItem,
+            target_mode: Optional[str] = None,
+    ) -> List[CtxItem]:
+        """Project one durable turn to plain model-facing chat history.
+
+        Tool calls/results are execution protocol, not conversational memory.
+        They are required only while the active tool loop is running and must
+        not be replayed from durable history on later requests. Historical
+        turns are therefore collapsed to their user-visible user/assistant text
+        and all persisted tool protocol/cache fields are removed from the
+        disposable provider-facing clone.
+
+        This also makes DB storage policies such as truncated or omitted tool
+        payloads safe: no provider can mistake those display-only records for a
+        real function-call continuation after a reload.
+        """
+        if (str(getattr(item, "mode", "") or "") == MODE_AGENT_V2
+                and target_mode not in (None, MODE_AGENT_V2)):
+            clone = self._compact_agents_v2_history_item(item)
+        else:
+            clone = copy.copy(item)
+            clone.parts = []
+            clone.active_part = None
+            clone.turn_parent = None
+            clone.turn_part = None
+            clone.turn_previous_part = None
+            clone.turn_continuation = False
+            clone.prev_ctx = None
+            # Keep provider-side continuation metadata (most importantly
+            # ``msg_id`` used by OpenAI Responses as ``previous_response_id``).
+            # Historical local tool payloads are stripped below, but a stateful
+            # provider may still continue its own server-side response chain.
+            # The Agents v2 cross-mode projection intentionally remains an
+            # exception in ``_compact_agents_v2_history_item`` because resuming
+            # that internal workflow from another mode would leak its protocol.
+
+            output = item.get_agents_v2_response_output()
+            if output is None:
+                output = item.compose_output() if getattr(item, "parts", None) else item.output
+            # Legacy command syntax may still exist in old DB rows. Keep the
+            # assistant prose but never replay the embedded <tool> protocol.
+            if output not in (None, ""):
+                output = self.window.core.command.strip_cmds(str(output))
+            clone.output = output
+
+        # Never expose historical execution state to provider adapters. They may
+        # otherwise synthesize assistant(tool_calls) / tool(result) messages from
+        # these compatibility fields even when the current request is unrelated.
+        clone.cmds = []
+        clone.cmds_before = []
+        clone.results = []
+        clone.tool_calls = []
+        clone.extra = copy.deepcopy(clone.extra) if isinstance(clone.extra, dict) else {}
+        for key in (
+                "tool_calls",
+                "tool_output",
+                "prev_tool_calls",
+                "tool_calls_outputs",
+                "mcp_approval_request",
+                "pending_safety_checks",
+        ):
+            clone.extra.pop(key, None)
+        return [clone]
+
+    def should_restore_tool_calls_from_history(self) -> bool:
+        """Return whether persisted tool protocol may be replayed.
+
+        Replay is intentionally opt-in and requires full tool input/output
+        storage. Truncated or omitted payloads cannot form a faithful provider
+        tool-call/result sequence and are therefore never replayed.
+        """
+        try:
+            enabled = bool(self.window.core.config.get(
+                TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY,
+                False,
+            ))
+            if not enabled:
+                return False
+            storage_mode = ToolCallStorageMode.from_value(
+                self.window.core.config.get(
+                    TOOL_CALL_STORAGE_CONFIG_KEY,
+                    ToolCallStorageMode.STORE_FULL.value,
+                )
+            )
+            return storage_mode == ToolCallStorageMode.STORE_FULL
+        except (AttributeError, RuntimeError):
+            return False
+
     def expand_history(
             self,
             history_items: List[CtxItem],
             target_mode: Optional[str] = None,
+            active_continuation_parent: Optional[CtxItem] = None,
     ) -> List[CtxItem]:
-        """Project durable context turns to provider-facing history items."""
+        """Project durable turns to provider history.
+
+        By default completed turns are flattened to conversational history and
+        persisted tool protocol is not replayed. The Context setting
+        ``Restore tool calls from history`` can opt back into the previous replay
+        behaviour, but only while full tool input/output storage is enabled. The
+        durable parent of the *current* ephemeral continuation is always expanded
+        because it still owns the complete runtime protocol required to finish
+        the in-flight tool loop.
+        """
         result: List[CtxItem] = []
+        restore_persisted_tools = self.should_restore_tool_calls_from_history()
         for item in history_items:
-            result.extend(self.expand_history_item(item, target_mode=target_mode))
+            is_active_continuation = (
+                active_continuation_parent is not None
+                and item is active_continuation_parent
+            )
+            if is_active_continuation or restore_persisted_tools:
+                result.extend(self._expand_live_history_item(item, target_mode=target_mode))
+            else:
+                result.extend(self.expand_history_item(item, target_mode=target_mode))
         return result
 
     def count_history(
@@ -1889,9 +2004,18 @@ class Ctx:
         # Ignore the current durable turn before expansion. Otherwise a single
         # turn containing multiple partials would accidentally skip only its last
         # protocol fragment instead of the whole current item.
+        current_item = history_items[-1] if ignore_first and history_items else None
+        active_continuation_parent = (
+            getattr(current_item, "turn_parent", None)
+            if current_item is not None else None
+        )
         source_items = history_items[:-1] if ignore_first and history_items else history_items
         source_items = self.window.core.context_manager.filter_history(source_items)
-        expanded_items = self.expand_history(source_items, target_mode=mode)
+        expanded_items = self.expand_history(
+            source_items,
+            target_mode=mode,
+            active_continuation_parent=active_continuation_parent,
+        )
         from_ctx = self.window.core.tokens.from_ctx
         for item in reversed(expanded_items):
             cost = from_ctx(item, mode, model)

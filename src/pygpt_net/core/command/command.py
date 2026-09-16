@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 13:52:00                  #
+# Updated Date: 2026.09.16 07:00:00                  #
 # ================================================== #
 
 import copy
@@ -24,6 +24,10 @@ from pygpt_net.core.types import (
 from pygpt_net.core.events import Event
 from pygpt_net.core.types.tools import (
     PERSIST_HIDDEN_TOOL_CALLS,
+    TOOL_CALL_STORAGE_CONFIG_KEY,
+    TOOL_CALL_STORAGE_TRUNCATE_CHARS,
+    TOOL_CALL_STORAGE_TRUNCATE_SUFFIX,
+    ToolCallStorageMode,
     is_hidden_tool as is_hidden_tool_name,
     is_hidden_tool_realtime_only,
     register_hidden_tool_definition,
@@ -136,6 +140,113 @@ class Command:
             if str(name) and self.is_tool_realtime_visible(str(name))
         ]
 
+    def get_tool_call_storage_mode(self) -> ToolCallStorageMode:
+        """Return the configured durable-storage policy for tool payloads."""
+        value = ToolCallStorageMode.STORE_FULL.value
+        try:
+            value = self.window.core.config.get(
+                TOOL_CALL_STORAGE_CONFIG_KEY,
+                ToolCallStorageMode.STORE_FULL.value,
+            )
+        except (AttributeError, RuntimeError):
+            pass
+        return ToolCallStorageMode.from_value(value)
+
+    @staticmethod
+    def _truncate_tool_storage_value(value: Any, limit: int = TOOL_CALL_STORAGE_TRUNCATE_CHARS) -> Any:
+        """Recursively truncate string values while preserving JSON structure.
+
+        Dictionary keys are intentionally left unchanged: they define the tool
+        payload schema and are required by the history renderer. Only values are
+        size-limited.
+        """
+        if isinstance(value, str):
+            if limit > 0 and len(value) > limit:
+                return value[:limit] + TOOL_CALL_STORAGE_TRUNCATE_SUFFIX
+            return value
+        if isinstance(value, dict):
+            return {
+                key: Command._truncate_tool_storage_value(child, limit)
+                for key, child in value.items()
+            }
+        if isinstance(value, list):
+            return [Command._truncate_tool_storage_value(child, limit) for child in value]
+        if isinstance(value, tuple):
+            return tuple(Command._truncate_tool_storage_value(child, limit) for child in value)
+        return copy.deepcopy(value)
+
+    def tool_payload_for_storage(self, value: Any) -> Any:
+        """Apply the configured DB policy to an already identified tool payload."""
+        mode = self.get_tool_call_storage_mode()
+        if mode == ToolCallStorageMode.DO_NOT_STORE:
+            return None
+        if mode == ToolCallStorageMode.STORE_TRUNCATED:
+            return self._truncate_tool_storage_value(value)
+        return copy.deepcopy(value)
+
+    @classmethod
+    def _truncate_tool_storage_text(cls, value: Any) -> Any:
+        """Truncate a text DB column while preserving JSON structure when possible."""
+        if not isinstance(value, str):
+            return cls._truncate_tool_storage_value(value)
+        try:
+            decoded = json.loads(value)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return cls._truncate_tool_storage_value(value)
+        if not isinstance(decoded, (dict, list)):
+            return cls._truncate_tool_storage_value(value)
+        decoded = cls._truncate_tool_storage_value(decoded)
+        return json.dumps(decoded, ensure_ascii=False, default=str)
+
+    @staticmethod
+    def is_tool_task(task: Any) -> bool:
+        """Return True when a partial task represents a tool invocation."""
+        if task is None:
+            return False
+        if getattr(task, "tool_call_id", None):
+            return True
+        extra = getattr(task, "extra", None)
+        return isinstance(extra, dict) and bool(extra.get("tool_name"))
+
+    def should_store_tool_task(self, task: Any) -> bool:
+        """Return False only for tool-task rows disabled by the DB policy."""
+        if not self.is_tool_task(task):
+            return True
+        return self.get_tool_call_storage_mode() != ToolCallStorageMode.DO_NOT_STORE
+
+    def tool_task_values_for_storage(self, task: Any) -> Dict[str, Any]:
+        """Build DB-safe values for a partial tool task without mutating runtime state."""
+        is_tool = self.is_tool_task(task)
+        if not is_tool:
+            return {
+                "input": getattr(task, "input", None),
+                "output": getattr(task, "output", None),
+                "tool_input": getattr(task, "tool_input", None),
+                "tool_output": getattr(task, "tool_output", None),
+                "extra": copy.deepcopy(getattr(task, "extra", None)),
+            }
+
+        mode = self.get_tool_call_storage_mode()
+        if mode == ToolCallStorageMode.STORE_TRUNCATED:
+            extra = copy.deepcopy(getattr(task, "extra", None))
+            if isinstance(extra, dict) and "response" in extra:
+                extra["response"] = self._truncate_tool_storage_value(extra["response"])
+            return {
+                "input": self._truncate_tool_storage_text(getattr(task, "input", None)),
+                "output": self._truncate_tool_storage_text(getattr(task, "output", None)),
+                "tool_input": self._truncate_tool_storage_value(getattr(task, "tool_input", None)),
+                "tool_output": self._truncate_tool_storage_value(getattr(task, "tool_output", None)),
+                "extra": extra,
+            }
+
+        return {
+            "input": getattr(task, "input", None),
+            "output": getattr(task, "output", None),
+            "tool_input": copy.deepcopy(getattr(task, "tool_input", None)),
+            "tool_output": copy.deepcopy(getattr(task, "tool_output", None)),
+            "extra": copy.deepcopy(getattr(task, "extra", None)),
+        }
+
     def tool_calls_for_storage(self, tool_calls: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Apply the code-level hidden-tool persistence policy."""
         if PERSIST_HIDDEN_TOOL_CALLS:
@@ -144,36 +255,47 @@ class Command:
 
     def commands_for_storage(self, commands: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Return command metadata that may be written to durable context storage."""
-        if PERSIST_HIDDEN_TOOL_CALLS:
-            return list(commands or [])
-        return self.visible_tools(commands or [])
+        values = list(commands or []) if PERSIST_HIDDEN_TOOL_CALLS else self.visible_tools(commands or [])
+        stored = self.tool_payload_for_storage(values)
+        return stored if isinstance(stored, list) else []
 
     def tool_results_for_storage(self, results: List[Any]) -> List[Any]:
         """Remove model-facing results that belong to non-persisted hidden tools."""
         if PERSIST_HIDDEN_TOOL_CALLS:
-            return list(results or [])
-        stored = []
-        for result in results or []:
-            name = ""
-            if isinstance(result, dict):
-                request = result.get("request")
-                if isinstance(request, dict):
-                    name = str(request.get("cmd") or request.get("name") or "")
-                if not name:
-                    name = str(result.get("cmd") or "")
-            if name and self.is_tool_hidden(name):
-                continue
-            stored.append(result)
-        return stored
+            visible = list(results or [])
+        else:
+            visible = []
+            for result in results or []:
+                name = ""
+                if isinstance(result, dict):
+                    request = result.get("request")
+                    if isinstance(request, dict):
+                        name = str(request.get("cmd") or request.get("name") or "")
+                    if not name:
+                        name = str(result.get("cmd") or "")
+                if name and self.is_tool_hidden(name):
+                    continue
+                visible.append(result)
+        stored = self.tool_payload_for_storage(visible)
+        return stored if isinstance(stored, list) else []
 
     def extra_for_storage(self, extra: Any) -> Any:
         """Sanitize compatibility tool caches before writing context extras."""
-        if PERSIST_HIDDEN_TOOL_CALLS or not isinstance(extra, dict):
+        if not isinstance(extra, dict):
             return extra
         stored = copy.deepcopy(extra)
+        mode = self.get_tool_call_storage_mode()
+
+        if mode == ToolCallStorageMode.DO_NOT_STORE:
+            for key in ("tool_calls", "prev_tool_calls", "tool_output", "tool_calls_outputs"):
+                stored.pop(key, None)
+            return stored
+
         for key in ("tool_calls", "prev_tool_calls"):
             if isinstance(stored.get(key), list):
-                values = self.visible_tools(stored[key])
+                values = list(stored[key]) if PERSIST_HIDDEN_TOOL_CALLS else self.visible_tools(stored[key])
+                if mode == ToolCallStorageMode.STORE_TRUNCATED:
+                    values = self._truncate_tool_storage_value(values)
                 if values:
                     stored[key] = values
                 else:
@@ -182,31 +304,47 @@ class Command:
             outputs = self.tool_results_for_storage(stored["tool_output"])
             # Plugin output caches usually carry the command at top level rather
             # than under request; apply the same rule explicitly.
-            outputs = [
-                value for value in outputs
-                if not (
-                    isinstance(value, dict)
-                    and str(value.get("cmd") or "")
-                    and self.is_tool_hidden(str(value.get("cmd") or ""))
-                )
-            ]
+            if not PERSIST_HIDDEN_TOOL_CALLS:
+                outputs = [
+                    value for value in outputs
+                    if not (
+                        isinstance(value, dict)
+                        and str(value.get("cmd") or "")
+                        and self.is_tool_hidden(str(value.get("cmd") or ""))
+                    )
+                ]
             if outputs:
                 stored["tool_output"] = outputs
             else:
                 stored.pop("tool_output", None)
+        if "tool_calls_outputs" in stored:
+            value = self.tool_payload_for_storage(stored["tool_calls_outputs"])
+            if value:
+                stored["tool_calls_outputs"] = value
+            else:
+                stored.pop("tool_calls_outputs", None)
         return stored
 
     def output_for_storage(self, text: Optional[str]) -> Optional[str]:
-        """Remove hidden legacy ``<tool>`` requests from durable assistant text."""
-        if PERSIST_HIDDEN_TOOL_CALLS or text is None:
+        """Apply hidden-tool and DB-size policy to legacy ``<tool>`` markup."""
+        if text is None:
             return text
+
+        mode = self.get_tool_call_storage_mode()
 
         def replace(match):
             command = self.extract_cmd(match.group(1))
             if isinstance(command, dict):
                 name = self._tool_name(command)
-                if name and self.is_tool_hidden(name, command):
+                if (not PERSIST_HIDDEN_TOOL_CALLS
+                        and name
+                        and self.is_tool_hidden(name, command)):
                     return ""
+                if mode == ToolCallStorageMode.DO_NOT_STORE:
+                    return ""
+                if mode == ToolCallStorageMode.STORE_TRUNCATED:
+                    command = self._truncate_tool_storage_value(command)
+                    return "<tool>" + json.dumps(command, separators=(",", ":"), ensure_ascii=False) + "</tool>"
             return match.group(0)
 
         return self._RE_TOOL_BLOCKS.sub(replace, str(text))
