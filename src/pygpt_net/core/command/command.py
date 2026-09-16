@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 07:00:00                  #
+# Updated Date: 2026.09.16 14:35:00                  #
 # ================================================== #
 
 import copy
@@ -24,6 +24,7 @@ from pygpt_net.core.types import (
 from pygpt_net.core.events import Event
 from pygpt_net.core.types.tools import (
     PERSIST_HIDDEN_TOOL_CALLS,
+    CTX_TOOL_HISTORY_EXTRA_KEY,
     TOOL_CALL_STORAGE_CONFIG_KEY,
     TOOL_CALL_STORAGE_TRUNCATE_CHARS,
     TOOL_CALL_STORAGE_TRUNCATE_SUFFIX,
@@ -287,9 +288,45 @@ class Command:
         mode = self.get_tool_call_storage_mode()
 
         if mode == ToolCallStorageMode.DO_NOT_STORE:
-            for key in ("tool_calls", "prev_tool_calls", "tool_output", "tool_calls_outputs"):
+            for key in (
+                    "tool_calls",
+                    "prev_tool_calls",
+                    "tool_output",
+                    "tool_calls_outputs",
+                    CTX_TOOL_HISTORY_EXTRA_KEY,
+            ):
                 stored.pop(key, None)
             return stored
+
+        history = stored.get(CTX_TOOL_HISTORY_EXTRA_KEY)
+        if isinstance(history, list):
+            filtered_history = []
+            for entry in history:
+                if not isinstance(entry, dict):
+                    continue
+                call = entry.get("call")
+                function = call.get("function") if isinstance(call, dict) else None
+                name = str(function.get("name") or "") if isinstance(function, dict) else ""
+                if (not PERSIST_HIDDEN_TOOL_CALLS
+                        and name
+                        and self.is_tool_hidden(name, call)):
+                    continue
+                filtered_history.append(copy.deepcopy(entry))
+            if mode == ToolCallStorageMode.STORE_TRUNCATED:
+                # Keep protocol metadata (tool name/type/call IDs) intact so the
+                # compact transcript remains structurally restorable. Only the
+                # potentially large tool arguments follow the truncation policy.
+                for entry in filtered_history:
+                    call = entry.get("call") if isinstance(entry, dict) else None
+                    function = call.get("function") if isinstance(call, dict) else None
+                    if isinstance(function, dict) and "arguments" in function:
+                        function["arguments"] = self._truncate_tool_storage_value(
+                            function["arguments"]
+                        )
+            if filtered_history:
+                stored[CTX_TOOL_HISTORY_EXTRA_KEY] = filtered_history
+            else:
+                stored.pop(CTX_TOOL_HISTORY_EXTRA_KEY, None)
 
         for key in ("tool_calls", "prev_tool_calls"):
             if isinstance(stored.get(key), list):

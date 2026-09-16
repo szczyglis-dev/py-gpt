@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 07:00:00                  #
+# Updated Date: 2026.09.16 14:35:00                  #
 # ================================================== #
 
 from datetime import datetime
+import copy
+import json
 import re
 import time
 from typing import Dict, Optional, Tuple, List
@@ -17,6 +19,7 @@ from typing import Dict, Optional, Tuple, List
 from sqlalchemy import text
 
 from pygpt_net.utils import get_tz_offset
+from pygpt_net.core.types import CTX_TOOL_HISTORY_EXTRA_KEY, should_persist_ctx_partials
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
 from pygpt_net.item.ctx_part import CtxItemPart
 from pygpt_net.item.ctx_part_task import CtxItemPartTask
@@ -56,6 +59,145 @@ class Storage:
         if isinstance(images, list) and attachments is not None and hasattr(attachments, "is_ctx_excluded_path"):
             images = [value for value in images if not attachments.is_ctx_excluded_path(value)]
         return pack_item_value(images)
+
+    @staticmethod
+    def _match_ctx_tool_history_response(call: dict, outputs: list, used: set):
+        """Return the best legacy ctx.extra tool output for one stored call."""
+        if not isinstance(call, dict):
+            return None, None
+        function = call.get("function") if isinstance(call.get("function"), dict) else {}
+        name = str(function.get("name") or "")
+        call_id = str(call.get("call_id") or call.get("id") or "")
+
+        for index, output in enumerate(outputs or []):
+            if index in used or not isinstance(output, dict):
+                continue
+            output_call_id = str(output.get("call_id") or output.get("tool_call_id") or "")
+            if call_id and output_call_id and output_call_id == call_id:
+                return index, output
+        for index, output in enumerate(outputs or []):
+            if index in used or not isinstance(output, dict):
+                continue
+            output_name = str(output.get("cmd") or "")
+            request = output.get("request") if isinstance(output.get("request"), dict) else {}
+            if not output_name:
+                output_name = str(request.get("cmd") or "")
+            if name and output_name == name:
+                return index, output
+        for index, output in enumerate(outputs or []):
+            if index not in used:
+                return index, output
+        return None, None
+
+    def _restore_transient_tool_part(self, item: CtxItem) -> None:
+        """Rehydrate runtime partial/tasks from compact ctx_item tool metadata.
+
+        Non-workflow modes intentionally do not have durable partial rows. When a
+        conversation is loaded, reconstruct the same in-memory task graph from the
+        compact ctx_item.extra transcript so existing render/history code keeps
+        working without writing anything back to ctx_item_partial tables.
+        """
+        if item is None or item.parts or should_persist_ctx_partials(item.mode):
+            return
+        extra = item.extra if isinstance(item.extra, dict) else {}
+        history = extra.get(CTX_TOOL_HISTORY_EXTRA_KEY)
+
+        # Backward compatibility for ctx_item rows created before the compact
+        # transcript was introduced. Such rows can still carry the last stored
+        # call/result pair in the old compatibility keys.
+        if not isinstance(history, list) or not history:
+            calls = extra.get("tool_calls") if isinstance(extra.get("tool_calls"), list) else []
+            outputs = extra.get("tool_output") if isinstance(extra.get("tool_output"), list) else []
+            if not calls:
+                return
+            history = []
+            used_outputs = set()
+            for call in calls:
+                if not isinstance(call, dict):
+                    continue
+                index, response = self._match_ctx_tool_history_response(call, outputs, used_outputs)
+                if index is not None:
+                    used_outputs.add(index)
+                history.append({
+                    "call": copy.deepcopy(call),
+                    "response": copy.deepcopy(response),
+                    "completed": response is not None,
+                    "tool_round": 1,
+                    "ui_visible": True,
+                    "ui_ready": response is not None,
+                    "provider_history": True,
+                })
+
+        outputs = extra.get("tool_output") if isinstance(extra.get("tool_output"), list) else []
+        used_outputs = set()
+        part = CtxItemPart(parent_item_id=item.id, output=item.output)
+        part.extra = {"runtime_restored": True}
+        max_round = 0
+        for entry in history:
+            if not isinstance(entry, dict):
+                continue
+            call = entry.get("call")
+            if not isinstance(call, dict):
+                continue
+            function = call.get("function") if isinstance(call.get("function"), dict) else {}
+            name = str(function.get("name") or "").strip()
+            if not name:
+                continue
+            args = copy.deepcopy(function.get("arguments", {}))
+            call_id = str(call.get("call_id") or call.get("id") or "")
+            item_id = str(call.get("id") or call_id)
+            try:
+                tool_round = max(1, int(entry.get("tool_round") or 1))
+            except (TypeError, ValueError):
+                tool_round = 1
+            max_round = max(max_round, tool_round)
+            response = copy.deepcopy(entry.get("response")) if entry.get("response") is not None else None
+            if response is None:
+                response_index, matched = self._match_ctx_tool_history_response(call, outputs, used_outputs)
+                if response_index is not None:
+                    used_outputs.add(response_index)
+                    response = copy.deepcopy(matched)
+            completed = bool(entry.get("completed") or response is not None)
+            if isinstance(response, dict) and "result" in response:
+                output = response.get("result")
+            else:
+                output = response
+            if output is not None and not isinstance(output, str):
+                output = json.dumps(output, ensure_ascii=False, default=str)
+
+            task = CtxItemPartTask(
+                parent_item_part_id=None,
+                task_name=name,
+                input=json.dumps(
+                    {"cmd": name, "params": args},
+                    ensure_ascii=False,
+                    default=str,
+                ),
+                output=output,
+                tool_call_id=call_id or item_id,
+                tool_input=args,
+                tool_output=response,
+                extra={
+                    "status": "completed" if completed else "pending",
+                    "ui_ready": bool(entry.get("ui_ready", completed)),
+                    "tool_name": name,
+                    "tool_item_id": item_id,
+                    "tool_type": str(call.get("type") or "function"),
+                    "tool_round": tool_round,
+                    "ui_visible": bool(entry.get("ui_visible", True)),
+                    "provider_history": bool(entry.get("provider_history", True)),
+                    "runtime_restored": True,
+                },
+            )
+            part.tasks.append(task)
+
+        if not part.tasks:
+            return
+        # The compact ctx_item representation stores the final visible assistant
+        # text, so on reconstruction place it after all restored tool rounds.
+        part.extra["text_after_tool_round"] = max_round
+        item.parts = [part]
+        item.active_part = part
 
     def prepare_query(
             self,
@@ -336,6 +478,7 @@ class Storage:
 
         result = list(items.values())
         for item in result:
+            self._restore_transient_tool_part(item)
             if item.parts:
                 item.sync_output_from_parts()
         return result
@@ -1092,29 +1235,40 @@ class Storage:
             result = conn.execute(stmt)
             item.id = result.lastrowid
 
-        # Every newly created turn starts with a durable partial item. Existing
-        # databases without partial rows remain readable through the JOIN fallback.
-        # If this CtxItem already carries a part/task graph (e.g. context
-        # duplication/import via save_all), persist the whole graph and remap all
-        # parent IDs to the newly inserted ctx_item instead of dropping structure.
-        if not item.parts:
-            part = CtxItemPart(parent_item_id=item.id, output=item.output)
-            self.insert_part(part)
-            item.parts.append(part)
-            item.active_part = part
+        # Persist the rich partial/task graph only for workflow modes. Ordinary
+        # Chat/Chat with Files/etc. keep ctx_item as the durable format and may
+        # allocate CtxItemPart objects later purely for the live tool loop.
+        if should_persist_ctx_partials(item.mode):
+            if not item.parts:
+                part = CtxItemPart(parent_item_id=item.id, output=item.output)
+                self.insert_part(part)
+                item.parts.append(part)
+                item.active_part = part
+            else:
+                for part in item.parts:
+                    tasks = list(part.tasks or [])
+                    part.id = None
+                    part.parent_item_id = item.id
+                    self.insert_part(part)
+                    for task in tasks:
+                        task.id = None
+                        task.parent_item_part_id = part.id
+                        self.insert_part_task(task)
+                item.active_part = item.parts[-1]
+                item.sync_output_from_parts()
+                self.update_item(item)
         else:
-            for part in item.parts:
-                tasks = list(part.tasks or [])
+            # A duplicated/imported legacy Chat item can still arrive with old
+            # persisted part IDs. Keep its in-memory graph usable, but detach it
+            # from those DB rows so later runtime updates cannot modify the source
+            # conversation or create new partial/task records.
+            for part in item.parts or []:
                 part.id = None
                 part.parent_item_id = item.id
-                self.insert_part(part)
-                for task in tasks:
+                for task in part.tasks or []:
                     task.id = None
-                    task.parent_item_part_id = part.id
-                    self.insert_part_task(task)
-            item.active_part = item.parts[-1]
-            item.sync_output_from_parts()
-            self.update_item(item)
+                    task.parent_item_part_id = None
+            item.active_part = item.parts[-1] if item.parts else None
         return item.id
 
     def update_item(self, item: CtxItem) -> bool:

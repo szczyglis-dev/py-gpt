@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 08:45:00                  #
+# Updated Date: 2026.09.16 14:35:00                  #
 # ================================================== #
 
 from enum import Enum
@@ -15,6 +15,7 @@ from typing import Any, Optional
 
 TOOL_CALL_STORAGE_CONFIG_KEY = "context.tool_calls.store"
 TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY = "context.tool_calls.restore"
+CTX_TOOL_HISTORY_EXTRA_KEY = "tool_history"
 TOOL_CALL_STORAGE_TRUNCATE_CHARS = 20
 TOOL_CALL_STORAGE_TRUNCATE_SUFFIX = "...."
 

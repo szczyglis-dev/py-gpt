@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.09.16 14:10:00                  #
 # ================================================== #
 
 MODE_AGENT = "agent"
@@ -27,3 +27,14 @@ MODE_VISION = "vision"
 
 # virtual modes
 MODE_LOOP_NEXT = "loop_next"
+
+# Only workflow-oriented modes persist ctx_item_partial / ctx_item_partial_task.
+# Other modes may still use the same objects transiently during a live tool loop,
+# but their durable conversation format remains the plain ctx_item row.
+CTX_PARTIAL_PERSIST_MODES = frozenset((MODE_AGENT_V2,))
+
+
+def should_persist_ctx_partials(mode) -> bool:
+    """Return True when partial/task rows belong to the durable mode format."""
+    return str(mode or "") in CTX_PARTIAL_PERSIST_MODES
+

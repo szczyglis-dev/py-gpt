@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 16:20:00
+# Updated Date: 2026.09.16 14:35:00                  #
 # ================================================== #
 
 from typing import Optional, Any
@@ -250,7 +250,7 @@ class Stream(QObject):
                 # the durable timeline before prose starts streaming.
                 previous_part = getattr(ctx, "turn_previous_part", None)
                 if previous_part is not None:
-                    self.window.core.ctx.mark_part_tasks_ui_ready(previous_part, True)
+                    self.window.core.ctx.mark_part_tasks_ui_ready(previous_part, True, item=parent)
                     self.window.core.ctx.update_part(parent, previous_part, sync_item=True)
                 if hasattr(renderer, "discard_part_streams"):
                     renderer.discard_part_streams(parent.meta)
