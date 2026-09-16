@@ -14,6 +14,7 @@ from typing import Optional, Tuple, Any, List
 
 from bs4 import BeautifulSoup
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 
@@ -428,7 +429,7 @@ class WebSearch:
         :param err: exception
         """
         if self.signals is not None:
-            self.signals.error.emit(err)
+            safe_emit(self.signals, "error", err)
 
     def status(self, msg: str):
         """
@@ -437,7 +438,7 @@ class WebSearch:
         :param msg: status message
         """
         if self.signals is not None:
-            self.signals.status.emit(msg)
+            safe_emit(self.signals, "status", msg)
 
     def debug(self, msg: str):
         """
@@ -446,7 +447,7 @@ class WebSearch:
         :param msg: message to log
         """
         if self.signals is not None:
-            self.signals.debug.emit(msg)
+            safe_emit(self.signals, "debug", msg)
 
     def log(self, msg: str):
         """
@@ -455,7 +456,7 @@ class WebSearch:
         :param msg: message to log
         """
         if self.signals is not None:
-            self.signals.log.emit(msg)
+            safe_emit(self.signals, "log", msg)
 
     def is_threaded(self) -> bool:
         """

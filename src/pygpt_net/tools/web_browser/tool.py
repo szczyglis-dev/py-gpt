@@ -15,6 +15,7 @@ from PySide6.QtCore import QTimer, Slot
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QWidget
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
 from pygpt_net.tools.base import BaseTool, TabWidget
@@ -80,7 +81,7 @@ class WebBrowser(BaseTool):
 
         :param url: URL to load
         """
-        self.signals.url.emit(url)
+        safe_emit(self.signals, "url", url)
 
     def open(self, load: bool = True):
         """
@@ -123,7 +124,7 @@ class WebBrowser(BaseTool):
     def close(self):
         """Close HTML canvas dialog"""
         self.opened = False
-        self.signals.closed.emit()
+        safe_emit(self.signals, "closed")
         self.window.ui.dialogs.close(self.dialog_id)
         self.update()
 

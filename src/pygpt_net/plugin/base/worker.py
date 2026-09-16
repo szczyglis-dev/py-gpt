@@ -17,6 +17,7 @@ from PySide6.QtCore import QRunnable
 from typing_extensions import deprecated
 
 from pygpt_net.core.agents_v2.tool_bridge import mark_pending
+from pygpt_net.core.qt import safe_emit
 
 from .plugin import BasePlugin
 from .signals import BaseSignals
@@ -49,26 +50,8 @@ class BaseWorker(QRunnable):
                 pass
 
     def _emit(self, name: str, *args) -> bool:
-        """Safely emit a signal if it still exists.
-
-        Guards against the race where ``cleanup()`` has already requested the
-        signals object be deleted (or a queued emission is in flight) while a
-        worker thread is still attempting to emit.
-        """
-        sig = self.signals
-        if sig is None:
-            return False
-        try:
-            signal = getattr(sig, name, None)
-            if signal is None or not callable(getattr(signal, "emit", None)):
-                return False
-            signal.emit(*args)
-            return True
-        except RuntimeError:
-            # C++ object already deleted under us
-            return False
-        except Exception:
-            return False
+        """Safely emit a worker signal if its QObject still exists."""
+        return safe_emit(self.signals, name, *args)
 
     def debug(self, msg: str):
         """

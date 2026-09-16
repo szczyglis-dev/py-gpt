@@ -17,6 +17,7 @@ from typing import Dict
 from PySide6.QtGui import QTextCursor, QAction, QIcon
 from PySide6.QtWidgets import QWidget
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.tools.base import BaseTool, TabWidget
 from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
@@ -68,15 +69,15 @@ class CodeInterpreter(BaseTool):
 
         # restore
         if self.window.core.config.has("interpreter.input"):
-            self.signals.update_input.emit(self.window.core.config.get("interpreter.input"))
+            safe_emit(self.signals, "update_input", self.window.core.config.get("interpreter.input"))
         if self.window.core.config.has("interpreter.execute_all"):
-            self.signals.set_checkbox_all.emit(self.window.core.config.get("interpreter.execute_all"))
+            safe_emit(self.signals, "set_checkbox_all", self.window.core.config.get("interpreter.execute_all"))
         if self.window.core.config.has("interpreter.auto_clear"):
-            self.signals.set_checkbox_auto_clear.emit(self.window.core.config.get("interpreter.auto_clear"))
+            safe_emit(self.signals, "set_checkbox_auto_clear", self.window.core.config.get("interpreter.auto_clear"))
         if self.window.core.config.has("interpreter.ipython"):
-            self.signals.set_checkbox_ipython.emit(self.window.core.config.get("interpreter.ipython"))
+            safe_emit(self.signals, "set_checkbox_ipython", self.window.core.config.get("interpreter.ipython"))
         if self.ipython:
-            self.signals.toggle_all_visible.emit(False)
+            safe_emit(self.signals, "toggle_all_visible", False)
 
     def migrate_legacy_files(self):
         """Move legacy interpreter temporary files from data to workdir/tmp."""
@@ -137,7 +138,7 @@ class CodeInterpreter(BaseTool):
 
     def reload_view(self):
         """Reload view"""
-        self.signals.reload_view.emit()
+        safe_emit(self.signals, "reload_view")
 
     def update(self):
         """Update menu"""
@@ -162,7 +163,7 @@ class CodeInterpreter(BaseTool):
             self.output_buffer = ""
         elif type == "stdin":
             self.input_buffer = ""
-        self.signals.begin_output.emit(type)
+        safe_emit(self.signals, "begin_output", type)
 
     def output_end(self, type: str = "stdout"):
         """
@@ -184,7 +185,7 @@ class CodeInterpreter(BaseTool):
             self.output_buffer = ""  # clear buffer
         elif type == "stdin":
             self.input_buffer = ""
-        self.signals.end_output.emit(type, ctx)
+        safe_emit(self.signals, "end_output", type, ctx)
 
         if images or files:
             self.save_output_nodes()  # update nodes
@@ -201,7 +202,7 @@ class CodeInterpreter(BaseTool):
             self.output_buffer += str(data)
         elif type == "stdin":
             self.input_buffer += str(data)
-        self.signals.update.emit(data, type, True)
+        safe_emit(self.signals, "update", data, type, True)
         self.save_output()
         self.load_history()
 
@@ -264,7 +265,7 @@ class CodeInterpreter(BaseTool):
     def load_history(self):
         """Load history data from file"""
         data = self.get_history()
-        self.signals.update_history.emit(data)
+        safe_emit(self.signals, "update_history", data)
 
     def get_output(self) -> str:
         """
@@ -285,8 +286,8 @@ class CodeInterpreter(BaseTool):
     def load_output(self):
         """Load output data from file"""
         data = self.get_output()
-        # self.signals.update.emit(data, "stdout", False)
-        self.signals.focus_input.emit()
+        # safe_emit(self.signals, "update", data, "stdout", False)
+        safe_emit(self.signals, "focus_input")
 
         # from nodes
         items = []
@@ -325,7 +326,7 @@ class CodeInterpreter(BaseTool):
                 with open(path, "w", encoding="utf-8") as f:
                     f.write("".join(str(node.content) for node in nodes))
 
-        self.signals.restore_nodes.emit(nodes)
+        safe_emit(self.signals, "restore_nodes", nodes)
 
     def save_output(self):
         """Save output data to file"""
@@ -388,7 +389,7 @@ class CodeInterpreter(BaseTool):
         path = self.get_path_input()
         if os.path.exists(path):
             os.remove(path)
-        self.signals.clear_history.emit()
+        safe_emit(self.signals, "clear_history")
 
     def clear_output(self):
         """Clear output"""
@@ -398,7 +399,7 @@ class CodeInterpreter(BaseTool):
         path_json = self.get_path_output_json()
         if os.path.exists(path_json):
             os.remove(path_json)
-        self.signals.clear_output.emit()
+        safe_emit(self.signals, "clear_output")
 
     def clear(self, force: bool = False):
         """
@@ -438,7 +439,7 @@ class CodeInterpreter(BaseTool):
         })
         event.ctx = CtxItem()  # tmp
         self.window.controller.command.dispatch_only(event)
-        self.signals.focus_input.emit()
+        safe_emit(self.signals, "focus_input")
         event = KernelEvent(KernelEvent.STATUS, {
             'status': f"[OK] Kernel restarted at {strftime('%H:%M:%S')}.",
         })
@@ -572,7 +573,7 @@ class CodeInterpreter(BaseTool):
 
         :param data: Data
         """
-        self.signals.append_input.emit(data)
+        safe_emit(self.signals, "append_input", data)
 
     def append_to_edit(self, data: str):
         """
@@ -685,7 +686,7 @@ class CodeInterpreter(BaseTool):
         """
         self.auto_clear = widget.checkbox_auto_clear.isChecked()
         self.window.core.config.set("interpreter.auto_clear", self.auto_clear)
-        self.signals.set_checkbox_auto_clear.emit(self.auto_clear)
+        safe_emit(self.signals, "set_checkbox_auto_clear", self.auto_clear)
 
     def toggle_ipython(self, widget: ToolWidget):
         """
@@ -695,11 +696,11 @@ class CodeInterpreter(BaseTool):
         """
         self.ipython = widget.checkbox_ipython.isChecked()
         self.window.core.config.set("interpreter.ipython", self.ipython)
-        self.signals.set_checkbox_ipython.emit(self.ipython)
+        safe_emit(self.signals, "set_checkbox_ipython", self.ipython)
         if self.ipython:
-            self.signals.toggle_all_visible.emit(False)
+            safe_emit(self.signals, "toggle_all_visible", False)
         else:
-            self.signals.toggle_all_visible.emit(True)
+            safe_emit(self.signals, "toggle_all_visible", True)
 
     def toggle_all(self, widget: ToolWidget):
         """
@@ -709,7 +710,7 @@ class CodeInterpreter(BaseTool):
         """
         state = widget.checkbox_all.isChecked()
         self.window.core.config.set("interpreter.execute_all", state)
-        self.signals.set_checkbox_all.emit(state)
+        safe_emit(self.signals, "set_checkbox_all", state)
 
     def get_current_output(self) -> str:
         """

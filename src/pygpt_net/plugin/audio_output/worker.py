@@ -13,6 +13,7 @@ import time
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -90,8 +91,8 @@ class Worker(BaseWorker):
                 signals=self.signals
             )
         except Exception as e:
-            self.signals.volume_changed.emit(0)
-            self.signals.error_playback.emit(e)
+            safe_emit(self.signals, "volume_changed", 0)
+            safe_emit(self.signals, "error_playback", e)
 
     def cache_audio_file(self, src: str, dst: str):
         """
@@ -113,7 +114,7 @@ class Worker(BaseWorker):
 
         :param playback: playback object
         """
-        self.signals.playback.emit(playback, self.event)
+        safe_emit(self.signals, "playback", playback, self.event)
 
     def stop_playback(self):
         """Stop audio playback"""

@@ -15,6 +15,7 @@ import subprocess
 import threading
 import docker
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -53,17 +54,10 @@ class Runner:
         signals = self.signals
         if signals is None:
             return False
-        try:
-            signal = getattr(signals, name, None)
-            if signal is None or not callable(getattr(signal, "emit", None)):
-                return False
-            signal.emit(*args)
-            return True
-        except RuntimeError:
-            # The worker may have completed and Qt may already have deleted its
-            # WorkerSignals QObject. Never let late logging/output fail a tool.
+        emitted = safe_emit(signals, name, *args)
+        if not emitted and self.signals is signals:
             self.detach_signals(signals)
-            return False
+        return emitted
 
     @staticmethod
     def _communicate_subprocess(command, **kwargs):

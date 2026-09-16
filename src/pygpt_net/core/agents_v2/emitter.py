@@ -17,6 +17,7 @@ import threading
 import time
 from typing import Optional
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.agents_v2.tool_bridge import register, discard
 
@@ -66,7 +67,7 @@ class RuntimeEmitter:
             "extra": self.extra,
             **data,
         }
-        self.signals.response.emit(KernelEvent(name, payload))
+        safe_emit(self.signals, "response", KernelEvent(name, payload))
 
     def begin(self):
         if self._begun:
@@ -424,7 +425,7 @@ class RuntimeEmitter:
         meta = getattr(ctx, "meta", None)
         if meta is not None:
             data["meta"] = meta
-        self.signals.response.emit(KernelEvent(KernelEvent.STATE_BUSY, data))
+        safe_emit(self.signals, "response", KernelEvent(KernelEvent.STATE_BUSY, data))
 
     async def execute_plugin(self, tool_ctx, cmds, stopped_cb):
         """Await a PyGPT plugin without blocking the Qt GUI thread.

@@ -24,6 +24,7 @@ from urllib.request import urlopen, Request
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from packaging.version import parse as parse_version, Version
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.utils import trans
 
 
@@ -504,7 +505,7 @@ class UpdaterWorker(QRunnable):
             is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.checker(self.event)
             if is_new:
                 if self.force or (parsed_prev_checked is None or parsed_prev_checked < parse_version(version)):
-                    self.signals.version_changed.emit(
+                    safe_emit(self.signals, "version_changed", 
                         version,
                         build,
                         changelog,
@@ -522,7 +523,7 @@ class UpdaterWorker(QRunnable):
 
         finally:
             if self.signals is not None:
-                self.signals.finished.emit()
+                safe_emit(self.signals, "finished")
             self.cleanup()
 
     def cleanup(self):

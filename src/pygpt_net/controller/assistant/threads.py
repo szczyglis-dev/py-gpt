@@ -15,6 +15,7 @@ from typing import Optional, Any, List, Dict
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -445,7 +446,7 @@ class Threads(QObject):
         # ---- not stream only ----
 
         # run status listener
-        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        safe_emit(self.window, "stateChanged", self.window.STATE_BUSY)
         self.log("Run: starting run worker...")
 
         # worker
@@ -468,7 +469,7 @@ class Threads(QObject):
 
         :param ctx: CtxItem
         """
-        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        safe_emit(self.window, "stateChanged", self.window.STATE_BUSY)
 
     def handle_stream_end(self, ctx: CtxItem):
         """
@@ -509,7 +510,7 @@ class Threads(QObject):
         :param ctx: CtxItem
         :param stream: True if stream
         """
-        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        safe_emit(self.window, "stateChanged", self.window.STATE_BUSY)
         self.window.controller.chat.common.lock_input()  # lock input, show stop button
 
     @Slot(object, object)
@@ -636,7 +637,7 @@ class RunWorker(QRunnable):
     def run(self):
         """Run thread"""
         try:
-            self.signals.started.emit()
+            safe_emit(self.signals, "started")
             while self.check \
                     and not self.window.is_closing \
                     and not self.window.controller.assistant.threads.stop:
@@ -649,23 +650,23 @@ class RunWorker(QRunnable):
                         self.ctx.output_tokens = run.usage.completion_tokens
                         self.ctx.total_tokens = run.usage.total_tokens
 
-                self.signals.updated.emit(run, self.ctx)  # handle status update
+                safe_emit(self.signals, "updated", run, self.ctx)  # handle status update
 
                 # finished or failed
                 if status in self.stop_reasons:
                     self.check = False
                     if self.signals.destroyed is not None:
-                        self.signals.destroyed.emit()
+                        safe_emit(self.signals, "destroyed")
                     return
                 time.sleep(1)
 
             if self.signals.destroyed is not None:
-                self.signals.destroyed.emit()
+                safe_emit(self.signals, "destroyed")
 
         except Exception as e:
             self.window.core.debug.log(e)
             if self.signals.destroyed is not None:
-                self.signals.destroyed.emit()
+                safe_emit(self.signals, "destroyed")
 
         finally:
             self.cleanup()

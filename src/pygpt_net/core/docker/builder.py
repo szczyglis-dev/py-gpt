@@ -13,6 +13,7 @@ from typing import Any
 
 from PySide6.QtCore import Signal, Slot, QObject
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.plugin.base.signals import BaseSignals
 from pygpt_net.plugin.base.worker import BaseWorker
@@ -81,11 +82,11 @@ class Worker(BaseWorker):
     def run(self):
         try:
             self.docker.build_image()
-            self.signals.build_finished.emit()
+            safe_emit(self.signals, "build_finished")
             if self.restart:
                 self.docker.restart()
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self.cleanup()
 

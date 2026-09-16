@@ -21,6 +21,7 @@ import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 from google import genai
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -183,7 +184,7 @@ class MusicWorker(QRunnable):
             # Optional prompt enhancement via LLM
             if not self.raw and self.input_prompt:
                 try:
-                    self.signals.status.emit(trans('vid.status.prompt.wait'))
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
@@ -197,8 +198,8 @@ class MusicWorker(QRunnable):
                         self.input_prompt = resp
                 except Exception as e:
                     # non-fatal
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('vid.status.prompt.error') + ": " + str(e))
+                    safe_emit(self.signals, "error", e)
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.error') + ": " + str(e))
 
             # Build request
             project = os.getenv("GOOGLE_CLOUD_PROJECT", "")
@@ -223,7 +224,7 @@ class MusicWorker(QRunnable):
             params: Dict[str, Any] = {}
             if self.seed is not None and self.num > 1:
                 # Keep API valid: if seed is set, do not set sample_count
-                self.signals.status.emit("Seed provided; generating a single seeded sample (sample_count ignored).")
+                safe_emit(self.signals, "status", "Seed provided; generating a single seeded sample (sample_count ignored).")
             if self.seed is not None:
                 instances["seed"] = int(self.seed)
             elif self.num > 1:
@@ -234,7 +235,7 @@ class MusicWorker(QRunnable):
                 "parameters": params,
             }
 
-            self.signals.status.emit(trans('vid.status.generating') + f": {self.input_prompt}...")
+            safe_emit(self.signals, "status", trans('vid.status.generating') + f": {self.input_prompt}...")
 
             # Call REST API
             resp = requests.post(url, headers=headers, data=json.dumps(body), timeout=120)
@@ -261,12 +262,12 @@ class MusicWorker(QRunnable):
                     paths.append(saved_path)
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self._cleanup()
 
@@ -330,7 +331,7 @@ class MusicWorker(QRunnable):
 
         # Always persist a WAV first (what API returns)
         wav_path = os.path.join(out_dir, base_name + ".wav")
-        self.signals.status.emit(trans('vid.status.downloading') + f" ({idx + 1} / {max(1, self.num)}) -> {wav_path}")
+        safe_emit(self.signals, "status", trans('vid.status.downloading') + f" ({idx + 1} / {max(1, self.num)}) -> {wav_path}")
         with open(wav_path, "wb") as f:
             f.write(wav_bytes)
 
@@ -342,7 +343,7 @@ class MusicWorker(QRunnable):
         ffmpeg = shutil.which("ffmpeg") or shutil.which("ffmpeg.exe")
         if not ffmpeg:
             # No ffmpeg -> keep WAV
-            self.signals.status.emit("ffmpeg not found. Saved WAV output only.")
+            safe_emit(self.signals, "status", "ffmpeg not found. Saved WAV output only.")
             return wav_path
 
         if fmt == "mp3":

@@ -18,6 +18,7 @@ import websockets
 from typing import Optional, Callable, Awaitable
 from urllib.parse import urlencode
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -1169,7 +1170,7 @@ class xAIIRealtimeClient:
                     if self.debug:
                         print("[_recv_loop] audio_buffer committed")
                     if self._last_opts:
-                        self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {
+                        safe_emit(self._last_opts.rt_signals, "response", RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {
                             "ctx": self._ctx,
                         }))
 
@@ -1531,7 +1532,7 @@ class xAIIRealtimeClient:
                         self._response_done.set()
 
                     if self._last_opts:
-                        self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
+                        safe_emit(self._last_opts.rt_signals, "response", RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
                             "ctx": self._ctx,
                         }))
 

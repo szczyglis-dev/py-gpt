@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QRect
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -71,17 +72,17 @@ class Runner:
     def send_interpreter_output_begin(self, type: str):
         """Begin an output block in the Python interpreter window."""
         if self.signals is not None:
-            self.signals.output_begin.emit(type)
+            safe_emit(self.signals, "output_begin", type)
 
     def send_interpreter_output(self, data: str, type: str):
         """Send content to the Python interpreter window."""
         if self.signals is not None:
-            self.signals.output.emit(str(data), type)
+            safe_emit(self.signals, "output", str(data), type)
 
     def send_interpreter_output_end(self, type: str):
         """End an output block in the Python interpreter window."""
         if self.signals is not None:
-            self.signals.output_end.emit(type)
+            safe_emit(self.signals, "output_end", type)
 
     def send_interpreter_input(self, data: str):
         """Send a command as an input block to the Python interpreter window."""
@@ -287,21 +288,21 @@ class Runner:
         Log error message
         """
         if self.signals is not None:
-            self.signals.error.emit(err)
+            safe_emit(self.signals, "error", err)
 
     def status(self, msg: str):
         """
         Send status message
         """
         if self.signals is not None:
-            self.signals.status.emit(msg)
+            safe_emit(self.signals, "status", msg)
 
     def debug(self, msg: any):
         """
         Log debug message
         """
         if self.signals is not None:
-            self.signals.debug.emit(msg)
+            safe_emit(self.signals, "debug", msg)
 
     def log(self, msg, sandbox: bool = False):
         """
@@ -313,7 +314,7 @@ class Runner:
         full_msg = prefix + ' ' + str(msg)
 
         if self.signals is not None:
-            self.signals.log.emit(full_msg)
+            safe_emit(self.signals, "log", full_msg)
 
     # -------------------------------
     # WinAPI helpers

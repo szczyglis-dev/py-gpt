@@ -14,6 +14,7 @@ from openai import AssistantEventHandler
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 from typing_extensions import override
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
@@ -436,26 +437,26 @@ class EventHandler(AssistantEventHandler):
         if not self.stream_started:
             self.text_begin = True
         self.stream_started = True
-        self.signals.stream_text_created.emit(self.ctx)
+        safe_emit(self.signals, "stream_text_created", self.ctx)
 
     @override
     def on_text_delta(self, delta, snapshot):
         """Callback that is fired whenever a message delta is returned from the API"""
         # print(delta.value, end="", flush=True)
-        self.signals.stream_text_delta.emit(self.ctx, delta, self.text_begin)
+        safe_emit(self.signals, "stream_text_delta", self.ctx, delta, self.text_begin)
         self.text_begin = False
 
     @override
     def on_run_step_created(self, run_step) -> None:
         """Callback that is fired when a run step is created"""
         self.tool_begin = False  # reset
-        self.signals.stream_run_step_created.emit(self.ctx, run_step, self.step_idx)
+        safe_emit(self.signals, "stream_run_step_created", self.ctx, run_step, self.step_idx)
         self.step_idx += 1
 
     @override
     def on_run_step_done(self, run_step):
         """Fires when run completed."""
-        self.signals.stream_run_step_done.emit(self.ctx, run_step, self.step_idx)
+        safe_emit(self.signals, "stream_run_step_done", self.ctx, run_step, self.step_idx)
 
     @override
     def on_text_done(self, text):
@@ -465,30 +466,30 @@ class EventHandler(AssistantEventHandler):
     @override
     def on_message_done(self, message) -> None:
         """Callback that is fired when a message is completed"""
-        self.signals.stream_message_done.emit(self.ctx, message)
+        safe_emit(self.signals, "stream_message_done", self.ctx, message)
 
     @override
     def on_end(self):
         """Fires when the stream has finished."""
         # print("\n\nassistant > end\n", flush=True)
-        self.signals.stream_end.emit(self.ctx)
+        safe_emit(self.signals, "stream_end", self.ctx)
 
     @override
     def on_exception(self, exception: Exception):
         """Fired whenever an exception happens during streaming"""
-        self.signals.error.emit(self.ctx,  exception)
+        safe_emit(self.signals, "error", self.ctx,  exception)
 
     @override
     def on_timeout(self) -> None:
         """Fires if the request times out"""
-        self.signals.error.emit(self.ctx,  "Timeout")
+        safe_emit(self.signals, "error", self.ctx,  "Timeout")
 
     @override
     def on_tool_call_created(self, tool_call):
         """Callback that is fired when a tool call is created"""
         # print(f"\nassistant > {tool_call.type}\n", flush=True)
         self.tool_begin = False  # reset
-        self.signals.stream_tool_call_created.emit(self.ctx, tool_call, self.tool_begin)
+        safe_emit(self.signals, "stream_tool_call_created", self.ctx, tool_call, self.tool_begin)
 
     @override
     def on_tool_call_delta(self, delta, snapshot):
@@ -496,13 +497,13 @@ class EventHandler(AssistantEventHandler):
         begin = True
         if self.tool_begin:
             begin = False
-        self.signals.stream_tool_call_delta.emit(self.ctx, delta, begin)
+        safe_emit(self.signals, "stream_tool_call_delta", self.ctx, delta, begin)
         self.tool_begin = True
 
     @override
     def on_tool_call_done(self, tool_call) -> None:
         """Callback that is fired when a tool call delta is encountered"""
-        self.signals.stream_tool_call_done.emit(self.ctx, tool_call, self.tool_begin)
+        safe_emit(self.signals, "stream_tool_call_done", self.ctx, tool_call, self.tool_begin)
 
 
 class WorkerSignals(QObject):
@@ -583,10 +584,10 @@ class Worker(QRunnable):
                 )
             # handle run (stream or not)
             if run is not None:
-                self.signals.finished.emit(self.ctx, run, self.stream)
+                safe_emit(self.signals, "finished", self.ctx, run, self.stream)
                 return True
         except Exception as e:
-            self.signals.error.emit(self.ctx, e)
+            safe_emit(self.signals, "error", self.ctx, e)
         return False
 
     def msg_send(self) -> bool:
@@ -605,7 +606,7 @@ class Worker(QRunnable):
                 self.ctx.msg_id = response.id
                 return self.run_create()
         except Exception as e:
-            self.signals.error.emit(self.ctx, e)
+            safe_emit(self.signals, "error", self.ctx, e)
         return False
 
     def tools_submit(self) -> bool:
@@ -618,11 +619,11 @@ class Worker(QRunnable):
             run = self.window.core.api.openai.assistants.run_submit_tool(self.ctx, self.tools_outputs)
             if run is not None:
                 self.ctx.run_id = run.id  # update run id
-                self.signals.finished.emit(self.ctx, run, False)  # continue status check
+                safe_emit(self.signals, "finished", self.ctx, run, False)  # continue status check
                 # TODO: implement stream mode in tool submit
                 return True
         except Exception as e:
-            self.signals.error.emit(self.ctx, e)
+            safe_emit(self.signals, "error", self.ctx, e)
         return False
 
     def cleanup(self):

@@ -20,6 +20,7 @@ from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
+from pygpt_net.core.qt import safe_emit
 
 
 class Banners(QObject):
@@ -80,7 +81,7 @@ class Banners(QObject):
 
     @Slot(object)
     def _handle_loaded(self, result: Dict[str, Any]):
-        self.loaded.emit(result.get("items", []))
+        safe_emit(self, "loaded", result.get("items", []))
 
     @Slot()
     def _handle_finished(self):
@@ -124,12 +125,12 @@ class BannersWorker(QRunnable):
             error = str(e)
             self._clear_cached_banners()
         finally:
-            self.signals.loaded.emit({
+            safe_emit(self.signals, "loaded", {
                 "items": items,
                 "source": "remote",
                 "error": error,
             })
-            self.signals.finished.emit()
+            safe_emit(self.signals, "finished")
 
     def _load_remote(self) -> List[Dict[str, Any]]:
         data = self._fetch_json(self.api_url)

@@ -17,6 +17,7 @@ import numpy as np
 
 from PySide6.QtCore import QTimer, QObject
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 
 from .realtime import RealtimeSessionPyAudio
@@ -457,7 +458,7 @@ class PyaudioBackend:
             pass
         if signals is not None:
             try:
-                signals.volume_changed.emit(0)
+                safe_emit(signals, "volume_changed", 0)
             except Exception:
                 pass
 
@@ -504,7 +505,7 @@ class PyaudioBackend:
         # emit start event in GUI
         if signals is not None:
             try:
-                signals.playback.emit(event_name)
+                safe_emit(signals, "playback", event_name)
             except Exception:
                 pass
 
@@ -559,7 +560,7 @@ class PyaudioBackend:
         # ensure UI meter is reset
         try:
             if signals is not None:
-                signals.volume_changed.emit(0)
+                safe_emit(signals, "volume_changed", 0)
         except Exception:
             pass
         return False
@@ -661,7 +662,7 @@ class PyaudioBackend:
         if not self._rt_signals:
             return
         try:
-            self._rt_signals.response.emit(
+            safe_emit(self._rt_signals, "response", 
                 build_output_volume_event(int(value))
             )
         except Exception:
@@ -789,7 +790,7 @@ class PyaudioBackend:
             volume_emitter=self._emit_output_volume
         )
         session.on_stopped = lambda: (
-            self._rt_signals and self._rt_signals.response.emit(
+            self._rt_signals and safe_emit(self._rt_signals, "response", 
                 RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"})
             ),
             setattr(self, "_rt_session", None)

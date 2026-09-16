@@ -11,6 +11,7 @@
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -129,7 +130,7 @@ class Worker(BaseWorker):
         month = int(self.get_param(item, "month", 0))
         day = int(self.get_param(item, "day", 0))
         note = self.get_param(item, "note", "")
-        self.signals.updated.emit()
+        safe_emit(self.signals, "updated")
         result = self.plugin.add_day_note(year, month, day, note)
         return self.make_response(item, result)
 
@@ -144,7 +145,7 @@ class Worker(BaseWorker):
         month = int(self.get_param(item, "month", 0))
         day = int(self.get_param(item, "day", 0))
         note = self.get_param(item, "content", "")
-        self.signals.updated.emit()
+        safe_emit(self.signals, "updated")
         result = self.plugin.update_day_note(year, month, day, note)
         return self.make_response(item, result)
 
@@ -158,7 +159,7 @@ class Worker(BaseWorker):
         year = int(self.get_param(item, "year", 0))
         month = int(self.get_param(item, "month", 0))
         day = int(self.get_param(item, "day", 0))
-        self.signals.updated.emit()
+        safe_emit(self.signals, "updated")
         result = self.plugin.remove_day_note(year, month, day)
         return self.make_response(item, result)
 

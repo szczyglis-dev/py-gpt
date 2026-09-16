@@ -12,6 +12,7 @@
 import os
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from pygpt_net.core.qt import safe_emit
 
 
 class Importer(QObject):
@@ -158,7 +159,7 @@ class ImportWorker(QRunnable):
             elif self.mode == "upload_files":
                 self.upload_files()
         except Exception as e:
-            self.signals.error.emit(self.mode, e)
+            safe_emit(self.signals, "error", self.mode, e)
         finally:
             self.cleanup()
 
@@ -174,11 +175,11 @@ class ImportWorker(QRunnable):
             items[store.id] = store
             self.window.core.remote_store.anthropic.import_items(items)
             if not silent:
-                self.signals.finished.emit("vector_stores", self.store_id, 1)
+                safe_emit(self.signals, "finished", "vector_stores", self.store_id, 1)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("vector_stores", e)
+            safe_emit(self.signals, "error", "vector_stores", e)
             return False
 
     def truncate_vector_stores(self, silent: bool = False) -> bool:
@@ -187,11 +188,11 @@ class ImportWorker(QRunnable):
             self.window.core.remote_store.anthropic.items = {}
             self.window.core.remote_store.anthropic.save()
             if not silent:
-                self.signals.finished.emit("truncate_vector_stores", self.store_id, 1)
+                safe_emit(self.signals, "finished", "truncate_vector_stores", self.store_id, 1)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("truncate_vector_stores", e)
+            safe_emit(self.signals, "error", "truncate_vector_stores", e)
             return False
 
     def refresh_vector_stores(self, silent: bool = False) -> bool:
@@ -203,11 +204,11 @@ class ImportWorker(QRunnable):
             store = self.window.core.remote_store.anthropic.items["files"]
             self.window.controller.remote_store.refresh_store(store, update=False, provider="anthropic")
             if not silent:
-                self.signals.finished.emit("refresh_vector_stores", self.store_id, 1)
+                safe_emit(self.signals, "finished", "refresh_vector_stores", self.store_id, 1)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("refresh_vector_stores", e)
+            safe_emit(self.signals, "error", "refresh_vector_stores", e)
             return False
 
     def truncate_files(self, silent: bool = False) -> bool:
@@ -216,11 +217,11 @@ class ImportWorker(QRunnable):
             num = self.window.core.api.anthropic.store.remove_files(callback=self.callback)
             self.window.core.remote_store.anthropic.files.truncate_local()
             if not silent:
-                self.signals.finished.emit("truncate_files", self.store_id, num)
+                safe_emit(self.signals, "finished", "truncate_files", self.store_id, num)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("truncate_files", e)
+            safe_emit(self.signals, "error", "truncate_files", e)
             return False
 
     def upload_files(self, silent: bool = False) -> bool:
@@ -234,19 +235,19 @@ class ImportWorker(QRunnable):
                         self.window.core.remote_store.anthropic.files.insert("files", f)
                         num += 1
                         msg = "Uploaded file: {}/{}".format(num, len(self.files))
-                        self.signals.status.emit("upload_files", msg)
+                        safe_emit(self.signals, "status", "upload_files", msg)
                         self.log(msg)
                     else:
-                        self.signals.status.emit("upload_files", "Failed to upload: {}".format(os.path.basename(path)))
+                        safe_emit(self.signals, "status", "upload_files", "Failed to upload: {}".format(os.path.basename(path)))
                 except Exception as e:
                     self.window.core.debug.log(e)
-                    self.signals.status.emit("upload_files", "Failed to upload: {}".format(os.path.basename(path)))
+                    safe_emit(self.signals, "status", "upload_files", "Failed to upload: {}".format(os.path.basename(path)))
             if not silent:
-                self.signals.finished.emit("upload_files", self.store_id, num)
+                safe_emit(self.signals, "finished", "upload_files", self.store_id, num)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("upload_files", e)
+            safe_emit(self.signals, "error", "upload_files", e)
             return False
 
     def import_files(self, silent: bool = False) -> bool:
@@ -255,18 +256,18 @@ class ImportWorker(QRunnable):
             self.window.core.remote_store.anthropic.files.truncate_local()
             num = self.window.core.api.anthropic.store.import_files(callback=self.callback)
             if not silent:
-                self.signals.finished.emit("import_files", self.store_id, num)
+                safe_emit(self.signals, "finished", "import_files", self.store_id, num)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("import_files", e)
+            safe_emit(self.signals, "error", "import_files", e)
             return False
 
     def callback(self, msg: str):
         self.log(msg)
 
     def log(self, msg: str):
-        self.signals.log.emit(self.mode, msg)
+        safe_emit(self.signals, "log", self.mode, msg)
 
     def cleanup(self):
         sig = self.signals

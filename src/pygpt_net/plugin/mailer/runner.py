@@ -17,6 +17,7 @@ from email.parser import BytesParser
 from typing import Any
 from bs4 import BeautifulSoup
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -253,7 +254,7 @@ class Runner:
         :param err: exception or error message
         """
         if self.signals is not None:
-            self.signals.error.emit(err)
+            safe_emit(self.signals, "error", err)
 
     def status(self, msg: str):
         """
@@ -262,7 +263,7 @@ class Runner:
         :param msg: status message
         """
         if self.signals is not None:
-            self.signals.status.emit(msg)
+            safe_emit(self.signals, "status", msg)
 
     def debug(self, msg: Any):
         """
@@ -271,7 +272,7 @@ class Runner:
         :param msg: message to log
         """
         if self.signals is not None:
-            self.signals.debug.emit(msg)
+            safe_emit(self.signals, "debug", msg)
 
     def log(self, msg, sandbox: bool = False):
         """
@@ -282,4 +283,4 @@ class Runner:
         """
         full_msg = '[SMTP]' + ' ' + str(msg)
         if self.signals is not None:
-            self.signals.log.emit(full_msg)
+            safe_emit(self.signals, "log", full_msg)

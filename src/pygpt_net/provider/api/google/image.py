@@ -16,6 +16,7 @@ from google.genai import types as gtypes
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 import base64, datetime, os, requests, tempfile, time
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.types import MODE_IMAGE
 from pygpt_net.core.bridge.context import BridgeContext
@@ -208,13 +209,17 @@ class ImageWorker(QRunnable):
             "792x168",
         }
 
-    @Slot()
+
+    def _emit(self, name: str, *args) -> bool:
+        """Safely emit image worker signals during UI/worker teardown."""
+        return safe_emit(self.signals, name, *args)
+
     def run(self):
         try:
             # optional prompt enhancement
             if not self.raw and not self.inline:
                 try:
-                    self.signals.status.emit(trans('img.status.prompt.wait'))
+                    self._emit('status', trans('img.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
@@ -227,8 +232,8 @@ class ImageWorker(QRunnable):
                     if resp:
                         self.input_prompt = resp
                 except Exception as e:
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
+                    self._emit('error', e)
+                    self._emit('status', trans('img.status.prompt.error') + ": " + str(e))
 
             # Decide how to apply negative prompt: native param on Vertex Imagen 3.0 (-001) or inline fallback.
             use_param = (
@@ -247,7 +252,7 @@ class ImageWorker(QRunnable):
             # Remix path: if image_id provided, use the native edit/remix path
             # for the selected image model family.
             if self.image_id:
-                self.signals.status.emit(trans('img.status.generating') + " (remix): " + (self.input_prompt or "") + "...")
+                self._emit('status', trans('img.status.generating') + " (remix): " + (self.input_prompt or "") + "...")
                 if self._is_imagen_generate(self.model):
                     if not self._using_vertex():
                         raise RuntimeError(
@@ -315,13 +320,13 @@ class ImageWorker(QRunnable):
                     self._store_image_id(paths[0])
 
                 if self.inline:
-                    self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                    self._emit('finished_inline', self.ctx, paths, self.input_prompt)
                 else:
-                    self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                    self._emit('finished', self.ctx, paths, self.input_prompt)
                 return  # remix path finished
 
             # Normal paths
-            self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
+            self._emit('status', trans('img.status.generating') + f": {self.input_prompt}...")
 
             if self.mode == Image.MODE_EDIT:
                 # Attachments switch Imagen models to edit mode. Imagen editing is
@@ -374,12 +379,12 @@ class ImageWorker(QRunnable):
                     self._store_image_id(paths[0])
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                self._emit('finished_inline', self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                self._emit('finished', self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            self._emit('error', e)
         finally:
             self._cleanup()
 
@@ -1313,7 +1318,7 @@ class ImageWorker(QRunnable):
             str(idx + 1) + ".png"
         )
         path = os.path.join(self.window.core.filesystem.get_runtime_dir("img", ctx=self.ctx), name)
-        self.signals.status.emit(trans('img.status.downloading') + f" ({idx + 1} / {self.num}) -> {path}")
+        self._emit('status', trans('img.status.downloading') + f" ({idx + 1} / {self.num}) -> {path}")
         if self.window.core.image.save_image(path, data):
             return path
         return None

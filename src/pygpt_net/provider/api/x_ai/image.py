@@ -18,6 +18,7 @@ import mimetypes
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -141,7 +142,7 @@ class ImageWorker(QRunnable):
             # optional prompt enhancement
             if not self.raw and not self.inline and self.input_prompt:
                 try:
-                    self.signals.status.emit(trans('img.status.prompt.wait'))
+                    safe_emit(self.signals, "status", trans('img.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
@@ -154,8 +155,8 @@ class ImageWorker(QRunnable):
                     if resp:
                         self.input_prompt = resp
                 except Exception as e:
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
+                    safe_emit(self.signals, "error", e)
+                    safe_emit(self.signals, "status", trans('img.status.prompt.error') + ": " + str(e))
 
             # Negative prompt fallback: append as textual instruction (xAI has no native field for it)
             if self.extra_prompt and str(self.extra_prompt).strip():
@@ -164,7 +165,7 @@ class ImageWorker(QRunnable):
                 except Exception:
                     pass
 
-            self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
+            safe_emit(self.signals, "status", trans('img.status.generating') + f": {self.input_prompt}...")
 
             # use xAI SDK client
             client = self.window.core.api.xai.get_client()
@@ -213,7 +214,7 @@ class ImageWorker(QRunnable):
                     str(i + 1) + ".jpg"
                 )
                 path = os.path.join(self.window.core.filesystem.get_runtime_dir("img", ctx=self.ctx), name)
-                self.signals.status.emit(trans('img.status.downloading') + f" ({i + 1} / {len(images_bytes)}) -> {path}")
+                safe_emit(self.signals, "status", trans('img.status.downloading') + f" ({i + 1} / {len(images_bytes)}) -> {path}")
 
                 if self.window.core.image.save_image(path, content):
                     paths.append(path)
@@ -224,12 +225,12 @@ class ImageWorker(QRunnable):
             self._store_image_reference(paths[0])
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self._cleanup()
 

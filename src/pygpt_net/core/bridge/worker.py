@@ -26,6 +26,7 @@ from pygpt_net.core.types import (
     MODE_COMPLETION,
 )
 from pygpt_net.core.events import KernelEvent, Event
+from pygpt_net.core.qt import safe_emit
 
 
 class BridgeSignals(QObject):
@@ -47,6 +48,11 @@ class BridgeWorker(QRunnable):
         self.context = None
         self.extra = None
         self.mode = None
+
+
+    def _emit(self, name: str, *args) -> bool:
+        """Safely emit a bridge Qt signal during late worker teardown."""
+        return safe_emit(self.signals, name, *args)
 
     @Slot()
     def run(self):
@@ -181,24 +187,23 @@ class BridgeWorker(QRunnable):
                         rt_signals=self.rt_signals,
                     )
         except Exception as e:
-            if self.signals:
+            if self.extra is not None:
                 self.extra["error"] = e
-                event = KernelEvent(KernelEvent.RESPONSE_FAILED, {
-                    'context': self.context,
-                    'extra': self.extra,
-                })
-                self.signals.response.emit(event)
-                self.cleanup()
-                return
-
-        # send response to main thread
-        if self.signals:
-            name = KernelEvent.RESPONSE_OK if result else KernelEvent.RESPONSE_ERROR
-            event = KernelEvent(name, {
+            event = KernelEvent(KernelEvent.RESPONSE_FAILED, {
                 'context': self.context,
                 'extra': self.extra,
             })
-            self.signals.response.emit(event)
+            self._emit("response", event)
+            self.cleanup()
+            return
+
+        # send response to main thread
+        name = KernelEvent.RESPONSE_OK if result else KernelEvent.RESPONSE_ERROR
+        event = KernelEvent(name, {
+            'context': self.context,
+            'extra': self.extra,
+        })
+        self._emit("response", event)
 
         self.cleanup()
 

@@ -19,8 +19,8 @@ from google.genai import types as gtypes
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
-from pygpt_net.provider.core.model.compat import version_at_least
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -168,7 +168,7 @@ class VideoWorker(QRunnable):
             # optional prompt enhancement
             if not self.raw and not self.inline and self.input_prompt:
                 try:
-                    self.signals.status.emit(trans('vid.status.prompt.wait'))
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
@@ -181,8 +181,8 @@ class VideoWorker(QRunnable):
                     if resp:
                         self.input_prompt = resp
                 except Exception as e:
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('vid.status.prompt.error') + ": " + str(e))
+                    safe_emit(self.signals, "error", e)
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.error') + ": " + str(e))
 
             # prepare config
             num = min(self.num, self.veo_max_num)
@@ -216,7 +216,7 @@ class VideoWorker(QRunnable):
                 # Veo extension support varies by API and model; choose a compatible model if needed
                 model_for_ext = self._select_extension_model(self.model)
                 if model_for_ext != self.model:
-                    self.signals.status.emit(f"Please switch model for extension: {self.model} -> {model_for_ext}")
+                    safe_emit(self.signals, "status", f"Please switch model for extension: {self.model} -> {model_for_ext}")
                     # self.model = model_for_ext # <-- do not override user selection, just inform
 
                 # Build video input from identifier (URI, files/<id>, http(s), gs://, or local path)
@@ -231,7 +231,7 @@ class VideoWorker(QRunnable):
                     ext_config.negative_prompt = self.extra_prompt  # supported in python-genai
 
                 label = trans('vid.status.generating') + " (remix)"
-                self.signals.status.emit(label + f": {self.input_prompt or ''}...")
+                safe_emit(self.signals, "status", label + f": {self.input_prompt or ''}...")
 
                 # Start operation: video extension, prompt optional
                 operation = self.client.models.generate_videos(
@@ -271,13 +271,13 @@ class VideoWorker(QRunnable):
                         paths.append(p)
 
                 if self.inline:
-                    self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                    safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
                 else:
-                    self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                    safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
                 return  # remix path completed
 
             # normal generation path (text-to-video or image-to-video)
-            self.signals.status.emit(trans('vid.status.generating') + f": {self.input_prompt}...")
+            safe_emit(self.signals, "status", trans('vid.status.generating') + f": {self.input_prompt}...")
 
             try:
                 config = gtypes.GenerateVideosConfig(**cfg_try)
@@ -332,12 +332,12 @@ class VideoWorker(QRunnable):
                     paths.append(p)
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self._cleanup()
 
@@ -360,20 +360,28 @@ class VideoWorker(QRunnable):
         return None
 
     def _is_veo3(self, model_id: str) -> bool:
-        # Veo 3+ uses the newest request path; future generations inherit it.
-        return version_at_least(model_id, "veo-", (3, 0))
+        mid = str(model_id or "").lower()
+        return mid.startswith("veo-3.")
 
     def _supports_image_to_video(self, model_id: str) -> bool:
         """Return True if the model supports image->video."""
         mid = str(model_id or "").lower()
-        return "veo-2.0" in mid or version_at_least(mid, "veo-", (3, 0))
+        return any(p in mid for p in (
+            "veo-2.0",
+            "veo-3.0-generate",
+            "veo-3.0-fast-generate",
+            "veo-3.1-generate",
+            "veo-3.1-fast-generate",
+        ))
 
     def _duration_for_model(self, model_id: str, requested: int) -> int:
         """Adjust duration constraints to model-specific limits."""
         mid = str(model_id or "").lower()
         if "veo-2.0" in mid:
             return max(5, min(8, int(requested or 8)))
-        if version_at_least(mid, "veo-", (3, 0)):
+        if "veo-3.1" in mid:
+            return max(4, min(8, int(requested or 8)))
+        if "veo-3.0" in mid:
             return max(4, min(8, int(requested or 8)))
         return int(requested or 8)
 
@@ -441,7 +449,7 @@ class VideoWorker(QRunnable):
 
         # Gemini Developer API path
         if not use_vertex:
-            if version_at_least(mid, "veo-", (3, 1)):
+            if "veo-3.1" in mid:
                 return model_id
             # Prefer 3.1 preview if user selected older Veo
             return "veo-3.1-generate-preview"
@@ -521,7 +529,7 @@ class VideoWorker(QRunnable):
             str(idx + 1) + ".mp4"
         )
         path = os.path.join(self.window.core.config.get_user_dir("video"), name)
-        self.signals.status.emit(trans('vid.status.downloading') + f" ({idx + 1} / {self.num}) -> {path}")
+        safe_emit(self.signals, "status", trans('vid.status.downloading') + f" ({idx + 1} / {self.num}) -> {path}")
 
         if self.window.core.video.save_video(path, data):
             return str(path)

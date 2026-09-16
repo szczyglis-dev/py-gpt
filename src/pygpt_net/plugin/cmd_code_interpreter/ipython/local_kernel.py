@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.10 15:50:00                  #
 # ================================================== #
 
+from pygpt_net.core.qt import safe_emit
 import base64
 import queue
 import re
@@ -356,7 +357,7 @@ del _pygpt_make_system_noninteractive
         if signals is None:
             return
         try:
-            signals.ipython_output.emit(output)
+            safe_emit(signals, "ipython_output", output)
         except RuntimeError:
             self.detach_signals(signals)
 

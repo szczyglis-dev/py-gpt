@@ -18,6 +18,7 @@ import requests
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -217,7 +218,7 @@ class ImageWorker(QRunnable):
         if not self.raw and not self.inline:  # disable on inline and raw modes
             try:
                 # call GPT for generate better image generate prompt
-                self.signals.status.emit(trans('img.status.prompt.wait'))
+                safe_emit(self.signals, "status", trans('img.status.prompt.wait'))
                 bridge_context = BridgeContext(
                     prompt=self.input_prompt,
                     system_prompt=self.system_prompt,
@@ -234,8 +235,8 @@ class ImageWorker(QRunnable):
                     self.input_prompt = response
 
             except Exception as e:
-                self.signals.error.emit(e)
-                self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
+                safe_emit(self.signals, "error", e)
+                safe_emit(self.signals, "status", trans('img.status.prompt.error') + ": " + str(e))
 
         # Fallback negative prompt injection (OpenAI Images API has no native negative_prompt field)
         if self.extra_prompt and str(self.extra_prompt).strip():
@@ -244,7 +245,7 @@ class ImageWorker(QRunnable):
             except Exception:
                 pass
 
-        self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
+        safe_emit(self.signals, "status", trans('img.status.generating') + ": {}...".format(self.input_prompt))
 
         paths: List[str] = []  # downloaded images paths
         try:
@@ -321,7 +322,7 @@ class ImageWorker(QRunnable):
 
             # check response
             if response is None:
-                self.signals.status.emit("API Error: empty response")
+                safe_emit(self.signals, "status", "API Error: empty response")
                 return
 
             # record usage if provided by API
@@ -342,7 +343,7 @@ class ImageWorker(QRunnable):
                 path = os.path.join(self.window.core.filesystem.get_runtime_dir("img", ctx=self.ctx), name)
 
                 msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + str(path)
-                self.signals.status.emit(msg)
+                safe_emit(self.signals, "status", msg)
 
                 item = response.data[i]
                 data = None
@@ -356,7 +357,7 @@ class ImageWorker(QRunnable):
                 if data and self.window.core.image.save_image(path, data):
                     paths.append(path)
                 else:
-                    self.signals.error.emit("Error saving image")
+                    safe_emit(self.signals, "error", "Error saving image")
 
             # store image_id for future remix (use first saved path as reference)
             if paths:
@@ -370,20 +371,20 @@ class ImageWorker(QRunnable):
 
             # send finished signal
             if self.inline:
-                self.signals.finished_inline.emit(  # separated signal for inline mode
+                safe_emit(self.signals, "finished_inline",   # separated signal for inline mode
                     self.ctx,
                     paths,
                     self.input_prompt,
                 )
             else:
-                self.signals.finished.emit(
+                safe_emit(self.signals, "finished", 
                     self.ctx,
                     paths,
                     self.input_prompt,
                 )
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
             print(trans('img.status.error') + ": " + str(e))
 
         finally:

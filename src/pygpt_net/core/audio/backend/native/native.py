@@ -21,6 +21,7 @@ import wave
 from PySide6.QtMultimedia import QMediaDevices, QAudioFormat, QAudioSource, QAudio
 from PySide6.QtCore import QTimer, QObject, QLoggingCategory
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 
 from .realtime import RealtimeSession
@@ -743,7 +744,7 @@ class NativeBackend(QObject):
         """
         if not self._rt_signals:
             return
-        self._rt_signals.response.emit(build_output_volume_event(int(value)))
+        safe_emit(self._rt_signals, "response", build_output_volume_event(int(value)))
 
     def _ensure_rt_session(
             self,
@@ -805,7 +806,7 @@ class NativeBackend(QObject):
         )
         # NOTE: when device actually stops (buffer empty), inform UI
         session.on_stopped = lambda: (
-            self._rt_signals and self._rt_signals.response.emit(
+            self._rt_signals and safe_emit(self._rt_signals, "response", 
                 RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"})
             ),
             setattr(self, "_rt_session", None)
@@ -959,9 +960,9 @@ class NativeBackend(QObject):
 
         event = build_rt_input_delta_event(rate=rate, channels=channels, data=data or b"", final=bool(final))
         try:
-            self._rt_signals.response.emit(event)
+            safe_emit(self._rt_signals, "response", event)
         except Exception:
-            QTimer.singleShot(0, lambda: self._rt_signals.response.emit(event))
+            QTimer.singleShot(0, lambda: safe_emit(self._rt_signals, "response", event))
 
     def _convert_input_to_int16(self, raw: bytes, sample_format) -> bytes:
         """

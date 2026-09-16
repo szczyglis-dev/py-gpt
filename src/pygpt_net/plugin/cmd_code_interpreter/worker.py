@@ -11,6 +11,7 @@
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -369,7 +370,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            self.signals.clear.emit()
+            safe_emit(self.signals, "clear")
             result = "OK"
         except Exception as e:
             result = self.throw_error(e)

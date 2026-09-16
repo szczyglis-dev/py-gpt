@@ -14,6 +14,7 @@ import threading
 from typing import Optional, List
 
 from PySide6.QtCore import Slot, Signal
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -248,7 +249,7 @@ class Worker(BaseWorker):
         """
         ret = {}
         done = threading.Event()
-        self.signals.call.emit(op, dict(params or {}), ret, done)
+        safe_emit(self.signals, "call", op, dict(params or {}), ret, done)
         if not done.wait(self.WAIT_TIMEOUT):
             raise TimeoutError(f"Playwright op timeout: {op}")
         # update cached state if provided
@@ -270,7 +271,7 @@ class Worker(BaseWorker):
 
     def _ensure_browser(self):
         """Ensure Playwright is started in the main thread and sync viewport."""
-        self.signals.start.emit()
+        safe_emit(self.signals, "start")
         ret = self._call("ensure", {})
         if "viewport_w" in ret and "viewport_h" in ret:
             self.viewport_w = int(ret["viewport_w"] or self.viewport_w)
@@ -591,7 +592,7 @@ class Worker(BaseWorker):
             img_bytes = ret.get("image", b"")
             meta = self._get_current(item)
             if img_bytes:
-                self.signals.screenshot.emit(meta, img_bytes)
+                safe_emit(self.signals, "screenshot", meta, img_bytes)
             result = meta
             self.log("Response: {}".format(result))
         except Exception as e:

@@ -21,8 +21,8 @@ from openai import OpenAI
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
-from pygpt_net.provider.core.model.compat import version_at_least
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -180,7 +180,7 @@ class VideoWorker(QRunnable):
             # Optional prompt enhancement via app default LLM
             if not self.raw and not self.inline and self.input_prompt:
                 try:
-                    self.signals.status.emit(trans('vid.status.prompt.wait'))
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
@@ -193,8 +193,8 @@ class VideoWorker(QRunnable):
                     if resp:
                         self.input_prompt = resp
                 except Exception as e:
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('vid.status.prompt.error') + ": " + str(e))
+                    safe_emit(self.signals, "error", e)
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.error') + ": " + str(e))
 
             # Negative prompt fallback: inject constraints into the text prompt (Sora has no native negative_prompt field)
             if self.extra_prompt and str(self.extra_prompt).strip():
@@ -222,7 +222,7 @@ class VideoWorker(QRunnable):
             label = trans('vid.status.generating')
             if is_remix:
                 label += " (remix)"
-            self.signals.status.emit(label + f": {self.input_prompt}...")
+            safe_emit(self.signals, "status", label + f": {self.input_prompt}...")
 
             # Create job
             job = None
@@ -275,7 +275,7 @@ class VideoWorker(QRunnable):
                             file_handle = open(image_path, "rb")
                             create_kwargs["input_reference"] = file_handle
                         except Exception as e:
-                            self.signals.error.emit(e)
+                            safe_emit(self.signals, "error", e)
 
                 job = self.client.videos.create(**create_kwargs)
 
@@ -304,7 +304,7 @@ class VideoWorker(QRunnable):
                 if status != last_status or (progress is not None and progress != last_progress):
                     try:
                         pr_txt = f" [{int(progress)}%]" if isinstance(progress, (int, float)) else ""
-                        self.signals.status.emit(f"{trans('vid.status.generating')} {status}{pr_txt}")
+                        safe_emit(self.signals, "status", f"{trans('vid.status.generating')} {status}{pr_txt}")
                     except Exception:
                         pass
                     last_progress = progress
@@ -323,7 +323,7 @@ class VideoWorker(QRunnable):
                 # Extract detailed reason, surface policy hints if present
                 reason = self._format_job_error(job)
                 if reason:
-                    self.signals.status.emit(reason)
+                    safe_emit(self.signals, "status", reason)
                 raise RuntimeError(f"Video generation did not complete: {status}. {reason or ''}".strip())
 
             # Download content
@@ -337,12 +337,12 @@ class VideoWorker(QRunnable):
                 paths.append(p)
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self._cleanup()
 
@@ -389,7 +389,7 @@ class VideoWorker(QRunnable):
         model = (model_id or "").lower()
         portrait = ar in ("9:16", "9x16", "portrait")
 
-        if "-pro" in model and version_at_least(model, "sora-", (2, 0)):
+        if "sora-2-pro" in model:
             if "1024" in res or "1080" in res or "1792" in res or "hd" in res:
                 return "1024x1792" if portrait else "1792x1024"
 
@@ -418,7 +418,7 @@ class VideoWorker(QRunnable):
         try:
             w, h = self._parse_size(size)
         except Exception:
-            self.signals.status.emit(f"Invalid target size: {size}, using default 1280x720")
+            safe_emit(self.signals, "status", f"Invalid target size: {size}, using default 1280x720")
             w, h = 1280, 720
 
         # Try Pillow import lazily
@@ -496,7 +496,7 @@ class VideoWorker(QRunnable):
             data = buf.getvalue()
             buf.close()
 
-            self.signals.status.emit(f"Auto-resized input image to {w}x{h} (mode={fit_mode}).")
+            safe_emit(self.signals, "status", f"Auto-resized input image to {w}x{h} (mode={fit_mode}).")
             return "input.jpg", data, "image/jpeg"
 
         except Exception:
@@ -508,7 +508,7 @@ class VideoWorker(QRunnable):
                 if mime not in self.ALLOWED_MIME:
                     mime = "image/jpeg"
                 filename = os.path.basename(image_path)
-                self.signals.status.emit("Image preprocessing failed; sending original file (may fail if size/policy mismatch).")
+                safe_emit(self.signals, "status", "Image preprocessing failed; sending original file (may fail if size/policy mismatch).")
                 return filename, data, mime
             except Exception:
                 return None
@@ -524,7 +524,7 @@ class VideoWorker(QRunnable):
             str(idx + 1) + ".mp4"
         )
         path = os.path.join(self.window.core.config.get_user_dir("video"), name)
-        self.signals.status.emit(trans('vid.status.downloading') + f" ({idx + 1} / 1) -> {path}")
+        safe_emit(self.signals, "status", trans('vid.status.downloading') + f" ({idx + 1} / 1) -> {path}")
 
         if self.window.core.video.save_video(path, data):
             return str(path)

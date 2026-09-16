@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from pygpt_net.core.qt import safe_emit
 
 
 class IndexWorkerSignals(QObject):
@@ -128,7 +129,7 @@ class IndexWorker(QRunnable):
                 )
 
             self.log("Finished indexing.")
-            self.signals.finished.emit(
+            safe_emit(self.signals, "finished", 
                 self.idx,
                 result,
                 errors,
@@ -137,7 +138,7 @@ class IndexWorker(QRunnable):
 
         except Exception as e:
             self.window.core.debug.error(e)
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
 
         finally:
             self.cleanup()
@@ -165,4 +166,4 @@ class IndexWorker(QRunnable):
         self.window.core.debug.info(msg, not is_log)
         if is_log:
             print(f"[LlamaIndex] {msg}")
-        self.window.idx_logger_message.emit(msg)
+        safe_emit(self.window, "idx_logger_message", msg)

@@ -19,6 +19,7 @@ import threading
 import io
 import tarfile
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.docker.docker import get_sandbox_user_ids
 
 class DockerKernel:
@@ -741,7 +742,7 @@ del _pygpt_make_system_noninteractive
         if signals is None:
             return
         try:
-            signals.ipython_output.emit(output)
+            safe_emit(signals, "ipython_output", output)
         except RuntimeError:
             self.detach_signals(signals)
 

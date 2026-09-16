@@ -16,6 +16,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
@@ -368,7 +369,7 @@ class ChatWebOutput(QWebEngineView):
     @Slot()
     def _save_selected_txt(self):
         """Save selected content as text file"""
-        self.signals.save_as.emit(self.get_selected_text(), 'txt')
+        safe_emit(self.signals, "save_as", self.get_selected_text(), 'txt')
 
     @Slot()
     def _read_selected_text(self):
@@ -377,7 +378,7 @@ class ChatWebOutput(QWebEngineView):
         """
         selected_text = self.get_selected_text()
         if selected_text:
-            self.signals.audio_read.emit(selected_text)
+            safe_emit(self.signals, "audio_read", selected_text)
 
     @Slot()
     def _save_as_text(self):
@@ -385,14 +386,14 @@ class ChatWebOutput(QWebEngineView):
         Save current content as text file
         """
         # TODO: normalize text (remove extra spaces, newlines, etc.)
-        self.page().toPlainText(lambda txt: self.signals.save_as.emit(txt, 'txt'))
+        self.page().toPlainText(lambda txt: safe_emit(self.signals, "save_as", txt, 'txt'))
 
     @Slot()
     def _save_as_html(self):
         """
         Save current content as HTML file
         """
-        self.page().toHtml(lambda html: self.signals.save_as.emit(html, 'html'))
+        self.page().toHtml(lambda html: safe_emit(self.signals, "save_as", html, 'html'))
 
     def update_zoom(self):
         """Update zoom from config"""
@@ -546,7 +547,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
         print("[JS CONSOLE] Line", line_number, ":", message)
-        self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
+        safe_emit(self.signals, "js_message", line_number, message, source_id)  # handled in debug controller
 
     def cleanup(self):
         """Cleanup method to release resources"""

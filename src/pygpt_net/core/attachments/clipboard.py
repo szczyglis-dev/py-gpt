@@ -15,6 +15,7 @@ from collections import deque
 from PySide6.QtCore import QObject, QEvent, Qt, QRunnable, QThreadPool, QTimer, Signal, Slot
 from PySide6.QtWidgets import QMessageBox
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.utils import trans
 
 
@@ -49,7 +50,7 @@ class DirectoryCountWorker(QRunnable):
                 count += len(names)
         except Exception as e:
             error = e
-        self.signals.finished.emit(self, self.path, count, error)
+        safe_emit(self.signals, "finished", self, self.path, count, error)
 
 
 class DirectoryEnumerateSignals(QObject):
@@ -74,13 +75,13 @@ class DirectoryEnumerateWorker(QRunnable):
                 for name in names:
                     batch.append(os.path.join(root, name))
                     if len(batch) >= DIRECTORY_SCAN_BATCH_SIZE:
-                        self.signals.batch.emit(self, batch)
+                        safe_emit(self.signals, "batch", self, batch)
                         batch = []
             if batch:
-                self.signals.batch.emit(self, batch)
+                safe_emit(self.signals, "batch", self, batch)
         except Exception as e:
             error = e
-        self.signals.finished.emit(self, error)
+        safe_emit(self.signals, "finished", self, error)
 
 
 class DirectoryPasteHandler(QObject):

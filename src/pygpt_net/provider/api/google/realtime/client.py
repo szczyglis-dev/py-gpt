@@ -16,6 +16,7 @@ from typing import Optional, Callable, Awaitable, Tuple, List, Any
 
 from google.genai import types as gtypes  # for Schema/FunctionDeclaration/FunctionResponse compatibility
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.core.types import MODE_AUDIO
 from pygpt_net.item.ctx import CtxItem
@@ -1115,7 +1116,7 @@ class GoogleLiveClient:
             # Emit end-of-turn event for audio pipeline symmetry with OpenAI
             try:
                 if self._last_opts and hasattr(self._last_opts, "rt_signals"):
-                    self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
+                    safe_emit(self._last_opts.rt_signals, "response", RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
                         "ctx": self._ctx,
                     }))
             except Exception:
@@ -1969,7 +1970,7 @@ class GoogleLiveClient:
             return
         try:
             if self._last_opts and hasattr(self._last_opts, "rt_signals"):
-                self._last_opts.rt_signals.response.emit(
+                safe_emit(self._last_opts.rt_signals, "response", 
                     RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {"ctx": self._ctx})
                 )
             self._rt_state["auto_commit_signaled"] = True

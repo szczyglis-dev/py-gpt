@@ -16,6 +16,7 @@ from PySide6.QtCore import Signal, Slot
 from pygpt_net.core.agents_v2.expert import ExpertAgentBridge
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.types import MODE_EXPERT, TOOL_EXPERT_CALL_NAME
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base.signals import BaseSignals
@@ -76,7 +77,8 @@ class ExpertWorker(BaseWorker):
             self.window.dispatch(event)
             return
         done = threading.Event()
-        self.signals.event_sync.emit(event, done)
+        if not safe_emit(self.signals, "event_sync", event, done):
+            return
         done.wait()
 
     def _call_expert(self, params: dict) -> str:

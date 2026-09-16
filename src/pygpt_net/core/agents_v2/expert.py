@@ -16,6 +16,7 @@ from typing import List
 
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.types import MODE_EXPERT, TOOL_EXPERT_CALL_NAME
 
@@ -31,7 +32,7 @@ class _ResponseSignalProxy:
         self.expert_signals = expert_signals
 
     def emit(self, event):
-        self.expert_signals.event.emit(event)
+        safe_emit(self.expert_signals, "event", event)
 
 
 class _RuntimeSignalsProxy:

@@ -19,6 +19,7 @@ from typing import Optional, Dict, Any, List
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -167,7 +168,7 @@ class VideoWorker(QRunnable):
             # optional prompt enhancement
             if not self.raw and not self.inline and self.input_prompt:
                 try:
-                    self.signals.status.emit(trans('vid.status.prompt.wait'))
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
@@ -180,8 +181,8 @@ class VideoWorker(QRunnable):
                     if resp:
                         self.input_prompt = resp
                 except Exception as e:
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('vid.status.prompt.error') + ": " + str(e))
+                    safe_emit(self.signals, "error", e)
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.error') + ": " + str(e))
 
             # Negative prompt merge (provider has no dedicated field)
             if self.extra_prompt and str(self.extra_prompt).strip():
@@ -195,7 +196,7 @@ class VideoWorker(QRunnable):
             video_url = self._resolve_video_url()  # may come from explicit video_url or video_id
             if video_url and not (str(video_url).startswith("http://") or str(video_url).startswith("https://")):
                 # xAI edit requires a publicly accessible video_url; local paths are unsupported
-                self.signals.status.emit("xAI video edit requires a publicly accessible video_url; provided identifier is not a URL. Skipping edit path.")
+                safe_emit(self.signals, "status", "xAI video edit requires a publicly accessible video_url; provided identifier is not a URL. Skipping edit path.")
                 video_url = None
 
             # normalize controls
@@ -211,7 +212,7 @@ class VideoWorker(QRunnable):
                 label += " (image-to-video)"
             else:
                 label += " (text-to-video)"
-            self.signals.status.emit(label + f": {self.input_prompt}...")
+            safe_emit(self.signals, "status", label + f": {self.input_prompt}...")
 
             # sequential jobs (API returns single URL per call)
             paths: List[str] = []
@@ -251,12 +252,12 @@ class VideoWorker(QRunnable):
                     time.sleep(0.2)
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self._cleanup()
 
@@ -370,7 +371,7 @@ class VideoWorker(QRunnable):
             str(idx + 1) + ".mp4"
         )
         path = os.path.join(self.window.core.config.get_user_dir("video"), name)
-        self.signals.status.emit(trans('vid.status.downloading') + f" ({idx + 1}) -> {path}")
+        safe_emit(self.signals, "status", trans('vid.status.downloading') + f" ({idx + 1}) -> {path}")
 
         try:
             with requests.get(url, stream=True, timeout=180) as r:

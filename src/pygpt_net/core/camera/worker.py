@@ -14,6 +14,7 @@ import time
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot, QEventLoop, QTimer, Qt, QThread
 from PySide6.QtGui import QImage
+from pygpt_net.core.qt import safe_emit
 
 class CaptureSignals(QObject):
     finished = Signal()
@@ -230,7 +231,7 @@ class CaptureWorker(QRunnable):
         finally:
             self.allow_finish = False
             if self.signals is not None:
-                self.signals.error.emit(err)
+                safe_emit(self.signals, "error", err)
 
     @Slot(object)
     def on_qt_frame_changed(self, video_frame):
@@ -281,7 +282,7 @@ class CaptureWorker(QRunnable):
                 arr = arr.reshape(h, w, 3).copy()
 
             if self.signals is not None:
-                self.signals.capture.emit(arr)
+                safe_emit(self.signals, "capture", arr)
             self._last_emit = now
 
         except Exception as e:
@@ -403,7 +404,7 @@ class CaptureWorker(QRunnable):
                     used_backend = 'qt'
                     self.initialized = True
                     if self.signals is not None:
-                        self.signals.started.emit()
+                        safe_emit(self.signals, "started")
 
                     self.loop = QEventLoop()
 
@@ -416,7 +417,7 @@ class CaptureWorker(QRunnable):
                     self.loop.exec()
 
                     if self.signals is not None:
-                        self.signals.stopped.emit()
+                        safe_emit(self.signals, "stopped")
                 else:
                     # Fallback to OpenCV only when the camera was not stopped
                     # while the Qt backend was probing.
@@ -433,7 +434,7 @@ class CaptureWorker(QRunnable):
                     used_backend = 'cv2'
                     self.initialized = True
                     if self.signals is not None:
-                        self.signals.started.emit()
+                        safe_emit(self.signals, "started")
 
                     import cv2
                     target_fps = 30
@@ -456,11 +457,11 @@ class CaptureWorker(QRunnable):
                             # Convert BGR -> RGB for the controller/UI pipeline
                             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                             if self.signals is not None:
-                                self.signals.capture.emit(frame)
+                                safe_emit(self.signals, "capture", frame)
                             last_frame_time = now
 
                     if self.signals is not None:
-                        self.signals.stopped.emit()
+                        safe_emit(self.signals, "stopped")
                 else:
                     # Both providers failed
                     self.allow_finish = False
@@ -471,7 +472,7 @@ class CaptureWorker(QRunnable):
             if not self._should_stop():
                 self.window.core.debug.log(e)
                 if self.signals is not None:
-                    self.signals.error.emit(e)
+                    safe_emit(self.signals, "error", e)
         finally:
             # Cleanup resources
             try:
@@ -490,9 +491,9 @@ class CaptureWorker(QRunnable):
             # Emit final state
             if self.signals is not None:
                 if self.allow_finish:
-                    self.signals.finished.emit()
+                    safe_emit(self.signals, "finished")
                 else:
-                    self.signals.unfinished.emit()
+                    safe_emit(self.signals, "unfinished")
 
             self.cleanup()
             self._done_event.set()
