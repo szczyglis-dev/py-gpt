@@ -103,9 +103,20 @@ def test_get_options(mock_window):
 
 
 def test_patch(mock_window):
-    """Test patch"""
+    """Test cleanup patch that also runs for an already current config."""
     provider = JsonFileProvider(mock_window)
-    mock_window.core.config.data["__meta__"] = {}
-    mock_window.core.config.data["__meta__"]["version"] = "1.0.0"
-    assert provider.patch(parse_version("1.0.0")) is False
+    mock_window.core.config.data["__meta__"] = {"version": "1.0.0"}
+    obsolete = (
+        "presence_penalty",
+        "frequency_penalty",
+        "temperature",
+        "top_p",
+    )
+    for key in obsolete:
+        mock_window.core.config.data[key] = 1
+
+    assert provider.patch(parse_version("1.0.0")) is True
+    for key in obsolete:
+        assert key not in mock_window.core.config.data
+    mock_window.core.config.save.assert_called_once_with()
 

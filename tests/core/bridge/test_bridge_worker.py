@@ -55,6 +55,12 @@ class AttachmentStub:
         return self._context
     def get_mode(self):
         return self._mode
+    def is_initial_turn(self, ctx, history):
+        return False
+    def include_project_attachments_in_current(self, meta):
+        pass
+    def bind_current_to_ctx(self, ctx, include_project=False):
+        pass
 
 
 def test_init_defaults():

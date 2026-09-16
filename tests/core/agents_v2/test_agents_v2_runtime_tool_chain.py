@@ -16,6 +16,7 @@ from pygpt_net.core.types.tools import is_hidden_tool
 def make_runtime(enabled=True, extra=None):
     runtime = AgentsV2Runtime.__new__(AgentsV2Runtime)
     runtime.agent_mode = AgentMode.ORCHESTRATOR
+    runtime.agent_definition = None
     runtime.strategy = get_agent_strategy(runtime.agent_mode)
     runtime.return_tool_calls_to_main_ctx = enabled
     runtime._main_tool_calls = []

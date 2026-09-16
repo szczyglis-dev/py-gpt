@@ -26,6 +26,7 @@ def bare_runtime():
     runtime.window = MagicMock()
     runtime.context = SimpleNamespace(ctx=None, attachments={})
     runtime.model = None
+    runtime.agent_definition = None
     runtime.strategy = SimpleNamespace(main_name="Primary Agent", main_description="Primary agent")
     runtime.index_id = None
     runtime.rag_context_text = ""
@@ -248,6 +249,9 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     monkeypatch.setattr(AgentsV2Runtime, "_make_tool_ctx", lambda self, actor_id: actor_ctx)
 
     window = MagicMock()
+    window.core.agents_v2.editor.resolve_selection.return_value = (
+        "chat", runtime_module.AgentMode.PRIMARY_AGENT, None
+    )
     values = {"agent.v2.show_tool_chain": True}
     window.core.config.get.side_effect = lambda key, default=None: values.get(key, default)
     preset = SimpleNamespace(

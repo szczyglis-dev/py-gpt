@@ -28,7 +28,8 @@ def test_banner_set_items_creates_widget_lazily_and_inserts_it(qapp):
     layout = MagicMock()
     builder.setup(layout)
 
-    with patch("pygpt_net.ui.layout.toolbox.banner.BannerWidget") as cls:
+    with patch.object(builder, "_is_displayable", return_value=True), \
+            patch("pygpt_net.ui.layout.toolbox.banner.BannerWidget") as cls:
         widget = cls.return_value
         builder.set_items([{"path": "/tmp/banner.png"}])
 
