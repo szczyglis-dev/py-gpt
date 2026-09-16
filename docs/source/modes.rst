@@ -214,6 +214,10 @@ Settings
 
 Agent-related application settings are available under ``Settings -> Agents and experts``. The **Chat with Agents** section contains settings intended for this workflow. ``Show full tool-chain in Chat with Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
 
+``Restore full workflow history on next request`` controls how completed Chat with Agents turns are replayed to the main agent on later requests. It is enabled by default for backward compatibility. When enabled, PyGPT rebuilds the ordered workflow from durable partials and restores intermediate main-agent output together with persisted worker results. This provides richer continuity but can use substantially more input tokens. When disabled, PyGPT restores only the authoritative final response from each completed Chat with Agents turn. The full workflow remains stored in the database and available to the UI; it is simply omitted from later model-facing history, reducing token usage at the cost of less detailed workflow context.
+
+The same policy is used by the live history token estimate and by Advanced Context Handling when it sizes and snapshots durable history for checkpoints. With final-response-only history selected, those checkpoint snapshots use the final response rather than reintroducing the full stored workflow. Compact rolling memory created inside a currently running long workflow remains available so Advanced Context Handling can keep that active run coherent.
+
 The runtime worker-count and iteration limits are configurable in the same section:
 
 * ``Max iterations (Chat / Orchestrator)`` - main-agent iteration limit for Chat and Orchestrator. Default: ``48``.
@@ -235,7 +239,7 @@ Files, images, URLs and attachments produced by workers, local tools, or support
 Memory
 ^^^^^^
 
-The user-facing primary agent or orchestrator keeps hidden conversation history across turns in the current conversation/preset. This history is subject to the normal PyGPT/model token-window policy. Worker memory is runtime-local and can be retained when the same worker is reused during a workflow.
+The user-facing primary agent or orchestrator keeps hidden conversation history across turns in the current conversation/preset. This history is subject to the normal PyGPT/model token-window policy. For completed Chat with Agents turns, the ``Restore full workflow history on next request`` setting determines whether later requests receive the full persisted workflow or only the final response. Worker memory inside the active workflow is runtime-local and can be retained when the same worker is reused during that workflow.
 
 Worker lifecycle by mode
 ^^^^^^^^^^^^^^^^^^^^^^^^

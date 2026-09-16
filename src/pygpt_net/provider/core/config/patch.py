@@ -847,9 +847,13 @@ class Patch:
                 # profiles keep the historical full-storage behaviour until the
                 # user explicitly selects a smaller persistence policy. Historical
                 # tool-protocol replay remains opt-in and disabled by default.
+                # Chat with Agents full-workflow history replay stays enabled for
+                # backward compatibility; users can opt into final-response-only
+                # replay to reduce token usage on later requests.
                 for key in (
                         "context.tool_calls.store",
                         "context.tool_calls.restore",
+                        "agent.v2.restore_full_history",
                 ):
                     if key not in data:
                         data[key] = cfg_get_base(key)

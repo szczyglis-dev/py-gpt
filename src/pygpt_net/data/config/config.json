@@ -68,6 +68,7 @@
   "agent.v2.max_iterations": 48,
   "agent.v2.max_workers": 16,
   "agent.v2.mode": "chat",
+  "agent.v2.restore_full_history": true,
   "agent.v2.show_tool_chain": false,
   "agent.v2.single_status.history": true,
   "agent.v2.single_status.live": true,

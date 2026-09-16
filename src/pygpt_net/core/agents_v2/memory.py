@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 21:20:00                  #
+# Updated Date: 2026.09.16 09:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -23,6 +23,8 @@ from pygpt_net.core.types import MODE_AGENT_V2
 
 
 _HISTORY_SEGMENTS_KEY = "_pygpt_agents_v2_history_segments"
+_RESTORE_FULL_HISTORY_CONFIG_KEY = "agent.v2.restore_full_history"
+_RESTORE_FULL_HISTORY_DEFAULT = True
 
 
 class OrchestratorMemoryStore:
@@ -40,6 +42,13 @@ class OrchestratorMemoryStore:
 
     def __init__(self, window):
         self.window = window
+
+    def restore_full_history_enabled(self) -> bool:
+        """Return whether completed Agents v2 turns replay their full workflow."""
+        return bool(self.window.core.config.get(
+            _RESTORE_FULL_HISTORY_CONFIG_KEY,
+            _RESTORE_FULL_HISTORY_DEFAULT,
+        ))
 
     @staticmethod
     def _worker_context_records(part) -> list:
@@ -196,20 +205,30 @@ class OrchestratorMemoryStore:
                 durable_final = ""
             completed = extra.get("response_final") is True or bool(durable_final)
             if completed:
-                history_segments = self._compose_source_history_segments(item)
-                output = "\n\n".join(
-                    str(segment.get("content") or "").strip()
-                    for segment in history_segments
-                    if str(segment.get("content") or "").strip()
-                ).strip()
-                if not output:
+                if self.restore_full_history_enabled():
+                    history_segments = self._compose_source_history_segments(item)
+                    output = "\n\n".join(
+                        str(segment.get("content") or "").strip()
+                        for segment in history_segments
+                        if str(segment.get("content") or "").strip()
+                    ).strip()
+                    if not output:
+                        output = durable_final
+                    if not output:
+                        # Compatibility with completed records whose parent output was
+                        # persisted before durable final partials became the source of truth.
+                        output = str(getattr(item, "output", None) or "").strip()
+                    if output and not history_segments:
+                        history_segments = [{"kind": "assistant", "content": output}]
+                else:
+                    # Compact replay: keep only the authoritative user-facing final
+                    # response. The durable partial/tool/worker workflow remains in
+                    # SQLite and in the UI, but it is not sent back to the model on
+                    # later requests. Fall back to the parent cache only for legacy
+                    # completed rows that predate explicit final partial markers.
                     output = durable_final
-                if not output:
-                    # Compatibility with completed records whose parent output was
-                    # persisted before durable final partials became the source of truth.
-                    output = str(getattr(item, "output", None) or "").strip()
-                if output and not history_segments:
-                    history_segments = [{"kind": "assistant", "content": output}]
+                    if not output:
+                        output = str(getattr(item, "output", None) or "").strip()
             else:
                 # Preserve a stopped/interrupted request as USER-only history.
                 # Any transient partial output from an unfinished workflow is not

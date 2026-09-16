@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 15:00:00                  #
+# Updated Date: 2026.09.16 09:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -644,9 +644,25 @@ class ContextManager:
         except Exception:
             return 0
 
-    @staticmethod
-    def _assistant_snapshot(item) -> str:
-        """Return useful agent prose/state without replaying raw tool payloads."""
+    def _assistant_snapshot(self, item) -> str:
+        """Return the assistant state used by advanced-context checkpoints.
+
+        For Chat with Agents this follows the same history-restore policy as the
+        live Agents v2 replay path, so token accounting, checkpoint thresholds and
+        continuation notes never silently reintroduce a full workflow when the user
+        selected final-response-only history.
+        """
+        if str(getattr(item, "mode", "") or "") == MODE_AGENT_V2 \
+                and not bool(self.window.core.config.get("agent.v2.restore_full_history", True)):
+            try:
+                final = item.get_agents_v2_response_output()
+                if final is None or not str(final).strip():
+                    final = item.get_agents_v2_final_output()
+            except Exception:
+                final = None
+            if final is not None and str(final).strip():
+                return str(final).strip()
+
         chunks = []
         for part in list(getattr(item, "parts", None) or []):
             text = str(getattr(part, "output", None) or "").strip()

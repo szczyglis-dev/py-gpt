@@ -585,6 +585,8 @@ Chat with Agents
 
 * ``Show full tool-chain in Chat with Agents``: When enabled, the final Chat with Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
+* ``Restore full workflow history on next request``: Controls the model-facing history restored from completed Chat with Agents turns. When enabled, later requests replay the full persisted workflow, including intermediate main-agent output and worker results. This can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored, reducing token usage at the cost of less detailed workflow context. The full workflow remains stored in the database/UI. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots follow the same selection. Default: True.
+
 * ``Single live status per part``: While streaming, keeps one tool/status row for the current response part and updates it in place. Previous parts keep their latest status. The shared renderer also applies to compatible Chat tool/status events. Default: True.
 
 * ``Single status per part in unfinished history``: When an unfinished or failed turn without a final response is reloaded, shows only the latest tool/status row for each part instead of restoring the full temporary status timeline. Default: True.
