@@ -371,15 +371,15 @@ class Input:
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Keep the readable grouping used by the former output footer.
+        # Chat metadata order: mode, model, plugins, token/context counter.
         layout.addWidget(plugin_addon['schedule'], alignment=Qt.AlignVCenter)
         layout.addSpacing(4)
-        layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
-        layout.addSpacing(18)
         layout.addWidget(nodes['chat.label'], alignment=Qt.AlignVCenter)
         layout.addSpacing(22)
         layout.addWidget(nodes['chat.model'], alignment=Qt.AlignVCenter)
         layout.addSpacing(22)
+        layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
+        layout.addSpacing(18)
         layout.addWidget(nodes['input.counter'], alignment=Qt.AlignVCenter)
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         return layout
