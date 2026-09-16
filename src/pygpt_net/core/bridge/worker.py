@@ -269,6 +269,12 @@ class BridgeWorker(QRunnable):
         if not self.window.controller.chat.attachment.has_context(ctx.meta):
             return
 
+        attachment = self.window.controller.chat.attachment
+        project_initial = bool(
+            self.window.core.attachments.context.is_project_share_enabled(ctx.meta)
+            and attachment.is_initial_turn(ctx, self.context.history)
+        )
+
         # determine if only current attachment content should be appended
         only_current = self.window.core.config.get("ctx.attachment.append_once", False)  # force single append
         auto_detect = self.window.core.config.get("ctx.attachment.auto_append", True) # auto-detect if allowed
@@ -276,22 +282,23 @@ class BridgeWorker(QRunnable):
             if self.allowed_single_append(self.context):
                 only_current = True
 
-        # if group additional context exists, append it to current additional context
-        if (
-                only_current
-                and self.window.core.attachments.context.is_project_share_enabled(ctx.meta)
-        ):
-            if ctx.meta.group.additional_ctx is None:
-                ctx.meta.group.additional_ctx = []
-            if ctx.meta.additional_ctx_current is None:
-                ctx.meta.additional_ctx_current = []
-            ctx.meta.additional_ctx_current.extend(ctx.meta.group.additional_ctx)
+        # A new conversation inside a shared project has no locally uploaded
+        # ``additional_ctx_current`` yet.  For append-once providers expose the
+        # existing project attachments on the first turn only; subsequent turns
+        # rely on provider conversation continuity.
+        if only_current and project_initial:
+            attachment.include_project_attachments_in_current(ctx.meta)
 
-        ad_context = self.window.controller.chat.attachment.get_context(
+        ad_context = attachment.get_context(
             ctx,
             self.context.history,
             only_current=only_current
         )
+        # UI/history association is intentionally narrower than model context:
+        # only attachments sent in this turn are rendered under the message,
+        # except that the first turn of a shared project shows the project's
+        # already available attachments once.
+        attachment.bind_current_to_ctx(ctx, include_project=project_initial)
         ad_mode = self.window.controller.chat.attachment.get_mode()
         if ad_context:
             self.context.prompt += f"\n\n{ad_context}"  # append to input text

@@ -9,6 +9,7 @@
 # Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
+import copy
 import os
 import uuid
 from typing import List, Dict, Any, Union
@@ -64,6 +65,132 @@ class Attachment(QObject):
                 if file.type == AttachmentItem.TYPE_FILE and native.can_upload(file.path, mode, model):
                     return True
         return False
+
+    def begin_turn(self, meta: CtxMeta):
+        """Reset runtime attachment markers for a new user-visible turn.
+
+        ``additional_ctx_current`` is intentionally runtime-only.  It describes
+        attachments introduced by the current user turn, not all attachments
+        that remain active in the conversation/project.  Keeping it across
+        turns makes old attachments look as if they were sent with every new
+        message and also defeats append-once provider flows.
+        """
+        if meta is None:
+            return
+        meta.additional_ctx_current = []
+        if meta.group is not None:
+            meta.group.additional_ctx_current = []
+
+    @staticmethod
+    def _item_key(item: Dict[str, Any]):
+        """Return a stable runtime key for an additional-context item."""
+        if not isinstance(item, dict):
+            return None
+        if item.get("uuid"):
+            return "uuid", str(item["uuid"])
+        if item.get("archive_id") and item.get("archive_member"):
+            return "archive", str(item["archive_id"]), str(item["archive_member"])
+        return (
+            "path",
+            str(item.get("type") or ""),
+            str(item.get("real_path") or item.get("path") or ""),
+            str(item.get("name") or ""),
+        )
+
+    def _unique_active_items(self, items: list) -> list:
+        """Return active additional-context items without duplicates."""
+        result = []
+        seen = set()
+        for item in items or []:
+            if not isinstance(item, dict):
+                continue
+            if not self.window.core.attachments.context.is_active(item):
+                continue
+            key = self._item_key(item)
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(item)
+        return result
+
+    def is_initial_turn(self, ctx: CtxItem, history: List[CtxItem]) -> bool:
+        """Return True for the first user-visible turn in a conversation."""
+        if ctx is None or getattr(ctx, "internal", False):
+            return False
+
+        current_meta_id = getattr(getattr(ctx, "meta", None), "id", None)
+        for item in history or []:
+            if item is ctx or getattr(item, "internal", False):
+                continue
+            if getattr(item, "turn_continuation", False):
+                continue
+            if getattr(item, "input", None) is None:
+                continue
+
+            item_meta_id = getattr(item, "meta_id", None)
+            if item_meta_id is None:
+                item_meta_id = getattr(getattr(item, "meta", None), "id", None)
+            if current_meta_id is None or item_meta_id is None or item_meta_id == current_meta_id:
+                return False
+        return True
+
+    def include_project_attachments_in_current(self, meta: CtxMeta):
+        """Expose shared project attachments as current for the initial turn only."""
+        context = self.window.core.attachments.context
+        if meta is None or not context.is_project_share_enabled(meta) or meta.group is None:
+            return
+
+        merged = list(meta.group.additional_ctx or [])
+        merged.extend(meta.additional_ctx_current or [])
+        meta.additional_ctx_current = self._unique_active_items(merged)
+
+    def bind_current_to_ctx(self, ctx: CtxItem, include_project: bool = False):
+        """Persist/render only attachments that belong to this user-visible turn.
+
+        Model-facing attachment context is prepared independently by
+        :meth:`get_context`.  This method deliberately does not use the files
+        reported as *used* while building that model context, because in full
+        context mode those are all active files and would therefore be rendered
+        below every message.
+        """
+        if ctx is None or ctx.meta is None or getattr(ctx, "internal", False):
+            return
+
+        meta = ctx.meta
+        items = list(meta.additional_ctx_current or [])
+        context = self.window.core.attachments.context
+        if include_project and context.is_project_share_enabled(meta) and meta.group is not None:
+            items = list(meta.group.additional_ctx or []) + items
+        items = self._unique_active_items(items)
+
+        # Keep exact per-turn metadata in the ctx row as well.  This makes the
+        # association durable and independent of the project/conversation list.
+        ctx.additional_ctx = copy.deepcopy(items)
+
+        files = []
+        urls = []
+        for item in items:
+            item_type = item.get("type")
+            path = item.get("real_path") or item.get("path")
+            if not path:
+                continue
+            if item_type == "url":
+                if path not in urls:
+                    urls.append(path)
+            elif item_type in ("local_file", "native_file"):
+                if path not in files:
+                    files.append(path)
+
+        if not isinstance(ctx.files, list):
+            ctx.files = []
+        if not isinstance(ctx.urls, list):
+            ctx.urls = []
+        for path in files:
+            if path not in ctx.files:
+                ctx.files.append(path)
+        for url in urls:
+            if url not in ctx.urls:
+                ctx.urls.append(url)
 
     def setup(self):
         """Setup attachments"""
@@ -417,14 +544,6 @@ class Attachment(QObject):
 
         # get additional context from attachments
         content = self.window.core.attachments.context.get_context(self.mode, ctx, history, only_current=only_current)
-
-        # append used files and urls to context
-        files = self.window.core.attachments.context.get_used_files()
-        urls = self.window.core.attachments.context.get_used_urls()
-        if files:
-            ctx.files = files
-        if urls:
-            ctx.urls = urls
 
         if content:
             if self.is_verbose():

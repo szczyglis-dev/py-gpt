@@ -162,6 +162,12 @@ class Input:
         # that chat's restored mode for the actual send/attachment pipeline.
         mode = self.window.core.config.get('mode')
 
+        # Start a fresh per-turn attachment scope before processing files from
+        # the input list. Conversation/project attachments remain active for
+        # model context, but only items introduced after this reset belong to
+        # the message being sent now.
+        self.window.controller.chat.attachment.begin_turn(request_meta)
+
         # Store prompt history only once the manual send has actually claimed a
         # chat. History keeps the durable form so recalling it can restore the
         # semantic mention type instead of guessing from visible @text.
