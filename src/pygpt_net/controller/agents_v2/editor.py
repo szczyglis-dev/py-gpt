@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 18:35:00                  #
+# Updated Date: 2026.09.16 20:15:00                  #
 # ================================================== #
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from PySide6.QtCore import Qt
 
@@ -26,6 +26,12 @@ class Editor:
         self.window = window
         self.dialog = False
         self.current: Optional[str] = None
+        # Unsaved editor state is kept per workflow. Switching the list must not
+        # write to config, nor should it discard text already entered by user.
+        self.drafts: Dict[str, Dict[str, str]] = {}
+        # Built-in Chat / Orchestrator / Swarm intentionally share one persisted
+        # Step-by-step override, so keep one shared draft for that field too.
+        self._builtin_step_draft: Optional[str] = None
         self.width = 980
         self.height = 760
 
@@ -35,6 +41,8 @@ class Editor:
         self.refresh_toolbox()
 
     def reload(self):
+        if self.dialog:
+            self._capture_current()
         self.refresh_toolbox()
         if self.dialog:
             self.reload_items(select_id=self.current)
@@ -58,8 +66,41 @@ class Editor:
 
     def close(self):
         if self.dialog:
+            self._capture_current()
             self.window.ui.dialogs.close("agents.v2.editor")
             self.dialog = False
+
+    def _capture_current(self):
+        """Keep current form values in memory without touching persisted config."""
+        if not self.current:
+            return
+        row = self.window.core.agents_v2.editor.get(self.current)
+        if row is None:
+            return
+        name_node = self.window.ui.nodes.get("agents.v2.editor.name")
+        prompt_node = self.window.ui.nodes.get("agents.v2.editor.prompt")
+        step_node = self.window.ui.nodes.get("agents.v2.editor.step_prompt")
+        draft = {
+            "name": str(name_node.text() if name_node is not None else ""),
+            "system_prompt": str(prompt_node.toPlainText() if prompt_node is not None else ""),
+            "step_by_step_prompt": str(step_node.toPlainText() if step_node is not None else ""),
+        }
+        self.drafts[self.current] = draft
+        if row.get("built_in"):
+            self._builtin_step_draft = draft["step_by_step_prompt"]
+
+    def _editable_values(self, agent_id: Any) -> Optional[dict]:
+        """Return draft values first, falling back to the persisted editor state."""
+        row = self.window.core.agents_v2.editor.editable_values(agent_id)
+        if row is None:
+            return None
+        agent_id = str(row["id"])
+        draft = self.drafts.get(agent_id)
+        if draft is not None:
+            row.update(draft)
+        if row.get("built_in") and self._builtin_step_draft is not None:
+            row["step_by_step_prompt"] = self._builtin_step_draft
+        return row
 
     def _display_name(self, row: dict) -> str:
         if row.get("built_in"):
@@ -117,7 +158,10 @@ class Editor:
             self._clear_fields()
 
     def select(self, agent_id: Any):
-        row = self.window.core.agents_v2.editor.editable_values(agent_id)
+        wanted = str(agent_id or "").strip()
+        if self.current and wanted != self.current:
+            self._capture_current()
+        row = self._editable_values(wanted)
         if row is None:
             return
         self.current = str(row["id"])
@@ -166,6 +210,7 @@ class Editor:
                 step_desc.setText(trans("agents.editor.custom.step.desc"))
 
     def new(self):
+        self._capture_current()
         agent_id = self.window.core.agents_v2.editor.create(trans("agents.editor.new.name"))
         self.window.core.config.save()
         self.current = agent_id
@@ -179,27 +224,48 @@ class Editor:
     def save(self) -> bool:
         if not self.current:
             return False
-        row = self.window.core.agents_v2.editor.get(self.current)
-        if row is None:
+
+        # Save is the only point at which form drafts are committed. Capture the
+        # currently visible workflow first, then persist every workflow edited or
+        # visited during this editor session in one config save.
+        self._capture_current()
+        if not self.drafts:
             return False
-        name_node = self.window.ui.nodes.get("agents.v2.editor.name")
-        prompt_node = self.window.ui.nodes.get("agents.v2.editor.prompt")
-        step_node = self.window.ui.nodes.get("agents.v2.editor.step_prompt")
-        name = str(name_node.text() if name_node is not None else "").strip()
-        if not row.get("built_in") and not name:
-            self.window.ui.dialogs.alert(trans("agents.editor.name.required"))
-            return False
-        ok = self.window.core.agents_v2.editor.save(
-            self.current,
-            name=name,
-            system_prompt=prompt_node.toPlainText() if prompt_node is not None else "",
-            step_by_step_prompt=step_node.toPlainText() if step_node is not None else "",
-        )
-        if not ok:
-            return False
+
+        # Validate everything before mutating config, so one invalid custom name
+        # cannot leave the in-memory config only partially updated.
+        for agent_id, draft in self.drafts.items():
+            row = self.window.core.agents_v2.editor.get(agent_id)
+            if row is None:
+                continue
+            if not row.get("built_in") and not str(draft.get("name") or "").strip():
+                self.select(agent_id)
+                self.window.ui.dialogs.alert(trans("agents.editor.name.required"))
+                return False
+
+        shared_step = self._builtin_step_draft
+        for agent_id, draft in list(self.drafts.items()):
+            row = self.window.core.agents_v2.editor.get(agent_id)
+            if row is None:
+                continue
+            step_prompt = str(draft.get("step_by_step_prompt") or "")
+            if row.get("built_in") and shared_step is not None:
+                step_prompt = shared_step
+            ok = self.window.core.agents_v2.editor.save(
+                agent_id,
+                name=str(draft.get("name") or "").strip(),
+                system_prompt=str(draft.get("system_prompt") or ""),
+                step_by_step_prompt=step_prompt,
+            )
+            if not ok:
+                return False
+
         self.window.core.config.save()
+        self.drafts.clear()
+        self._builtin_step_draft = None
         self.reload_items(select_id=self.current)
         self.refresh_toolbox()
+        self.window.update_status(trans("status.saved"))
         return True
 
     def delete(self, agent_id: Any = None, force: bool = False):
@@ -215,8 +281,11 @@ class Editor:
             )
             return
         previous = self.current
+        if previous and previous != wanted:
+            self._capture_current()
         if not self.window.core.agents_v2.editor.delete(wanted):
             return
+        self.drafts.pop(wanted, None)
         configured = str(self.window.core.config.get(AGENT_MODE_CONFIG_KEY, "") or "")
         if configured == wanted:
             self.window.core.config.set(AGENT_MODE_CONFIG_KEY, AGENT_MODE_CONFIG_DEFAULT)

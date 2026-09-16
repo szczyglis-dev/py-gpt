@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 18:35:00                  #
+# Updated Date: 2026.09.16 20:05:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -171,6 +171,4 @@ class Agents:
         nodes["agents.v2.editor.help.label"].setText(trans("agents.editor.help.title"))
         nodes["agents.v2.editor.help"].setPlainText(self._help_text())
         if reload:
-            self.window.controller.agents_v2.editor.reload_items(
-                select_id=self.window.controller.agents_v2.editor.current
-            )
+            self.window.controller.agents_v2.editor.reload()
