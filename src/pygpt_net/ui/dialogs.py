@@ -37,6 +37,7 @@ from pygpt_net.ui.dialog.rename import Rename
 from pygpt_net.ui.dialog.settings import Settings
 from pygpt_net.ui.dialog.snap import Snap
 from pygpt_net.ui.dialog.start import Start
+from pygpt_net.ui.dialog.system_info import SystemInfo
 from pygpt_net.ui.dialog.update import Update
 from pygpt_net.ui.dialog.url import Url
 from pygpt_net.ui.dialog.workdir import Workdir
@@ -70,6 +71,7 @@ class Dialogs:
         self.rename = Rename(self.window)
         self.snap = Snap(self.window)
         self.start = Start(self.window)
+        self.system_info = SystemInfo(self.window)
         self.update = Update(self.window)
         self.url = Url(self.window)
         self.workdir = Workdir(self.window)
@@ -90,6 +92,7 @@ class Dialogs:
         self.rename.setup()
         self.snap.setup()
         self.start.setup()
+        self.system_info.setup()
         self.update.setup()
         self.url.setup()
 
