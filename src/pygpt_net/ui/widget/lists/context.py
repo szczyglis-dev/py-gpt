@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 13:55:00                  #
+# Updated Date: 2026.09.16 11:20:00                  #
 # ================================================== #
 
 import datetime
@@ -1652,6 +1652,22 @@ class ContextList(BaseList):
 
         return menu
 
+    @staticmethod
+    def _format_project_index_time(timestamp: int) -> str:
+        """Format project index timestamp for the project context menu."""
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        today = datetime.datetime.now().date()
+        days_ago = (today - dt.date()).days
+        time_str = dt.strftime("%H:%M")
+
+        if days_ago == 0:
+            return f"{trans('dt.today')}, {time_str}"
+        if days_ago == 1:
+            return f"{trans('dt.yesterday')}, {time_str}"
+        if days_ago == 2:
+            return f"{trans('dt.day_before_yesterday')}, {time_str}"
+        return dt.strftime("%Y-%m-%d %H:%M")
+
     def show_context_menu(self, pos: QPoint):
         """
         Context menu event
@@ -1725,7 +1741,7 @@ class ContextList(BaseList):
                 state = self.window.core.idx.project.get(id_value)
                 last_update = int(state.get('last_update', 0)) if state else 0
                 if last_update > 0:
-                    last_str = datetime.datetime.fromtimestamp(last_update).strftime('%Y-%m-%d %H:%M:%S')
+                    last_str = self._format_project_index_time(last_update)
                 else:
                     last_str = trans('settings.llama.extra.db.never')
                 update_label = trans('idx.project.update') + " (" + trans('idx.last') + ": " + last_str + ")"
