@@ -1366,6 +1366,20 @@
         "step": null,
         "advanced": false
     },
+    "ctx.tool_calls.show_json": {
+        "section": "ctx",
+        "tab": "render",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.tool_calls.show_json",
+        "description": "settings.ctx.tool_calls.show_json.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.reasoning.show_realtime": {
         "section": "ctx",
         "tab": "render",

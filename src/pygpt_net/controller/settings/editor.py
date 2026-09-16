@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 10:57:00                  #
+# Updated Date: 2026.09.16 20:15:00                  #
 # ================================================== #
 
 import copy
@@ -201,6 +201,7 @@ class Editor:
             self.window.controller.ctx.refresh()
 
         if (self.config_changed('agent.output.render.all') or
+                self.config_changed('ctx.tool_calls.show_json') or
                 self.config_changed('ctx.reasoning.show_realtime') or
                 self.config_changed('ctx.reasoning.hide_after_response')):
             self.window.controller.chat.render.reload()
@@ -327,7 +328,11 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.chat.render.reload()
 
-        elif key in ("ctx.reasoning.show_realtime", "ctx.reasoning.hide_after_response"):
+        elif key in (
+                "ctx.tool_calls.show_json",
+                "ctx.reasoning.show_realtime",
+                "ctx.reasoning.hide_after_response",
+        ):
             self.window.core.config.set(key, value)
             self.window.controller.chat.render.reload()
 

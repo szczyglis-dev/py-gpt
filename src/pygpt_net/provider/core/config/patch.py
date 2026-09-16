@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 07:00:00                  #
+# Updated Date: 2026.09.16 20:15:00                  #
 # ================================================== #
 
 import copy
@@ -43,6 +43,13 @@ class Patch:
         if '__meta__' in data and 'version' in data['__meta__']:
             current = data['__meta__']['version']
         old = parse_version(current)
+
+        # Backfill render-only options even for profiles already carrying the
+        # current application version (useful during same-release development).
+        key = "ctx.tool_calls.show_json"
+        if key not in data:
+            data[key] = cfg_get_base(key)
+            updated = True
 
         # Remove obsolete global sampling controls even when the stored config
         # already has the current version. They are no longer exposed or sent

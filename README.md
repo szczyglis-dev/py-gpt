@@ -2372,7 +2372,7 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 
 Chat with Agents workflows are managed separately in `Config -> Agent Workflows...`; the Chat with Agents Settings page contains runtime/history/limit options rather than prompt textareas.
 
-In **Chats -> Render**, **Stream** controls whether answers are displayed while they are being generated, and **Show time in plain text mode** controls response timestamps for the plain-text renderer. Plain-text mode itself is toggled with the first `text` icon in the input-tab icon row; its tooltip changes between **Switch to plain text** and **Switch to normal view** depending on the active renderer.
+In **Chats -> Render**, **Stream** controls whether answers are displayed while they are being generated, and **Show time in plain text mode** controls response timestamps for the plain-text renderer. **Display tool calls JSON** (enabled by default) controls whether completed tool calls are rendered as expandable input/output JSON blocks; when disabled, executing tools are represented only by one aggregated **Tool/Tools** status row. This is a display-only option and does not disable tool execution, storage, or model-facing tool protocol. Plain-text mode itself is toggled with the first `text` icon in the input-tab icon row; its tooltip changes between **Switch to plain text** and **Switch to normal view** depending on the active renderer.
 
 The **Embeddings** tab uses the selected global provider plus `Default embedding models`; its global `**kwargs` and `ENV` fields are optional overrides placed in **Advanced**, not required credentials/model configuration.
 
@@ -2565,6 +2565,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added Agent Workflows documentation, help reference, migration support, and translations.
 - Added a direct `Config -> MCP...` shortcut to MCP plugin settings.
 - Added a separate **Restore tool calls in runtime** setting for replaying completed tool protocol during the active in-memory conversation, independently of database storage and restore settings.
+- Added **Display tool calls JSON** in Chats -> Render; disabling it replaces expandable tool input/output blocks with one aggregated live Tool/Tools status.
 
 **2.8.21 (2026-09-16)**
 

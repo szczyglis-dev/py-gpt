@@ -265,6 +265,8 @@ The plain-text renderer itself is switched on or off with the ``text`` icon in t
 
 * ``Show Code Interpreter output``: Displays execution results returned by provider-side Code Interpreter tools as part of the conversation. Default: True.
 
+* ``Display tool calls JSON``: Shows completed tool calls as expandable input/output JSON blocks. When disabled, PyGPT does not render the prepared Tool/Tools accordion; tools that are currently executing are shown instead in one aggregated ``Tool/Tools`` status row. This setting affects presentation only and does not disable tool execution, storage, or model-facing tool protocol. Default: True.
+
 * ``Show reasoning in real-time``: Requests and displays reasoning/thinking content exposed by supported models while a response is streaming. When disabled, PyGPT does not request or collect real-time reasoning through the supported reasoning path. Default: False.
 
 * ``Hide reasoning after response``: Collapses/hides the live reasoning panel when the normal answer begins/finishes according to the active renderer flow. Default: True.

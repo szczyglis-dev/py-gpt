@@ -199,6 +199,7 @@
   "ctx.search.string": "",
   "ctx.search_content": true,
   "ctx.sources": true,
+  "ctx.tool_calls.show_json": true,
   "ctx.urls.internal": false,
   "ctx.use_extra": true,
   "current_model": {

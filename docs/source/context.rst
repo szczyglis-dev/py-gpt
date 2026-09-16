@@ -99,6 +99,8 @@ The available modes are:
 
 The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence.
 
+Tool-call rendering is configured separately in ``Settings -> Chats -> Render -> Display tool calls JSON``. When enabled (default), completed calls can be shown as expandable request/response JSON blocks. When disabled, those blocks are hidden and live tool activity is shown only as one aggregated ``Tool/Tools`` status row. This display option does not change tool execution, persistence, or replay to the model.
+
 ``Restore tool calls in runtime`` controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
 By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore persisted tool protocol after reloading a conversation, enable ``Restore tool calls from history`` in ``Settings -> Context -> Tools``. This option applies only to history restored from the database, requires ``Store full input/output``, and is ignored when tool calls are not stored or are stored truncated.

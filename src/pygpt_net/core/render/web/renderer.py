@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 13:52:00                  #
+# Updated Date: 2026.09.16 20:15:00                  #
 # ================================================== #
 
 import json
@@ -1427,6 +1427,7 @@ class Renderer(BaseRenderer):
             kind: str,
             text: str = "",
             tool_names: Optional[list] = None,
+            aggregate: bool = False,
     ) -> Optional[str]:
         """Append one UI-only workflow event in strict display order.
 
@@ -1452,6 +1453,35 @@ class Renderer(BaseRenderer):
             placement = "after" if has_payload else "before"
 
         current_bucket = ("part", part_uuid) if part_uuid else ("head", "")
+
+        # Compact tool-status mode keeps one row for the whole durable turn.
+        # Re-activate and move that row to the newest chronological position
+        # instead of appending a new status after every tool execution.
+        if aggregate:
+            aggregate_record = next(
+                (record for record in reversed(records) if record.get("kind") == kind),
+                None,
+            )
+            if aggregate_record is not None:
+                for record in records:
+                    if record.get("active"):
+                        record["active"] = False
+                self._workflow_status_seq += 1
+                aggregate_record.update({
+                    "text": value,
+                    "tool_names": names,
+                    "part_uuid": part_uuid,
+                    "placement": placement,
+                    "after_part_uuid": part_uuid if placement == "after" else None,
+                    "active": True,
+                    "seq": self._workflow_status_seq,
+                })
+                self._hide_loading_on_activity(meta, pid=_pid)
+                return str(
+                    aggregate_record.get("live_id")
+                    or aggregate_record.get("id")
+                    or ""
+                ) or None
 
         # Repeated updates of the currently active row are idempotent.
         if records:
@@ -2438,6 +2468,8 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param content: content to append
         """
+        if not self._display_tool_calls_json():
+            return
         try:
             self.get_output_node(meta).page().runJavaScript(
                 f"""if (typeof window.appendToolOutput !== 'undefined') appendToolOutput({self.to_json(
@@ -2454,6 +2486,8 @@ class Renderer(BaseRenderer):
         :param meta: context meta
         :param content: content to set
         """
+        if not self._display_tool_calls_json():
+            return
         try:
             # TOOL_UPDATE is also used for the live/final tool response before
             # the context is rebuilt.  Normalize valid JSON here as well so the
@@ -2473,16 +2507,22 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem] = None,
             immediate: bool = False,
     ):
-        """Retire transient tool status without creating a visual hand-off gap.
+        """Retire or freeze the transient tool status after tool completion.
 
-        The runtime record is removed immediately so a later partial/reload cannot
-        replay a stale ``Tool: ...`` row. During normal completion the painted DOM
-        row is only frozen and remains visible until the durable Tool/Tools block
-        replaces the message DOM. STOP/error paths request ``immediate=True`` and
-        remove the painted row at once.
+        With expandable tool JSON enabled, the runtime row is removed because a
+        durable Tool/Tools block replaces it. In compact status mode the row is
+        kept and frozen so later tool calls in the same turn can reactivate and
+        aggregate it. STOP/error paths request ``immediate=True`` and remove the
+        painted row at once in both modes.
         """
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
-        self._workflow_status_remove(meta, resolved_ctx, kind="tool")
+        if immediate or self._display_tool_calls_json():
+            self._workflow_status_remove(meta, resolved_ctx, kind="tool")
+        else:
+            # Without the durable JSON accordion the status itself is the only
+            # tool visualization. Keep it in runtime history so subsequent tool
+            # calls can reuse and aggregate the same Tool/Tools row.
+            self._workflow_status_freeze(meta, resolved_ctx, kind="tool")
         try:
             parent_id = json.dumps(
                 str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
@@ -2515,8 +2555,31 @@ class Renderer(BaseRenderer):
         if not names_list:
             return
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
+        compact_status = not self._display_tool_calls_json()
+        if compact_status and resolved_ctx is not None:
+            merged_names = []
+            seen = set()
+            for record in self._workflow_status_records(resolved_ctx):
+                if record.get("kind") != "tool":
+                    continue
+                for name in list(record.get("tool_names") or []):
+                    value = str(name)
+                    if value and value not in seen:
+                        seen.add(value)
+                        merged_names.append(value)
+            for name in names_list:
+                value = str(name)
+                if value and value not in seen:
+                    seen.add(value)
+                    merged_names.append(value)
+            names_list = merged_names
+
         status_id = self._workflow_status_add(
-            meta, resolved_ctx, kind="tool", tool_names=names_list,
+            meta,
+            resolved_ctx,
+            kind="tool",
+            tool_names=names_list,
+            aggregate=compact_status,
         ) if resolved_ctx is not None else None
         try:
             names = json.dumps(names_list, ensure_ascii=False)
@@ -3536,13 +3599,21 @@ class Renderer(BaseRenderer):
             return False
         return bool(self.window.core.config.get("agent.v2.display_full_workflow", True))
 
+    def _display_tool_calls_json(self) -> bool:
+        """Return whether expandable tool request/response blocks are enabled."""
+        return bool(self.window.core.config.get("ctx.tool_calls.show_json", True))
+
     def _show_tool_chain_for_ctx(self, ctx: CtxItem) -> bool:
         """Return whether persisted tool calls should be rendered for this turn.
 
-        Agents v2 stores tool tasks independently from the display preference so
-        changing ``agent.v2.show_tool_chain`` also applies to already persisted
-        conversations. Other modes keep their existing rendering semantics.
+        ``ctx.tool_calls.show_json`` is the global Chats -> Render preference.
+        Agents v2 additionally keeps its own tool-chain visibility preference so
+        changing either option also applies to already persisted conversations.
+        Other modes keep their existing rendering semantics when the global
+        preference is enabled.
         """
+        if not self._display_tool_calls_json():
+            return False
         if str(getattr(ctx, "mode", "") or "") != MODE_AGENT_V2:
             return True
         return bool(self.window.core.config.get("agent.v2.show_tool_chain", False))
@@ -3942,6 +4013,11 @@ class Renderer(BaseRenderer):
             elif ctx.results is not None and len(ctx.results) > 0 \
                     and isinstance(ctx.extra, dict) and "agent_step" in ctx.extra:
                 tool_result = str(ctx.input)
+
+            if not self._display_tool_calls_json():
+                # The compact status is the complete tool visualization in this
+                # mode; suppress both structured and legacy expandable wrappers.
+                tool_output_visible = False
 
             tool_result_display = ""
             if tool_result:
