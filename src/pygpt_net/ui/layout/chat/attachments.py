@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.28 08:00:00                  #
+# Updated Date: 2026.09.16 11:20:00                  #
 # ================================================== #
 
 import os
@@ -44,7 +44,6 @@ class Attachments:
         self.setup_attachments()
         self.setup_buttons()
 
-        empty_widget = QWidget(self.window)
         self.window.ui.nodes['input.attachments.options.label'] = HelpLabel(trans("attachments.options.label"), self.window)
 
         buttons = QHBoxLayout()
@@ -52,12 +51,11 @@ class Attachments:
         buttons.addWidget(nodes['attachments.btn.add'])
         buttons.addWidget(nodes['attachments.btn.add_url'])
         buttons.addWidget(nodes['attachments.btn.clear'])
-        buttons.addWidget(empty_widget)
+        buttons.addStretch()
         buttons.addWidget(nodes['input.attachments.options.label'])
         buttons.addWidget(self.setup_auto_index())
         buttons.addWidget(self.setup_send_clear())
         buttons.addWidget(self.setup_capture_clear())
-        buttons.addStretch()
 
         self.window.ui.nodes['tip.input.attachments'] = HelpLabel(trans('tip.input.attachments'), self.window)
 

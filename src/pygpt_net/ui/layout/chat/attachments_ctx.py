@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.16 11:20:00                  #
 # ================================================== #
 
 import os
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItem, QStandardItemModel, Qt, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QWidget, QRadioButton, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QRadioButton, QCheckBox
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment_ctx import AttachmentCtxList
@@ -37,7 +37,6 @@ class AttachmentsCtx:
         :return: QVBoxLayout
         """
         self.setup_attachments()
-        empty_widget = QWidget()
 
         self.window.ui.nodes['tip.input.attachments.ctx'] = HelpLabel(trans('tip.input.attachments.ctx'),
                                                                            self.window)
@@ -73,14 +72,13 @@ class AttachmentsCtx:
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.ui.nodes['attachments_ctx.btn.clear'])
-        buttons_layout.addWidget(empty_widget)
+        buttons_layout.addStretch()
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.label'])
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.full'])
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.query'])
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.query_summary'])
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.ctx.mode.off'])
         buttons_layout.addWidget(self.window.ui.nodes['input.attachments.native_upload'])
-        buttons_layout.addStretch()
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['tip.input.attachments.ctx'])
