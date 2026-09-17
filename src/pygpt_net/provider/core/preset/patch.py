@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 12:55:00                  #
+# Updated Date: 2026.09.17 09:00:00                  #
 # ================================================== #
 
 import os
@@ -17,9 +17,65 @@ from packaging.version import parse as parse_version, Version
 # old patches moved here
 from .patches.patch_before_2_6_42 import Patch as PatchBefore2_6_42
 
+
+AGENT_V2_PRESET_FILES = (
+    "agent_v2_pygpt.json",
+    "agent_v2_coder.json",
+    "agent_v2_researcher.json",
+    "agent_v2_scientist.json",
+    "agent_v2_brainstorm.json",
+    "agent_v2_cybersec.json",
+    "agent_v2_osint.json",
+    "agent_v2_server_admin.json",
+)
+
 class Patch:
     def __init__(self, window=None):
         self.window = window
+
+    def _replace_agent_v2_presets_2_8_23(self, version: Version) -> bool:
+        """Replace all built-in Agents v2 presets once for the 2.8.23 migration."""
+        target = parse_version("2.8.23")
+        if version < target:
+            return False
+
+        items = self.window.core.presets.items or {}
+        needs_replace = False
+        for filename in AGENT_V2_PRESET_FILES:
+            preset_id = os.path.splitext(filename)[0]
+            item = items.get(preset_id)
+            stored_version = str(getattr(item, "version", "") or "") if item is not None else ""
+            try:
+                if item is None or not stored_version or parse_version(stored_version) < target:
+                    needs_replace = True
+                    break
+            except Exception:
+                needs_replace = True
+                break
+
+        if not needs_replace:
+            return False
+
+        print("Migrating Agents v2 presets from < 2.8.23...")
+        src_dir = os.path.join(
+            self.window.core.config.get_app_path(),
+            "data",
+            "config",
+            "presets",
+        )
+        dst_dir = self.window.core.config.get_user_dir("presets")
+        os.makedirs(dst_dir, exist_ok=True)
+
+        for filename in AGENT_V2_PRESET_FILES:
+            src = os.path.join(src_dir, filename)
+            dst = os.path.join(dst_dir, filename)
+            # Intentional destructive migration: 2.8.23 replaces even
+            # user-modified copies of these built-in preset files.
+            shutil.copyfile(src, dst)
+            print("Patched file: {}.".format(dst))
+
+        self.window.core.presets.load()
+        return True
 
     def execute(self, version: Version) -> bool:
         """
@@ -30,6 +86,11 @@ class Patch:
         """
         patcher = PatchBefore2_6_42(self.window)  # old patches (< 2.6.42) moved here
         migrated = patcher.execute(version)
+
+        # 2.8.23 intentionally replaces all built-in Agents v2 preset files,
+        # including copies customized by the user before this upgrade.
+        if self._replace_agent_v2_presets_2_8_23(version):
+            migrated = True
 
         is_agent_v2 = False
         is_agent_v2_presets = False

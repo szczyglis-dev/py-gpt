@@ -110,6 +110,24 @@ class Config(BaseConfig):
             description="Enable: Upload file as attachment",
         )
         plugin.add_cmd(
+            "deliver_file_to_user",
+            instruction=(
+                "deliver an existing local file to the user as a response artifact; use only for an intentional "
+                "user-facing deliverable after it is ready, never for files merely read, searched or inspected. "
+                "Use send_file/attach_runtime_file when the file is input for the model rather than output for the user"
+            ),
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path to the file to deliver",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Deliver file to user",
+        )
+        plugin.add_cmd(
             "attach_runtime_file",
             instruction=(
                 "attach one or more existing local files as runtime-only attachments to the next model request; "

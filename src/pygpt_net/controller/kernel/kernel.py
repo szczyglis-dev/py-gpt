@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 17:58:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 import threading
@@ -304,7 +304,12 @@ class Kernel:
         elif name == KernelEvent.AGENT_V2_TOOL_EXEC:
             return resp.agent_v2_tool_exec(context, extra, event.data.get("request"))
         elif name == KernelEvent.AGENT_V2_END:
-            return resp.agent_v2_end(context, extra, event.data.get("final_answer", ""))
+            return resp.agent_v2_end(
+                context,
+                extra,
+                event.data.get("final_answer", ""),
+                event.data.get("artifacts") or {},
+            )
 
     def restart(self):
         """

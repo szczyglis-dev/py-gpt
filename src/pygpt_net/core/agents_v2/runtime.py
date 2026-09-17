@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 16:10:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -86,16 +86,17 @@ class AgentsV2Runtime:
     _STATUS_ONLY_TOOLS = {"report_status", "workflow_status", "swarm_status"}
 
     def _show_tool_status(self, tool_name: str) -> bool:
-        """Return True only for tools allowed on the conversation status surface.
+        """Return whether Agents v2 should expose a raw per-tool status row.
 
-        The global hidden-tool policy covers orchestration plumbing and plugin
-        commands declared with ``hidden=True``. Such tools may still emit logs or
-        their own semantic statuses. Names explicitly listed in
-        ``HIDDEN_TOOLS_REALTIME_ONLY`` are the sole exception and may appear in a
-        transient ``Using tool`` row while execution is live.
+        Chat with Agents intentionally keeps implementation-level tool names off
+        the user-facing progress surface. The model reports semantic activity via
+        ``workflow_status`` (top-level actor) or ``report_status`` (workers), where
+        one status may cover many tool calls, retries, edits and checks. Structured
+        tool call blocks remain independently available through the normal tool-call
+        display/storage settings; only the transient ``Using tool: <name>`` row is
+        suppressed here.
         """
-        name = str(tool_name or "").strip()
-        return bool(name and self.window.core.command.is_tool_realtime_visible(name))
+        return False
 
     def __init__(self, window, context, extra, signals, emitter):
         self.window = window
@@ -231,6 +232,9 @@ class AgentsV2Runtime:
         self.delegate_bridge = AgentDelegateBridge(self)
         self._artifact_seen = {
             "files": set(), "images": set(), "urls": set(), "attachments": set()
+        }
+        self._pending_artifacts = {
+            "files": [], "images": [], "urls": [], "attachments": []
         }
         self._seed_artifact_seen()
         self.primary_actor = SimpleNamespace(
@@ -574,6 +578,12 @@ class AgentsV2Runtime:
 
     def collect_artifacts(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
         return self.artifact_api.collect_artifacts(source_ctx, worker)
+
+    def register_delivery_files(self, files, worker: Optional[WorkerState] = None):
+        return self.artifact_api.register_delivery_files(files, worker)
+
+    def pending_artifacts(self) -> dict:
+        return self.artifact_api.pending_artifacts()
 
     def _make_tool_ctx(self, actor_id: str) -> CtxItem:
         return self.artifact_api._make_tool_ctx(actor_id)

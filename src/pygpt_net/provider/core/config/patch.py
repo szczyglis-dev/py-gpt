@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 20:15:00                  #
+# Updated Date: 2026.09.17 09:00:00                  #
 # ================================================== #
 
 import copy
@@ -913,6 +913,25 @@ class Patch:
                 if key not in data:
                     data[key] = cfg_get_base(key)
                     updated = True
+
+            # < 2.8.23
+            if old < parse_version("2.8.23"):
+                print("Migrating config from < 2.8.23...")
+
+                # Built-in Chat with Agents prompts were rewritten in 2.8.23.
+                # Drop every saved built-in override unconditionally so upgraded
+                # profiles use the new canonical prompts, even if the user
+                # customized an override before the upgrade. User-created custom
+                # Agent Workflows are separate and intentionally preserved.
+                for key in (
+                        "agent.v2.prompt.primary.custom",
+                        "agent.v2.prompt.orchestrator.custom",
+                        "agent.v2.prompt.swarm.custom",
+                        "agent.v2.prompt.step_by_step.custom",
+                ):
+                    if data.get(key) != "":
+                        data[key] = ""
+                        updated = True
 
         # update file
         migrated = False

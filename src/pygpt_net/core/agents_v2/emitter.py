@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 20:45:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -466,15 +466,24 @@ class RuntimeEmitter:
             # CtxItem.extra because plugin callbacks may persist that context.
             discard(tool_ctx, request)
 
-    def finish(self, final_answer: Optional[str] = None, part_uuid: Optional[str] = None):
+    def finish(
+            self,
+            final_answer: Optional[str] = None,
+            part_uuid: Optional[str] = None,
+            artifacts: Optional[dict] = None,
+    ):
         if self._finished:
             return
         if final_answer and not self.final_started:
             self.start_final(final_answer, part_uuid=part_uuid)
+        # Flush every remaining final-response chunk before queueing AGENT_V2_END.
+        # Response artifacts travel only with that end event, so the UI cannot
+        # render URLs/files/images/attachments ahead of the completed final text.
         self._flush_stream()
         self._cancel_status_hold(drop_pending=True)
         self._finished = True
         self._emit(
             KernelEvent.AGENT_V2_END,
             final_answer=final_answer or "",
+            artifacts=dict(artifacts or {}),
         )

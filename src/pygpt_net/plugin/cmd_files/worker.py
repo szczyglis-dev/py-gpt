@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 14:15:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 import fnmatch
@@ -140,6 +140,10 @@ class Worker(BaseWorker):
                         elif item["cmd"] == "send_file":
                             response = self.cmd_send_file(item)
 
+                        # explicitly deliver a generated/existing file to the end user
+                        elif item["cmd"] == "deliver_file_to_user":
+                            response = self.cmd_deliver_file_to_user(item)
+
                         # attach file to the immediate next model request as runtime-only input
                         elif item["cmd"] == "attach_runtime_file":
                             response = self.cmd_attach_runtime_file(item)
@@ -190,8 +194,8 @@ class Worker(BaseWorker):
 
         read_path = {
             "read_file", "query_file", "list_dir", "tree", "is_dir", "is_file",
-            "file_exists", "file_size", "file_info", "send_file", "attach_runtime_file",
-            "file_index", "find",
+            "file_exists", "file_size", "file_info", "send_file", "deliver_file_to_user",
+            "attach_runtime_file", "file_index", "find",
         }
         write_path = {"save_file", "append_file", "delete_file", "mkdir", "rmdir"}
 
@@ -1050,6 +1054,47 @@ class Worker(BaseWorker):
         except Exception as e:
             result = self.throw_error(e)
         return self.make_response(item, result)
+
+    def cmd_deliver_file_to_user(self, item: dict) -> dict:
+        """Mark one local file as an explicit end-user response deliverable."""
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Preparing user deliverable: {}".format(path)
+            self.log(self.msg)
+            if not os.path.isfile(path):
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
+                return self.make_response(item, result)
+
+            title = os.path.basename(path)
+            result = "File prepared for user delivery: {}".format(title)
+            self.log("User deliverable prepared: {}".format(path))
+
+            # Agents v2 uses a private tool CtxItem. Pass a private marker to the
+            # runtime; it will expose the file only after the final response has
+            # fully streamed. Other modes can attach the explicit output directly
+            # to their visible CtxItem.
+            if self.ctx is not None and getattr(self.ctx, "agent_call", False):
+                return self.make_response(
+                    item,
+                    result,
+                    extra={
+                        "agent_delivery_files": [
+                            {"path": path, "name": title},
+                        ],
+                    },
+                )
+
+            if self.ctx is not None:
+                if not isinstance(getattr(self.ctx, "files", None), list):
+                    self.ctx.files = []
+                if path not in self.ctx.files:
+                    self.ctx.files.append(path)
+            return self.make_response(item, result)
+        except Exception as e:
+            return self.make_response(item, self.throw_error(e))
 
     def cmd_attach_runtime_file(self, item: dict) -> dict:
         """Attach local file(s) to the immediate next model request without touching global chat attachments."""

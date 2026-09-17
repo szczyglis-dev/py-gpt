@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 20:45:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -385,7 +385,11 @@ class Runner:
             emitter.clear_status()
             final_part = runtime._actor_part("orchestrator", create=False)
             final_part_uuid = getattr(final_part, "uuid", None) if final_part is not None else None
-            emitter.finish(runtime.final_answer, part_uuid=final_part_uuid)
+            emitter.finish(
+                runtime.final_answer,
+                part_uuid=final_part_uuid,
+                artifacts=runtime.pending_artifacts(),
+            )
             runtime.verbose_log("RUNNER FINALIZE END", {
                 "final_answer": runtime.final_answer,
                 "agent_mode": runtime.agent_mode.value,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 11:00:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -54,9 +54,10 @@ class WorkerToolFactory:
             async_fn=report_status,
             name="report_status",
             description=(
-                f"Report a short INTERMEDIATE activity/progress status to the {self.runtime.main_agent_name} "
-                "and the user's transient status line. Use this before meaningful or potentially long phases. "
-                "Do not use report_status to announce final completion; when work is complete, return the final "
+                f"Report a short INTERMEDIATE, intent-level activity/progress status to the {self.runtime.main_agent_name} "
+                "and the user's transient status line. One status may cover many internal tool calls. Never report raw "
+                "tool/function names, arguments, or one status per invocation. Update only when the activity materially "
+                "changes. Do not use report_status to announce final completion; when work is complete, return the final "
                 "worker response directly."
             ),
         ))
@@ -145,16 +146,54 @@ class WorkerToolFactory:
         return unique
 
     @staticmethod
-    def _strip_runtime_attachment_markers(value: Any) -> Any:
-        """Remove transport-only marker data from the visible/persisted tool result."""
+    def _extract_delivery_files(value: Any) -> List[Dict[str, str]]:
+        """Collect files explicitly marked by deliver_file_to_user for user delivery."""
+        out: List[Dict[str, str]] = []
+
+        def walk(item):
+            if isinstance(item, dict):
+                marked = item.get("agent_delivery_files")
+                if isinstance(marked, (list, tuple)):
+                    for entry in marked:
+                        if isinstance(entry, dict):
+                            path = str(entry.get("path") or "").strip()
+                            name = str(entry.get("name") or os.path.basename(path)) if path else ""
+                        else:
+                            path = str(entry or "").strip()
+                            name = os.path.basename(path) if path else ""
+                        if path:
+                            out.append({"path": path, "name": name})
+                for key, child in item.items():
+                    if key != "agent_delivery_files":
+                        walk(child)
+            elif isinstance(item, (list, tuple)):
+                for child in item:
+                    walk(child)
+
+        walk(value)
+        unique: List[Dict[str, str]] = []
+        seen = set()
+        for entry in out:
+            path = entry["path"]
+            if path in seen:
+                continue
+            seen.add(path)
+            unique.append(entry)
+        return unique
+
+    @staticmethod
+    def _strip_private_artifact_markers(value: Any) -> Any:
+        """Remove runtime/delivery marker data from model-visible tool output."""
         if isinstance(value, dict):
             return {
-                key: WorkerToolFactory._strip_runtime_attachment_markers(child)
+                key: WorkerToolFactory._strip_private_artifact_markers(child)
                 for key, child in value.items()
-                if key != "agent_runtime_attachments"
+                if key not in {"agent_runtime_attachments", "agent_delivery_files"}
             }
         if isinstance(value, list):
-            return [WorkerToolFactory._strip_runtime_attachment_markers(child) for child in value]
+            return [WorkerToolFactory._strip_private_artifact_markers(child) for child in value]
+        if isinstance(value, tuple):
+            return tuple(WorkerToolFactory._strip_private_artifact_markers(child) for child in value)
         return value
 
     @staticmethod
@@ -333,6 +372,7 @@ class WorkerToolFactory:
                                 raise
                             runtime_attachments = self._extract_runtime_attachments(response)
                             runtime_attachments.extend(self._drain_transport_images(tool_ctx))
+                            delivery_files = self._extract_delivery_files(response)
                             if runtime_attachments:
                                 unique = []
                                 seen_paths = set()
@@ -344,8 +384,8 @@ class WorkerToolFactory:
                                     unique.append(entry)
                                 runtime_attachments = unique
                             display_response = (
-                                self._strip_runtime_attachment_markers(response)
-                                if runtime_attachments else response
+                                self._strip_private_artifact_markers(response)
+                                if runtime_attachments or delivery_files else response
                             )
                             self.runtime.record_local_plugin_tool_result(
                                 display_call_id,
@@ -361,13 +401,15 @@ class WorkerToolFactory:
                             "ctx_extra": getattr(tool_ctx, "extra", None),
                         }, actor=actor_id)
                         self.runtime.collect_artifacts(tool_ctx, worker)
+                        if delivery_files:
+                            self.runtime.register_delivery_files(delivery_files, worker)
                         # `reply` is a legacy chat-loop flag. It is useful while a plugin
                         # builds its response, but must not survive on a reusable actor ctx.
                         tool_ctx.reply = False
 
                         if runtime_attachments:
                             return self._runtime_attachment_blocks(display_response, runtime_attachments)
-                        return self._response_text(response)
+                        return self._response_text(display_response)
                     fn.__name__ = tool_name
                     return fn
 

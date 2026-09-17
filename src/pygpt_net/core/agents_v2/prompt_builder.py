@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 10:57:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from .prompts import (
     ORCHESTRATOR_BASE_PROMPT,
     PRIMARY_AGENT_BASE_PROMPT,
     SWARM_BASE_PROMPT,
-    build_custom_main_prompt,
+    WORKFLOW_PROGRESS_POLICY,
     resolve_step_by_step_prompt,
 )
 
@@ -38,6 +38,7 @@ class RuntimePromptBuilder:
             additional_system_prompt: Optional[str] = None,
             include_project_rules: bool = False,
             apply_step_by_step: bool = True,
+            inject_workflow_policy: bool = True,
     ) -> str:
         """Compose the shared Agents v2 runtime envelope around an actor prompt.
 
@@ -107,9 +108,17 @@ class RuntimePromptBuilder:
         else:
             base = str(base_prompt or "").strip()
         prefix = (base + "\n\n") if base else ""
+        workflow_policy = ""
+        if inject_workflow_policy:
+            workflow_policy = (
+                "\n\n<workflow_progress_policy>\n"
+                + WORKFLOW_PROGRESS_POLICY
+                + "\n</workflow_progress_policy>"
+            )
         return (
             prefix
             + "<runtime_capabilities>\n" + "\n".join(capabilities) + "\n</runtime_capabilities>"
+            + workflow_policy
             + runtime_environment
             + rag_context
             + "\n\n<additional_system_prompt>\n" + additional + "\n</additional_system_prompt>"
@@ -123,38 +132,52 @@ class RuntimePromptBuilder:
             include_project_rules=True,
         )
 
-    def _configured_main_prompt(self, default_prompt: str, config_key: str) -> str:
-        """Return a custom role prompt when configured, otherwise the built-in prompt."""
+    def _custom_main_prompt(self, config_key: str) -> str:
+        """Return the user override exactly as configured, plus only its explicit custom step prompt."""
         custom = str(self.runtime.window.core.config.get(config_key, "") or "").strip()
-        if custom:
-            return build_custom_main_prompt(custom)
-        return default_prompt
+        if not custom:
+            return ""
+        if bool(getattr(self.runtime, "step_by_step_enabled", False)):
+            custom_step = str(
+                self.runtime.window.core.config.get(
+                    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
+                    "",
+                ) or ""
+            ).strip()
+            if custom_step:
+                custom = (custom + "\n\n" + custom_step).strip()
+        return custom
+
+    def _configured_main_prompt(self, default_prompt: str, config_key: str) -> str:
+        """Return a user override when configured, otherwise the built-in prompt."""
+        return self._custom_main_prompt(config_key) or default_prompt
+
+    def _builtin_or_custom_prompt(self, default_prompt: str, config_key: str) -> str:
+        """Compose one built-in slot, suppressing built-in policies for an explicit user override."""
+        custom = self._custom_main_prompt(config_key)
+        return self.compose_agent_system_prompt(
+            base_prompt=custom or default_prompt,
+            include_project_rules=True,
+            apply_step_by_step=not bool(custom),
+            inject_workflow_policy=not bool(custom),
+        )
 
     def primary_agent_prompt(self) -> str:
-        return self.compose_agent_system_prompt(
-            base_prompt=self._configured_main_prompt(
-                PRIMARY_AGENT_BASE_PROMPT,
-                CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
-            ),
-            include_project_rules=True,
+        return self._builtin_or_custom_prompt(
+            PRIMARY_AGENT_BASE_PROMPT,
+            CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
         )
 
     def orchestrator_prompt(self) -> str:
-        return self.compose_agent_system_prompt(
-            base_prompt=self._configured_main_prompt(
-                ORCHESTRATOR_BASE_PROMPT,
-                CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
-            ),
-            include_project_rules=True,
+        return self._builtin_or_custom_prompt(
+            ORCHESTRATOR_BASE_PROMPT,
+            CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
         )
 
     def swarm_prompt(self) -> str:
-        return self.compose_agent_system_prompt(
-            base_prompt=self._configured_main_prompt(
-                SWARM_BASE_PROMPT,
-                CUSTOM_SWARM_PROMPT_CONFIG_KEY,
-            ),
-            include_project_rules=True,
+        return self._builtin_or_custom_prompt(
+            SWARM_BASE_PROMPT,
+            CUSTOM_SWARM_PROMPT_CONFIG_KEY,
         )
 
     def main_agent_prompt(self) -> str:
@@ -170,6 +193,7 @@ class RuntimePromptBuilder:
                 base_prompt=base,
                 include_project_rules=True,
                 apply_step_by_step=False,
+                inject_workflow_policy=False,
             )
 
         mode = str(getattr(self.runtime.agent_mode, "value", "") or "")

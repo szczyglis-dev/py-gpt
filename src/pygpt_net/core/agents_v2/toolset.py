@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.17 12:10:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -71,6 +71,17 @@ class RuntimeToolset:
                 "to inherit the current user-language contract."
             ),
         ))
+        tools.append(FunctionTool.from_defaults(
+            async_fn=self.runtime.set_status,
+            name="workflow_status",
+            description=(
+                "Set/replace the single transient user-visible workflow status line. Describe the current user-level "
+                "activity or completion state, never raw tool/function names, arguments, or one status per tool call. "
+                "One status may cover many internal operations. Update it only when the activity materially changes; "
+                "after completing/reviewing a work unit, set one concise completion status before the next normal "
+                "assistant checkpoint. Do not use it as the final answer."
+            ),
+        ))
         return self._with_context_tools(tools)
 
     def orchestrator_tools(self) -> List[FunctionTool]:
@@ -126,7 +137,12 @@ class RuntimeToolset:
             FunctionTool.from_defaults(
                 async_fn=self.runtime.set_status,
                 name="workflow_status",
-                description="Set/replace the single transient user-visible workflow status line.",
+                description=(
+                    "Set/replace the single transient user-visible workflow status line. Describe user-level activity "
+                    "or a completed work unit; never expose raw tool/function names or emit one status per tool call. "
+                    "Update only on meaningful activity changes and close a completed unit with one concise completion "
+                    "status before the next normal assistant checkpoint."
+                ),
             ),
             FunctionTool.from_defaults(
                 async_fn=self.runtime.request_workflow_finish,

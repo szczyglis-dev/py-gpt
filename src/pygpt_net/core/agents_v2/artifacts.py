@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -92,37 +92,82 @@ class RuntimeArtifacts:
         self.runtime.collect_artifacts(source_ctx, worker)
         return urls
 
+    def _stage_artifact(self, attr: str, value: Any, worker: Optional[WorkerState] = None) -> bool:
+        """Stage one response artifact without mutating the visible chat item yet."""
+        if self.runtime.context.ctx is None:
+            return False
+        try:
+            key = json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
+        except Exception:
+            key = repr(value)
+        if key in self.runtime._artifact_seen[attr]:
+            return False
+        self.runtime._artifact_seen[attr].add(key)
+        self.runtime._pending_artifacts[attr].append(value)
+        if worker is not None:
+            worker.artifacts[attr].append(value)
+        self.runtime.verbose.log(
+            "ARTIFACT STAGED",
+            {"type": attr, "value": value},
+            actor=getattr(worker, "id", "orchestrator") if worker is not None else "orchestrator",
+        )
+        return True
+
+    # Backward-compatible internal name used by older tests/integrations.
+    def _append_artifact(self, attr: str, value: Any, worker: Optional[WorkerState] = None) -> bool:
+        return self._stage_artifact(attr, value, worker)
+
+    def pending_artifacts(self) -> dict:
+        """Return a detached snapshot for AGENT_V2_END delivery on the UI thread."""
+        return {
+            key: list(values or [])
+            for key, values in self.runtime._pending_artifacts.items()
+            if values
+        }
+
+    def register_delivery_files(
+            self,
+            files,
+            worker: Optional[WorkerState] = None,
+    ) -> list:
+        """Stage only files explicitly selected for delivery to the user.
+
+        Internal plugin contexts often populate ``ctx.files`` by parsing tool output.
+        During code/project inspection that list may contain every file merely read,
+        searched or mentioned. Those paths are runtime evidence, not response
+        attachments. Delivery is therefore opt-in through Files I/O
+        ``deliver_file_to_user`` and remains hidden until finalization.
+        """
+        exported = []
+        for entry in files or []:
+            if isinstance(entry, dict):
+                path = str(entry.get("path") or "").strip()
+            else:
+                path = str(entry or "").strip()
+            if not path:
+                continue
+            if self._stage_artifact("files", path, worker):
+                exported.append(path)
+        return exported
+
     def collect_artifacts(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
-        """Merge worker artifacts into the user-visible context and worker status payload."""
+        """Stage durable non-file artifacts for final response delivery.
+
+        ``source_ctx.files`` is intentionally excluded. Generic tool/code output can
+        auto-populate it with inspected source paths, which must stay internal. A file
+        reaches the response only through ``register_delivery_files()`` after an
+        explicit ``deliver_file_to_user`` action.
+        """
         main = self.runtime.context.ctx
         if source_ctx is None or main is None or source_ctx is main:
             return
         # Raw plugin `results` are model-facing tool responses, not user artifacts.
-        # Propagating them into the main CtxItem can make the regular renderer treat
-        # an Agents v2 turn like a legacy tool-reply chain. Only durable artifacts
-        # are exported to the user-visible context.
-        for attr in ("files", "images", "urls", "attachments"):
-            values = getattr(source_ctx, attr, None) or []
-            target = getattr(main, attr, None)
-            if target is None:
-                target = []
-                setattr(main, attr, target)
-            for value in values:
-                try:
-                    key = json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
-                except Exception:
-                    key = repr(value)
-                if key in self.runtime._artifact_seen[attr]:
-                    continue
-                self.runtime._artifact_seen[attr].add(key)
-                target.append(value)
-                if worker is not None:
-                    worker.artifacts[attr].append(value)
-                self.runtime.verbose.log("ARTIFACT", {"type": attr, "value": value}, actor=getattr(worker, "id", "orchestrator") if worker is not None else "orchestrator")
-        try:
-            self.runtime.window.core.ctx.update_item(main)
-        except Exception:
-            pass
+        # Files are opt-in because discovery/read tools can enumerate hundreds of
+        # paths. Images/URLs/attachments are also staged so none of these extras can
+        # appear before the authoritative final response has fully streamed.
+        for attr in ("images", "urls", "attachments"):
+            for value in (getattr(source_ctx, attr, None) or []):
+                self._stage_artifact(attr, value, worker)
 
     def _make_tool_ctx(self, actor_id: str) -> CtxItem:
         """Create an isolated plugin/tool context for an Agents v2 actor.

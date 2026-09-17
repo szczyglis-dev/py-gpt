@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 16:20:00
+# Updated Date: 2026.09.17 13:20:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -705,8 +705,31 @@ class Response:
             if done is not None:
                 done.set()
 
-    def agent_v2_end(self, context: BridgeContext, extra: Dict[str, Any], final_answer: str = ""):
-        """Finalize Agents v2 and commit only the authoritative final answer to UI."""
+    def _agent_v2_apply_final_artifacts(self, ctx: CtxItem, artifacts: Dict[str, Any]):
+        """Attach staged workflow artifacts only after the final text stream is complete."""
+        if ctx is None or not isinstance(artifacts, dict):
+            return
+        for attr in ("files", "images", "urls", "attachments"):
+            values = artifacts.get(attr)
+            if not isinstance(values, (list, tuple)) or not values:
+                continue
+            target = getattr(ctx, attr, None)
+            if not isinstance(target, list):
+                target = list(target or [])
+                setattr(ctx, attr, target)
+            for value in values:
+                if value is None or value in target:
+                    continue
+                target.append(value)
+
+    def agent_v2_end(
+            self,
+            context: BridgeContext,
+            extra: Dict[str, Any],
+            final_answer: str = "",
+            artifacts: Dict[str, Any] = None,
+    ):
+        """Finalize Agents v2, then expose staged artifacts with the completed final response."""
         ctx = context.ctx
         core_ctx = self.window.core.ctx
         self.agent_v2_status(context, extra, "")
@@ -758,6 +781,11 @@ class Response:
             ctx.stopped = False
             ctx.extra["response_final"] = True
             ctx.extra.pop("response_interrupted", None)
+            # AGENT_V2_END is emitted only after RuntimeEmitter has flushed all
+            # final chunks. Apply staged extras here, on the UI thread, so they
+            # appear below the already-complete final response rather than during
+            # an intermediate workflow/tool pass.
+            self._agent_v2_apply_final_artifacts(ctx, artifacts or {})
         elif self.window.controller.kernel.stopped():
             ctx.stopped = True
             ctx.extra["response_interrupted"] = True
