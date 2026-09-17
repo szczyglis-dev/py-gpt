@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.09.17 20:50:00
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -119,16 +119,18 @@ class Extra:
             self.edit_show()
 
     def edit_show(self):
-        """Show edit buttons"""
-        self.window.ui.nodes['input.send_btn'].setVisible(False)
-        self.window.ui.nodes['input.update_btn'].setVisible(True)
-        self.window.ui.nodes['input.cancel_btn'].setVisible(True)
+        """Show edit buttons inside ChatInput."""
+        input_node = self.window.ui.nodes['input']
+        input_node.set_icon_visible('send', False)
+        input_node.set_icon_visible('cancel', True)
+        input_node.set_icon_visible('update', True)
 
     def edit_hide(self):
-        """Hide edit buttons"""
-        self.window.ui.nodes['input.send_btn'].setVisible(True)
-        self.window.ui.nodes['input.update_btn'].setVisible(False)
-        self.window.ui.nodes['input.cancel_btn'].setVisible(False)
+        """Hide edit buttons inside ChatInput."""
+        input_node = self.window.ui.nodes['input']
+        input_node.set_icon_visible('cancel', False)
+        input_node.set_icon_visible('update', False)
+        input_node.set_icon_visible('send', True)
 
     def edit_submit(self):
         """Submit edit"""

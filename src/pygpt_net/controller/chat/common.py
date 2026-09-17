@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.09.17 20:26:00                  #
 # ================================================== #
 
 import os
@@ -51,12 +51,7 @@ class Common:
             mode = 1
             config.set('send_mode', mode)
 
-        if mode == 2:
-            nodes['input.send_shift_enter'].setChecked(True)
-            nodes['input.send_enter'].setChecked(False)
-        else:
-            nodes['input.send_enter'].setChecked(True)
-            nodes['input.send_shift_enter'].setChecked(False)
+        self._sync_send_mode_actions(mode)
 
         # cmd enabled
         if config.get('cmd'):
@@ -150,18 +145,21 @@ class Common:
 
         :param value: send mode (1 = Enter, 2 = Shift+Enter)
         """
-        nodes = self.window.ui.nodes
         if value not in (1, 2):
             value = 1
 
-        if value == 2:
-            nodes['input.send_shift_enter'].setChecked(True)
-            nodes['input.send_enter'].setChecked(False)
-        else:
-            nodes['input.send_enter'].setChecked(True)
-            nodes['input.send_shift_enter'].setChecked(False)
-
+        self._sync_send_mode_actions(value)
         self.window.core.config.set('send_mode', value)
+
+    def _sync_send_mode_actions(self, value: int):
+        """Synchronize the checkmark in the Send button context menu."""
+        nodes = self.window.ui.nodes
+        enter = nodes.get('input.send_mode.enter')
+        shift_enter = nodes.get('input.send_mode.shift_enter')
+        if enter is not None:
+            enter.setChecked(value != 2)
+        if shift_enter is not None:
+            shift_enter.setChecked(value == 2)
 
     def focus_input(self):
         """Focus input"""
@@ -171,14 +169,16 @@ class Common:
         """Lock input"""
         self.window.controller.chat.input.locked = True
         self.window.ui.nodes['input.send_btn'].setEnabled(False)
-        self.window.ui.nodes['input.stop_btn'].setVisible(True)
+        # Stop is embedded in ChatInput's right control bar. Use the input API
+        # so the bar width and text viewport margin are refreshed immediately.
+        self.window.ui.nodes['input'].set_icon_visible('stop', True)
 
     def unlock_input(self):
         """Unlock input."""
         self.window.controller.chat.input.locked = False
         self.window.controller.chat.input.generating = False  # unlock
         self.window.ui.nodes['input.send_btn'].setEnabled(True)
-        self.window.ui.nodes['input.stop_btn'].setVisible(False)
+        self.window.ui.nodes['input'].set_icon_visible('stop', False)
 
     def can_unlock(self, ctx: CtxItem) -> bool:
         """

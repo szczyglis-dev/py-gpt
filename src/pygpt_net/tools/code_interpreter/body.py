@@ -107,7 +107,7 @@ class Body:
             stylesheet += "pre { color: #000; }"
 
         stylesheet += """
-          body {max-width: 100%; } 
+          body { max-width: 100%; font-size: 0.9rem; } 
           pre { margin-top: 0; margin-bottom: 0.25rem; max-height: 270px; overflow-y: auto; } 
           a:hover { cursor: pointer; }
           .output-image { max-width: 100%; height: auto; }

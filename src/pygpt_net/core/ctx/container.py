@@ -6,18 +6,41 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:15:00                  #
+# Updated Date: 2026.09.17 21:50:00                  #
 # ================================================== #
 
 from typing import List
 
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QSizePolicy
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.item.ctx import CtxItem
 
 from .bag import Bag
+
+
+class PlainChatOutput(ChatOutput):
+    """Plain-text chat output constrained to the same content width as WebView."""
+
+    MAX_WIDTH = 800
+
+    def __init__(self, window=None):
+        super().__init__(window)
+        self.setMaximumWidth(self.MAX_WIDTH)
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def sizeHint(self):
+        size = super().sizeHint()
+        size.setWidth(self.MAX_WIDTH)
+        return size
+
+    def minimumSizeHint(self):
+        size = super().minimumSizeHint()
+        size.setWidth(0)
+        return size
 
 
 class Container:
@@ -38,7 +61,7 @@ class Container:
         :return: Widget
         """
         # plain output
-        output_plain = ChatOutput(self.window)
+        output_plain = PlainChatOutput(self.window)
         output_plain.set_tab(tab)
 
         # web
@@ -80,7 +103,7 @@ class Container:
 
         # build layout
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['output_plain'][tab.pid])
+        layout.addWidget(self.window.ui.nodes['output_plain'][tab.pid], 0, Qt.AlignHCenter)
         layout.addWidget(self.window.ui.nodes['output'][tab.pid])
         layout.setContentsMargins(0, 0, 0, 0)
         return self.window.core.tabs.from_layout(layout)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 12:56:00
+# Updated Date: 2026.09.17 20:50:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -149,14 +149,27 @@ class Custom:
         self.window.ui.nodes['output_files'].btn_clear.setText(trans('idx.btn.clear'))
 
         # input: tabs
-        self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
-        self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab'))
+        input_tabs = self.window.ui.tabs['input']
+        input_tabs.setTabText(0, trans('input.tab'))
+        input_tabs.retranslate_compact_tabs()
         mode = self.window.core.config.get('mode')
         self.window.controller.attachment.update_tab(mode)
         self.window.controller.assistant.files.update_tab()
-        self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
+        # Context-uploaded files use tab 3 outside Assistant mode and keep the
+        # same compact icon + optional numeric count contract.
+        self.window.controller.chat.attachment.update_tab(self.window.core.ctx.get_current_meta())
         try:
-            self.window.ui.nodes['input'].update_reasoning_effort()
+            input_node = self.window.ui.nodes['input']
+            # Send/Stop are icon-only controls, so locale changes update their
+            # tooltips instead of restoring translated text labels.
+            send_btn = self.window.ui.nodes.get('input.send_btn')
+            stop_btn = self.window.ui.nodes.get('input.stop_btn')
+            if send_btn is not None:
+                send_btn.setToolTip(trans('input.btn.send'))
+            if stop_btn is not None:
+                stop_btn.setToolTip(trans('input.btn.stop'))
+            input_node.update_reasoning_effort()
+            input_node.refresh_right_bar()
         except (AttributeError, KeyError):
             pass
 

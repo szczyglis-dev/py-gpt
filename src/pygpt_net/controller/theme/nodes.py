@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 09:35:00
+# Updated Date: 2026.09.17 19:30:00
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -145,6 +145,9 @@ class Nodes:
                     obj.update_zoom()
                 except Exception:
                     pass
+            input_container = ui.nodes.get('input.container')
+            if input_container is not None and hasattr(input_container, 'sync_width'):
+                input_container.sync_width()
             if dispatch_theme:
                 w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
 

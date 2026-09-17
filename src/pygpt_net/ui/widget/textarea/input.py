@@ -120,6 +120,7 @@ class ChatInput(QTextEdit):
         self._icons_right = {}       # key -> QPushButton
         self._icon_meta_right = {}   # key -> meta as above
         self._icon_order_right = []  # rendering order for right bar
+        self._right_text_buttons = set()  # non-icon buttons embedded in the right bar
         self._reasoning_effort_menu = None
 
         self._init_icon_bar()
@@ -1466,6 +1467,87 @@ class ChatInput(QTextEdit):
         self._apply_margins()
         return btn
 
+    def add_right_button(
+        self,
+        key: str,
+        text: str,
+        callback=None,
+        tooltip: str = "",
+        visible: bool = True,
+    ) -> QPushButton:
+        """Add a text button to the bottom-right bar (after existing controls)."""
+        if key in self._icons_right:
+            btn = self._icons_right[key]
+            self._right_text_buttons.add(key)
+            btn.setText(text)
+            if tooltip:
+                btn.setToolTip(tooltip)
+            if callback is not None:
+                try:
+                    btn.clicked.disconnect()
+                except Exception:
+                    pass
+                btn.clicked.connect(callback)
+            btn.setHidden(not visible)
+            self._fit_right_text_button(btn)
+            self._rebuild_icon_layout_right()
+            self._update_icon_bar_geometry_right()
+            self._apply_margins()
+            return btn
+
+        btn = QPushButton(self._icon_bar_right)
+        btn.setObjectName(f"chatInputButtonRight_{key}")
+        btn.setText(text)
+        btn.setIcon(QIcon())
+        btn.setIconSize(QSize(0, 0))
+        btn.setCursor(Qt.PointingHandCursor)
+        btn.setFocusPolicy(Qt.NoFocus)
+        btn.setToolTip(tooltip)
+        btn.setFixedHeight(self._btn_size_right.height())
+
+        if callback is not None:
+            btn.clicked.connect(callback)
+
+        self._icons_right[key] = btn
+        self._icon_order_right.append(key)
+        self._right_text_buttons.add(key)
+        self._icon_meta_right[key] = {
+            "icon": QIcon(),
+            "alt_icon": None,
+            "tooltip": tooltip or key,
+            "alt_tooltip": None,
+            "active": False,
+        }
+
+        self._fit_right_text_button(btn)
+        btn.setHidden(not visible)
+        self._rebuild_icon_layout_right()
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+        return btn
+
+    def _fit_right_text_button(self, btn: QPushButton):
+        """Fit an embedded text button to its translated label and active theme."""
+        btn.ensurePolished()
+        btn.setIconSize(QSize(0, 0))
+        btn.setFixedHeight(self._btn_size_right.height())
+        text_width = btn.fontMetrics().horizontalAdvance(btn.text())
+        btn.setFixedWidth(max(
+            self._btn_size_right.width(),
+            btn.sizeHint().width(),
+            text_width + 24,
+        ))
+
+    def refresh_right_bar(self):
+        """Refresh embedded text-button sizes and the input viewport margins."""
+        for key in tuple(self._right_text_buttons):
+            btn = self._icons_right.get(key)
+            if btn is not None:
+                self._fit_right_text_button(btn)
+        self._update_icon_bar_geometry_right()
+        self._reposition_icon_bar_right()
+        self._apply_margins()
+
     def add_right_icons(self, items):
         """Add multiple right-bottom icons at once."""
         for it in items:
@@ -1514,6 +1596,7 @@ class ChatInput(QTextEdit):
         # Right-bottom bar
         btn = self._icons_right.pop(key, None)
         if btn is not None:
+            self._right_text_buttons.discard(key)
             self._icon_meta_right.pop(key, None)
             try:
                 self._icon_order_right.remove(key)
@@ -1802,6 +1885,8 @@ class ChatInput(QTextEdit):
             if key == self.REASONING_EFFORT_KEY:
                 btn.setIconSize(QSize(0, 0))
                 btn.setFixedHeight(self._btn_size_right.height())
+            elif key in self._right_text_buttons:
+                self._fit_right_text_button(btn)
             else:
                 btn.setIconSize(self._icon_size_right)
                 btn.setFixedSize(self._btn_size_right)

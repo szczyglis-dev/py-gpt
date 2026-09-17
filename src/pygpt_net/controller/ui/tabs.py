@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 09:45:00                  #
+# Updated Date: 2026.09.17 19:30:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -60,6 +60,13 @@ class Tabs:
         w.ui.nodes['layout.split'].setChecked(state)
         if not state:
             w.ui.splitters['columns'].setSizes([1, 0])
+        self._sync_chat_input_width()
+
+    def _sync_chat_input_width(self):
+        """Refresh responsive ChatInput width after split-screen geometry changes."""
+        node = self.window.ui.nodes.get('input.container')
+        if node is not None and hasattr(node, 'sync_width'):
+            QTimer.singleShot(0, node.sync_width)
 
     def debug(self):
         """Debug tabs if enabled"""
@@ -447,6 +454,7 @@ class Tabs:
         self.on_changed()
         w.controller.ui.update()
         self.update_current()
+        self._sync_chat_input_width()
         self.debug()
 
     def on_changed(self):
@@ -596,6 +604,7 @@ class Tabs:
                     self.window.controller.ctx.select_on_list_only(tab.data_id)
         self.window.controller.ui.update()
         self.update_current()
+        self._sync_chat_input_width()
         self.debug()
 
     def on_tab_clicked(
@@ -1498,6 +1507,7 @@ class Tabs:
                 # This path also handles revealing the second column by
                 # dragging the splitter instead of using the toolbar switch.
                 self._schedule_revealed_split_chat_restore()
+        self._sync_chat_input_width()
 
     def enable_split_screen(self, update_switch: bool = False):
         """
@@ -1512,6 +1522,7 @@ class Tabs:
         self.window.core.config.set("layout.split", True)
         self.window.core.config.save()
         self._schedule_revealed_split_chat_restore()
+        self._sync_chat_input_width()
 
         if update_switch:
             self.window.ui.nodes['layout.split'].box.setChecked(True)
@@ -1525,6 +1536,7 @@ class Tabs:
         self.on_column_changed()
         self.window.core.config.set("layout.split", False)
         self.window.core.config.save()
+        self._sync_chat_input_width()
 
     def toggle_split_screen(self, state):
         """

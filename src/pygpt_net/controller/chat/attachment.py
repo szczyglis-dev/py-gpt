@@ -584,13 +584,7 @@ class Attachment(QObject):
             num_files = 0
         else:
             num_files = self.window.core.attachments.context.count(meta)
-        suffix = ''
-        if num_files > 0:
-            suffix = f' ({num_files})'
-        self.window.ui.tabs['input'].setTabText(
-            3,
-            f"{trans('attachments_uploaded.tab')}{suffix}",
-        )
+        self.window.ui.tabs['input'].set_compact_tab_count(3, num_files)
         """
         if num_files > 0:
            self.show_uploaded()

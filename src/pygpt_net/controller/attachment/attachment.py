@@ -99,13 +99,7 @@ class Attachment:
         :param mode: mode
         """
         num_files = self.window.core.attachments.count(mode)
-        suffix = ''
-        if num_files > 0:
-            suffix = f' ({num_files})'
-        self.window.ui.tabs['input'].setTabText(
-            1,
-            trans('attachments.tab') + suffix,
-        )
+        self.window.ui.tabs['input'].set_compact_tab_count(1, num_files)
 
     def select(self, mode: str, idx: int):
         """

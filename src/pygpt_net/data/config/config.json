@@ -472,7 +472,7 @@
   "remote_tools.xai.web_search": true,
   "remote_tools.xai.x_search": false,
   "render.blocks": true,
-  "render.code_syntax": "github-dark",
+  "render.code_syntax": "darcula",
   "render.code_syntax.disabled": false,
   "render.code_syntax.final_max_chars": 350000,
   "render.code_syntax.final_max_lines": 3000,

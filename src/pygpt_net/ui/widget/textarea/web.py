@@ -538,6 +538,9 @@ class CustomWebEnginePage(QWebEnginePage):
             key='zoom',
             option=option,
         )
+        input_container = self.window.ui.nodes.get('input.container')
+        if input_container is not None and hasattr(input_container, 'sync_width'):
+            input_container.sync_width()
 
     def acceptNavigationRequest(self, url, _type, isMainFrame):
         if _type == QWebEnginePage.NavigationTypeLinkClicked:

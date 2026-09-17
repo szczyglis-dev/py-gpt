@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.17 20:50:00
 # ================================================== #
 
 from typing import Dict
@@ -167,12 +167,10 @@ class Mapping:
 
         # input
         nodes['input.label'] = 'input.label'
-        nodes['input.send_enter'] = 'input.radio.enter'
-        nodes['input.send_shift_enter'] = 'input.radio.enter_shift'
-        nodes['input.send_btn'] = 'input.btn.send'
+        nodes['input.send_mode.enter'] = 'input.radio.enter'
+        nodes['input.send_mode.shift_enter'] = 'input.radio.enter_shift'
         nodes['input.update_btn'] = 'input.btn.update'
         nodes['input.cancel_btn'] = 'input.btn.cancel'
-        nodes['input.stop_btn'] = 'input.btn.stop'
 
         # interpreter
         nodes['interpreter.all'] = 'interpreter.all'
