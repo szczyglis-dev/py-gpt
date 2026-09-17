@@ -221,7 +221,7 @@ class InterpreterHistorySplitter(QSplitter):
 class ToolWidget:
     def __init__(self, window=None, tool=None):
         """
-        Python Code Interpreter
+        Python Interpreter
 
         :param window: Window instance
         :param tool: Tool instance

@@ -28,7 +28,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_history"
         self.is_common_plugin = True
-        self.name = "Conversation history (inline)"
+        self.name = "Chat history (inline)"
         self.type = ["cmd.inline"]
         self.description = "Provides real-time access to context history database"
         self.prefix = "History"

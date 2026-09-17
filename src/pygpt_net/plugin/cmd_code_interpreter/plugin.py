@@ -46,7 +46,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_code_interpreter"
         self.is_common_plugin = True
-        self.name = "Python Code Interpreter"
+        self.name = "Python interpreter"
         self.description = "Provides Python/HTML/JS code execution"
         self.prefix = "Code"
         self.type = [
@@ -219,7 +219,7 @@ class Plugin(BasePlugin):
                         if item == "ipython_sys_exec":
                             cmd["instruction"] += (
                                 "\nThe command runs on the host system, in the same host environment used by the "
-                                "local Code Interpreter. The application data directory is: {}"
+                                "local Python interpreter. The application data directory is: {}"
                             ).format(legacy_data)
                         else:
                             cmd["instruction"] += (
@@ -253,7 +253,7 @@ class Plugin(BasePlugin):
                         if item == "python_sys_exec":
                             cmd["instruction"] += (
                                 "\nThe command runs on the host system, in the same host environment used by the "
-                                "legacy Python Code Interpreter. The application data directory is: {}"
+                                "legacy Python Interpreter. The application data directory is: {}"
                             ).format(legacy_data)
                         else:
                             cmd["instruction"] += (

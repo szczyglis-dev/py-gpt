@@ -43,7 +43,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Internet access via `DuckDuckGo`, `Google` and `Microsoft Bing`.
 - Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing` and `xAI Grok Voice`.
-- Plugins support with built-in plugins like `Files I/O`, `Python code interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
+- Plugins support with built-in plugins like `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - MCP support.
 - Camera capture for real-time image analysis in Chat and other supported modes, controlled from the `Audio / Video` menu.
 - Image analysis via vision models.
@@ -642,7 +642,7 @@ Chat with Agents can use both local and provider-side capabilities:
 - Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with **Allow local tools** and **Allow remote tools**.
 - Models with native function calling use it when available; the runtime can fall back to a ReAct agent for compatible models without native function calling.
 
-Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python code interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
+Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
 ### Settings
 
@@ -1018,7 +1018,7 @@ Conversations can be organized into projects. By default, projects use the share
 
 A project workdir overrides **only the logical `data` directory** used by conversations in that project. It does not replace the profile/application workdir. Files such as `config.json`, `models.json`, `db.sqlite`, logs and other profile-level directories such as `tmp`, `cache`, `css`, `locale` and fonts continue to use the base profile workdir. Conversations outside projects, and projects with **Use shared workdir** enabled, use the normal `<profile workdir>/data` directory.
 
-The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Python code interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
+The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Python interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
 
 ## Clearing history
 
@@ -1153,7 +1153,7 @@ When using RAG to query attachments, the documents are indexed into a temporary 
 
 The active `data` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with LlamaIndex. The project override applies only to this logical data root; it does not move profile-level paths such as `tmp`, configuration files, the database or other application directories.
 
-The `Files I/O` and `Python code interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
+The `Files I/O` and `Python interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1432,17 +1432,15 @@ The following plugins are currently available:
 
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
-- `RAG (inline)` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
-
-- `Python code interpreter` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
-
-- `Conversation history (inline)` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
+- `Chat history (inline)` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 
 - `Crontab / Task scheduler` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
 
 - `Custom commands` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
 
 - `Experts (inline)` - exposes enabled Expert presets through the regular `expert_call` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Chat with Agents.
+
+- `Extra system prompt` - automatically appends reusable custom instructions or additional context to the active system prompt.
 
 - `Facebook` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
 
@@ -1456,13 +1454,17 @@ The following plugins are currently available:
 
 - `Mailer` - provides email access through configured mail services, including sending and reading messages where supported.
 
-- `Memory (inline)` - provides compact global/per-project long-term memory, raw keyed memory, and conversation-scoped continuation notes (`memory_ctx`) used to preserve important state across long-context rollovers.
-
 - `MCP` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
+
+- `Memory (inline)` - provides compact global/per-project long-term memory, raw keyed memory, and conversation-scoped continuation notes (`memory_ctx`) used to preserve important state across long-context rollovers.
 
 - `Mouse and keyboard` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 
 - `OpenStreetMap` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
+
+- `Python interpreter` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+
+- `RAG (inline)` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 
 - `Real time` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
 
@@ -1471,8 +1473,6 @@ The following plugins are currently available:
 - `Server (SSH/FTP)` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
 
 - `Slack` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
-
-- `Extra system prompt` - automatically appends reusable custom instructions or additional context to the active system prompt.
 
 - `System (OS)` - provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
 
@@ -1525,7 +1525,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 
 **WARNING: Use autonomous mode with caution.** Long or unlimited runs can make repeated API requests and tool calls, including actions with side effects.
 
-The plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Files I/O, Code interpreter, image generation, and other integrations remain available through the normal PyGPT tool flow.
+The plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Files I/O, Python interpreter, image generation, and other integrations remain available through the normal PyGPT tool flow.
 
 The **Iterations** option limits the number of autonomous passes; `0` means unlimited. **Auto-stop** lets the model finish the run early when the goal is complete. **Always continue** is mutually exclusive with Auto-stop: enabling it disables Auto-stop and makes the loop open-ended, ignoring the normal iteration limit until the run is stopped externally.
 
@@ -1556,59 +1556,7 @@ The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud AP
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#bitbucket
 
-## RAG (inline)
-
-Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context. The plugin also provides the `Image model` setting used by the Image (vision) data loader when API mode is active (default: `gpt-4o`). Audio/video transcription is not configured here; it uses the provider selected in the `Audio input` plugin.
-
-When **Use project index if in use** is enabled (default), the plugin automatically queries the isolated **Current project** index whenever the active conversation belongs to a project. Outside a project it uses the configured regular index or indexes.
-
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#rag-inline
-
-## Python code interpreter
-
-### Executing Code
-
-The plugin operates similarly to the `Code Interpreter` feature in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the active `data` directory. For conversations in a project with a custom workdir, the project directory becomes the runtime data root; otherwise the shared `<profile workdir>/data` directory is used. Docker execution exposes the same active host directory as `/data`.
-
-**IPython:** IPython is the recommended execution mode and offers significant improvements over the legacy Python workflow. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
-
-To use IPython in sandbox mode, Docker must be installed on your system. The active conversation's runtime `data` workdir is mounted as `/data`; a custom project data workdir is therefore remapped automatically when that project is active.
-
-**IPython system commands:** The `ipython_sys_exec` tool is available for executing operating-system commands inside the active IPython environment. It is similar to `sys_exec` from the `System (OS)` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, `ipython_sys_exec` executes the command inside that Docker container.
-
-**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless `sudo` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the `Python code interpreter` plugin settings.
-
-
-You can find the installation instructions here: https://docs.docker.com/engine/install/
-
-**Tip: connecting IPython in Docker in Snap version**:
-
-To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
-
-```commandline
-sudo snap connect pygpt:docker-executables docker:docker-executables
-```
-
-````commandline
-sudo snap connect pygpt:docker docker:docker-daemon
-````
-
-**Code interpreter:** PyGPT includes the **Python/OS** tool for real-time Python and IPython execution. Click the `<>` icon above the input field to open the Python/OS window. You can also open it from the main menu: `Tools -> Python / OS`. Alternatively, enable split-screen mode and open **Python/OS** in the second view column, or add it as a tool to a tab. Plugin code input/output is mirrored there only when **Connect to the Python/OS window** is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set `Max interpreter window entries` to `0` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
-
-![v2_interpreter_icon](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_interpreter_icon.png)
-
-![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
-
-**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python code interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
-
-Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
-
-
-**Tip:** Remember to enable the `Tools` switch to allow tools from plugins to be executed.
-
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#python-code-interpreter
-
-## Conversation history (inline)
+## Chat history (inline)
 
 Provides access to context history database.
 Plugin also provides access to reading and creating day notes.
@@ -1625,7 +1573,7 @@ Example prompts:
 
 ```Show me the contents of conversation ID 123.```
 
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#conversation-history-inline
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-history-inline
 
 ## Crontab / Task scheduler
 
@@ -1648,6 +1596,13 @@ The plugin makes enabled Expert presets available in supported chat modes throug
 Use **Experts** mode to define, configure, enable, or disable Expert presets. Once an Expert is enabled, you can simply ask for it by name in the conversation, for example: `Ask the Python programmer expert to review this code.` The model can then call `expert_call` automatically.
 
 See the `Work modes -> Experts` section for more details.
+
+## Extra system prompt
+
+The plugin appends additional system prompts (extra data) from a list to every current system prompt. 
+You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#extra-system-prompt
 
 ## Facebook
 
@@ -1796,6 +1751,14 @@ Enables the sending, receiving, and reading of emails from the inbox. Currently,
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
+## MCP (Model Context Protocol)
+
+With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Model Context Protocol` servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server. Tool discovery caching is enabled by default with a 300-second TTL.
+
+To configure MCP connections, open `Config -> MCP...` for a direct shortcut, or use `Plugins -> Settings -> MCP`. Both open the same MCP plugin settings. Use either path when connecting PyGPT to an external service or tool server through MCP.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
+
 ## Memory (inline)
 
 The **Memory (inline)** plugin provides three separate memory scopes/mechanisms:
@@ -1811,14 +1774,6 @@ Conversation-note tools are `memory_ctx_get()`, `memory_ctx_add(text)` and `memo
 For full configuration details and the complete `memory_*`, `memory_key_*`, and `memory_ctx_*` tool reference, see:
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#memory-inline
-
-## MCP (Model Context Protocol)
-
-With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Model Context Protocol` servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server. Tool discovery caching is enabled by default with a 300-second TTL.
-
-To configure MCP connections, open `Config -> MCP...` for a direct shortcut, or use `Plugins -> Settings -> MCP`. Both open the same MCP plugin settings. Use either path when connecting PyGPT to an external service or tool server through MCP.
-
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
 ## Mouse and keyboard
 
@@ -1850,6 +1805,58 @@ Provides everyday mapping utilities using OpenStreetMap services:
 Images are saved under `data/openstreetmap/` in the user data directory.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#openstreetmap
+
+## Python interpreter
+
+### Executing Code
+
+The plugin operates similarly to the `Code Interpreter` feature in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the active `data` directory. For conversations in a project with a custom workdir, the project directory becomes the runtime data root; otherwise the shared `<profile workdir>/data` directory is used. Docker execution exposes the same active host directory as `/data`.
+
+**IPython:** IPython is the recommended execution mode and offers significant improvements over the legacy Python workflow. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
+
+To use IPython in sandbox mode, Docker must be installed on your system. The active conversation's runtime `data` workdir is mounted as `/data`; a custom project data workdir is therefore remapped automatically when that project is active.
+
+**IPython system commands:** The `ipython_sys_exec` tool is available for executing operating-system commands inside the active IPython environment. It is similar to `sys_exec` from the `System (OS)` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, `ipython_sys_exec` executes the command inside that Docker container.
+
+**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless `sudo` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the `Python interpreter` plugin settings.
+
+
+You can find the installation instructions here: https://docs.docker.com/engine/install/
+
+**Tip: connecting IPython in Docker in Snap version**:
+
+To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
+
+```commandline
+sudo snap connect pygpt:docker-executables docker:docker-executables
+```
+
+````commandline
+sudo snap connect pygpt:docker docker:docker-daemon
+````
+
+**Python interpreter:** PyGPT includes the **Python/OS** tool for real-time Python and IPython execution. Click the `<>` icon above the input field to open the Python/OS window. You can also open it from the main menu: `Tools -> Python / OS`. Alternatively, enable split-screen mode and open **Python/OS** in the second view column, or add it as a tool to a tab. Plugin code input/output is mirrored there only when **Connect to the Python/OS window** is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set `Max interpreter window entries` to `0` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+
+![v2_interpreter_icon](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_interpreter_icon.png)
+
+![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
+
+**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+
+Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
+
+
+**Tip:** Remember to enable the `Tools` switch to allow tools from plugins to be executed.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#python-interpreter
+
+## RAG (inline)
+
+Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context. The plugin also provides the `Image model` setting used by the Image (vision) data loader when API mode is active (default: `gpt-4o`). Audio/video transcription is not configured here; it uses the provider selected in the `Audio input` plugin.
+
+When **Use project index if in use** is enabled (default), the plugin automatically queries the isolated **Current project** index whenever the active conversation belongs to a project. Outside a project it uses the configured regular index or indexes.
+
+Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#rag-inline
 
 ## Real time
 
@@ -1898,13 +1905,6 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#slack
 The plugin provides access to the operating system and executes system commands. `sys_exec` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled (default: enabled). Docker sandbox execution is disabled by default; the stock sandbox runs as the unprivileged `pygpt` user by default, with passwordless `sudo` available when elevated commands are needed.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#system-os
-
-## Extra system prompt
-
-The plugin appends additional system prompts (extra data) from a list to every current system prompt. 
-You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
-
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#extra-system-prompt
 
 ## Telegram
 
@@ -2122,15 +2122,15 @@ Remote vector stores management.
 ## Python/OS
 
 
-This tool allows you to run Python code directly from within the app. It is integrated with the `Python code interpreter` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
+This tool allows you to run Python code directly from within the app. It is integrated with the `Python interpreter` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
 
-**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python code interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
 
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
 ## HTML/JS Canvas
 
-Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Python code interpreter` plugin.
+Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Python interpreter` plugin.
 
 ## Translator
 

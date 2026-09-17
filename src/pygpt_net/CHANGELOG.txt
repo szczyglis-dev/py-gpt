@@ -1425,7 +1425,7 @@
 2.4.40 (2024-12-13)
 
 - Enhanced Split Screen mode, now promoted from beta to stable.
-- Python Code Interpreter tool added to the Tabs.
+- Python Interpreter tool added to the Tabs.
 - HTML/JS Canvas tool added to the Tabs.
 - Added attachment icon to the context list if context has attachments.
 - Improved audio playback.
@@ -2196,7 +2196,7 @@ Tip: To use the `RAG` mode, the file must be indexed in the vector database. Thi
 2.1.33 (2024-03-18)
 
 - Code interpreter enabled even if interpreter plugin is disabled.
-- Added "Connect to the Python code interpreter window" config option in Code interpreter plugin.
+- Added "Connect to the Python interpreter window" config option in Code interpreter plugin.
 - Added Monospace font support - issue #37.
 - Improved raw JSON command outputs.
 
@@ -2214,11 +2214,11 @@ Tip: To use the `RAG` mode, the file must be indexed in the vector database. Thi
 
 2.1.30 (2024-03-16)
 
-- Improved real-time Python code interpreter: added edit mode and whole code execution (history).
+- Improved real-time Python interpreter: added edit mode and whole code execution (history).
 
 2.1.29 (2024-03-16)
 
-- Added real-time Python code interpreter (<> icon), connected with the Code Interpreter plugin's input and output.
+- Added real-time Python interpreter (<> icon), connected with the Code Interpreter plugin's input and output.
 - Improved plugin command execution.
 
 2.1.28 (2024-03-15)
@@ -3476,7 +3476,7 @@ Tip: To use the `RAG` mode, the file must be indexed in the vector database. Thi
 - Command execution support
 - Filesystem access allows GPT to read and write files
 - Asynchronous (stream) mode added
-- Local Python code interpreter that enables code execution by GPT
+- Local Python interpreter that enables code execution by GPT
 - System command executions directly from GPT
 - Voice synthesis provided via Microsoft Azure TTS and OpenAI TTS (Text-To-Speech)
 - Voice recognition facilitated by OpenAI Whisper

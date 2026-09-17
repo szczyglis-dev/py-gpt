@@ -171,8 +171,8 @@ class Config(BaseConfig):
             "attach_output",
             type="bool",
             value=True,
-            label="Connect to the Python code interpreter window",
-            description="Attach sys_exec command input/output to the Python code interpreter window.",
+            label="Connect to the Python interpreter window",
+            description="Attach sys_exec command input/output to the Python interpreter window.",
             tab="general",
         )
         plugin.add_cmd(

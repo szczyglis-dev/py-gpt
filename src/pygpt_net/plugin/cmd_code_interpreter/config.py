@@ -511,7 +511,7 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "ipython_sys_exec",
-            instruction="execute a system/shell command in the Code Interpreter environment. "
+            instruction="execute a system/shell command in the IPython interpreter environment. "
                         "When the IPython Docker sandbox is enabled, execute the command inside the same "
                         "running IPython container. When the sandbox is disabled, execute it on the host. "
                         "Use this for operating-system commands and command-line tools; use ipython_execute "
@@ -699,8 +699,8 @@ class Config(BaseConfig):
             "attach_output",
             type="bool",
             value=True,
-            label="Connect to the Python code interpreter window",
-            description="Attach code input/output to the Python code interpreter window.",
+            label="Connect to the Python interpreter window",
+            description="Attach code input/output to the Python interpreter window.",
             tab="general",
         )
         plugin.add_option(
@@ -710,7 +710,7 @@ class Config(BaseConfig):
             min=0,
             max=10000,
             label="Max interpreter window entries",
-            description="Maximum number of input/output blocks kept in the Python code interpreter window. Set to 0 for no limit.",
+            description="Maximum number of input/output blocks kept in the Python interpreter window. Set to 0 for no limit.",
             tab="general",
         )
         plugin.add_option(
@@ -725,7 +725,7 @@ class Config(BaseConfig):
         # commands
         plugin.add_cmd(
             "python_sys_exec",
-            instruction="execute a system/shell command in the legacy Python Code Interpreter environment. "
+            instruction="execute a system/shell command in the legacy Python Interpreter environment. "
                         "When the legacy Python Docker sandbox is enabled, execute the command inside the same "
                         "Python container. When the sandbox is disabled, execute it on the host. Use this for "
                         "operating-system commands and command-line tools; use code_execute/code_execute_file "

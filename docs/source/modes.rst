@@ -236,7 +236,7 @@ Chat with Agents can use both local and provider-side capabilities:
 * Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with ``Allow local tools`` and ``Allow remote tools``.
 * Models with native function calling use it when available. For compatible models without native function calling, the runtime can use a ReAct agent as a fallback.
 
-Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python code interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
+Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
 Settings
 ^^^^^^^^

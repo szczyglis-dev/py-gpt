@@ -32,7 +32,7 @@ from .ui.widgets import PythonInput, ToolWidget, ToolSignals
 class CodeInterpreter(BaseTool):
     def __init__(self, *args, **kwargs):
         """
-        Python code interpreter
+        Python interpreter
 
         :param window: Window instance
         """
