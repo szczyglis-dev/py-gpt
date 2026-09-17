@@ -27,6 +27,19 @@ class WorkflowView(QWebEngineView):
         self.window = window
         self._loaded = False
         self._pending_snapshot = None
+        self._dirty = True
+        self._sending = False
+        self._deleted = False
+        self._generation = 0
+        self._render_timer = QTimer(self)
+        self._render_timer.setSingleShot(True)
+        self._render_timer.setInterval(250)
+        self._render_timer.timeout.connect(self._flush_render)
+        self._recovery_timer = QTimer(self)
+        self._recovery_timer.setSingleShot(True)
+        self._recovery_timer.setInterval(1000)
+        self._recovery_timer.timeout.connect(self._recover)
+        self.renderProcessTerminated.connect(self._on_terminated)
         self.loadFinished.connect(self._on_loaded)
         self.build()
 
@@ -96,7 +109,9 @@ class WorkflowView(QWebEngineView):
 <div id=\"workflow\"></div>
 <script>
 const WF_LABELS = {labels};
-let WF_LAST = null;
+let WF_ROWS = new Map();
+let WF_NEXT_ROWS = new Map();
+
 
 function wfEl(tag, cls, text) {{
     const el = document.createElement(tag);
@@ -119,7 +134,14 @@ function wfScrollBottom() {{
 function wfOpenSet(selector, attr) {{
     return new Set(Array.from(document.querySelectorAll(selector)).filter(x => !x.hidden).map(x => x.getAttribute(attr)));
 }}
+function wfPopulate(panel) {{
+    if (panel._populate) {{
+        panel._populate();
+        panel._populate = null;
+    }}
+}}
 function wfToggle(button, panel) {{
+    if (panel.hidden) wfPopulate(panel);
     panel.hidden = !panel.hidden;
     button.textContent = panel.hidden ? WF_LABELS.details : WF_LABELS.hide;
 }}
@@ -237,14 +259,24 @@ function wfAgentDetails(agent, snapshot) {{
 function wfToolDetails(event) {{
     const panel = wfEl('div', 'tool-details');
     panel.hidden = true;
-    const input = wfDetailRow(WF_LABELS.tool_input, wfFormatToolValue(event.tool_input));
-    const output = wfDetailRow(WF_LABELS.tool_output, wfFormatToolValue(event.tool_output));
-    if (input) panel.appendChild(input);
-    if (output) panel.appendChild(output);
+    panel._populate = () => {{
+        const input = wfDetailRow(WF_LABELS.tool_input, wfFormatToolValue(event.tool_input));
+        const output = wfDetailRow(WF_LABELS.tool_output, wfFormatToolValue(event.tool_output));
+        if (input) panel.appendChild(input);
+        if (output) panel.appendChild(output);
+    }};
     return panel;
 }}
 function wfEventRow(event) {{
+    const cached = WF_ROWS.get(event.id);
+    if (cached && Object.keys(cached._event).length === Object.keys(event).length
+            && Object.keys(event).every(key => cached._event[key] === event[key])) {{
+        WF_NEXT_ROWS.set(event.id, cached);
+        return cached;
+    }}
     const wrap = wfEl('div', 'event-wrap event-' + (event.kind || 'event'));
+    wrap._event = event;
+    WF_NEXT_ROWS.set(event.id, wrap);
     const row = wfEl('div', 'event-row');
     row.appendChild(wfEl('span', 'turn', '#' + String(event.turn || 1)));
     row.appendChild(wfEl('span', 'time', event.time || ''));
@@ -358,6 +390,7 @@ function wfRenderAgent(snapshot, id, openAgents, openTools, openCreates, collaps
         timeline.appendChild(row);
         const toolPanel = row.querySelector('[data-tool-event]');
         if (toolPanel && openTools.has(toolPanel.getAttribute('data-tool-event'))) {{
+            wfPopulate(toolPanel);
             toolPanel.hidden = false;
             const b = row.querySelector('.tool-details-button');
             if (b) b.textContent = WF_LABELS.hide;
@@ -387,7 +420,12 @@ function wfRenderAgent(snapshot, id, openAgents, openTools, openCreates, collaps
     return card;
 }}
 function renderWorkflow(snapshot) {{
-    WF_LAST = snapshot || {{}};
+    if (window.WF_RUN !== snapshot.run_id || window.WF_STARTED !== snapshot.started_at) {{
+        WF_ROWS.clear();
+        window.WF_RUN = snapshot.run_id;
+        window.WF_STARTED = snapshot.started_at;
+    }}
+    WF_NEXT_ROWS = new Map();
     const follow = wfNearBottom();
     const openAgents = wfOpenSet('.agent-details:not([hidden])', 'data-agent-detail');
     const collapsedAgents = new Set();
@@ -404,11 +442,13 @@ function renderWorkflow(snapshot) {{
     const agents = snapshot && snapshot.agents ? snapshot.agents : {{}};
     const rootId = snapshot ? snapshot.root_id : null;
     if (!rootId || !agents[rootId]) {{
+        WF_ROWS.clear();
         root.appendChild(wfEl('div', 'workflow-empty', WF_LABELS.empty));
         return;
     }}
     const tree = wfRenderAgent(snapshot, rootId, openAgents, openTools, openCreates, collapsedAgents);
     if (tree) root.appendChild(tree);
+    WF_ROWS = WF_NEXT_ROWS;
     wfUpdateTimers();
     if (follow) requestAnimationFrame(wfScrollBottom);
 }}
@@ -418,37 +458,87 @@ setInterval(wfUpdateTimers, 1000);
 </html>""".replace("%theme%", str(self.window.controller.theme.common.normalize_theme(self.window.core.config.get("theme")) or "dark"))
 
     def build(self):
+        if self._deleted:
+            return
+        self._generation += 1
         self._loaded = False
+        self._sending = False
+        self._dirty = True
         self.setHtml(self._html(), baseUrl="file://")
 
     def _on_loaded(self, ok: bool):
         self._loaded = bool(ok)
+        if ok:
+            self._recovery_timer.stop()
+            self.render(self._pending_snapshot)
+
+    def render(self, snapshot=None):
+        if self._deleted:
+            return
+        self._pending_snapshot = snapshot
+        self._dirty = True
+        if self.isVisible() and not self._render_timer.isActive():
+            self._render_timer.start()
+
+    def _flush_render(self):
+        if (self._deleted or not self._dirty or not self._loaded
+                or self._sending or not self.isVisible()):
+            return
         snapshot = self._pending_snapshot
+        self._pending_snapshot = None
         if snapshot is None:
             snapshot = self.window.core.agent_workflow.snapshot()
-        self.render(snapshot)
+        self._dirty = False
+        self._sending = True
+        generation = self._generation
+        payload = json.dumps(snapshot or {}, ensure_ascii=False, default=str)
 
-    def render(self, snapshot: dict):
-        self._pending_snapshot = snapshot
-        if not self._loaded or self.page() is None:
+        def delivered(result):
+            if self._deleted or generation != self._generation:
+                return
+            self._sending = False
+            if result is not True:
+                self._on_terminated()
+            elif self._dirty:
+                self._render_timer.start()
+
+        self.page().runJavaScript(
+            f"typeof renderWorkflow === 'function' && (renderWorkflow({payload}), true);",
+            delivered,
+        )
+
+    def _on_terminated(self, *args):
+        if self._deleted:
             return
-        payload = json.dumps(snapshot or {}, ensure_ascii=False, default=str).replace("</", "<\\/")
-        self.page().runJavaScript(f"renderWorkflow({payload});")
+        self._generation += 1
+        self._loaded = False
+        self._sending = False
+        self._dirty = True
+        if self.isVisible():
+            self._recovery_timer.start()
+
+    def _recover(self):
+        if not self._deleted and self.isVisible():
+            self.build()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not self._loaded and not self._recovery_timer.isActive():
+            self._recovery_timer.start()
+        self.render()
 
     def reload_content(self):
-        snapshot = self.window.core.agent_workflow.snapshot()
-        self._pending_snapshot = snapshot
+        self._pending_snapshot = None
         self.build()
 
     def on_delete(self):
-        try:
-            self.loadFinished.disconnect(self._on_loaded)
-        except Exception:
-            pass
-        try:
-            self.setHtml("<html><body></body></html>")
-        except Exception:
-            pass
+        self._deleted = True
+        self._generation += 1
+        self._pending_snapshot = None
+        self._render_timer.stop()
+        self._recovery_timer.stop()
+        self.stop()
+        self.deleteLater()
 
 
 class WorkflowWidget(QWidget):
@@ -470,7 +560,7 @@ class WorkflowWidget(QWidget):
         signals = self.window.controller.agent_workflow.signals
         signals.changed.connect(self._on_changed)
         signals.reload.connect(self.reload)
-        QTimer.singleShot(0, lambda: self._on_changed(self.window.core.agent_workflow.snapshot()))
+        self.view.render()
 
     def set_tab(self, tab):
         self.tab = tab

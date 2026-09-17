@@ -187,7 +187,7 @@ def test_html_output_set_history_and_clear_update_buffers_before_page_load():
     assert obj.nodes == []
 
 
-def test_html_output_update_current_content_runs_only_after_page_loaded():
+def test_html_output_updates_do_not_copy_the_dom():
     page = MagicMock()
     obj = SimpleNamespace(loaded=False, page=MagicMock(return_value=page), set_html_content=MagicMock())
 
@@ -196,15 +196,16 @@ def test_html_output_update_current_content_runs_only_after_page_loaded():
 
     obj.loaded = True
     HtmlOutput.update_current_content(obj)
-    page.runJavaScript.assert_called_once_with(
-        "document.documentElement.innerHTML", 0, obj.set_html_content
-    )
+    page.runJavaScript.assert_not_called()
+    assert obj.html_content == ""
 
 
 def test_html_output_page_loaded_replays_nodes_once_and_updates_snapshot():
     nodes = [CodeBlock("a"), CodeBlock("b")]
     obj = SimpleNamespace(
         nodes=list(nodes),
+        _destroyed=False,
+        _unloaded=False,
         loaded=False,
         is_dialog=False,
         init=MagicMock(),
@@ -255,12 +256,12 @@ def test_code_interpreter_tool_widget_restore_and_end_trim_output():
     tool.save_output.assert_called_once_with()
 
 
-def test_code_interpreter_tool_widget_set_output_splits_live_lines_and_handles_stdin():
+def test_code_interpreter_tool_widget_batches_live_lines_and_handles_stdin():
     output = MagicMock()
     obj = SimpleNamespace(output=output)
 
     ToolWidget.set_output(obj, "a\nb", "stdout", live=True)
-    assert [c.args[0] for c in output.append_output.call_args_list] == ["a", "\n", "b"]
+    assert [c.args[0] for c in output.append_output.call_args_list] == ["a\nb"]
 
     output.reset_mock()
     ToolWidget.set_output(obj, "answer", "stdin", live=False)
@@ -498,3 +499,32 @@ def test_custom_web_engine_page_cleanup_releases_bridge_channel_and_signals():
     assert obj.bridge is None
     assert obj.channel is None
     assert obj.signals is None
+
+
+def test_interpreter_recovers_buffers_after_renderer_crash():
+    blocks = [CodeBlock('print(1)', 'stdin'), CodeBlock('1\n', 'stdout')]
+    obj = SimpleNamespace(
+        _destroyed=False, _unloaded=False, loaded=True, initialized=True,
+        _needs_recovery=False, _recovery_timer=MagicMock(),
+        isVisible=MagicMock(return_value=True), init=MagicMock(), nodes=blocks,
+    )
+    HtmlOutput._on_renderer_terminated(obj)
+    assert not obj.loaded and not obj.initialized
+    assert obj._needs_recovery
+    obj._recovery_timer.start.assert_called_once()
+    HtmlOutput._recover_renderer(obj)
+    obj.init.assert_called_once_with(force=True)
+    assert obj.nodes is blocks
+
+
+def test_interpreter_export_reads_html_only_on_request():
+    obj = SimpleNamespace(loaded=True, _destroyed=False, page=MagicMock(), signals=object())
+    with patch('pygpt_net.tools.code_interpreter.ui.html.safe_emit') as emit:
+        HtmlOutput.save_html(obj)
+        script, world, callback = obj.page().runJavaScript.call_args.args
+        assert script == 'document.documentElement.innerHTML'
+        callback('<html>latest output</html>')
+        emit.assert_called_once_with(obj.signals, 'save_as', '<html>latest output</html>', 'html')
+        obj._destroyed = True
+        callback('<html>stale</html>')
+        assert emit.call_count == 1

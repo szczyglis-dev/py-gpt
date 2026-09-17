@@ -170,17 +170,6 @@ class Body:
                 bridge.log(text);
             }
         }
-        function sanitize(content) {
-            var parser = new DOMParser();
-            var doc = parser.parseFromString(content, "text/html");
-            var codeElements = doc.querySelectorAll('code, pre');
-            codeElements.forEach(function(element) {
-                var html = element.outerHTML;
-                var newHtml = html.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;');
-                element.outerHTML = newHtml;
-            });
-            return doc.documentElement.outerHTML;
-        }
         function highlightCode() {
             document.querySelectorAll('pre code').forEach(el => {
                 if (!el.classList.contains('hljs')) hljs.highlightElement(el);
@@ -214,7 +203,7 @@ class Body:
                 pre.classList.add('type-' + type);
                 const code = document.createElement('code');
                 code.classList.add('language-python');
-                code.innerHTML = sanitize(content);
+                code.textContent = content;
                 pre.appendChild(code);
                 element.appendChild(pre);
             }
@@ -229,7 +218,7 @@ class Body:
                 const pre = document.createElement('pre');
                 const code = document.createElement('code');
                 code.classList.add('language-python');
-                code.innerHTML = sanitize(content);
+                code.textContent = content;
                 pre.appendChild(code);
                 element.appendChild(pre);
             }
@@ -264,15 +253,19 @@ class Body:
         function appendToOutput(content) {
             const element = document.getElementById('_append_output_');
             if (element) {
-                const nodes = element.querySelectorAll('pre code');
-                if (nodes.length === 0) {
-                    appendBegin();
-                    const pre = document.querySelector('pre');
-                    const code = pre.querySelector('code');
-                    code.innerHTML = content;
+                let pre = element.lastElementChild;
+                let code = pre && pre.tagName === 'PRE' ? pre.querySelector('code') : null;
+                if (!code) {
+                    beginOutput('stdout');
+                    code = element.lastElementChild.querySelector('code');
+                }
+                // Append only the delta; innerHTML += reparses the complete
+                // output on every chunk and destroys highlighted child nodes.
+                const tail = code.lastChild;
+                if (tail && tail.nodeType === Node.TEXT_NODE) {
+                    tail.appendData(content);
                 } else {
-                    const last = nodes[nodes.length - 1];
-                    last.innerHTML += content;
+                    code.appendChild(document.createTextNode(content));
                 }
             }
             scrollToBottom();

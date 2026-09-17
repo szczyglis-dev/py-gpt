@@ -29,6 +29,8 @@ class AgentWorkflow:
 
     ROOT_ID = "orchestrator"
     MAX_EVENTS_PER_AGENT = 500
+    MAX_EVENTS_TOTAL = 1000
+    MAX_TEXT_CHARS = 16 * 1024
     SEMANTIC_TOOLS = {
         "agent_create", "agent_run", "agent_stop", "agent_remove",
         "workflow_status", "workflow_finish", "report_status", "task_complete",
@@ -52,16 +54,30 @@ class AgentWorkflow:
     def _now_ms() -> int:
         return int(time.time() * 1000)
 
-    @staticmethod
-    def _text(value: Any) -> str:
+    @classmethod
+    def _text(cls, value: Any) -> str:
+        """Bound monitor previews without altering actual tool results or logs."""
         if value is None:
             return ""
         if isinstance(value, str):
-            return value
-        try:
-            return json.dumps(value, ensure_ascii=False, indent=2, default=str)
-        except Exception:
-            return str(value)
+            text = value[:cls.MAX_TEXT_CHARS + 1]
+        else:
+            # Stop encoding structured results once the preview budget is filled.
+            chunks = []
+            size = 0
+            try:
+                for chunk in json.JSONEncoder(ensure_ascii=False, default=str).iterencode(value):
+                    chunk = chunk[:max(0, cls.MAX_TEXT_CHARS + 1 - size)]
+                    chunks.append(chunk)
+                    size += len(chunk)
+                    if size > cls.MAX_TEXT_CHARS:
+                        break
+                text = "".join(chunks)
+            except Exception:
+                text = str(value)[:cls.MAX_TEXT_CHARS + 1]
+        if len(text) > cls.MAX_TEXT_CHARS:
+            return text[:cls.MAX_TEXT_CHARS] + "\n[… preview truncated …]"
+        return text
 
     @staticmethod
     def _get(data: Any, *keys: str, default=None):
@@ -118,19 +134,18 @@ class AgentWorkflow:
             self._tool_events.clear()
             self._tool_events_by_name.clear()
             self._state = self._empty_state()
-            snapshot = self.snapshot()
-        self._publish(snapshot)
+        self._publish()
 
     def snapshot(self) -> Dict[str, Any]:
         with self._lock:
             return copy.deepcopy(self._state)
 
-    def _publish(self, snapshot: Optional[Dict[str, Any]] = None):
+    def _publish(self):
         controller = getattr(getattr(self.window, "controller", None), "agent_workflow", None)
         if controller is None:
             return
         try:
-            controller.publish(snapshot if snapshot is not None else self.snapshot())
+            controller.publish()
         except Exception:
             pass
 
@@ -288,13 +303,25 @@ class AgentWorkflow:
             "time": self._time(),
             "turn": max(1, int(turn or 1)),
             "kind": str(kind or "event"),
-            "message": str(message or ""),
+            "message": self._text(message),
         }
         if data:
             event.update(data)
         agent["events"].append(event)
         if len(agent["events"]) > self.MAX_EVENTS_PER_AGENT:
             del agent["events"][:-self.MAX_EVENTS_PER_AGENT]
+        agents = self._state["agents"].values()
+        excess = sum(len(a["events"]) for a in agents) - self.MAX_EVENTS_TOTAL
+        if excess > 0:
+            cutoff = sorted(e["id"] for a in agents for e in a["events"])[excess - 1]
+            for a in agents:
+                a["events"][:] = [e for e in a["events"] if e["id"] > cutoff]
+        # Call lookup tables must expire together with the retained timeline.
+        retained = {e["id"] for a in agents for e in a["events"]}
+        for index in (self._tool_events, self._tool_events_by_name):
+            for key, value in list(index.items()):
+                if value not in retained:
+                    del index[key]
         return event
 
     def _find_event(self, actor_id: str, event_id: int) -> Optional[Dict[str, Any]]:
@@ -419,7 +446,10 @@ class AgentWorkflow:
 
             elif name == "AGENT CREATE REQUEST":
                 worker_name = str(self._get(data, "name", default="Worker") or "Worker")
-                pending = dict(data) if isinstance(data, dict) else {"name": worker_name}
+                pending = {
+                    key: self._text(self._get(data, key, default=""))
+                    for key in ("name", "instruction", "system_prompt", "task", "language", "description")
+                }
                 self._pending_agents[worker_name] = pending
                 self._add_event(
                     self.ROOT_ID,
@@ -576,10 +606,5 @@ class AgentWorkflow:
                     self._add_event(self.ROOT_ID, "completed", "completed")
                 changed = True
 
-            if changed:
-                snapshot = self.snapshot()
-            else:
-                snapshot = None
-
-        if snapshot is not None:
-            self._publish(snapshot)
+        if changed:
+            self._publish()

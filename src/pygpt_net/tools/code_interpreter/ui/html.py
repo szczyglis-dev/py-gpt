@@ -13,7 +13,7 @@ import json
 import re
 from typing import Optional
 
-from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer, QUrl, QCoreApplication, QEventLoop
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer, QUrl
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -117,6 +117,12 @@ class HtmlOutput(QWebEngineView):
         self._glwidget_filter_installed = False
         self._unloaded = False  # flag to check if unloaded
         self._destroyed = False
+        self._needs_recovery = False
+        self._recovery_timer = QTimer(self)
+        self._recovery_timer.setSingleShot(True)
+        self._recovery_timer.setInterval(1000)
+        self._recovery_timer.timeout.connect(self._recover_renderer)
+        self.renderProcessTerminated.connect(self._on_renderer_terminated)
 
         # self._profile = self._make_profile(self)
         self.setPage(CustomWebEnginePage(self.window, self, profile=None))
@@ -165,6 +171,8 @@ class HtmlOutput(QWebEngineView):
         """Clean up on delete"""
         if self._destroyed:
             return
+        self._destroyed = True
+        self._recovery_timer.stop()
         if not self._unloaded:
             self.unload()
 
@@ -218,14 +226,6 @@ class HtmlOutput(QWebEngineView):
         except Exception as e:
             self._on_delete_failed(e)
 
-        try:
-            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
-            QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
-        except Exception as e:
-            self._on_delete_failed(e)
-
-        self._destroyed = True
-
     def init(self, force: bool = False):
         """
         Initialize HTML output
@@ -234,6 +234,7 @@ class HtmlOutput(QWebEngineView):
         """
         if self.initialized and not force:
             return
+        self.loaded = False
         body = self.body.get_html(0)
         self.setHtml(body, baseUrl="file://")
         self.initialized = True
@@ -418,6 +419,8 @@ class HtmlOutput(QWebEngineView):
     def showEvent(self, event):
         """Keep interpreter output at the newest entry when it becomes visible."""
         super(HtmlOutput, self).showEvent(event)
+        if self._needs_recovery:
+            self._recover_renderer()
         if not self.nodes and not self.plain:
             return
 
@@ -652,7 +655,7 @@ class HtmlOutput(QWebEngineView):
             # save as (all) - html
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
             action.triggered.connect(
-                lambda: safe_emit(self.signals, "save_as", re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
+                self.save_html
             )
             menu.addAction(action)
 
@@ -703,9 +706,32 @@ class HtmlOutput(QWebEngineView):
         self.html_content = ""
 
     def update_current_content(self):
-        """Update current content"""
-        if self.loaded:
-            self.page().runJavaScript("document.documentElement.innerHTML", 0, self.set_html_content)
+        """Invalidate the optional export cache without copying the entire DOM."""
+        self.html_content = ""
+
+    def save_html(self):
+        """Fetch HTML once, when explicitly requested for export."""
+        if self.loaded and not self._destroyed:
+            self.page().runJavaScript(
+                "document.documentElement.innerHTML", 0,
+                lambda html: safe_emit(self.signals, "save_as", html, "html")
+                if not self._destroyed and isinstance(html, str) else None,
+            )
+
+    def _on_renderer_terminated(self, *args):
+        if self._destroyed or self._unloaded:
+            return
+        self.loaded = False
+        self.initialized = False
+        self._needs_recovery = True
+        if self.isVisible():
+            self._recovery_timer.start()
+
+    def _recover_renderer(self):
+        if self._destroyed or self._unloaded or not self.isVisible():
+            return
+        self._needs_recovery = False
+        self.init(force=True)
 
     def clear_content(self):
         """Clear content"""
@@ -717,14 +743,14 @@ class HtmlOutput(QWebEngineView):
 
         :param success: True if loaded successfully
         """
+        if self._destroyed or self._unloaded:
+            return
         if success:
+            self._needs_recovery = False
             self.init()
             if self.nodes:
                 for node in list(self.nodes):
                     self.insert_output(node)
-                if not self.loaded:
-                    if self.is_dialog:
-                        self.nodes = []
             self.loaded = True
             QTimer.singleShot(100, self.scroll_to_bottom)  # wait for rendering to complete
             self.update_current_content()

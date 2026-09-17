@@ -498,12 +498,7 @@ class ToolWidget:
         if type == "stdout" and data == "":
             return # do not append empty output
         if live:
-            s = data
-            while s:
-                head, sep, s = s.partition("\n")
-                self.output.append_output(head)
-                if sep:  # New line if LF
-                    self.output.append_output("\n")
+            self.output.append_output(data)
         else:
             self.output.set_output(data)
 
