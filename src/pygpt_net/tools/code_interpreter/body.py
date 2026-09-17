@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 13:30:00
+# Updated Date: 2026.09.17 19:20:00
 # ================================================== #
 
 import os
@@ -108,7 +108,7 @@ class Body:
 
         stylesheet += """
           body {max-width: 100%; } 
-          pre { margin-top: 0; margin-bottom: 0.25rem; } 
+          pre { margin-top: 0; margin-bottom: 0.25rem; max-height: 270px; overflow-y: auto; } 
           a:hover { cursor: pointer; }
           .output-image { max-width: 100%; height: auto; }
         """
@@ -175,6 +175,20 @@ class Body:
                 if (!el.classList.contains('hljs')) hljs.highlightElement(el);
             });
         }
+        function scrollCodeBlockToBottom(target) {
+            if (!target) {
+                return;
+            }
+            const pre = target.tagName === 'PRE' ? target : target.closest('pre');
+            if (!pre) {
+                return;
+            }
+            const apply = function() {
+                pre.scrollTop = pre.scrollHeight;
+            };
+            apply();
+            requestAnimationFrame(apply);
+        }
         function scrollToBottom() {
             // Always follow interpreter output. Do not depend on the previous
             // stored position: on initial restore it may already equal the
@@ -208,6 +222,9 @@ class Body:
                 element.appendChild(pre);
             }
             highlightCode();
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
+            }
             scrollToBottom();
         }
         function replaceOutput(content) {
@@ -223,6 +240,9 @@ class Body:
                 element.appendChild(pre);
             }
             highlightCode();
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
+            }
             scrollToBottom();
         }
         function beginOutput(type) {
@@ -248,7 +268,10 @@ class Body:
                     }
                 }
             }
-            highlightCode()
+            highlightCode();
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
+            }
         }
         function appendToOutput(content) {
             const element = document.getElementById('_append_output_');
@@ -267,6 +290,9 @@ class Body:
                 } else {
                     code.appendChild(document.createTextNode(content));
                 }
+            }
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
             }
             scrollToBottom();
         }
