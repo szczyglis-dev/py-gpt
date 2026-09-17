@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.22** | build: **2026-09-16** | Python: **>=3.10, <3.14**
+Release: **2.8.23** | build: **2026-09-17** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2548,6 +2548,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.23 (2026-09-17)**
+
+- Reorganized Context settings into **General**, **Tools**, and **Advanced handling**.
 
 **2.8.22 (2026-09-16)**
 
