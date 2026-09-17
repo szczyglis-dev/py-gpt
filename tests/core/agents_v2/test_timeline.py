@@ -12,6 +12,7 @@ def make_runtime(parts=None):
         _primary_stream_current="",
         _primary_stream_completed=[],
         _primary_tool_activity_seen=False,
+        _provider_tool_activity_seen=set(),
         _actor_needs_new_part={"orchestrator": False},
         context=SimpleNamespace(ctx=SimpleNamespace(parts=list(parts or []))),
         workers={},

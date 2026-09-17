@@ -18,15 +18,14 @@ def _common():
     common.window.ui.nodes = {
         "input": MagicMock(),
         "input.stream": MagicMock(),
-        "input.send_shift_enter": MagicMock(),
-        "input.send_enter": MagicMock(),
+        "input.send_mode.shift_enter": MagicMock(),
+        "input.send_mode.enter": MagicMock(),
         "cmd.enabled": MagicMock(),
         "output.timestamp": MagicMock(),
         "output.raw": MagicMock(),
         "output": {},
         "output_plain": {},
         "input.send_btn": MagicMock(),
-        "input.stop_btn": MagicMock(),
         "start.api_key.provider": MagicMock(),
     }
     return common
@@ -47,8 +46,8 @@ def test_chat_common_setup_migrates_invalid_send_mode_and_dispatches_renderer_sw
 
     common.window.core.config.set.assert_called_once_with("send_mode", 1)
     common.window.ui.nodes["input.stream"].setChecked.assert_not_called()
-    common.window.ui.nodes["input.send_enter"].setChecked.assert_called_once_with(True)
-    common.window.ui.nodes["input.send_shift_enter"].setChecked.assert_called_once_with(False)
+    common.window.ui.nodes["input.send_mode.enter"].setChecked.assert_called_once_with(True)
+    common.window.ui.nodes["input.send_mode.shift_enter"].setChecked.assert_called_once_with(False)
     events = [c.args[0] for c in common.window.dispatch.call_args_list]
     assert [event.name for event in events] == [RenderEvent.ON_SWITCH]
     common.window.ui.nodes["input"].setFocus.assert_called_once_with()
@@ -78,7 +77,8 @@ def test_chat_common_basic_toggles_update_config_and_command_state():
 
     common.toggle_send_shift(99)
     common.window.core.config.set.assert_called_with("send_mode", 1)
-    common.window.ui.nodes["input.send_enter"].setChecked.assert_called_with(True)
+    common.window.ui.nodes["input.send_mode.enter"].setChecked.assert_called_with(True)
+    common.window.ui.nodes["input.send_mode.shift_enter"].setChecked.assert_called_with(False)
 
 
 def test_chat_common_focus_lock_and_unlock_update_input_state():
@@ -88,13 +88,13 @@ def test_chat_common_focus_lock_and_unlock_update_input_state():
     common.lock_input()
     assert common.window.controller.chat.input.locked is True
     common.window.ui.nodes["input.send_btn"].setEnabled.assert_called_with(False)
-    common.window.ui.nodes["input.stop_btn"].setVisible.assert_called_with(True)
+    common.window.ui.nodes["input"].set_icon_visible.assert_called_with("stop", True)
 
     common.unlock_input()
     assert common.window.controller.chat.input.locked is False
     assert common.window.controller.chat.input.generating is False
     common.window.ui.nodes["input.send_btn"].setEnabled.assert_called_with(True)
-    common.window.ui.nodes["input.stop_btn"].setVisible.assert_called_with(False)
+    common.window.ui.nodes["input"].set_icon_visible.assert_called_with("stop", False)
 
 
 def test_chat_common_can_unlock_rejects_agents_waiting_stack_or_pending_commands():

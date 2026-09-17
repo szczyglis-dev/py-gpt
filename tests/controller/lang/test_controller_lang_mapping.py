@@ -90,6 +90,7 @@ def test_lang_mapping_get_mapping_contains_expected_sections_and_stable_keys():
         "placeholder",
     }
     assert "output.timestamp" not in result["nodes"]
-    assert result["nodes"]["input.send_btn"] == "input.btn.send"
+    assert result["nodes"]["input.send_mode.enter"] == "input.radio.enter"
+    assert result["nodes"]["input.send_mode.shift_enter"] == "input.radio.enter_shift"
     assert result["menu.title"]["menu.theme"] == "menu.theme"
     assert result["dialog.title"]["info.about"] == "dialog.about.title"

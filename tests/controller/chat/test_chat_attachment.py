@@ -373,12 +373,12 @@ class TestAttachment:
         dummy_window.ui.chat.input.attachments_ctx.update.assert_called()
 
     def test_update_tab(self, dummy_window, dummy_meta):
-        dummy_meta.has_additional_ctx = MagicMock(return_value=True)
-        dummy_window.core.attachments.context.get_display_all.return_value = []
+        dummy_meta.additional_ctx = ["ctx-file"]
         dummy_window.core.attachments.context.count.return_value = 2
         att = Attachment(dummy_window)
         att.update_tab(dummy_meta)
-        dummy_window.ui.tabs['input'].setTabText.assert_called()
+        dummy_window.core.attachments.context.count.assert_called_once_with(dummy_meta)
+        dummy_window.ui.tabs['input'].set_compact_tab_count.assert_called_once_with(3, 2)
 
     def test_is_verbose(self, dummy_window):
         dummy_window.core.config.get = MagicMock(return_value=True)

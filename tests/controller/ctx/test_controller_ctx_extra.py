@@ -8,9 +8,7 @@ from pygpt_net.core.events import KernelEvent, RenderEvent
 def _extra():
     extra = Extra(MagicMock())
     extra.window.ui.nodes = {
-        "input.send_btn": MagicMock(),
-        "input.update_btn": MagicMock(),
-        "input.cancel_btn": MagicMock(),
+        "input": MagicMock(),
     }
     return extra
 
@@ -99,15 +97,18 @@ def test_ctx_extra_edit_item_populates_input_and_edit_state():
 def test_ctx_extra_edit_show_and_hide_toggle_expected_buttons():
     extra = _extra()
 
-    extra.edit_show()
-    extra.window.ui.nodes["input.send_btn"].setVisible.assert_called_with(False)
-    extra.window.ui.nodes["input.update_btn"].setVisible.assert_called_with(True)
-    extra.window.ui.nodes["input.cancel_btn"].setVisible.assert_called_with(True)
+    input_node = extra.window.ui.nodes["input"]
 
+    extra.edit_show()
+    input_node.set_icon_visible.assert_any_call("send", False)
+    input_node.set_icon_visible.assert_any_call("cancel", True)
+    input_node.set_icon_visible.assert_any_call("update", True)
+
+    input_node.set_icon_visible.reset_mock()
     extra.edit_hide()
-    extra.window.ui.nodes["input.send_btn"].setVisible.assert_called_with(True)
-    extra.window.ui.nodes["input.update_btn"].setVisible.assert_called_with(False)
-    extra.window.ui.nodes["input.cancel_btn"].setVisible.assert_called_with(False)
+    input_node.set_icon_visible.assert_any_call("cancel", False)
+    input_node.set_icon_visible.assert_any_call("update", False)
+    input_node.set_icon_visible.assert_any_call("send", True)
 
 
 def test_ctx_extra_edit_submit_dispatches_render_action_and_resends_input():

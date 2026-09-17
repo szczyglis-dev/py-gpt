@@ -77,10 +77,10 @@ def test_update_tab(mock_window):
     attachment = Attachment(mock_window)
     mock_window.core.config.data['mode'] = 'vision'
     mock_window.core.attachments.count = MagicMock(return_value=1)
-    mock_window.ui.tabs['input'].setTabText = MagicMock()
+    mock_window.ui.tabs['input'].set_compact_tab_count = MagicMock()
     attachment.update_tab('vision')
-    mock_window.core.attachments.count.assert_called_once()
-    mock_window.ui.tabs['input'].setTabText.assert_called_once()
+    mock_window.core.attachments.count.assert_called_once_with('vision')
+    mock_window.ui.tabs['input'].set_compact_tab_count.assert_called_once_with(1, 1)
 
 
 def test_select(mock_window):

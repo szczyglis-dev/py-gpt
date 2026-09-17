@@ -4,6 +4,26 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
+
+# LlamaIndex/workflows introspects Pydantic model instances with inspect.getmembers(),
+# which reads compatibility attributes that Pydantic 2.x intentionally keeps but
+# marks as deprecated. Keep this module's real-agent coverage while suppressing only
+# those known third-party compatibility warnings.
+pytestmark = [
+    pytest.mark.filterwarnings(
+        r"ignore:The `__fields__` attribute is deprecated, use the `model_fields` class property instead.*"
+    ),
+    pytest.mark.filterwarnings(
+        r"ignore:The `__fields_set__` attribute is deprecated, use `model_fields_set` instead.*"
+    ),
+    pytest.mark.filterwarnings(
+        r"ignore:Accessing the 'model_computed_fields' attribute on the instance is deprecated.*"
+    ),
+    pytest.mark.filterwarnings(
+        r"ignore:Accessing the 'model_fields' attribute on the instance is deprecated.*"
+    ),
+]
 from llama_index.core.agent.workflow import AgentInput, AgentOutput
 from llama_index.core.llms import MockLLM, LLMMetadata, ChatMessage
 from llama_index.core.memory import ChatMemoryBuffer

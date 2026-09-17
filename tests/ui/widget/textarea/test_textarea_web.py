@@ -26,6 +26,7 @@ def _window():
             copy_code_text=MagicMock(), preview_code_text=MagicMock(), run_code_text=MagicMock()
         )),
     )
+    input_container = SimpleNamespace(sync_width=MagicMock())
     return SimpleNamespace(
         core=SimpleNamespace(
             config=config,
@@ -33,6 +34,7 @@ def _window():
             filesystem=SimpleNamespace(url=SimpleNamespace(handle=MagicMock())),
         ),
         controller=controller,
+        ui=SimpleNamespace(nodes={"input.container": input_container}),
         dispatch=MagicMock(),
     )
 
@@ -181,6 +183,7 @@ def test_custom_web_page_view_change_persists_zoom_after_loaded():
     window.controller.config.apply.assert_called_once_with(
         parent_id="config", key="zoom", option=option
     )
+    window.ui.nodes["input.container"].sync_width.assert_called_once_with()
 
 
 def test_custom_web_page_view_change_ignores_unloaded_page():
