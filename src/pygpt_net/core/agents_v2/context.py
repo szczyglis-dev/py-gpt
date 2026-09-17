@@ -15,7 +15,8 @@ import json
 import os
 from typing import List
 
-from llama_index.core.agent.workflow import FunctionAgent, ReActAgent
+from llama_index.core.tools import FunctionTool
+from .autonomy import AutonomousFunctionAgent as FunctionAgent, AutonomousReActAgent as ReActAgent
 from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRole, TextBlock
 
 from pygpt_net.utils import is_image
@@ -29,7 +30,7 @@ class MainFunctionAgent(FunctionAgent):
     LlamaIndex 0.14.x stores FunctionTool outputs in the agent scratchpad as
     ``role=tool`` messages. OpenAI Responses function_call_output is textual, so
     ImageBlock values in such a message are discarded by the provider adapter.
-    Workers keep the stock FunctionAgent path that already works in PyGPT; only
+    Workers keep the normal FunctionAgent image path that already works in PyGPT; only
     the top-level workflow actor (Primary Agent / Orchestrator / Swarm
     Orchestrator) normalizes runtime images into a following user multimodal
     message while preserving the protocol-required textual tool result.
@@ -278,8 +279,8 @@ class RuntimeContext:
         """Prefer native tool calling and retain ReAct as a compatibility fallback."""
         cls = FunctionAgent if supports_function_calling(llm) else ReActAgent
         # Runtime tool outputs of the top-level actor may contain ImageBlocks
-        # (for example attach_runtime_file). Keep workers on the stock
-        # FunctionAgent path that already works for them, and normalize media
+        # (for example attach_runtime_file). Keep workers on the normal
+        # FunctionAgent image path that already works for them, and normalize media
         # only for the workflow's single user-facing main actor. This must be
         # based on the resolved strategy name, not only PRIMARY_AGENT mode: in
         # ORCHESTRATOR and SWARM modes the same actor is named differently.
@@ -288,6 +289,28 @@ class RuntimeContext:
                 and str(name) == str(self.runtime.main_agent_name)
         ):
             cls = MainFunctionAgent
+        is_main = str(name) == str(self.runtime.main_agent_name)
+        managed = is_main and self.runtime.uses_workflow_finish and any(
+            getattr(getattr(tool, "metadata", None), "name", "") == "workflow_finish" for tool in tools
+        )
+        completion_tool = "workflow_finish" if managed else "task_complete"
+        tools = list(tools)
+        if not managed:
+            async def task_complete(outcome: str, evidence: str) -> str:
+                """Finish this assignment: outcome completed, blocked, or needs_input; evidence describes verification or blocker."""
+                if outcome not in {"completed", "blocked", "needs_input"} or not evidence.strip():
+                    return "Provide outcome completed/blocked/needs_input and non-empty verification evidence or blocker."
+                agent._completion_outcome = outcome
+                agent._completion_requested = True
+                return "Completion accepted. Now return the final result, evidence and any limitations as normal text."
+            tools.append(FunctionTool.from_defaults(async_fn=task_complete, name="task_complete"))
+        system_prompt += (
+            "\n\nRuntime completion contract: ordinary text is an intermediate checkpoint. "
+            f"Continue using tools until the assignment is resolved; call {completion_tool} before the final response. "
+            "For task_complete supply outcome (completed, blocked, needs_input) and evidence (actual verification or blocker). "
+            "Simple conversational answers need no artificial work or tests. A genuine blocker or necessary question "
+            "may end the assignment with an honest explanation; never claim unperformed work."
+        )
         kwargs = {
             "name": name,
             "description": description,
@@ -327,7 +350,13 @@ class RuntimeContext:
             model=getattr(model, "id", None),
             path=f"llama_index.core.agent.workflow.{cls.__name__}",
         )
-        return cls(**kwargs)
+        agent = cls(**kwargs)
+        agent._completion_tool = completion_tool
+        if is_main and self.runtime.is_swarm_mode:
+            agent._receive_messages = lambda: self.runtime.worker_api.receive_messages("orchestrator")
+        if managed:
+            agent._completion_check = lambda: self.runtime.workflow_final_requested
+        return agent
 
     def _memory_token_limit(self) -> int:
         model_ctx = int(getattr(self.runtime.model, "ctx", 0) or 0)

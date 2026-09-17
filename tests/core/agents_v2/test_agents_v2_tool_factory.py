@@ -38,6 +38,7 @@ def make_runtime(functions=None):
     runtime.window.core.command.get_functions.return_value = list(functions or [])
     runtime.window.core.command.is_cmd.return_value = True
     runtime.window.core.debug = MagicMock()
+    runtime.is_swarm_mode = False
     runtime.allow_local_tools = True
     runtime.shared_context_text = "shared text"
     runtime.main_agent_name = "Orchestrator"

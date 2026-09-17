@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+import pytest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -80,7 +81,8 @@ def test_agents_v2_runner_call_logs_error_and_finishes_visible_response(monkeypa
     assert emitter.finished == ["Chat with Agents: boom"]
 
 
-def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(monkeypatch):
+@pytest.mark.parametrize("checkpoint", [False, True])
+def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(monkeypatch, checkpoint):
     class FakeAgentStream:
         def __init__(self, delta=""):
             self.delta = delta
@@ -96,6 +98,8 @@ def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(m
             self.cancel_run = AsyncMock()
 
         async def stream_events(self):
+            if checkpoint:
+                yield runner_module.AgentCheckpoint()
             yield FakeToolCallResult()
             yield FakeAgentStream("final answer")
 
@@ -145,11 +149,14 @@ def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(m
         orchestrator_memory_output=MagicMock(return_value="memory output"),
         cleanup=AsyncMock(),
         export_tool_calls_to_main_ctx=MagicMock(),
+        pending_artifacts=MagicMock(return_value={}),
         apply_token_usage=MagicMock(return_value=(10, 5, 15)),
         _actor_part=MagicMock(return_value=SimpleNamespace(uuid="final-part")),
         main_event=MagicMock(side_effect=lambda value: value),
         last_orchestrator_output=MagicMock(return_value="final answer"),
         _prepare_final_part=MagicMock(return_value=SimpleNamespace(uuid="final-part")),
+        _actor_needs_new_part={},
+        _close_primary_stream_segment=MagicMock(),
         _swarm_worker_numbers={},
         _worker_parent_parts={},
         _stored_worker_context_runs=set(),
@@ -187,7 +194,8 @@ def test_agents_v2_runner_managed_final_stream_starts_before_first_final_delta(m
     asyncio.run(Runner(SimpleNamespace())._run(context, {}, SimpleNamespace(), emitter))
 
     runtime.begin_workflow_final_stream.assert_called_once_with()
-    emitter.mark_block_boundary.assert_called_once_with()
+    assert emitter.mark_block_boundary.call_count == (2 if checkpoint else 1)
+    assert runtime._close_primary_stream_segment.call_count == int(checkpoint)
     emitter.append_streamed.assert_awaited_once_with(
         "final answer",
         part_uuid="final-part",

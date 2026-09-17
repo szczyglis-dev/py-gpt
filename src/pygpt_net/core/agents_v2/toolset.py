@@ -148,8 +148,10 @@ class RuntimeToolset:
                 async_fn=self.runtime.request_workflow_finish,
                 name="workflow_finish",
                 description=(
-                    "Validate that the whole user task is ready to finalize. Call exactly once with no arguments after "
-                    "all required work and verification are complete. After the tool returns, send the complete final "
+                    "Validate that the whole user task is ready to finalize. Call once after "
+                    "all required work and verification are complete. Supply outcome=completed and verification evidence, "
+                    "or outcome=blocked/needs_input with the precise blocker in evidence to stop incomplete work. "
+                    "After acceptance, send the complete final "
                     "answer as normal assistant text and do not call any more tools."
                 ),
             ),
@@ -176,11 +178,13 @@ class RuntimeToolset:
             async_fn=self.runtime.start_swarm,
             name="swarm_start",
             description=(
-                "Declare the exact positive number of workers requested by the user. REQUIRED before any agent_create "
+                "Declare a positive swarm size: use the user-requested count or choose a small purposeful team. "
+                "REQUIRED before any agent_create "
                 "call in Swarm mode. There is no fixed global worker cap; the declared user-requested count becomes "
                 "the exact size of this swarm for the run."
             ),
         ))
+        tools.extend(self.runtime.worker_api.communication_tools("orchestrator"))
         return tools
 
     def main_agent_tools(self) -> List[FunctionTool]:

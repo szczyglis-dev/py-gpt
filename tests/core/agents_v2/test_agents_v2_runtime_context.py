@@ -312,7 +312,8 @@ def test_agents_v2_runtime_build_agent_prefers_function_calling_and_disables_par
 
     assert isinstance(agent, FakeFunctionAgent)
     assert captured["allow_parallel_tool_calls"] is False
-    assert captured["tools"] == ["tool"]
+    assert captured["tools"][0] == "tool"
+    assert captured["tools"][1].metadata.name == "task_complete"
 
 
 def test_agents_v2_runtime_build_agent_uses_react_for_non_function_calling_model(monkeypatch):

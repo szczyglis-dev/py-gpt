@@ -16,6 +16,7 @@ from typing import Optional
 
 from llama_index.core.agent.workflow import AgentStream, ToolCall, ToolCallResult
 
+from .autonomy import AgentCheckpoint
 from .emitter import RuntimeEmitter
 from .runtime import AgentsV2Runtime
 from .utils import result_text
@@ -213,6 +214,13 @@ class Runner:
                         pass
                     break
 
+                if isinstance(event, AgentCheckpoint):
+                    emitter.mark_block_boundary()
+                    runtime._close_primary_stream_segment()
+                    runtime._actor_needs_new_part["orchestrator"] = True
+                    post_tool_stream = True
+                    continue
+
                 if isinstance(event, ToolCall):
                     # A tool call closes the current model pass. Keep normal
                     # provider-sized streaming for any prose before the call.
@@ -252,7 +260,18 @@ class Runner:
                     fallback = result_text(result)
                     runtime.verbose_text(runtime.main_event("RESULT"), fallback)
 
-                    if runtime.uses_workflow_finish:
+                    exhausted = getattr(main_agent, "_iteration_limit_reached", False) is True
+                    stalled = getattr(main_agent, "_stalled", False) is True
+                    if exhausted or stalled:
+                        reason = "Iteration limit reached" if exhausted else "Agent repeated an unchanged checkpoint"
+                        runtime.final_answer = reason + "; task may be incomplete.\n\n" + fallback
+                        runtime.finished = True
+                        final_part = runtime._prepare_final_part()
+                        await emitter.stream_final(
+                            runtime.final_answer,
+                            part_uuid=getattr(final_part, "uuid", None) if final_part is not None else None,
+                        )
+                    elif runtime.uses_workflow_finish:
                         if runtime.workflow_final_requested:
                             # workflow_finish has already validated the workflow.
                             # Resolve the just-completed ordinary assistant pass as

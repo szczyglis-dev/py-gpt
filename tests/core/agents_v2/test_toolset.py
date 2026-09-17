@@ -21,6 +21,7 @@ class FakeFunctionTool:
 
 def make_runtime():
     runtime = SimpleNamespace(
+        worker_api=SimpleNamespace(communication_tools=MagicMock(return_value=[])),
         primary_actor="primary",
         orchestrator_actor="orchestrator",
         tool_factory=MagicMock(),

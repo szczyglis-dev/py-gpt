@@ -52,6 +52,7 @@ def make_runtime():
     runtime.verbose = MagicMock()
     runtime.verbose_text = MagicMock()
     runtime.window = MagicMock()
+    runtime.window.controller.kernel.stopped.return_value = False
     runtime.window.core.config.get.side_effect = lambda key, default=None: default
     runtime._worker_parent_parts = {}
     runtime._stored_worker_context_runs = set()
@@ -241,3 +242,37 @@ def test_agents_v2_runtime_cleanup_cancels_pending_tasks_and_clears_workers():
     assert task.cancelled() is True
     assert worker.stop_requested is True
     assert runtime.workers == {}
+
+
+def test_blocked_swarm_can_finish_without_launching_missing_workers():
+    runtime = make_runtime()
+    runtime.agent_mode = AgentMode.SWARM
+    runtime.strategy = get_agent_strategy(runtime.agent_mode)
+    result = asyncio.run(runtime.request_workflow_finish(outcome="needs_input", evidence="Missing task attachment"))
+    assert "accepted" in result.lower()
+    assert runtime.workflow_final_requested
+    assert runtime.workflow_outcome == "needs_input"
+
+
+def test_blocked_workflow_requires_evidence_and_stops_active_workers():
+    async def scenario():
+        runtime = make_runtime()
+        worker = make_worker(status=WorkerStatus.RUNNING)
+        worker.task = asyncio.create_task(asyncio.sleep(60))
+        runtime.workers[worker.id] = worker
+        result = await runtime.request_workflow_finish(outcome="blocked")
+        assert "error" in json.loads(result)
+        assert not runtime.workflow_final_requested
+        await runtime.request_workflow_finish(outcome="blocked", evidence="Required tool unavailable")
+        assert worker.task.done()
+        assert worker.status == WorkerStatus.STOPPED
+        assert runtime.workflow_final_requested
+    asyncio.run(scenario())
+
+
+def test_stop_rejects_new_work():
+    runtime = make_runtime()
+    runtime.window.controller.kernel.stopped.return_value = True
+    result = asyncio.run(runtime.create_worker("Worker", "Inspect", "English"))
+    assert "error" in json.loads(result)
+    assert not runtime.workers

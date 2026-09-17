@@ -683,9 +683,9 @@ class AgentsV2Runtime:
     async def set_status(self, status: str) -> str:
         return await self.worker_api.set_status(status)
 
-    async def request_workflow_finish(self) -> str:
+    async def request_workflow_finish(self, outcome: str = "completed", evidence: str = "") -> str:
         """Tool-facing no-argument finalization gate used by managed modes."""
-        return await self.worker_api.finish_workflow("")
+        return await self.worker_api.finish_workflow("", outcome=outcome, evidence=evidence)
 
     async def finish_workflow(self, final_answer: str = "") -> str:
         """Compatibility API for callers/tests that still pass a final hint."""

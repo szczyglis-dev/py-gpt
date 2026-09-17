@@ -32,7 +32,7 @@ class WorkerToolFactory:
     RESERVED = {
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
-        "delegate_task", "report_status", "shared_context", "query_index", "swarm_start", "swarm_status",
+        "task_complete", "swarm_send", "swarm_receive", "swarm_peers", "delegate_task", "report_status", "shared_context", "query_index", "swarm_start", "swarm_status",
     }
 
     def __init__(self, runtime):
@@ -69,6 +69,9 @@ class WorkerToolFactory:
                 "Use it instead of guessing about files supplied by the user."
             ),
         ))
+
+        if self.runtime.is_swarm_mode:
+            tools.extend(self.runtime.worker_api.communication_tools(worker.id))
 
         rag = self._rag_tool()
         if rag is not None:
