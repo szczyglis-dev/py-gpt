@@ -52,7 +52,7 @@ Features
 * Provides an intuitive operation and interface.
 * Includes a notepad.
 * Includes simple painter / drawing tool.
-* Includes a node-based Agents Builder.
+* Includes the node-based Agent Builder (Legacy) for older agent modes.
 * Includes Chat with Agents, a multi-agent mode with Chat, Orchestrator, and Swarm workflows for direct agent interaction, controlled background delegation, or large parallel worker groups.
 * Includes Experts as reusable specialized agents powered by the same Agents v2 runtime and exposed to conversations through the regular ``expert_call`` tool.
 * Supports multiple languages.

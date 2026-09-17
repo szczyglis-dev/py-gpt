@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:30:00                  #
+# Updated Date: 2026.09.17 15:50:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -507,27 +507,34 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "find",
-            instruction="find file or directory, use empty path to search in current dir",
+            instruction=(
+                "find files or directories by their name/basename pattern only; "
+                "this tool searches filesystem entry names, NOT text or other content inside files. "
+                "Use an empty path to search in the current directory"
+            ),
             params=[
                 {
                     "name": "pattern",
                     "type": "str",
-                    "description": "name pattern",
+                    "description": (
+                        "file or directory name glob pattern, e.g. '*.py', 'test_*', "
+                        "or 'config.json'; matches names only, never file contents"
+                    ),
                     "required": True,
                 },
                 {
                     "name": "path",
                     "type": "str",
-                    "description": "search directory",
+                    "description": "directory in which to search; use an empty value for the current directory",
                     "required": True,
                 },
                 {
                     "name": "recursive",
                     "type": "bool",
-                    "description": "recursive search",
+                    "description": "search recursively through subdirectories",
                     "required": True,
                 },
             ],
             enabled=True,
-            description="Enable: Find file or directory",
+            description="Enable: Find file or directory by name",
         )

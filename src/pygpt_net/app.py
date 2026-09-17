@@ -387,6 +387,7 @@ def run(**kwargs):
         from pygpt_net.tools.translator import Translator as TranslatorTool
         from pygpt_net.tools.web_browser import WebBrowser as WebBrowserTool
         from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
+        from pygpt_net.tools.agent_workflow import AgentWorkflow as AgentWorkflowTool
 
         launcher.init()
 
@@ -588,6 +589,7 @@ def run(**kwargs):
         launcher.add_tool(TranslatorTool())
         launcher.add_tool(WebBrowserTool())
         launcher.add_tool(AgentBuilderTool())
+        launcher.add_tool(AgentWorkflowTool())
 
         # register custom tools
         tools = kwargs.get('tools', None)

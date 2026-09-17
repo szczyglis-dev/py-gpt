@@ -82,6 +82,7 @@
   "agent.v2.swarm.max_iterations": 4096,
   "agent.v2.verbose": false,
   "agent.v2.worker.max_iterations": 24,
+  "agent.v2.workflow_tool.shown": false,
   "ai_name": "",
   "api_azure_endpoint": "https://<your-resource-name>.openai.azure.com/",
   "api_azure_version": "2023-07-01-preview",
@@ -572,6 +573,19 @@
       "tooltip": "",
       "type": 100,
       "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9"
+    },
+    "7": {
+      "column_idx": 1,
+      "custom_name": false,
+      "data_id": null,
+      "idx": 2,
+      "pid": 7,
+      "title": "Agent Workflow",
+      "title_source": "default",
+      "tool_id": "agent_workflow",
+      "tooltip": "Agent Workflow",
+      "type": 100,
+      "uuid": "7688f9fb-ef77-4cc3-b23f-60e3cb59c722"
     }
   },
   "theme": "dark",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.17 14:45:00                  #
 # ================================================== #
 
 import fnmatch
@@ -424,31 +424,16 @@ class Worker(BaseWorker):
         :param item: item with parameters
         :return: response item
         """
-        context = None
         try:
             path = self.get_workdir()
             if "path" in item["params"]:
                 path = self.prepare_path(item["params"]['path'])
             self.msg = "Listing directory: {}".format(path)
             self.log(self.msg)
-            tree_str = ""
-            tree = {}
             if os.path.exists(path):
-                for root, dirs, files in os.walk(path):
-                    dirs.sort()
-                    files.sort()
-                    level = root.replace(path, '').count(os.sep)
-                    indent = ' ' * 4 * (level)
-                    tree_str += '{}{}/\n'.format(indent, os.path.basename(root))
-                    sub_indent = ' ' * 4 * (level + 1)
-                    files = sorted(files)
-                    for f in files:
-                        tree_str += '{}{}\n'.format(sub_indent, f)
-                    tree[os.path.basename(root)] = files
-                result = tree
-                context = path + "\n--------------------------------\n" + tree_str
+                result = self.format_tree(path)
                 self.log("Directory tree: {}".format(path))
-                self.log("Result: {}".format(tree_str))
+                self.log("Result: {}".format(result))
             else:
                 result = "Directory not found"
                 self.log("Directory not found: {}".format(path))
@@ -457,6 +442,46 @@ class Worker(BaseWorker):
 
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
+
+    @staticmethod
+    def format_tree(path: str) -> str:
+        """Return a directory tree as human-readable text."""
+        lines = ["."]
+
+        def walk(directory: str, prefix: str = ""):
+            try:
+                with os.scandir(directory) as iterator:
+                    entries = list(iterator)
+            except OSError:
+                return
+
+            dirs = []
+            files = []
+            for entry in entries:
+                try:
+                    is_dir = entry.is_dir(follow_symlinks=False)
+                except OSError:
+                    is_dir = False
+                if is_dir:
+                    dirs.append(entry)
+                else:
+                    files.append(entry)
+
+            dirs.sort(key=lambda entry: entry.name)
+            files.sort(key=lambda entry: entry.name)
+            children = [(entry, True) for entry in dirs]
+            children.extend((entry, False) for entry in files)
+
+            for idx, (entry, is_dir) in enumerate(children):
+                is_last = idx == len(children) - 1
+                connector = "└── " if is_last else "├── "
+                lines.append("{}{}{}".format(prefix, connector, entry.name))
+                if is_dir:
+                    extension = "    " if is_last else "│   "
+                    walk(entry.path, prefix + extension)
+
+        walk(path)
+        return "\n".join(lines)
 
     def cmd_mkdir(self, item: dict) -> dict:
         """

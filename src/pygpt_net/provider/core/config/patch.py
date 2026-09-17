@@ -11,6 +11,7 @@
 
 import copy
 import os
+import uuid
 
 from packaging.version import parse as parse_version, Version
 
@@ -937,6 +938,75 @@ class Patch:
                 # selection usable by moving it to the supported ReAct workflow.
                 if data.get("agent.llama.provider") == "code_act":
                     data["agent.llama.provider"] = "react"
+                    updated = True
+
+                # Add the new Agent Workflow monitor as a pinned tool in the
+                # second output column. Existing layouts are preserved: only
+                # profiles without this tool get a new tab. If a user already
+                # pinned the tool before this migration, treat it as discovered
+                # and do not trigger the one-time onboarding reveal.
+                tabs_key = "tabs.data"
+                tabs = data.get(tabs_key)
+                if isinstance(tabs, dict):
+                    had_workflow_tab = any(
+                        isinstance(item, dict) and item.get("tool_id") == "agent_workflow"
+                        for item in tabs.values()
+                    )
+                    workflow_tab_exists = had_workflow_tab
+                else:
+                    had_workflow_tab = False
+                    tabs = copy.deepcopy(cfg_get_base(tabs_key) or {})
+                    data[tabs_key] = tabs
+                    workflow_tab_exists = any(
+                        isinstance(item, dict) and item.get("tool_id") == "agent_workflow"
+                        for item in tabs.values()
+                    )
+                    updated = True
+                if not workflow_tab_exists:
+                    numeric_keys = []
+                    max_pid = -1
+                    max_idx = -1
+                    for key, item in tabs.items():
+                        try:
+                            numeric_keys.append(int(key))
+                        except (TypeError, ValueError):
+                            pass
+                        if not isinstance(item, dict):
+                            continue
+                        try:
+                            max_pid = max(max_pid, int(item.get("pid", -1)))
+                        except (TypeError, ValueError):
+                            pass
+                        try:
+                            column_idx = int(item.get("column_idx", 0) or 0)
+                        except (TypeError, ValueError):
+                            column_idx = 0
+                        if column_idx == 1:
+                            try:
+                                max_idx = max(max_idx, int(item.get("idx", -1)))
+                            except (TypeError, ValueError):
+                                pass
+
+                    next_key = str(max(numeric_keys, default=-1) + 1)
+                    next_pid = max_pid + 1
+                    tabs[next_key] = {
+                        "uuid": str(uuid.uuid4()),
+                        "pid": next_pid,
+                        "idx": max_idx + 1,
+                        "type": 100,
+                        "data_id": None,
+                        "title": "Agent Workflow",
+                        "tooltip": "Agent Workflow",
+                        "custom_name": False,
+                        "title_source": "default",
+                        "column_idx": 1,
+                        "tool_id": "agent_workflow",
+                    }
+                    updated = True
+
+                shown_key = "agent.v2.workflow_tool.shown"
+                if shown_key not in data:
+                    data[shown_key] = bool(had_workflow_tab)
                     updated = True
 
         # update file

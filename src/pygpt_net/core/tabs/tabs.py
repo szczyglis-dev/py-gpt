@@ -936,6 +936,20 @@ class Tabs:
                     "tool_id": "notepad",
                 }
                 next_idx += 1
+
+        data[next_idx] = {
+            "uuid": uuid.uuid4(),
+            "pid": next_idx,
+            "idx": 0,
+            "type": Tab.TAB_TOOL,
+            "data_id": None,
+            "title": "Agent Workflow",
+            "tooltip": "Agent Workflow",
+            "custom_name": False,
+            "title_source": "default",
+            "column_idx": 1,
+            "tool_id": "agent_workflow",
+        }
         return data
 
     def load(self):

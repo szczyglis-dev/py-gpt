@@ -17,7 +17,8 @@ PyGPT features several useful tools, including:
 * HTML/JS Canvas (built-in HTML renderer)
 * Translator
 * Web Browser (Chromium)
-* Agents Builder (beta)
+* Agent Workflow
+* Agent Builder (Legacy)
 
 .. image:: images/v2_tool_menu.png
    :width: 400
@@ -124,14 +125,26 @@ A built-in web browser based on Chromium, allowing you to open webpages directly
 
    **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.
 
-Agents Builder (beta)
----------------------
+Agent Workflow
+--------------
 
-**Legacy modes only:** Agents Builder is used by the legacy ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` workflows. It is not used by the modern ``Chat with Agents`` mode.
+**Agent Workflow** is a live, human-readable monitor for ``Chat with Agents`` / Agents v2. It shows the current run as a hierarchy of the primary agent or orchestrator and its worker agents, with timestamped status entries, agent turns, worker creation, task progress, and tool execution. Tool calls expose expandable input/output details, while each agent has a **Details** panel with available runtime information such as its system prompt, instruction, task, input, model/provider, language, and preset.
 
-To launch Agents Builder, navigate to:
+Open it from ``Tools -> Agent Workflow`` as a dialog, or pin it to an output tab from the tab context menu. The default layout includes an Agent Workflow tab in the second output column. When the first actual ``Chat with Agents`` run starts after the user sends input in a profile, PyGPT reveals that tab and expands split-screen once so the monitor is discoverable. Merely selecting the mode does not trigger this behavior; after the first-run introduction, the user's layout is left unchanged.
 
-**Tools -> Agents Builder**
+.. image:: images/v3_workflow.png
+   :width: 800
+
+The view is runtime-only and is intended for observing active work rather than replacing conversation history or debug logs. A new top-level agent run clears the monitor automatically. Use **Clear view** to clear it manually. Closing or hiding the tab does not stop the active agent workflow.
+
+Agent Builder (Legacy)
+----------------------
+
+**Legacy modes only:** Agent Builder is used by the legacy ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` workflows. It is not used by the modern ``Chat with Agents`` mode.
+
+To launch Agent Builder, navigate to:
+
+**Tools -> Agent Builder (Legacy)**
 
 .. image:: images/nodes.png
    :width: 800
@@ -167,7 +180,7 @@ Connecting agents and memory is done using node connections via slots. To connec
 
    Enable agent debugging in ``Settings -> Debug -> Log Agents usage to console`` to log the full workflow to the console.
 
-Workflows built with this tool are compatible with the legacy ``Agent (OpenAI)`` and ``Agent (LlamaIndex)`` modes.
+Workflows built with this legacy tool are compatible with the legacy ``Agent (OpenAI)`` and ``Agent (LlamaIndex)`` modes.
 
 **Notes:**
 
@@ -194,4 +207,4 @@ Routing and system instruction: for every agent that has more than one connectio
 
    <here begins your system instruction>
 
-**INFO:** Agents Builder is in beta.
+**INFO:** Agent Builder is a legacy tool for the older agent modes.

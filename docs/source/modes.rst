@@ -208,6 +208,15 @@ A custom profile has no implicit built-in main role prompt: if its system-prompt
 
 Saving Agent Workflows immediately refreshes the workflow selector in the toolbox. Built-in profiles remain the first three entries; custom profiles follow them in their saved order. Selecting a custom profile stores its UUID in ``agent.v2.mode`` and the runtime resolves that UUID to the profile's prompts and Orchestrator execution surface.
 
+Agent Workflow monitor
+^^^^^^^^^^^^^^^^^^^^^^
+
+The built-in **Agent Workflow** tool provides a real-time view of an active Chat with Agents run. It groups the primary agent/orchestrator and worker agents into a readable tree and shows timestamped run events such as status updates, worker creation, task execution and tool calls. Tool rows can be expanded to inspect input/output, and each agent exposes a **Details** panel with the runtime metadata available for that agent, including prompts and task/input information.
+
+Open the monitor from ``Tools -> Agent Workflow`` or pin it as an output tab. It is included in the default second-column tab layout. When the first actual Chat with Agents run starts after the user sends input in a profile, PyGPT reveals the Agent Workflow tab and expands split-screen once. Merely selecting the mode does not trigger the introduction. A configuration flag records that it has already been shown, so later runs and mode changes do not modify the user's layout automatically.
+
+The monitor is runtime-only. Every new top-level agent run clears the previous view automatically, and **Clear view** can clear it manually. The tool does not replace persisted conversation history, the full-workflow rendering option, or Debug workflow logging.
+
 Project rules with AGENTS.md
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -447,7 +456,7 @@ Includes built-in agents (Workflow):
 * Supervisor + worker
 
 
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agents Builder``.
+You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agent Builder (Legacy)``.
 
 You can also create your own agent by creating a new provider that inherits from ``pygpt_net.provider.agents.base``.
 
@@ -501,7 +510,7 @@ In this mode, you can use pre-configured Experts in Expert mode presets - they w
 * ``B2B`` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
 * ``Supervisor + Worker`` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
 
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agents Builder``.
+You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agent Builder (Legacy)``.
 
 There are also predefined presets added as examples:
 

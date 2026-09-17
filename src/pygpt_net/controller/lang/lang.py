@@ -148,6 +148,7 @@ class Lang:
         self.custom.apply()
 
         c.ui.tabs.reload_titles()
+        c.agent_workflow.reload()
         c.calendar.note.update_current()
         self.settings.apply()
 

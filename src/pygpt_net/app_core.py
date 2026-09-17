@@ -13,6 +13,7 @@ from .config import Config
 from .core.access import Access
 from .core.agents import Agents
 from .core.agents_v2 import AgentsV2
+from .core.agent_workflow import AgentWorkflow
 from .core.assistants import Assistants
 from .core.attachments import Attachments
 from .core.audio import Audio
@@ -65,6 +66,7 @@ class Core:
         self.access = Access(window)
         self.agents = Agents(window)
         self.agents_v2 = AgentsV2(window)
+        self.agent_workflow = AgentWorkflow(window)
         self.api = Api(window)
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)

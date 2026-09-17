@@ -41,6 +41,19 @@ class AgentsV2VerboseLogger:
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
         "delegate_task", "swarm_start", "swarm_status",
     }
+    _agent_workflow_events = {
+        "RUNTIME INIT", "USER INPUT", "SYSTEM PROMPT", "AGENT BUILD",
+        "AGENT CREATE REQUEST", "AGENT CREATED", "AGENT CREATE RESULT",
+        "AGENT RUNNING", "WORKER INPUT", "WORKER STATUS", "WORKFLOW STATUS",
+        "PRIMARY AGENT STATUS", "ORCHESTRATOR STATUS", "SWARM STATUS",
+        "TOOL CALL", "TOOL RESULT", "LOCAL TOOL CALL", "LOCAL TOOL REQUEST",
+        "LOCAL TOOL RESPONSE", "LOCAL TOOL CANCELLED", "LOCAL TOOL REJECTED",
+        "PROVIDER TOOL ACTIVITY", "WORKER ERROR", "AGENT FAILED",
+        "WORKER CANCELLED", "AGENT STOPPED", "AGENT REMOVED",
+        "WORKFLOW FINAL RESPONSE ARMED", "RUNNER FINALIZE BEGIN",
+        "PRIMARY AGENT FINAL TEXT", "ORCHESTRATOR FINAL TEXT", "FINAL ANSWER",
+        "RUNNER FINALIZE END",
+    }
 
     def __init__(self, window=None, run_id: str = "", agent_mode=None):
         self.window = window
@@ -208,6 +221,34 @@ class AgentsV2VerboseLogger:
                 f"[Agents v2][{self._timestamp()}][run={self.run_id}][{actor_name}] {line}",
                 flush=True,
             )
+
+    def _agent_workflow_event(
+            self,
+            event: str,
+            data: Any = None,
+            actor: str = "orchestrator",
+            *,
+            text: bool = False,
+    ):
+        """Feed the live Agent Workflow UI independently of debug logging flags."""
+        try:
+            if str(event or "").strip().upper() not in self._agent_workflow_events:
+                return
+            core = getattr(self.window, "core", None)
+            workflow = getattr(core, "agent_workflow", None)
+            if workflow is None:
+                return
+            payload = str(data or "") if text else self._safe_value(data)
+            workflow.ingest(
+                event,
+                payload,
+                actor=actor,
+                run_id=self.run_id,
+                text=text,
+            )
+        except Exception:
+            # Diagnostics/UI must never alter agent execution.
+            pass
 
     def _workflow_event(self, event: str, data: Any = None, actor: str = "orchestrator"):
         if not self.workflow_enabled:
@@ -460,6 +501,7 @@ class AgentsV2VerboseLogger:
             pass
 
     def log(self, event: str, data: Any = None, actor: str = "orchestrator"):
+        self._agent_workflow_event(event, data, actor)
         self._workflow_event(event, data, actor)
         if not self.enabled:
             return
@@ -475,6 +517,7 @@ class AgentsV2VerboseLogger:
             pass
 
     def text(self, event: str, text: Any, actor: str = "orchestrator"):
+        self._agent_workflow_event(event, text, actor, text=True)
         self._workflow_text_event(event, text, actor)
         if not self.enabled:
             return

@@ -61,7 +61,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Provides an intuitive operation and interface.
 - Includes a notepad.
 - Includes simple painter / drawing tool.
-- Includes an node-based Agents Builder.
+- Includes the node-based Agent Builder (Legacy) for older agent modes.
 - Includes **Chat with Agents**, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
@@ -623,6 +623,10 @@ Use **New** to add your own agent profile. Custom agents are stored in `config.j
 
 Custom agents do not receive an implicit built-in main role prompt when their system-prompt field is empty. **From defaults** loads the built-in Orchestrator prompt and the default Step-by-step instruction as a starting point. The editor includes a Help reference for agent workflow tools and runtime context/placeholder blocks such as `%workdir%`, `<runtime_capabilities>`, `<runtime_environment>`, `<additional_system_prompt>`, `<additional_project_rules>`, `<additional_context>`, `<rag_access>`, `<workflow_language>`, and `<worker_identity>`. Saving the editor refreshes the toolbox selector immediately; custom profiles are listed after the three built-ins.
 
+### Agent Workflow monitor
+
+The built-in **Agent Workflow** tool provides a real-time tree/timeline of the active Chat with Agents run. It shows the primary agent/orchestrator, workers, status changes and tool calls, with expandable tool input/output and per-agent **Details**. Open it from `Tools -> Agent Workflow` or keep it pinned in the second output column. When the first actual Chat with Agents run starts after sending input in a profile, PyGPT reveals the tab and split-screen once. Merely switching to Chat with Agents does not change the layout; after the first-run introduction, subsequent runs and mode changes leave it untouched. A new top-level run clears the monitor automatically.
+
 ### Project rules with AGENTS.md
 
 Before processing the user input, the top-level Chat with Agents main agent checks for `%workdir%/AGENTS.md` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main system prompt as additional project rules. The path follows the conversation/project that started the run, including a custom project data workdir.
@@ -828,7 +832,7 @@ Includes built-in agents (Workflow):
 - Supervisor + worker
 
 
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agents Builder`.
+You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agent Builder (Legacy)`.
 
 You can also create your own agent by creating a new provider that inherits from `pygpt_net.provider.agents.base`.
 
@@ -881,7 +885,7 @@ In this mode, you can use pre-configured Experts in Expert mode presets - they w
 - `B2B` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
 - `Supervisor + Worker` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
 
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agents Builder`.
+You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agent Builder (Legacy)`.
 
 There are also predefined presets added as examples:
 
@@ -2049,7 +2053,8 @@ PyGPT features several useful tools, including:
 - HTML/JS Canvas (built-in HTML renderer)
 - Translator
 - Web Browser (Chromium)
-- Agents Builder (beta)
+- Agent Workflow
+- Agent Builder (Legacy)
 
 ![v2_tool_menu](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_menu.png)
 
@@ -2135,13 +2140,24 @@ Enables translation between multiple languages using an AI model.
 
 A built-in web browser based on Chromium, allowing you to open webpages directly within the app. **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.
 
-# Agents Builder (beta)
+## Agent Workflow
 
-**Legacy modes only:** Agents Builder is used by the legacy `Agent (LlamaIndex)` and `Agent (OpenAI)` workflows. It is not used by the modern `Chat with Agents` mode.
+**Agent Workflow** is a live, human-readable monitor for `Chat with Agents` / Agents v2. It displays the primary agent or orchestrator and worker agents as a hierarchy with timestamped status updates, agent turns, worker creation, task progress, and tool execution. Tool calls provide expandable input/output details, while each agent has a **Details** panel with available runtime information such as its system prompt, instruction, task, input, model/provider, language, and preset.
 
-To launch Agents Builder, navigate to:
+Open it from `Tools -> Agent Workflow` as a dialog, or pin it to an output tab from the tab context menu. The default configuration includes an Agent Workflow tab in the second output column. When the first actual Chat with Agents run starts after the user sends input in a profile, PyGPT reveals this tab and expands split-screen once. Merely selecting Chat with Agents does not trigger it; after that first-run introduction has been recorded, later runs and mode changes do not alter the user's layout automatically.
 
-`Tools -> Agents Builder`
+![agent_workflow_tool](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_workflow.png)
+
+
+The view is runtime-only and does not replace conversation history or Debug workflow logging. Every new top-level agent run clears the previous workflow automatically. Use **Clear view** to clear it manually.
+
+## Agent Builder (Legacy)
+
+**Legacy modes only:** Agent Builder is used by the legacy `Agent (LlamaIndex)` and `Agent (OpenAI)` workflows. It is not used by the modern `Chat with Agents` mode.
+
+To launch Agent Builder, navigate to:
+
+`Tools -> Agent Builder (Legacy)`
 
 ![nodes](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/nodes.png)
 
@@ -2177,11 +2193,11 @@ Workflows built with this tool are compatible with the legacy `Agent (OpenAI)` a
 
 **Notes:** Multi-branch agent flows automatically receive an internal routing instruction that tells the current agent which downstream route can be selected.
 
-For the complete routing schema, injected system-instruction example, and Agents Builder details, see:
+For the complete routing schema, injected system-instruction example, and Agent Builder details, see:
 
-https://pygpt.readthedocs.io/en/latest/tools.html#agents-builder-beta
+https://pygpt.readthedocs.io/en/latest/tools.html#agent-builder-legacy
 
-**INFO:** Agents Builder is in beta.
+**INFO:** Agent Builder is a legacy tool for the older agent modes.
 
 
 # Token usage calculation

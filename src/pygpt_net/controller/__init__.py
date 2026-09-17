@@ -12,6 +12,7 @@
 from .access import Access
 from .agent import Agent
 from .agents_v2 import AgentsV2
+from .agent_workflow import AgentWorkflow
 from .assistant import Assistant
 from .attachment import Attachment
 from .audio import Audio
@@ -58,6 +59,7 @@ class Controller:
         self.access = Access(window)
         self.agent = Agent(window)
         self.agents_v2 = AgentsV2(window)
+        self.agent_workflow = AgentWorkflow(window)
         self.assistant = Assistant(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
@@ -104,6 +106,7 @@ class Controller:
 
         # setup controllers
         self.lang.setup()
+        self.agent_workflow.setup()
         self.assistant.setup()
         self.remote_store.setup()
         self.chat.setup()

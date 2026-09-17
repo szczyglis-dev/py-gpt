@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.17 15:58:00                  #
 # ================================================== #
 
 from __future__ import annotations
