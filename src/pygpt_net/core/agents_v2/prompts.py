@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.17 14:20:00                  #
 # ================================================== #
 
 
@@ -140,50 +140,8 @@ available from a higher-priority source.
 """.strip()
 
 
-class _OptionalStepByStepPrompt(str):
-    """String prompt with an alternate step-by-step-enabled rendering."""
-
-    def __new__(cls, prompt: str, default_brief: str = ""):
-        disabled = cls._render(prompt, False, default_brief)
-        obj = super().__new__(cls, disabled)
-        obj.template = prompt
-        obj.default_brief = default_brief
-        obj.step_by_step = cls._render(prompt, True, default_brief)
-        return obj
-
-    @staticmethod
-    def _render(
-            prompt: str,
-            enabled: bool,
-            default_brief: str,
-            step_by_step_rules: str = "",
-    ) -> str:
-        if enabled:
-            custom_rules = str(step_by_step_rules or "").strip()
-            rules_text = custom_rules or STEP_BY_STEP_RULES
-            rules = f"\n{rules_text}\n"
-        else:
-            rules = ""
-        brief = STEP_BY_STEP_BRIEF if enabled else default_brief
-        return (
-            prompt
-            .replace("<step_by_step_rules>", rules)
-            .replace("<step_by_step_brief>", brief)
-            .strip()
-        )
-
-    def render(self, enabled: bool, step_by_step_rules: str = "") -> str:
-        """Render this prompt with the requested step-by-step instruction."""
-        return self._render(
-            self.template,
-            enabled,
-            self.default_brief,
-            step_by_step_rules,
-        )
-
-
 def _render_base_prompt(prompt: str, *, default_brief: str = "") -> str:
-    """Build the default prompt while retaining its optional step-by-step form."""
+    """Build the canonical main-agent prompt with step-by-step execution integrated."""
     marker = "\n## Additional user/preset instruction\n"
     if marker in prompt:
         prompt = prompt.replace(
@@ -193,17 +151,20 @@ def _render_base_prompt(prompt: str, *, default_brief: str = "") -> str:
         )
     else:
         prompt = f"{prompt.rstrip()}\n\n{AGENT_RUNTIME_POLICY}"
-    return _OptionalStepByStepPrompt(prompt, default_brief)
+    return (
+        prompt
+        .replace("<step_by_step_rules>", f"\n{STEP_BY_STEP_RULES}\n")
+        .replace("<step_by_step_brief>", STEP_BY_STEP_BRIEF or default_brief)
+        .strip()
+    )
 
 
 def resolve_step_by_step_prompt(
         prompt: str,
-        enabled: bool,
+        enabled: bool = True,
         step_by_step_rules: str = "",
 ) -> str:
-    """Return the optional step-by-step variant for a main-agent prompt."""
-    if isinstance(prompt, _OptionalStepByStepPrompt):
-        return prompt.render(enabled, step_by_step_rules)
+    """Compatibility shim: step-by-step execution is now part of the main prompt."""
     return str(prompt or "")
 
 
@@ -500,6 +461,7 @@ tasks thoroughly and return concise, decision-useful work product to the Orchest
 CUSTOM_PRIMARY_PROMPT_CONFIG_KEY = "agent.v2.prompt.primary.custom"
 CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY = "agent.v2.prompt.orchestrator.custom"
 CUSTOM_SWARM_PROMPT_CONFIG_KEY = "agent.v2.prompt.swarm.custom"
+# Legacy compatibility only. The separate Step-by-step field/switch is no longer used by runtime or UI.
 CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY = "agent.v2.prompt.step_by_step.custom"
 
 _CUSTOM_PROMPT_DEFAULTS = {

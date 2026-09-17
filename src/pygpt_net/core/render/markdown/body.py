@@ -12,6 +12,7 @@
 import os
 from typing import Optional, List, Dict
 
+from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -150,6 +151,8 @@ class Body:
         :return: list of icons
         """
         icons = []
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return icons
 
         # audio read
         if ctx.output is not None and ctx.output != "":

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 18:35:00                  #
+# Updated Date: 2026.09.17 14:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -19,11 +19,9 @@ from ..mode import AgentMode
 from ..prompts import (
     CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
     CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
-    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
     CUSTOM_SWARM_PROMPT_CONFIG_KEY,
     ORCHESTRATOR_BASE_PROMPT,
     PRIMARY_AGENT_BASE_PROMPT,
-    STEP_BY_STEP_RULES,
     SWARM_BASE_PROMPT,
 )
 
@@ -35,9 +33,8 @@ class AgentEditor:
     """Registry/storage facade for built-in and user-defined Chat with Agents roles.
 
     Built-in prompt overrides intentionally keep using the pre-2.8.22 config keys.
-    Only user-created agents are stored in ``agent.v2.custom_agents``.  A custom
-    agent currently runs on the Orchestrator execution/tool surface while keeping
-    an independent name, main system prompt and Step-by-step prompt.
+    User-created agents are stored in ``agent.v2.custom_agents`` and run on the
+    Orchestrator execution/tool surface with one complete editable system prompt.
     """
 
     BUILTIN_IDS = ("chat", "orchestrator", "swarm")
@@ -117,7 +114,6 @@ class AgentEditor:
                 "id": agent_id,
                 "name": str(row.get("name") or "").strip(),
                 "system_prompt": str(row.get("system_prompt") or ""),
-                "step_by_step_prompt": str(row.get("step_by_step_prompt") or ""),
             })
         return items
 
@@ -183,9 +179,6 @@ class AgentEditor:
                 **row,
                 "name": row["name"],
                 "system_prompt": str(self._config().get(prompt_key, "") or ""),
-                "step_by_step_prompt": str(
-                    self._config().get(CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY, "") or ""
-                ),
             }
         return row
 
@@ -196,7 +189,6 @@ class AgentEditor:
             "id": agent_id,
             "name": str(name or "New agent").strip() or "New agent",
             "system_prompt": "",
-            "step_by_step_prompt": "",
         })
         self._store_custom_agents(items)
         return agent_id
@@ -206,17 +198,11 @@ class AgentEditor:
             agent_id: Any,
             name: str,
             system_prompt: str,
-            step_by_step_prompt: str,
     ) -> bool:
         builtin_id = self.normalize_builtin_id(agent_id)
         if builtin_id:
             row = self._BUILTINS[builtin_id]
             self._config().set(row["prompt_config_key"], str(system_prompt or ""))
-            # Backward compatibility: all built-ins share this one existing key.
-            self._config().set(
-                CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
-                str(step_by_step_prompt or ""),
-            )
             return True
 
         wanted = str(agent_id or "").strip()
@@ -225,7 +211,6 @@ class AgentEditor:
             if row["id"] == wanted:
                 row["name"] = str(name or "").strip()
                 row["system_prompt"] = str(system_prompt or "")
-                row["step_by_step_prompt"] = str(step_by_step_prompt or "")
                 self._store_custom_agents(items)
                 return True
         return False
@@ -242,13 +227,10 @@ class AgentEditor:
         return True
 
     def get_default_main_prompt(self, agent_id: Any) -> str:
+        """Return the complete built-in prompt, including integrated execution rules."""
         builtin_id = self.normalize_builtin_id(agent_id)
         if builtin_id:
             return str(self._BUILTINS[builtin_id]["default_prompt"])
-        # Custom workflows start from the Orchestrator template on request only;
-        # there is deliberately no implicit runtime fallback.
+        # Custom workflows start from the complete Orchestrator template on request
+        # only; there is deliberately no implicit runtime fallback/injection.
         return str(ORCHESTRATOR_BASE_PROMPT)
-
-    @staticmethod
-    def get_default_step_by_step_prompt(agent_id: Any = None) -> str:
-        return str(STEP_BY_STEP_RULES)

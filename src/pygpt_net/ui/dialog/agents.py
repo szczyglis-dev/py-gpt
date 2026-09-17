@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 20:05:00                  #
+# Updated Date: 2026.09.17 14:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -79,14 +79,7 @@ class Agents:
         nodes["agents.v2.editor.prompt.desc"] = DescLabel("", self.window)
         nodes["agents.v2.editor.prompt"] = QTextEdit()
         nodes["agents.v2.editor.prompt"].setAcceptRichText(False)
-        nodes["agents.v2.editor.prompt"].setMinimumHeight(190)
-
-        nodes["agents.v2.editor.step.label"] = QLabel()
-        nodes["agents.v2.editor.step.label"].setStyleSheet("font-weight: bold;")
-        nodes["agents.v2.editor.step.desc"] = DescLabel("", self.window)
-        nodes["agents.v2.editor.step_prompt"] = QTextEdit()
-        nodes["agents.v2.editor.step_prompt"].setAcceptRichText(False)
-        nodes["agents.v2.editor.step_prompt"].setMinimumHeight(150)
+        nodes["agents.v2.editor.prompt"].setMinimumHeight(360)
 
         nodes["agents.v2.editor.help.label"] = QLabel()
         nodes["agents.v2.editor.help.label"].setStyleSheet("font-weight: bold;")
@@ -116,10 +109,6 @@ class Agents:
         right_layout.addWidget(nodes["agents.v2.editor.prompt.label"])
         right_layout.addWidget(nodes["agents.v2.editor.prompt.desc"])
         right_layout.addWidget(nodes["agents.v2.editor.prompt"])
-        right_layout.addSpacing(10)
-        right_layout.addWidget(nodes["agents.v2.editor.step.label"])
-        right_layout.addWidget(nodes["agents.v2.editor.step.desc"])
-        right_layout.addWidget(nodes["agents.v2.editor.step_prompt"])
         right_layout.addLayout(defaults_row)
         right_layout.addSpacing(12)
         right_layout.addWidget(nodes["agents.v2.editor.help.label"])
@@ -167,7 +156,6 @@ class Agents:
         nodes["agents.v2.editor.btn.close"].setText(trans("action.close"))
         nodes["agents.v2.editor.name.label"].setText(trans("agents.editor.name"))
         nodes["agents.v2.editor.prompt.label"].setText(trans("agents.editor.system_prompt"))
-        nodes["agents.v2.editor.step.label"].setText(trans("agents.editor.step_prompt"))
         nodes["agents.v2.editor.help.label"].setText(trans("agents.editor.help.title"))
         nodes["agents.v2.editor.help"].setPlainText(self._help_text())
         if reload:

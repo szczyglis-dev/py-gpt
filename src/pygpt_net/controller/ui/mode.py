@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 11:05:00                  #
+# Updated Date: 2026.09.17 14:20:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -30,8 +30,6 @@ from pygpt_net.utils import trans
 
 AGENT_V2_MODE_CONFIG_KEY = "agent.v2.mode"
 AGENT_V2_MODE_DEFAULT = "chat"
-AGENT_V2_STEP_BY_STEP_CONFIG_KEY = "agent.v2.step_by_step"
-AGENT_V2_STEP_BY_STEP_DEFAULT = False
 
 
 class Mode:
@@ -74,7 +72,6 @@ class Mode:
         # toolbox mode is refreshed (e.g. after profile/config changes).
         agent_v2_mode_widget = ui_nodes.get('agent.v2.mode.widget')
         agent_v2_mode_combo = ui_nodes.get('agent.v2.mode')
-        agent_v2_step_by_step = ui_nodes.get('agent.v2.step_by_step')
         if agent_v2_mode_widget is not None:
             agent_v2_mode_widget.setVisible(is_agent_v2)
         if is_agent_v2 and agent_v2_mode_combo is not None:
@@ -92,21 +89,6 @@ class Mode:
                 blocked = agent_v2_mode_combo.blockSignals(True)
                 agent_v2_mode_combo.setCurrentIndex(idx)
                 agent_v2_mode_combo.blockSignals(blocked)
-        if is_agent_v2 and agent_v2_step_by_step is not None:
-            configured_step_by_step = bool(
-                self.window.core.config.get(
-                    AGENT_V2_STEP_BY_STEP_CONFIG_KEY,
-                    AGENT_V2_STEP_BY_STEP_DEFAULT,
-                )
-            )
-            if agent_v2_step_by_step.isChecked() != configured_step_by_step:
-                # ToggleLabel emits from its inner AnimToggle, so block the
-                # box itself while restoring config state to avoid a redundant
-                # config write during profile/mode refresh.
-                box = agent_v2_step_by_step.box
-                blocked = box.blockSignals(True)
-                agent_v2_step_by_step.setChecked(configured_step_by_step)
-                box.blockSignals(blocked)
 
         # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
         if not is_agent_openai and not is_agent_llama:

@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import json
+import os
 from typing import Any, Optional
 
 from pygpt_net.core.types import MODE_AGENT_V2
@@ -19,6 +20,40 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.llms.artifacts import drain_llm_urls
 
 from .state import WorkerState
+
+
+def artifact_identity(attr: str, value: Any):
+    """Return a stable user-facing identity used to suppress duplicate artifacts.
+
+    Files, images and attachment records share one delivery namespace because the
+    same path may be discovered through several provider/plugin channels. URLs keep
+    their own namespace so a source URL is not hidden merely because it also backs
+    a generated/downloaded attachment.
+    """
+    family = "attachment" if attr in {"files", "images", "attachments"} else str(attr or "artifact")
+    candidate = value
+    if isinstance(value, dict):
+        for key in ("path", "file", "filename", "url", "uri"):
+            current = value.get(key)
+            if current not in (None, ""):
+                candidate = current
+                break
+
+    if isinstance(candidate, str):
+        text = candidate.strip()
+        if family == "attachment":
+            lowered = text.lower()
+            if lowered.startswith("file://"):
+                text = text[7:]
+            if not text.lower().startswith(("http://", "https://")):
+                text = os.path.normpath(text).replace("\\", "/")
+        return family, text
+
+    try:
+        stable = json.dumps(candidate, ensure_ascii=False, sort_keys=True, default=str)
+    except Exception:
+        stable = repr(candidate)
+    return family, stable
 
 
 class RuntimeArtifacts:
@@ -39,6 +74,7 @@ class RuntimeArtifacts:
                 except Exception:
                     key = repr(value)
                 self.runtime._artifact_seen[attr].add(key)
+                self.runtime._artifact_delivery_seen.add(artifact_identity(attr, value))
 
     def _provider_id(self) -> str:
         try:
@@ -100,9 +136,11 @@ class RuntimeArtifacts:
             key = json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
         except Exception:
             key = repr(value)
-        if key in self.runtime._artifact_seen[attr]:
+        delivery_key = artifact_identity(attr, value)
+        if key in self.runtime._artifact_seen[attr] or delivery_key in self.runtime._artifact_delivery_seen:
             return False
         self.runtime._artifact_seen[attr].add(key)
+        self.runtime._artifact_delivery_seen.add(delivery_key)
         self.runtime._pending_artifacts[attr].append(value)
         if worker is not None:
             worker.artifacts[attr].append(value)

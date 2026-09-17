@@ -163,7 +163,6 @@ class Mapping:
         nodes["agent.auto_stop"] = "toolbox.agent.auto_stop.label"
         nodes["agent.continue"] = "toolbox.agent.continue.label"
         nodes["agent.v2.mode.label"] = "agent.v2.mode.label"
-        nodes["agent.v2.step_by_step"] = "agent.v2.step_by_step"
         nodes['layout.split'] = "layout.split"
 
         # input

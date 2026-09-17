@@ -72,9 +72,6 @@ class _PromptPreviewRuntime:
         # yet. The normal <rag_access> envelope is still composed when an index is
         # selected; only request-specific retrieved text is absent at this point.
         self.rag_context_text = ""
-        self.step_by_step_enabled = bool(
-            window.core.config.get("agent.v2.step_by_step", False)
-        )
         self.bridge_system_prompt = str(bridge_system_prompt or "").strip()
         self.project_rules_text = ""
         self.project_rules_loaded = False

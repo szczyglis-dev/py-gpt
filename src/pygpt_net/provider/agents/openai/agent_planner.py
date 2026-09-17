@@ -414,6 +414,7 @@ Overall Task: {task}
         except Exception:
             pass
 
+        cfg["instructions"] = self.append_security_rule(cfg.get("instructions", ""))
         append_reasoning_model_settings(cfg, window, model)
         return OpenAIAgent(**cfg)
 

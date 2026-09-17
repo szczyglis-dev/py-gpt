@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 13:55:00                  #
+# Updated Date: 2026.09.17 14:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
@@ -22,8 +22,6 @@ from pygpt_net.utils import trans
 
 AGENT_V2_MODE_CONFIG_KEY = "agent.v2.mode"
 AGENT_V2_MODE_DEFAULT = "chat"
-AGENT_V2_STEP_BY_STEP_CONFIG_KEY = "agent.v2.step_by_step"
-AGENT_V2_STEP_BY_STEP_DEFAULT = False
 
 class Prompt:
     def __init__(self, window=None):
@@ -46,10 +44,6 @@ class Prompt:
         self.window.core.config.set(AGENT_V2_MODE_CONFIG_KEY, str(value))
         self.window.core.config.save()
 
-    def _on_agent_v2_step_by_step_changed(self, checked: bool) -> None:
-        """Persist optional step-by-step prompting for Chat with Agents."""
-        self.window.core.config.set(AGENT_V2_STEP_BY_STEP_CONFIG_KEY, bool(checked))
-        self.window.core.config.save()
 
     def setup(self) -> QWidget:
         """
@@ -110,23 +104,6 @@ class Prompt:
         nodes['agent.v2.mode.label'] = mode_label
         nodes['agent.v2.mode'] = mode_combo
 
-        step_by_step = ToggleLabel(
-            trans("agent.v2.step_by_step"),
-            parent=w,
-        )
-        step_by_step.setChecked(bool(
-            w.core.config.get(
-                AGENT_V2_STEP_BY_STEP_CONFIG_KEY,
-                AGENT_V2_STEP_BY_STEP_DEFAULT,
-            )
-        ))
-        step_tooltip = trans("agent.v2.step_by_step.tooltip")
-        step_by_step.setToolTip(step_tooltip)
-        step_by_step.box.setToolTip(step_tooltip)
-        step_by_step.label.setToolTip(step_tooltip)
-        step_by_step.box.toggled.connect(self._on_agent_v2_step_by_step_changed)
-        nodes['agent.v2.step_by_step'] = step_by_step
-
         manage_agents = QPushButton(QIcon(":/icons/settings.svg"), "")
         icon_size = 20
         manage_agents.setFlat(True)
@@ -147,16 +124,10 @@ class Prompt:
         mode_select_layout = QHBoxLayout(mode_select_widget)
         mode_select_layout.addWidget(mode_label, 0)
         mode_select_layout.addWidget(mode_combo, 1)
+        mode_select_layout.addWidget(manage_agents, 0, Qt.AlignRight | Qt.AlignVCenter)
         mode_select_layout.setContentsMargins(0, 0, 0, 0)
 
-        step_widget = QWidget()
-        step_layout = QHBoxLayout(step_widget)
-        step_layout.addWidget(step_by_step, 1)
-        step_layout.addWidget(manage_agents, 0, Qt.AlignRight | Qt.AlignVCenter)
-        step_layout.setContentsMargins(0, 0, 0, 0)
-
         mode_layout.addWidget(mode_select_widget)
-        mode_layout.addWidget(step_widget)
         mode_layout.setContentsMargins(3, 0, 5, 0)
         mode_widget.setVisible(w.core.config.get("mode") == MODE_AGENT_V2)
         nodes['agent.v2.mode.widget'] = mode_widget

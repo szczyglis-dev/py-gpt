@@ -24,7 +24,7 @@
   },
   "experts": [],
   "idx": "_",
-  "agent_provider": "code_act",
+  "agent_provider": "react",
   "agent_provider_openai": "openai_agent_feedback",
   "assistant_id": "",
   "enabled": true,

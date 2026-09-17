@@ -21,12 +21,10 @@ from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, Tool
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
-from pygpt_net.core.events import Event
 from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
     TOOL_QUERY_ENGINE_SPEC,
-    PERSIST_HIDDEN_TOOL_CALLS,
 )
 from pygpt_net.item.ctx import CtxItem
 
@@ -42,8 +40,6 @@ class Tools:
         self.window = window
         self.cmd_blacklist = []
         self.verbose = False
-        self.code_execute_fn = CodeExecutor(window)
-        self.last_tool_output = None
         self.agent_idx = None  # agent index, used for query engine tool
         self.context = None  # BridgeContext instance, used for tool execution
         self.computer_runtime = None  # shared provider-native Computer Use runtime
@@ -483,78 +479,6 @@ class Tools:
             data.append(item)
         return data
 
-    def get_last_tool_output(self) -> dict:
-        """
-        Get last tool output
-
-        :return: last tool output
-        """
-        if self.last_tool_output is None:
-            return {}
-        return self.last_tool_output
-
-    def has_last_tool_output(self) -> bool:
-        """
-        Check if there is a last tool output
-
-        :return: True if last tool output exists, False otherwise
-        """
-        return self.last_tool_output is not None
-
-    def clear_last_tool_output(self):
-        """Clear last tool output"""
-        self.last_tool_output = None
-
-    def append_tool_outputs(self, ctx: CtxItem, clear: bool = True):
-        """
-        Append tool outputs to context
-
-        :param ctx: CtxItem
-        :param clear: clear last tool output after appending
-        """
-        if self.has_last_tool_output():
-            outputs = [self.get_last_tool_output()]
-            stored_outputs = [
-                output
-                for output in outputs
-                if (PERSIST_HIDDEN_TOOL_CALLS
-                    or not self.window.core.command.is_tool_hidden(
-                        str(output.get("cmd") or output.get("tool_name") or "")
-                    ))
-            ]
-            if stored_outputs:
-                ctx.extra["tool_output"] = stored_outputs
-            else:
-                ctx.extra.pop("tool_output", None)
-            if outputs is not None:
-                response = ""
-                for output in outputs:
-                    if ("code" in output and "output" in output["code"] and
-                            "content" in output["code"]["output"]):
-                        response += str(output["code"]["output"]["content"])
-                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
-            if clear:
-                self.clear_last_tool_output()  # clear after use
-
-    def extract_tool_outputs(self, ctx: CtxItem, clear: bool = True):
-        """
-        Append tool outputs to context
-
-        :param ctx: CtxItem
-        :param clear: clear last tool output after appending
-        """
-        if self.has_last_tool_output():
-            outputs = [self.get_last_tool_output()]
-            if outputs is not None:
-                response = ""
-                for output in outputs:
-                    if ("code" in output and "output" in output["code"] and
-                            "content" in output["code"]["output"]):
-                        response += str(output["code"]["output"]["content"])
-                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
-            if clear:
-                self.clear_last_tool_output()  # clear after use
-
     def set_idx(self, agent_idx: str):
         """
         Set agent index for query engine tool
@@ -589,117 +513,3 @@ class PluginToolMetadata(JsonSchemaToolMetadata):
     """Legacy/Chat-with-Files plugin metadata using the real plugin JSON schema."""
 
     pass
-
-class CodeExecutor:
-    """Code executor for codeAct agent"""
-
-    def __init__(self, window = None):
-        """
-        Initialize the code executor.
-
-        :param window: Window instance
-        """
-        self.window = window
-
-    def execute(self, code: str) -> str:
-        """
-        Execute Python code and capture output and return values.
-
-        :param code: Python code to execute
-        :return: Output from the code execution
-        """
-        if not self.window.core.command.is_cmd():
-            return "Tool execution is not enabled. Abort execution and ask user for tool enable."
-
-        self.window.core.agents.tools.last_tool_output = None
-        if code == "/restart":
-            commands = [
-                {
-                    "cmd": "ipython_kernel_restart",
-                    "params": {},
-                    "silent": True,
-                    "force": True,
-                }
-            ]
-        else:
-            commands = [
-                {
-                    "cmd": "ipython_execute",
-                    "params": {
-                        "code": code,
-                        "path": ".interpreter.current.py",
-                    },
-                    "silent": True,
-                    "force": True,
-                }
-            ]
-        event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
-            'silent': True,
-        })
-        event.ctx = CtxItem()  # tmp
-        event.ctx.async_disabled = True  # disable async for this event
-        self.window.controller.command.dispatch_only(event)
-
-        # if restart command was executed, return success message
-        if code == "/restart":
-            return (
-                "IPython kernel restart request completed. Do not restart it again "
-                "unless a later execution reports a real kernel failure."
-            )
-
-        response = event.ctx.bag  # tmp response
-        output = ""
-        has_code_output = False
-
-        # Store rich interpreter output when the command returned the normal
-        # response shape.  Empty content is valid (successful code with no
-        # stdout), so keep it empty and let CodeAct treat it as such.
-        if isinstance(response, dict) and "code" in response:
-            code_data = response.get("code") or {}
-            output_data = code_data.get("output") or {}
-            if "content" in output_data:
-                has_code_output = True
-                output = output_data.get("content")
-                if output is None:
-                    output = ""
-                else:
-                    output = str(output)
-
-                input_data = code_data.get("input") or {}
-                tool_output = {
-                    "cmd": "ipython_execute",
-                    "code": {
-                        "input": {
-                            "content": str(input_data.get("content", code)),
-                            "lang": "python"
-                        },
-                        "output": {
-                            "content": output,
-                            "lang": "python"
-                        }
-                    },
-                    "plugin": response.get("plugin", "cmd_code_interpreter"),
-                    "result": response.get("result")
-                }
-                self.window.core.agents.tools.last_tool_output = tool_output
-
-        if has_code_output:
-            return output
-
-        # The old implementation silently returned an empty string whenever the
-        # plugin used an error/non-standard response shape.  Propagate the actual
-        # result so the agent can reason about the failure and the UI can show it.
-        if isinstance(response, dict):
-            result = response.get("result")
-            if isinstance(result, dict):
-                result = result.get("result", result.get("context"))
-            if result is not None and str(result).strip():
-                return str(result)
-            context = response.get("context")
-            if context is not None and str(context).strip():
-                return str(context)
-        elif response is not None and str(response).strip():
-            return str(response)
-
-        return "Code execution failed: no result was returned by the interpreter."

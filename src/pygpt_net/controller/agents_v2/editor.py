@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 20:15:00                  #
+# Updated Date: 2026.09.17 14:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -29,9 +29,6 @@ class Editor:
         # Unsaved editor state is kept per workflow. Switching the list must not
         # write to config, nor should it discard text already entered by user.
         self.drafts: Dict[str, Dict[str, str]] = {}
-        # Built-in Chat / Orchestrator / Swarm intentionally share one persisted
-        # Step-by-step override, so keep one shared draft for that field too.
-        self._builtin_step_draft: Optional[str] = None
         self.width = 980
         self.height = 760
 
@@ -79,15 +76,10 @@ class Editor:
             return
         name_node = self.window.ui.nodes.get("agents.v2.editor.name")
         prompt_node = self.window.ui.nodes.get("agents.v2.editor.prompt")
-        step_node = self.window.ui.nodes.get("agents.v2.editor.step_prompt")
-        draft = {
+        self.drafts[self.current] = {
             "name": str(name_node.text() if name_node is not None else ""),
             "system_prompt": str(prompt_node.toPlainText() if prompt_node is not None else ""),
-            "step_by_step_prompt": str(step_node.toPlainText() if step_node is not None else ""),
         }
-        self.drafts[self.current] = draft
-        if row.get("built_in"):
-            self._builtin_step_draft = draft["step_by_step_prompt"]
 
     def _editable_values(self, agent_id: Any) -> Optional[dict]:
         """Return draft values first, falling back to the persisted editor state."""
@@ -98,8 +90,6 @@ class Editor:
         draft = self.drafts.get(agent_id)
         if draft is not None:
             row.update(draft)
-        if row.get("built_in") and self._builtin_step_draft is not None:
-            row["step_by_step_prompt"] = self._builtin_step_draft
         return row
 
     def _display_name(self, row: dict) -> str:
@@ -167,47 +157,33 @@ class Editor:
         self.current = str(row["id"])
         name = self.window.ui.nodes.get("agents.v2.editor.name")
         prompt = self.window.ui.nodes.get("agents.v2.editor.prompt")
-        step = self.window.ui.nodes.get("agents.v2.editor.step_prompt")
         if name is not None:
             name.setText(self._display_name(row) if row.get("built_in") else str(row.get("name") or ""))
             name.setReadOnly(bool(row.get("built_in")))
         if prompt is not None:
             prompt.setPlainText(str(row.get("system_prompt") or ""))
-        if step is not None:
-            step.setPlainText(str(row.get("step_by_step_prompt") or ""))
         self._update_info(row)
 
     def _clear_fields(self):
-        for key in ("agents.v2.editor.name", "agents.v2.editor.prompt", "agents.v2.editor.step_prompt"):
+        for key in ("agents.v2.editor.name", "agents.v2.editor.prompt"):
             node = self.window.ui.nodes.get(key)
-            if node is None:
-                continue
-            if hasattr(node, "clear"):
+            if node is not None and hasattr(node, "clear"):
                 node.clear()
 
     def _update_info(self, row: dict):
         info = self.window.ui.nodes.get("agents.v2.editor.info")
         prompt_desc = self.window.ui.nodes.get("agents.v2.editor.prompt.desc")
-        step_desc = self.window.ui.nodes.get("agents.v2.editor.step.desc")
         if row.get("built_in"):
             if info is not None:
                 info.setText(trans("agents.editor.builtin.info"))
             if prompt_desc is not None:
                 key = str(row.get("description_key") or "")
                 prompt_desc.setText(trans(key) if key else "")
-            if step_desc is not None:
-                step_desc.setText(
-                    trans("settings.agent.v2.prompt.step_by_step.custom.desc")
-                    + " "
-                    + trans("agents.editor.builtin.step_shared")
-                )
         else:
             if info is not None:
                 info.setText(trans("agents.editor.custom.info"))
             if prompt_desc is not None:
                 prompt_desc.setText(trans("agents.editor.custom.prompt.desc"))
-            if step_desc is not None:
-                step_desc.setText(trans("agents.editor.custom.step.desc"))
 
     def new(self):
         self._capture_current()
@@ -225,9 +201,6 @@ class Editor:
         if not self.current:
             return False
 
-        # Save is the only point at which form drafts are committed. Capture the
-        # currently visible workflow first, then persist every workflow edited or
-        # visited during this editor session in one config save.
         self._capture_current()
         if not self.drafts:
             return False
@@ -243,26 +216,20 @@ class Editor:
                 self.window.ui.dialogs.alert(trans("agents.editor.name.required"))
                 return False
 
-        shared_step = self._builtin_step_draft
         for agent_id, draft in list(self.drafts.items()):
             row = self.window.core.agents_v2.editor.get(agent_id)
             if row is None:
                 continue
-            step_prompt = str(draft.get("step_by_step_prompt") or "")
-            if row.get("built_in") and shared_step is not None:
-                step_prompt = shared_step
             ok = self.window.core.agents_v2.editor.save(
                 agent_id,
                 name=str(draft.get("name") or "").strip(),
                 system_prompt=str(draft.get("system_prompt") or ""),
-                step_by_step_prompt=step_prompt,
             )
             if not ok:
                 return False
 
         self.window.core.config.save()
         self.drafts.clear()
-        self._builtin_step_draft = None
         self.reload_items(select_id=self.current)
         self.refresh_toolbox()
         self.window.update_status(trans("status.saved"))
@@ -303,11 +270,7 @@ class Editor:
         if not self.current:
             return
         prompt = self.window.ui.nodes.get("agents.v2.editor.prompt")
-        step = self.window.ui.nodes.get("agents.v2.editor.step_prompt")
-        has_text = bool(
-            (prompt is not None and prompt.toPlainText().strip())
-            or (step is not None and step.toPlainText().strip())
-        )
+        has_text = bool(prompt is not None and prompt.toPlainText().strip())
         if has_text and not force:
             self.window.ui.dialogs.confirm(
                 type="agents_v2.editor.defaults",
@@ -316,12 +279,11 @@ class Editor:
             )
             return
         if prompt is not None:
+            # Defaults are now one complete prompt: role + execution/step-by-step
+            # rules + security/runtime policy. Custom profiles receive no hidden
+            # workflow policy injection after this text is copied.
             prompt.setPlainText(
                 self.window.core.agents_v2.editor.get_default_main_prompt(self.current)
-            )
-        if step is not None:
-            step.setPlainText(
-                self.window.core.agents_v2.editor.get_default_step_by_step_prompt(self.current)
             )
 
 

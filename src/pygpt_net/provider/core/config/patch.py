@@ -933,6 +933,12 @@ class Patch:
                         data[key] = ""
                         updated = True
 
+                # CodeAct was retired in 2.8.23. Keep an existing legacy Agent
+                # selection usable by moving it to the supported ReAct workflow.
+                if data.get("agent.llama.provider") == "code_act":
+                    data["agent.llama.provider"] = "react"
+                    updated = True
+
         # update file
         migrated = False
         if updated:

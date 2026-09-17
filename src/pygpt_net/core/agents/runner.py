@@ -26,6 +26,7 @@ from pygpt_net.core.types import (
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.llms.agent_computer import ComputerRuntime
+from pygpt_net.provider.agents.base import BaseAgent
 
 from .runners.llama_assistant import LlamaAssistant
 from .runners.llama_plan import LlamaPlan
@@ -94,7 +95,7 @@ class Runner:
             # prepare agent
             model = context.model
             vector_store_idx = extra.get("agent_idx", None)
-            system_prompt = context.system_prompt
+            system_prompt = BaseAgent.append_security_rule(context.system_prompt)
             preset = context.preset
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_stream = self.window.core.config.get("stream", False)
@@ -264,7 +265,7 @@ class Runner:
             # prepare agent
             model = context.model
             vector_store_idx = extra.get("agent_idx", None)
-            system_prompt = context.system_prompt
+            system_prompt = BaseAgent.append_security_rule(context.system_prompt)
             is_expert_call = context.is_expert_call
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_cmd = self.window.core.command.is_cmd(inline=False)

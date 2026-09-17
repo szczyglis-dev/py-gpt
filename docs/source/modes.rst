@@ -437,7 +437,6 @@ Includes built-in agents (Workflow):
 * FunctionAgent
 * ReAct
 * Structured Planner (sub-tasks)
-* CodeAct (connected to Python code interpreter plugin)
 * Supervisor + worker
 
 

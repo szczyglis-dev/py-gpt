@@ -24,6 +24,7 @@ from .config import (
     IPYTHON_DOCKERFILE,
     IPYTHON_DOCKERFILE_LEGACY,
     IPYTHON_DOCKERFILE_PRE_BUNDLED,
+    IPYTHON_DOCKERFILE_PRE_NODEJS,
     PYTHON_LEGACY_DOCKERFILE,
     PYTHON_LEGACY_DOCKERFILE_39,
     PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
@@ -95,6 +96,13 @@ class Plugin(BasePlugin):
                 self,
                 "ipython_dockerfile",
                 IPYTHON_DOCKERFILE_PRE_BUNDLED,
+                IPYTHON_DOCKERFILE,
+            )
+        if not migrated_ipython:
+            migrated_ipython = migrate_default_dockerfile(
+                self,
+                "ipython_dockerfile",
+                IPYTHON_DOCKERFILE_PRE_NODEJS,
                 IPYTHON_DOCKERFILE,
             )
 

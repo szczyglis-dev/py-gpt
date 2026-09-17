@@ -283,7 +283,6 @@ def run(**kwargs):
         from pygpt_net.provider.agents.llama_index.planner_workflow import PlannerAgent as PlannerWorkflowAgent
         from pygpt_net.provider.agents.llama_index.openai_workflow import OpenAIAgent as OpenAIWorkflowAgent
         from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.codeact_workflow import CodeActAgent
         from pygpt_net.provider.agents.llama_index.supervisor_workflow import SupervisorAgent as LlamaSupervisorAgent
         from pygpt_net.provider.agents.llama_index.flow_from_schema import Agent as LlamaCustomAgent  # builder schema
 
@@ -559,7 +558,6 @@ def run(**kwargs):
         launcher.add_agent(PlannerWorkflowAgent())  # llama-index
         # launcher.add_agent(ReactAgent())  # llama-index
         launcher.add_agent(ReactWorkflowAgent())  # llama-index
-        launcher.add_agent(CodeActAgent())  # llama-index
         launcher.add_agent(LlamaSupervisorAgent())  # llama-index
         launcher.add_agent(LlamaCustomAgent())  # llama-index
         launcher.add_agent(OpenAIAgentsBase())  # openai-agents

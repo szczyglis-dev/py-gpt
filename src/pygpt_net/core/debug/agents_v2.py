@@ -129,7 +129,6 @@ class AgentsV2Debug:
         self._add('allow_local_tools', getattr(runtime, 'allow_local_tools', None))
         self._add('allow_remote_tools', getattr(runtime, 'allow_remote_tools', None))
         self._add('show_tool_chain', getattr(runtime, 'return_tool_calls_to_main_ctx', None))
-        self._add('step_by_step', getattr(runtime, 'step_by_step_enabled', None))
         self._add('local_plugin_tool_names', sorted(getattr(runtime, '_local_plugin_tool_names', set())))
 
         self._section('CONTEXT / PROMPTS')

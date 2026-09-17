@@ -12,6 +12,7 @@
 from typing import Dict, Any
 import time
 from pygpt_net.core.agents_v2.tool_bridge import is_pending, discard
+from pygpt_net.core.agents_v2.artifacts import artifact_identity
 
 from pygpt_net.core.text.utils import has_unclosed_code_tag
 from pygpt_net.core.types import (
@@ -706,20 +707,41 @@ class Response:
                 done.set()
 
     def _agent_v2_apply_final_artifacts(self, ctx: CtxItem, artifacts: Dict[str, Any]):
-        """Attach staged workflow artifacts only after the final text stream is complete."""
+        """Attach staged workflow artifacts once, after the final stream completes."""
         if ctx is None or not isinstance(artifacts, dict):
             return
+
+        seen = set()
+        # First normalize anything already present on the response. This also
+        # repairs duplicates introduced by provider/plugin paths before finalization.
+        for attr in ("files", "images", "urls", "attachments"):
+            target = getattr(ctx, attr, None)
+            if not isinstance(target, list):
+                target = list(target or [])
+            unique = []
+            for value in target:
+                if value is None:
+                    continue
+                key = artifact_identity(attr, value)
+                if key in seen:
+                    continue
+                seen.add(key)
+                unique.append(value)
+            setattr(ctx, attr, unique)
+
+        # Then merge the runtime staging buffer using the same cross-channel key.
         for attr in ("files", "images", "urls", "attachments"):
             values = artifacts.get(attr)
             if not isinstance(values, (list, tuple)) or not values:
                 continue
-            target = getattr(ctx, attr, None)
-            if not isinstance(target, list):
-                target = list(target or [])
-                setattr(ctx, attr, target)
+            target = getattr(ctx, attr)
             for value in values:
-                if value is None or value in target:
+                if value is None:
                     continue
+                key = artifact_identity(attr, value)
+                if key in seen:
+                    continue
+                seen.add(key)
                 target.append(value)
 
     def agent_v2_end(

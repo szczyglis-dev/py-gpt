@@ -269,10 +269,4 @@ class OpenAIWorkflow(BaseRunner):
         if ctx.agent_final_response:  # only if not empty
             response_ctx.extra["output"] = ctx.agent_final_response
 
-        # if there are tool outputs, img, files, append it to the response context
-        if ctx.use_agent_final_response:
-            self.window.core.agents.tools.append_tool_outputs(response_ctx)
-        else:
-            self.window.core.agents.tools.extract_tool_outputs(response_ctx)
-
         return response_ctx

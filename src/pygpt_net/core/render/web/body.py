@@ -16,6 +16,7 @@ from random import shuffle as _shuffle
 from typing import Optional, List, Dict, Tuple
 
 from pygpt_net.core.events import Event
+from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -335,6 +336,8 @@ class Body:
         :return: List of HTML strings for icons.
         """
         icons: List[str] = []
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return icons
         if ctx.output:
             cid = ctx.id
             t = trans
@@ -378,6 +381,8 @@ class Body:
         :return: List of action dicts
         """
         items: List[Dict] = []
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return items
         if ctx.output:
             cid = ctx.id
             target_id = edit_replay_id if edit_replay_id is not None else cid
@@ -689,6 +694,12 @@ class Body:
         images = {}
         files = {}
         urls = {}
+
+        # Agents v2 exposes response artifacts only after the authoritative final
+        # response has finished streaming. FINAL_BEGIN rebuilds the current turn,
+        # so suppress both artifact extras and footer actions while it is active.
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return images, files, urls, {"actions": []}
 
         # images
         if ctx.images:

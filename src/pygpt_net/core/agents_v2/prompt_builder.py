@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.17 14:20:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -16,13 +16,11 @@ from typing import Optional
 from .prompts import (
     CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
     CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
-    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
     CUSTOM_SWARM_PROMPT_CONFIG_KEY,
     ORCHESTRATOR_BASE_PROMPT,
     PRIMARY_AGENT_BASE_PROMPT,
     SWARM_BASE_PROMPT,
     WORKFLOW_PROGRESS_POLICY,
-    resolve_step_by_step_prompt,
 )
 
 
@@ -37,7 +35,6 @@ class RuntimePromptBuilder:
             base_prompt: str = "",
             additional_system_prompt: Optional[str] = None,
             include_project_rules: bool = False,
-            apply_step_by_step: bool = True,
             inject_workflow_policy: bool = True,
     ) -> str:
         """Compose the shared Agents v2 runtime envelope around an actor prompt.
@@ -93,20 +90,7 @@ class RuntimePromptBuilder:
                     + "\n</additional_project_rules>"
                 )
 
-        if apply_step_by_step:
-            step_by_step_rules = str(
-                self.runtime.window.core.config.get(
-                    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
-                    "",
-                ) or ""
-            ).strip()
-            base = resolve_step_by_step_prompt(
-                base_prompt,
-                bool(getattr(self.runtime, "step_by_step_enabled", False)),
-                step_by_step_rules,
-            ).strip()
-        else:
-            base = str(base_prompt or "").strip()
+        base = str(base_prompt or "").strip()
         prefix = (base + "\n\n") if base else ""
         workflow_policy = ""
         if inject_workflow_policy:
@@ -133,20 +117,8 @@ class RuntimePromptBuilder:
         )
 
     def _custom_main_prompt(self, config_key: str) -> str:
-        """Return the user override exactly as configured, plus only its explicit custom step prompt."""
-        custom = str(self.runtime.window.core.config.get(config_key, "") or "").strip()
-        if not custom:
-            return ""
-        if bool(getattr(self.runtime, "step_by_step_enabled", False)):
-            custom_step = str(
-                self.runtime.window.core.config.get(
-                    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
-                    "",
-                ) or ""
-            ).strip()
-            if custom_step:
-                custom = (custom + "\n\n" + custom_step).strip()
-        return custom
+        """Return the user override exactly as configured."""
+        return str(self.runtime.window.core.config.get(config_key, "") or "").strip()
 
     def _configured_main_prompt(self, default_prompt: str, config_key: str) -> str:
         """Return a user override when configured, otherwise the built-in prompt."""
@@ -158,7 +130,6 @@ class RuntimePromptBuilder:
         return self.compose_agent_system_prompt(
             base_prompt=custom or default_prompt,
             include_project_rules=True,
-            apply_step_by_step=not bool(custom),
             inject_workflow_policy=not bool(custom),
         )
 
@@ -185,14 +156,9 @@ class RuntimePromptBuilder:
         custom = getattr(self.runtime, "agent_definition", None)
         if custom is not None:
             base = str(custom.get("system_prompt") or "").strip()
-            if bool(getattr(self.runtime, "step_by_step_enabled", False)):
-                step_prompt = str(custom.get("step_by_step_prompt") or "").strip()
-                if step_prompt:
-                    base = (base + "\n\n" + step_prompt).strip() if base else step_prompt
             return self.compose_agent_system_prompt(
                 base_prompt=base,
                 include_project_rules=True,
-                apply_step_by_step=False,
                 inject_workflow_policy=False,
             )
 

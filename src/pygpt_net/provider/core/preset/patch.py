@@ -33,6 +33,40 @@ class Patch:
     def __init__(self, window=None):
         self.window = window
 
+    def _remove_codeact_2_8_23(self, version: Version) -> bool:
+        """Remove the retired CodeAct preset/provider references from user data."""
+        target = parse_version("2.8.23")
+        if version < target:
+            return False
+
+        migrated = False
+        preset_path = os.path.join(
+            self.window.core.config.get_user_dir("presets"),
+            "agent_code_act.json",
+        )
+        if os.path.exists(preset_path):
+            os.remove(preset_path)
+            migrated = True
+            print("Removed retired preset: {}.".format(preset_path))
+            self.window.core.presets.load()
+
+        # Old presets from several modes may still carry the LlamaIndex fallback
+        # provider even when that field is not used by their primary mode. Keep
+        # every such preset valid after CodeAct is unregistered.
+        changed_refs = False
+        for preset_id, item in list((self.window.core.presets.items or {}).items()):
+            if getattr(item, "agent_provider", None) != "code_act":
+                continue
+            item.agent_provider = "react"
+            self.window.core.presets.save(preset_id)
+            changed_refs = True
+            migrated = True
+
+        if changed_refs:
+            self.window.core.presets.load()
+
+        return migrated
+
     def _replace_agent_v2_presets_2_8_23(self, version: Version) -> bool:
         """Replace all built-in Agents v2 presets once for the 2.8.23 migration."""
         target = parse_version("2.8.23")
@@ -86,6 +120,11 @@ class Patch:
         """
         patcher = PatchBefore2_6_42(self.window)  # old patches (< 2.6.42) moved here
         migrated = patcher.execute(version)
+
+        # 2.8.23 retires CodeAct completely. Remove its user preset and
+        # migrate stale fallback references before refreshing Agents v2 presets.
+        if self._remove_codeact_2_8_23(version):
+            migrated = True
 
         # 2.8.23 intentionally replaces all built-in Agents v2 preset files,
         # including copies customized by the user before this upgrade.

@@ -17,6 +17,7 @@ from PySide6.QtGui import QTextCursor, QTextBlockFormat, QTextCharFormat
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.text.mentions import to_display_text as mentions_to_display_text
+from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
@@ -272,6 +273,11 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         :param footer: True if it is a footer
         """
+        # Do not expose Agents v2 artifacts/footer actions during the final stream.
+        # They are attached and rendered after AGENT_V2_END commits the response.
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return
+
         pid = self.get_or_create_pid(meta)
         node = self.get_output_node(meta)
         appended = []
