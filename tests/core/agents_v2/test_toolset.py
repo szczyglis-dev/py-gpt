@@ -63,8 +63,9 @@ def test_primary_agent_tools_expose_normal_tools_and_single_delegate_bridge(monk
 
     tools = RuntimeToolset(runtime).primary_agent_tools()
 
-    assert names(tools) == ["local:primary", "delegate_task"]
-    assert tools[-1].async_fn is runtime.delegate_task
+    assert names(tools) == ["local:primary", "delegate_task", "workflow_status"]
+    assert tools[-2].async_fn is runtime.delegate_task
+    assert tools[-1].async_fn is runtime.set_status
     runtime.tool_factory.build_orchestrator.assert_called_once_with("primary")
 
 

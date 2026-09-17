@@ -392,5 +392,5 @@ def test_agent_builder_registry_contains_only_flow_node_types_and_expected_limit
 def test_agent_builder_lang_mappings():
     tool, _ = _builder()
     assert tool.get_lang_mappings() == {
-        "menu.text": {"tools.agent.builder": "menu.tools.agent.builder"}
+        "menu.text": {"tools.agent.builder": "menu.tools.agent.builder.legacy"}
     }

@@ -39,7 +39,7 @@ def make_runtime(definition=None, step_by_step=False):
     return runtime
 
 
-def test_agents_v2_profiles_custom_prompt_uses_independent_system_and_steps():
+def test_agents_v2_profiles_custom_prompt_uses_single_system_prompt():
     runtime = make_runtime({
         "id": "custom-id",
         "name": "Research lead",
@@ -49,12 +49,13 @@ def test_agents_v2_profiles_custom_prompt_uses_independent_system_and_steps():
 
     prompt = RuntimePromptBuilder(runtime).main_agent_prompt()
 
-    assert prompt.startswith("Custom system\n\nCustom steps")
+    assert prompt.startswith("Custom system\n\n<runtime_capabilities>")
+    assert "Custom steps" not in prompt
     assert "agent_profile=custom-id" in prompt
     assert "agent_mode=orchestrator" in prompt
 
 
-def test_agents_v2_profiles_custom_prompt_does_not_add_steps_when_disabled():
+def test_agents_v2_profiles_legacy_step_field_is_ignored():
     runtime = make_runtime({
         "id": "custom-id",
         "name": "Research lead",

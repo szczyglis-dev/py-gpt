@@ -6,10 +6,8 @@ from pygpt_net.core.agents_v2.mode import AgentMode
 from pygpt_net.core.agents_v2.prompts import (
     CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
     CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
-    CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY,
     CUSTOM_SWARM_PROMPT_CONFIG_KEY,
     ORCHESTRATOR_BASE_PROMPT,
-    STEP_BY_STEP_RULES,
 )
 
 
@@ -58,13 +56,11 @@ def test_agents_v2_editor_filters_and_normalizes_custom_rows():
             "id": "a1",
             "name": "First",
             "system_prompt": "123",
-            "step_by_step_prompt": "",
         },
         {
             "id": "a2",
             "name": "",
             "system_prompt": "",
-            "step_by_step_prompt": " steps ",
         },
     ]
 
@@ -107,14 +103,13 @@ def test_agents_v2_editor_resolves_builtin_custom_and_unknown_selection():
 def test_agents_v2_editor_editable_values_read_builtin_overrides():
     editor, _ = make_editor({
         CUSTOM_PRIMARY_PROMPT_CONFIG_KEY: "primary override",
-        CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY: "shared steps",
     })
 
     row = editor.editable_values("chat")
 
     assert row["built_in"] is True
     assert row["system_prompt"] == "primary override"
-    assert row["step_by_step_prompt"] == "shared steps"
+    assert "step_by_step_prompt" not in row
     assert editor.editable_values("missing") is None
 
 
@@ -127,13 +122,13 @@ def test_agents_v2_editor_create_save_and_delete_custom_agent():
     assert agent_id == "uuid-1"
     assert config.values[CUSTOM_AGENTS_CONFIG_KEY][0]["name"] == "My agent"
 
-    assert editor.save(agent_id, " Renamed ", "system", "steps") is True
+    assert editor.save(agent_id, " Renamed ", "system") is True
     row = editor.get(agent_id)
     assert row["name"] == "Renamed"
     assert row["system_prompt"] == "system"
-    assert row["step_by_step_prompt"] == "steps"
+    assert "step_by_step_prompt" not in row
 
-    assert editor.save("missing", "x", "y", "z") is False
+    assert editor.save("missing", "x", "y") is False
     assert editor.delete("chat") is False
     assert editor.delete("missing") is False
     assert editor.delete(agent_id) is True
@@ -143,18 +138,17 @@ def test_agents_v2_editor_create_save_and_delete_custom_agent():
 def test_agents_v2_editor_builtin_save_uses_legacy_prompt_keys():
     editor, config = make_editor()
 
-    assert editor.save("chat", "ignored name", "primary", "steps") is True
-    assert editor.save("orchestrator", "ignored name", "orch", "steps2") is True
-    assert editor.save("swarm", "ignored name", "swarm", "steps3") is True
+    assert editor.save("chat", "ignored name", "primary") is True
+    assert editor.save("orchestrator", "ignored name", "orch") is True
+    assert editor.save("swarm", "ignored name", "swarm") is True
 
     assert (CUSTOM_PRIMARY_PROMPT_CONFIG_KEY, "primary") in config.set_calls
     assert (CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY, "orch") in config.set_calls
     assert (CUSTOM_SWARM_PROMPT_CONFIG_KEY, "swarm") in config.set_calls
-    assert config.values[CUSTOM_STEP_BY_STEP_PROMPT_CONFIG_KEY] == "steps3"
 
 
 def test_agents_v2_editor_default_prompts_cover_custom_workflows():
     editor, _ = make_editor()
 
     assert editor.get_default_main_prompt("custom") == str(ORCHESTRATOR_BASE_PROMPT)
-    assert editor.get_default_step_by_step_prompt("custom") == str(STEP_BY_STEP_RULES)
+    assert "# Step-by-step execution" in editor.get_default_main_prompt("custom")

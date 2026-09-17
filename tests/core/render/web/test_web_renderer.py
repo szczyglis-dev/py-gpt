@@ -347,7 +347,7 @@ class TestRenderer:
         renderer._stream_reset.assert_called_once_with(1)
         renderer.update_names.assert_called_once_with(meta, ctx)
         assert node.page().runJavaScript.call_args_list == [
-            call("if (typeof window.hideLoading !== 'undefined') hideLoading();"),
+            call("if (typeof window.hideLoading !== 'undefined') hideLoading(false);"),
             call(
                 "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
                 "if (typeof window.beginStream !== 'undefined') beginStream(true);"

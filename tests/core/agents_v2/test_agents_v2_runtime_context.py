@@ -35,6 +35,13 @@ def bare_runtime():
     runtime.verbose_text = MagicMock()
     runtime._actor_llms = {}
     runtime.workers = {}
+    runtime._artifact_seen = {
+        "files": set(), "images": set(), "urls": set(), "attachments": set()
+    }
+    runtime._artifact_delivery_seen = set()
+    runtime._pending_artifacts = {
+        "files": [], "images": [], "urls": [], "attachments": []
+    }
     runtime.context_api = RuntimeContext(runtime)
     runtime.artifact_api = RuntimeArtifacts(runtime)
     return runtime
@@ -340,7 +347,7 @@ def test_agents_v2_runtime_build_agent_uses_react_for_non_function_calling_model
     assert "allow_parallel_tool_calls" not in captured
 
 
-def test_agents_v2_runtime_collect_artifacts_merges_only_new_durable_values():
+def test_agents_v2_runtime_collect_artifacts_stages_non_file_values_for_final_delivery():
     runtime = bare_runtime()
     main = SimpleNamespace(files=["existing"], images=[], urls=[], attachments=[])
     runtime.context.ctx = main
@@ -364,12 +371,18 @@ def test_agents_v2_runtime_collect_artifacts_merges_only_new_durable_values():
 
     runtime.collect_artifacts(source, worker)
 
-    assert main.files == ["existing", "new.txt"]
-    assert main.images == ["img.png"]
-    assert main.urls == ["https://example.com"]
+    assert main.files == ["existing"]
+    assert main.images == []
+    assert main.urls == []
     assert not hasattr(main, "results")
-    assert worker.artifacts["files"] == ["new.txt"]
-    runtime.window.core.ctx.update_item.assert_called_once_with(main)
+    assert worker.artifacts["files"] == []
+    assert worker.artifacts["images"] == ["img.png"]
+    assert worker.artifacts["urls"] == ["https://example.com"]
+    assert runtime.pending_artifacts() == {
+        "images": ["img.png"],
+        "urls": ["https://example.com"],
+    }
+    runtime.window.core.ctx.update_item.assert_not_called()
 
 
 def test_agents_v2_runtime_collect_llm_artifacts_deduplicates_provider_urls():
@@ -384,7 +397,10 @@ def test_agents_v2_runtime_collect_llm_artifacts_deduplicates_provider_urls():
     runtime.collect_llm_artifacts(llm)
 
     assert tool_ctx.urls == ["https://old", "https://new"]
-    assert main.urls == ["https://old", "https://new"]
+    assert main.urls == []
+    assert runtime.pending_artifacts() == {
+        "urls": ["https://old", "https://new"],
+    }
 
 
 def test_agents_v2_project_rules_loads_agents_md_from_active_context_workdir(tmp_path):

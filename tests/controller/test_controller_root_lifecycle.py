@@ -10,7 +10,7 @@ def _bare_controller():
     controller.reloading = False
 
     for name in (
-        "debug", "kernel", "chat", "layout", "ui", "lang", "assistant",
+        "debug", "kernel", "chat", "layout", "ui", "lang", "agent_workflow", "assistant",
         "remote_store", "agent", "agents_v2", "tools", "ctx", "presets", "idx",
         "dialogs", "audio", "attachment", "camera", "access", "realtime",
         "media", "settings", "plugins", "model", "launcher", "calendar",
@@ -42,6 +42,7 @@ def test_controller_setup_calls_all_primary_components():
     controller.ui.setup.assert_called_once_with()
     controller.ui.tabs.setup.assert_called_once_with()
     controller.lang.setup.assert_called_once_with()
+    controller.agent_workflow.setup.assert_called_once_with()
     controller.assistant.setup.assert_called_once_with()
     controller.remote_store.setup.assert_called_once_with()
     controller.chat.setup.assert_called_once_with()

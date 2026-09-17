@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import pytest
 from unittest.mock import MagicMock
 
-from pygpt_net.core.agents.tools import Tools, PluginToolMetadata, CodeExecutor
+from pygpt_net.core.agents.tools import Tools, PluginToolMetadata
 
 @pytest.fixture
 def fake_window():
@@ -142,31 +142,36 @@ def test_get_plugin_specs(tools_instance, fake_context):
     assert any("get_context" in spec for spec in specs)
     assert any("test_function" in spec for spec in specs)
 
-def test_last_tool_output_methods(tools_instance):
-    assert tools_instance.get_last_tool_output() == {}
-    tools_instance.last_tool_output = {"dummy": 123}
-    assert tools_instance.get_last_tool_output() == {"dummy": 123}
-    assert tools_instance.has_last_tool_output() is True
-    tools_instance.clear_last_tool_output()
-    assert tools_instance.get_last_tool_output() == {}
-    assert tools_instance.has_last_tool_output() is False
+def test_runtime_state_setters(tools_instance, fake_context):
+    runtime = object()
 
-def test_append_tool_outputs(tools_instance, fake_window):
-    sample_output = {"code": {"output": {"content": "sample content"}}}
-    tools_instance.last_tool_output = sample_output
-    fake_ctx = SimpleNamespace(extra={})
-    tools_instance.append_tool_outputs(fake_ctx, clear=True)
-    assert fake_ctx.extra.get("tool_output") == [sample_output]
-    fake_window.core.filesystem.parser.extract_data_files.assert_called_with(fake_ctx, "sample content")
-    assert tools_instance.last_tool_output is None
+    tools_instance.set_idx("idx-1")
+    tools_instance.set_context(fake_context)
+    tools_instance.set_computer_runtime(runtime)
 
-def test_extract_tool_outputs(tools_instance, fake_window):
-    sample_output = {"code": {"output": {"content": "extracted content"}}}
-    tools_instance.last_tool_output = sample_output
-    fake_ctx = SimpleNamespace(extra={})
-    tools_instance.extract_tool_outputs(fake_ctx, clear=True)
-    fake_window.core.filesystem.parser.extract_data_files.assert_called_with(fake_ctx, "extracted content")
-    assert tools_instance.last_tool_output is None
+    assert tools_instance.agent_idx == "idx-1"
+    assert tools_instance.context is fake_context
+    assert tools_instance.computer_runtime is runtime
+
+
+def test_export_sources(tools_instance):
+    source = SimpleNamespace(
+        content="content",
+        tool_name="tool",
+        raw_input={"x": 1},
+        raw_output={"y": 2},
+    )
+    response = SimpleNamespace(sources=[source])
+
+    assert tools_instance.export_sources(response) == [{
+        "ToolOutput": {
+            "content": "content",
+            "tool_name": "tool",
+            "raw_input": "{'x': 1}",
+            "raw_output": "{'y': 2}",
+        }
+    }]
+
 
 def test_log(tools_instance, fake_window):
     tools_instance.verbose = True
@@ -186,31 +191,3 @@ def test_plugin_tool_metadata_get_parameters_dict():
     assert "properties" in params
     assert "required" in params
     assert "extra" not in params
-
-def test_code_executor_restart(fake_window):
-    executor = CodeExecutor(window=fake_window)
-    output = executor.execute("/restart")
-    assert output == (
-        "IPython kernel restart request completed. Do not restart it again unless a later "
-        "execution reports a real kernel failure."
-    )
-
-def test_code_executor_execute(fake_window):
-    def fake_dispatch(event):
-        event.ctx.bag = {
-            "code": {
-                "input": {"content": "dummy input"},
-                "output": {"content": "dummy output"}
-            },
-            "plugin": "dummy plugin",
-            "result": "dummy result"
-        }
-    fake_window.controller.command.dispatch_only.side_effect = fake_dispatch
-    executor = CodeExecutor(window=fake_window)
-    output = executor.execute("print('hello')")
-    assert output == "dummy output"
-    tool_output = fake_window.core.agents.tools.last_tool_output
-    assert tool_output is not None
-    assert tool_output.get("cmd") == "ipython_execute"
-    inner_output = tool_output.get("code", {}).get("output", {}).get("content")
-    assert inner_output == "dummy output"
