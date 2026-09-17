@@ -26,7 +26,7 @@
     },
     "experts": [],
     "idx": "_",
-    "agent_provider": "code_act",
+    "agent_provider": "react",
     "agent_provider_openai": "openai_agent_experts",
     "agent_v2_allow_local_tools": true,
     "agent_v2_allow_remote_tools": true,

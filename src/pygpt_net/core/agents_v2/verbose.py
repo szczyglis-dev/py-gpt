@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 11:00:00                  #
+# Updated Date: 2026.09.17 23:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -230,17 +230,52 @@ class AgentsV2VerboseLogger:
             *,
             text: bool = False,
     ):
-        """Feed the live Agent Workflow UI independently of debug logging flags."""
+        """Feed Agent Workflow only while a tab is visible or its dialog is open.
+
+        With no UI consumer, keep only a tiny run boundary and final marker.
+        This avoids serializing large prompts/tool payloads and building the
+        monitor timeline in the background, while preventing stale run state
+        if the tool is opened later.
+        """
         try:
-            if str(event or "").strip().upper() not in self._agent_workflow_events:
+            name = str(event or "").strip().upper()
+            if name not in self._agent_workflow_events:
                 return
             core = getattr(self.window, "core", None)
             workflow = getattr(core, "agent_workflow", None)
             if workflow is None:
                 return
+
+            controller = getattr(getattr(self.window, "controller", None), "agent_workflow", None)
+            is_visible = getattr(controller, "is_visible", None)
+            has_consumer = bool(is_visible()) if callable(is_visible) else True
+            if not has_consumer:
+                if name == "RUNTIME INIT":
+                    # RUNTIME INIT also carries large shared/system contexts. The
+                    # live monitor needs only these small fields to identify a run.
+                    payload = {
+                        key: self._data_get(data, key)
+                        for key in ("agent_mode", "agent_name", "model", "provider", "preset")
+                    }
+                    workflow.ingest(
+                        name,
+                        payload,
+                        actor=actor,
+                        run_id=self.run_id,
+                    )
+                elif name == "RUNNER FINALIZE END":
+                    # Freeze the root timer/status without retaining final text.
+                    workflow.ingest(
+                        name,
+                        None,
+                        actor=actor,
+                        run_id=self.run_id,
+                    )
+                return
+
             payload = str(data or "") if text else self._safe_value(data)
             workflow.ingest(
-                event,
+                name,
                 payload,
                 actor=actor,
                 run_id=self.run_id,

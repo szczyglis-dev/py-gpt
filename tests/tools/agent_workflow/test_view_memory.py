@@ -20,6 +20,7 @@ def test_controller_coalesces_worker_burst(monkeypatch):
     monkeypatch.setattr(_bridge, 'safe_emit', emit)
     controller = SimpleNamespace(
         _publish_lock=threading.Lock(), _publish_pending=False, signals=object(),
+        is_visible=lambda: True,
     )
     threads = [threading.Thread(target=lambda: [AgentWorkflow.publish(controller) for _ in range(100)])
                for _ in range(4)]
@@ -32,6 +33,21 @@ def test_controller_coalesces_worker_burst(monkeypatch):
     assert emit.call_args.args == (controller.signals, 'changed', None)
     AgentWorkflow.publish(controller)
     assert emit.call_count == 3
+
+
+def test_controller_skips_publish_when_workflow_is_hidden(monkeypatch):
+    emit = MagicMock()
+    monkeypatch.setattr(_bridge, 'safe_emit', emit)
+    controller = SimpleNamespace(
+        _publish_lock=threading.Lock(), _publish_pending=False, signals=object(),
+        is_visible=MagicMock(return_value=False),
+    )
+
+    AgentWorkflow.publish(controller)
+
+    controller.is_visible.assert_called_once_with()
+    emit.assert_not_called()
+    assert not controller._publish_pending
 
 
 def make_view():

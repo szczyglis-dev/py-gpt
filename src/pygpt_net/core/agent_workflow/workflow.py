@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 18:05:00                  #
+# Updated Date: 2026.09.17 23:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -145,6 +145,9 @@ class AgentWorkflow:
         if controller is None:
             return
         try:
+            is_visible = getattr(controller, "is_visible", None)
+            if callable(is_visible) and not is_visible():
+                return
             controller.publish()
         except Exception:
             pass

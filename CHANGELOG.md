@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.8.23 (2026-09-17)
+
+- Improved and extended Agents workflows.
+- Extended and condensed Agents instructions.
+- Added the Agent Workflow tool with real-time workflow preview, available as a dialog or tab.
+- Fixed auto-scroll and scroll-follow issues.
+- Optimized memory usage in the Python interpreter.
+- Improved CSS and UI layout.
+
 ## 2.8.22 (2026-09-16)
 
 - Reorganized Context settings into **General**, **Tools**, and **Advanced handling**.
