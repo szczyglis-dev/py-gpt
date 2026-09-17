@@ -919,6 +919,20 @@ class Patch:
             if old < parse_version("2.8.23"):
                 print("Migrating config from < 2.8.23...")
 
+                # Set the Python Code Interpreter window history limit to 10
+                # entries for every upgraded profile, replacing any saved value.
+                plugins = data.get("plugins")
+                if not isinstance(plugins, dict):
+                    plugins = {}
+                    data["plugins"] = plugins
+                interpreter = plugins.get("cmd_code_interpreter")
+                if not isinstance(interpreter, dict):
+                    interpreter = {}
+                    plugins["cmd_code_interpreter"] = interpreter
+                if interpreter.get("output_max_entries") != 10:
+                    interpreter["output_max_entries"] = 10
+                    updated = True
+
                 # Built-in Chat with Agents prompts were rewritten in 2.8.23.
                 # Drop every saved built-in override unconditionally so upgraded
                 # profiles use the new canonical prompts, even if the user
