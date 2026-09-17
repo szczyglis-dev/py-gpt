@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.13 15:14:00                  #
+# Updated Date: 2026.09.17 17:42:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -51,6 +51,7 @@ class RuntimeTimeline:
             "tool": tool,
             "call_id": str(call_id or ""),
         }, actor=actor)
+        self.runtime._provider_tool_activity_seen.add(actor)
 
         if actor != "orchestrator":
             worker = self.runtime.workers.get(actor)

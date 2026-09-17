@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 15:58:00                  #
+# Updated Date: 2026.09.17 18:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from __future__ import annotations
 import copy
 import json
 import threading
+import time
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 
@@ -46,6 +47,10 @@ class AgentWorkflow:
     @staticmethod
     def _time() -> str:
         return datetime.now().strftime("%H:%M:%S")
+
+    @staticmethod
+    def _now_ms() -> int:
+        return int(time.time() * 1000)
 
     @staticmethod
     def _text(value: Any) -> str:
@@ -162,6 +167,9 @@ class AgentWorkflow:
                 "role": role,
                 "status": "created",
                 "turn": 1 if agent_id == self.ROOT_ID else 0,
+                "elapsed_ms": 0,
+                "active_since_ms": None,
+                "ended_at_ms": None,
                 "details": {
                     "system_prompt": "",
                     "input": "",
@@ -183,6 +191,38 @@ class AgentWorkflow:
         self._register_alias(agent_id, agent_id)
         self._register_alias(agent.get("name"), agent_id)
         return agent
+
+    def _start_timer(self, agent: Dict[str, Any]):
+        """Start or resume one agent wall-clock timer."""
+        if agent.get("active_since_ms") is None:
+            agent["active_since_ms"] = self._now_ms()
+        agent["ended_at_ms"] = None
+
+    def _stop_timer(self, agent: Dict[str, Any]):
+        """Freeze one agent timer while preserving elapsed time across reruns."""
+        now = self._now_ms()
+        active_since = agent.get("active_since_ms")
+        if active_since is not None:
+            try:
+                delta = max(0, now - int(active_since))
+            except (TypeError, ValueError):
+                delta = 0
+            try:
+                elapsed = max(0, int(agent.get("elapsed_ms") or 0))
+            except (TypeError, ValueError):
+                elapsed = 0
+            agent["elapsed_ms"] = elapsed + delta
+            agent["active_since_ms"] = None
+            agent["ended_at_ms"] = now
+        elif agent.get("ended_at_ms") is None:
+            agent["ended_at_ms"] = now
+
+    def _sync_timer(self, agent: Dict[str, Any], status: str):
+        state = str(status or "").strip().lower()
+        if state == "running":
+            self._start_timer(agent)
+        elif state in {"completed", "failed", "stopped", "removed", "cancelled"}:
+            self._stop_timer(agent)
 
     def _begin_run(self, run_id: str, data: Any):
         self._event_seq = 0
@@ -207,6 +247,7 @@ class AgentWorkflow:
         root = self._ensure_agent(self.ROOT_ID, root_name, parent_id=None, role=role)
         root["status"] = "running"
         root["turn"] = 1
+        self._start_timer(root)
         root["details"]["description"] = str(self._get(data, "agent_mode", default="") or "")
         self._register_alias(root_name, self.ROOT_ID)
         self._register_alias("Primary Agent", self.ROOT_ID)
@@ -336,6 +377,7 @@ class AgentWorkflow:
                 if root is not None:
                     root["details"]["input"] = self._text(data)
                     root["status"] = "running"
+                    self._start_timer(root)
                 self._add_event(self.ROOT_ID, "running", "running_task")
                 changed = True
 
@@ -398,6 +440,7 @@ class AgentWorkflow:
                 pending = self._pending_agents.pop(worker_name, {})
                 worker = self._ensure_agent(worker_id, worker_name, parent_id=self.ROOT_ID, role="worker")
                 worker["status"] = str(self._get(data, "status", default="created") or "created")
+                self._sync_timer(worker, worker["status"])
                 worker["turn"] = int(self._get(data, "generation", default=worker.get("turn", 0)) or 0)
                 details = worker["details"]
                 details["instruction"] = self._text(pending.get("instruction", details.get("instruction", "")))
@@ -415,6 +458,7 @@ class AgentWorkflow:
             elif name == "AGENT RUNNING":
                 worker = self._ensure_agent(actor_id, str(self._get(data, "name", default=actor_id) or actor_id), self.ROOT_ID)
                 worker["status"] = "running"
+                self._start_timer(worker)
                 generation = int(self._get(data, "generation", default=worker.get("turn", 0) or 1) or 1)
                 worker["turn"] = max(1, generation)
                 task = self._text(self._get(data, "current_task", default=""))
@@ -430,19 +474,21 @@ class AgentWorkflow:
 
             elif name in {"WORKER STATUS", "WORKFLOW STATUS", "PRIMARY AGENT STATUS", "ORCHESTRATOR STATUS", "SWARM STATUS"}:
                 status = self._get(data, "progress", "status", default="")
+                agent = self._ensure_actor(actor_id, self.ROOT_ID if actor_id != self.ROOT_ID else None)
+                state = str(self._get(data, "state", default="") or "").strip().lower()
+                if state:
+                    agent["status"] = state
+                    self._sync_timer(agent, state)
+                generation = self._get(data, "generation", default=None)
+                if generation not in (None, ""):
+                    try:
+                        agent["turn"] = max(1, int(generation))
+                    except (TypeError, ValueError):
+                        pass
                 if status:
-                    agent = self._ensure_actor(actor_id, self.ROOT_ID if actor_id != self.ROOT_ID else None)
-                    state = str(self._get(data, "state", default="") or "").strip().lower()
-                    if state:
-                        agent["status"] = state
-                    generation = self._get(data, "generation", default=None)
-                    if generation not in (None, ""):
-                        try:
-                            agent["turn"] = max(1, int(generation))
-                        except (TypeError, ValueError):
-                            pass
                     kind = "completed" if state == "completed" else ("failed" if state == "failed" else "status")
                     self._add_event(actor_id, kind, self._text(status), turn=max(1, int(agent.get("turn") or 1)))
+                if status or state:
                     changed = True
 
             elif name in {"TOOL CALL", "LOCAL TOOL CALL", "LOCAL TOOL REQUEST"}:
@@ -499,6 +545,7 @@ class AgentWorkflow:
             elif name in {"WORKER ERROR", "AGENT FAILED"}:
                 agent = self._ensure_actor(actor_id, self.ROOT_ID)
                 agent["status"] = "failed"
+                self._stop_timer(agent)
                 message = self._text(self._get(data, "error", default=data))
                 self._add_event(actor_id, "failed", message or "failed")
                 changed = True
@@ -506,12 +553,14 @@ class AgentWorkflow:
             elif name in {"WORKER CANCELLED", "AGENT STOPPED"}:
                 agent = self._ensure_actor(actor_id, self.ROOT_ID)
                 agent["status"] = "stopped"
+                self._stop_timer(agent)
                 self._add_event(actor_id, "stopped", "stopped")
                 changed = True
 
             elif name in {"AGENT REMOVED"}:
                 agent = self._ensure_actor(actor_id, self.ROOT_ID)
                 agent["status"] = "removed"
+                self._stop_timer(agent)
                 self._add_event(actor_id, "stopped", "removed")
                 changed = True
 
@@ -522,6 +571,7 @@ class AgentWorkflow:
             elif name in {"PRIMARY AGENT FINAL TEXT", "ORCHESTRATOR FINAL TEXT", "FINAL ANSWER", "RUNNER FINALIZE END"}:
                 if root is not None:
                     root["status"] = "completed"
+                    self._stop_timer(root)
                 if name == "RUNNER FINALIZE END":
                     self._add_event(self.ROOT_ID, "completed", "completed")
                 changed = True

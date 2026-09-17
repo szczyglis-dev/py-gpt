@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.15 15:20:00                  #
+# Updated Date: 2026.09.17 17:42:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -305,11 +305,15 @@ class RuntimeContext:
                 return "Completion accepted. Now return the final result, evidence and any limitations as normal text."
             tools.append(FunctionTool.from_defaults(async_fn=task_complete, name="task_complete"))
         system_prompt += (
-            "\n\nRuntime completion contract: ordinary text is an intermediate checkpoint. "
-            f"Continue using tools until the assignment is resolved; call {completion_tool} before the final response. "
+            "\n\nRuntime completion contract: if this run can be answered directly without any tool, delegation, "
+            "or workflow activity, return that answer once as the final response; do not create an artificial checkpoint "
+            f"and do not call {completion_tool} merely to end ordinary conversation or another self-contained answer. "
+            "If the assignment requires tools or continued execution, do not end the first model pass with a prose-only plan: "
+            "start the required tool/delegation/workflow activity in that same pass. A standalone tool-free response is treated as final. "
+            "Once any tool/delegation/workflow activity has started in this run, ordinary prose is an intermediate checkpoint: "
+            f"continue until the assignment is resolved, then call {completion_tool} before the final response. "
             "For task_complete supply outcome (completed, blocked, needs_input) and evidence (actual verification or blocker). "
-            "Simple conversational answers need no artificial work or tests. A genuine blocker or necessary question "
-            "may end the assignment with an honest explanation; never claim unperformed work."
+            "A genuine blocker or necessary question may end the assignment with an honest explanation; never claim unperformed work."
         )
         kwargs = {
             "name": name,
@@ -352,6 +356,20 @@ class RuntimeContext:
         )
         agent = cls(**kwargs)
         agent._completion_tool = completion_tool
+        # Every Agents v2 agent run may finish on its first tool-free response.
+        # Once local or provider-native tool activity occurs, the normal runtime
+        # completion gate remains mandatory for the rest of that run.
+        actor_id = "orchestrator" if is_main else next(
+            (key for key, value in self.runtime._actor_llms.items() if value is llm),
+            str(name),
+        )
+        agent._allow_direct_completion = True
+        agent._direct_completion_reset = (
+            lambda actor_id=actor_id: self.runtime.reset_actor_provider_tool_activity(actor_id)
+        )
+        agent._direct_completion_check = (
+            lambda actor_id=actor_id: not self.runtime.actor_provider_tool_activity_seen(actor_id)
+        )
         if is_main and self.runtime.is_swarm_mode:
             agent._receive_messages = lambda: self.runtime.worker_api.receive_messages("orchestrator")
         if managed:

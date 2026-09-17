@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 15:58:00                  #
+# Updated Date: 2026.09.17 18:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -137,6 +137,32 @@ function wfToggleAgent(card) {{
 function wfState(value) {{
     const key = 'state_' + String(value || '').toLowerCase();
     return WF_LABELS[key] || String(value || '');
+}}
+function wfDuration(ms) {{
+    let total = Math.max(0, Math.floor(Number(ms || 0) / 1000));
+    const hours = Math.floor(total / 3600);
+    total -= hours * 3600;
+    const minutes = Math.floor(total / 60);
+    const seconds = total - minutes * 60;
+    const parts = [];
+    if (hours > 0) parts.push(hours + 'h');
+    if (minutes > 0) parts.push(minutes + 'm');
+    if (seconds > 0 || parts.length === 0) parts.push(seconds + 's');
+    return parts.join(' ');
+}}
+function wfTimerElapsed(timer, now) {{
+    const base = Math.max(0, Number(timer.getAttribute('data-elapsed-ms') || 0));
+    const activeSince = Number(timer.getAttribute('data-active-since-ms') || 0);
+    if (!activeSince) return base;
+    return base + Math.max(0, Number(now || Date.now()) - activeSince);
+}}
+function wfUpdateTimer(timer, now) {{
+    if (!timer) return;
+    timer.textContent = wfDuration(wfTimerElapsed(timer, now));
+}}
+function wfUpdateTimers() {{
+    const now = Date.now();
+    document.querySelectorAll('.agent-elapsed').forEach(timer => wfUpdateTimer(timer, now));
 }}
 function wfTryParseJson(value) {{
     if (typeof value !== 'string') return {{ok: false, value: value}};
@@ -288,6 +314,15 @@ function wfRenderAgent(snapshot, id, openAgents, openTools, openCreates, collaps
         title.appendChild(wfEl('span', 'agent-id', '(' + id + ')'));
     }}
     if (agent.status) title.appendChild(wfEl('span', 'agent-status agent-status-' + agent.status, wfState(agent.status)));
+    const elapsedMs = Math.max(0, Number(agent.elapsed_ms || 0));
+    const activeSinceMs = Math.max(0, Number(agent.active_since_ms || 0));
+    if (elapsedMs > 0 || activeSinceMs > 0) {{
+        const timer = wfEl('span', 'agent-elapsed');
+        timer.setAttribute('data-elapsed-ms', String(elapsedMs));
+        timer.setAttribute('data-active-since-ms', String(activeSinceMs));
+        wfUpdateTimer(timer, Date.now());
+        title.appendChild(timer);
+    }}
     header.appendChild(title);
     title.addEventListener('click', () => wfToggleAgent(card));
     title.addEventListener('keydown', (event) => {{
@@ -374,8 +409,10 @@ function renderWorkflow(snapshot) {{
     }}
     const tree = wfRenderAgent(snapshot, rootId, openAgents, openTools, openCreates, collapsedAgents);
     if (tree) root.appendChild(tree);
+    wfUpdateTimers();
     if (follow) requestAnimationFrame(wfScrollBottom);
 }}
+setInterval(wfUpdateTimers, 1000);
 </script>
 </body>
 </html>""".replace("%theme%", str(self.window.controller.theme.common.normalize_theme(self.window.core.config.get("theme")) or "dark"))

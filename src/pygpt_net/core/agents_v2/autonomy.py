@@ -21,6 +21,10 @@ class AutonomousAgentMixin(BaseModel):
     _completion_check: Optional[Callable[[], bool]] = PrivateAttr(default=None)
     _receive_messages: Optional[Callable[[], str]] = PrivateAttr(default=None)
     _completion_tool: str = PrivateAttr(default="task_complete")
+    _allow_direct_completion: bool = PrivateAttr(default=False)
+    _direct_completion_check: Optional[Callable[[], bool]] = PrivateAttr(default=None)
+    _direct_completion_reset: Optional[Callable[[], None]] = PrivateAttr(default=None)
+    _tool_activity_seen: bool = PrivateAttr(default=False)
     _iteration_limit_reached: bool = PrivateAttr(default=False)
 
     def run(self, *args, **kwargs):
@@ -29,7 +33,10 @@ class AutonomousAgentMixin(BaseModel):
         self._stalled = False
         self._completion_outcome = ""
         self._completion_requested = False
+        self._tool_activity_seen = False
         self._iteration_limit_reached = False
+        if self._direct_completion_reset is not None:
+            self._direct_completion_reset()
         return super().run(*args, **kwargs)
 
     async def take_step(self, ctx, llm_input, tools, memory):
@@ -51,6 +58,19 @@ class AutonomousAgentMixin(BaseModel):
         complete = self._completion_requested
         if self._completion_check is not None:
             complete = self._completion_check()
+        direct_complete = False
+        if (
+                self._allow_direct_completion
+                and not self._tool_activity_seen
+                and not ev.tool_calls
+                and not ev.retry_messages
+        ):
+            direct_complete = (
+                self._direct_completion_check()
+                if self._direct_completion_check is not None
+                else True
+            )
+        complete = bool(complete or direct_complete)
         if complete and not ev.tool_calls and not ev.retry_messages and self._iteration_limit_reached:
             # The already generated, approved final response needs no further
             # model work. Let upstream persist it instead of generating a second
@@ -62,6 +82,7 @@ class AutonomousAgentMixin(BaseModel):
             finally:
                 await ctx.store.set("max_iterations", limit)
         if ev.tool_calls:
+            self._tool_activity_seen = True
             self._last_checkpoint = ""
             self._repeated_checkpoints = 0
         elif not ev.retry_messages and not complete:

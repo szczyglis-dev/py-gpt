@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.17 17:42:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -169,6 +169,10 @@ class AgentsV2Runtime:
         self._primary_stream_current = ""
         self._primary_stream_completed: List[str] = []
         self._primary_tool_activity_seen = False
+        # Provider-native hosted tools bypass LlamaIndex ToolCall events. Track
+        # them per actor/run so direct tool-free completion is safe for main
+        # agents, workers, delegated specialists and Expert runtimes alike.
+        self._provider_tool_activity_seen = set()
         self._persisted_tool_tasks = {}
         # Workers keep their own agent Memory strictly in RAM. For persistence
         # we only remember which orchestrator partial launched the current worker
@@ -389,6 +393,15 @@ class AgentsV2Runtime:
             call_id: str = "",
     ):
         return self.timeline.note_provider_tool_activity(tool_name, actor, call_id)
+
+    def reset_actor_provider_tool_activity(self, actor: str):
+        actor = str(actor or "orchestrator")
+        self._provider_tool_activity_seen.discard(actor)
+        if actor == "orchestrator":
+            self._primary_tool_activity_seen = False
+
+    def actor_provider_tool_activity_seen(self, actor: str) -> bool:
+        return str(actor or "orchestrator") in self._provider_tool_activity_seen
 
     def primary_stream_final_output(self) -> str:
         return self.timeline.primary_stream_final_output()

@@ -70,6 +70,14 @@ body.theme-light {
     opacity: .82;
     white-space: nowrap;
 }
+.agent-elapsed {
+    color: var(--wf-muted);
+    font-size: 14px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    opacity: .72;
+    white-space: nowrap;
+}
 .agent-status, .tool-state {
     font-size: 11px;
     line-height: 18px;
