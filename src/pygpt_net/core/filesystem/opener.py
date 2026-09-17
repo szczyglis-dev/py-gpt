@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.25 18:00:00                  #
+# Updated Date: 2026.09.17 10:50:00                  #
 # ================================================== #
 
 import os
@@ -223,6 +223,38 @@ class Opener:
         return False
 
     @staticmethod
+    def _linux_default_app(path: str):
+        """Return the registered desktop handler for a local file.
+
+        ``None`` means the association could not be queried (for example when
+        xdg-mime is unavailable). An empty string means it was queried
+        successfully and there is no registered application.
+        """
+        if not shutil.which("xdg-mime"):
+            return None
+        try:
+            mime_result = subprocess.run(
+                ["xdg-mime", "query", "filetype", path],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                check=False,
+            )
+            mime = (mime_result.stdout or "").strip()
+            if not mime:
+                return None
+            app_result = subprocess.run(
+                ["xdg-mime", "query", "default", mime],
+                capture_output=True,
+                text=True,
+                timeout=2,
+                check=False,
+            )
+            return (app_result.stdout or "").strip()
+        except Exception:
+            return None
+
+    @staticmethod
     def _open_dir_linux(path: str) -> bool:
         """
         Open directory in default file manager
@@ -251,11 +283,25 @@ class Opener:
     @staticmethod
     def _open_file_linux(path: str) -> bool:
         """
-        Open file with default application
+        Open file with default application. If Linux has no MIME association,
+        reveal the file in the file manager instead of dispatching a dead gio
+        request that only prints "no application is registered".
 
         :param path: Path to file
         :return: True if successful, False otherwise
         """
+        default_app = Opener._linux_default_app(path)
+        if default_app == "":
+            if Opener._reveal_linux(path):
+                return True
+            return Opener._open_dir_linux(os.path.dirname(path) or "/")
+
         if QDesktopServices.openUrl(QUrl.fromLocalFile(path)):
             return True
-        return Opener._open_with_cli_linux(path)
+        if Opener._open_with_cli_linux(path):
+            return True
+
+        # Last-resort fallback for broken/missing desktop associations.
+        if Opener._reveal_linux(path):
+            return True
+        return Opener._open_dir_linux(os.path.dirname(path) or "/")

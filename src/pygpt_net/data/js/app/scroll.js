@@ -4,13 +4,22 @@
 
 class ScrollManager {
 
-	// Scroll management
 	constructor(cfg, dom, raf) {
 		this.cfg = cfg;
 		this.dom = dom;
 		this.raf = raf;
+
+		// Page scrolling has one owner at a time:
+		// FOLLOW - layout changes keep the viewport at the real physical bottom.
+		// MANUAL - user owns the viewport and DOM growth never moves it.
 		this.autoFollow = true;
 		this.userInteracted = false;
+		this.manualResumeCandidate = false;
+		this.manualResumeTimer = 0;
+		this.manualResumeSeq = 0;
+		this.userScrollDirection = 0;
+		this.pointerScrollActive = false;
+
 		this.lastScrollTop = 0;
 		this.prevScroll = 0;
 		this.currentFabAction = 'none';
@@ -19,89 +28,487 @@ class ScrollManager {
 		this.scrollFabUpdateScheduled = false;
 		this.scrollRAF = 0;
 		this.scrollFabRAF = 0;
+
+		// Programmatic page movement must never be interpreted as user intent.
+		this.programmaticScrollPending = false;
+		this.programmaticScrollTarget = null;
+
+		// The real fix for streaming layout changes. ResizeObserver runs after
+		// layout and before paint, so FOLLOW can be corrected to the *actual*
+		// document bottom without a visible one-frame jump. This also catches
+		// async extras/images/Markdown that change height outside the token path.
+		this.contentObserver = null;
+		this.contentObserverTarget = null;
+		this.contentObserverActive = false;
+
+		// Hybrid message virtualization. Only old/finalized history is allowed to
+		// use content-visibility:auto. The exact content-box height is measured
+		// first and stored as contain-intrinsic-block-size fallback, so virtualizing
+		// history does not change the physical document bottom.
+		this.messageSizeObserver = null;
+		this.messageVirtualObserved = new Set();
+		this.messageVirtualRefreshScheduled = false;
 	}
 
-	// Is page near the bottom by given margin?
+	_cancelScheduledPageScroll() {
+		try { this.raf.cancel('SM:scroll'); } catch (_) {}
+		this.scrollScheduled = false;
+	}
+
+	_clearManualResume() {
+		this.manualResumeCandidate = false;
+		this.manualResumeSeq += 1;
+		if (this.manualResumeTimer) {
+			clearTimeout(this.manualResumeTimer);
+			this.manualResumeTimer = 0;
+		}
+	}
+
+	_maxScrollTop() {
+		const el = Utils.SE;
+		return Math.max(0, el.scrollHeight - el.clientHeight);
+	}
+
+	// Set the viewport to the real bottom synchronously. Reading scrollHeight
+	// forces current layout, so this never uses a stale/estimated target.
+	_syncToPhysicalBottom(force = false) {
+		if (!force && this.autoFollow !== true) return false;
+		if (!force && this.pointerScrollActive) return false;
+
+		const el = Utils.SE;
+		const target = this._maxScrollTop();
+		const current = Number(el.scrollTop || 0);
+		this.prevScroll = el.scrollHeight;
+
+		if (Math.abs(current - target) <= 0.5) {
+			this.lastScrollTop = current;
+			return false;
+		}
+
+		this.markProgrammaticScroll(target);
+		try { el.scrollTop = target; } catch (_) {
+			try { el.scrollTo({ top: target, behavior: 'instant' }); } catch (__) {}
+		}
+		this.lastScrollTop = Number(el.scrollTop || target);
+		this.prevScroll = el.scrollHeight;
+		return true;
+	}
+
+	// Public hook used after known geometry-changing operations (notably extra
+	// links). ResizeObserver is still the authoritative async fallback.
+	syncBottomNowIfFollowing() {
+		if (this.autoFollow !== true) return false;
+		const moved = this._syncToPhysicalBottom(false);
+		this.scheduleScrollFabUpdate();
+		return moved;
+	}
+
+	installContentObserver(target = null) {
+		this.disconnectContentObserver();
+		const host = target || this.dom.get('container');
+		if (!host || typeof ResizeObserver === 'undefined') return false;
+
+		try {
+			this.contentObserver = new ResizeObserver(() => {
+				if (this.autoFollow === true && !this.pointerScrollActive) {
+					this._syncToPhysicalBottom(false);
+				}
+				this.scheduleScrollFabUpdate();
+			});
+			this.contentObserver.observe(host);
+			this.contentObserverTarget = host;
+			this.contentObserverActive = true;
+			return true;
+		} catch (_) {
+			this.contentObserver = null;
+			this.contentObserverTarget = null;
+			this.contentObserverActive = false;
+			return false;
+		}
+	}
+
+	disconnectContentObserver() {
+		if (this.contentObserver) {
+			try { this.contentObserver.disconnect(); } catch (_) {}
+		}
+		this.contentObserver = null;
+		this.contentObserverTarget = null;
+		this.contentObserverActive = false;
+	}
+
+
+	_messageVirtualRoot() {
+		return this.dom.get('_nodes_');
+	}
+
+	_topLevelBotMessages() {
+		const root = this._messageVirtualRoot();
+		if (!root) return [];
+		let nodes = [];
+		try { nodes = Array.from(root.querySelectorAll('.msg-box.msg-bot')); } catch (_) { return []; }
+		return nodes.filter((box) => {
+			if (!box || !box.isConnected) return false;
+			// Tool groups may contain nested .msg-bot rows. Virtualize only the
+			// outer message/group box; nesting content-visibility containers makes
+			// intrinsic-size accounting unnecessarily fragile.
+			try {
+				const parentBot = box.parentElement && box.parentElement.closest
+					? box.parentElement.closest('.msg-box.msg-bot') : null;
+				if (parentBot) return false;
+			} catch (_) {}
+			return true;
+		});
+	}
+
+	_isLiveMessageBox(box) {
+		if (!box || !box.isConnected) return false;
+		try {
+			if (box.closest('#_append_output_, #_append_output_before_')) return true;
+			if (box.classList.contains('msg-live')) return true;
+			if (box.querySelector('[data-live-part="1"], [data-_active_stream="1"]')) return true;
+		} catch (_) {}
+		return false;
+	}
+
+	_measureMessageContentHeight(box, entry = null) {
+		if (!box || !box.isConnected) return 0;
+		try {
+			if (entry) {
+				const cbs = entry.contentBoxSize;
+				if (cbs) {
+					const item = Array.isArray(cbs) ? cbs[0] : cbs;
+					const block = item && Number(item.blockSize);
+					if (Number.isFinite(block) && block > 0) return block;
+				}
+				const cr = entry.contentRect;
+				const eh = cr && Number(cr.height);
+				if (Number.isFinite(eh) && eh > 0) return eh;
+			}
+
+			// getBoundingClientRect() is border-box. Convert it to the content-box
+			// size expected by contain-intrinsic-block-size.
+			const rect = box.getBoundingClientRect();
+			let h = Number(rect.height || 0);
+			const cs = getComputedStyle(box);
+			const n = (v) => Number.parseFloat(v || '0') || 0;
+			h -= n(cs.paddingTop) + n(cs.paddingBottom) + n(cs.borderTopWidth) + n(cs.borderBottomWidth);
+			return Number.isFinite(h) ? Math.max(1, h) : 0;
+		} catch (_) {
+			return 0;
+		}
+	}
+
+	_storeMessageVirtualHeight(box, height) {
+		const h = Number(height || 0);
+		if (!box || !Number.isFinite(h) || h <= 0) return false;
+		// Round only to hundredths; integer rounding can accumulate visible error
+		// over hundreds of virtualized messages.
+		const value = Math.max(1, Math.round(h * 100) / 100);
+		try {
+			box.style.setProperty('--pygpt-msg-virtual-height', `${value}px`);
+			box.dataset.pygptVirtualHeight = String(value);
+			return true;
+		} catch (_) {
+			return false;
+		}
+	}
+
+	_captureMessageVirtualHeight(box) {
+		return this._storeMessageVirtualHeight(box, this._measureMessageContentHeight(box));
+	}
+
+	_installMessageSizeObserver() {
+		if (this.messageSizeObserver || typeof ResizeObserver === 'undefined') return;
+		try {
+			this.messageSizeObserver = new ResizeObserver((entries) => {
+				for (const entry of entries || []) {
+					const box = entry && entry.target;
+					if (!box || !box.isConnected) continue;
+					if (this._isLiveMessageBox(box)) {
+						box.classList.remove('msg-virtualized');
+						continue;
+					}
+					const h = this._measureMessageContentHeight(box, entry);
+					if (h > 0) this._storeMessageVirtualHeight(box, h);
+				}
+			});
+		} catch (_) {
+			this.messageSizeObserver = null;
+		}
+	}
+
+	_observeVirtualMessage(box) {
+		if (!box || !box.isConnected) return;
+		this._installMessageSizeObserver();
+		if (!this.messageSizeObserver || this.messageVirtualObserved.has(box)) return;
+		try {
+			this.messageSizeObserver.observe(box);
+			this.messageVirtualObserved.add(box);
+		} catch (_) {}
+	}
+
+	_virtualizeMessageBox(box) {
+		if (!box || !box.isConnected || this._isLiveMessageBox(box)) return;
+		this._observeVirtualMessage(box);
+		if (!box.dataset.pygptVirtualHeight) this._captureMessageVirtualHeight(box);
+		try { box.classList.add('msg-virtualized'); } catch (_) {}
+	}
+
+	_devirtualizeMessageBox(box) {
+		if (!box) return;
+		try { box.classList.remove('msg-virtualized'); } catch (_) {}
+	}
+
+	refreshMessageVirtualization() {
+		this.messageVirtualRefreshScheduled = false;
+		const boxes = this._topLevelBotMessages();
+		if (!boxes.length) return;
+		const keep = Math.max(1, Number((this.cfg.UI && this.cfg.UI.MESSAGE_VIRTUAL_KEEP_RECENT) || 2) | 0);
+		const realFrom = Math.max(0, boxes.length - keep);
+		const toReal = [];
+		const toVirtual = [];
+
+		for (let i = 0; i < boxes.length; i++) {
+			const box = boxes[i];
+			this._observeVirtualMessage(box);
+			if (i >= realFrom || this._isLiveMessageBox(box)) toReal.push(box);
+			else toVirtual.push(box);
+		}
+
+		// Phase 1: make the recent/live tail real. This is normally a no-op; when
+		// a context changes, doing all class removals together avoids interleaving
+		// layout writes with the height reads below.
+		for (const box of toReal) this._devirtualizeMessageBox(box);
+
+		// Phase 2: collect every required geometry read before writing CSS/classes.
+		// On a huge initial history load this prevents N forced reflow cycles.
+		const measured = [];
+		for (const box of toReal) {
+			const h = this._measureMessageContentHeight(box);
+			if (h > 0) measured.push([box, h]);
+		}
+		for (const box of toVirtual) {
+			if (box.dataset.pygptVirtualHeight) continue;
+			const h = this._measureMessageContentHeight(box);
+			if (h > 0) measured.push([box, h]);
+		}
+
+		// Phase 3: writes only. Old rows now have an exact fallback before
+		// content-visibility:auto is enabled.
+		for (const [box, h] of measured) this._storeMessageVirtualHeight(box, h);
+		for (const box of toVirtual) {
+			if (box.dataset.pygptVirtualHeight) {
+				try { box.classList.add('msg-virtualized'); } catch (_) {}
+			}
+		}
+
+		// Avoid retaining removed DOM nodes in the bookkeeping Set.
+		for (const box of Array.from(this.messageVirtualObserved)) {
+			if (box && box.isConnected) continue;
+			try { if (this.messageSizeObserver) this.messageSizeObserver.unobserve(box); } catch (_) {}
+			this.messageVirtualObserved.delete(box);
+		}
+	}
+
+	scheduleMessageVirtualizationRefresh() {
+		if (this.messageVirtualRefreshScheduled) return;
+		this.messageVirtualRefreshScheduled = true;
+		this.raf.schedule('SM:virtualizeMessages', () => {
+			this.refreshMessageVirtualization();
+		}, 'ScrollManager', 2);
+	}
+
+	beginMessageMutation(box) {
+		if (!box) return;
+		try {
+			if (box.classList.contains('msg-virtualized')) {
+				box.dataset.pygptRevirtualize = '1';
+				box.classList.remove('msg-virtualized');
+			}
+		} catch (_) {}
+	}
+
+	endMessageMutation(box) {
+		if (!box) return;
+		this._captureMessageVirtualHeight(box);
+		try { delete box.dataset.pygptRevirtualize; } catch (_) {}
+		this.scheduleMessageVirtualizationRefresh();
+	}
+
+	disconnectMessageVirtualization() {
+		if (this.messageSizeObserver) {
+			try { this.messageSizeObserver.disconnect(); } catch (_) {}
+		}
+		this.messageSizeObserver = null;
+		this.messageVirtualObserved.clear();
+		this.messageVirtualRefreshScheduled = false;
+		try { this.raf.cancel('SM:virtualizeMessages'); } catch (_) {}
+	}
+
+	suspendAutoFollow() {
+		this._cancelScheduledPageScroll();
+		this._clearManualResume();
+		this.autoFollow = false;
+		this.userInteracted = true;
+		this.userScrollDirection = -1;
+	}
+
+	resumeAutoFollow(snapToBottom = true) {
+		this._clearManualResume();
+		this.autoFollow = true;
+		this.userInteracted = false;
+		this.userScrollDirection = 0;
+		if (snapToBottom) this._syncToPhysicalBottom(true);
+		this.scheduleScrollFabUpdate();
+	}
+
+	noteUserScroll(deltaY = 0) {
+		const dir = deltaY < 0 ? -1 : (deltaY > 0 ? 1 : 0);
+		if (dir < 0) {
+			this.suspendAutoFollow();
+			return;
+		}
+		if (dir > 0 && !this.autoFollow) {
+			this._cancelScheduledPageScroll();
+			this.userInteracted = true;
+			this.userScrollDirection = 1;
+			if (this.isAtBottom()) this.armManualResume();
+		}
+	}
+
+	noteObservedUserScroll(deltaTop = 0) {
+		if (deltaTop < -0.5) {
+			this.suspendAutoFollow();
+			return;
+		}
+		if (deltaTop > 0.5 && !this.autoFollow) {
+			this._cancelScheduledPageScroll();
+			this.userInteracted = true;
+			this.userScrollDirection = 1;
+			if (this.isAtBottom()) this.armManualResume();
+			else this._clearManualResume();
+		}
+	}
+
+	armManualResume(delayMs = 90) {
+		if (this.autoFollow || this.userScrollDirection < 0) return;
+		this.manualResumeCandidate = true;
+		const seq = ++this.manualResumeSeq;
+		if (this.manualResumeTimer) clearTimeout(this.manualResumeTimer);
+		this.manualResumeTimer = setTimeout(() => {
+			this.manualResumeTimer = 0;
+			if (seq !== this.manualResumeSeq) return;
+			if (!this.manualResumeCandidate || this.autoFollow) return;
+			if (this.userScrollDirection < 0) return;
+			if (this.pointerScrollActive) {
+				this.armManualResume(delayMs);
+				return;
+			}
+			this.resumeAutoFollow(true);
+		}, Math.max(0, delayMs | 0));
+	}
+
+	setPointerScrollActive(active) {
+		this.pointerScrollActive = !!active;
+		if (this.pointerScrollActive) return;
+		if (this.manualResumeCandidate && !this.autoFollow) {
+			this.armManualResume(0);
+			return;
+		}
+		// Content may have grown while the scrollbar thumb was held. If the user
+		// never left FOLLOW, catch up exactly once after releasing it.
+		if (this.autoFollow) this._syncToPhysicalBottom(false);
+	}
+
+	markProgrammaticScroll(targetTop = null) {
+		this.programmaticScrollPending = true;
+		this.programmaticScrollTarget = Number.isFinite(targetTop) ? targetTop : null;
+	}
+
+	isProgrammaticScroll(top) {
+		if (!this.programmaticScrollPending) return false;
+		const target = this.programmaticScrollTarget;
+		const match = target == null || Math.abs(Number(top || 0) - target) <= 4;
+		this.programmaticScrollPending = false;
+		this.programmaticScrollTarget = null;
+		return match;
+	}
+
+	isUserScrollingUp() {
+		return !this.autoFollow && this.userScrollDirection < 0;
+	}
+
+	shouldFollowOnStreamStart() {
+		return this.autoFollow === true;
+	}
+
 	isNearBottom(marginPx = 100) {
 		const el = Utils.SE;
-		const distance = el.scrollHeight - el.clientHeight - el.scrollTop;
-		return distance <= marginPx;
+		return (el.scrollHeight - el.clientHeight - el.scrollTop) <= marginPx;
 	}
 
-	// Schedule a page scroll to bottom if auto-follow allows it.
-	scheduleScroll(live = false) {
-		if (live === true && this.autoFollow !== true) return;
+	isAtBottom() {
+		const el = Utils.SE;
+		const distance = el.scrollHeight - el.clientHeight - el.scrollTop;
+		const threshold = Math.max(1, Math.min(Number(this.cfg.UI.AUTO_FOLLOW_REENABLE_PX || 2), 2));
+		return distance <= threshold;
+	}
+
+	// Live calls become geometry notifications while ResizeObserver is active.
+	// There is no token-by-token rAF scroll anymore.
+	scheduleScroll(live = false, force = false) {
+		if (!force && this.autoFollow !== true) return;
+
+		if (this.contentObserverActive) {
+			if (force || live === false) this._syncToPhysicalBottom(!!force);
+			this.scheduleScrollFabUpdate();
+			return;
+		}
+
+		// Fallback for engines without ResizeObserver.
 		if (this.scrollScheduled) return;
 		this.scrollScheduled = true;
 		this.raf.schedule('SM:scroll', () => {
 			this.scrollScheduled = false;
-			this.scrollToBottom(live);
+			this.scrollToBottom(live, force);
 			this.scheduleScrollFabUpdate();
 		}, 'ScrollManager', 1);
 	}
 
-	// Cancel any pending page scroll.
 	cancelPendingScroll() {
-		try {
-			this.raf.cancelGroup('ScrollManager');
-		} catch (_) {}
+		try { this.raf.cancelGroup('ScrollManager'); } catch (_) {}
 		this.scrollScheduled = false;
 		this.scrollFabUpdateScheduled = false;
 		this.scrollRAF = 0;
 		this.scrollFabRAF = 0;
+		this.programmaticScrollPending = false;
+		this.programmaticScrollTarget = null;
+		this.messageVirtualRefreshScheduled = false;
 	}
 
-	// Jump to bottom immediately (no smooth behavior).
 	forceScrollToBottomImmediate() {
-		const el = Utils.SE;
-		el.scrollTop = el.scrollHeight;
-		this.prevScroll = el.scrollHeight;
+		this._syncToPhysicalBottom(true);
 	}
 
-	// Jump to bottom immediately (no smooth behavior).
 	forceScrollToBottomImmediateAtEnd() {
-	    if (this.userInteracted === true || !this.isNearBottom(200)) return;
-		const el = Utils.SE;
-		setTimeout(() => {
-            el.scrollTo({
-                top: el.scrollHeight,
-                behavior: 'instant'
-            });
-            this.lastScrollTop = el.scrollTop;
-		    this.prevScroll = el.scrollHeight;
-        }, 100);
+		if (!this.autoFollow) return;
+		this._syncToPhysicalBottom(false);
+		this.scheduleScrollFabUpdate();
 	}
 
-	// Scroll window to bottom based on auto-follow and margins.
 	scrollToBottom(live = false, force = false) {
-		const el = Utils.SE;
-		const marginPx = this.cfg.UI.SCROLL_NEAR_MARGIN_PX;
-		const behavior = 'instant';
-		const h = el.scrollHeight;
-		if (live === true && this.autoFollow !== true) {
-			this.prevScroll = h;
+		if (!force && this.autoFollow !== true) {
+			this.prevScroll = Utils.SE.scrollHeight;
 			return;
 		}
-		if ((live === true && this.userInteracted === false) || this.isNearBottom(marginPx) || live === false || force) {
-			try {
-				el.scrollTo({
-					top: h,
-					behavior
-				});
-			} catch (_) {
-				el.scrollTop = h;
-			}
-		}
-		this.prevScroll = el.scrollHeight;
+		this._syncToPhysicalBottom(!!force);
 	}
 
-	// Check if window has vertical scroll bar.
 	hasVerticalScroll() {
 		const el = Utils.SE;
 		return (el.scrollHeight - el.clientHeight) > 1;
 	}
 
-	// Compute the current FAB action (none/up/down).
 	computeFabAction() {
 		const el = Utils.SE;
 		const h = el.scrollHeight;
@@ -114,7 +521,6 @@ class ScrollManager {
 		return 'none';
 	}
 
-	// Update FAB to show correct direction and label.
 	updateScrollFab(force = false, actionOverride = null, bypassFreeze = false) {
 		const btn = this.dom.get('scrollFab');
 		const icon = this.dom.get('scrollFabIcon');
@@ -135,13 +541,13 @@ class ScrollManager {
 					icon.src = this.cfg.ICONS.COLLAPSE;
 					icon.dataset.dir = 'up';
 				}
-				btn.title = "Go to top";
+				btn.title = 'Go to top';
 			} else {
 				if (icon.dataset.dir !== 'down') {
 					icon.src = this.cfg.ICONS.EXPAND;
 					icon.dataset.dir = 'down';
 				}
-				btn.title = "Go to bottom";
+				btn.title = 'Go to bottom';
 			}
 			btn.setAttribute('aria-label', btn.title);
 			this.currentFabAction = action;
@@ -149,7 +555,6 @@ class ScrollManager {
 		} else if (!btn.classList.contains('visible')) btn.classList.add('visible');
 	}
 
-	// Schedule a FAB state refresh.
 	scheduleScrollFabUpdate() {
 		if (this.scrollFabUpdateScheduled) return;
 		this.scrollFabUpdateScheduled = true;
@@ -160,50 +565,22 @@ class ScrollManager {
 		}, 'ScrollManager', 2);
 	}
 
-	// If user is near bottom, enable auto-follow again.
 	maybeEnableAutoFollowByProximity() {
-		const el = Utils.SE;
-		if (!this.autoFollow) {
-			const dist = el.scrollHeight - el.clientHeight - el.scrollTop;
-			if (dist <= this.cfg.UI.AUTO_FOLLOW_REENABLE_PX) this.autoFollow = true;
-		}
+		if (!this.autoFollow && this.manualResumeCandidate) this.armManualResume();
 	}
 
-	// User-triggered scroll to top; disables auto-follow.
 	scrollToTopUser() {
-		this.userInteracted = true;
-		this.autoFollow = false;
-		try {
-			const el = Utils.SE;
-			el.scrollTo({
-				top: 0,
-				behavior: 'instant'
-			});
-			this.lastScrollTop = el.scrollTop;
-		} catch (_) {
-			const el = Utils.SE;
-			el.scrollTop = 0;
-			this.lastScrollTop = 0;
+		this.suspendAutoFollow();
+		const el = Utils.SE;
+		this.markProgrammaticScroll(0);
+		try { el.scrollTop = 0; } catch (_) {
+			try { el.scrollTo({ top: 0, behavior: 'instant' }); } catch (__) {}
 		}
+		this.lastScrollTop = Number(el.scrollTop || 0);
 	}
 
-	// User-triggered scroll to bottom; may re-enable auto-follow if near bottom.
 	scrollToBottomUser() {
-		this.userInteracted = true;
-		this.autoFollow = false;
-		try {
-			const el = Utils.SE;
-			el.scrollTo({
-				top: el.scrollHeight,
-				behavior: 'instant'
-			});
-			this.lastScrollTop = el.scrollTop;
-		} catch (_) {
-			const el = Utils.SE;
-			el.scrollTop = el.scrollHeight;
-			this.lastScrollTop = el.scrollTop;
-		}
-		this.maybeEnableAutoFollowByProximity();
+		this.resumeAutoFollow(true);
 	}
 }
 

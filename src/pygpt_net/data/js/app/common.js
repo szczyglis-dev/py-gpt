@@ -16,16 +16,23 @@ class Loading {
 		}
 		const el = this.dom.get('_loader_');
 		if (!el) return;
-		if (el.classList.contains('hidden')) el.classList.remove('hidden');
+		el.classList.remove('hidden', 'reserved');
 		el.classList.add('visible');
 	}
 
-	// Hide loader element.
-	hide() {
+	// Hide loader. When reserveSpace is true, keep its layout box so transient
+	// agent/tool activity cannot change document height and move the viewport.
+	hide(reserveSpace = false) {
 		const el = this.dom.get('_loader_');
 		if (!el) return;
-		if (el.classList.contains('visible')) el.classList.remove('visible');
-		el.classList.add('hidden');
+		el.classList.remove('visible');
+		if (reserveSpace) {
+			el.classList.remove('hidden');
+			el.classList.add('reserved');
+		} else {
+			el.classList.remove('reserved');
+			el.classList.add('hidden');
+		}
 	}
 }
 

@@ -24,12 +24,18 @@ class UIManager {
 		style = document.createElement('style');
 		style.id = 'code-sticky-style';
 		style.textContent = [
+			// ScrollManager remains the only owner of viewport position. Native browser
+			// anchoring is disabled; measured message virtualization is allowed because
+			// it preserves each old row's exact intrinsic block size.
+			'html, body { scroll-behavior: auto !important; overflow-anchor: none !important; }',
+			'#container, #container * { overflow-anchor: none !important; }',
 			'.code-wrapper { position: relative; }',
 			'.code-wrapper .code-header-wrapper { position: sticky; top: var(--code-header-sticky-top, -2px); z-index: 2; box-shadow: 0 1px 0 rgba(0,0,0,.06); }',
 			'.code-wrapper pre { overflow: visible; margin-top: 0; }',
 			'.code-wrapper pre code { display: block; white-space: pre; max-height: 100dvh; overflow: auto;',
 			'  overscroll-behavior: contain; -webkit-overflow-scrolling: touch; overflow-anchor: none; scrollbar-gutter: stable both-edges; scroll-behavior: auto; }',
 			'#_loader_.hidden { display: none !important; visibility: hidden !important; }',
+			'#_loader_.reserved { display: block !important; visibility: hidden !important; pointer-events: none !important; }',
 			'#_loader_.visible { display: block; visibility: visible; }',
 
 			/* User message collapse (uc-*)

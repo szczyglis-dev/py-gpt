@@ -56,6 +56,7 @@ class StreamEngine {
 		this.suppressPostFinalizePass = false;
 
 		this._promoteScheduled = false;
+		this._promoteTimer = 0;
 
 		// Ensure first fence-open is materialized immediately when stream starts with code.
 		this._firstCodeOpenSnapDone = false;
@@ -652,6 +653,10 @@ class StreamEngine {
 		this.activeCode = null;
 		this.suppressPostFinalizePass = false;
 		this._promoteScheduled = false;
+		if (this._promoteTimer) {
+			clearTimeout(this._promoteTimer);
+			this._promoteTimer = 0;
+		}
 		this._firstCodeOpenSnapDone = false;
 
 		this._lastInjectedEOL = false;
@@ -1760,14 +1765,34 @@ class StreamEngine {
 	}
 
 	// Schedule a background task to promote tail (move some tail to frozen).
+	// The visible code still updates during streaming, but no more often than the
+	// configured live-highlight cadence (300 ms by default).
 	schedulePromoteTail(force = false) {
 		if (!this.activeCode || !this.activeCode.tailEl) return;
 		if (this.activeCode.plainStream === true) return;
+
+		const throttle = Math.max(0, Number((this.cfg.HL && this.cfg.HL.STREAM_THROTTLE_MS) || 300) || 0);
+		if (!force && throttle > 0) {
+			const last = Number(this.activeCode.lastPromoteTs || 0);
+			const wait = Math.max(0, throttle - (Utils.now() - last));
+			if (wait > 0) {
+				if (!this._promoteTimer) {
+					this._promoteTimer = setTimeout(() => {
+						this._promoteTimer = 0;
+						this.schedulePromoteTail(false);
+					}, wait);
+				}
+				return;
+			}
+		}
+
+		if (force && this._promoteTimer) {
+			clearTimeout(this._promoteTimer);
+			this._promoteTimer = 0;
+		}
 		if (this._promoteScheduled) return;
 		this._promoteScheduled = true;
-		this._d('code.promote.schedule', {
-			force
-		});
+		this._d('code.promote.schedule', { force, throttle });
 		this.raf.schedule('SE:promoteTail', () => {
 			this._promoteScheduled = false;
 			this._promoteTailWork(force);
@@ -2663,17 +2688,26 @@ class StreamEngine {
 		this._d('stream.begin', {
 			chunk
 		});
-		// Hide loading spinner if this call corresponds to first chunk.
+		const follow = this.scrollMgr.shouldFollowOnStreamStart();
+		// A visible final stream replaces the reserved request-loader slot. Hidden
+		// reasoning keeps the loader/placeholder alive until real response text.
 		if (chunk) {
-		    try {
-		        runtime.loading.hide();
-		    } catch (_) {}
+			try {
+				runtime.loading.hide(false);
+			} catch (_) {}
 		}
-		this.scrollMgr.userInteracted = false;
 		this.dom.clearOutput();
 		this.reset();
-		this.scrollMgr.forceScrollToBottomImmediate();
-		this.scrollMgr.scheduleScroll();
+
+		if (follow) {
+			// Establish FOLLOW once. Native bottom anchoring keeps the viewport pinned
+			// during subsequent DOM growth without per-token JS scroll corrections.
+			this.scrollMgr.resumeAutoFollow(true);
+		} else {
+			// Keep the user's current viewport stable while new content grows below.
+			this.scrollMgr.suspendAutoFollow();
+			this.scrollMgr.scheduleScrollFabUpdate();
+		}
 	}
 
 	// Finish the stream: render final snapshot, finalize code, flush highlighting, and clean up.
@@ -2707,6 +2741,10 @@ class StreamEngine {
 		try {
 			this.raf.cancelGroup('ScrollMgr');
 		} catch (_) {}
+		if (this._promoteTimer) {
+			clearTimeout(this._promoteTimer);
+			this._promoteTimer = 0;
+		}
 
 		this.snapshotRAF = 0;
 

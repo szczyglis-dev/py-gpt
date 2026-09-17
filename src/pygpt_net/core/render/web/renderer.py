@@ -213,6 +213,7 @@ class Renderer(BaseRenderer):
         # restore it when the page finishes loading. Reasoning-only chunks do
         # not count as visible activity when live reasoning is disabled.
         self._loading_visible: dict[int, bool] = {}
+        self._loading_reserved: dict[int, bool] = {}
 
         # Track <think> boundaries independently for every live stream so the
         # request spinner can stay visible while hidden reasoning is arriving.
@@ -239,6 +240,7 @@ class Renderer(BaseRenderer):
         """Prepare renderer"""
         self.pids = {}
         self._loading_visible = {}
+        self._loading_reserved = {}
         self._reasoning_activity_state = {}
         self._workflow_statuses = {}
         self._workflow_status_seq = 0
@@ -300,6 +302,13 @@ class Renderer(BaseRenderer):
             try:
                 node.page().runJavaScript(
                     "if (typeof window.showLoading !== 'undefined') showLoading();"
+                )
+            except Exception:
+                pass
+        elif self._loading_reserved.get(pid, False):
+            try:
+                node.page().runJavaScript(
+                    "if (typeof window.hideLoading !== 'undefined') hideLoading(true);"
                 )
             except Exception:
                 pass
@@ -408,6 +417,7 @@ class Renderer(BaseRenderer):
                 pid = self.get_pid(meta)
                 if pid is not None:
                     self._loading_visible[pid] = True
+                    self._loading_reserved[pid] = False
                     node = self.get_output_node_by_pid(pid)
                     try:
                         node.page().runJavaScript(
@@ -428,6 +438,7 @@ class Renderer(BaseRenderer):
 
             for pid in target_pids:
                 self._loading_visible[pid] = False
+                self._loading_reserved[pid] = False
                 if state == RenderEvent.STATE_ERROR:
                     # Error/interruption history may intentionally retain the
                     # last workflow row. Stop its shimmer when the request is no
@@ -970,7 +981,11 @@ class Renderer(BaseRenderer):
                 str(text_chunk),
             )
         if has_response_activity:
-            self._hide_loading_on_activity(meta, pid=pid)
+            self._hide_loading_on_activity(
+                meta,
+                pid=pid,
+                reserve_space=False,
+            )
 
         if begin:
             # JS beginStream() recreates the transient stream container. Pass
@@ -1234,6 +1249,7 @@ class Renderer(BaseRenderer):
         self._stream_reset(pid)
         self._partial_stream_reset(pid)
         self._loading_visible[pid] = False
+        self._loading_reserved[pid] = False
         pctx = self.pids[pid]
         pctx.item = ctx
         try:
@@ -1290,19 +1306,27 @@ class Renderer(BaseRenderer):
             self,
             meta: Optional[CtxMeta],
             pid: Optional[int] = None,
+            reserve_space: bool = True,
     ) -> None:
-        """Hide the request spinner after the first real model/tool activity."""
+        """Hide request spinner while optionally preserving its layout slot.
+
+        Intermediate agent/tool/partial activity keeps the slot reserved so the
+        WebView height cannot jump. The main/final response releases it.
+        """
         if pid is None and meta is not None:
             pid = self.get_or_create_pid(meta)
         if pid is None:
             return
         self._loading_visible[pid] = False
+        self._loading_reserved[pid] = bool(reserve_space)
         node = self.get_output_node_by_pid(pid)
         if node is None:
             return
         try:
+            reserve_js = "true" if reserve_space else "false"
             node.page().runJavaScript(
-                "if (typeof window.hideLoading !== 'undefined') hideLoading();"
+                "if (typeof window.hideLoading !== 'undefined') "
+                f"hideLoading({reserve_js});"
             )
         except Exception:
             pass
@@ -2676,6 +2700,7 @@ class Renderer(BaseRenderer):
         self._stream_header.pop(pid, None)
         self._stream_last_flush.pop(pid, None)
         self._loading_visible.pop(pid, None)
+        self._loading_reserved.pop(pid, None)
 
     def on_js_ready(self, pid: int) -> None:
         """

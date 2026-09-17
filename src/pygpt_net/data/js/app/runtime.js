@@ -135,6 +135,7 @@ class Runtime {
 			return;
 		}
 		if (t === 'final_reset') {
+			try { this.loading.hide(false); } catch (_) {}
 			// Keep the already materialized durable CtxItem and clear only the
 			// transient global stream/status area. Final prose will be appended via
 			// appendPartialStream() into the same msg-bot element.
@@ -195,7 +196,7 @@ class Runtime {
 			finalizeActive: false,
 			forceHeavy: true
 		});
-		this.scrollMgr.scheduleScroll();
+		this.scrollMgr.scheduleScroll(true);
 	};
 
 	// API: clear streaming output area entirely.
@@ -517,7 +518,7 @@ class Runtime {
 		// active and is appended after the previous text/tool/status segment.
 		this.api_freezeWorkflowStatus(parentId);
 		this._setWorkflowStatus(parentId, statusId, 'agent', value, true);
-		this.scrollMgr.scheduleScroll();
+		this.scrollMgr.scheduleScroll(true);
 	};
 
 	api_clearAgentStatus = (parentId = null) => {
@@ -548,7 +549,7 @@ class Runtime {
 
 		this.api_freezeWorkflowStatus(parentId);
 		this._setWorkflowStatus(parentId, statusId, 'tool', this._toolStatusLabel(values), true);
-		this.scrollMgr.scheduleScroll();
+		this.scrollMgr.scheduleScroll(true);
 	};
 
 	api_clearToolStatus = (parentId = null, immediate = true) => {
@@ -630,11 +631,9 @@ class Runtime {
 	api_appendToInput = (payload) => {
 		this.nodes.appendToInput(payload);
 
-		// Ensure initial auto-follow is ON for the next stream that will start right after user input.
-		// Rationale: previously, if the user had scrolled up, autoFollow could remain false and the
-		// live stream would not follow even though we just sent a new input.
-		this.scrollMgr.autoFollow = true; // explicitly re-enable page auto-follow
-		this.scrollMgr.userInteracted = false; // Reset interaction so live scroll is allowed
+		// A newly sent turn explicitly returns ownership to FOLLOW. Enable the
+		// permanent bottom anchor now; the forced non-live snap below establishes it.
+		this.scrollMgr.resumeAutoFollow(false);
 
 		// Keep lastScrollTop in sync to avoid misclassification in the next onscroll handler.
 		try {
@@ -642,7 +641,7 @@ class Runtime {
 		} catch (_) {}
 
 		// Non-live scroll to bottom right away, independent of autoFollow state.
-		this.scrollMgr.scheduleScroll();
+		this.scrollMgr.scheduleScroll(false, true);
 		// NOTE: No resetStreamState() here to avoid flicker/reflow issues while previewing user input.
 	};
 
@@ -780,14 +779,17 @@ class Runtime {
 	};
 	api_setScrollPosition = (pos) => {
 		try {
-			window.scrollTo(0, pos);
-			this.scrollMgr.prevScroll = parseInt(pos);
+			const top = Math.max(0, Number(pos) || 0);
+			this.scrollMgr.markProgrammaticScroll(top);
+			window.scrollTo(0, top);
+			this.scrollMgr.prevScroll = top;
+			this.scrollMgr.lastScrollTop = Utils.SE.scrollTop;
 		} catch (_) {}
 	};
 
 	// API: show/hide loading overlay.
 	api_showLoading = () => this.loading.show();
-	api_hideLoading = () => this.loading.hide();
+	api_hideLoading = (reserveSpace = false) => this.loading.hide(reserveSpace);
 
 	// API: restore collapsed state of codes in a given root.
 	api_restoreCollapsedCode = (root) => this.renderer.restoreCollapsedCode(root);
@@ -839,8 +841,15 @@ class Runtime {
 
 		this.renderer.init();
 		try {
-			this.renderer.renderPendingMarkdown(document);
-		} catch (_) {}
+			const pendingMarkdown = this.renderer.renderPendingMarkdown(document);
+			const virtualize = () => {
+				try { this.scrollMgr.scheduleMessageVirtualizationRefresh(); } catch (_) {}
+			};
+			if (pendingMarkdown && typeof pendingMarkdown.then === 'function') pendingMarkdown.then(virtualize);
+			else virtualize();
+		} catch (_) {
+			try { this.scrollMgr.scheduleMessageVirtualizationRefresh(); } catch (__) {}
+		}
 
 		this.highlighter.observeMsgBoxes(document, (box) => {
 			this.highlighter.observeNewCode(box, {
@@ -960,7 +969,7 @@ window.getScrollPosition = () => runtime.api_getScrollPosition();
 window.setScrollPosition = (pos) => runtime.api_setScrollPosition(pos);
 
 window.showLoading = () => runtime.api_showLoading();
-window.hideLoading = () => runtime.api_hideLoading();
+window.hideLoading = (reserveSpace = false) => runtime.api_hideLoading(reserveSpace);
 
 window.restoreCollapsedCode = (root) => runtime.api_restoreCollapsedCode(root);
 window.scrollToTopUser = () => runtime.api_scrollToTopUser();

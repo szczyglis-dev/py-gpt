@@ -16,6 +16,13 @@ class Highlighter {
 
         this.scanScheduled = false;
 
+        // During an active stream syntax work is intentionally throttled.
+        // Highlight remains live, but multiple token/snapshot events are folded
+        // into one pass per STREAM_THROTTLE_MS.
+        this._streamFlushTimer = 0;
+        this._lastStreamFlushTs = 0;
+        this._lastStreamMicroTs = 0;
+
         this._activeCodeEl = null;
 
         this._globalScanState = null;
@@ -107,6 +114,33 @@ class Highlighter {
         return r.bottom >= -preload && r.top <= (vh + preload);
     }
 
+    _isStreaming() {
+        try { return !!(window.runtime && runtime.stream && runtime.stream.isStreaming); } catch (_) { return false; }
+    }
+
+    _streamThrottleMs() {
+        return Math.max(0, Number((this.cfg.HL && this.cfg.HL.STREAM_THROTTLE_MS) || 300) || 0);
+    }
+
+    _scheduleHighlightFlush() {
+        if (this.hlScheduled) return;
+        const streaming = this._isStreaming();
+        const throttle = streaming ? this._streamThrottleMs() : 0;
+        const now = Utils.now();
+        const wait = throttle > 0 ? Math.max(0, throttle - (now - this._lastStreamFlushTs)) : 0;
+        this.hlScheduled = true;
+
+        if (wait > 0) {
+            if (this._streamFlushTimer) clearTimeout(this._streamFlushTimer);
+            this._streamFlushTimer = setTimeout(() => {
+                this._streamFlushTimer = 0;
+                this.raf.schedule('HL:flush', () => this.flush(), 'Highlighter', 1);
+            }, wait);
+            return;
+        }
+        this.raf.schedule('HL:flush', () => this.flush(), 'Highlighter', 1);
+    }
+
     // Queue a code element for highlighting. Avoids duplicates, respects
     // "active" code being streamed, and schedules a flush via rAF.
     queue(codeEl, activeCode) {
@@ -129,11 +163,9 @@ class Highlighter {
             this.hlQueue.push(codeEl);
         }
 
-        // Coalesce flush requests into a single rAF task.
-        if (!this.hlScheduled) {
-            this.hlScheduled = true;
-            this.raf.schedule('HL:flush', () => this.flush(), 'Highlighter', 1);
-        }
+        // Coalesce and throttle live-stream highlighting. Outside streaming
+        // this remains an ordinary next-frame flush.
+        this._scheduleHighlightFlush();
 
         // DEBUG (avoid heavy reads)
         try {
@@ -151,12 +183,17 @@ class Highlighter {
     flush() {
         if (this.isDisabled()) {
             this.hlScheduled = false;
-            this.hlQueueSet.clear();
+            this.hlQueueSet = new WeakSet();
             this.hlQueue.length = 0;
             return;
         }
 
         this.hlScheduled = false;
+        if (this._streamFlushTimer) {
+            clearTimeout(this._streamFlushTimer);
+            this._streamFlushTimer = 0;
+        }
+        if (this._isStreaming()) this._lastStreamFlushTs = Utils.now();
 
         const activeEl = this._activeCodeEl;
 
@@ -174,8 +211,7 @@ class Highlighter {
                         includeContinuous: true
                     })) {
                     if (this.hlQueue.length) {
-                        this.hlScheduled = true;
-                        this.raf.schedule('HL:flush', () => this.flush(), 'Highlighter', 1);
+                        this._scheduleHighlightFlush();
                     }
                     this._d('flush.yield', {
                         processed: count,
@@ -187,10 +223,7 @@ class Highlighter {
         }
 
         // If there are still items, schedule another frame.
-        if (this.hlQueue.length) {
-            this.hlScheduled = true;
-            this.raf.schedule('HL:flush', () => this.flush(), 'Highlighter', 1);
-        }
+        if (this.hlQueue.length) this._scheduleHighlightFlush();
         this._d('flush.done', {
             processed: count,
             remaining: this.hlQueue.length
@@ -223,6 +256,12 @@ class Highlighter {
     // within a tiny time budget, to improve perceived responsiveness.
     microHighlightNow(root, opts, activeCode) {
         if (this.isDisabled()) return;
+        if (this._isStreaming()) {
+            const now = Utils.now();
+            const throttle = this._streamThrottleMs();
+            if (throttle > 0 && (now - this._lastStreamMicroTs) < throttle) return;
+            this._lastStreamMicroTs = now;
+        }
         const scope = root || document;
         const options = Object.assign({
             maxCount: 1,
@@ -531,11 +570,15 @@ class Highlighter {
         try {
             this.raf.cancelGroup('Highlighter');
         } catch (_) {}
+        if (this._streamFlushTimer) {
+            clearTimeout(this._streamFlushTimer);
+            this._streamFlushTimer = 0;
+        }
         this.hlScheduled = false;
         this.scanScheduled = false;
         this._globalScanState = null;
         this._activeCodeEl = null;
-        this.hlQueueSet.clear();
+        this.hlQueueSet = new WeakSet();
         this.hlQueue.length = 0;
         this._d('cleanup', {});
     }

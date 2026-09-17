@@ -13,7 +13,8 @@ class Config {
 			AUTO_FOLLOW_REENABLE_PX: Utils.g('AUTO_FOLLOW_REENABLE_PX', 8),
 			SCROLL_NEAR_MARGIN_PX: Utils.g('SCROLL_NEAR_MARGIN_PX', 450),
 			INTERACTION_BUSY_MS: Utils.g('UI_INTERACTION_BUSY_MS', 140),
-			ZOOM_BUSY_MS: Utils.g('UI_ZOOM_BUSY_MS', 300)
+			ZOOM_BUSY_MS: Utils.g('UI_ZOOM_BUSY_MS', 300),
+			MESSAGE_VIRTUAL_KEEP_RECENT: Utils.g('MESSAGE_VIRTUAL_KEEP_RECENT', 2)
 		};
 
 		// FAB (floating action button) visibility and debounce.
@@ -25,7 +26,8 @@ class Config {
 		// Highlighting controls and per-frame budget.
 		this.HL = {
 			PER_FRAME: Utils.g('HL_PER_FRAME', 2),
-			DISABLE_ALL: Utils.g('DISABLE_SYNTAX_HIGHLIGHT', false)
+			DISABLE_ALL: Utils.g('DISABLE_SYNTAX_HIGHLIGHT', false),
+			STREAM_THROTTLE_MS: Utils.g('HL_STREAM_THROTTLE_MS', 300)
 		};
 
 		// Intersection-like margins (we do our own scan, but these guide budgets).
@@ -114,7 +116,7 @@ class Config {
 			softLatency: 1200,
 			minLinesForHL: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
 			minCharsForHL: Utils.g('PROFILE_CODE_HL_N_CHARS', 5000),
-			promoteMinInterval: 300,
+			promoteMinInterval: Utils.g('HL_STREAM_THROTTLE_MS', 300),
 			promoteMaxLatency: 800,
 			promoteMinLines: Utils.g('PROFILE_CODE_HL_N_LINE', 25),
 			adaptiveStep: Utils.g('PROFILE_CODE_ADAPTIVE_STEP', false),

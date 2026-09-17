@@ -25,7 +25,9 @@ class EventManager {
 			docClickFocus: null,
 			visibility: null,
 			focus: null,
-			pageshow: null
+			pageshow: null,
+			pointerdown: null,
+			pointerup: null
 		};
 	}
 
@@ -227,6 +229,23 @@ class EventManager {
 				window.location.href = 'bridge://escape';
 				event.preventDefault();
 			}
+
+			// Keyboard scrolling participates in the same FOLLOW <-> MANUAL state
+			// machine as wheel/scrollbar input. Do not treat typing in editable
+			// controls as page-scroll intent.
+			const target = event.target;
+			const editable = target && (
+				target.isContentEditable ||
+				/^(INPUT|TEXTAREA|SELECT)$/i.test(String(target.tagName || ''))
+			);
+			if (!editable && !event.ctrlKey && !event.metaKey && !event.altKey) {
+				const key = String(event.key || '');
+				if (key === 'ArrowUp' || key === 'PageUp' || key === 'Home' || (key === ' ' && event.shiftKey)) {
+					runtime.scrollMgr.noteUserScroll(-1);
+				} else if (key === 'ArrowDown' || key === 'PageDown' || key === 'End' || key === ' ') {
+					runtime.scrollMgr.noteUserScroll(1);
+				}
+			}
 		};
 		document.addEventListener('keydown', this.handlers.keydown, { passive: false });
 
@@ -234,6 +253,11 @@ class EventManager {
 
 		const container = this.dom.get('container');
 		const inputArea = this.dom.get('_append_input_');
+
+		// Observe the actual chat container size. FOLLOW corrections happen in a
+		// ResizeObserver callback (after layout, before paint), so stream/extra
+		// growth never needs to chase scrollHeight on the next animation frame.
+		runtime.scrollMgr.installContentObserver(container);
 
 		const addClassToMsg = (id, className) => {
 			const el = document.getElementById('msg-bot-' + id);
@@ -333,18 +357,35 @@ class EventManager {
 		if (inputArea) inputArea.addEventListener('click', this.handlers.click, { passive: false });
 
 		this.handlers.wheel = (ev) => {
-			runtime.scrollMgr.userInteracted = true;
-			if (ev.deltaY < 0) runtime.scrollMgr.autoFollow = false;
-			else runtime.scrollMgr.maybeEnableAutoFollowByProximity();
+			// Upward intent disables FOLLOW immediately, before the browser applies the
+			// wheel delta. Downward intent in MANUAL mode can only re-arm FOLLOW after
+			// the user personally reaches the bottom.
+			runtime.scrollMgr.noteUserScroll(ev.deltaY);
 			this.highlighter.scheduleScanVisibleCodes(runtime.stream.activeCode);
 		};
 		document.addEventListener('wheel', this.handlers.wheel, { passive: true });
 
+		// Pointer tracking delays MANUAL -> FOLLOW until a scrollbar/touch drag has
+		// finished, preventing the stream from taking the viewport mid-gesture.
+		this.handlers.pointerdown = () => { runtime.scrollMgr.setPointerScrollActive(true); };
+		this.handlers.pointerup = () => { runtime.scrollMgr.setPointerScrollActive(false); };
+		document.addEventListener('pointerdown', this.handlers.pointerdown, { passive: true });
+		document.addEventListener('pointerup', this.handlers.pointerup, { passive: true });
+		document.addEventListener('pointercancel', this.handlers.pointerup, { passive: true });
+
 		this.handlers.scroll = () => {
 			const el = Utils.SE;
 			const top = el.scrollTop;
-			if (top + 1 < runtime.scrollMgr.lastScrollTop) runtime.scrollMgr.autoFollow = false;
-			runtime.scrollMgr.maybeEnableAutoFollowByProximity();
+			const last = runtime.scrollMgr.lastScrollTop;
+			const programmatic = runtime.scrollMgr.isProgrammaticScroll(top);
+
+			// Only actual user movement is allowed to change ownership. Browser DOM
+			// anchoring is disabled globally, while our own scrolls are filtered by the
+			// one-shot programmatic marker above.
+			if (!programmatic && Math.abs(top - last) > 0.5) {
+				runtime.scrollMgr.noteObservedUserScroll(top - last);
+			}
+
 			runtime.scrollMgr.lastScrollTop = top;
 			const action = runtime.scrollMgr.computeFabAction();
 			if (action !== runtime.scrollMgr.currentFabAction) runtime.scrollMgr.updateScrollFab(false, action, true);
@@ -367,7 +408,6 @@ class EventManager {
 		}
 
 		this.handlers.resize = () => {
-			runtime.scrollMgr.maybeEnableAutoFollowByProximity();
 			runtime.scrollMgr.scheduleScrollFabUpdate();
 			this.highlighter.scheduleScanVisibleCodes(runtime.stream.activeCode);
 		};
@@ -380,6 +420,9 @@ class EventManager {
 	cleanup() {
 		const container = this.dom.get('container');
 		const inputArea = this.dom.get('_append_input_');
+
+		try { runtime.scrollMgr.disconnectContentObserver(); } catch (_) {}
+		try { runtime.scrollMgr.disconnectMessageVirtualization(); } catch (_) {}
 
 		if (this.handlers.wheel) document.removeEventListener('wheel', this.handlers.wheel);
 		if (this.handlers.scroll) window.removeEventListener('scroll', this.handlers.scroll);
@@ -395,6 +438,11 @@ class EventManager {
 		if (this.handlers.visibility) document.removeEventListener('visibilitychange', this.handlers.visibility);
 		if (this.handlers.focus) window.removeEventListener('focus', this.handlers.focus);
 		if (this.handlers.pageshow) window.removeEventListener('pageshow', this.handlers.pageshow);
+		if (this.handlers.pointerdown) document.removeEventListener('pointerdown', this.handlers.pointerdown);
+		if (this.handlers.pointerup) {
+			document.removeEventListener('pointerup', this.handlers.pointerup);
+			document.removeEventListener('pointercancel', this.handlers.pointerup);
+		}
 		this.handlers = {};
 	}
 }

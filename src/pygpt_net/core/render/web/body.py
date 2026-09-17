@@ -234,12 +234,28 @@ class Body:
         }
         .msg-bot {
             contain: layout paint style;
-            contain-intrinsic-size: 1px 600px;
             box-shadow: none !important;
             filter: none !important;
         }
-        .msg-bot:not(:last-child) {
+        /* Hybrid history virtualization.
+
+           Only finalized/older message boxes receive .msg-virtualized from JS.
+           Before that happens JS stores the *measured content-box height* in
+           --pygpt-msg-virtual-height. This keeps scrollHeight stable while
+           content-visibility skips expensive off-screen Markdown/code DOM.
+
+           Current/recent messages never receive the class, so the live stream
+           always uses real layout and remains compatible with exact-bottom
+           auto-follow. */
+        .msg-bot.msg-virtualized {
             content-visibility: auto;
+            contain-intrinsic-block-size: auto var(--pygpt-msg-virtual-height, 600px);
+        }
+        #_append_output_ .msg-bot,
+        #_append_output_before_ .msg-bot,
+        .msg-bot.msg-live {
+            content-visibility: visible !important;
+            contain-intrinsic-block-size: none !important;
         }
         .msg {
             text-rendering: optimizeSpeed;
@@ -248,9 +264,7 @@ class Body:
         .hl-tail,
         .hl-frozen {
             contain: layout paint;
-            content-visibility: auto;
             backface-visibility: hidden;
-            contain-intrinsic-size: 1px 600px;
             transform: translateZ(0);
             filter: none !important;
         }
