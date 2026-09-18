@@ -1475,7 +1475,7 @@ The plugin integrates image generation with any chat mode. Select the image-gene
 
 - ``Model`` *model*
 
-Image-generation model used by the plugin. *Default:* ``gpt-image-1``
+Image-generation model used by the plugin. *Default:* ``gpt-image-2.5-flare``
 
 - ``Prompt`` *prompt*
 

@@ -1239,28 +1239,6 @@
             "reasoning_effort": true,
             "tool_calls": true
         },
-        "gpt-image-1": {
-            "id": "gpt-image-1",
-            "name": "gpt-image-1",
-            "mode": [
-                "img"
-            ],
-            "ctx": 0,
-            "tokens": 0,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "image"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "reasoning_effort": false,
-            "tool_calls": false
-        },
         "gpt-image-1.5": {
             "id": "gpt-image-1.5",
             "name": "gpt-image-1.5",

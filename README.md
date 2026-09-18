@@ -1267,7 +1267,6 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - `gpt-5.6-sol` (OpenAI)
 - `gpt-5.6-terra` (OpenAI)
 - `gpt-6-astra` (OpenAI)
-- `gpt-image-1` (OpenAI)
 - `gpt-image-1.5` (OpenAI)
 - `gpt-image-2` (OpenAI)
 - `gpt-image-2.5-flare` (OpenAI)
