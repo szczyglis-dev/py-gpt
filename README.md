@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.23** | build: **2026-09-17** | Python: **>=3.10, <3.14**
+Release: **2.8.24** | build: **2026-09-18** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2563,6 +2563,23 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.24 (2026-09-18)**
+
+- Added **Import profile...** and **Export profile...** options to the **File** menu, allowing complete profiles to be exported and imported, including the database, configuration, files, and application data.
+- Added an automatic prompt-injection guard in **Settings -> Security -> Auto-prevent prompt injections**.
+- Moved the model selector to the input field.
+- Added a clock to the Calendar.
+- Added subdirectory lookup support for `@mentions`.
+- Added runtime switching to the Agent Workflows editor.
+- Removed the **Edit JSON configs** option.
+- Improved the chat input field.
+- Added a loader to the Docker builder.
+- Integrated system notifications with **Chat with Agents**.
+- The input field is now hidden in non-chat tabs.
+- Added date and time headers above chat input blocks.
+- Added support for referencing other conversations from the database using `@mentions` with conversation IDs, e.g. `What were we talking about in chat @123?`
+- Added various CSS, layout, and UI improvements.
 
 **2.8.23 (2026-09-17)**
 

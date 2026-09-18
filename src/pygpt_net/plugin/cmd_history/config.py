@@ -63,16 +63,17 @@ class Config(BaseConfig):
         plugin.add_option(
             "prompt_tag_summary",
             type="textarea",
-            value="You retrieve context from a previous conversation for a new user request.\n"
+            value="You retrieve context from a previous conversation for the current user request.\n"
                   "Previous conversation ID: {id}\n"
                   "Current request:\n{query}\n\n"
-                  "Extract only information from the supplied conversation chunk that is relevant to answering or "
-                  "continuing the current request. Preserve exact decisions, requirements, facts, code identifiers, "
-                  "filenames, values, errors, and unresolved work when relevant. Prefer newer state over superseded "
-                  "older state. If the current request is only a conversation reference or a vague continuation, "
-                  "extract the latest active goal, current state, decisions, and unresolved work. Do not invent "
-                  "information and do not answer the current request itself. If the chunk contains nothing relevant, "
-                  "return exactly: NO_RELEVANT_CONTEXT",
+                  "Return a concise summary of the supplied conversation chunk that is useful for answering or "
+                  "continuing the current request. Preserve relevant decisions, requirements, facts, filenames, code "
+                  "identifiers, values, errors, current state, and unresolved work. Prefer newer state over superseded "
+                  "older state. If the request is vague, unclear, or only refers to the conversation, summarize the "
+                  "main topic, latest state, key decisions, and unresolved work. Always return the best useful summary "
+                  "available; never return an empty response. If direct relevance is unclear, "
+                  "summarize the most important content instead. Do not invent information and do not answer the "
+                  "current request itself.",
             label="Prompt: conversation extraction",
             description="Prompt for query-focused extraction from previous conversation chunks",
             advanced=True,
@@ -83,12 +84,12 @@ class Config(BaseConfig):
             value="You merge query-focused extracts from the same previous conversation.\n"
                   "Previous conversation ID: {id}\n"
                   "Current request:\n{query}\n\n"
-                  "Produce one compact context summary containing only information relevant to the current request. "
-                  "Remove repetition, preserve exact technical details and unresolved work, and when extracts conflict "
-                  "prefer the newer state indicated by lower recency_rank unless the text explicitly says otherwise. "
-                  "If the request is a vague continuation, retain the latest active goal/state and unresolved work. "
-                  "Do not invent information and do not answer the current request itself. If there is no relevant "
-                  "information, return exactly: NO_RELEVANT_CONTEXT",
+                  "Produce one compact context summary useful for answering or continuing the current request. Remove "
+                  "repetition, preserve exact technical details and unresolved work, and prefer newer state when extracts "
+                  "conflict. If the request is vague or relevance is unclear, retain the main topic, latest state, key "
+                  "decisions, and unresolved work. Always return the best useful summary available; never return an empty "
+                  "response or NO_RELEVANT_CONTEXT. Do not invent information and do not answer the current request "
+                  "itself.",
             label="Prompt: conversation reduction",
             description="Prompt for merging query-focused extracts from long previous conversations",
             advanced=True,

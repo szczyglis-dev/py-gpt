@@ -1,6 +1,6 @@
 name: pygpt
 base: core24  # Ubuntu 24.04
-version: '2.8.23'
+version: '2.8.24'
 summary: Desktop AI Assistant - chat, assistant, vision, agents, and more.
 
 description: |
