@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 19:20:00                  #
+# Updated Date: 2026.09.18 20:15:00                  #
 # ================================================== #
 
 """Helpers for durable attachment/file/conversation mention markers.
@@ -239,19 +239,24 @@ def to_model_text(
         text: str,
         attachments: Optional[Mapping[str, Any]] = None,
 ) -> str:
-    """Flatten durable attachment/file mentions to provider-facing text.
+    """Flatten durable mentions to provider-facing text.
 
     File/directory mentions become their stored path. Attachment mentions
     normally become the attachment filename. When current attachments are
     supplied, image mentions become stable ``Attached Image #N`` labels.
 
-    Conversation tags are preserved. Their body has already been populated at
-    the send boundary with query-focused context, so keeping the structured tag
-    gives the target model both provenance (ID/title) and retrieved content.
+    Conversation mentions stay lightweight at their original position: the
+    provider sees an empty ``<conversation ...></conversation>`` reference in
+    the user's sentence, while any resolved query-focused body is appended after
+    the complete user request as a separate ``<conversation>...</conversation>``
+    context block. This keeps retrieved context from interrupting the semantics
+    of the user's question while preserving the durable one-mention UI/history
+    representation.
     """
     raw = str(text or "")
     image_labels = _image_attachment_mentions(attachments)
     out = []
+    conversation_contexts = []
     pos = 0
 
     # Iterate top-level durable markers rather than applying the simple-tag regex
@@ -260,7 +265,22 @@ def to_model_text(
     for tag in iter_tags(raw):
         out.append(raw[pos:tag.start])
         if tag.kind == KIND_CONVERSATION:
-            out.append(tag.raw)
+            # Keep only the reference at the mention position. If the send
+            # boundary already resolved a query-focused body, move that body to
+            # a dedicated context block appended after the user's full request.
+            out.append(make_tag(
+                KIND_CONVERSATION,
+                tag.value,
+                label=tag.label,
+                content="",
+            ))
+            if tag.content.strip():
+                conversation_contexts.append(make_tag(
+                    KIND_CONVERSATION,
+                    tag.value,
+                    label=tag.label,
+                    content=tag.content,
+                ))
         else:
             value = tag.value
             if tag.kind == KIND_ATTACHMENT and image_labels:
@@ -270,7 +290,11 @@ def to_model_text(
             out.append(value)
         pos = tag.end
     out.append(raw[pos:])
-    return "".join(out)
+
+    prompt = "".join(out)
+    if conversation_contexts:
+        prompt = prompt.rstrip() + "\n\n" + "\n\n".join(conversation_contexts)
+    return prompt
 
 
 def to_display_text(text: str) -> str:
