@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 14:40:00                  #
+# Updated Date: 2026.09.18 16:35:00                  #
 # ================================================== #
 
 from typing import Optional, Union, Tuple
@@ -36,10 +36,12 @@ from pygpt_net.core.text.mentions import (
     make_tag as make_mention_tag,
 )
 from pygpt_net.ui.widget.textarea.mention import MentionEntry, MentionPopup
+from pygpt_net.ui.widget.lists.model_combo import CompactModelCombo
 
 
 class ChatInput(QTextEdit):
 
+    MODEL_SELECTOR_KEY = "model"
     REASONING_EFFORT_KEY = "reasoning_effort"
 
     MENTION_ID_PROP = QTextFormat.UserProperty + 201
@@ -86,6 +88,9 @@ class ChatInput(QTextEdit):
         self.max_font_size = 42
         self.min_font_size = 8
         self._text_top_padding = 10
+        # Symmetric horizontal inset for typed text/placeholder. Keep the text
+        # visually aligned with the center of the bottom-left attachment icon.
+        self._text_horizontal_padding = 10
         self.textChanged.connect(self.window.controller.ui.update_tokens)
         self.setProperty('class', 'layout-input')
         self.setObjectName('chatInput')
@@ -121,22 +126,31 @@ class ChatInput(QTextEdit):
         # Storage for right-bottom icon buttons and metadata
         self._icons_right = {}       # key -> QPushButton
         self._icon_meta_right = {}   # key -> meta as above
-        self._icon_order_right = []  # rendering order for right bar
+        self._icon_order_right = []  # rendering order for the bottom row
+        self._bottom_left_icon_keys = set()  # controls pinned to the row's left edge
         self._right_text_buttons = set()  # non-icon buttons embedded in the right bar
         self._reasoning_effort_menu = None
 
         self._init_icon_bar()
-        # Initialize the bottom-right icon bar (independent from the left one)
+        # Initialize the shared bottom actions row. It contains a left group
+        # (attachment/web) and a right group (model/reasoning/mic/send).
         self._init_icon_bar_right()
 
-        # Add a "+" button in the top-left corner to add attachments
-        self.add_icon(
+        # Attachment and web-search controls live on the left side of the
+        # dedicated bottom actions row. This keeps all input actions in one
+        # horizontal band while model/reasoning/mic/send remain right-aligned.
+        self.add_bottom_left_icon(
             key="attach",
             icon=self.ICON_ATTACHMENT,
             tooltip=trans("attachments.btn.input.add"),
             callback=self.action_add_attachment,
             visible=True,
         )
+        # Runtime model selector lives in the same bottom controls row as
+        # reasoning effort. Keep it immediately to the left of reasoning so
+        # model + effort form one compact selection group.
+        self.add_model_selector()
+
         # Runtime reasoning-effort selector. It is shown only for models which
         # explicitly opt in and is placed immediately to the left of microphone.
         self.add_reasoning_effort_button()
@@ -152,8 +166,8 @@ class ChatInput(QTextEdit):
             callback=self.action_toggle_mic,
             visible=False,
         )
-        # Add a web search toggle button
-        self.add_icon(
+        # Add the web-search toggle next to Attach on the bottom-left.
+        self.add_bottom_left_icon(
             key="web",
             icon=self.ICON_WEB_OFF,
             alt_icon=self.ICON_WEB_ON,
@@ -1082,6 +1096,38 @@ class ChatInput(QTextEdit):
         """Toggle web search (button click)."""
         self.window.controller.chat.remote_tools.toggle('web_search')
 
+    def add_model_selector(self) -> CompactModelCombo:
+        """Add the runtime model selector to the right controls row."""
+        key = self.MODEL_SELECTOR_KEY
+        existing = self._icons_right.get(key)
+        if existing is not None:
+            return existing
+
+        btn = CompactModelCombo(
+            window=self.window,
+            id="prompt.model",
+            parent=self._icon_bar_right,
+        )
+        btn.setFixedHeight(self._btn_size_right.height())
+        btn.setMinimumWidth(self._btn_size_right.width())
+
+        self._icons_right[key] = btn
+        self._icon_order_right.append(key)
+        self._right_text_buttons.add(key)
+        self._icon_meta_right[key] = {
+            "icon": QIcon(),
+            "alt_icon": None,
+            "tooltip": trans("toolbox.model.label"),
+            "alt_tooltip": None,
+            "active": False,
+        }
+        self.window.ui.nodes["prompt.model"] = btn
+
+        self._rebuild_icon_layout_right()
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+        return btn
+
     def add_reasoning_effort_button(self) -> QPushButton:
         """Add the runtime reasoning-effort selector to the right icon bar."""
         key = self.REASONING_EFFORT_KEY
@@ -1158,7 +1204,7 @@ class ChatInput(QTextEdit):
         btn.setFixedWidth(max(
             self._btn_size_right.width(),
             hint_width,
-            text_width + 28,
+            text_width + 10,
         ))
         btn.setHidden(False)
         self._update_icon_bar_geometry_right()
@@ -1264,7 +1310,7 @@ class ChatInput(QTextEdit):
     # for text-flow tricks around overlay buttons.
 
     def _init_icon_bar_right(self):
-        """Create the dedicated bottom row for right-aligned input controls."""
+        """Create the shared bottom row for left- and right-aligned controls."""
         self._icon_bar_right = QWidget(self)
         self._icon_bar_right.setObjectName("chatInputIconBarRight")
         self._icon_bar_right.setAttribute(Qt.WA_StyledBackground, True)
@@ -1395,6 +1441,28 @@ class ChatInput(QTextEdit):
                 self.add_icon(key, icon, tooltip, callback, visible, alt_icon, alt_tooltip)
 
     # ---- Public API for icons (RIGHT-BOTTOM) ----
+
+    def add_bottom_left_icon(
+        self,
+        key: str,
+        icon: QIcon,
+        tooltip: str = "",
+        callback=None,
+        visible: bool = True,
+        alt_icon: Optional[QIcon] = None,
+        alt_tooltip: Optional[str] = None,
+    ) -> QPushButton:
+        """Add an icon pinned to the left side of the bottom controls row."""
+        self._bottom_left_icon_keys.add(key)
+        return self.add_right_icon(
+            key=key,
+            icon=icon,
+            tooltip=tooltip,
+            callback=callback,
+            visible=visible,
+            alt_icon=alt_icon,
+            alt_tooltip=alt_tooltip,
+        )
 
     def add_right_icon(
         self,
@@ -1549,7 +1617,11 @@ class ChatInput(QTextEdit):
         """Refresh embedded text-button sizes and the dedicated bottom row."""
         for key in tuple(self._right_text_buttons):
             btn = self._icons_right.get(key)
-            if btn is not None:
+            if btn is None:
+                continue
+            if key == self.MODEL_SELECTOR_KEY and hasattr(btn, 'fit_to_content'):
+                btn.fit_to_content()
+            else:
                 self._fit_right_text_button(btn)
         self._update_icon_bar_geometry_right()
         self._reposition_icon_bar_right()
@@ -1603,6 +1675,7 @@ class ChatInput(QTextEdit):
         # Right-bottom bar
         btn = self._icons_right.pop(key, None)
         if btn is not None:
+            self._bottom_left_icon_keys.discard(key)
             self._right_text_buttons.discard(key)
             self._icon_meta_right.pop(key, None)
             try:
@@ -1889,7 +1962,11 @@ class ChatInput(QTextEdit):
         self._btn_size_right = new_btn_sz
 
         for key, btn in self._icons_right.items():
-            if key == self.REASONING_EFFORT_KEY:
+            if key == self.MODEL_SELECTOR_KEY:
+                btn.setIconSize(QSize(0, 0))
+                btn.setFixedHeight(self._btn_size_right.height())
+                btn.fit_to_content()
+            elif key == self.REASONING_EFFORT_KEY:
                 btn.setIconSize(QSize(0, 0))
                 btn.setFixedHeight(self._btn_size_right.height())
             elif key in self._right_text_buttons:
@@ -1996,7 +2073,7 @@ class ChatInput(QTextEdit):
                 layout.addWidget(btn)
 
     def _rebuild_icon_layout_right(self):
-        """Rebuild the bottom controls row according to _icon_order_right."""
+        """Rebuild the shared bottom row with left and right control groups."""
         if not hasattr(self, "_icon_bar_right"):
             return
         layout = self._icon_bar_right.layout()
@@ -2005,10 +2082,21 @@ class ChatInput(QTextEdit):
             w = item.widget()
             if w:
                 layout.removeWidget(w)
-        # The stretch makes the entire control group hug the right edge while
-        # the row itself spans the full input width.
-        layout.addStretch(1)
+
+        # Attachment / web-search stay at the far-left. One stretch separates
+        # them from model / reasoning / mic / send on the far-right.
         for k in self._icon_order_right:
+            if k not in self._bottom_left_icon_keys:
+                continue
+            btn = self._icons_right.get(k)
+            if btn:
+                layout.addWidget(btn)
+
+        layout.addStretch(1)
+
+        for k in self._icon_order_right:
+            if k in self._bottom_left_icon_keys:
+                continue
             btn = self._icons_right.get(k)
             if btn:
                 layout.addWidget(btn)
@@ -2074,10 +2162,11 @@ class ChatInput(QTextEdit):
         if layout is None:
             return
         top, bottom = self._right_row_vertical_padding()
-        # Positive x offset moves the control group rightwards by reducing the
-        # normal right inset; negative values move it leftwards.
+        # Keep the left action group inset by the same base margin. The x
+        # offset remains a right-group adjustment, preserving the existing API.
+        left = max(0, int(self._icons_margin_right))
         right = max(0, int(self._icons_margin_right) - int(self._icons_offset_x_right))
-        layout.setContentsMargins(0, top, right, bottom)
+        layout.setContentsMargins(left, top, right, bottom)
         layout.setSpacing(self._icons_spacing_right)
 
     def _update_icon_bar_geometry(self):
@@ -2120,16 +2209,26 @@ class ChatInput(QTextEdit):
             self._icon_bar_right.setGeometry(x, y, width, row_h)
 
     def _apply_margins(self):
-        """Reserve top/left text space and a dedicated bottom controls row."""
+        """Reserve symmetric text inset plus the dedicated bottom controls row."""
         left_space = self._compute_icon_bar_width()
         if left_space > 0:
             left_space += self._icons_margin * 2
 
-        # Right-side controls no longer consume a right viewport margin. They
-        # live in their own full-width row below the text, so all text lines can
-        # use the complete remaining width.
+        # Keep a small, symmetric horizontal inset for the editor text. On the
+        # left this aligns the text/placeholder with the attachment icon below;
+        # the same inset on the right keeps the text visually balanced.
+        horizontal_padding = max(0, int(self._text_horizontal_padding))
+        left_space += horizontal_padding
+
+        # Bottom controls live in their own full-width row, so only the regular
+        # text inset is needed on the right.
         bottom_space = self._right_row_height()
-        self.setViewportMargins(left_space, self._text_top_padding, 0, bottom_space)
+        self.setViewportMargins(
+            left_space,
+            self._text_top_padding,
+            horizontal_padding,
+            bottom_space,
+        )
 
         # Reflow may change number of lines; adjust auto-height on next tick.
         try:

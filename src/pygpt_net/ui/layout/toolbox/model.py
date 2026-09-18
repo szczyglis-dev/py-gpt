@@ -6,15 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:23:00                  #
+# Updated Date: 2026.09.18 16:17:00                  #
 # ================================================== #
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QWidget, QPushButton, QHBoxLayout, QSizePolicy
-
-from pygpt_net.ui.widget.element.labels import TitleLabel
-from pygpt_net.ui.widget.lists.model_combo import ModelCombo
-from pygpt_net.utils import trans
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QSizePolicy
 
 
 class Model:
@@ -23,69 +17,28 @@ class Model:
         """
         Toolbox UI
 
+        Model selection now lives entirely in the chat input controls row.
+        Keep this lightweight section object only for toolbox layout/API
+        compatibility; it renders no label, selector or settings button.
+
         :param window: Window instance
         """
         self.window = window
         self.id = 'prompt.model'
         self.label_key = f'{self.id}.label'
-        self._settings_icon = QIcon(":/icons/settings.svg")
 
     def setup(self) -> QWidget:
-        """
-        Setup models
-
-        :return: QWidget7
-        """
+        """Return an empty hidden toolbox section for compatibility."""
         widget = QWidget()
-        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         widget.setMinimumWidth(0)
         widget.setLayout(self.setup_list())
+        widget.setVisible(False)
         return widget
 
     def setup_list(self) -> QVBoxLayout:
-        """
-        Setup models list
-
-        :return: QVBoxLayout
-        """
-        nodes = self.window.ui.nodes
-
-        label = TitleLabel(trans("toolbox.model.label"))
-        label.setContentsMargins(5, 0, 0, 0)
-        nodes[self.label_key] = label
-
-        combo = ModelCombo(self.window, self.id)
-        # Fill available space, but do not let model names raise the toolbox
-        # minimum width when the model list changes with the selected mode.
-        combo.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
-        combo.setMinimumWidth(0)
-        nodes[self.id] = combo
-
-        nodes['prompt.model.settings'] = QPushButton(self._settings_icon, "")
-        # Configure compact, borderless settings button aligned to the right
-        icon_size = 20
-        nodes['prompt.model.settings'].setFlat(True)
-        nodes['prompt.model.settings'].setStyleSheet("QPushButton { border: none; padding: 0; }")
-        nodes['prompt.model.settings'].setIconSize(QSize(icon_size, icon_size))
-        nodes['prompt.model.settings'].setFixedSize(icon_size, icon_size)
-        nodes['prompt.model.settings'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        nodes['prompt.model.settings'].setFocusPolicy(Qt.NoFocus)
-        nodes['prompt.model.settings'].setCursor(Qt.PointingHandCursor)
-        nodes['prompt.model.settings'].setToolTip(trans('toolbox.model.edit.tooltip'))
-        nodes['prompt.model.settings'].clicked.connect(self._open_settings)
-
-        model_cols = QHBoxLayout()
-        model_cols.addWidget(combo, 1)  # stretch to take remaining space
-        model_cols.addWidget(nodes['prompt.model.settings'], alignment=Qt.AlignRight)
-        model_cols.setContentsMargins(0, 0, 0, 0)
-
+        """Return an empty layout; model controls are rendered in chat input."""
         layout = QVBoxLayout()
-        layout.addWidget(label)
-        layout.addLayout(model_cols)
-        layout.addStretch()
-        layout.setContentsMargins(2, 5, 5, 5)
-
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         return layout
-
-    def _open_settings(self):
-        self.window.controller.model.editor.open()

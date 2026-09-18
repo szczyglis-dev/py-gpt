@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 15:05:00
+# Updated Date: 2026.09.18 16:40:00
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize, QTimer, QPoint
@@ -34,7 +34,6 @@ class ChatInputContainer(QWidget):
     """Responsive wrapper that keeps the whole composer aligned with chat content."""
 
     CHAT_CONTENT_WIDTH = 800  # mirrors body max-width in data/css/web-chatgpt.css
-
     def __init__(self, window, content_widget):
         super().__init__()
         self.window = window
@@ -123,12 +122,14 @@ class ChatInputContainer(QWidget):
         except Exception:
             return 0, available
 
-    def _target_content_width(self) -> int:
+    def _zoom_factor(self) -> float:
         try:
-            zoom = float(self.window.core.config.get('zoom', 1.0) or 1.0)
+            return max(0.01, float(self.window.core.config.get('zoom', 1.0) or 1.0))
         except (TypeError, ValueError):
-            zoom = 1.0
-        return max(1, int(round(self.CHAT_CONTENT_WIDTH * zoom)))
+            return 1.0
+
+    def _target_content_width(self) -> int:
+        return max(1, int(round(self.CHAT_CONTENT_WIDTH * self._zoom_factor())))
 
     def sizeHint(self) -> QSize:
         """Keep only the composer's vertical hint; never constrain window width."""
@@ -158,8 +159,10 @@ class ChatInputContainer(QWidget):
         # composer is always clamped to its actual output column. Geometry is
         # applied only to the child, so it never contributes a larger minimum
         # width to the main application window.
-        width = min(area_width, self._target_content_width())
-        x = area_x + max(0, (area_width - width) // 2)
+        reference_width = min(area_width, self._target_content_width())
+        x = area_x + max(0, (area_width - reference_width) // 2)
+
+        width = max(1, reference_width)
         geometry = (x, 0, width, height)
         if geometry == self._content_geometry:
             return
@@ -219,8 +222,13 @@ class Input:
 
         # min height
         self.min_height_files_tab = 120
-        self.min_height_input_tab = 130
-        self.min_height_input = 100
+        # Keep the normal Input tab more compact. The tab minimum and the
+        # inner editor minimum are reduced together; otherwise QTabWidget's
+        # current-page minimumSizeHint would still clamp the pane to the old
+        # effective height. Files tabs keep their existing minimums.
+        self.min_height_input_tab = 115
+        self.min_height_input = 85
+        self.min_height_input_extra = 100
 
         # Exact main.output splitter geometry from the moment the user leaves
         # Input/Extra for a files tab. Attachments/Uploaded may temporarily
@@ -271,7 +279,7 @@ class Input:
         content_layout = QVBoxLayout(content)
         content_layout.addLayout(self.setup_header())
         content_layout.addWidget(tabs)
-        # Chat metadata (model / plugins / context counter) and edit controls
+        # Chat metadata (plugins / context counter) and edit controls
         # belong to the responsive composer and therefore stay aligned with
         # the 800 px × WebView zoom content width.
         content_layout.addLayout(self.setup_composer_footer())
@@ -318,7 +326,7 @@ class Input:
         :return: QWidget
         """
         self.window.ui.nodes['input_extra'] = ExtraInput(self.window)
-        self.window.ui.nodes['input_extra'].setMinimumHeight(self.min_height_input)
+        self.window.ui.nodes['input_extra'].setMinimumHeight(self.min_height_input_extra)
 
         widget = QWidget()
         layout = QVBoxLayout(widget)
@@ -402,8 +410,19 @@ class Input:
 
         nodes['chat.footer.metadata'] = QWidget()
         nodes['chat.footer.metadata'].setLayout(metadata_layout)
+
+        # Keep the context/token counter on the opposite edge of the same
+        # composer footer row. The embedded input action buttons are managed
+        # by ChatInput itself, but preserve the compatibility layout here.
+        right_layout = QHBoxLayout()
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(0)
+        right_layout.addLayout(buttons_layout)
+        right_layout.addWidget(nodes['input.counter'], alignment=Qt.AlignVCenter)
+        right_layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
         nodes['chat.footer.controls'] = QWidget()
-        nodes['chat.footer.controls'].setLayout(buttons_layout)
+        nodes['chat.footer.controls'].setLayout(right_layout)
 
         layout = QGridLayout()
         layout.setContentsMargins(0, 0, 2, 0)
@@ -524,9 +543,13 @@ class Input:
         nodes['chat.label'].setSizePolicy(min_policy)
         nodes['chat.label'].setWordWrap(False)
 
-        nodes['chat.model'] = ChatStatusLabel("")
+        # Compatibility-only node: current model is no longer rendered in the
+        # metadata status row, but controllers still update this label. Parent
+        # it to the window and keep it hidden instead of leaving an orphan widget.
+        nodes['chat.model'] = ChatStatusLabel("", self.window)
         nodes['chat.model'].setSizePolicy(min_policy)
         nodes['chat.model'].setWordWrap(False)
+        nodes['chat.model'].hide()
 
         nodes['chat.plugins'] = ChatStatusLabel("")
         nodes['chat.plugins'].setSizePolicy(min_policy)
@@ -566,16 +589,12 @@ class Input:
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Chat metadata order: model, plugins, token/context counter.
-        # Keep chat.label initialized for controller compatibility, but do not
-        # show the mode name in the composer footer.
+        # Only plugin/schedule metadata stays on the left. The token/context
+        # counter is placed on the far-right side of the composer footer.
+        # Model selection lives directly in ChatInput's bottom controls row.
         layout.addWidget(plugin_addon['schedule'], alignment=Qt.AlignVCenter)
         layout.addSpacing(4)
-        layout.addWidget(nodes['chat.model'], alignment=Qt.AlignVCenter)
-        layout.addSpacing(22)
         layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
-        layout.addSpacing(18)
-        layout.addWidget(nodes['input.counter'], alignment=Qt.AlignVCenter)
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         return layout
 

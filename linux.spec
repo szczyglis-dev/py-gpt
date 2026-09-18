@@ -109,6 +109,7 @@ datas += [
     ('src/pygpt_net/data/languages.csv', 'data'),
     ('src/pygpt_net/data/banners.json', 'data'),
     ('src/pygpt_net/data/logo.png', 'data'),
+    ('src/pygpt_net/data/logo_splash.png', 'data'),
     ('src/pygpt_net/data/icon.ico', 'data'),
     ('src/pygpt_net/data/icon_tray_idle.ico', 'data'),
     ('src/pygpt_net/data/icon_tray_busy.ico', 'data'),

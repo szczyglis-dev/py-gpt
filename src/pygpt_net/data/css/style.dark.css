@@ -647,3 +647,19 @@ QTabBar#inputCompactTabs::tab:left:hover:!selected,
 QTabBar#inputCompactTabs::tab:right:hover:!selected {{
   border-bottom-color: #777777;
 }}
+
+/* Chat input runtime selectors: keep model/reasoning compact without clipping. */
+QPushButton#chatInputModel,
+QPushButton#chatInputReasoningEffort {{
+  font-size: 13px;
+  padding-left: 2px;
+  padding-right: 2px;
+  margin-left: 0px;
+  margin-right: 0px;
+}}
+QPushButton#chatInputReasoningEffort {{
+  color: #9b9b9b;
+}}
+QPushButton#chatInputReasoningEffort:hover {{
+  color: #b0b0b0;
+}}

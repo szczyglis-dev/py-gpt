@@ -135,6 +135,7 @@ datas += [
     (r'src\pygpt_net\data\languages.csv', r'data'),
     (r'src\pygpt_net\data\banners.json', r'data'),
     (r'src\pygpt_net\data\logo.png', r'data'),
+    (r'src\pygpt_net\data\logo_splash.png', r'data'),
     (r'src\pygpt_net\data\icon.ico', r'data'),
     (r'src\pygpt_net\data\icon_tray_idle.ico', r'data'),
     (r'src\pygpt_net\data\icon_tray_busy.ico', r'data'),

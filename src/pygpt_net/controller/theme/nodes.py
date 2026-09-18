@@ -62,6 +62,7 @@ class Nodes:
             'font.chat.input': [
                 'input',
                 'input_extra',
+                'prompt.model',
             ],
             'font.chat.output': [
                 'output',
@@ -88,7 +89,6 @@ class Nodes:
                 'prompt.label',
                 'prompt.mode',
                 'prompt.mode.label',
-                'prompt.model',
                 'prompt.model.label',
                 'toolbox.prompt.label',
                 'toolbox.preset.ai_name.label',
