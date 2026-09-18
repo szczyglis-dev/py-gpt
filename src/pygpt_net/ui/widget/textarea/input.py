@@ -88,8 +88,6 @@ class ChatInput(QTextEdit):
         self.max_font_size = 42
         self.min_font_size = 8
         self._text_top_padding = 10
-        # Symmetric horizontal inset for typed text/placeholder. Keep the text
-        # visually aligned with the center of the bottom-left attachment icon.
         self._text_horizontal_padding = 10
         self.textChanged.connect(self.window.controller.ui.update_tokens)
         self.setProperty('class', 'layout-input')

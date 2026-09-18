@@ -604,6 +604,7 @@ QMenu::separator {{
 /* Input @mentions */
 #chatInput {{
   qproperty-mentionColor: #90f7a5;
+  placeholder-text-color: #515151;
 }}
 .mention-popup {{
   background: #202020;

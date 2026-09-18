@@ -348,7 +348,9 @@ think {{
   width: auto;
   max-width: 100%;
   margin-top: 10px;
+  margin-right: 0px;
   margin-bottom: 0px;
+  padding-right: 0px;
   padding-bottom: 0px;
   background: none;
   border: none;
@@ -399,6 +401,10 @@ think {{
   padding: 5px;
   width: auto;
 }}
+.msg-bot > .msg {{
+  padding-right: 0px;
+}}
+
 .name-user {{
   display: none;
 }}

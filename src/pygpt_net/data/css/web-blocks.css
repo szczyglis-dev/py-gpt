@@ -200,7 +200,9 @@ think {{
   width: auto;
   max-width: 100%;
   margin-top: 10px;
+  margin-right: 0px;
   margin-bottom: 0px;
+  padding-right: 0px;
   padding-bottom: 0px;
 }}
 .msg-box .name-header.name-bot {{
@@ -243,6 +245,10 @@ think {{
   margin: 0;
   padding: 15px;
 }}
+.msg-bot > .msg {{
+  padding-right: 0px;
+}}
+
 .ts {{
   display: none;
 }}

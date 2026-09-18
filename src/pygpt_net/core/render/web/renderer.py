@@ -875,7 +875,10 @@ class Renderer(BaseRenderer):
             weekday = dt.strftime("%A")
             month = dt.strftime("%B")
 
-        weekday = weekday.rstrip(".").lower()
+        # Preserve the capitalization supplied by QLocale. Weekday names are
+        # conventionally capitalized in some languages (e.g. English/German)
+        # and lowercase in others (e.g. Polish/French/Spanish).
+        weekday = weekday.rstrip(".")
         if not month:
             month = dt.strftime("%B")
 

@@ -33,7 +33,8 @@ from pygpt_net.utils import trans
 class ChatInputContainer(QWidget):
     """Responsive wrapper that keeps the whole composer aligned with chat content."""
 
-    CHAT_CONTENT_WIDTH = 800  # mirrors body max-width in data/css/web-chatgpt.css
+    CHAT_CONTENT_WIDTH = 760  # mirrors body max-width in data/css/web-chatgpt.css
+    CHAT_CONTENT_LEFT_EXTEND = 10  # align composer's left edge with rendered bot content
     def __init__(self, window, content_widget):
         super().__init__()
         self.window = window
@@ -162,7 +163,16 @@ class ChatInputContainer(QWidget):
         reference_width = min(area_width, self._target_content_width())
         x = area_x + max(0, (area_width - reference_width) // 2)
 
-        width = max(1, reference_width)
+        # The WebView's rendered assistant content starts slightly to the left
+        # of the Qt composer despite sharing the same nominal 800 px width.
+        # Extend only the composer's left edge by the matching visual inset and
+        # keep its current right edge untouched. Scale the correction with the
+        # WebView zoom so alignment remains stable at non-100% zoom levels.
+        left_extend = max(0, int(round(self.CHAT_CONTENT_LEFT_EXTEND * self._zoom_factor())))
+        left_extend = min(left_extend, max(0, x - area_x))
+        x -= left_extend
+
+        width = max(1, min(area_x + area_width - x, reference_width + left_extend))
         geometry = (x, 0, width, height)
         if geometry == self._content_geometry:
             return

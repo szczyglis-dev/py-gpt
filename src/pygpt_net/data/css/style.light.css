@@ -708,6 +708,7 @@ QMenuBar::item:disabled {{
 /* Input @mentions */
 #chatInput {{
   qproperty-mentionColor: #7c3aed;
+  placeholder-text-color: #a4a4a4;
 }}
 .mention-popup {{
   background: #ffffff;
@@ -763,7 +764,7 @@ QPushButton#chatInputReasoningEffort {{
 }}
 QPushButton#chatInputModel,
 QPushButton#chatInputModel:hover {{
-  color: #3f3f3f;
+  color: #3a3a3a;
 }}
 QPushButton#chatInputReasoningEffort {{
   color: #777777;

@@ -463,6 +463,8 @@ class Mapping:
         tooltips['icon.remote_tool.web'] = 'icon.remote_tool.web'
         tooltips['remote_store.btn.refresh_status'] = 'dialog.remote_store.btn.refresh_status'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
+        tooltips['attachments.btn.options'] = 'attachments.options.label'
+        tooltips['attachments_ctx.btn.options'] = 'attachments.options.label'
 
         menu_tooltips = {}
         menu_tooltips['video.capture'] = 'vision.capture.enable.tooltip'
