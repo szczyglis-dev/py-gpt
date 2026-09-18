@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 20:05:00                  #
+# Updated Date: 2026.09.18 15:05:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QWidget, QStyle
@@ -22,10 +22,12 @@ class InputTabs(QTabWidget):
         self.window = window
         self._attachments_tab_index = 1
         self._compact_tab_tooltips = {
+            0: 'input.tab',
             1: 'attachments.tab',
             2: 'attachments_uploaded.tab',
             3: 'attachments_uploaded.tab',
         }
+        self.tabBar().setObjectName('inputCompactTabs')
         self._context_menu = QMenu(self)
         self._action_clear = QAction(QIcon(":/icons/delete.svg"), trans('attachments.btn.clear'), self)
         self._action_clear.triggered.connect(self._on_clear_triggered)

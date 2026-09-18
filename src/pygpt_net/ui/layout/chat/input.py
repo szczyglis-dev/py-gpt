@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 20:41:00
+# Updated Date: 2026.09.18 15:05:00
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize, QTimer, QPoint
@@ -250,17 +250,19 @@ class Input:
         self.window.ui.tabs['input'] = InputTabs(self.window)
         tabs = self.window.ui.tabs['input']
         tabs.setMinimumHeight(self.min_height_input_tab)
-        tabs.addTab(input, trans('input.tab'))
+        tabs.addTab(input, '')
         tabs.addTab(files, '')
         tabs.addTab(files_uploaded, '')
         tabs.addTab(files_ctx, '')
         tabs.addTab(input_extra, trans('input.tab.extra'))
         tabs.currentChanged.connect(self.update_min_height)
 
+        tabs.setTabIcon(0, QIcon(":/icons/chat1.svg"))
         upload_icon = QIcon(":/icons/upload.svg")
         tabs.setTabIcon(1, QIcon(":/icons/attachment.svg"))
         tabs.setTabIcon(2, upload_icon)
         tabs.setTabIcon(3, upload_icon)
+        tabs.set_compact_tab_count(0, 0)
         tabs.set_compact_tab_count(1, 0)
         tabs.set_compact_tab_count(2, 0)
         tabs.set_compact_tab_count(3, 0)

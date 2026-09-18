@@ -638,3 +638,12 @@ QPushButton:disabled:hover {{
   background-color: #2a2a2a;
   border: 1px solid #454545;
 }}
+
+/* Chat composer tabs are icon-first; keep hover visible even when SVG tint does not change. */
+QTabBar#inputCompactTabs::tab:hover:!selected,
+QTabBar#inputCompactTabs::tab:top:hover:!selected,
+QTabBar#inputCompactTabs::tab:bottom:hover:!selected,
+QTabBar#inputCompactTabs::tab:left:hover:!selected,
+QTabBar#inputCompactTabs::tab:right:hover:!selected {{
+  border-bottom-color: #777777;
+}}
