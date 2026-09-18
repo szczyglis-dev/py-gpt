@@ -352,7 +352,6 @@ class Mapping:
         menu_title = {}
         menu_title['menu.app'] = 'menu.file'
         menu_title['menu.config'] = 'menu.config'
-        menu_title['config.edit.json'] = 'menu.config.edit.json'
         menu_title['config.profile'] = 'menu.config.profile'
         menu_title['config.models'] = 'menu.config.models'
         menu_title['menu.lang'] = 'menu.lang'

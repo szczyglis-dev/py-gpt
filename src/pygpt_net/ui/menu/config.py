@@ -74,26 +74,6 @@ class Config:
         m['config.models'].addAction(m['config.models.edit'])
         m['config.models'].addAction(m['config.models.import.provider'])
 
-        json_files = (
-            "attachments.json",
-            "assistants.json",
-            "config.json",
-            "models.json",
-            "plugin_presets.json",
-        )
-
-        m['config.edit.json'] = QMenu(tr("menu.config.edit.json"), w)
-        json_menu = m['config.edit.json']
-
-        for json_file in json_files:
-            name = json_file
-            key = 'config.edit.json.' + name
-            m[key] = QAction(icon_edit, name, w)
-            m[key].triggered.connect(
-                lambda checked=True, file=json_file: w.controller.settings.toggle_file_editor(file)
-            )
-            json_menu.addAction(m[key])
-
         m['config.profiles'] = {}
         m['config.profile'] = QMenu(tr("menu.config.profile"), w)
 
@@ -144,7 +124,6 @@ class Config:
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])
-        menu.addMenu(m['config.edit.json'])
         menu.addMenu(m['config.profile'])
         menu.addAction(m['config.open_dir'])
         menu.addAction(m['config.change_dir'])
