@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 21:13:00
+# Updated Date: 2026.09.18 22:34:00
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QSize
@@ -29,25 +29,16 @@ from .highlight import MarkerHighlighter
 
 
 class NotepadHelpLabel(HelpLabel):
-    """Help label that follows the same responsive width as the notepad editor."""
-
-    MAX_WIDTH = 800
+    """Help label that follows the full responsive width of the notepad tab."""
 
     def __init__(self, text, window=None):
         super().__init__(text, window)
-        self.setMaximumWidth(self.MAX_WIDTH)
         self.setMinimumWidth(0)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-
-    def sizeHint(self):
-        size = super().sizeHint()
-        size.setWidth(self.MAX_WIDTH)
-        return size
-
-    def minimumSizeHint(self):
-        size = super().minimumSizeHint()
-        size.setWidth(0)
-        return size
+        policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        # Preserve QLabel's height-for-width behaviour used by word wrapping.
+        # Without this flag the layout may reserve only a single text line.
+        policy.setHeightForWidth(True)
+        self.setSizePolicy(policy)
 
 
 class NotepadWidget(QWidget):
@@ -94,7 +85,7 @@ class NotepadWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.textarea, 1)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0, Qt.AlignHCenter)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0)
         layout.addWidget(self.mic_container, 0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
