@@ -75,8 +75,6 @@ class ChatInput(QTextEdit):
         self._mention_trigger_pos = None
         self._mention_entries = []
         self._mention_source_key = None
-        self._mention_browse_parent = None
-        self._mention_browse_entries = []
         self._mention_seq = 0
         self._mention_popup = MentionPopup(self)
         self._mention_popup.selected.connect(self._accept_mention_entry)
@@ -107,11 +105,13 @@ class ChatInput(QTextEdit):
         self._icon_size_right = QSize(20, 20)  # slightly larger by default
         self._btn_size_right = QSize(26, 26)   # slightly larger by default
 
-        # Independent margins/spacing/offset for the right-bottom bar
+        # Independent padding/spacing/offset for the dedicated bottom controls row.
+        # The row occupies its own band below the text viewport, so its controls
+        # never reduce the usable text width.
         self._icons_margin_right = 6
         self._icons_spacing_right = 4
         self._icons_offset_x_right = 0
-        self._icons_offset_y_right = 4  # position the right bar 4px lower by default
+        self._icons_offset_y_right = 4
 
         # Storage for icon buttons and metadata
         self._icons = {}       # key -> QPushButton
@@ -163,8 +163,8 @@ class ChatInput(QTextEdit):
             visible=True,
         )
 
-        # Apply initial margins (top padding + left space for icons)
-        # Also reserve right space for bottom-right icons; bottom margin stays 0
+        # Apply initial margins (top padding + left icon space + dedicated
+        # bottom controls row when any right-side controls are visible).
         self._apply_margins()
         self.update_reasoning_effort()
 
@@ -482,7 +482,7 @@ class ChatInput(QTextEdit):
         query_cursor.setPosition(at_cursor.selectionEnd())
         query_cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
         query = self._cursor_selected_text(query_cursor)
-        if any(ch.isspace() for ch in query) or len(query) > 200:
+        if "\n" in query or "\t" in query or len(query) > 200:
             return None
         return at_pos, end_pos, query
 
@@ -587,109 +587,11 @@ class ChatInput(QTextEdit):
                     pass
         return entries
 
-    @staticmethod
-    def _mention_parent_query(query: str):
-        """Return normalized parent path for a path-style mention query."""
-        raw = str(query or "").strip().replace("\\", "/")
-        if "/" not in raw:
-            return None
-        parent, _leaf = raw.rsplit("/", 1)
-        return parent.strip("/")
-
-    def _build_mention_browse_entries(self, parent: str) -> list:
-        """Load only direct children of a directory currently browsed via @path/."""
-        if parent is None:
-            return []
-
-        core = self.window.core
-        try:
-            meta = core.ctx.get_current_meta()
-            root = core.filesystem.get_data_dir(ctx=meta, create=False)
-        except Exception:
-            return []
-        if not root or not os.path.isdir(root):
-            return []
-
-        normalized = str(parent or "").strip().replace("\\", "/").strip("/")
-        parts = [part for part in normalized.split("/") if part and part != "."]
-        if any(part == ".." for part in parts):
-            return []
-
-        root_abs = os.path.abspath(root)
-        target = os.path.abspath(os.path.join(root_abs, *parts)) if parts else root_abs
-        try:
-            root_real = os.path.realpath(root_abs)
-            target_real = os.path.realpath(target)
-            if os.path.commonpath((root_real, target_real)) != root_real:
-                return []
-        except (ValueError, OSError):
-            return []
-        if not os.path.isdir(target):
-            return []
-
-        # Keep the same no-symlink policy as the full os.walk cache. This scan
-        # is intentionally shallow: entering @a/b/ reads only a/b, not its tree.
-        entries = []
-        try:
-            children = sorted(os.scandir(target), key=lambda item: item.name.casefold())
-            for item in children:
-                try:
-                    if item.is_symlink():
-                        continue
-                    is_dir = item.is_dir(follow_symlinks=False)
-                    is_file = item.is_file(follow_symlinks=False)
-                except OSError:
-                    continue
-                if not is_dir and not is_file:
-                    continue
-
-                full = item.path
-                rel = os.path.relpath(full, root_abs).replace(os.sep, "/")
-                if any(ch in rel for ch in "\r\n\t"):
-                    continue
-                if is_dir:
-                    rel = rel.rstrip("/") + "/"
-
-                try:
-                    value = core.filesystem.make_local(full, ctx=meta).replace("\\", "/")
-                except Exception:
-                    continue
-                if is_dir:
-                    value = value.rstrip("/") + "/"
-
-                entries.append(MentionEntry(
-                    KIND_FILE_CONTEXT,
-                    rel,
-                    value,
-                    is_dir,
-                ))
-        except Exception as e:
-            try:
-                core.debug.log(e)
-            except Exception:
-                pass
-        return entries
-
-    @staticmethod
-    def _merge_mention_entries(base: list, extra: list) -> list:
-        """Merge mention entry lists without duplicating the same durable value."""
-        result = []
-        seen = set()
-        for entry in list(base or []) + list(extra or []):
-            key = (entry.kind, str(entry.value or "").casefold())
-            if key in seen:
-                continue
-            seen.add(key)
-            result.append(entry)
-        return result
-
     def _refresh_mention_popup(self):
         if self._mention_loading or not self.hasFocus():
             self._mention_popup.hide()
             self._mention_trigger_pos = None
             self._mention_source_key = None
-            self._mention_browse_parent = None
-            self._mention_browse_entries = []
             return
 
         trigger = self._find_mention_trigger()
@@ -697,8 +599,6 @@ class ChatInput(QTextEdit):
             self._mention_popup.hide()
             self._mention_trigger_pos = None
             self._mention_source_key = None
-            self._mention_browse_parent = None
-            self._mention_browse_entries = []
             return
 
         at_pos, _end_pos, query = trigger
@@ -708,27 +608,7 @@ class ChatInput(QTextEdit):
             self._mention_trigger_pos = at_pos
             self._mention_source_key = source_key
             self._mention_entries = self._build_mention_entries()
-            self._mention_browse_parent = None
-            self._mention_browse_entries = []
             self._mention_popup.set_entries(self._mention_entries)
-
-        # The full os.walk cache is still the normal source. If the user starts
-        # navigating a concrete path, supplement it with a shallow read of that
-        # exact parent directory. This makes @dir/subdir/ reliable even when the
-        # global scan hit MENTION_SCAN_LIMIT before reaching that subtree.
-        browse_parent = self._mention_parent_query(query)
-        if browse_parent != self._mention_browse_parent:
-            self._mention_browse_parent = browse_parent
-            if browse_parent is None:
-                self._mention_browse_entries = []
-                popup_entries = self._mention_entries
-            else:
-                self._mention_browse_entries = self._build_mention_browse_entries(browse_parent)
-                popup_entries = self._merge_mention_entries(
-                    self._mention_entries,
-                    self._mention_browse_entries,
-                )
-            self._mention_popup.set_entries(popup_entries)
 
         if not self._mention_popup.apply_filter(query):
             return
@@ -773,8 +653,6 @@ class ChatInput(QTextEdit):
             self._mention_popup.hide()
             self._mention_trigger_pos = None
             self._mention_source_key = None
-            self._mention_browse_parent = None
-            self._mention_browse_entries = []
         finally:
             self._mention_loading = False
 
@@ -1375,11 +1253,13 @@ class ChatInput(QTextEdit):
         self._update_icon_bar_geometry()
         self._apply_margins()
 
-    # -------------------- Right-bottom icon bar --------------------
-    # Independent bar anchored at the bottom-right corner of the input widget.
+    # -------------------- Bottom controls row --------------------
+    # Right-side controls live in a dedicated full-width row below the text
+    # viewport. This avoids both a permanent right-side text wall and any need
+    # for text-flow tricks around overlay buttons.
 
     def _init_icon_bar_right(self):
-        """Create the right-side icon bar pinned in the bottom-right corner."""
+        """Create the dedicated bottom row for right-aligned input controls."""
         self._icon_bar_right = QWidget(self)
         self._icon_bar_right.setObjectName("chatInputIconBarRight")
         self._icon_bar_right.setAttribute(Qt.WA_StyledBackground, True)
@@ -1389,14 +1269,12 @@ class ChatInput(QTextEdit):
         """)
 
         layout = QHBoxLayout(self._icon_bar_right)
-        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(self._icons_spacing_right)
         self._icon_bar_right.setLayout(layout)
+        self._sync_right_row_layout()
+        layout.addStretch(1)
 
-        self._icon_bar_right.setFixedHeight(self._btn_size_right.height())
-        self._icon_bar_right.show()
-
-        self._reposition_icon_bar_right()
+        self._icon_bar_right.hide()
         self._update_icon_bar_geometry_right()
         self._apply_margins()
 
@@ -1599,7 +1477,7 @@ class ChatInput(QTextEdit):
         tooltip: str = "",
         visible: bool = True,
     ) -> QPushButton:
-        """Add a text button to the bottom-right bar (after existing controls)."""
+        """Add a text button to the dedicated bottom row (after existing controls)."""
         if key in self._icons_right:
             btn = self._icons_right[key]
             self._right_text_buttons.add(key)
@@ -1663,7 +1541,7 @@ class ChatInput(QTextEdit):
         ))
 
     def refresh_right_bar(self):
-        """Refresh embedded text-button sizes and the input viewport margins."""
+        """Refresh embedded text-button sizes and the dedicated bottom row."""
         for key in tuple(self._right_text_buttons):
             btn = self._icons_right.get(key)
             if btn is not None:
@@ -1673,7 +1551,7 @@ class ChatInput(QTextEdit):
         self._apply_margins()
 
     def add_right_icons(self, items):
-        """Add multiple right-bottom icons at once."""
+        """Add multiple icons to the dedicated bottom controls row."""
         for it in items:
             if isinstance(it, dict):
                 self.add_right_icon(
@@ -1734,7 +1612,7 @@ class ChatInput(QTextEdit):
 
     def set_icon_visible(self, key: str, visible: bool):
         """
-        Show or hide an icon by key; margins are recalculated.
+        Show or hide an icon by key; layout margins are recalculated.
 
         :param key: icon key
         :param visible: True to show, False to hide
@@ -1801,7 +1679,7 @@ class ChatInput(QTextEdit):
 
     def set_right_icon_order(self, keys):
         """
-        Set rendering order for RIGHT-BOTTOM icons by a list of keys.
+        Set rendering order for icons in the bottom controls row.
         Icons not listed keep their relative order at the end.
 
         :param keys: list of icon keys in desired order
@@ -1983,7 +1861,7 @@ class ChatInput(QTextEdit):
         btn_size: Optional[Union[QSize, Tuple[int, int], int]] = None,
     ):
         """
-        Public API: change sizes for right-bottom icons.
+        Public API: change sizes for icons in the bottom controls row.
         - icon_size: QSize | (w, h) | int (square)
         - btn_size : QSize | (w, h) | int (square)
         Applies to existing right icons immediately.
@@ -2026,7 +1904,7 @@ class ChatInput(QTextEdit):
 
     def set_right_icon_px(self, icon_px: int, btn_px: Optional[int] = None):
         """
-        Convenience helper to set square sizes for right-bottom icons.
+        Convenience helper to set square sizes for bottom-row icons.
         """
         btn = btn_px if btn_px is not None else self._btn_size_right.height()
         self.set_right_icon_sizes(icon_px, btn)
@@ -2041,7 +1919,7 @@ class ChatInput(QTextEdit):
         offset_y: Optional[int] = None,
     ):
         """
-        Public API: change layout params for the right-bottom icon bar.
+        Public API: change layout params for the bottom controls row.
         - margin: inner padding from edges (px)
         - spacing: spacing between right-bar buttons (px)
         - offset_x: horizontal offset (+ rightwards, - leftwards)
@@ -2113,7 +1991,7 @@ class ChatInput(QTextEdit):
                 layout.addWidget(btn)
 
     def _rebuild_icon_layout_right(self):
-        """Rebuild the RIGHT-BOTTOM layout according to current _icon_order_right."""
+        """Rebuild the bottom controls row according to _icon_order_right."""
         if not hasattr(self, "_icon_bar_right"):
             return
         layout = self._icon_bar_right.layout()
@@ -2122,6 +2000,9 @@ class ChatInput(QTextEdit):
             w = item.widget()
             if w:
                 layout.removeWidget(w)
+        # The stretch makes the entire control group hug the right edge while
+        # the row itself spans the full input width.
+        layout.addStretch(1)
         for k in self._icon_order_right:
             btn = self._icons_right.get(k)
             if btn:
@@ -2149,9 +2030,7 @@ class ChatInput(QTextEdit):
         return w
 
     def _compute_icon_bar_right_width(self) -> int:
-        """
-        Compute width for right-bottom bar from button count.
-        """
+        """Compute width of the visible control group inside the bottom row."""
         vis = self._visible_buttons_right()
         if not vis:
             return 0
@@ -2159,6 +2038,42 @@ class ChatInput(QTextEdit):
         w = sum(max(0, btn.width()) for btn in vis)
         w += (count - 1) * self._icons_spacing_right
         return w
+
+    def _right_row_vertical_padding(self) -> tuple[int, int]:
+        """Return top/bottom padding for the dedicated controls row."""
+        total = max(0, int(self._icons_margin_right))
+        top = total // 2
+        bottom = total - top
+
+        # Preserve the old vertical-offset API: positive values move controls
+        # downward within the row, negative values move them upward.
+        offset = int(self._icons_offset_y_right)
+        top = max(0, top + offset)
+        bottom = max(0, bottom - offset)
+        return top, bottom
+
+    def _right_row_height(self) -> int:
+        """Return the height reserved below the text viewport for controls."""
+        vis = self._visible_buttons_right()
+        if not vis:
+            return 0
+        top, bottom = self._right_row_vertical_padding()
+        btn_h = max([btn.height() for btn in vis] or [self._btn_size_right.height()])
+        return max(0, btn_h + top + bottom)
+
+    def _sync_right_row_layout(self):
+        """Apply spacing and padding to the dedicated bottom controls row."""
+        if not hasattr(self, "_icon_bar_right"):
+            return
+        layout = self._icon_bar_right.layout()
+        if layout is None:
+            return
+        top, bottom = self._right_row_vertical_padding()
+        # Positive x offset moves the control group rightwards by reducing the
+        # normal right inset; negative values move it leftwards.
+        right = max(0, int(self._icons_margin_right) - int(self._icons_offset_x_right))
+        layout.setContentsMargins(0, top, right, bottom)
+        layout.setSpacing(self._icons_spacing_right)
 
     def _update_icon_bar_geometry(self):
         """Update the bar width and keep it raised above the text viewport."""
@@ -2170,11 +2085,12 @@ class ChatInput(QTextEdit):
         self._reposition_icon_bar()
 
     def _update_icon_bar_geometry_right(self):
-        """Update the right-bottom bar width and keep it raised above the text viewport."""
+        """Update the dedicated bottom-row geometry and visibility."""
         if not hasattr(self, "_icon_bar_right"):
             return
-        width = self._compute_icon_bar_right_width()
-        self._icon_bar_right.setFixedWidth(max(0, width))
+        self._sync_right_row_layout()
+        row_h = self._right_row_height()
+        self._icon_bar_right.setVisible(row_h > 0)
         self._icon_bar_right.raise_()
         self._reposition_icon_bar_right()
 
@@ -2189,35 +2105,28 @@ class ChatInput(QTextEdit):
             self._icon_bar.move(x, y)
 
     def _reposition_icon_bar_right(self):
-        """Keep the right-bottom icon bar pinned to the bottom-right corner."""
+        """Keep the dedicated controls row pinned below the text viewport."""
         if hasattr(self, "_icon_bar_right"):
             fw = self.frameWidth()
-            bar_w = self._compute_icon_bar_right_width()
-            visible = self._visible_buttons_right()
-            bar_h = max(
-                [btn.height() for btn in visible] or [self._btn_size_right.height()]
-            )
-            x = self.width() - fw - self._icons_margin_right - bar_w + self._icons_offset_x_right
-            y = self.height() - fw - self._icons_margin_right - bar_h + self._icons_offset_y_right
-            # Clamp inside widget bounds
-            x = max(0, min(self.width() - bar_w, x))
-            y = max(0, min(self.height() - bar_h, y))
-            self._icon_bar_right.move(x, y)
+            row_h = self._right_row_height()
+            width = max(0, self.width() - 2 * fw)
+            x = fw
+            y = max(fw, self.height() - fw - row_h)
+            self._icon_bar_right.setGeometry(x, y, width, row_h)
 
     def _apply_margins(self):
-        """Reserve left space for visible icons and apply top text padding."""
-        # Also reserve right space for the bottom-right icon bar; keep bottom margin at 0 to avoid vertical shrink
+        """Reserve top/left text space and a dedicated bottom controls row."""
         left_space = self._compute_icon_bar_width()
         if left_space > 0:
             left_space += self._icons_margin * 2
 
-        right_space = self._compute_icon_bar_right_width()
-        if right_space > 0:
-            right_space += self._icons_margin_right * 2
+        # Right-side controls no longer consume a right viewport margin. They
+        # live in their own full-width row below the text, so all text lines can
+        # use the complete remaining width.
+        bottom_space = self._right_row_height()
+        self.setViewportMargins(left_space, self._text_top_padding, 0, bottom_space)
 
-        self.setViewportMargins(left_space, self._text_top_padding, right_space, 0)
-
-        # Reflow may change number of lines; adjust auto-height on next tick
+        # Reflow may change number of lines; adjust auto-height on next tick.
         try:
             QTimer.singleShot(0, self._schedule_auto_resize)
         except Exception:
