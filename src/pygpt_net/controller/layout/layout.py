@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.18 19:05:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -135,7 +135,16 @@ class Layout:
                 self.window.core.debug.log(e)
 
     def splitters_save(self):
-        """Save splitters state"""
+        """Save splitters state.
+
+        ``main.output`` has a transient footer-only geometry while a non-chat
+        tab hides the Chat composer. Persist the last real Chat geometry instead
+        so restarting on Notepad/Files/etc. cannot permanently collapse input.
+        """
+        config = self.window.core.config
+        previous = config.get('layout.splitters', {}) if config.has('layout.splitters') else {}
+        if not isinstance(previous, dict):
+            previous = {}
         data = {}
         ui_splitters = self.window.ui.splitters
         for splitter in self.splitters:
@@ -145,10 +154,20 @@ class Layout:
             if splitter_widget is None:
                 continue
             try:
+                if splitter == "main.output":
+                    tabs = getattr(self.window.controller.ui, 'tabs', None)
+                    if tabs is not None and getattr(tabs, '_chat_input_suppressed', False):
+                        remembered = tabs.get_chat_input_splitter_sizes_for_save()
+                        if remembered is not None:
+                            data[splitter] = remembered
+                            continue
+                        if splitter in previous:
+                            data[splitter] = previous[splitter]
+                            continue
                 data[splitter] = splitter_widget.sizes()
             except Exception:
                 pass
-        self.window.core.config.set('layout.splitters', data)
+        config.set('layout.splitters', data)
 
     def splitters_restore(self):
         """Restore splitters state"""
@@ -165,6 +184,10 @@ class Layout:
                 current = splitter_widget.sizes()
                 if current != sizes:
                     splitter_widget.setSizes(sizes)
+                if splitter == "main.output":
+                    tabs = getattr(self.window.controller.ui, 'tabs', None)
+                    if tabs is not None:
+                        tabs.remember_restored_chat_input_splitter_sizes(list(splitter_widget.sizes()))
             except Exception as e:
                 print("Error while restoring splitter state: " + str(e))
                 self.window.core.debug.log(e)

@@ -766,6 +766,9 @@ class Input:
         """Persist current splitter sizes only while Input/Extra is active."""
         tabs = self.window.ui.tabs.get('input')
         splitter = self.window.ui.splitters.get('main.output')
+        tabs_controller = getattr(self.window.controller.ui, 'tabs', None)
+        if tabs_controller is not None and getattr(tabs_controller, '_chat_input_suppressed', False):
+            return
         if tabs is None or splitter is None or tabs.currentIndex() not in (0, 4):
             return
         try:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 14:10:00
+# Updated Date: 2026.09.18 19:05:00
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -171,19 +171,28 @@ class Tabs:
                 QTimer.singleShot(0, composer.sync_width)
 
             saved = self._chat_input_splitter_sizes
-            if splitter is not None and saved and len(saved) == splitter.count():
+            if self._is_expanded_chat_input_sizes(saved):
                 self._restore_chat_input_splitter_sizes(list(saved))
                 QTimer.singleShot(0, lambda sizes=list(saved): self._restore_chat_input_splitter_sizes(sizes))
+            else:
+                # Profiles saved while a non-chat tab was active may contain the
+                # footer-only splitter size from the old suppression code. Grow
+                # the composer back to a usable minimum instead of leaving it at
+                # zero/near-zero height. Run twice so delayed Qt size-hint
+                # propagation cannot immediately clamp it back down.
+                QTimer.singleShot(0, self._ensure_chat_input_splitter_visible)
+                QTimer.singleShot(50, self._ensure_chat_input_splitter_visible)
             self._chat_input_splitter_sizes = None
             return
 
         # Files, Notepad, Calendar, Painter and every custom Tool tab use the
         # output area without the Chat composer. The full-width global status
-        # footer remains visible.
+        # footer remains visible. Capture only a real, expanded Chat geometry;
+        # startup may reach this branch before layout.splitters has been restored.
         if not self._chat_input_suppressed and splitter is not None:
             try:
                 sizes = list(splitter.sizes())
-                if sizes and len(sizes) == splitter.count():
+                if self._is_expanded_chat_input_sizes(sizes):
                     self._chat_input_splitter_sizes = sizes
             except Exception:
                 pass
@@ -202,6 +211,114 @@ class Tabs:
         except Exception:
             return -1
 
+    def _chat_input_footer_height(self) -> int:
+        """Return the lower-pane height used when only the global footer is visible."""
+        footer = self.window.ui.nodes.get('input.footer.container')
+        if footer is None:
+            return 0
+        try:
+            return max(0, int(footer.minimumSizeHint().height()), int(footer.sizeHint().height())) + 5
+        except Exception:
+            return 0
+
+    def _is_expanded_chat_input_sizes(self, sizes) -> bool:
+        """Return True when sizes represent a real Chat composer, not footer-only suppression."""
+        splitter = self.window.ui.splitters.get('main.output')
+        root = self.window.ui.nodes.get('input.root')
+        if splitter is None or root is None or not sizes or len(sizes) != splitter.count():
+            return False
+        try:
+            input_idx = self._input_root_index(splitter, root)
+            if input_idx < 0 or input_idx >= len(sizes) or sum(int(v) for v in sizes) <= 0:
+                return False
+            return int(sizes[input_idx]) > self._chat_input_footer_height() + 8
+        except Exception:
+            return False
+
+    def remember_restored_chat_input_splitter_sizes(self, sizes):
+        """Keep normal Chat geometry restored while the composer is temporarily hidden."""
+        if self._chat_input_suppressed and self._is_expanded_chat_input_sizes(sizes):
+            self._chat_input_splitter_sizes = list(sizes)
+
+    def get_chat_input_splitter_sizes_for_save(self):
+        """Return the real Chat geometry to persist while a non-chat tab hides the composer."""
+        if not self._chat_input_suppressed:
+            return None
+        if self._is_expanded_chat_input_sizes(self._chat_input_splitter_sizes):
+            return list(self._chat_input_splitter_sizes)
+        return None
+
+    def _ensure_chat_input_splitter_visible(self):
+        """Recover a usable Chat input height from legacy footer-only saved geometry."""
+        if self._chat_input_suppressed:
+            return
+        splitter = self.window.ui.splitters.get('main.output')
+        root = self.window.ui.nodes.get('input.root')
+        composer = self.window.ui.nodes.get('input.container')
+        if splitter is None or root is None or composer is None:
+            return
+        try:
+            composer.updateGeometry()
+            root.updateGeometry()
+            current = list(splitter.sizes())
+            input_idx = self._input_root_index(splitter, root)
+            if input_idx < 0 or input_idx >= len(current) or not current:
+                return
+            if self._is_expanded_chat_input_sizes(current):
+                self.window.controller.ui.splitter_output_size_input = list(current)
+                return
+
+            total = sum(current)
+            if total <= 0:
+                return
+            required = max(
+                self._chat_input_footer_height() + 16,
+                int(root.minimumSizeHint().height()),
+                int(root.sizeHint().height()),
+                140,
+            )
+
+            other_min_total = 0
+            for idx in range(splitter.count()):
+                if idx == input_idx:
+                    continue
+                widget = splitter.widget(idx)
+                if widget is not None:
+                    try:
+                        other_min_total += max(0, int(widget.minimumSizeHint().height()))
+                    except Exception:
+                        pass
+            target = min(required, max(0, total - other_min_total))
+            if target <= current[input_idx]:
+                return
+
+            delta = target - current[input_idx]
+            new_sizes = list(current)
+            new_sizes[input_idx] = target
+            remaining = delta
+            for idx in range(len(new_sizes)):
+                if idx == input_idx or remaining <= 0:
+                    continue
+                widget = splitter.widget(idx)
+                min_h = 0
+                if widget is not None:
+                    try:
+                        min_h = max(0, int(widget.minimumSizeHint().height()))
+                    except Exception:
+                        pass
+                reducible = max(0, new_sizes[idx] - min_h)
+                take = min(reducible, remaining)
+                new_sizes[idx] -= take
+                remaining -= take
+            if remaining > 0:
+                new_sizes[input_idx] = max(current[input_idx], new_sizes[input_idx] - remaining)
+            splitter.setSizes(new_sizes)
+            accepted = list(splitter.sizes())
+            if self._is_expanded_chat_input_sizes(accepted):
+                self.window.controller.ui.splitter_output_size_input = accepted
+        except Exception:
+            pass
+
     def _collapse_chat_input_splitter(self):
         """Shrink the lower pane to the application status footer only."""
         if not self._chat_input_suppressed:
@@ -219,6 +336,12 @@ class Tabs:
             input_idx = self._input_root_index(splitter, root)
             if input_idx < 0 or input_idx >= len(current):
                 return
+
+            # On startup Layout may restore the normal Chat splitter geometry
+            # after the non-chat tab already requested suppression. Preserve it
+            # before replacing it with the footer-only runtime geometry.
+            if self._chat_input_splitter_sizes is None and self._is_expanded_chat_input_sizes(current):
+                self._chat_input_splitter_sizes = list(current)
 
             target = max(0, int(root.minimumSizeHint().height()), int(root.sizeHint().height()))
             if footer is not None:
