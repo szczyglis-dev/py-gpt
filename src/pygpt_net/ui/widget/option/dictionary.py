@@ -11,7 +11,7 @@
 
 from typing import List
 
-from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
+from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
     QCheckBox, QHeaderView, QHBoxLayout, QAbstractItemView
@@ -110,6 +110,17 @@ class OptionDict(QWidget):
         new_index = self.model.index(count, 0)
         self.list.setCurrentIndex(new_index)
         self.list.scrollTo(new_index)
+
+        # Let the new row render first, then open its editor automatically.
+        QTimer.singleShot(
+            0,
+            lambda: self.window.ui.dialogs.open_dictionary_editor(
+                f"{self.parent_id}.{self.id}",
+                self.option,
+                empty,
+                count,
+            ),
+        )
 
     def edit_item(self, event):
         """
