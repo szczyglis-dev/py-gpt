@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 20:15:00                  #
+# Updated Date: 2026.09.18 14:20:00                  #
 # ================================================== #
 
 import json
@@ -15,19 +15,19 @@ import re
 import html as _html
 from dataclasses import dataclass, field
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List, Any, Tuple
 from time import monotonic
 from io import StringIO
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QLocale, QTimer
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
-from pygpt_net.utils import trans, sizeof_fmt
+from pygpt_net.utils import get_locale_lang, trans, sizeof_fmt
 from pygpt_net.core.tabs.tab import Tab
 
 from .body import Body
@@ -711,6 +711,7 @@ class Renderer(BaseRenderer):
         self.pids[pid].html = ""
         prev_ctx = None
         next_item = None
+        previous_user_day = None
         total = len(items)
         latest_visible_index = next(
             (i for i in range(total - 1, -1, -1) if not getattr(items[i], "hidden", False)),
@@ -730,6 +731,12 @@ class Renderer(BaseRenderer):
 
             # build single RenderBlock with both input and output (if present)
             input_text = self.prepare_input(meta, item, flush=False, append=False)
+            history_date_label = None
+            if input_text:
+                input_day = self._history_input_day(item)
+                if input_day is not None and input_day != previous_user_day:
+                    history_date_label = self._format_history_date_label(item.input_timestamp)
+                    previous_user_day = input_day
             output_text = self.prepare_output(meta, item, flush=False, prev_ctx=prev_ctx, next_ctx=next_item)
             action_state = self._get_action_state(items, i)
             block = self._build_render_block(
@@ -742,6 +749,7 @@ class Renderer(BaseRenderer):
                 action_state=action_state,
                 rebuild=True,
                 is_latest_ctx=(i == latest_visible_index),
+                history_date_label=history_date_label,
             )
             if block:
                 self.append(pid, block.to_json(wrap=True))
@@ -775,6 +783,7 @@ class Renderer(BaseRenderer):
         self.pids[pid].html = ""
         prev_ctx = None
         next_ctx = None
+        previous_user_day = None
         total = len(items)
         nodes: List[dict] = []
         latest_visible_index = next(
@@ -794,6 +803,12 @@ class Renderer(BaseRenderer):
                 continue
 
             input_text = self.prepare_input(meta, item, flush=False, append=False)
+            history_date_label = None
+            if input_text:
+                input_day = self._history_input_day(item)
+                if input_day is not None and input_day != previous_user_day:
+                    history_date_label = self._format_history_date_label(item.input_timestamp)
+                    previous_user_day = input_day
             output_text = self.prepare_output(meta, item, flush=False, prev_ctx=prev_ctx, next_ctx=next_ctx)
             action_state = self._get_action_state(items, i)
             block = self._build_render_block(
@@ -806,6 +821,7 @@ class Renderer(BaseRenderer):
                 action_state=action_state,
                 rebuild=True,
                 is_latest_ctx=(i == latest_visible_index),
+                history_date_label=history_date_label,
             )
             if block:
                 nodes.append(block.to_dict())
@@ -821,6 +837,52 @@ class Renderer(BaseRenderer):
         self.pids[pid].use_buffer = False
         if self.pids[pid].html != "":
             self.append(pid, self.pids[pid].html, flush=True, replace=True)
+
+    @staticmethod
+    def _history_input_day(ctx: CtxItem):
+        """Return the local calendar day for a persisted user input."""
+        timestamp = getattr(ctx, "input_timestamp", None)
+        if timestamp is None:
+            return None
+        try:
+            return datetime.fromtimestamp(float(timestamp)).date()
+        except (TypeError, ValueError, OSError, OverflowError):
+            return None
+
+    def _format_history_date_label(self, timestamp) -> Optional[str]:
+        """Format a history-only day separator shown above user messages."""
+        if timestamp is None:
+            return None
+        try:
+            dt = datetime.fromtimestamp(float(timestamp))
+        except (TypeError, ValueError, OSError, OverflowError):
+            return None
+
+        today = datetime.now().date()
+        day = dt.date()
+        clock = dt.strftime("%H:%M")
+
+        if day == today:
+            return f"{trans('ctx.date.today')}, {clock}"
+        if day == today - timedelta(days=1):
+            return f"{trans('ctx.date.yesterday')}, {clock}"
+
+        try:
+            locale = QLocale(get_locale_lang() or "en")
+            weekday = locale.dayName(dt.isoweekday(), QLocale.FormatType.LongFormat).strip()
+            month = locale.monthName(dt.month, QLocale.FormatType.LongFormat).strip()
+        except Exception:
+            weekday = dt.strftime("%A")
+            month = dt.strftime("%B")
+
+        weekday = weekday.rstrip(".").lower()
+        if not month:
+            month = dt.strftime("%B")
+
+        prefix = f"{weekday}, " if weekday else ""
+        if day.year == today.year:
+            return f"{prefix}{dt.day} {month} {clock}"
+        return f"{prefix}{dt.day} {month} {dt.year}"
 
     def prepare_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False) -> Optional[str]:
         """
@@ -3919,6 +3981,7 @@ class Renderer(BaseRenderer):
             action_state: Optional[dict] = None,
             rebuild: bool = False,
             is_latest_ctx: bool = False,
+            history_date_label: Optional[str] = None,
     ) -> Optional[RenderBlock]:
         """
         Build RenderBlock for given ctx and payloads (input/output).
@@ -3955,6 +4018,8 @@ class Renderer(BaseRenderer):
                 "text": str(input_text),
                 "timestamp": ctx.input_timestamp if hasattr(ctx, "input_timestamp") else None,
             }
+            if rebuild and history_date_label:
+                block.input["date_label"] = history_date_label
 
         # output
         # Runtime statuses are not persisted assistant content. During a history

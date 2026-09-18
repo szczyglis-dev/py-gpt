@@ -311,6 +311,19 @@ think {{
   display: inline;
 }}
 
+
+/* history date separator */
+.msg-date-separator {{
+  box-sizing: border-box;
+  width: 100%;
+  padding: 15px 0;
+  color: #808080;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  text-align: center;
+  user-select: none;
+}}
+
 /* message box */
 .msg-box {{
   max-width: 100%;

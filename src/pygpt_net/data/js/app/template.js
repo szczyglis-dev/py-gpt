@@ -93,6 +93,9 @@ class NodeTemplateEngine {
 
 		const personalize = !!(block && block.extra && block.extra.personalize === true);
 		const nameHeader = personalize ? this._nameHeader('user', inp.name || '', inp.avatar_img || null) : '';
+		const dateLabel = inp.date_label
+			? `<div class="msg-date-separator">${this._escapeHtml(inp.date_label)}</div>`
+			: '';
 
 		const content = (typeof Utils !== 'undefined' && Utils.renderMentionText) ? Utils.renderMentionText(inp.text || '') : this._escapeHtml(inp.text || '').replace(/\r?\n/g, '<br>');
 
@@ -105,7 +108,7 @@ class NodeTemplateEngine {
 		// Single icon, no label; positioned via CSS; visible on hover.
 		const copyBtn = `<a href="empty:${this._esc(id)}" class="msg-copy-btn" data-id="${this._esc(id)}" data-tip="${this._escapeHtml(copyTitle)}" title="${this._escapeHtml(copyTitle)}" aria-label="${this._escapeHtml(copyTitle)}" role="button"><img src="${this._esc(copyIcon)}" class="copy-img" alt="${this._escapeHtml(copyTitle)}" data-id="${this._esc(id)}"></a>`;
 
-		return `<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg">${copyBtn}<p style="margin:0">${content}</p></div></div>`;
+		return `${dateLabel}<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg">${copyBtn}<p style="margin:0">${content}</p></div></div>`;
 	}
 
 	// Render a list of file/URL rows with an optional collapsed tail.
