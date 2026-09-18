@@ -21,6 +21,7 @@ from urllib.parse import unquote
 from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.core.filesystem.opener import Opener
+from pygpt_net.core.text.mentions import KIND_FILE_CONTEXT, make_tag as make_mention_tag
 from pygpt_net.utils import trans
 
 
@@ -616,28 +617,19 @@ class Files:
 
     def make_read_cmd(self, path: Union[str, list]):
         """
-        Make read command for file or directory and append to input
+        Append selected file/directory paths to input as mentions.
 
         :param path: path to file or list of files
         """
-        files_list = path if isinstance(path, list) else [path]
-        cmd = ""
-        cmd_dir = []
-        cmd_current = []
-        for path in files_list:
-            if os.path.isdir(path):
-                cmd_dir.append(self.strip_work_path(path))
-            else:
-                cmd_current.append(self.strip_work_path(path))
-        if len(cmd_dir) > 1:
-            cmd = "Please list files from directories: " + ", ".join(cmd_dir)
-        elif len(cmd_dir) == 1:
-            cmd = f"Please list files from directory: {cmd_dir[0]}"
-        if len(cmd_current) > 1:
-            cmd = "Please read these files from current directory: " + ", ".join(cmd_current)
-        elif len(cmd_current) == 1:
-            cmd = f"Please read this file from current directory: {cmd_current[0]}"
-        self.window.controller.chat.common.append_to_input(cmd)
+        paths = path if isinstance(path, list) else [path]
+        meta = self.window.core.ctx.get_current_meta()
+        mentions = []
+        for item_path in paths:
+            value = self.window.core.filesystem.make_local(item_path, ctx=meta).replace("\\", "/")
+            if os.path.isdir(item_path):
+                value = value.rstrip("/") + "/"
+            mentions.append(make_mention_tag(KIND_FILE_CONTEXT, value))
+        self.window.controller.chat.common.append_to_input("\n".join(mentions))
 
     def make_ts_prefix(self) -> str:
         """
