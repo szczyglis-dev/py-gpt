@@ -1,6 +1,6 @@
 body {{ 
     --copy-btn-bg-hover: rgb(0 0 0 / 76%);
-    color: #fff;
+    color: ##dfe0e6;
     background-color: #161616;
 }}
 ::-webkit-scrollbar {{
@@ -16,7 +16,7 @@ body {{
     background: transparent;
 }}
 p {{ 
-    color: #fff;
+    color: #dfe0e6;
 }}
 a {{
     color: #b5c3cd !important;
@@ -30,13 +30,13 @@ a:hover {{
     color: #fff;
 }}
 .msg-user p {{
-    color: #fff;
+    color: #dfe0e6;
 }}
 .msg-bot {{
-    color: #fff;
+    color: #dfe0e6;
 }}
 .msg-bot p {{
-    color: #fff;
+    color: #dfe0e6;
 }}
 .cmd {{
     color: #4d4d4d !important;
