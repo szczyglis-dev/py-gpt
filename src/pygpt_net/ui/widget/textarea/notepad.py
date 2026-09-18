@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:00:00                  #
+# Updated Date: 2026.09.18 13:45:00
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer
@@ -18,13 +18,35 @@ from PySide6.QtGui import (
     QFontMetrics,
     QColor,
 )
-from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QSizePolicy
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 from .highlight import MarkerHighlighter
+
+
+class NotepadHelpLabel(HelpLabel):
+    """Help label that follows the same responsive width as the notepad editor."""
+
+    MAX_WIDTH = 800
+
+    def __init__(self, text, window=None):
+        super().__init__(text, window)
+        self.setMaximumWidth(self.MAX_WIDTH)
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+    def sizeHint(self):
+        size = super().sizeHint()
+        size.setWidth(self.MAX_WIDTH)
+        return size
+
+    def minimumSizeHint(self):
+        size = super().minimumSizeHint()
+        size.setWidth(0)
+        return size
 
 
 class NotepadWidget(QWidget):
@@ -38,13 +60,16 @@ class NotepadWidget(QWidget):
         self.window = window
         self.id = 1  # assigned in setup
         self.textarea = NotepadOutput(self.window)
-        self.window.ui.nodes['tip.output.tab.notepad'] = HelpLabel(trans('tip.output.tab.notepad'), self.window)
+        self.window.ui.nodes['tip.output.tab.notepad'] = NotepadHelpLabel(
+            trans('tip.output.tab.notepad'),
+            self.window,
+        )
         self.opened = False
         self.tab = None
 
         layout = QVBoxLayout()
-        layout.addWidget(self.textarea)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'])
+        layout.addWidget(self.textarea, 1, Qt.AlignHCenter)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0, Qt.AlignHCenter)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.setProperty('class', 'layout-notepad')
@@ -91,6 +116,8 @@ class NotepadWidget(QWidget):
         self.deleteLater()
 
 class NotepadOutput(QTextEdit):
+    MAX_WIDTH = 800  # mirrors PlainChatOutput and the WebView content width
+
     ICON_VOLUME = QIcon(":/icons/volume.svg")
     ICON_SAVE = QIcon(":/icons/save.svg")
     ICON_SEARCH = QIcon(":/icons/search.svg")
@@ -107,7 +134,7 @@ class NotepadOutput(QTextEdit):
         self.window = window
         self.finder = Finder(window, self)
         self.setAcceptRichText(False)
-        self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+        self.apply_theme_style()
 
         # Ensure the editor always accepts keyboard focus on single click
         self.setFocusPolicy(Qt.StrongFocus)
@@ -120,7 +147,10 @@ class NotepadOutput(QTextEdit):
         self.tab = None
         self.last_scroll_pos = None
         self.installEventFilter(self)
-        self.setProperty('class', 'layout-notepad')
+        self.setProperty('class', 'layout-notepad-output')
+        self.setMaximumWidth(self.MAX_WIDTH)
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.initialized = False
 
         metrics = QFontMetrics(self.font())
@@ -146,6 +176,33 @@ class NotepadOutput(QTextEdit):
 
         # schedule guard for column-focus sync
         self._column_focus_sync_scheduled = False
+
+    def sizeHint(self):
+        """Prefer the same 800 px content width as plain-text chat output."""
+        size = super().sizeHint()
+        size.setWidth(self.MAX_WIDTH)
+        return size
+
+    def minimumSizeHint(self):
+        """Never let the notepad enforce a minimum width on an output column."""
+        size = super().minimumSizeHint()
+        size.setWidth(0)
+        return size
+
+    def apply_theme_style(self):
+        """Apply chat-output typography and the plain-chat surface to the editor."""
+        size = self.window.core.config.get('font_size')
+        is_light = self.window.controller.theme.common.is_light_theme()
+        # Match the lifted surface used by plain-text chat output.
+        background = '#efefef' if is_light else '#242424'
+        self.setStyleSheet(
+            'QTextEdit {'
+            f'font-size: {size}px;'
+            f'background-color: {background};'
+            'border: none;'
+            'border-radius: 10px;'
+            '}'
+        )
 
     def on_delete(self):
         """On delete"""

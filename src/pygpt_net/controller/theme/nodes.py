@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 19:30:00
+# Updated Date: 2026.09.18 13:45:00
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -115,7 +115,7 @@ class Nodes:
         if ui.notepad:
             for np in ui.notepad.values():
                 ta = np.textarea
-                ta.setStyleSheet(style_output)
+                ta.apply_theme_style()
                 ta.value = size
 
         # apply to calendar
