@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.17 14:20:00                  #
+# Updated Date: 2026.09.18 10:02:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -15,7 +15,11 @@ from typing import Any, Dict, Optional
 
 from PySide6.QtCore import Qt
 
-from pygpt_net.core.agents_v2.mode import AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY
+from pygpt_net.core.agents_v2.mode import (
+    AGENT_MODE_CONFIG_DEFAULT,
+    AGENT_MODE_CONFIG_KEY,
+    AgentMode,
+)
 from pygpt_net.utils import trans
 
 
@@ -29,6 +33,7 @@ class Editor:
         # Unsaved editor state is kept per workflow. Switching the list must not
         # write to config, nor should it discard text already entered by user.
         self.drafts: Dict[str, Dict[str, str]] = {}
+        self._force_close = False
         self.width = 980
         self.height = 760
 
@@ -53,6 +58,8 @@ class Editor:
     def open(self):
         if "agents.v2.editor" not in self.window.ui.dialog:
             self.setup()
+        # Drafts are scoped to one visible editor session only.
+        self.drafts.clear()
         self.reload_items(select_id=self.current)
         self.window.ui.dialogs.open(
             "agents.v2.editor",
@@ -61,11 +68,70 @@ class Editor:
         )
         self.dialog = True
 
-    def close(self):
-        if self.dialog:
-            self._capture_current()
+    def close(self, force: bool = False) -> bool:
+        """Close the editor, asking before discarding real unsaved changes."""
+        if not self.dialog:
+            return True
+        if not force and self.has_unsaved_changes():
+            self._confirm_close()
+            return False
+
+        self._force_close = True
+        try:
             self.window.ui.dialogs.close("agents.v2.editor")
-            self.dialog = False
+        finally:
+            self._force_close = False
+        return True
+
+    def allow_close_event(self) -> bool:
+        """Handle ESC/window-manager close before QDialog accepts the event."""
+        if self._force_close:
+            self._finish_close()
+            return True
+        if self.has_unsaved_changes():
+            self._confirm_close()
+            return False
+        self._finish_close()
+        return True
+
+    def _finish_close(self):
+        """Discard session drafts after the dialog is actually being closed."""
+        self.drafts.clear()
+        self.dialog = False
+
+    def _confirm_close(self):
+        self.window.ui.dialogs.confirm(
+            type="agents_v2.editor.close",
+            id=None,
+            msg=trans("agents.editor.close.confirm"),
+            modal=True,
+        )
+
+    def has_unsaved_changes(self) -> bool:
+        """Return True only when draft/form values differ from persisted config."""
+        self._capture_current()
+        for agent_id, draft in self.drafts.items():
+            row = self.window.core.agents_v2.editor.editable_values(agent_id)
+            if row is None:
+                continue
+
+            if str(draft.get("system_prompt") or "") != str(row.get("system_prompt") or ""):
+                return True
+
+            if row.get("built_in"):
+                continue
+
+            if str(draft.get("name") or "").strip() != str(row.get("name") or "").strip():
+                return True
+            draft_runtime = self.window.core.agents_v2.editor.normalize_runtime(
+                draft.get("runtime")
+            )
+            saved_runtime = self.window.core.agents_v2.editor.normalize_runtime(
+                row.get("runtime")
+            )
+            if draft_runtime != saved_runtime:
+                return True
+        return False
 
     def _capture_current(self):
         """Keep current form values in memory without touching persisted config."""
@@ -79,7 +145,41 @@ class Editor:
         self.drafts[self.current] = {
             "name": str(name_node.text() if name_node is not None else ""),
             "system_prompt": str(prompt_node.toPlainText() if prompt_node is not None else ""),
+            "runtime": self._selected_runtime().value,
         }
+
+    def _runtime_buttons(self) -> Dict[AgentMode, Any]:
+        nodes = self.window.ui.nodes
+        return {
+            AgentMode.PRIMARY_AGENT: nodes.get("agents.v2.editor.runtime.primary"),
+            AgentMode.ORCHESTRATOR: nodes.get("agents.v2.editor.runtime.orchestrator"),
+            AgentMode.SWARM: nodes.get("agents.v2.editor.runtime.swarm"),
+        }
+
+    def _selected_runtime(self) -> AgentMode:
+        for mode, button in self._runtime_buttons().items():
+            if button is not None and button.isChecked():
+                return mode
+        return AgentMode.ORCHESTRATOR
+
+    def _set_runtime(self, runtime: Any, enabled: bool):
+        mode = self.window.core.agents_v2.editor.normalize_runtime(runtime)
+        for candidate, button in self._runtime_buttons().items():
+            if button is None:
+                continue
+            blocked = button.blockSignals(True)
+            button.setChecked(candidate == mode)
+            button.setEnabled(bool(enabled))
+            button.blockSignals(blocked)
+
+    def runtime_changed(self, runtime: Any, checked: bool = True):
+        """Store a custom workflow runtime change in the in-memory draft."""
+        if not checked or not self.current:
+            return
+        row = self.window.core.agents_v2.editor.get(self.current)
+        if row is None or row.get("built_in"):
+            return
+        self._capture_current()
 
     def _editable_values(self, agent_id: Any) -> Optional[dict]:
         """Return draft values first, falling back to the persisted editor state."""
@@ -162,6 +262,15 @@ class Editor:
             name.setReadOnly(bool(row.get("built_in")))
         if prompt is not None:
             prompt.setPlainText(str(row.get("system_prompt") or ""))
+            prompt.setPlaceholderText(
+                self.window.core.agents_v2.editor.get_default_main_prompt(self.current)
+                if row.get("built_in")
+                else ""
+            )
+        self._set_runtime(
+            row.get("runtime_mode") if row.get("built_in") else row.get("runtime"),
+            enabled=not bool(row.get("built_in")),
+        )
         self._update_info(row)
 
     def _clear_fields(self):
@@ -169,6 +278,10 @@ class Editor:
             node = self.window.ui.nodes.get(key)
             if node is not None and hasattr(node, "clear"):
                 node.clear()
+        prompt = self.window.ui.nodes.get("agents.v2.editor.prompt")
+        if prompt is not None:
+            prompt.setPlaceholderText("")
+        self._set_runtime(AgentMode.ORCHESTRATOR, enabled=False)
 
     def _update_info(self, row: dict):
         info = self.window.ui.nodes.get("agents.v2.editor.info")
@@ -224,6 +337,7 @@ class Editor:
                 agent_id,
                 name=str(draft.get("name") or "").strip(),
                 system_prompt=str(draft.get("system_prompt") or ""),
+                runtime=str(draft.get("runtime") or AgentMode.ORCHESTRATOR.value),
             )
             if not ok:
                 return False
@@ -283,7 +397,10 @@ class Editor:
             # rules + security/runtime policy. Custom profiles receive no hidden
             # workflow policy injection after this text is copied.
             prompt.setPlainText(
-                self.window.core.agents_v2.editor.get_default_main_prompt(self.current)
+                self.window.core.agents_v2.editor.get_default_main_prompt(
+                    self.current,
+                    runtime=self._selected_runtime(),
+                )
             )
 
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 18:35:00                  #
+# Updated Date: 2026.09.18 10:02:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -21,7 +21,9 @@ class AgentsV2EditorDialog(BaseDialog):
         self.id = id
 
     def closeEvent(self, event):
-        self.window.controller.agents_v2.editor.dialog = False
+        if not self.window.controller.agents_v2.editor.allow_close_event():
+            event.ignore()
+            return
         super().closeEvent(event)
 
     def keyPressEvent(self, event):

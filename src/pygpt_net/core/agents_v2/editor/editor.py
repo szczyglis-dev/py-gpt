@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.17 14:20:00                  #
+# Updated Date: 2026.09.18 09:57:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -33,8 +33,8 @@ class AgentEditor:
     """Registry/storage facade for built-in and user-defined Chat with Agents roles.
 
     Built-in prompt overrides intentionally keep using the pre-2.8.22 config keys.
-    User-created agents are stored in ``agent.v2.custom_agents`` and run on the
-    Orchestrator execution/tool surface with one complete editable system prompt.
+    User-created agents are stored in ``agent.v2.custom_agents`` with one complete
+    editable system prompt and a selectable execution runtime.
     """
 
     BUILTIN_IDS = ("chat", "orchestrator", "swarm")
@@ -96,6 +96,24 @@ class AgentEditor:
         raw = cls._ALIASES.get(raw, raw)
         return raw if raw in cls.BUILTIN_IDS else ""
 
+    @staticmethod
+    def normalize_runtime(value: Any) -> AgentMode:
+        """Normalize a custom workflow runtime, defaulting legacy rows to Orchestrator."""
+        if isinstance(value, AgentMode):
+            return value
+        raw = str(value or "").strip().lower()
+        aliases = {
+            "chat": AgentMode.PRIMARY_AGENT,
+            "primary": AgentMode.PRIMARY_AGENT,
+            "primary_agent": AgentMode.PRIMARY_AGENT,
+            "primary-agent": AgentMode.PRIMARY_AGENT,
+            "orchestrator": AgentMode.ORCHESTRATOR,
+            "swarm": AgentMode.SWARM,
+            "swarm_mode": AgentMode.SWARM,
+            "swarm-mode": AgentMode.SWARM,
+        }
+        return aliases.get(raw, AgentMode.ORCHESTRATOR)
+
     def get_custom_agents(self) -> List[Dict[str, str]]:
         """Return normalized custom agents in persisted order."""
         raw = self._config().get(CUSTOM_AGENTS_CONFIG_KEY, [])
@@ -114,6 +132,9 @@ class AgentEditor:
                 "id": agent_id,
                 "name": str(row.get("name") or "").strip(),
                 "system_prompt": str(row.get("system_prompt") or ""),
+                # Pre-2.8.24 rows have no runtime field. Preserve their historical
+                # behavior by treating them as Orchestrator workflows.
+                "runtime": self.normalize_runtime(row.get("runtime")).value,
             })
         return items
 
@@ -133,7 +154,7 @@ class AgentEditor:
                 "built_in": False,
                 "label_key": "",
                 "description_key": "",
-                "runtime_mode": AgentMode.ORCHESTRATOR,
+                "runtime_mode": self.normalize_runtime(custom.get("runtime")),
             })
             items.append(row)
         return items
@@ -152,7 +173,7 @@ class AgentEditor:
                     "built_in": False,
                     "label_key": "",
                     "description_key": "",
-                    "runtime_mode": AgentMode.ORCHESTRATOR,
+                    "runtime_mode": self.normalize_runtime(row.get("runtime")),
                 })
                 return item
         return None
@@ -166,7 +187,7 @@ class AgentEditor:
         wanted = str(value or "").strip()
         row = self.get(wanted)
         if row is not None and not row.get("built_in"):
-            return wanted, AgentMode.ORCHESTRATOR, row
+            return wanted, self.normalize_runtime(row.get("runtime")), row
         return "chat", AgentMode.PRIMARY_AGENT, None
 
     def editable_values(self, agent_id: Any) -> Optional[Dict[str, Any]]:
@@ -189,6 +210,7 @@ class AgentEditor:
             "id": agent_id,
             "name": str(name or "New agent").strip() or "New agent",
             "system_prompt": "",
+            "runtime": AgentMode.ORCHESTRATOR.value,
         })
         self._store_custom_agents(items)
         return agent_id
@@ -198,6 +220,7 @@ class AgentEditor:
             agent_id: Any,
             name: str,
             system_prompt: str,
+            runtime: Any = AgentMode.ORCHESTRATOR,
     ) -> bool:
         builtin_id = self.normalize_builtin_id(agent_id)
         if builtin_id:
@@ -211,6 +234,7 @@ class AgentEditor:
             if row["id"] == wanted:
                 row["name"] = str(name or "").strip()
                 row["system_prompt"] = str(system_prompt or "")
+                row["runtime"] = self.normalize_runtime(runtime).value
                 self._store_custom_agents(items)
                 return True
         return False
@@ -226,11 +250,21 @@ class AgentEditor:
         self._store_custom_agents(filtered)
         return True
 
-    def get_default_main_prompt(self, agent_id: Any) -> str:
-        """Return the complete built-in prompt, including integrated execution rules."""
+    def get_default_main_prompt(self, agent_id: Any, runtime: Any = None) -> str:
+        """Return the complete default prompt matching the workflow runtime."""
         builtin_id = self.normalize_builtin_id(agent_id)
         if builtin_id:
             return str(self._BUILTINS[builtin_id]["default_prompt"])
-        # Custom workflows start from the complete Orchestrator template on request
-        # only; there is deliberately no implicit runtime fallback/injection.
-        return str(ORCHESTRATOR_BASE_PROMPT)
+
+        if runtime is None:
+            row = self.get(agent_id)
+            runtime = row.get("runtime") if row is not None else None
+        mode = self.normalize_runtime(runtime)
+        defaults = {
+            AgentMode.PRIMARY_AGENT: PRIMARY_AGENT_BASE_PROMPT,
+            AgentMode.ORCHESTRATOR: ORCHESTRATOR_BASE_PROMPT,
+            AgentMode.SWARM: SWARM_BASE_PROMPT,
+        }
+        # This is an editor convenience only. Custom workflows still receive no
+        # implicit built-in main prompt when their system-prompt field is empty.
+        return str(defaults[mode])

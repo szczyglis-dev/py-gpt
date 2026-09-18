@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.18 10:02:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -54,6 +54,8 @@ class Confirm:
             self.window.controller.agents_v2.editor.delete(id, force=True)
         elif type == 'agents_v2.editor.defaults':
             self.window.controller.agents_v2.editor.load_defaults(force=True, agent_id=id)
+        elif type == 'agents_v2.editor.close':
+            self.window.controller.agents_v2.editor.close(force=True)
 
         # settings: Chat with Agents custom prompts (legacy UI path)
         elif type == 'settings.agent.v2.prompt.defaults':

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.17 14:20:00                  #
+# Updated Date: 2026.09.18 09:57:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -16,6 +16,8 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QRadioButton,
+    QButtonGroup,
     QScrollArea,
     QSizePolicy,
     QSplitter,
@@ -81,6 +83,29 @@ class Agents:
         nodes["agents.v2.editor.prompt"].setAcceptRichText(False)
         nodes["agents.v2.editor.prompt"].setMinimumHeight(360)
 
+        nodes["agents.v2.editor.runtime.label"] = QLabel()
+        nodes["agents.v2.editor.runtime.label"].setStyleSheet("font-weight: bold;")
+        nodes["agents.v2.editor.runtime.primary"] = QRadioButton()
+        nodes["agents.v2.editor.runtime.orchestrator"] = QRadioButton()
+        nodes["agents.v2.editor.runtime.swarm"] = QRadioButton()
+        nodes["agents.v2.editor.runtime.group"] = QButtonGroup(self.window.ui.dialog.get(self.dialog_id))
+        for key in (
+            "agents.v2.editor.runtime.primary",
+            "agents.v2.editor.runtime.orchestrator",
+            "agents.v2.editor.runtime.swarm",
+        ):
+            nodes["agents.v2.editor.runtime.group"].addButton(nodes[key])
+        nodes["agents.v2.editor.runtime.group"].setExclusive(True)
+        nodes["agents.v2.editor.runtime.primary"].toggled.connect(
+            lambda checked: self.window.controller.agents_v2.editor.runtime_changed("primary_agent", checked)
+        )
+        nodes["agents.v2.editor.runtime.orchestrator"].toggled.connect(
+            lambda checked: self.window.controller.agents_v2.editor.runtime_changed("orchestrator", checked)
+        )
+        nodes["agents.v2.editor.runtime.swarm"].toggled.connect(
+            lambda checked: self.window.controller.agents_v2.editor.runtime_changed("swarm", checked)
+        )
+
         nodes["agents.v2.editor.help.label"] = QLabel()
         nodes["agents.v2.editor.help.label"].setStyleSheet("font-weight: bold;")
         nodes["agents.v2.editor.help"] = QTextBrowser()
@@ -99,6 +124,14 @@ class Agents:
         defaults_row.addStretch(1)
         defaults_row.addWidget(nodes["agents.v2.editor.btn.defaults"])
 
+        runtime_row = QHBoxLayout()
+        runtime_row.addWidget(nodes["agents.v2.editor.runtime.label"])
+        runtime_row.addSpacing(8)
+        runtime_row.addWidget(nodes["agents.v2.editor.runtime.primary"])
+        runtime_row.addWidget(nodes["agents.v2.editor.runtime.orchestrator"])
+        runtime_row.addWidget(nodes["agents.v2.editor.runtime.swarm"])
+        runtime_row.addStretch(1)
+
         right_layout = QVBoxLayout()
         right_layout.setContentsMargins(8, 4, 8, 4)
         right_layout.addWidget(nodes["agents.v2.editor.info"])
@@ -109,6 +142,8 @@ class Agents:
         right_layout.addWidget(nodes["agents.v2.editor.prompt.label"])
         right_layout.addWidget(nodes["agents.v2.editor.prompt.desc"])
         right_layout.addWidget(nodes["agents.v2.editor.prompt"])
+        right_layout.addSpacing(6)
+        right_layout.addLayout(runtime_row)
         right_layout.addLayout(defaults_row)
         right_layout.addSpacing(12)
         right_layout.addWidget(nodes["agents.v2.editor.help.label"])
@@ -156,6 +191,10 @@ class Agents:
         nodes["agents.v2.editor.btn.close"].setText(trans("action.close"))
         nodes["agents.v2.editor.name.label"].setText(trans("agents.editor.name"))
         nodes["agents.v2.editor.prompt.label"].setText(trans("agents.editor.system_prompt"))
+        nodes["agents.v2.editor.runtime.label"].setText(trans("agents.editor.runtime"))
+        nodes["agents.v2.editor.runtime.primary"].setText(trans("agents.editor.runtime.primary"))
+        nodes["agents.v2.editor.runtime.orchestrator"].setText(trans("agents.editor.runtime.orchestrator"))
+        nodes["agents.v2.editor.runtime.swarm"].setText(trans("agents.editor.runtime.swarm"))
         nodes["agents.v2.editor.help.label"].setText(trans("agents.editor.help.title"))
         nodes["agents.v2.editor.help"].setPlainText(self._help_text())
         if reload:
