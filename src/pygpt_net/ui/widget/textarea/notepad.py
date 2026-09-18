@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 14:10:00
+# Updated Date: 2026.09.18 21:13:00
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QSize
@@ -93,7 +93,7 @@ class NotepadWidget(QWidget):
         self.mic_container.setVisible(False)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.textarea, 1, Qt.AlignHCenter)
+        layout.addWidget(self.textarea, 1)
         layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0, Qt.AlignHCenter)
         layout.addWidget(self.mic_container, 0)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -160,8 +160,6 @@ class NotepadWidget(QWidget):
         self.deleteLater()
 
 class NotepadOutput(QTextEdit):
-    MAX_WIDTH = 800  # mirrors PlainChatOutput and the WebView content width
-
     ICON_VOLUME = QIcon(":/icons/volume.svg")
     ICON_SAVE = QIcon(":/icons/save.svg")
     ICON_SEARCH = QIcon(":/icons/search.svg")
@@ -192,7 +190,6 @@ class NotepadOutput(QTextEdit):
         self.last_scroll_pos = None
         self.installEventFilter(self)
         self.setProperty('class', 'layout-notepad-output')
-        self.setMaximumWidth(self.MAX_WIDTH)
         self.setMinimumWidth(0)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.initialized = False
@@ -221,12 +218,6 @@ class NotepadOutput(QTextEdit):
         # schedule guard for column-focus sync
         self._column_focus_sync_scheduled = False
 
-    def sizeHint(self):
-        """Prefer the same 800 px content width as plain-text chat output."""
-        size = super().sizeHint()
-        size.setWidth(self.MAX_WIDTH)
-        return size
-
     def minimumSizeHint(self):
         """Never let the notepad enforce a minimum width on an output column."""
         size = super().minimumSizeHint()
@@ -237,8 +228,8 @@ class NotepadOutput(QTextEdit):
         """Apply chat-output typography and the plain-chat surface to the editor."""
         size = self.window.core.config.get('font_size')
         is_light = self.window.controller.theme.common.is_light_theme()
-        # Match the lifted surface used by plain-text chat output.
-        background = '#efefef' if is_light else '#242424'
+        # Match the preset-list surface in both light and dark themes.
+        background = '#efefef' if is_light else '#202020'
         self.setStyleSheet(
             'QTextEdit {'
             f'font-size: {size}px;'
