@@ -28,6 +28,8 @@ class Security:
     WHITELIST_KEY_PREFIX = "security.commands.whitelist."
     BLACKLIST_KEY_PREFIX = "security.commands.blacklist."
     COMPUTER_HALT_INSECURE_KEY = "security.computer.halt_insecure"
+    PROMPT_INJECTION_ENABLED_KEY = "security.prompt_injection.enabled"
+    PROMPT_INJECTION_PROMPT_KEY = "security.prompt_injection.prompt"
 
     _SHELL_SPLIT_RE = re.compile(r"(?:&&|\|\||[;|\n\r])+")
     _WINDOWS_EXTENSIONS = (".exe", ".cmd", ".bat", ".com")
@@ -61,6 +63,39 @@ class Security:
 
     def is_write_restricted(self) -> bool:
         return bool(self.window.core.config.get(self.WRITE_RESTRICT_KEY, False))
+
+    def is_prompt_injection_protection_enabled(self) -> bool:
+        """Return True when the global prompt-injection system annotation is enabled."""
+        return bool(self.window.core.config.get(self.PROMPT_INJECTION_ENABLED_KEY, False))
+
+    def get_prompt_injection_annotation(self) -> str:
+        """Return the configured prompt-injection security annotation."""
+        return str(self.window.core.config.get(self.PROMPT_INJECTION_PROMPT_KEY, "") or "").strip()
+
+    def append_prompt_injection_guard(self, prompt: str, ensure_last: bool = False) -> str:
+        """Append the configured prompt-injection guard once, optionally moving it to the end."""
+        base = "" if prompt is None else str(prompt)
+        if not self.is_prompt_injection_protection_enabled():
+            return base
+        annotation = self.get_prompt_injection_annotation()
+        if not annotation:
+            return base
+
+        trimmed = base.rstrip()
+        if annotation in trimmed:
+            if not ensure_last or trimmed.endswith(annotation):
+                return base
+            before, _, after = trimmed.partition(annotation)
+            before = before.rstrip()
+            after = after.lstrip()
+            if before and after:
+                trimmed = before + "\n\n" + after
+            else:
+                trimmed = before or after
+
+        if not trimmed:
+            return annotation
+        return trimmed.rstrip() + "\n\n" + annotation
 
     @staticmethod
     def _normalize_path(path: str) -> str:

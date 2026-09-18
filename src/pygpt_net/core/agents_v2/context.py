@@ -277,6 +277,9 @@ class RuntimeContext:
 
     def build_agent(self, name: str, description: str, llm, system_prompt: str, tools):
         """Prefer native tool calling and retain ReAct as a compatibility fallback."""
+        system_prompt = self.runtime.window.core.security.append_prompt_injection_guard(
+            system_prompt, ensure_last=True
+        )
         cls = FunctionAgent if supports_function_calling(llm) else ReActAgent
         # Runtime tool outputs of the top-level actor may contain ImageBlocks
         # (for example attach_runtime_file). Keep workers on the normal

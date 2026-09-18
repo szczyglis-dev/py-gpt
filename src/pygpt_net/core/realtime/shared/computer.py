@@ -130,6 +130,9 @@ def prepare(window, context, functions: Optional[list], provider: str) -> tuple[
     items = list(functions or [])
     system_prompt = str(getattr(context, "system_prompt", "") or "")
     if not is_enabled(window, context=context, provider=provider):
+        system_prompt = window.core.security.append_prompt_injection_guard(
+            system_prompt, ensure_last=True
+        )
         return items, system_prompt
 
     try:
@@ -180,6 +183,9 @@ def prepare(window, context, functions: Optional[list], provider: str) -> tuple[
         else:
             system_prompt = computer_prompt
 
+    system_prompt = window.core.security.append_prompt_injection_guard(
+        system_prompt, ensure_last=True
+    )
     return items, system_prompt
 
 

@@ -215,6 +215,10 @@ class Bridge:
         if self.window.controller.kernel.stopped() and not context.force:
             return ""
 
+        context.system_prompt = self.window.core.security.append_prompt_injection_guard(
+            context.system_prompt, ensure_last=True
+        )
+
         self.window.core.debug.info("[bridge] Call...")
         if self.window.core.debug.enabled():
             if self.window.core.config.get("log.ctx"):

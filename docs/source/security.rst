@@ -26,6 +26,18 @@ The project override affects only the logical ``data`` root. The ``tmp`` excepti
 base profile and does not make arbitrary directories outside the effective data workdir available to
 plugins.
 
+Prompt injection protection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The **General** tab in ``Config -> Settings -> Security`` also provides an optional system-prompt guard:
+
+* ``Auto-prevent prompt injections`` - disabled by default. When enabled, PyGPT appends the configured security annotation to system prompts before they are sent to models. The annotation tells the model to treat RAG/retrieval results, tool output, files, web/API content, and other external content as untrusted data rather than instructions.
+* ``Prompt injection security annotation`` - editable text containing the instruction appended when the option above is enabled.
+
+The default annotation instructs the model to ignore instructions embedded in external content, especially attempts to override system or user instructions, and to inform the user when a likely prompt-injection attempt is detected. The guard is applied globally to normal work modes and auxiliary model calls, and is also propagated into Chat with Agents/worker system prompts.
+
+This is a defense-in-depth prompt-level measure, not a guarantee that every prompt-injection technique will be detected or blocked. Keep tool permissions, filesystem/command restrictions, sandboxing, and provider-side security controls appropriately configured for sensitive workflows.
+
 System commands
 ~~~~~~~~~~~~~~~
 

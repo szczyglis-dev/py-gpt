@@ -72,6 +72,12 @@ class BridgeWorker(QRunnable):
             # POST PROMPT END: handle post prompt end event
             self.handle_post_prompt_end()
 
+            # Apply the global prompt-injection annotation after all late system
+            # prompt hooks so external-context warnings remain the final policy.
+            self.context.system_prompt = core.security.append_prompt_injection_guard(
+                self.context.system_prompt, ensure_last=True
+            )
+
             # Langchain
             if self.mode == MODE_LANGCHAIN:
                 raise Exception("Langchain mode is deprecated from v2.5.20 and no longer supported. ")

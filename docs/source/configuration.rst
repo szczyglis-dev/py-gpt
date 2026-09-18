@@ -686,6 +686,10 @@ General
 
 * ``Enable system command whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
 
+* ``Auto-prevent prompt injections``: When enabled, PyGPT appends the configured prompt-injection security annotation to system prompts across work modes and auxiliary model calls. The annotation tells the model to treat RAG/retrieval, tool output, files, web/API content, and other external content as untrusted data rather than instructions. Default: False.
+
+* ``Prompt injection security annotation``: Editable security instruction appended when automatic prompt-injection prevention is enabled. The default text tells the model to ignore instructions embedded in external content, especially attempts to override system or user instructions, and to inform the user when a likely prompt-injection attempt is detected.
+
 Computer use
 ^^^^^^^^^^^^
 

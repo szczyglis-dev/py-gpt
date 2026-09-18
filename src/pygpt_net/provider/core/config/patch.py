@@ -1023,6 +1023,19 @@ class Patch:
                     data[shown_key] = bool(had_workflow_tab)
                     updated = True
 
+            # < 2.8.24
+            if old < parse_version("2.8.24"):
+                print("Migrating config from < 2.8.24...")
+
+                # Global prompt-injection annotation.
+                for key in (
+                        "security.prompt_injection.enabled",
+                        "security.prompt_injection.prompt",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
+
         # update file
         migrated = False
         if updated:
