@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 23:00:00                  #
+# Updated Date: 2026.09.18 10:55:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -78,12 +78,52 @@ class MentionPopup(QFrame):
         self.apply_filter("")
 
     def apply_filter(self, query: str) -> bool:
-        self._query = str(query or "").strip().casefold()
+        raw_query = str(query or "").strip().replace("\\", "/")
+        self._query = raw_query.casefold()
         matches = []
-        for entry in self._entries:
-            haystack = f"{entry.label}\n{entry.value}".casefold()
-            if not self._query or self._query in haystack:
+
+        # Keep the existing full os.walk-backed entry cache, but make filtering
+        # path-aware. Once a slash is typed, treat everything before the final
+        # slash as the directory being browsed and show only its direct
+        # children. The text after the final slash filters those children.
+        if "/" in raw_query:
+            parent, leaf_query = raw_query.rsplit("/", 1)
+            parent_prefix_raw = parent.rstrip("/") + "/"
+            parent_prefix = parent_prefix_raw.casefold()
+            leaf_query = leaf_query.casefold()
+
+            for entry in self._entries:
+                if entry.kind != KIND_FILE_CONTEXT:
+                    continue
+
+                label = str(entry.label or "").replace("\\", "/")
+                label_folded = label.casefold()
+                if not label_folded.startswith(parent_prefix):
+                    continue
+
+                remainder = label[len(parent_prefix_raw):]
+                remainder_path = remainder.rstrip("/")
+                if not remainder_path or "/" in remainder_path:
+                    continue
+
+                if leaf_query and leaf_query not in remainder_path.casefold():
+                    continue
                 matches.append(entry)
+        else:
+            for entry in self._entries:
+                # With a bare ``@`` keep the picker at the data root: show
+                # attachments and only direct children of the top-level data
+                # directory. Nested filesystem entries become visible only
+                # after the user starts navigating a concrete path (e.g.
+                # ``@dir/``).
+                if not self._query and entry.kind == KIND_FILE_CONTEXT:
+                    label = str(entry.label or "").replace("\\", "/")
+                    if "/" in label.rstrip("/"):
+                        continue
+
+                haystack = f"{entry.label}\n{entry.value}".casefold()
+                if not self._query or self._query in haystack:
+                    matches.append(entry)
 
         self.list.clear()
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]

@@ -75,6 +75,8 @@ class ChatInput(QTextEdit):
         self._mention_trigger_pos = None
         self._mention_entries = []
         self._mention_source_key = None
+        self._mention_browse_parent = None
+        self._mention_browse_entries = []
         self._mention_seq = 0
         self._mention_popup = MentionPopup(self)
         self._mention_popup.selected.connect(self._accept_mention_entry)
@@ -480,7 +482,7 @@ class ChatInput(QTextEdit):
         query_cursor.setPosition(at_cursor.selectionEnd())
         query_cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
         query = self._cursor_selected_text(query_cursor)
-        if "\n" in query or "\t" in query or len(query) > 200:
+        if any(ch.isspace() for ch in query) or len(query) > 200:
             return None
         return at_pos, end_pos, query
 
@@ -585,11 +587,109 @@ class ChatInput(QTextEdit):
                     pass
         return entries
 
+    @staticmethod
+    def _mention_parent_query(query: str):
+        """Return normalized parent path for a path-style mention query."""
+        raw = str(query or "").strip().replace("\\", "/")
+        if "/" not in raw:
+            return None
+        parent, _leaf = raw.rsplit("/", 1)
+        return parent.strip("/")
+
+    def _build_mention_browse_entries(self, parent: str) -> list:
+        """Load only direct children of a directory currently browsed via @path/."""
+        if parent is None:
+            return []
+
+        core = self.window.core
+        try:
+            meta = core.ctx.get_current_meta()
+            root = core.filesystem.get_data_dir(ctx=meta, create=False)
+        except Exception:
+            return []
+        if not root or not os.path.isdir(root):
+            return []
+
+        normalized = str(parent or "").strip().replace("\\", "/").strip("/")
+        parts = [part for part in normalized.split("/") if part and part != "."]
+        if any(part == ".." for part in parts):
+            return []
+
+        root_abs = os.path.abspath(root)
+        target = os.path.abspath(os.path.join(root_abs, *parts)) if parts else root_abs
+        try:
+            root_real = os.path.realpath(root_abs)
+            target_real = os.path.realpath(target)
+            if os.path.commonpath((root_real, target_real)) != root_real:
+                return []
+        except (ValueError, OSError):
+            return []
+        if not os.path.isdir(target):
+            return []
+
+        # Keep the same no-symlink policy as the full os.walk cache. This scan
+        # is intentionally shallow: entering @a/b/ reads only a/b, not its tree.
+        entries = []
+        try:
+            children = sorted(os.scandir(target), key=lambda item: item.name.casefold())
+            for item in children:
+                try:
+                    if item.is_symlink():
+                        continue
+                    is_dir = item.is_dir(follow_symlinks=False)
+                    is_file = item.is_file(follow_symlinks=False)
+                except OSError:
+                    continue
+                if not is_dir and not is_file:
+                    continue
+
+                full = item.path
+                rel = os.path.relpath(full, root_abs).replace(os.sep, "/")
+                if any(ch in rel for ch in "\r\n\t"):
+                    continue
+                if is_dir:
+                    rel = rel.rstrip("/") + "/"
+
+                try:
+                    value = core.filesystem.make_local(full, ctx=meta).replace("\\", "/")
+                except Exception:
+                    continue
+                if is_dir:
+                    value = value.rstrip("/") + "/"
+
+                entries.append(MentionEntry(
+                    KIND_FILE_CONTEXT,
+                    rel,
+                    value,
+                    is_dir,
+                ))
+        except Exception as e:
+            try:
+                core.debug.log(e)
+            except Exception:
+                pass
+        return entries
+
+    @staticmethod
+    def _merge_mention_entries(base: list, extra: list) -> list:
+        """Merge mention entry lists without duplicating the same durable value."""
+        result = []
+        seen = set()
+        for entry in list(base or []) + list(extra or []):
+            key = (entry.kind, str(entry.value or "").casefold())
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(entry)
+        return result
+
     def _refresh_mention_popup(self):
         if self._mention_loading or not self.hasFocus():
             self._mention_popup.hide()
             self._mention_trigger_pos = None
             self._mention_source_key = None
+            self._mention_browse_parent = None
+            self._mention_browse_entries = []
             return
 
         trigger = self._find_mention_trigger()
@@ -597,6 +697,8 @@ class ChatInput(QTextEdit):
             self._mention_popup.hide()
             self._mention_trigger_pos = None
             self._mention_source_key = None
+            self._mention_browse_parent = None
+            self._mention_browse_entries = []
             return
 
         at_pos, _end_pos, query = trigger
@@ -606,7 +708,27 @@ class ChatInput(QTextEdit):
             self._mention_trigger_pos = at_pos
             self._mention_source_key = source_key
             self._mention_entries = self._build_mention_entries()
+            self._mention_browse_parent = None
+            self._mention_browse_entries = []
             self._mention_popup.set_entries(self._mention_entries)
+
+        # The full os.walk cache is still the normal source. If the user starts
+        # navigating a concrete path, supplement it with a shallow read of that
+        # exact parent directory. This makes @dir/subdir/ reliable even when the
+        # global scan hit MENTION_SCAN_LIMIT before reaching that subtree.
+        browse_parent = self._mention_parent_query(query)
+        if browse_parent != self._mention_browse_parent:
+            self._mention_browse_parent = browse_parent
+            if browse_parent is None:
+                self._mention_browse_entries = []
+                popup_entries = self._mention_entries
+            else:
+                self._mention_browse_entries = self._build_mention_browse_entries(browse_parent)
+                popup_entries = self._merge_mention_entries(
+                    self._mention_entries,
+                    self._mention_browse_entries,
+                )
+            self._mention_popup.set_entries(popup_entries)
 
         if not self._mention_popup.apply_filter(query):
             return
@@ -651,6 +773,8 @@ class ChatInput(QTextEdit):
             self._mention_popup.hide()
             self._mention_trigger_pos = None
             self._mention_source_key = None
+            self._mention_browse_parent = None
+            self._mention_browse_entries = []
         finally:
             self._mention_loading = False
 
