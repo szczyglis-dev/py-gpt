@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 11:20:00                  #
+# Updated Date: 2026.09.18 19:10:00                  #
 # ================================================== #
 
 import datetime
@@ -31,6 +31,7 @@ class ContextList(BaseList):
     _hover_text_color = QColor()
     _active_text_color = QColor()
     _focused_selected_text_color = QColor()
+    _show_more_hover_text_color = QColor()
 
     def _set_theme_color(self, attr, value):
         color = QColor(value) if not isinstance(value, QColor) else QColor(value)
@@ -59,6 +60,11 @@ class ContextList(BaseList):
         QColor,
         lambda self: self._focused_selected_text_color,
         lambda self, value: self._set_theme_color("_focused_selected_text_color", value),
+    )
+    showMoreHoverTextColor = QtCore.Property(
+        QColor,
+        lambda self: self._show_more_hover_text_color,
+        lambda self, value: self._set_theme_color("_show_more_hover_text_color", value),
     )
 
     def __init__(self, window=None, id=None):
@@ -663,6 +669,16 @@ class ContextList(BaseList):
         except Exception:
             return False
 
+    def _update_show_more_cursor(self, index: QtCore.QModelIndex):
+        """Use link-style pointer feedback for every Show more/less control."""
+        try:
+            if self._is_show_more_index(index):
+                self.viewport().setCursor(Qt.PointingHandCursor)
+            else:
+                self.viewport().unsetCursor()
+        except Exception:
+            pass
+
     def _handle_show_more_click(self, index: QtCore.QModelIndex) -> bool:
         """Expand or collapse a capped pinned/project/project-context list."""
         if not self._is_show_more_index(index):
@@ -1039,6 +1055,7 @@ class ContextList(BaseList):
         index = self._index_under_cursor()
         self._set_hover_group_index(index)
         self._set_hover_section_action_index(index)
+        self._update_show_more_cursor(index)
 
     def _repaint_index(self, index):
         """Request repaint only for the supplied row when it is still valid."""
@@ -1371,6 +1388,7 @@ class ContextList(BaseList):
         hover_index = self.indexAt(pos)
         self._set_hover_group_index(hover_index)
         self._set_hover_section_action_index(hover_index)
+        self._update_show_more_cursor(hover_index)
 
         try:
             if (event.buttons() & Qt.LeftButton) and self._drag_pending_from_multi and not self._is_group_index(self._drag_press_index or QtCore.QModelIndex()):
@@ -1431,6 +1449,10 @@ class ContextList(BaseList):
         """Clear row/header hover actions when the pointer leaves the ctx list."""
         self._clear_hover_group()
         self._clear_hover_section_action()
+        try:
+            self.viewport().unsetCursor()
+        except Exception:
+            pass
         self.viewport().update()
         super().leaveEvent(event)
 
@@ -2697,7 +2719,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         # background. Whole-list text brightening is painted explicitly for
         # ordinary rows by _paint_native_context_item().
         option = QtWidgets.QStyleOptionViewItem(option)
-        if isinstance(item, SectionItem):
+        if isinstance(item, SectionItem) and not isinstance(item, ShowMoreItem):
             option.state &= ~QtWidgets.QStyle.State_MouseOver
 
         # Project-list limit controls are clickable presentation rows but deliberately use
@@ -2706,16 +2728,54 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         if isinstance(item, ShowMoreItem):
             opt = QtWidgets.QStyleOptionViewItem(option)
             self.initStyleOption(opt, index)
-            opt.state &= ~QtWidgets.QStyle.State_MouseOver
-            opt.text = item.title
+            view = self.parent()
+            hovered = bool(opt.state & QtWidgets.QStyle.State_MouseOver)
+            try:
+                cursor_index = view._index_under_cursor() if view is not None else QtCore.QModelIndex()
+                hovered = bool(
+                    cursor_index.isValid()
+                    and view._is_show_more_index(cursor_index)
+                    and view._same_index(QPersistentModelIndex(cursor_index), index)
+                )
+            except Exception:
+                pass
+            title = item.title
             opt.displayAlignment = QtCore.Qt.AlignCenter
             style = opt.widget.style() if opt.widget is not None else QtWidgets.QApplication.style()
+
+            if not hovered:
+                opt.text = title
+                style.drawControl(
+                    QtWidgets.QStyle.CE_ItemViewItem,
+                    opt,
+                    painter,
+                    opt.widget,
+                )
+                return
+
+            # Keep the existing disabled/header surface but paint hover text
+            # explicitly from the theme QSS property. Disabled item QSS would
+            # otherwise force the muted section-header color.
+            opt.text = ""
             style.drawControl(
                 QtWidgets.QStyle.CE_ItemViewItem,
                 opt,
                 painter,
                 opt.widget,
             )
+            color = self._resolved_view_color(
+                view,
+                "showMoreHoverTextColor",
+                opt.palette,
+                QtGui.QPalette.Text,
+            )
+            painter.save()
+            try:
+                painter.setFont(opt.font)
+                painter.setPen(color)
+                painter.drawText(opt.rect, int(QtCore.Qt.AlignCenter), title)
+            finally:
+                painter.restore()
             return
 
         # A collapsed top-level section always shows its full item count on
