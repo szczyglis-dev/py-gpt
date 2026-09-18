@@ -31,6 +31,11 @@ h5 {{
 }}
 img {{
   vertical-align: middle;
+  border-radius: 10px;
+}}
+video,
+.video-player {{
+  border-radius: 10px;
 }}
 ::-webkit-scrollbar {{
   height: 12px;
@@ -206,12 +211,12 @@ think {{
   padding-top: 10px;
   margin: 0;
   font-size: 0.75rem;
-  -webkit-border-top-left-radius: .25rem;
-  -webkit-border-top-right-radius: .25rem;
-  -moz-border-radius-topleft: .25rem;
-  -moz-border-radius-topright: .25rem;
-  border-top-left-radius: .25rem;
-  border-top-right-radius: 0;
+  -webkit-border-top-left-radius: 10px;
+  -webkit-border-top-right-radius: 10px;
+  -moz-border-radius-topleft: 10px;
+  -moz-border-radius-topright: 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
 }}
 .code-header {{
   text-align: right;
@@ -261,7 +266,7 @@ think {{
   padding: 0px;
   margin: 0px;
   border: none;
-  border-radius: .25rem;
+  border-radius: 10px;
   margin-bottom: 1rem;
 }}
 .code-wrapper pre {{
@@ -270,9 +275,13 @@ think {{
   margin-bottom: 0;
   margin-top: 0;
   width: 100%;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }}
 .code-wrapper pre code {{
  max-height: 1000px;
+ border-bottom-left-radius: 10px;
+ border-bottom-right-radius: 10px;
  overflow-y: auto;
  padding: 1.5rem;
 }}
@@ -624,7 +633,7 @@ think {{
   height: 150px;
   margin: 0;
   margin-bottom: 0px !important;
-  border-radius: 0;
+  border-radius: 10px;
   width: auto;
 }}
 .extra-src-img-box .img-wrapper:hover {{

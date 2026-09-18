@@ -126,7 +126,12 @@ QLineEdit,
 QWebView {{
   border-radius: 10px
 }}
-QMenu,
+QMenu {{
+  border-radius: 10px;
+}}
+QMenu::indicator:exclusive {{
+  border-radius: 8px;
+}}
 .layout-input,
 .layout-notepad {{
   border-top-right-radius: 10px;
@@ -283,7 +288,7 @@ QWidget#ComboPopupWindow {{
 }}
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
   background: #202020;
-  border-radius: 0px;
+  border-radius: 10px;
 }}
 /* Canonical Dark palette (2.8.18) */
 /* Structural surfaces use the same background as the application. */
@@ -308,6 +313,11 @@ QTimeEdit {{
   background-color: #242424;
 }}
 
+/* Closed combo boxes get a subtle lifted hover surface. */
+QComboBox:hover:!on:enabled {{
+  background-color: #2a2a2a;
+}}
+
 /* Lists and menus keep the darker control surface. */
 QListView,
 QTreeView,
@@ -318,9 +328,13 @@ QMenu {{
   background-color: #161616 !important;
 }}
 NotepadWidget,
-NotepadOutput,
 .layout-notepad {{
   background-color: #161616;
+}}
+.layout-notepad-output {{
+  background-color: #242424;
+  border: none;
+  border-radius: 10px;
 }}
 .layout-input,
 .layout-input QTextEdit {{
@@ -594,7 +608,7 @@ QMenu::separator {{
 .mention-popup {{
   background: #202020;
   border: 1px solid #3a3a3a;
-  border-radius: 8px;
+  border-radius: 10px;
 }}
 .mention-popup-list {{
   background: #202020;
