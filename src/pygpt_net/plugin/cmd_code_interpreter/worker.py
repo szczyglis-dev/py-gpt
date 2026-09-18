@@ -406,7 +406,7 @@ class Worker(BaseWorker):
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def prepare_extra(self, item: dict, result: dict) -> dict:
+    def prepare_extra(self, item: dict, result) -> dict:
         """
         Prepare extra data for response
 
@@ -433,11 +433,11 @@ class Worker(BaseWorker):
             extra["code"]["input"] = {}
             extra["code"]["input"]["lang"] = "bash"
             extra["code"]["input"]["content"] = str(item["params"]["command"])
-        if "result" in result:
+        if isinstance(result, dict) and "result" in result:
             extra["code"]["output"] = {}
             extra["code"]["output"]["lang"] = lang
             extra["code"]["output"]["content"] = str(result["result"])
-        if "context" in result:
+        if isinstance(result, dict) and "context" in result:
             extra["context"] = str(result["context"])
         return extra
 
