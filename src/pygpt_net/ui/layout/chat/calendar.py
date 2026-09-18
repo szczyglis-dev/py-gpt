@@ -9,12 +9,12 @@
 # Updated Date: 2025.08.24 23:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTime, QTimer
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup
 
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
 from pygpt_net.ui.widget.element.checkbox import ColorCheckbox
-from pygpt_net.ui.widget.element.labels import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, IconLabel
 from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
 
@@ -93,9 +93,26 @@ class Calendar:
             layout.addStretch()
 
             nodes['filter.ctx.labels'] = ColorCheckbox(self.window)
+            nodes['calendar.clock.icon'] = IconLabel(":/icons/clock.svg", widget, hover=False)
+            nodes['calendar.clock'] = QLabel(QTime.currentTime().toString("HH:mm:ss"), widget)
+            nodes['calendar.clock'].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+            labels_layout = QHBoxLayout()
+            labels_layout.setContentsMargins(0, 0, 0, 0)
+            labels_layout.addWidget(nodes['filter.ctx.labels'], 1)
+            labels_layout.addWidget(nodes['calendar.clock.icon'], 0, Qt.AlignRight | Qt.AlignVCenter)
+            labels_layout.addWidget(nodes['calendar.clock'], 0, Qt.AlignRight | Qt.AlignVCenter)
+
+            clock_timer = QTimer(widget)
+            clock_timer.setInterval(1000)
+            clock_timer.timeout.connect(
+                lambda: nodes['calendar.clock'].setText(QTime.currentTime().toString("HH:mm:ss"))
+            )
+            clock_timer.start()
+            nodes['calendar.clock.timer'] = clock_timer
 
             rows.addLayout(layout)
-            rows.addWidget(nodes['filter.ctx.labels'])
+            rows.addLayout(labels_layout)
 
             group = QButtonGroup(widget)
             group.setExclusive(True)
