@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 14:20:00                  #
+# Updated Date: 2026.09.18 15:00:00                  #
 # ================================================== #
 
 import json
@@ -3690,6 +3690,129 @@ class Renderer(BaseRenderer):
         """Return whether expandable tool request/response blocks are enabled."""
         return bool(self.window.core.config.get("ctx.tool_calls.show_json", True))
 
+    def _agent_v2_processing_seconds(self, ctx: CtxItem) -> Optional[int]:
+        """Return stable Agents v2 processing time in whole seconds.
+
+        New turns persist the duration in ``ctx.extra``. For already stored turns,
+        derive it from the user input timestamp and the durable final partial's
+        last update timestamp, both of which are already stored in the database.
+        """
+        extra = ctx.extra if isinstance(getattr(ctx, "extra", None), dict) else {}
+        stored = extra.get("agents_v2_processing_seconds")
+        if stored is not None:
+            try:
+                return max(0, int(stored))
+            except (TypeError, ValueError):
+                pass
+
+        final_part = None
+        for part in reversed(list(getattr(ctx, "parts", None) or [])):
+            part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if part_extra.get("agents_v2_final") is True:
+                final_part = part
+                break
+        if final_part is None:
+            return None
+
+        try:
+            started_at = int(getattr(ctx, "input_timestamp", None) or 0)
+        except (TypeError, ValueError):
+            started_at = 0
+        if started_at <= 0:
+            starts = []
+            for part in list(getattr(ctx, "parts", None) or []):
+                try:
+                    value = int(getattr(part, "created_at", None) or 0)
+                except (TypeError, ValueError):
+                    value = 0
+                if value > 0:
+                    starts.append(value)
+            started_at = min(starts) if starts else 0
+
+        try:
+            finished_at = int(getattr(final_part, "updated_at", None) or 0)
+        except (TypeError, ValueError):
+            finished_at = 0
+        if started_at <= 0 or finished_at < started_at:
+            return None
+        return finished_at - started_at
+
+    @staticmethod
+    def _agent_v2_timeline_without_final_text(ctx: CtxItem, timeline: list) -> list:
+        """Remove only the authoritative final prose from a workflow timeline."""
+        final_uuid = ""
+        final_id = None
+        for part in reversed(list(getattr(ctx, "parts", None) or [])):
+            part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if part_extra.get("agents_v2_final") is True:
+                final_uuid = str(getattr(part, "uuid", "") or "")
+                final_id = getattr(part, "id", None)
+                break
+        if not final_uuid and final_id is None:
+            return []
+
+        out = []
+        for segment in list(timeline or []):
+            item = dict(segment)
+            is_final = bool(final_uuid and str(item.get("part_uuid") or "") == final_uuid)
+            if not is_final and final_id is not None:
+                is_final = item.get("part_id") == final_id
+            if is_final and item.get("text"):
+                item["text"] = ""
+            if (item.get("text") or item.get("tool_calls")
+                    or item.get("status_id") or item.get("status_kind")):
+                out.append(item)
+        return out
+
+    def _agent_v2_collapsed_workflow_part_count(
+            self,
+            ctx: CtxItem,
+            include_tool_calls: bool = True,
+    ) -> int:
+        """Count visible workflow partials preceding the authoritative final.
+
+        The final response is itself stored as a partial, so counting ``ctx.parts``
+        directly would make a one-step answer look like a multi-step workflow.
+        Only non-final, user-visible partials that would contribute prose or a
+        visible structured tool call are counted here.
+        """
+        count = 0
+        for part in list(getattr(ctx, "parts", None) or []):
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if (extra.get("agents_v2_worker") is True
+                    or extra.get("ui_visible") is False
+                    or extra.get("agents_v2_final") is True):
+                continue
+
+            has_text = self._has_text_payload(getattr(part, "output", None))
+            has_tools = False
+            if include_tool_calls:
+                has_tools = bool(self.helpers.extract_extra_tool_calls(
+                    ctx.get_part_tool_calls(visible_only=True, part=part)
+                ))
+            if has_text or has_tools:
+                count += 1
+        return count
+
+    def _format_agent_v2_processing_label(self, ctx: CtxItem) -> str:
+        """Build the localized collapsed-workflow label."""
+        seconds = self._agent_v2_processing_seconds(ctx)
+        if seconds is None:
+            return trans("ctx.agent.workflow.processed.no_time")
+
+        remaining = max(0, int(seconds))
+        hours, remaining = divmod(remaining, 3600)
+        minutes, secs = divmod(remaining, 60)
+        values = []
+        if hours:
+            values.append(f"{hours}{trans('ctx.agent.workflow.time.hour')}")
+        if minutes:
+            values.append(f"{minutes}{trans('ctx.agent.workflow.time.minute')}")
+        if secs or not values:
+            values.append(f"{secs}{trans('ctx.agent.workflow.time.second')}")
+        duration = " ".join(values)
+        return trans("ctx.agent.workflow.processed").replace("{duration}", duration)
+
     def _show_tool_chain_for_ctx(self, ctx: CtxItem) -> bool:
         """Return whether persisted tool calls should be rendered for this turn.
 
@@ -4027,31 +4150,75 @@ class Renderer(BaseRenderer):
         # already owns textual model output. Therefore status-only turns collapse
         # back to the user message, while persisted tools/extras keep their normal
         # rendering semantics. Live rendering remains unchanged.
+        runtime_status_records = self._workflow_status_records(ctx)
         replay_statuses = (
             True
             if not rebuild
             else self._should_replay_workflow_statuses(ctx, is_latest_ctx)
         )
+        # Workflow statuses are intentionally runtime-only. A completed Agents v2
+        # turn normally hides them during a history rebuild, but immediately after
+        # finalization the current renderer still owns their in-memory timeline.
+        # Preserve that timeline in the just-completed accordion without persisting
+        # it. A fresh history load has no records here, so old completed turns keep
+        # the previous final-only behavior.
+        if (rebuild
+                and str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2
+                and self._ctx_has_final_answer(ctx)
+                and runtime_status_records):
+            replay_statuses = True
+
         show_tool_chain = self._show_tool_chain_for_ctx(ctx)
         completed_agents_v2_output = None
-        if rebuild and str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2:
+        if (str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2
+                and (rebuild or self._ctx_has_final_answer(ctx))):
+            # Support both a full context rebuild and the direct runtime render
+            # path used right after the final response has been committed.
             completed_agents_v2_output = ctx.get_agents_v2_response_output()
-        partial_timeline = self._build_partial_timeline(
-            ctx,
+
+        full_workflow = self._display_full_agent_workflow_for_ctx(ctx)
+        timeline_kwargs = dict(
             include_workflow_statuses=replay_statuses,
             include_tool_calls=show_tool_chain,
-            final_only_text=(
-                completed_agents_v2_output is not None
-                and not self._display_full_agent_workflow_for_ctx(ctx)
-            ),
-            final_output_text=completed_agents_v2_output,
             compact_workflow_statuses=bool(
                 rebuild
                 and replay_statuses
                 and self._workflow_single_status_history()
             ),
         )
-        part_tool_calls = [] if partial_timeline or not show_tool_chain else self.helpers.extract_extra_tool_calls(
+        collapsed_workflow = None
+        if completed_agents_v2_output is not None and not full_workflow:
+            workflow_timeline = self._build_partial_timeline(
+                ctx,
+                final_only_text=False,
+                final_output_text=completed_agents_v2_output,
+                **timeline_kwargs,
+            )
+            workflow_timeline = self._agent_v2_timeline_without_final_text(
+                ctx,
+                workflow_timeline,
+            )
+            if (workflow_timeline
+                    and self._agent_v2_collapsed_workflow_part_count(
+                        ctx,
+                        include_tool_calls=show_tool_chain,
+                    ) > 1):
+                collapsed_workflow = {
+                    "label": self._format_agent_v2_processing_label(ctx),
+                    "timeline": workflow_timeline,
+                }
+            # Keep the authoritative final answer as the normal message body.
+            # The preceding workflow is carried separately and starts collapsed.
+            partial_timeline = []
+        else:
+            partial_timeline = self._build_partial_timeline(
+                ctx,
+                final_only_text=False,
+                final_output_text=completed_agents_v2_output,
+                **timeline_kwargs,
+            )
+
+        part_tool_calls = [] if partial_timeline or collapsed_workflow or not show_tool_chain else self.helpers.extract_extra_tool_calls(
             ctx.get_part_tool_calls(visible_only=True)
         )
         if output_text or part_tool_calls or partial_timeline:
@@ -4060,7 +4227,7 @@ class Renderer(BaseRenderer):
             # timeline owns its tool/text rendering and must not also be flattened
             # into the block-level output/tool wrapper.
             legacy_output_calls = self.helpers.extract_tool_calls(output_text or "")
-            tool_calls = [] if partial_timeline or not show_tool_chain else (
+            tool_calls = [] if partial_timeline or collapsed_workflow or not show_tool_chain else (
                 part_tool_calls or legacy_output_calls
             )
             if (show_tool_chain
@@ -4183,6 +4350,7 @@ class Renderer(BaseRenderer):
             block.extra.update({
                 "tool_calls": tool_calls,
                 "partial_timeline": partial_timeline,
+                "collapsed_workflow": collapsed_workflow,
                 "tool_result": tool_result_display,
                 "tool_output": tool_output,
                 "tool_output_visible": tool_output_visible,

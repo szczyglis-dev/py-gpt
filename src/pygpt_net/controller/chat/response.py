@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.18 15:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -802,6 +802,18 @@ class Response:
         if has_final:
             ctx.stopped = False
             ctx.extra["response_final"] = True
+            # Persist the wall-clock processing duration for stable rendering on
+            # future reloads. Existing rows can still derive it from the durable
+            # input/final-part timestamps in the web renderer.
+            try:
+                started_at = int(ctx.input_timestamp or 0)
+            except (TypeError, ValueError):
+                started_at = 0
+            if started_at > 0:
+                ctx.extra["agents_v2_processing_seconds"] = max(
+                    0,
+                    int(time.time()) - started_at,
+                )
             ctx.extra.pop("response_interrupted", None)
             # AGENT_V2_END is emitted only after RuntimeEmitter has flushed all
             # final chunks. Apply staged extras here, on the UI thread, so they
