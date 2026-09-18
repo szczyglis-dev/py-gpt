@@ -26,11 +26,29 @@ class Builder(QObject):
         self.plugin = plugin
         self.docker = None
         self.worker = None
+        self._loader_active = False
+
+    def _start_loader(self):
+        """Show the shared heavy-operation loader for a Docker image build."""
+        dialog = self.plugin.window.ui.dialogs.show_loader(
+            message=trans('docker.build.start'),
+            show_cancel=False,
+            modal=True,
+        )
+        self._loader_active = dialog is not None
+
+    def _finish_loader(self):
+        """Close the shared Docker-build loader if this builder opened it."""
+        if not self._loader_active:
+            return
+        self._loader_active = False
+        self.plugin.window.ui.dialogs.finish_loader()
 
     def build_image(self, restart: bool = False):
         """Run image build"""
-        try:            
-            self.plugin.window.update_status("Please wait... building...")
+        try:
+            self.plugin.window.update_status(trans('docker.build.start'))
+            self._start_loader()
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.docker = self.docker
@@ -39,11 +57,13 @@ class Builder(QObject):
             self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
         except Exception as e:
+            self._finish_loader()
             self.plugin.window.ui.dialogs.alert(e)
 
     @Slot()
     def handle_build_finished(self):
         """Handle build finished"""
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(trans('docker.build.finish'))
         self.plugin.window.update_status(trans('docker.build.finish'))
         self.plugin.window.controller.kernel.stop()
@@ -58,6 +78,7 @@ class Builder(QObject):
 
         :param error: error
         """
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(str(error))
         self.plugin.window.update_status(str(error))
         self.plugin.window.controller.kernel.stop()

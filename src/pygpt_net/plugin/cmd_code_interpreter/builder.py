@@ -21,6 +21,23 @@ class Builder(QObject):
         super(Builder, self).__init__()
         self.plugin = plugin
         self.worker = None
+        self._loader_active = False
+
+    def _start_loader(self):
+        """Show the shared heavy-operation loader for an IPython image build."""
+        dialog = self.plugin.window.ui.dialogs.show_loader(
+            message=trans('ipython.docker.build.start'),
+            show_cancel=False,
+            modal=True,
+        )
+        self._loader_active = dialog is not None
+
+    def _finish_loader(self):
+        """Close the shared Docker-build loader if this builder opened it."""
+        if not self._loader_active:
+            return
+        self._loader_active = False
+        self.plugin.window.ui.dialogs.finish_loader()
 
     def build_and_restart(self):
         """Run IPython image build and restart container"""
@@ -34,7 +51,8 @@ class Builder(QObject):
         """
         try:
             self.plugin.migrate_docker_defaults()
-            self.plugin.window.update_status("Please wait... building...")
+            self.plugin.window.update_status(trans('ipython.docker.build.start'))
+            self._start_loader()
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.restart = restart
@@ -42,11 +60,13 @@ class Builder(QObject):
             self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
         except Exception as e:
+            self._finish_loader()
             self.plugin.window.ui.dialogs.alert(e)
 
     @Slot()
     def handle_build_finished(self):
         """Handle build finished"""
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(trans('ipython.docker.build.finish'))
         self.plugin.window.update_status(trans('ipython.docker.build.finish'))
         self.plugin.window.controller.kernel.stop()
@@ -56,6 +76,7 @@ class Builder(QObject):
     @Slot(object)
     def handle_build_failed(self, error):
         """Handle build failed"""
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(str(error))
         self.plugin.window.update_status(str(error))
         self.plugin.window.controller.kernel.stop()
