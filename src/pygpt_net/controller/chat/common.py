@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 20:26:00                  #
+# Updated Date: 2026.09.18 11:45:00                  #
 # ================================================== #
 
 import os
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.core.events import Event, AppEvent, RenderEvent, KernelEvent
 from pygpt_net.core.types import MODE_ASSISTANT, MODE_AUDIO
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import trans, short_num
@@ -165,20 +166,36 @@ class Common:
         """Focus input"""
         self.window.ui.nodes['input'].setFocus()
 
+    def sync_send_stop_buttons(self):
+        """Show exactly one of Send/Stop according to the current request state."""
+        nodes = self.window.ui.nodes
+        input_node = nodes.get('input')
+        send_btn = nodes.get('input.send_btn')
+        if input_node is None or send_btn is None:
+            return
+
+        chat_input = self.window.controller.chat.input
+        busy = bool(chat_input.locked or chat_input.generating)
+        editing = self.window.controller.ctx.extra.is_editing()
+        is_chat_tab = self.window.controller.ui.tabs.get_current_type() == Tab.TAB_CHAT
+
+        # Send and Stop share the same compact slot semantically: while a
+        # request is active only Stop is visible; when idle, Send is restored
+        # only for a normal (non-editing) chat tab.
+        send_btn.setEnabled(not busy)
+        input_node.set_icon_visible('send', is_chat_tab and not editing and not busy)
+        input_node.set_icon_visible('stop', busy)
+
     def lock_input(self):
-        """Lock input"""
+        """Lock input."""
         self.window.controller.chat.input.locked = True
-        self.window.ui.nodes['input.send_btn'].setEnabled(False)
-        # Stop is embedded in ChatInput's right control bar. Use the input API
-        # so the bar width and text viewport margin are refreshed immediately.
-        self.window.ui.nodes['input'].set_icon_visible('stop', True)
+        self.sync_send_stop_buttons()
 
     def unlock_input(self):
         """Unlock input."""
         self.window.controller.chat.input.locked = False
         self.window.controller.chat.input.generating = False  # unlock
-        self.window.ui.nodes['input.send_btn'].setEnabled(True)
-        self.window.ui.nodes['input'].set_icon_visible('stop', False)
+        self.sync_send_stop_buttons()
 
     def can_unlock(self, ctx: CtxItem) -> bool:
         """

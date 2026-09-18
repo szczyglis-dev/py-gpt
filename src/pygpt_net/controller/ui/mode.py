@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 20:50:00
+# Updated Date: 2026.09.18 11:45:00
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -364,14 +364,15 @@ class Mode:
         if icons is not None:
             icons.setVisible(True)
 
-        # Send / Cancel / Update live inside ChatInput rather than in the
-        # composer footer. Restore the correct set when returning to a chat.
+        # Send / Stop / Cancel / Update live inside ChatInput rather than in
+        # the composer footer. Restore the edit controls, then let the central
+        # request-state synchronizer choose exactly one of Send or Stop.
         input_node = nodes.get('input')
         if input_node is not None and nodes.get('input.send_btn') is not None:
             editing = self.window.controller.ctx.extra.is_editing()
-            input_node.set_icon_visible('send', not editing)
             input_node.set_icon_visible('cancel', editing)
             input_node.set_icon_visible('update', editing)
+            self.window.controller.chat.common.sync_send_stop_buttons()
 
     def hide_chat_footer(self):
         """Hide only chat-only controls on non-chat tabs."""
@@ -392,6 +393,6 @@ class Mode:
 
         input_node = nodes.get('input')
         if input_node is not None and nodes.get('input.send_btn') is not None:
-            input_node.set_icon_visible('send', False)
             input_node.set_icon_visible('cancel', False)
             input_node.set_icon_visible('update', False)
+            self.window.controller.chat.common.sync_send_stop_buttons()
