@@ -40,6 +40,7 @@ from .plugins import Plugins
 from .realtime import Realtime
 from .remote_store import RemoteStore
 from .presets import Presets
+from .profile_exporter import ProfileExporter
 from .settings import Settings
 from .theme import Theme
 from .tools import Tools
@@ -85,6 +86,7 @@ class Controller:
         self.painter = Painter(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
+        self.profile_exporter = ProfileExporter(window)
         self.realtime = Realtime(window)
         self.remote_store = RemoteStore(window)
         self.settings = Settings(window)
@@ -114,6 +116,7 @@ class Controller:
         self.tools.setup()
         self.ctx.setup()
         self.presets.setup()
+        self.profile_exporter.setup()
         self.idx.setup()
         self.ui.update_tokens()
         self.dialogs.setup()

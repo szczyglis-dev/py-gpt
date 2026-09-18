@@ -41,6 +41,7 @@ from .core.platforms import Platforms
 from .core.plugins import Plugins
 from .core.presets import Presets
 from .core.prompt import Prompt
+from .core.profile_exporter import ProfileExporter
 from .core.remote_store import RemoteStore
 from .core.security import Security
 from .core.settings import Settings
@@ -96,6 +97,7 @@ class Core:
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.prompt = Prompt(window)        
+        self.profile_exporter = ProfileExporter(window)
         self.remote_store = RemoteStore(window)
         self.security = Security(window)
         self.settings = Settings(window)

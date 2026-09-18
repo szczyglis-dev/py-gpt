@@ -1191,6 +1191,16 @@ Each profile uses its own user directory (workdir). You can link a newly created
 
 The name of the currently active profile is shown as (Profile Name) in the window title.
 
+### Importing and exporting profiles
+
+Use `File -> Export profile...` to export the active profile to a ZIP archive. The export is divided into four sections: **Database**, **Config files**, **Files**, and **Workdir data/**. The first three are selected by default, while **Workdir data/** (the profile's `data/` directory only) is disabled by default. The dialog shows an approximate size beside every section, such as `Database (30 MB)` or `Files (1.4 GB)`.
+
+Exports run in a background worker with a cancellable loader and a disk-space check. The default filename uses the form `PyGPT_export_YYYY_MM__DD_hh_ii_ss.zip`. The archive contains `export_meta.json` with the PyGPT version, export time, and exported sections. The database is saved as a consistent SQLite snapshot. Runtime-only data such as temporary files, caches, logs, the global `profile.json` registry, and `path.cfg` is excluded. Project-specific custom data workdirs outside the profile workdir are not included.
+
+Use `File -> Import profile...` to restore an exported archive into a new profile. PyGPT validates the archive and source application version, enables only sections that are present in the export, requires a unique non-empty profile name, checks disk space, and asks for a destination workdir. If that directory is not empty, the application warns that its contents will be replaced. Existing profile workdirs and unsafe overlapping locations cannot be selected.
+
+Import is staged next to the destination before the final replacement, so cancellation is available until commit begins and the previous directory can be restored if finalization fails. Missing or unselected sections are initialized with fresh-profile defaults. After import, PyGPT refreshes the profile list and asks whether to switch to the newly created profile immediately.
+
 # Models
 
 ## Built-in models
