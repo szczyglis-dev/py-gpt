@@ -603,7 +603,7 @@ QMenu::separator {{
 
 /* Input @mentions */
 #chatInput {{
-  qproperty-mentionColor: #79e29a;
+  qproperty-mentionColor: #90f7a5;
 }}
 .mention-popup {{
   background: #202020;
