@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 07:00:00                  #
+# Updated Date: 2026.09.18 14:10:00
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -107,6 +107,22 @@ class UI:
         self._output_btn = self.window.ui.plugin_addon['audio.output']
         return self._output_btn
 
+
+    def _notepad_widgets(self):
+        """Return live Notepad widgets that expose the dedicated mic control."""
+        widgets = getattr(self.window.ui, 'notepad', {}) or {}
+        return [widget for widget in widgets.values() if widget is not None]
+
+    def _set_notepad_mic_visible(self, visible: bool):
+        for widget in self._notepad_widgets():
+            if hasattr(widget, 'set_mic_visible'):
+                widget.set_mic_visible(visible)
+
+    def _set_notepad_mic_state(self, active: bool):
+        for widget in self._notepad_widgets():
+            if hasattr(widget, 'set_mic_state'):
+                widget.set_mic_state(active)
+
     # --- Input events ---
 
     def on_input_volume_change(self, value: int, mode: str = 'input'):
@@ -136,6 +152,7 @@ class UI:
         """
         self.window.ui.nodes['input'].set_icon_visible("mic", True)
         if mode == "input":
+            self._set_notepad_mic_visible(True)
             return
         btn = self.get_input_btn() if mode == 'input' else self.get_input_control_btn()
         if btn:
@@ -149,6 +166,7 @@ class UI:
         """
         self.window.ui.nodes['input'].set_icon_visible("mic", False)
         if mode == "input":
+            self._set_notepad_mic_visible(False)
             return
         btn = self.get_input_btn() if mode == 'input' else self.get_input_control_btn()
         if btn:
@@ -183,6 +201,8 @@ class UI:
         """
         self.recording = True
         self.window.ui.nodes['input'].set_icon_state("mic", True)
+        if mode == "input":
+            self._set_notepad_mic_state(True)
         if mode in ["input", "realtime"]:
             self.window.controller.chat.common.lock_input()
             return
@@ -198,6 +218,8 @@ class UI:
         """
         self.recording = False
         self.window.ui.nodes['input'].set_icon_state("mic", False)
+        if mode == "input":
+            self._set_notepad_mic_state(False)
         if mode in ["input", "realtime"]:
             self.window.controller.chat.common.unlock_input()
             return

@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 13:45:00
+# Updated Date: 2026.09.18 14:10:00
 # ================================================== #
 
-from PySide6.QtCore import Qt, QEvent, QTimer
+from PySide6.QtCore import Qt, QEvent, QTimer, QSize
 from PySide6.QtGui import (
     QAction,
     QIcon,
@@ -18,8 +18,9 @@ from PySide6.QtGui import (
     QFontMetrics,
     QColor,
 )
-from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QSizePolicy
+from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton
 
+from pygpt_net.core.events import Event
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
@@ -67,10 +68,36 @@ class NotepadWidget(QWidget):
         self.opened = False
         self.tab = None
 
+        # When Chat Input is hidden on a Notepad tab, keep the simple audio
+        # input action available directly below the notepad. The wrapper owns
+        # the requested 15 px breathing room and disappears completely when
+        # simple audio input is disabled/advanced.
+        self.mic_button = QPushButton(self)
+        self.mic_button.setObjectName('notepadMicButton')
+        self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
+        self.mic_button.setIconSize(QSize(20, 20))
+        self.mic_button.setFixedSize(QSize(26, 26))
+        self.mic_button.setCursor(Qt.PointingHandCursor)
+        self.mic_button.setFocusPolicy(Qt.NoFocus)
+        self.mic_button.setFlat(True)
+        self.mic_button.setToolTip(trans('audio.speak.btn'))
+        self.mic_button.clicked.connect(self.toggle_microphone)
+
+        self.mic_container = QWidget(self)
+        mic_layout = QHBoxLayout(self.mic_container)
+        mic_layout.setContentsMargins(15, 15, 15, 15)
+        mic_layout.setSpacing(0)
+        mic_layout.addStretch(1)
+        mic_layout.addWidget(self.mic_button, 0, Qt.AlignCenter)
+        mic_layout.addStretch(1)
+        self.mic_container.setVisible(False)
+
         layout = QVBoxLayout()
         layout.addWidget(self.textarea, 1, Qt.AlignHCenter)
         layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0, Qt.AlignHCenter)
+        layout.addWidget(self.mic_container, 0)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         self.setLayout(layout)
         self.setProperty('class', 'layout-notepad')
 
@@ -86,6 +113,23 @@ class NotepadWidget(QWidget):
     def scroll_to_bottom(self):
         """Scroll down"""
         self.textarea.scroll_to_bottom()
+
+    def toggle_microphone(self):
+        """Toggle simple microphone recording from the Notepad tab."""
+        self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
+
+    def set_mic_visible(self, visible: bool):
+        """Show/hide the dedicated Notepad microphone including its margins."""
+        self.mic_container.setVisible(bool(visible))
+
+    def set_mic_state(self, active: bool):
+        """Mirror the recording icon/tooltip used by ChatInput."""
+        if active:
+            self.mic_button.setIcon(QIcon(':/icons/mic_off.svg'))
+            self.mic_button.setToolTip(trans('audio.speak.btn.stop.tooltip'))
+        else:
+            self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
+            self.mic_button.setToolTip(trans('audio.speak.btn'))
 
     def setText(self, text: str):
         """
@@ -201,6 +245,7 @@ class NotepadOutput(QTextEdit):
             f'background-color: {background};'
             'border: none;'
             'border-radius: 10px;'
+            'padding: 13px 10px 10px 10px;'
             '}'
         )
 
