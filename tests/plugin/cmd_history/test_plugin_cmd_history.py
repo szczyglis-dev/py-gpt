@@ -37,60 +37,31 @@ def test_system_prompt_does_not_duplicate_time_when_time_plugin_enabled(mock_win
     assert plugin.on_system_prompt("base") == "base"
 
 
-def test_extract_tags_and_user_send(mock_window):
+def test_summary_prompt_formatting_and_invalid_template(mock_window):
     plugin = Plugin(window=mock_window)
-    assert plugin.extract_tags("see @12 and @003, ignore @abc") == ["12", "003"]
-    plugin.on_user_send("hello @12")
-    assert plugin.input_text == "hello @12"
-
-
-def test_handle_tags_uses_numeric_ids_and_serializes_contexts(mock_window):
-    plugin = Plugin(window=mock_window)
-    plugin.input_text = "compare @12 @34"
     plugin.set_option_value("prompt_tag_summary", "ID={id}; Q={query}")
-    plugin.get_summary = MagicMock(side_effect=["one", "two"])
-    plugin.log = MagicMock()
-    result = plugin.handle_tags(plugin.input_text)
-    assert result == '[{"12": "one"}, {"34": "two"}]'
-    assert plugin.get_summary.call_args_list[0].args == (12, "ID=12; Q=compare @12 @34")
-    assert plugin.get_summary.call_args_list[1].args == (34, "ID=34; Q=compare @12 @34")
+    assert plugin._format_prompt("prompt_tag_summary", id=12, query="current request") == (
+        "ID=12; Q=current request"
+    )
 
-
-def test_handle_tags_invalid_prompt_template_returns_empty(mock_window):
-    plugin = Plugin(window=mock_window)
-    plugin.input_text = "@12"
     plugin.set_option_value("prompt_tag_summary", "{missing}")
     plugin.log = MagicMock()
-    assert plugin.handle_tags(plugin.input_text) == ""
+    assert plugin._format_prompt("prompt_tag_summary", id=12, query="q") == ""
     plugin.log.assert_called_once()
 
 
-def test_post_prompt_skips_internal_context_and_resets_input(mock_window):
-    plugin = Plugin(window=mock_window)
-    ctx = CtxItem()
-    ctx.internal = True
-    plugin.input_text = "@1"
-    assert plugin.on_post_prompt("base", ctx) == "base"
-    assert plugin.input_text == "@1"
-
-    ctx.internal = False
-    plugin.set_option_value("use_tags", True)
-    plugin.set_option_value("prompt_tag_system", "Use: {context}")
-    plugin.handle_tags = MagicMock(return_value="summary")
-    assert plugin.on_post_prompt("base", ctx) == "base\nUse: summary"
-    assert plugin.input_text is None
-
-
-def test_handle_routes_user_send_model_refresh_and_command_events(mock_window):
+def test_handle_routes_model_refresh_and_command_events(mock_window):
     plugin = Plugin(window=mock_window)
     ctx = CtxItem()
 
+    # Numeric conversation mentions are resolved by controller.chat.input now;
+    # cmd_history remains callable even when the plugin itself is disabled.
     event = Event()
     event.ctx = ctx
     event.name = Event.USER_SEND
-    event.data = {"value": "hello"}
+    event.data = {"value": "hello @12"}
     plugin.handle(event)
-    assert plugin.input_text == "hello"
+    assert not hasattr(plugin, "input_text")
 
     plugin.refresh_option = MagicMock()
     event.name = Event.MODELS_CHANGED
@@ -146,44 +117,86 @@ def test_calendar_note_and_context_helpers_delegate(mock_window):
     assert plugin.count_ctx_in_date(2026, 9, 6) == {"count": 2}
 
 
-def test_chunking_and_summary_lookup(mock_window):
+def test_summary_lookup_uses_recent_first_chunks_and_reduces(mock_window):
     plugin = Plugin(window=mock_window)
-    assert plugin.to_chunks("", 2) == []
-    assert plugin.to_chunks(None, 2) == []
-    assert plugin.to_chunks("abcde", 2) == ["ab", "cd", "e"]
-
     mock_window.core.ctx.get_items_by_id.return_value = []
     assert plugin.get_summary(1, "p") == ""
 
-    mock_window.core.ctx.get_items_by_id.return_value = ["abc", "def"]
-    plugin.set_option_value("chunk_size", 3)
-    plugin.get_summarized_text = MagicMock(return_value="SUM")
-    assert plugin.get_summary(1, "prompt") == "SUM"
-    plugin.get_summarized_text.assert_called_once_with(["abc", "\nde", "f"], "prompt")
+    model = ModelItem()
+    mock_window.core.ctx.get_items_by_id.return_value = ["old", "new"]
+    plugin._get_summary_model = MagicMock(return_value=model)
+    plugin._clip_query = MagicMock(return_value="current question")
+    plugin._format_prompt = MagicMock(side_effect=["extract prompt", "reduce prompt"])
+    plugin._summary_max_tokens = MagicMock(return_value=55)
+    plugin._input_budget = MagicMock(return_value=200)
+    plugin._pack_recent_first = MagicMock(return_value=["new", "old"])
+    plugin._call_model = MagicMock(side_effect=["NEW EXTRACT", "OLD EXTRACT"])
+    plugin._reduce_extracts = MagicMock(return_value="FINAL")
+
+    assert plugin.get_summary(7, "question") == "FINAL"
+    plugin._pack_recent_first.assert_called_once_with(["old", "new"], model, 200)
+    assert plugin._call_model.call_count == 2
+    first_prompt = plugin._call_model.call_args_list[0].args[0]
+    assert 'id="7"' in first_prompt
+    assert 'recency_rank="1"' in first_prompt
+    assert "new" in first_prompt
+    plugin._reduce_extracts.assert_called_once_with(
+        id=7,
+        query="current question",
+        extracts=["NEW EXTRACT", "OLD EXTRACT"],
+        model=model,
+        sys_prompt="reduce prompt",
+        max_tokens=55,
+    )
 
 
-def test_get_summarized_text_dispatches_each_chunk_and_joins_responses(mock_window):
+def test_call_model_dispatches_bridge_kernel_event(mock_window):
     plugin = Plugin(window=mock_window)
-    plugin.set_option_value("summary_max_tokens", 55)
-    plugin.set_option_value("summary_model", "chosen")
+    model = ModelItem()
+
+    def dispatch(event):
+        event.data["response"] = "  ANSWER  "
+
+    mock_window.dispatch.side_effect = dispatch
+    assert plugin._call_model("chunk", "system", model, 55) == "ANSWER"
+
+    event = mock_window.dispatch.call_args.args[0]
+    assert event.name == "kernel.call"
+    context = event.data["context"]
+    assert context.prompt == "chunk"
+    assert context.system_prompt == "system"
+    assert context.max_tokens == 55
+    assert context.model is model
+
+
+def test_summary_model_selection_uses_configured_model(mock_window):
+    plugin = Plugin(window=mock_window)
     default_model = ModelItem()
     chosen_model = ModelItem()
     mock_window.core.models.from_defaults.return_value = default_model
     mock_window.core.models.has.return_value = True
     mock_window.core.models.get.return_value = chosen_model
+    plugin.set_option_value("model_summarize", "chosen")
 
-    responses = iter(["A", "B"])
-    def dispatch(event):
-        event.data["response"] = next(responses)
-    mock_window.dispatch.side_effect = dispatch
+    assert plugin._get_summary_model() is chosen_model
+    mock_window.core.models.get.assert_called_once_with("chosen")
 
-    assert plugin.get_summarized_text(["one", "two"], "system") == "AB"
-    assert mock_window.dispatch.call_count == 2
-    first_event = mock_window.dispatch.call_args_list[0].args[0]
-    assert first_event.data["context"].prompt == "one"
-    assert first_event.data["context"].system_prompt == "system"
-    assert first_event.data["context"].max_tokens == 55
-    assert first_event.data["context"].model is chosen_model
+
+def test_split_text_to_budget_and_pack_recent_first(mock_window):
+    plugin = Plugin(window=mock_window)
+    model = ModelItem()
+    plugin._count_tokens = MagicMock(side_effect=lambda text, _model: len(str(text or "")))
+    plugin._char_chunk_limit = MagicMock(return_value=1000)
+
+    assert plugin._split_text_to_budget("abcde", model, 2) == ["ab", "cd", "e"]
+    assert plugin._pack_recent_first(["old", "new"], model, 4) == ["new", "old"]
+
+
+def test_normalize_summary_filters_empty_and_legacy_sentinel(mock_window):
+    plugin = Plugin(window=mock_window)
+    assert plugin._normalize_summary("") == ""
+    assert plugin._normalize_summary("  NO_RELEVANT_CONTEXT  ") == ""
+    assert plugin._normalize_summary("  useful context  ") == "useful context"
 
 
 def test_handle_updated_refreshes_calendar(mock_window):

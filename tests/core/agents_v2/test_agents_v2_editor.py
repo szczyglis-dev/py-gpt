@@ -56,11 +56,13 @@ def test_agents_v2_editor_filters_and_normalizes_custom_rows():
             "id": "a1",
             "name": "First",
             "system_prompt": "123",
+            "runtime": "orchestrator",
         },
         {
             "id": "a2",
             "name": "",
             "system_prompt": "",
+            "runtime": "orchestrator",
         },
     ]
 

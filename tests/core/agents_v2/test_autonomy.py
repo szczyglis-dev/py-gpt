@@ -105,8 +105,19 @@ def test_iteration_limit_does_not_restart_or_reset_budget():
 
 def test_completion_tool_validates_evidence_and_records_blocker():
     async def scenario():
-        runtime = SimpleNamespace(main_agent_name="Primary Agent", uses_workflow_finish=False,
-                                  is_swarm_mode=False, model=None, verbose=MagicMock(), window=MagicMock())
+        window = MagicMock()
+        window.core.security.append_prompt_injection_guard.side_effect = lambda prompt, ensure_last=True: prompt
+        runtime = SimpleNamespace(
+            main_agent_name="Primary Agent",
+            uses_workflow_finish=False,
+            is_swarm_mode=False,
+            model=None,
+            verbose=MagicMock(),
+            window=window,
+            _actor_llms={},
+            reset_actor_provider_tool_activity=MagicMock(),
+            actor_provider_tool_activity_seen=MagicMock(return_value=False),
+        )
         agent = RuntimeContext(runtime).build_agent("Primary Agent", "Main", ToolLLM(), "System", [])
         tool = next(t for t in agent.tools if t.metadata.name == "task_complete")
         await tool.acall(outcome="completed", evidence="")

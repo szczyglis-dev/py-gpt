@@ -15,17 +15,15 @@ def _attachments():
     return SimpleNamespace(window=window, id="attachments", _dnd_handlers={}), model
 
 
-def test_centered_checkbox_helpers_use_expected_nodes():
+def test_clear_options_menu_releases_current_popup():
     widget, _ = _attachments()
-    widget.window.ui.nodes.update({
-        "attachments.send_clear": "send",
-        "attachments.capture_clear": "capture",
-        "attachments.auto_index": "index",
-    })
-    widget._centered_container = MagicMock(side_effect=lambda child: f"box:{child}")
-    assert Attachments.setup_send_clear(widget) == "box:send"
-    assert Attachments.setup_capture_clear(widget) == "box:capture"
-    assert Attachments.setup_auto_index(widget) == "box:index"
+    menu = MagicMock()
+    widget._options_menu = menu
+
+    Attachments._clear_options_menu(widget)
+
+    assert widget._options_menu is None
+    menu.deleteLater.assert_called_once_with()
 
 
 def test_update_populates_name_path_size_and_context(tmp_path):

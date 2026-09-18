@@ -14,7 +14,7 @@ def _bare_controller():
         "remote_store", "agent", "agents_v2", "tools", "ctx", "presets", "idx",
         "dialogs", "audio", "attachment", "camera", "access", "realtime",
         "media", "settings", "plugins", "model", "launcher", "calendar",
-        "painter", "notepad", "files", "theme",
+        "painter", "notepad", "files", "theme", "profile_exporter",
     ):
         setattr(controller, name, MagicMock())
 
@@ -50,6 +50,7 @@ def test_controller_setup_calls_all_primary_components():
     controller.tools.setup.assert_called_once_with()
     controller.ctx.setup.assert_called_once_with()
     controller.presets.setup.assert_called_once_with()
+    controller.profile_exporter.setup.assert_called_once_with()
     controller.idx.setup.assert_called_once_with()
     controller.ui.update_tokens.assert_called_once_with()
     controller.dialogs.setup.assert_called_once_with()

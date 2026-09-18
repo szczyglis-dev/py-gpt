@@ -100,15 +100,16 @@ def test_ctx_extra_edit_show_and_hide_toggle_expected_buttons():
     input_node = extra.window.ui.nodes["input"]
 
     extra.edit_show()
-    input_node.set_icon_visible.assert_any_call("send", False)
     input_node.set_icon_visible.assert_any_call("cancel", True)
     input_node.set_icon_visible.assert_any_call("update", True)
+    extra.window.controller.chat.common.sync_send_stop_buttons.assert_called_once_with()
 
     input_node.set_icon_visible.reset_mock()
+    extra.window.controller.chat.common.sync_send_stop_buttons.reset_mock()
     extra.edit_hide()
     input_node.set_icon_visible.assert_any_call("cancel", False)
     input_node.set_icon_visible.assert_any_call("update", False)
-    input_node.set_icon_visible.assert_any_call("send", True)
+    extra.window.controller.chat.common.sync_send_stop_buttons.assert_called_once_with()
 
 
 def test_ctx_extra_edit_submit_dispatches_render_action_and_resends_input():

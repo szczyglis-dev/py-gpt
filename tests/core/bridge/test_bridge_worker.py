@@ -43,6 +43,12 @@ class ContextObj:
         self.history = []
 
 
+def _security():
+    return SimpleNamespace(
+        append_prompt_injection_guard=Mock(side_effect=lambda prompt, ensure_last=True: prompt),
+    )
+
+
 class AttachmentStub:
     def __init__(self, has_context=True, context_value="", mode_value="query"):
         self._has = has_context
@@ -203,7 +209,10 @@ def test_cleanup_disconnect_and_reset():
 def test_run_langchain_emits_failed():
     worker = BridgeWorker()
     worker.mode = MODE_LANGCHAIN
-    worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock())))
+    worker.window = SimpleNamespace(core=SimpleNamespace(
+        debug=SimpleNamespace(info=Mock()),
+        security=_security(),
+    ))
     worker.context = ContextObj()
     worker.extra = {}
     mock_response = Mock()
@@ -223,6 +232,7 @@ def test_run_llama_index_emits_ok():
     worker = BridgeWorker()
     worker.mode = MODE_LLAMA_INDEX
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                       idx=SimpleNamespace(chat=SimpleNamespace(call=Mock(return_value=True)))))
     worker.context = ContextObj()
     worker.extra = {}
@@ -244,6 +254,7 @@ def test_run_agent_runner_true_no_emit():
     worker.mode = MODE_AGENT_LLAMA
     runner = SimpleNamespace(call=Mock(return_value=True), get_error=Mock(return_value="err"))
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                         agents=SimpleNamespace(runner=runner)))
     worker.context = ContextObj()
     worker.extra = {}
@@ -263,6 +274,7 @@ def test_run_agent_runner_false_emits_error():
     worker.mode = MODE_AGENT_OPENAI
     runner = SimpleNamespace(call=Mock(return_value=False), get_error=Mock(return_value="agent error"))
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                         agents=SimpleNamespace(runner=runner)))
     worker.context = ContextObj()
     worker.extra = {}
@@ -286,6 +298,7 @@ def test_run_loop_next_true_no_emit():
     loop = SimpleNamespace(run_next=Mock(return_value=True))
     runner = SimpleNamespace(loop=loop, get_error=Mock(return_value="err"))
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                         agents=SimpleNamespace(runner=runner)))
     worker.context = ContextObj()
     worker.extra = {}
@@ -305,6 +318,7 @@ def test_run_gpt_call_exception_emits_failed():
     def raise_err(context, extra):
         raise ValueError("boom")
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                       api=SimpleNamespace(openai=SimpleNamespace(call=raise_err))))
     worker.context = ContextObj()
     worker.extra = {}
@@ -325,6 +339,7 @@ def test_run_gpt_call_result_emits_ok_or_error():
     worker = BridgeWorker()
     worker.mode = "other"
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                       api=SimpleNamespace(openai=SimpleNamespace(call=Mock(return_value=False)))))
     worker.context = ContextObj()
     worker.extra = {}

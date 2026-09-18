@@ -22,7 +22,7 @@ def test_iter_tags_matches_supported_kinds_and_preserves_values():
         "<file_context>%workdir%/data/src/main.py</file_context> after"
     )
 
-    found = [(match.group(1).lower(), match.group(2)) for match in mentions.iter_tags(text)]
+    found = [(tag.kind, tag.value) for tag in mentions.iter_tags(text)]
 
     assert found == [
         (mentions.KIND_ATTACHMENT, "photo.png"),

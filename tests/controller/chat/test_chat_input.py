@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 
+from inspect import signature
 from unittest.mock import MagicMock, patch
 
 from tests.mocks import mock_window
@@ -58,18 +59,21 @@ def test_send(mock_window):
     extra = {}
 
     input.send(context, extra)
-    input.execute.assert_called_once_with(
-        text="xxx",
-        force=False,
-        reply=False,
-        internal=False,
-        prev_ctx=None,
-        multimodal_ctx=context.multimodal_ctx,
-        mode_override=None,
-        model_override=None,
-        agent_continue=False,
-        runtime_attachments=None,
-    )
+    expected = {
+        "text": "xxx",
+        "force": False,
+        "reply": False,
+        "internal": False,
+        "prev_ctx": None,
+        "multimodal_ctx": context.multimodal_ctx,
+        "mode_override": None,
+        "model_override": None,
+        "agent_continue": False,
+        "runtime_attachments": None,
+    }
+    if "preflight_busy" in signature(Input.execute).parameters:
+        expected.update(preflight_busy=False, preflight_token=None)
+    input.execute.assert_called_once_with(**expected)
 
 
 def test_execute_text(mock_window):

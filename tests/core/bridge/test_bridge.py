@@ -27,6 +27,7 @@ class DummyContext:
     def __init__(self, mode=None, model=None):
         self.ctx = DummyCtx()
         self.prompt = "hello"
+        self.system_prompt = ""
         self.prompt_mentions = ""
         self.attachments = {}
         self.mode = mode
@@ -61,6 +62,8 @@ def make_window():
     window.core.debug.enabled = Mock(return_value=False)
     window.core.debug.debug = Mock()
     window.core.debug.error = Mock()
+    window.core.security = SimpleNamespace()
+    window.core.security.append_prompt_injection_guard = Mock(side_effect=lambda prompt, ensure_last=True: prompt)
     window.core.config = SimpleNamespace()
     window.core.config.get = Mock(return_value=None)
     window.core.config.has = Mock(return_value=False)

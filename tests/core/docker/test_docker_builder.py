@@ -10,7 +10,11 @@ def make_plugin():
     window = SimpleNamespace(
         update_status=MagicMock(),
         threadpool=SimpleNamespace(start=MagicMock()),
-        ui=SimpleNamespace(dialogs=SimpleNamespace(alert=MagicMock())),
+        ui=SimpleNamespace(dialogs=SimpleNamespace(
+            alert=MagicMock(),
+            show_loader=MagicMock(return_value=object()),
+            finish_loader=MagicMock(),
+        )),
         controller=SimpleNamespace(kernel=SimpleNamespace(stop=MagicMock())),
         dispatch=MagicMock(),
     )
@@ -30,11 +34,15 @@ def test_docker_builder_starts_worker_and_connects_callbacks(monkeypatch):
     )
     monkeypatch.setattr(builder_module, "Worker", MagicMock(return_value=fake_worker))
 
+    monkeypatch.setattr(builder_module, "trans", lambda key: "building")
     builder = Builder(plugin)
     builder.docker = object()
     builder.build_image(restart=True)
 
-    plugin.window.update_status.assert_called_once_with("Please wait... building...")
+    plugin.window.update_status.assert_called_once_with("building")
+    plugin.window.ui.dialogs.show_loader.assert_called_once_with(
+        message="building", show_cancel=False, modal=True,
+    )
     assert fake_worker.plugin is plugin
     assert fake_worker.docker is builder.docker
     assert fake_worker.restart is True
@@ -46,10 +54,12 @@ def test_docker_builder_starts_worker_and_connects_callbacks(monkeypatch):
 def test_docker_builder_build_start_error_is_reported(monkeypatch):
     plugin = make_plugin()
     monkeypatch.setattr(builder_module, "Worker", MagicMock(side_effect=RuntimeError("worker failed")))
+    monkeypatch.setattr(builder_module, "trans", lambda key: "building")
     builder = Builder(plugin)
 
     builder.build_image()
 
+    plugin.window.ui.dialogs.finish_loader.assert_called_once_with()
     error = plugin.window.ui.dialogs.alert.call_args.args[0]
     assert isinstance(error, RuntimeError)
     assert str(error) == "worker failed"

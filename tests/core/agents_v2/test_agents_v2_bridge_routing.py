@@ -32,6 +32,9 @@ def make_worker(call_result=True, error="agent error"):
     worker.window = SimpleNamespace(
         core=SimpleNamespace(
             debug=SimpleNamespace(info=MagicMock()),
+            security=SimpleNamespace(
+                append_prompt_injection_guard=MagicMock(side_effect=lambda prompt, ensure_last=True: prompt),
+            ),
             agents_v2=SimpleNamespace(runner=runner),
         )
     )

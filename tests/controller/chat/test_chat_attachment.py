@@ -81,6 +81,8 @@ class DummyController:
         self.ui = MagicMock()
         self.ui.update_tokens = MagicMock()
         self.files = MagicMock()
+        self.chat = MagicMock()
+        self.chat.input = MagicMock()
 
 class DummyWindow:
     def __init__(self):
@@ -158,6 +160,8 @@ class TestAttachment:
 
     def test_handle(self, dummy_window):
         att = Attachment(dummy_window)
+        att.handle_upload_error = MagicMock()
+        att.handle_upload_success = MagicMock()
         with patch('pygpt_net.controller.chat.attachment.AttachmentWorker') as MockWorker:
             worker = MagicMock()
             worker.signals = MagicMock()
@@ -170,8 +174,22 @@ class TestAttachment:
             att.handle("m", "t")
             assert worker.mode == "m"
             assert worker.prompt == "t"
-            worker.signals.error.connect.assert_called_with(att.handle_upload_error)
-            worker.signals.success.connect.assert_called_with(att.handle_upload_success)
+
+            # The callbacks may be wrapped to retain the request/preflight token.
+            # Verify their observable contract instead of their implementation identity.
+            error_cb = worker.signals.error.connect.call_args.args[0]
+            success_cb = worker.signals.success.connect.call_args.args[0]
+            error = Exception("error")
+            error_cb(error)
+            success_cb("ok")
+            error_args = att.handle_upload_error.call_args.args
+            success_args = att.handle_upload_success.call_args.args
+            assert error_args[0] is error
+            assert success_args[0] == "ok"
+            if len(error_args) > 1:
+                assert error_args[1] is None
+            if len(success_args) > 1:
+                assert success_args[1] is None
             dummy_window.threadpool.start.assert_called_with(worker)
 
     def test_is_allowed(self, dummy_window):

@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 import os
+from inspect import signature
 from types import SimpleNamespace
 from unittest.mock import MagicMock, call, ANY
 import pytest
@@ -228,7 +229,12 @@ def test_send_input_attachments_success():
     calls = win.dispatch.call_args_list
     found_busy = any(isinstance(arg[0], KernelEvent) and arg[0].data.get("msg") == "Reading attachments..." for arg, _ in calls)
     assert found_busy
-    win.controller.chat.attachment.handle.assert_called_once_with(MODE_CHAT, "attachment text")
+    handle_kwargs = {}
+    if win.controller.chat.attachment.handle.call_args.kwargs:
+        handle_kwargs["request_token"] = 1
+    win.controller.chat.attachment.handle.assert_called_once_with(
+        MODE_CHAT, "attachment text", **handle_kwargs
+    )
 
 def test_send_input_attachments_native_status():
     win = create_dummy_window()
@@ -245,8 +251,11 @@ def test_send_input_attachments_native_status():
         for arg, _ in calls
     )
     assert found_busy
+    handle_kwargs = {}
+    if win.controller.chat.attachment.handle.call_args.kwargs:
+        handle_kwargs["request_token"] = 1
     win.controller.chat.attachment.handle.assert_called_once_with(
-        MODE_CHAT, "native attachment"
+        MODE_CHAT, "native attachment", **handle_kwargs
     )
 
 def test_send_input_attachments_error():
@@ -272,18 +281,21 @@ def test_send_calls_execute():
     inp.execute = MagicMock()
     extra = {"force": True, "reply": True, "internal": True, "parent_id": 42}
     inp.send(context, extra)
-    inp.execute.assert_called_once_with(
-        text="dummy prompt",
-        force=True,
-        reply=True,
-        internal=True,
-        prev_ctx="prev_ctx",
-        multimodal_ctx="mm_ctx",
-        mode_override=None,
-        model_override=None,
-        agent_continue=False,
-        runtime_attachments={"runtime": "attachment"},
-    )
+    expected = {
+        "text": "dummy prompt",
+        "force": True,
+        "reply": True,
+        "internal": True,
+        "prev_ctx": "prev_ctx",
+        "multimodal_ctx": "mm_ctx",
+        "mode_override": None,
+        "model_override": None,
+        "agent_continue": False,
+        "runtime_attachments": {"runtime": "attachment"},
+    }
+    if "preflight_busy" in signature(Input.execute).parameters:
+        expected.update(preflight_busy=False, preflight_token=None)
+    inp.execute.assert_called_once_with(**expected)
 
 def test_send_internal_reply_preserves_origin_mode_and_model():
     win = create_dummy_window()
@@ -301,18 +313,21 @@ def test_send_internal_reply_preserves_origin_mode_and_model():
 
     inp.send(context, {"force": True, "reply": True, "internal": True})
 
-    inp.execute.assert_called_once_with(
-        text="tool result",
-        force=True,
-        reply=True,
-        internal=True,
-        prev_ctx=origin,
-        multimodal_ctx=None,
-        mode_override=MODE_LLAMA_INDEX,
-        model_override="origin-model",
-        agent_continue=False,
-        runtime_attachments={},
-    )
+    expected = {
+        "text": "tool result",
+        "force": True,
+        "reply": True,
+        "internal": True,
+        "prev_ctx": origin,
+        "multimodal_ctx": None,
+        "mode_override": MODE_LLAMA_INDEX,
+        "model_override": "origin-model",
+        "agent_continue": False,
+        "runtime_attachments": {},
+    }
+    if "preflight_busy" in signature(Input.execute).parameters:
+        expected.update(preflight_busy=False, preflight_token=None)
+    inp.execute.assert_called_once_with(**expected)
 
 
 def test_send_internal_reply_agents_v2_is_not_forwarded_to_legacy_pipeline():
