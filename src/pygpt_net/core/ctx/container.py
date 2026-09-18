@@ -31,6 +31,9 @@ class PlainChatOutput(ChatOutput):
         self.setMaximumWidth(self.MAX_WIDTH)
         self.setMinimumWidth(0)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # Keep the plain-text content aligned with the tabbed Notepad, whose
+        # editor has 3 px more space above the text than the default output.
+        self.setViewportMargins(0, 8, 0, 0)
 
     def sizeHint(self):
         size = super().sizeHint()
