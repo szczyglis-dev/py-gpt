@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 20:50:00
+# Updated Date: 2026.09.18 22:23:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -150,7 +150,10 @@ class Custom:
 
         # input: tabs
         input_tabs = self.window.ui.tabs['input']
-        input_tabs.setTabText(0, trans('input.tab'))
+        # Keep the main Input tab icon-only. Language/profile reloads call this
+        # mapping again, so restoring the translated label here would undo the
+        # compact tab presentation created by the input layout.
+        input_tabs.set_compact_tab_count(0, 0)
         input_tabs.retranslate_compact_tabs()
         mode = self.window.core.config.get('mode')
         self.window.controller.attachment.update_tab(mode)
