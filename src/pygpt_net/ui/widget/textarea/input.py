@@ -2365,10 +2365,12 @@ class ChatInput(QTextEdit):
                     break
 
         self._splitter_resize_in_progress = True
+        accepted_sizes = list(new_sizes)
         try:
             old_block = splitter.blockSignals(True)
             splitter.setSizes(new_sizes)
             splitter.blockSignals(old_block)
+            accepted_sizes = list(splitter.sizes())
         finally:
             self._splitter_resize_in_progress = False
 
@@ -2378,13 +2380,16 @@ class ChatInput(QTextEdit):
             if "input" in tabs:
                 t_idx = tabs['input'].currentIndex()
                 if t_idx != 0:
-                    self.window.controller.ui.splitter_output_size_files = new_sizes
+                    self.window.controller.ui.splitter_output_size_files = accepted_sizes
                 else:
-                    self.window.controller.ui.splitter_output_size_input = new_sizes
+                    self.window.controller.ui.splitter_output_size_input = accepted_sizes
         except Exception:
             pass
 
-        self._last_target_container_h = target_container_h
+        if idx < len(accepted_sizes):
+            self._last_target_container_h = accepted_sizes[idx]
+        else:
+            self._last_target_container_h = target_container_h
 
     def collapse_to_min(self):
         """Public helper to collapse input area to minimal height."""

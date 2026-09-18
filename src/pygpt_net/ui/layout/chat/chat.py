@@ -41,6 +41,7 @@ class ChatMain:
         self.window.ui.splitters['main.output'] = splitter
         splitter.addWidget(output_widget)
         splitter.addWidget(input_widget)
+        splitter.setCollapsible(1, False)
         splitter.setStretchFactor(0, 9)  # Output widget stretch factor
         splitter.setStretchFactor(1, 1)  # Input widget stretch factor
         splitter.splitterMoved.connect(self.on_splitter_moved)
