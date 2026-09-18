@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
 )
 
-from pygpt_net.core.text.mentions import KIND_ATTACHMENT, KIND_FILE_CONTEXT
+from pygpt_net.core.text.mentions import KIND_ATTACHMENT, KIND_FILE_CONTEXT, KIND_CONVERSATION
 from pygpt_net.utils import trans
 
 
@@ -126,9 +126,11 @@ class MentionPopup(QFrame):
                     matches.append(entry)
 
         self.list.clear()
+        conversations = [e for e in matches if e.kind == KIND_CONVERSATION]
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]
         files = [e for e in matches if e.kind == KIND_FILE_CONTEXT]
 
+        conversations.sort(key=lambda e: e.label.casefold())
         attachments.sort(key=lambda e: e.label.casefold())
         files.sort(key=lambda e: (not e.is_dir, e.label.casefold()))
 
@@ -136,12 +138,18 @@ class MentionPopup(QFrame):
         # still runs against the full entry set, so typing narrows into items
         # that were not present in the initial visible slice.
         visible = []
+        visible.extend(conversations)
         visible.extend(attachments)
         visible.extend(files)
         visible = visible[:self.MAX_RESULTS]
+        conversations = [e for e in visible if e.kind == KIND_CONVERSATION]
         attachments = [e for e in visible if e.kind == KIND_ATTACHMENT]
         files = [e for e in visible if e.kind == KIND_FILE_CONTEXT]
 
+        if conversations:
+            self._add_header(trans("input.mentions.chat_history"))
+            for entry in conversations:
+                self._add_entry(entry)
         if attachments:
             self._add_header(trans("attachments.tab"))
             for entry in attachments:

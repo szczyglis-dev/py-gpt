@@ -347,6 +347,7 @@ NotepadWidget,
   qproperty-hoverTextColor: #ffffff;
   qproperty-activeTextColor: #ffffff;
   qproperty-focusedSelectedTextColor: #000000;
+  qproperty-showMoreHoverTextColor: #ffffff;
 }}
 
 /* Context list typography.

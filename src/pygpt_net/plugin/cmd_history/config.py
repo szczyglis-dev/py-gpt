@@ -25,14 +25,6 @@ class Config(BaseConfig):
         :param plugin: plugin instance
         """
         plugin.add_option(
-            "use_tags",
-            type="bool",
-            value=False,
-            label="Enable: using context @ ID tags",
-            description="When enabled, it allows to automatically retrieve context history using @ tags, "
-                        "e.g. use @123 in question to retrieve summary of context with ID 123",
-        )
-        plugin.add_option(
             "model_summarize",
             type="combo",
             value=MODEL_DEFAULT_MINI,
@@ -46,7 +38,7 @@ class Config(BaseConfig):
             type="int",
             value=1500,
             label="Max summary tokens",
-            description="Max tokens in output when generating summary",
+            description="Max tokens in each query-focused summary/reduction output. 0 = safe default (1500)",
             min=0,
             max=None,
         )
@@ -64,27 +56,41 @@ class Config(BaseConfig):
             type="int",
             value=100000,
             label="Per-context items content chunk size",
-            description="Per-context content chunk size (max characters per chunk)",
+            description="Secondary hard character cap per source chunk; model context/token budget is applied first",
             min=1,
             max=None,
         )
         plugin.add_option(
-            "prompt_tag_system",
+            "prompt_tag_summary",
             type="textarea",
-            value="ADDITIONAL CONTEXT: Use the following JSON summary of previous discussions as additional context, "
-                  "instead of using commands for retrieve content: {context}",
-            label="Prompt: tag_system",
-            description="Prompt for use @ tag (system)",
+            value="You retrieve context from a previous conversation for a new user request.\n"
+                  "Previous conversation ID: {id}\n"
+                  "Current request:\n{query}\n\n"
+                  "Extract only information from the supplied conversation chunk that is relevant to answering or "
+                  "continuing the current request. Preserve exact decisions, requirements, facts, code identifiers, "
+                  "filenames, values, errors, and unresolved work when relevant. Prefer newer state over superseded "
+                  "older state. If the current request is only a conversation reference or a vague continuation, "
+                  "extract the latest active goal, current state, decisions, and unresolved work. Do not invent "
+                  "information and do not answer the current request itself. If the chunk contains nothing relevant, "
+                  "return exactly: NO_RELEVANT_CONTEXT",
+            label="Prompt: conversation extraction",
+            description="Prompt for query-focused extraction from previous conversation chunks",
             advanced=True,
         )
         plugin.add_option(
-            "prompt_tag_summary",
+            "prompt_tag_reduce",
             type="textarea",
-            value="You are an expert in context summarization. "
-                  "Please summarize the given discussion (ID: {id}) by addressing the query and preparing it to serve "
-                  "as additional context for a new discussion or to continue the current one: {query}",
-            label="Prompt: tag_summary",
-            description="Prompt for use @ tag (summary)",
+            value="You merge query-focused extracts from the same previous conversation.\n"
+                  "Previous conversation ID: {id}\n"
+                  "Current request:\n{query}\n\n"
+                  "Produce one compact context summary containing only information relevant to the current request. "
+                  "Remove repetition, preserve exact technical details and unresolved work, and when extracts conflict "
+                  "prefer the newer state indicated by lower recency_rank unless the text explicitly says otherwise. "
+                  "If the request is a vague continuation, retain the latest active goal/state and unresolved work. "
+                  "Do not invent information and do not answer the current request itself. If there is no relevant "
+                  "information, return exactly: NO_RELEVANT_CONTEXT",
+            label="Prompt: conversation reduction",
+            description="Prompt for merging query-focused extracts from long previous conversations",
             advanced=True,
         )
 
@@ -107,8 +113,8 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "get_ctx_content_by_id",
-            instruction="get summarized content of context by its ID, use summary query to ask another "
-                        "model to summarize content, e.g. \"Summarize following discussion answering the query: (query)\"",
+            instruction="get query-focused content of context by its ID; summary_query must describe what information is "
+                        "needed from that previous conversation for the current request",
             params=[
                 {
                     "name": "id",

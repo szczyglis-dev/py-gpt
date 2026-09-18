@@ -22,6 +22,10 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.tabs.tab import Tab
+from pygpt_net.core.text.mentions import (
+    resolve_conversation_mentions,
+    to_display_text as mentions_to_display_text,
+)
 from pygpt_net.utils import trans
 
 
@@ -92,6 +96,26 @@ class Input:
 
         return meta
 
+    def _resolve_history_mentions(self, text: str) -> str:
+        """Populate conversation @mentions with query-focused history context."""
+        raw = str(text or "")
+        if "<conversation" not in raw.lower():
+            return raw
+        plugin = self.window.core.plugins.get("cmd_history")
+        if plugin is None or not hasattr(plugin, "get_summary"):
+            return raw
+
+        query = mentions_to_display_text(raw).strip()
+
+        def resolve(ctx_id: int, _title: str, current_query: str) -> str:
+            return plugin.get_summary(ctx_id, current_query)
+
+        try:
+            return resolve_conversation_mentions(raw, resolve, query=query)
+        except Exception as e:
+            self.window.core.debug.log(e)
+            return raw
+
     def send_input(self, force: bool = False):
         """
         Send text from user input (called from UI)
@@ -113,8 +137,8 @@ class Input:
         stop = event.data.get('stop', False)
 
         # Get the visible text and the durable/model-facing variant.
-        # Valid @mentions are serialized as attachment/file_context tags only
-        # at the send boundary; the QTextEdit itself remains human-readable.
+        # Valid @mentions are serialized as durable attachment/file/conversation
+        # tags only at the send boundary; the QTextEdit itself remains human-readable.
         input_node = self.window.ui.nodes['input']
         display_text = input_node.toPlainText().strip()
         if hasattr(input_node, "serialize_mentions"):
@@ -178,6 +202,12 @@ class Input:
                 input_node.on_prompt_sent(history_text)
         except Exception as e:
             self.window.core.debug.log(e)
+
+        # Conversation mentions are resolved only now, after the final user text is
+        # known and the owning chat has been pinned. Prompt-history recall keeps the
+        # lightweight ID/title reference, while the durable CtxItem/provider input
+        # receives the query-focused <conversation> body.
+        text = self._resolve_history_mentions(text)
 
         # if attachments, return here - send will be handled via signal after upload
         if self.handle_attachment(mode, text):

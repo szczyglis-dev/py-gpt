@@ -37,30 +37,45 @@ class Utils {
 			.replace(/&amp;/g, '&');
 	}
 
-	// Render durable <attachment>/<file_context> tags as safe colored @mentions.
+	// Render durable attachment/file/conversation tags as safe colored @mentions.
 	static renderMentionText(s) {
 		const raw = String(s ?? '');
-		const re = /<(attachment|file_context)>([\s\S]*?)<\/\1>/gi;
+		const re = /<(attachment|file_context)>([\s\S]*?)<\/\1>|<conversation\b([^>]*)>([\s\S]*?)<\/conversation>/gi;
 		let out = '';
 		let last = 0;
 		let match;
 
 		while ((match = re.exec(raw)) !== null) {
 			out += Utils.escapeHtml(raw.slice(last, match.index));
-			const kind = String(match[1] || '').toLowerCase();
-			const value = Utils.decodeMentionValue(match[2] || '');
-			let label = value;
-			if (kind === 'file_context') {
-				let normalized = value.replace(/\\/g, '/');
-				const lower = normalized.toLowerCase();
-				const prefix = '%workdir%/data/';
-				if (lower.startsWith(prefix)) normalized = normalized.slice(prefix.length);
-				else if (lower === '%workdir%/data') normalized = 'data/';
-				else if (lower.startsWith('data/')) normalized = normalized.slice(5);
-				label = normalized || value;
+
+			if (match[1]) {
+				const kind = String(match[1] || '').toLowerCase();
+				const value = Utils.decodeMentionValue(match[2] || '');
+				let label = value;
+				if (kind === 'file_context') {
+					let normalized = value.replace(/\\/g, '/');
+					const lower = normalized.toLowerCase();
+					const prefix = '%workdir%/data/';
+					if (lower.startsWith(prefix)) normalized = normalized.slice(prefix.length);
+					else if (lower === '%workdir%/data') normalized = 'data/';
+					else if (lower.startsWith('data/')) normalized = normalized.slice(5);
+					label = normalized || value;
+				}
+				const cls = (kind === 'attachment') ? 'mention-attachment' : 'mention-file-context';
+				out += `<span class="mention-anchor ${cls}" title="${Utils.escapeHtmlAttr(value)}">@${Utils.escapeHtml(label)}</span>`;
+			} else {
+				const attrs = String(match[3] || '');
+				const idMatch = attrs.match(/\bid\s*=\s*(["'])(.*?)\1/i);
+				const titleMatch = attrs.match(/\btitle\s*=\s*(["'])(.*?)\1/i);
+				const id = Utils.decodeMentionValue(idMatch ? idMatch[2] : '');
+				const title = Utils.decodeMentionValue(titleMatch ? titleMatch[2] : '');
+				const label = title || id;
+				if (label) {
+					out += `<span class="mention-anchor mention-conversation" title="#${Utils.escapeHtmlAttr(id)}">@${Utils.escapeHtml(label)}</span>`;
+				} else {
+					out += Utils.escapeHtml(match[0]);
+				}
 			}
-			const cls = (kind === 'attachment') ? 'mention-attachment' : 'mention-file-context';
-			out += `<span class="mention-anchor ${cls}" title="${Utils.escapeHtmlAttr(value)}">@${Utils.escapeHtml(label)}</span>`;
 			last = re.lastIndex;
 		}
 

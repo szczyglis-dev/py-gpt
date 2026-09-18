@@ -1036,6 +1036,25 @@ class Patch:
                         data[key] = cfg_get_base(key)
                         updated = True
 
+                # Chat-history numeric @mentions moved from the plugin event path to
+                # the input mention resolver. Drop the legacy switch/system prompt
+                # and reset the extraction prompt so the new query-focused defaults
+                # are used. Also clear matching plugin-preset overrides.
+                history_cfg = data.get("plugins", {}).get("cmd_history", {})
+                for key in (
+                        "use_tags",
+                        "prompt_tag_system",
+                        "prompt_tag_summary",
+                ):
+                    if key in history_cfg:
+                        remove_plugin_config("cmd_history", key)
+                        updated = True
+                    elif self.window.core.plugins.remove_plugin_param_from_presets("cmd_history", key):
+                        # A preset may override a plugin option even when the base
+                        # plugin config does not contain that key. Reset it too so
+                        # the 2.8.24 query-focused defaults are guaranteed to win.
+                        updated = True
+
         # update file
         migrated = False
         if updated:

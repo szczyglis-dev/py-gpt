@@ -30,7 +30,7 @@ from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, Director
 from pygpt_net.core.text.mentions import (
     KIND_ATTACHMENT,
     KIND_FILE_CONTEXT,
-    decode_value as decode_mention_value,
+    KIND_CONVERSATION,
     iter_tags as iter_mention_tags,
     label_for as mention_label_for,
     make_tag as make_mention_tag,
@@ -274,11 +274,11 @@ class ChatInput(QTextEdit):
     def _insert_serialized_cursor(self, cursor: QTextCursor, text: str):
         raw = str(text or "")
         last = 0
-        for match in iter_mention_tags(raw):
-            self._insert_plain_cursor(cursor, raw[last:match.start()])
-            kind = str(match.group(1) or "").lower()
-            value = decode_mention_value(match.group(2))
-            label = mention_label_for(kind, value)
+        for mention in iter_mention_tags(raw):
+            self._insert_plain_cursor(cursor, raw[last:mention.start])
+            kind = mention.kind
+            value = mention.value
+            label = mention.label or mention_label_for(kind, value)
             if label:
                 self._insert_mention_cursor(
                     cursor,
@@ -290,8 +290,8 @@ class ChatInput(QTextEdit):
                     ),
                 )
             else:
-                self._insert_plain_cursor(cursor, match.group(0))
-            last = match.end()
+                self._insert_plain_cursor(cursor, mention.raw)
+            last = mention.end
         self._insert_plain_cursor(cursor, raw[last:])
 
     def set_mention_text(self, text: str):
@@ -380,7 +380,8 @@ class ChatInput(QTextEdit):
         doc = self.document()
         for group in self._collect_mention_groups():
             kind = group["kind"]
-            if kind not in (KIND_ATTACHMENT, KIND_FILE_CONTEXT) or not group["label"] or not group["value"]:
+            if kind not in (KIND_ATTACHMENT, KIND_FILE_CONTEXT, KIND_CONVERSATION) \
+                    or not group["label"] or not group["value"]:
                 invalid.append(group)
                 continue
             cursor = QTextCursor(doc)
@@ -433,7 +434,11 @@ class ChatInput(QTextEdit):
             cursor.setPosition(pos)
             cursor.setPosition(group["start"], QTextCursor.KeepAnchor)
             result.append(self._cursor_selected_text(cursor))
-            result.append(make_mention_tag(group["kind"], group["value"]))
+            result.append(make_mention_tag(
+                group["kind"],
+                group["value"],
+                label=group["label"],
+            ))
             pos = group["end"]
 
         cursor = QTextCursor(doc)
@@ -599,6 +604,75 @@ class ChatInput(QTextEdit):
                     pass
         return entries
 
+    def _get_conversation_mention_entry(self, query: str):
+        """Resolve an exact numeric @query to one chat-history entry."""
+        raw = str(query or "")
+        # Numeric history mentions are exact tokens. A whitespace separator ends
+        # the trigger instead of being silently stripped back to a valid ID.
+        if not raw or raw != raw.strip() or not raw.isdigit():
+            return None
+        try:
+            meta = self.window.core.ctx.get_meta_by_id(int(raw))
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+            return None
+        if meta is None or getattr(meta, "deleted", False):
+            return None
+        title = str(getattr(meta, "name", None) or raw).strip()
+        if not title or any(ch in title for ch in "\r\n\t"):
+            title = raw
+        return MentionEntry(KIND_CONVERSATION, title, raw, False)
+
+    def _restore_conversation_mention_query(self) -> bool:
+        """Turn an edited/backspaced conversation title anchor back into @<id>."""
+        cursor = self.textCursor()
+        if cursor.hasSelection():
+            return False
+        pos = cursor.position()
+        for group in self._validate_mention_groups(clean_invalid=False):
+            if group["kind"] != KIND_CONVERSATION:
+                continue
+
+            replace_end = group["end"]
+            inside_or_at_end = group["start"] < pos <= group["end"]
+            after_auto_space = False
+            if pos == group["end"] + 1:
+                separator = QTextCursor(self.document())
+                separator.setPosition(group["end"])
+                separator.setPosition(pos, QTextCursor.KeepAnchor)
+                after_auto_space = self._cursor_selected_text(separator) == " "
+                if after_auto_space:
+                    replace_end = pos
+
+            if not inside_or_at_end and not after_auto_space:
+                continue
+            ctx_id = str(group["value"] or "").strip()
+            if not ctx_id.isdigit():
+                return False
+            self._mention_loading = True
+            try:
+                replacement = QTextCursor(self.document())
+                replacement.setPosition(group["start"])
+                replacement.setPosition(replace_end, QTextCursor.KeepAnchor)
+                replacement.beginEditBlock()
+                try:
+                    replacement.removeSelectedText()
+                    replacement.insertText("@" + ctx_id, QTextCharFormat())
+                finally:
+                    replacement.endEditBlock()
+                self.setTextCursor(replacement)
+            finally:
+                self._mention_loading = False
+            self._mention_popup.hide()
+            self._mention_trigger_pos = None
+            self._mention_source_key = None
+            QTimer.singleShot(0, self._refresh_mention_popup)
+            return True
+        return False
+
     def _refresh_mention_popup(self):
         if self._mention_loading or not self.hasFocus():
             self._mention_popup.hide()
@@ -620,7 +694,12 @@ class ChatInput(QTextEdit):
             self._mention_trigger_pos = at_pos
             self._mention_source_key = source_key
             self._mention_entries = self._build_mention_entries()
-            self._mention_popup.set_entries(self._mention_entries)
+
+        entries = list(self._mention_entries)
+        conversation_entry = self._get_conversation_mention_entry(query)
+        if conversation_entry is not None:
+            entries.append(conversation_entry)
+        self._mention_popup.set_entries(entries)
 
         if not self._mention_popup.apply_filter(query):
             return
@@ -960,6 +1039,12 @@ class ChatInput(QTextEdit):
         handled = False
         key = event.key()
         mods = event.modifiers()
+
+        # Backspace on a virtual conversation title restores the raw numeric
+        # trigger instead of leaving a partially edited fake title behind.
+        if key == Qt.Key_Backspace and mods == Qt.NoModifier:
+            if self._restore_conversation_mention_query():
+                return
 
         # Mention picker owns navigation/accept keys while visible.
         if self._mention_popup.isVisible():

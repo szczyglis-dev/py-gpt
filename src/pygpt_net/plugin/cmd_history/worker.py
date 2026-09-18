@@ -100,10 +100,10 @@ class Worker(BaseWorker):
         :return: response item
         """
         id = int(self.get_param(item, "id", 0))
-        prompt = "Summary this conversation"
+        query = "Provide the most relevant context needed to continue this previous conversation."
         if self.has_param(item, "summary_query"):
-            prompt = self.get_param(item, "summary_query")
-        result = self.plugin.get_summary(id, prompt)
+            query = self.get_param(item, "summary_query")
+        result = self.plugin.get_summary(id, query)
         return self.make_response(item, result)
 
     def cmd_get_day_note(self, item: dict) -> dict:

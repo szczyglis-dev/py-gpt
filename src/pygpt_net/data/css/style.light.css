@@ -457,6 +457,7 @@ QLineEdit {{
   qproperty-hoverTextColor: #000000;
   qproperty-activeTextColor: #000000;
   qproperty-focusedSelectedTextColor: #ffffff;
+  qproperty-showMoreHoverTextColor: #000000;
 }}
 QListView#ComboPopupList,
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
