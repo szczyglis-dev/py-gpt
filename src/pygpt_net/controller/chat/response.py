@@ -842,6 +842,16 @@ class Response:
         # are now rendered as the grouped Tool/Tools block when the setting is on.
         self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
 
+        # AGENT_V2_END is delivered only after the runtime has flushed every
+        # final-answer chunk. Notify here, after STREAM_END/post-processing and
+        # the completed-message reload, so the tray message never races ahead
+        # of the full final response visible to the user.
+        if has_final and self.window.core.config.get("agent.goal.notify"):
+            self.window.ui.tray.show_msg(
+                trans("notify.agent.goal.title"),
+                trans("notify.agent.goal.content"),
+            )
+
     def live_append(
             self,
             context: BridgeContext,
