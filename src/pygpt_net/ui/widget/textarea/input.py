@@ -14,7 +14,7 @@ import math
 import os
 
 from PySide6.QtCore import Qt, QSize, QTimer, QEvent, QPoint, Property
-from PySide6.QtGui import QAction, QIcon, QImage, QTextCursor, QTextCharFormat, QTextFormat, QColor
+from PySide6.QtGui import QAction, QActionGroup, QIcon, QImage, QTextCursor, QTextCharFormat, QTextFormat, QColor
 from PySide6.QtWidgets import (
     QTextEdit,
     QApplication,
@@ -1190,10 +1190,15 @@ class ChatInput(QTextEdit):
         menu.addAction(header)
         menu.addSeparator()
 
+        # Exclusive QActionGroup makes QMenu render the choices with radio
+        # indicators instead of independent checkbox indicators.
+        effort_group = QActionGroup(menu)
+        effort_group.setExclusive(True)
         for effort in efforts:
             action = QAction(trans(f"reasoning_effort.{effort}"), menu)
             action.setCheckable(True)
             action.setChecked(effort == current)
+            effort_group.addAction(action)
             action.triggered.connect(
                 lambda checked=False, value=effort: self.set_reasoning_effort(value)
             )
