@@ -108,7 +108,7 @@ class Body:
 
         stylesheet += """
           body { max-width: 100%; font-size: 0.9rem; } 
-          pre { margin-top: 0; margin-bottom: 0.25rem; max-height: 270px; overflow-y: auto; } 
+          pre { margin-top: 0; margin-bottom: 0.25rem; } 
           a:hover { cursor: pointer; }
           .output-image { max-width: 100%; height: auto; }
         """
