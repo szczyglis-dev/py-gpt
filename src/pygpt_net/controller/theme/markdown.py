@@ -164,6 +164,16 @@ class Markdown:
                 "pre-bg": "#30323a",
                 "pre": "#f1f3f4",
                 "code": "#f1f3f4",
+            },
+            "matrix": {
+                "a": "#66ff99",
+                "msg-user": "#9bd8aa",
+                "msg-bot": "#d8ffe3",
+                "cmd": "#568465",
+                "ts": "#6f987b",
+                "pre-bg": "#0d1d13",
+                "pre": "#b8ffca",
+                "code": "#b8ffca",
             }
         }
 

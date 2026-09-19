@@ -226,6 +226,7 @@ class NotepadOutput(QTextEdit):
             'light': '#efefef',
             'gray': '#2b2d34',
             'dark': '#202020',
+            'matrix': '#0d1710',
         }[theme]
         self.setStyleSheet(
             'QTextEdit {'
