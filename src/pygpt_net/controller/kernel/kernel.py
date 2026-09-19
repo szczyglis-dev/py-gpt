@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.19 12:30:00                  #
 # ================================================== #
 
 import threading
@@ -109,6 +109,7 @@ class Kernel:
             KernelEvent.AGENT_V2_TOOL_EXEC,
             KernelEvent.AGENT_V2_END,
             KernelEvent.INPUT_USER,
+            KernelEvent.SEND_INIT,
             KernelEvent.FORCE_CALL,
             KernelEvent.STATUS,
             Event.AUDIO_INPUT_RECORD_TOGGLE,
@@ -157,7 +158,9 @@ class Kernel:
         extra = data.get("extra")
         response = data.get("response")
 
-        if name in self._INPUT_EVENTS:
+        if name == KernelEvent.SEND_INIT:
+            response = self.send_init(event)
+        elif name in self._INPUT_EVENTS:
             response = self.input(context, extra, event)
         elif name in self._QUEUE_EVENTS_ALL:
             response = self.queue(context, extra, event)
@@ -169,6 +172,29 @@ class Kernel:
             self.set_status(data.get("status"))
 
         data["response"] = response
+
+    def send_init(self, event: KernelEvent):
+        """Enter the user-visible busy state before asynchronous preprocessing."""
+        w = self.window
+        data = event.data or {}
+        meta = data.get("meta") or w.core.ctx.output.get_request_meta()
+
+        # A new manual request explicitly resumes a kernel stopped by the
+        # previous turn. Do this here so the init event itself owns the complete
+        # UI transition and the preprocessing worker can start immediately.
+        self.halt = False
+        w.controller.chat.input.generating = True
+        w.controller.chat.common.sync_send_stop_buttons()
+
+        self.set_state(KernelEvent(KernelEvent.STATE_BUSY, {
+            "id": data.get("id", "chat"),
+            "msg": data.get("msg", trans("status.sending")),
+            "meta": meta,
+        }))
+
+        if data.get("clear", False):
+            w.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
+        return True
 
     def input(
         self,

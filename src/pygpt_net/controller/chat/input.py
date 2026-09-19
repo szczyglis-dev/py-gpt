@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 16:20:00
+# Updated Date: 2026.09.19 12:30:00
 # ================================================== #
 
 from typing import Optional, Any, Dict
+
+from PySide6.QtCore import QObject, Slot
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.bridge.context import MultimodalContext
@@ -28,6 +30,24 @@ from pygpt_net.core.text.mentions import (
 )
 from pygpt_net.utils import trans
 
+from .input_worker import InputWorker
+
+
+class _InputWorkerReceiver(QObject):
+    """Marshal preprocessing results back to the UI thread."""
+
+    def __init__(self, owner):
+        super().__init__()
+        self.owner = owner
+
+    @Slot(int, str)
+    def success(self, request_id: int, text: str):
+        self.owner._on_preprocess_success(request_id, text)
+
+    @Slot(int, object)
+    def error(self, request_id: int, error: Exception):
+        self.owner._on_preprocess_error(request_id, error)
+
 
 class Input:
     def __init__(self, window=None):
@@ -40,6 +60,10 @@ class Input:
         self.locked = False
         self.stop = False
         self.generating = False
+        self._preprocess_seq = 0
+        self._preprocess_id = None
+        self._preprocess_worker = None
+        self._preprocess_receiver = _InputWorkerReceiver(self)
         self.no_ctx_idx_modes = [
             # MODE_IMAGE,
             MODE_ASSISTANT,
@@ -116,6 +140,93 @@ class Input:
             self.window.core.debug.log(e)
             return raw
 
+    def _start_preprocessing(self, mode: str, text: str, meta):
+        """Run expensive manual-send preparation outside the UI thread."""
+        self._preprocess_seq += 1
+        request_id = self._preprocess_seq
+        worker = InputWorker(
+            window=self.window,
+            request_id=request_id,
+            mode=mode,
+            text=text,
+            meta=meta,
+        )
+        self._preprocess_id = request_id
+        self._preprocess_worker = worker
+        worker.signals.success.connect(self._preprocess_receiver.success)
+        worker.signals.error.connect(self._preprocess_receiver.error)
+        try:
+            self.window.threadpool.start(worker)
+        except Exception as e:
+            self._on_preprocess_error(request_id, e)
+
+    def _is_current_preprocess(self, request_id: int) -> bool:
+        return request_id == self._preprocess_id
+
+    def cancel_preprocessing(self):
+        """Cancel continuation from the active preprocessing worker."""
+        worker = self._preprocess_worker
+        self._preprocess_id = None
+        self._preprocess_worker = None
+        if worker is not None:
+            try:
+                worker.cancel()
+            except Exception:
+                pass
+
+    def _on_preprocess_success(self, request_id: int, text: str):
+        """Continue the normal INPUT_USER pipeline after preprocessing."""
+        if not self._is_current_preprocess(request_id):
+            return
+        self._preprocess_id = None
+        self._preprocess_worker = None
+
+        core = self.window.core
+        # STOP may finish the request while a summarizer/native upload is still
+        # completing. Never let that late callback resurrect this or a newer turn.
+        if (not self.generating
+                or self.window.controller.kernel.stopped()
+                or not core.ctx.output.has_request()):
+            return
+
+        context = BridgeContext()
+        context.prompt = text
+        self.window.dispatch(KernelEvent(KernelEvent.INPUT_USER, {
+            'context': context,
+            'extra': {
+                'send_initialized': True,
+            },
+        }))
+
+    def _on_preprocess_error(self, request_id: int, error: Exception):
+        """Abort a manual send whose asynchronous preparation failed."""
+        if not self._is_current_preprocess(request_id):
+            return
+        self._preprocess_id = None
+        self._preprocess_worker = None
+
+        core = self.window.core
+        request_meta = core.ctx.output.get_request_meta()
+        self.generating = False
+        self.window.controller.chat.common.sync_send_stop_buttons()
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+            "id": "chat",
+            "msg": f"{trans('status.error')} {error}",
+            "meta": request_meta,
+        }))
+        self._finish_request(request_meta)
+
+    def _abort_initialized_send(self, request_meta, error: bool = False):
+        """Release only the state introduced by SEND_INIT on an early abort."""
+        self.generating = False
+        self.window.controller.chat.common.sync_send_stop_buttons()
+        state = KernelEvent.STATE_ERROR if error else KernelEvent.STATE_IDLE
+        self.window.dispatch(KernelEvent(state, {
+            "id": "chat",
+            "meta": request_meta,
+        }))
+        self._finish_request(request_meta)
+
     def send_input(self, force: bool = False):
         """
         Send text from user input (called from UI)
@@ -186,6 +297,22 @@ class Input:
         # that chat's restored mode for the actual send/attachment pipeline.
         mode = self.window.core.config.get('mode')
 
+        # SEND_INIT is deliberately before history/attachment preprocessing. It
+        # makes the UI react to Send immediately without rendering the user row.
+        dispatch(KernelEvent(KernelEvent.SEND_INIT, {
+            "id": "chat",
+            "meta": request_meta,
+            "clear": bool(self.window.core.config.get('send_clear')) and not force,
+        }))
+
+        # SEND_INIT pumps the Qt event loop so the spinner/button change is
+        # painted immediately. STOP can therefore be clicked re-entrantly while
+        # this dispatch is still returning; do not start background work after it.
+        if (not self.generating
+                or self.window.controller.kernel.stopped()
+                or not self.window.core.ctx.output.has_request()):
+            return
+
         # Start a fresh per-turn attachment scope before processing files from
         # the input list. Conversation/project attachments remain active for
         # model context, but only items introduced after this reset belong to
@@ -203,23 +330,10 @@ class Input:
         except Exception as e:
             self.window.core.debug.log(e)
 
-        # Conversation mentions are resolved only now, after the final user text is
-        # known and the owning chat has been pinned. Prompt-history recall keeps the
-        # lightweight ID/title reference, while the durable CtxItem/provider input
-        # receives the query-focused <conversation> body.
-        text = self._resolve_history_mentions(text)
-
-        # if attachments, return here - send will be handled via signal after upload
-        if self.handle_attachment(mode, text):
-            return
-
-        # kernel event: handle input
-        context = BridgeContext()
-        context.prompt = text
-        dispatch(KernelEvent(KernelEvent.INPUT_USER, {
-            'context': context,
-            'extra': {},
-        }))
+        # Conversation-history resolution and attachment reading/indexing/upload
+        # can involve database/model/file/network I/O. Keep all of it off the UI
+        # thread, then re-enter the existing INPUT_USER flow from the worker signal.
+        self._start_preprocessing(mode, text, request_meta)
 
     def send(
             self,
@@ -277,6 +391,7 @@ class Input:
             model_override=origin_model if (is_internal_reply or is_agent_continue) else None,
             agent_continue=is_agent_continue,
             runtime_attachments=context.attachments if is_internal_reply else None,
+            send_initialized=bool(extra.get("send_initialized", False)),
         )
 
     def execute(
@@ -291,6 +406,7 @@ class Input:
             model_override: Optional[str] = None,
             agent_continue: bool = False,
             runtime_attachments: Optional[dict] = None,
+            send_initialized: bool = False,
     ):
         """
         Execute send input text to API
@@ -305,6 +421,7 @@ class Input:
         :param model_override: originating model key for an internal tool reply/agent continuation
         :param agent_continue: keep an autonomous Agent iteration in the same durable turn
         :param runtime_attachments: ephemeral files produced by a tool for the immediate next model request
+        :param send_initialized: manual send already entered SEND_INIT busy/clear state
         """
         core = self.window.core
         controller = self.window.controller
@@ -323,14 +440,18 @@ class Input:
             core.ctx.output.bind_request_meta(request_meta)
             core.ctx.output.pin_render_pid(request_meta)
 
-        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
-            "id": "chat",
-            "meta": request_meta,
-        }))
+        if not send_initialized:
+            dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
+                "id": "chat",
+                "meta": request_meta,
+            }))
 
         # check if input is not locked
         if self.locked and not force and not internal:
-            self._finish_request(request_meta)
+            if send_initialized:
+                self._abort_initialized_send(request_meta)
+            else:
+                self._finish_request(request_meta)
             return
 
         log("Begin.")
@@ -340,8 +461,11 @@ class Input:
         mode = mode_override or core.config.get('mode')
         if mode == MODE_ASSISTANT:
             if not controller.assistant.check():
-                self.generating = False  # unlock
-                self._finish_request(request_meta)
+                if send_initialized:
+                    self._abort_initialized_send(request_meta)
+                else:
+                    self.generating = False  # unlock
+                    self._finish_request(request_meta)
                 return
 
         # handle camera capture
@@ -367,13 +491,16 @@ class Input:
         silent = event.data.get('silent', False)
 
         if stop:  # abort via event
-            self.generating = False
-            if not silent:
-                dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
-                    "id": "chat",
-                    "meta": request_meta,
-                }))
-            self._finish_request(request_meta)
+            if send_initialized:
+                self._abort_initialized_send(request_meta, error=not silent)
+            else:
+                self.generating = False
+                if not silent:
+                    dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
+                        "id": "chat",
+                        "meta": request_meta,
+                    }))
+                self._finish_request(request_meta)
             return
 
         # set state to: busy
@@ -384,7 +511,7 @@ class Input:
         }))
 
         # clear input field if clear-on-send is enabled
-        if core.config.get('send_clear') and not force and not internal:
+        if core.config.get('send_clear') and not force and not internal and not send_initialized:
             dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
 
         # create ctx, handle allowed, etc.

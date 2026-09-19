@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 11:45:00                  #
+# Updated Date: 2026.09.19 12:30:00                  #
 # ================================================== #
 
 import os
@@ -264,6 +264,11 @@ class Common:
             "value": True,
         })) # stop event
 
+        # Prevent a late preprocessing callback (history summary / attachment
+        # I/O) from resuming a request after STOP or leaking into the next turn.
+        cancel_preprocessing = getattr(controller.chat.input, "cancel_preprocessing", None)
+        if callable(cancel_preprocessing):
+            cancel_preprocessing()
         controller.kernel.stack.clear()  # pause reply stack
         controller.agent.legacy.on_stop()
         controller.assistant.threads.stop = True

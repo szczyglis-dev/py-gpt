@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.09.19 12:30:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -31,6 +31,7 @@ class KernelEvent(BaseEvent):
     # input
     INPUT_SYSTEM = "kernel.input.system"
     INPUT_USER = "kernel.input.user"
+    SEND_INIT = "kernel.send.init"
 
     # queue
     AGENT_CALL = "kernel.agent.call"
