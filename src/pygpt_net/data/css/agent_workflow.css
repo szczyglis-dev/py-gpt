@@ -52,6 +52,20 @@ body.theme-matrix {
     --wf-bad: #ff6b7a;
     --wf-button: rgba(57,255,136,0.045);
 }
+body.theme-flare {
+    --wf-text: #ffd8d8;
+    --wf-muted: #986f6f;
+    --wf-line: #5b2727;
+    --wf-card: rgba(255,57,57,0.025);
+    --wf-card-border: rgba(255,57,57,0.16);
+    --wf-detail: rgba(255,57,57,0.035);
+    --wf-hover: rgba(255,57,57,0.08);
+    --wf-accent: #ff3939;
+    --wf-ok: #ff6666;
+    --wf-warn: #ff9a52;
+    --wf-bad: #ff4545;
+    --wf-button: rgba(255,57,57,0.045);
+}
 body.theme-light {
     --wf-text: #202124;
     --wf-muted: #6d737a;

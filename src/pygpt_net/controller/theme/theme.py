@@ -481,7 +481,7 @@ class Theme:
         """
         Check if current theme uses dark-mode behavior.
 
-        Gray intentionally follows Dark behavior; only Light returns False.
+        Gray, Matrix and Flare intentionally follow Dark behavior; only Light returns False.
 
         :return: True for dark-compatible themes, False for Light
         """

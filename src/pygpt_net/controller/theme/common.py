@@ -42,7 +42,7 @@ class Common:
         Normalize a stored theme name to a supported built-in theme.
 
         :param theme: stored theme name
-        :return: ``dark``, ``gray``, ``matrix`` or ``light``
+        :return: ``dark``, ``gray``, ``matrix``, ``flare`` or ``light``
         """
         name = str(theme or '').lower()
         if name.startswith('light'):
@@ -51,6 +51,8 @@ class Common:
             return 'gray'
         if name.startswith('matrix'):
             return 'matrix'
+        if name.startswith('flare'):
+            return 'flare'
         return 'dark'
 
     def normalize_style(self, style: str) -> str:
@@ -117,6 +119,8 @@ class Common:
             return trans('theme.gray')
         if theme == 'matrix':
             return trans('theme.matrix')
+        if theme == 'flare':
+            return trans('theme.flare')
         return trans('theme.dark')
 
     def get_style(self, element: str) -> str:
@@ -142,7 +146,7 @@ class Common:
 
         :return: list of themes names
         """
-        return ['light', 'gray', 'dark', 'matrix']
+        return ['light', 'gray', 'dark', 'matrix', 'flare']
 
     def get_custom_themes_list(self) -> List[str]:
         """
@@ -152,7 +156,7 @@ class Common:
         """
         directory = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes')
         return [
-            name for name in ('dark', 'matrix', 'gray', 'light')
+            name for name in ('dark', 'matrix', 'flare', 'gray', 'light')
             if os.path.exists(os.path.join(directory, name + '.xml'))
         ]
 

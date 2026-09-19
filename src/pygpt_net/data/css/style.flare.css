@@ -1,0 +1,668 @@
+/* Flare theme: Dark-compatible black/crimson hellfire palette. */
+* {{ 
+  font-family: 'Lato' !important; 
+  selection-background-color: #b80000;
+  selection-color: #ffd8d8;
+}}
+QLineEdit {{
+  color: #ffd8d8; 
+  border: 1px solid #5f2828;
+}}
+QTextEdit {{
+  color: #ffd8d8; 
+  border: 1px solid #5f2828;
+}}
+QTabBar {{
+  text-transform: none;
+}}
+/* Tabs: inactive text stays muted; only the active tab is white. */
+QTabBar::tab {{
+  color: #ca9b9b;
+}}
+QTabBar::tab:selected {{
+  color: #ffd8d8;
+}}
+QTabBar::tab:hover:!selected {{
+  color: #ffd8d8;
+  border-bottom-color: transparent;
+}}
+QComboBox {{
+  color: #ffd8d8;
+  font-weight: bold;
+}}
+QTreeView,
+QListView,
+QLineEdit,
+QComboBox {{  
+  height: 30px;
+}}
+QTableView::item,
+QTreeView::item,
+QListView::item {{
+  padding: 4px;
+  min-height: 20px;
+}}
+
+/* Subtle hover for list/tree items (non-selected) */
+QListView::item:hover:!selected,
+QTreeView::item:hover:!selected {{
+  background-color: rgba(255, 57, 57, 5);
+}}
+
+QListView::item:selected,
+QTreeView::item:selected {{
+  color: #ffd8d8;
+  font-weight: bold;
+  selection-color: #ffd8d8;
+}}
+QComboBox::item:selected {{
+  color: #080505;
+  font-weight: bold;
+  selection-color: #080505;
+}}
+QComboBox::item:disabled {{
+  color: #d7a8a8;
+}}
+QListView::item:selected:focus, 
+QComboBox::item:selected:focus,
+QTreeView::item:selected:focus {{
+  color: #ffd8d8;
+  selection-color: #080505;
+}}
+QListView::item::disabled {{
+   color: #856464;
+   font-weight: bold;
+}}
+QMenuBar::item:selected {{ 
+  color: #080505;
+}} 
+QMenu::item:selected {{ 
+  color: #080505;
+}} 
+QPushButton {{
+  text-transform: none;
+  border: 1px solid #5b2727;
+}}
+QPushButton:hover {{
+  background-color: rgba(255, 57, 57, 15);
+}}
+QHeaderView {{
+  background-color: #170d0d;
+}}
+QHeaderView::section {{
+  background-color: #170d0d;
+  text-transform: none;
+}}
+
+.label-title {{
+  font-weight: bold;
+}}
+.label-help,
+.label-desc,
+.label-chat-status {{
+  color: #986f6f;
+}}
+.label-link {{
+  color: #ff5c5c;
+  font-weight: bold;
+  text-decoration: none;
+}}
+.interpreter-input {{
+  font-family: 'Monaspace Neon';
+}}
+.interpreter-output,
+.code-editor {{
+  font-family: 'Monaspace Neon';
+  background: #150c0c; 
+  color: #ffd8d8;
+}}
+
+/* radius */
+QPushButton,
+QTextEdit,
+QListView,
+QTreeView,
+QComboBox,
+QLineEdit,
+QWebView {{
+  border-radius: 10px
+}}
+QMenu {{
+  border-radius: 10px;
+}}
+QMenu::indicator:exclusive {{
+  border-radius: 8px;
+}}
+.layout-input,
+.layout-notepad {{
+  border-top-right-radius: 10px;
+  border-top-left-radius: 0px;
+  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+}}
+.layout-search {{
+  height: 35px;
+}}
+.layout-output-web {{
+  border-radius: 10px;
+}}
+QTextEdit,
+QLineEdit {{
+ border: none;
+}}
+QComboBox::item:checked {{
+  font-weight: bold;
+}}
+/* Calendar */
+.calendar {{
+  qproperty-todayBackgroundColor: #ff3939;
+  qproperty-todayTextColor: #080505;
+  qproperty-todayFontBold: false;
+  qproperty-inactiveDayBackgroundColor: transparent;
+  qproperty-dayBorderColor: #351818;
+  qproperty-counterBackgroundColor: #5a1f1f;
+  qproperty-counterTextColor: #ffd8d8;
+  qproperty-headerBackgroundColor: transparent;
+  qproperty-headerFontBold: true;
+  qproperty-hoverDayBackgroundColor: #160b0b;
+  qproperty-hoverTodayBackgroundColor: #ff8c8c;
+  qproperty-hoverTodayTextColor: #080505;
+}}
+QCalendarWidget QAbstractItemView::item:selected:focus,
+QCalendarWidget QAbstractItemView::item:selected {{
+  background: #5d1d1d;
+}}
+
+/* Files tool: keep the whole explorer on the application surface. */
+.file-explorer,
+.file-explorer QTreeView,
+.file-explorer QHeaderView,
+.file-explorer QHeaderView::section,
+.file-explorer QTreeView::branch,
+.file-explorer QAbstractScrollArea,
+.file-explorer QAbstractScrollArea::corner {{
+  background: #0b0707;
+}}
+.file-explorer QHeaderView::section {{
+  padding-top: 6px;
+  padding-bottom: 2px;
+  height: 20px;
+}}
+.file-explorer QScrollBar:vertical,
+.file-explorer QScrollBar:horizontal,
+.file-explorer QScrollBar::add-page:vertical,
+.file-explorer QScrollBar::sub-page:vertical,
+.file-explorer QScrollBar::add-page:horizontal,
+.file-explorer QScrollBar::sub-page:horizontal,
+.file-explorer QScrollBar::add-line:vertical,
+.file-explorer QScrollBar::sub-line:vertical,
+.file-explorer QScrollBar::add-line:horizontal,
+.file-explorer QScrollBar::sub-line:horizontal,
+.file-explorer QScrollBar::corner {{
+  background: #0b0707;
+}}
+
+.DebugList::item:selected,
+.DebugList::item:selected:focus {{
+  color: #080505;
+  selection-color: #080505;
+}}
+
+/* Database viewer: subtle whole-row selection. */
+.DatabaseList::item:selected,
+.DatabaseList::item:selected:focus {{
+  background-color: #431b1b;
+  color: #ffd8d8;
+  selection-background-color: #431b1b;
+  selection-color: #ffd8d8;
+}}
+
+QCalendarWidget QMenu::item:selected:focus,
+QCalendarWidget QMenu::item:selected {{
+    background: #5d1d1d;
+}}
+
+/* Node editor */
+NodeEditor {{
+  qproperty-gridBackColor: #160b0b;
+  qproperty-gridPenColor: #421d1d;
+
+  qproperty-nodeBackgroundColor: #201010;
+  qproperty-nodeBorderColor: #602828;
+  qproperty-nodeSelectionColor: #ff3939;
+  qproperty-nodeTitleColor: #341616;
+
+  qproperty-portInputColor: #ff5c5c;
+  qproperty-portOutputColor: #ff3939;
+  qproperty-portConnectedColor: #ff5c5c;
+
+  qproperty-edgeColor: #c48f8f;
+  qproperty-edgeSelectedColor: #ff7d7d;
+}}
+
+/* Status Bar */
+#StatusBarTimer {{
+  color: #986f6f !important;
+}}
+
+/* ComboBox */
+QComboBox QAbstractItemView {{
+  border: 1px solid rgba(0,0,0,0.18);
+  background: #170d0d;
+}}
+
+QListView#ComboPopupList {{
+  border-radius: 10px;
+  background: #170d0d;
+  border: 2px solid #5b2727;
+}}
+
+QComboBox[name="SearchableCombo"] QAbstractItemView::item,
+QListView#ComboPopupList::item {{
+  font-weight: normal;
+  min-height: 20px;
+  padding: 8px 33px;
+  margin: 0;
+  color: #ffd8d8;
+}}
+
+QComboBox QAbstractItemView::item:selected,
+QListView#ComboPopupList::item:selected {{
+   background: #ff3939;
+   color: #080505;
+   selection-color: #080505;
+   font-weight: bold;
+ }}
+
+QListView#ComboPopupList::item:disabled {{
+  color: #ca9b9b;
+  background: #301717;
+  padding: 15px;
+}}
+
+QComboBox QAbstractItemView::item:hover,
+QListView#ComboPopupList::item:hover {{ }}
+
+QWidget#ComboPopupWindow {{
+  background: transparent;
+  border: 0;
+}}
+QListView#ComboPopupList > QWidget#ComboPopupViewport {{
+  background: #170d0d;
+  border-radius: 10px;
+}}
+/* Flare palette: Dark layout/behavior with crimson surfaces and bright red accents. */
+/* Structural surfaces use the same background as the application. */
+QWidget,
+QMainWindow,
+QSplitter,
+QFrame,
+QTabWidget,
+QTabBar {{
+  background-color: #0b0707;
+}}
+
+/* Input controls use the lifted dark input surface. */
+QLineEdit,
+QTextEdit,
+QPlainTextEdit,
+QComboBox,
+QSpinBox,
+QDoubleSpinBox,
+QDateEdit,
+QTimeEdit {{
+  background-color: #1c1010;
+}}
+
+/* Closed combo boxes get a subtle lifted hover surface. */
+QComboBox:hover:!on:enabled {{
+  background-color: #251414;
+}}
+
+/* Lists and menus keep the darker control surface. */
+QListView,
+QTreeView,
+QMenu {{
+  background-color: #170d0d;
+}}
+.layout-output-web {{
+  background-color: #0b0707 !important;
+}}
+NotepadWidget,
+.layout-notepad {{
+  background-color: #0b0707;
+}}
+.layout-notepad-output {{
+  background-color: #1c1010;
+  border: none;
+  border-radius: 10px;
+}}
+.layout-input,
+.layout-input QTextEdit {{
+  background-color: #1c1010;
+}}
+.ctx-list {{
+  background-color: #0b0707;
+  /* Semantic colors consumed by ContextList/ImportantItemDelegate. */
+  qproperty-normalTextColor: #ca9b9b;
+  qproperty-hoverTextColor: #ffd8d8;
+  qproperty-activeTextColor: #ffd8d8;
+  qproperty-focusedSelectedTextColor: #080505;
+  qproperty-showMoreHoverTextColor: #ffd8d8;
+}}
+
+/* Context list typography.
+   QSS owns both the semantic delegate colors (qproperty-*) and the native
+   per-row hover/selection surfaces. Python only resolves interaction state. */
+.ctx-list {{
+  selection-background-color: #301717;
+}}
+.ctx-list::item:hover:!selected {{
+  color: #ffd8d8;
+  selection-color: #ffd8d8;
+  background-color: rgba(255, 57, 57, 5);
+}}
+/* Active context without list focus keeps the original dark selection surface.
+   Its text color comes from qproperty-activeTextColor above. */
+.ctx-list::item:selected {{
+  background-color: #301717;
+  font-weight: bold;
+}}
+/* Only the real focused/current selection switches to a white surface. Its
+   text color comes from qproperty-focusedSelectedTextColor above. */
+.ctx-list::item:selected:focus,
+.ctx-list::item:hover:selected:focus {{
+  background-color: #ff3939;
+}}
+/* Section headers stay muted and never receive a row-hover background. */
+.ctx-list::item:disabled,
+.ctx-list::item:disabled:hover {{
+  color: #856464;
+  selection-color: #856464;
+  background-color: transparent;
+  font-weight: bold;
+}}
+
+/* Toolbox typography.
+   Each logical toolbox section gets toolboxHover independently. Lists keep a
+   separate inactive-selection surface; only a focused selection gets the
+   white surface + black text. */
+.toolbox QLabel,
+.toolbox QPushButton,
+.toolbox QToolButton,
+.toolbox QCheckBox,
+.toolbox QRadioButton,
+.toolbox QComboBox,
+.toolbox QLineEdit,
+.toolbox QTextEdit,
+.toolbox QListView,
+.toolbox QTreeView {{
+  color: #ca9b9b;
+}}
+.toolbox QListView,
+.toolbox QTreeView {{
+  selection-background-color: #301717;
+}}
+.toolbox QListView::item,
+.toolbox QTreeView::item {{
+  color: #ca9b9b;
+}}
+.toolbox QListView::item:selected,
+.toolbox QTreeView::item:selected {{
+  color: #ca9b9b;
+  font-weight: bold;
+  selection-color: #ca9b9b;
+  background-color: #301717;
+}}
+
+.toolbox QLabel[toolboxHover="true"],
+.toolbox QPushButton[toolboxHover="true"],
+.toolbox QToolButton[toolboxHover="true"],
+.toolbox QCheckBox[toolboxHover="true"],
+.toolbox QRadioButton[toolboxHover="true"],
+.toolbox QComboBox[toolboxHover="true"],
+.toolbox QLineEdit[toolboxHover="true"],
+.toolbox QTextEdit[toolboxHover="true"] {{
+  color: #ffd8d8;
+}}
+.toolbox QListView::item:hover,
+.toolbox QTreeView::item:hover {{
+  color: #ffd8d8;
+  selection-color: #ffd8d8;
+}}
+.toolbox QListView[toolboxHover="true"]::item:selected,
+.toolbox QTreeView[toolboxHover="true"]::item:selected {{
+  color: #ffd8d8;
+  font-weight: bold;
+  selection-color: #ffd8d8;
+  background-color: #301717;
+}}
+/* Focus always wins over section hover. */
+.toolbox QListView::item:selected:focus,
+.toolbox QListView[toolboxHover="true"]::item:selected:focus,
+.toolbox QTreeView::item:selected:focus,
+.toolbox QTreeView[toolboxHover="true"]::item:selected:focus {{
+  color: #080505;
+  font-weight: bold;
+  selection-color: #080505;
+  background-color: #ff3939;
+}}
+
+/* Keep intentionally-muted/help/link labels unchanged by section hover. */
+.toolbox .label-help,
+.toolbox .label-desc,
+.toolbox .label-chat-status,
+.toolbox .label-help[toolboxHover="true"],
+.toolbox .label-desc[toolboxHover="true"],
+.toolbox .label-chat-status[toolboxHover="true"] {{
+  color: #986f6f;
+}}
+.toolbox .label-link,
+.toolbox .label-link[toolboxHover="true"] {{
+  color: #ff5c5c;
+}}
+
+/* App scrollbars: transparent track, deep-red handle */
+QScrollBar:vertical,
+QScrollBar:horizontal {{
+  background: transparent;
+  border: none;
+}}
+QScrollBar::handle:vertical,
+QScrollBar::handle:horizontal {{
+  background: #351818;
+  border: none;
+  border-radius: 3px;
+}}
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical,
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {{
+  background: transparent;
+}}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {{
+  background: transparent;
+  border: none;
+  height: 0px;
+}}
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {{
+  background: transparent;
+  border: none;
+  width: 0px;
+}}
+QScrollBar::corner {{
+  background: transparent;
+}}
+
+/* Integrated Flare dark-compatible overrides. */
+.layout-output-web {{
+  background-color: #0b0707 !important;
+}}
+
+QListView::item:selected,
+QTreeView::item:selected {{
+  color: #ffd8d8;
+  font-weight: bold;
+  selection-color: #ffd8d8;
+}}
+QComboBox::item:selected {{
+  color: #080505;
+  font-weight: bold;
+  selection-color: #080505;
+}}
+QComboBox::item:disabled {{
+  color: #d7a8a8;
+}}
+QListView::item:selected:focus, 
+QComboBox::item:selected:focus,
+QTreeView::item:selected:focus {{
+  color: #ffd8d8;
+  selection-color: #080505;
+}}
+QListView::item::disabled {{
+   color: #856464;
+   font-weight: bold;
+}}
+QMenuBar::item:selected {{ 
+  color: #080505;
+}} 
+QMenu::item:selected {{ 
+  color: #080505;
+}}
+
+/* Final scoped precedence for context/toolbox lists. */
+.ctx-list::item:hover:!selected {{
+  color: #ffd8d8;
+  selection-color: #ffd8d8;
+  background-color: rgba(255, 57, 57, 5);
+}}
+.ctx-list::item:selected {{
+  background-color: #301717;
+  font-weight: bold;
+}}
+.ctx-list::item:selected:focus,
+.ctx-list::item:hover:selected:focus {{
+  background-color: #ff3939;
+}}
+.ctx-list::item:disabled,
+.ctx-list::item:disabled:hover {{
+  color: #856464;
+  selection-color: #856464;
+  background-color: transparent;
+}}
+.toolbox QListView::item,
+.toolbox QTreeView::item {{
+  color: #ca9b9b;
+}}
+.toolbox QListView::item:selected,
+.toolbox QTreeView::item:selected {{
+  color: #ca9b9b;
+  font-weight: bold;
+  selection-color: #ca9b9b;
+  background-color: #301717;
+}}
+.toolbox QListView::item:hover,
+.toolbox QTreeView::item:hover {{
+  color: #ffd8d8;
+  selection-color: #ffd8d8;
+}}
+.toolbox QListView::item:selected:hover,
+.toolbox QTreeView::item:selected:hover {{
+  color: #ffd8d8;
+  font-weight: bold;
+  selection-color: #ffd8d8;
+  background-color: #301717;
+}}
+.toolbox QListView::item:selected:focus,
+.toolbox QListView[toolboxHover="true"]::item:selected:focus,
+.toolbox QTreeView::item:selected:focus,
+.toolbox QTreeView[toolboxHover="true"]::item:selected:focus {{
+  color: #080505;
+  font-weight: bold;
+  selection-color: #080505;
+  background-color: #ff3939;
+}}
+
+/* Slider track: keep the remaining range visible on the dark surface. */
+QSlider::add-page:horizontal {{
+  background: #4b2323;
+  border-radius: 2px;
+}}
+QSlider::add-page:vertical {{
+  background: #4b2323;
+  border-radius: 2px;
+}}
+
+
+/* Flare menu separators. */
+QMenu::separator {{
+  height: 1px;
+  background-color: #5a2828;
+  margin: 3px 0px;
+}}
+
+/* Input @mentions */
+#chatInput {{
+  qproperty-mentionColor: #ff3939;
+  placeholder-text-color: #6d4141;
+}}
+.mention-popup {{
+  background: #170d0d;
+  border: 1px solid #4b2323;
+  border-radius: 10px;
+}}
+.mention-popup-list {{
+  background: #170d0d;
+  border: none;
+  padding: 2px;
+}}
+.mention-popup-list::item {{
+  color: #d89b9b;
+  padding: 6px 8px;
+  min-height: 20px;
+  border-radius: 5px;
+}}
+.mention-popup-list::item:selected {{
+  color: #ffd8d8;
+  background: #301515;
+}}
+.mention-popup-list::item:disabled {{
+  color: #735252;
+  background: transparent;
+  font-weight: bold;
+}}
+
+/* Disabled push buttons stay visible and clearly inactive. */
+QPushButton:disabled,
+QPushButton:disabled:hover {{
+  color: #775858;
+  background-color: #251414;
+  border: 1px solid #301717;
+}}
+
+/* Chat composer tabs are icon-first; keep hover visible even when SVG tint does not change. */
+QTabBar#inputCompactTabs::tab:hover:!selected,
+QTabBar#inputCompactTabs::tab:top:hover:!selected,
+QTabBar#inputCompactTabs::tab:bottom:hover:!selected,
+QTabBar#inputCompactTabs::tab:left:hover:!selected,
+QTabBar#inputCompactTabs::tab:right:hover:!selected {{
+  border-bottom-color: #764d4d;
+}}
+
+/* Chat input runtime selectors: keep model/reasoning compact without clipping. */
+QPushButton#chatInputModel,
+QPushButton#chatInputReasoningEffort {{
+  font-size: 13px;
+  padding-left: 2px;
+  padding-right: 2px;
+  margin-left: 0px;
+  margin-right: 0px;
+}}
+QPushButton#chatInputReasoningEffort {{
+  color: #9b6d6d;
+}}
+QPushButton#chatInputReasoningEffort:hover {{
+  color: #b98787;
+}}

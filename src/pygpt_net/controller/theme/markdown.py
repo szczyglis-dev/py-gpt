@@ -174,6 +174,16 @@ class Markdown:
                 "pre-bg": "#0d1d13",
                 "pre": "#b8ffca",
                 "code": "#b8ffca",
+            },
+            "flare": {
+                "a": "#ff6666",
+                "msg-user": "#d89b9b",
+                "msg-bot": "#ffd8d8",
+                "cmd": "#845656",
+                "ts": "#986f6f",
+                "pre-bg": "#1d0d0d",
+                "pre": "#ffb8b8",
+                "code": "#ffb8b8",
             }
         }
 
