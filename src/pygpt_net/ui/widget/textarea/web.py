@@ -14,7 +14,7 @@ from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout
+from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout, QWidget
 
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
@@ -58,6 +58,7 @@ class ChatWebOutput(QWebEngineView):
 
         # self._profile = self._make_profile(self)
         self.setPage(CustomWebEnginePage(self.window, self, profile=None))
+        self._install_web_content_filters()
 
     def _make_profile(self, parent=None) -> QWebEngineProfile:
         """Make profile"""
@@ -79,6 +80,33 @@ class ChatWebOutput(QWebEngineView):
                 self._on_delete_failed(e)
         self._glwidget = None
         self._glwidget_filter_installed = False
+
+    def _install_web_content_filters(self, root=None):
+        """Observe Chromium child widgets so clicks inside loaded HTML activate the column."""
+        if root is None:
+            root = self
+        try:
+            children = root.children()
+        except Exception:
+            return
+        for child in children:
+            if not isinstance(child, QWidget):
+                continue
+            try:
+                if not child.property("_pygpt_chat_web_focus_filter"):
+                    child.installEventFilter(self)
+                    child.setProperty("_pygpt_chat_web_focus_filter", True)
+            except Exception:
+                continue
+            self._install_web_content_filters(child)
+
+    def _activate_tab_column(self):
+        """Mark the owning output column as active without stealing WebEngine focus."""
+        try:
+            if self.tab is not None:
+                self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        except Exception:
+            pass
 
     def _on_delete_failed(self, e):
         """
@@ -231,22 +259,24 @@ class ChatWebOutput(QWebEngineView):
         :param source: QWidget - source of the event
         :param event: QEvent - event to filter
         """
-        if event.type() == QEvent.ChildAdded and source is self and event.child().isWidgetType():
-            self._detach_gl_event_filter()
-            self._glwidget = event.child()
+        if event.type() == QEvent.ChildAdded:
             try:
-                self._glwidget.installEventFilter(self)
-                self._glwidget_filter_installed = True
-            except Exception:
-                self._glwidget = None
-                self._glwidget_filter_installed = False
-
-        elif event.type() == QEvent.Type.MouseButtonPress:
-            try:
-                col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                child = event.child()
+                if child is not None and child.isWidgetType():
+                    if source is self:
+                        self._glwidget = child
+                    if isinstance(child, QWidget):
+                        if not child.property("_pygpt_chat_web_focus_filter"):
+                            child.installEventFilter(self)
+                            child.setProperty("_pygpt_chat_web_focus_filter", True)
+                        if source is self:
+                            self._glwidget_filter_installed = True
+                        self._install_web_content_filters(child)
             except Exception:
                 pass
+
+        elif event.type() == QEvent.Type.MouseButtonPress:
+            self._activate_tab_column()
 
         return super().eventFilter(source, event)
 
@@ -256,8 +286,7 @@ class ChatWebOutput(QWebEngineView):
 
         :param widget: QWidget - widget that received focus
         """
-        if self.tab is not None:
-            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        self._activate_tab_column()
         self.setFocus()
 
     def set_tab(self, tab):
@@ -407,8 +436,7 @@ class ChatWebOutput(QWebEngineView):
 
     def on_focus_js(self):
         """Focus JavaScript"""
-        if self.tab is not None:
-            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        self._activate_tab_column()
 
     def get_zoom_value(self) -> float:
         """

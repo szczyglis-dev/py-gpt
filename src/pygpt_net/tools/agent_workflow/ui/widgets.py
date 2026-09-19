@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 import os
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QEvent, QTimer
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QWidget
 
@@ -25,6 +25,7 @@ class WorkflowView(QWebEngineView):
     def __init__(self, window=None):
         super().__init__(window)
         self.window = window
+        self.tab = None
         self._loaded = False
         self._pending_snapshot = None
         self._dirty = True
@@ -41,7 +42,58 @@ class WorkflowView(QWebEngineView):
         self._recovery_timer.timeout.connect(self._recover)
         self.renderProcessTerminated.connect(self._on_terminated)
         self.loadFinished.connect(self._on_loaded)
+        self.installEventFilter(self)
+        self._install_web_content_filters()
         self.build()
+
+    def set_tab(self, tab):
+        """Attach the owning output tab so clicks can activate its column."""
+        self.tab = tab
+
+    def _activate_tab_column(self):
+        """Activate the output column that owns this workflow view."""
+        if self.tab is None:
+            return
+        try:
+            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        except Exception:
+            pass
+
+    def _install_web_content_filters(self, root=None):
+        """Observe Chromium child widgets created inside QWebEngineView."""
+        if root is None:
+            root = self
+        try:
+            children = root.children()
+        except Exception:
+            return
+        for child in children:
+            if not isinstance(child, QWidget):
+                continue
+            try:
+                if not child.property("_pygpt_agent_workflow_focus_filter"):
+                    child.installEventFilter(self)
+                    child.setProperty("_pygpt_agent_workflow_focus_filter", True)
+            except Exception:
+                continue
+            self._install_web_content_filters(child)
+
+    def eventFilter(self, source, event):
+        """Keep tab/column focus in sync with clicks inside rendered WebEngine content."""
+        event_type = event.type()
+        if event_type == QEvent.ChildAdded:
+            try:
+                child = event.child()
+                if child is not None and child.isWidgetType() and isinstance(child, QWidget):
+                    if not child.property("_pygpt_agent_workflow_focus_filter"):
+                        child.installEventFilter(self)
+                        child.setProperty("_pygpt_agent_workflow_focus_filter", True)
+                    self._install_web_content_filters(child)
+            except Exception:
+                pass
+        elif event_type in (QEvent.MouseButtonPress, QEvent.FocusIn):
+            self._activate_tab_column()
+        return super().eventFilter(source, event)
 
     def _labels(self) -> dict:
         return {
@@ -564,6 +616,7 @@ class WorkflowWidget(QWidget):
 
     def set_tab(self, tab):
         self.tab = tab
+        self.view.set_tab(tab)
 
     def _on_changed(self, snapshot: dict):
         self.view.render(snapshot)
