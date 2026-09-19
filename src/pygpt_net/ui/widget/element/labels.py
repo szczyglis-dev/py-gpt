@@ -170,10 +170,9 @@ class IconLabel(QLabel):
         is_dark = False
         if self.window and self.window.core and self.window.core.config:
             try:
-                theme = self.window.controller.theme.common.normalize_theme(
+                is_dark = not self.window.controller.theme.common.is_light_theme_id(
                     self.window.core.config.get("theme", "dark")
                 )
-                is_dark = theme != "light"
             except Exception:
                 is_dark = not str(self.window.core.config.get("theme", "dark")).startswith("light")
 

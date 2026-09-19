@@ -12,7 +12,7 @@
 import threading
 from typing import Any, Dict, Optional, Union, List
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import QEventLoop, QTimer, Slot
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.types import (
@@ -174,7 +174,7 @@ class Kernel:
         data["response"] = response
 
     def send_init(self, event: KernelEvent):
-        """Enter the user-visible busy state before asynchronous preprocessing."""
+        """Enter and paint the user-visible busy state before preprocessing."""
         w = self.window
         data = event.data or {}
         meta = data.get("meta") or w.core.ctx.output.get_request_meta()
@@ -194,7 +194,48 @@ class Kernel:
 
         if data.get("clear", False):
             w.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
+
+        # PRE-SEND must become visible before any following work starts.
+        # WebEngine's runJavaScript(showLoading()) is asynchronous and crosses
+        # the Chromium process boundary, so the processEvents() performed by
+        # set_status() can finish before the DOM change is actually executed.
+        # Give Qt one real event-loop turn here, at the PRE-SEND boundary only.
+        self.flush_send_init_ui()
         return True
+
+    def flush_send_init_ui(self):
+        """Flush PRE-SEND widget/WebEngine updates before continuing the send."""
+        app = QApplication.instance()
+        if app is None:
+            return
+
+        try:
+            # First submit all already-posted widget updates and WebEngine IPC.
+            QApplication.sendPostedEvents()
+            QApplication.processEvents(QEventLoop.AllEvents)
+
+            # QWebEngine executes runJavaScript asynchronously in Chromium. A
+            # plain processEvents() may return while that IPC is still in flight.
+            # Keep the Qt loop alive for roughly one frame so showLoading() can
+            # execute and the compositor can publish the PRE-SEND state. This is
+            # intentionally limited to SEND_INIT, not every STATE_BUSY update.
+            render = getattr(self.window.controller.chat, "render", None)
+            is_web = (
+                render is not None
+                and getattr(render, "engine", None) == "web"
+                and not self.window.core.config.get("render.plain")
+            )
+            if is_web:
+                loop = QEventLoop()
+                QTimer.singleShot(20, loop.quit)
+                loop.exec()
+
+            # Drain updates produced during the WebEngine turn as well.
+            QApplication.sendPostedEvents()
+            QApplication.processEvents(QEventLoop.AllEvents)
+        except RuntimeError:
+            # The application may already be shutting down / deleting widgets.
+            pass
 
     def input(
         self,

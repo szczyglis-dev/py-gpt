@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 11:40:00                  #
+# Updated Date: 2026.09.19 22:10:00                  #
 # ================================================== #
-
-import os
 
 from pygpt_net.core.events import RenderEvent
 
@@ -82,43 +80,29 @@ class Markdown:
         self.window.dispatch(event)
 
     def load(self):
-        """Load markdown styles."""
-        theme = self.window.controller.theme.common.normalize_theme(
-            self.window.core.config.get('theme')
-        )
-        color = f'.{theme}'
-        css_dir = os.path.join(
-            self.window.core.config.get_app_path(),
-            'data',
-            'css',
-        )
-
-        web_style = self.window.controller.theme.common.normalize_style(
-            self.window.core.config.get("theme.style", "standard")
+        """Load chat renderer CSS layers."""
+        common = self.window.controller.theme.common
+        theme = common.normalize_theme(self.window.core.config.get("theme"))
+        web_style = common.normalize_style(
+            self.window.core.config.get("theme.style", common.STYLE_STANDARD)
         )
         self.web_style = web_style
 
-        # WebEngine owns the current chat rendering. Standard is always the
-        # base; Wide only appends a tiny, theme-independent width override.
-        filenames = [
-            "web-standard.css",
-            "web-standard" + color + ".css",
-        ]
-        if web_style == "wide":
-            filenames.append("web-wide.css")
+        # chat.css is the base for both Standard and Wide. The Wide style only
+        # appends the small, theme-independent chat.wide.css override.
+        paths = list(common.get_theme_asset_paths(theme, "chat.css"))
+        if web_style == common.STYLE_WIDE:
+            paths.extend(common.get_global_asset_paths("chat.wide.css"))
 
-        content = ''
-        for filename in filenames:
-            path = os.path.join(css_dir, filename)
-            if os.path.exists(path) and os.path.isfile(path):
-                with open(path, 'r') as file:
-                    content += file.read()
+        content_parts = []
+        for path in paths:
+            try:
+                with open(path, "r", encoding="utf-8") as file:
+                    content_parts.append(file.read())
+            except OSError:
+                pass
 
-        self.css["web"] = content  # keep raw CSS if env expansion fails
-        try:
-            self.css["web"] = content.format(**os.environ)
-        except KeyError:
-            pass
+        self.css["web"] = common.format_css("".join(content_parts))
 
     def get_legacy_css(self) -> str:
         """
@@ -222,7 +206,10 @@ class Markdown:
         theme = self.window.controller.theme.common.normalize_theme(
             self.window.core.config.get('theme')
         )
-        styles = colors[theme]
+        styles = colors.get(theme)
+        if styles is None:
+            fallback = "light" if self.window.controller.theme.common.is_light_theme_id(theme) else "dark"
+            styles = colors[fallback]
 
         return """
         a {{

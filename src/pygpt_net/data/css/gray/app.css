@@ -518,7 +518,7 @@ QScrollBar::corner {{
   background: transparent;
 }}
 
-/* Integrated Dark theme overrides (formerly data/themes/dark.css) */
+/* Integrated dark theme overrides. */
 .layout-output-web {{
   background-color: #22242a !important;
 }}

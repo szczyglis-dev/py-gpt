@@ -801,7 +801,7 @@ You can manually edit the configuration files in this directory (this is your wo
 * ``models.json`` - stores models configurations.
 * ``cache`` - a directory for audio cache.
 * ``capture`` - the base-profile directory for captured images from camera and screenshots; when consolidated data storage is enabled, captures are stored under the active runtime ``data`` workdir instead.
-* ``css`` - a directory for CSS stylesheets (user override)
+* ``css`` - profile-specific theme directories and optional global CSS overrides
 * ``idx`` - ``LlamaIndex`` indexes
 * ``img`` - the base-profile directory for generated images; when consolidated data storage is enabled, generated images are stored under the active runtime ``data`` workdir instead.
 * ``locale`` - a directory for locales (user override)
@@ -878,19 +878,28 @@ create and save the file with the appropriate name, for example:
 
 This will add Spanish as a selectable language in the application's language menu.
 
-**Overwriting CSS and locales with Your Own Files:**
+**Overwriting locales and adding custom CSS themes:**
 
-You can also overwrite files in the ``locale`` and ``css`` app directories with your own files in the user directory. 
-This allows you to overwrite language files or CSS styles in a very simple way - by just creating files in your working directory.
-
+You can override locale files and provide profile-specific themes from the application workdir:
 
 .. code-block:: ini
 
    {HOME_DIR}/.config/pygpt-net/
 
+* ``locale`` - locale overrides in ``.ini`` format.
+* ``css`` - custom theme directories and optional global CSS overrides.
 
-* `locale` - a directory for locales in ``.ini`` format.
-* `css` - a directory for CSS styles
+Theme CSS now uses a directory-per-theme layout. For new custom themes, use a ``-dark`` or
+``-light`` suffix to declare the runtime compatibility type, for example
+``%workdir%/css/my_custom-dark/`` or ``%workdir%/css/paper-light/``. The suffix stays in the stored
+theme ID but is omitted from the normal menu title, so these are displayed as **My Custom** and
+**Paper**. If both Dark and Light variants with the same base name are installed, the menu shows
+**(Dark)** / **(Light)** to distinguish them. Unsuffixed new custom IDs default to Dark. A profile
+directory with the same ID as a built-in theme, such as ``%workdir%/css/ocean/``, overrides/extends
+that bundled theme and keeps its built-in compatibility type.
+
+See ``Extending PyGPT -> Custom themes and styles`` for the complete directory layout, load order,
+Wide chat overrides and ``app.xml`` behavior.
 
 **Adding Your Own Fonts**
 

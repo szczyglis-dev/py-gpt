@@ -95,7 +95,6 @@ datas += [
     ('src/pygpt_net/data/locale/*', 'data/locale'),
     ('src/pygpt_net/data/audio/*', 'data/audio'),
     ('src/pygpt_net/data/css/*', 'data/css'),
-    ('src/pygpt_net/data/themes/*', 'data/themes'),
     ('src/pygpt_net/data/fixtures/*', 'data/fixtures'),
     ('src/pygpt_net/data/skills/*', 'data/skills'),
     ('src/pygpt_net/data/connectors/*', 'data/connectors'),

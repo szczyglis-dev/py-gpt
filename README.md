@@ -2480,9 +2480,9 @@ This command-line option changes the entire profile/application workdir. It is d
 
 ## Translations / Locale
 
-PyGPT supports custom translations and user overrides for locale and CSS files. Locale files use the `.ini` format and are loaded automatically by the application.
+PyGPT supports custom translations and profile-specific themes. Locale files use the `.ini` format and are loaded automatically by the application.
 
-Custom locale, CSS, and font files can also be placed in the PyGPT working directory to override the bundled resources.
+Custom themes use a directory-per-theme layout under `%workdir%/css/<theme-id>/`, with optional `app.css`, `app.xml`, and `chat.css` files. New custom theme IDs can end in `-dark` or `-light` to define their runtime Dark/Light compatibility; the suffix is omitted from the normal menu title. Unsuffixed custom IDs default to Dark. A user theme can use the same ID as a built-in theme to override/extend it while keeping the built-in compatibility type. Custom fonts can also be placed in the PyGPT working directory.
 
 For the complete translation, locale, CSS override, and custom font reference, see:
 
@@ -2589,6 +2589,8 @@ For the complete debugging reference, Logger commands, DB Viewer details, compil
 
 # Extending PyGPT
 
+PyGPT can also load custom themes directly from the active profile workdir. Put a theme in `%workdir%/css/<theme-id>/`; supported per-theme files are `app.css`, `app.xml`, and `chat.css`. New custom IDs should use a `-dark` or `-light` suffix to declare runtime compatibility, e.g. `my_custom-dark` becomes **My Custom** and `paper-light` becomes **Paper** in the menu. The suffix remains part of the stored theme ID. If both variants of one base name exist, they are shown as **(Dark)** / **(Light)**. Unsuffixed new custom IDs default to Dark. Reusing a built-in ID such as `ocean` overrides/extends that theme and preserves its built-in Dark/Light type. The runtime type controls qt-material behavior, platform fixes, widgets, renderer compatibility, and fallback assets. The global `data/css/app.css` is always the native UI base, `data/css/chat.css` is the chat base for both Standard and Wide layouts, and `chat.wide.css` is appended only for Wide. See the documentation section **Extending PyGPT -> Custom themes and styles** for the full load order and examples.
+
 PyGPT can be extended with custom models, plugins, LLM wrappers, vector stores, data loaders, audio input/output providers, web providers, and custom agents. Extension components can be registered through a custom launcher.
 
 The repository also contains ready-to-use examples in the `examples` directory.
@@ -2618,6 +2620,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added support for **Agent Skills**, including importing from GitHub, local files, and formats compatible with Claude, Codex, OpenClaw, and other supported ecosystems. Added a dedicated **Skills** management interface for browsing, installing, enabling, disabling, and removing skills.
 - Added support for **Claude/Codex-style Connectors**, integrated with the MCP plugin. Connectors can be imported from GitHub, local files, Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible JSON, TOML, and YAML definitions. Connector management is available under **Config → MCP → Connectors**.
 - Added new application themes: **Matrix, Gray, Mint, Flare, Ocean, Sun, and Retro**.
+- Refactored theme/CSS assets into a directory-per-theme layout and added profile-level custom themes/overrides from `%workdir%/css`, including runtime `-dark` / `-light` compatibility classification for custom themes.
 - Added **Full Screen mode (F11)** and support for a frameless window layout.
 - Optimized message sending from the chat input by moving pre-send preparation tasks to asynchronous workers, reducing UI blocking before requests are sent.
 - Various **UI fixes, layout improvements, workflow fixes, and usability refinements** across the application.

@@ -105,6 +105,126 @@ make it a callable model function.
 Use a plugin when the model should call functionality as a tool/command. Use a GUI Tool when you want to
 extend the desktop application's interface or provide a standalone utility.
 
+Custom themes and styles
+------------------------
+
+PyGPT themes use one directory per theme ID. Bundled theme assets are stored below
+``pygpt_net/data/css`` using the same filenames for every theme:
+
+.. code-block:: text
+
+   data/css/
+   ├── app.css
+   ├── chat.css
+   ├── chat.wide.css
+   ├── fix_windows.css
+   ├── fix_windows.dark.css
+   ├── fix_windows.light.css
+   ├── dark/
+   │   ├── app.css
+   │   ├── app.xml
+   │   └── chat.css
+   ├── light/
+   │   ├── app.css
+   │   ├── app.xml
+   │   └── chat.css
+   └── ...
+
+The files have the following roles:
+
+* ``app.css`` at the root is the global native Qt stylesheet and is always loaded first.
+* ``<theme-id>/app.css`` contains native Qt overrides for one theme.
+* ``<theme-id>/app.xml`` defines the qt-material color palette for that theme.
+* ``chat.css`` at the root is the global WebEngine chat stylesheet and is used by both the
+  **Standard** and **Wide** chat layouts.
+* ``<theme-id>/chat.css`` contains chat/WebEngine overrides for one theme.
+* ``chat.wide.css`` is a small global override loaded only when the **Wide** chat layout is selected.
+
+User themes
+~~~~~~~~~~~
+
+Profile-specific themes can be placed below ``%workdir%/css`` with exactly the same layout. The
+name of the directory is the persistent theme ID. For a new custom theme, append ``-dark`` or
+``-light`` to the directory name to declare its compatibility type. The suffix controls runtime
+Dark/Light behavior but is normally omitted from the **Themes** menu title. For example,
+``my_custom-dark`` is shown as **My Custom**.
+
+For example:
+
+.. code-block:: text
+
+   %workdir%/css/
+   └── my_custom-dark/
+       ├── app.css
+       ├── app.xml
+       └── chat.css
+
+Only files that exist are loaded. Therefore a custom theme may contain only ``chat.css``, only
+``app.css``, or a complete set of files. The runtime compatibility type is built dynamically from
+the active profile theme list: bundled IDs use their built-in type, a new ID ending in ``-light`` is
+Light-compatible, and a new ID ending in ``-dark`` is Dark-compatible. New custom IDs without either
+suffix remain Dark-compatible for backward compatibility.
+
+The compatibility type is not only a CSS fallback. It is the runtime Dark/Light classification used
+by the application for qt-material inversion, platform-specific fixes, widget behavior, the legacy
+renderer, and fallback assets. A completely new custom theme inherits the bundled ``light`` or
+``dark`` CSS/XML base matching this runtime type, then applies files from its own directory. If a new
+theme does not provide ``app.xml``, the corresponding bundled Light or Dark material palette is used.
+
+The ``-dark`` / ``-light`` suffix is part of the theme ID stored in configuration but is removed from
+the normal display name. Thus ``paper-light`` is shown as **Paper**. If both ``paper-dark`` and
+``paper-light`` exist at the same time, PyGPT disambiguates them in the menu as **Paper (Dark)** and
+**Paper (Light)**.
+
+A profile theme can also use the same ID as a bundled theme, for example:
+
+.. code-block:: text
+
+   %workdir%/css/ocean/chat.css
+
+In that case the user files override/extend the bundled ``ocean`` theme and keep the built-in
+``ocean`` compatibility type. For CSS, PyGPT layers the files in this order so later files can
+override earlier rules:
+
+#. bundled ``data/css/app.css`` or ``data/css/chat.css``;
+#. bundled ``data/css/<theme-id>/app.css`` or ``chat.css`` (or the Dark/Light compatibility base for a new custom ID);
+#. profile ``%workdir%/css/app.css`` or ``chat.css`` when present;
+#. profile ``%workdir%/css/<theme-id>/app.css`` or ``chat.css`` when present.
+
+For the **Wide** chat layout, ``chat.wide.css`` is appended after the normal ``chat.css`` layers.
+A profile-level ``%workdir%/css/chat.wide.css`` can add final Wide-specific overrides.
+
+For ``app.xml`` there is no layering: ``%workdir%/css/<theme-id>/app.xml`` replaces the bundled XML
+for that theme. If it is absent, the bundled XML is used when available; a new custom theme falls
+back to the bundled ``light`` or ``dark`` XML selected by its runtime compatibility type.
+
+The built-in themes are discovered from their directories, and profile theme directories are added
+to the same **Themes** menu. Theme discovery is refreshed when the theme/profile is reloaded; a
+restart also refreshes the list.
+
+A minimal custom ``app.xml`` can look like this:
+
+.. code-block:: xml
+
+   <resources>
+     <color name="primaryColor">#62d4ff</color>
+     <color name="primaryLightColor">#9ce6ff</color>
+     <color name="secondaryColor">#111820</color>
+     <color name="secondaryLightColor">#18232d</color>
+     <color name="secondaryDarkColor">#0b1016</color>
+     <color name="primaryTextColor">#ffffff</color>
+     <color name="secondaryTextColor">#c8d5df</color>
+   </resources>
+
+Normal CSS syntax can be used in profile styles. qt-material placeholders such as
+``{QTMATERIAL_PRIMARYCOLOR}`` and ``{QTMATERIAL_PRIMARYLIGHTCOLOR}`` are also expanded when
+available.
+
+While developing or adjusting a custom theme, you can reload CSS without restarting PyGPT. Open the
+**Logger** from the application's debug tools and enter the ``css`` command in its console. PyGPT will
+reload the active theme CSS immediately, which makes it convenient to edit ``app.css`` or ``chat.css``
+and preview changes iteratively.
+
 Adding a custom model
 ---------------------
 
