@@ -33,7 +33,7 @@ from pygpt_net.utils import trans
 class ChatInputContainer(QWidget):
     """Responsive wrapper that keeps the whole composer aligned with chat content."""
 
-    CHAT_CONTENT_WIDTH = 760  # mirrors body max-width in data/css/web-chatgpt.css
+    CHAT_CONTENT_WIDTH = 760  # mirrors constrained Standard WebView content width
     CHAT_CONTENT_LEFT_EXTEND = 10  # align composer's left edge with rendered bot content
     def __init__(self, window, content_widget):
         super().__init__()
@@ -132,6 +132,12 @@ class ChatInputContainer(QWidget):
     def _target_content_width(self) -> int:
         return max(1, int(round(self.CHAT_CONTENT_WIDTH * self._zoom_factor())))
 
+    def _is_wide_style(self) -> bool:
+        style = self.window.controller.theme.common.normalize_style(
+            self.window.core.config.get('theme.style', 'standard')
+        )
+        return style == self.window.controller.theme.common.STYLE_WIDE
+
     def sizeHint(self) -> QSize:
         """Keep only the composer's vertical hint; never constrain window width."""
         hint = self.content_widget.sizeHint()
@@ -156,23 +162,23 @@ class ChatInputContainer(QWidget):
         column_idx = self._active_chat_column_idx()
         area_x, area_width = self._column_area(column_idx, available)
 
-        # Zoom scales the same 800 px content width as the WebView, but the
-        # composer is always clamped to its actual output column. Geometry is
-        # applied only to the child, so it never contributes a larger minimum
-        # width to the main application window.
-        reference_width = min(area_width, self._target_content_width())
-        x = area_x + max(0, (area_width - reference_width) // 2)
+        if self._is_wide_style():
+            # Wide follows the WebView override and fills the whole active chat
+            # column. No Standard alignment inset is needed in this mode.
+            x = area_x
+            width = max(1, area_width)
+        else:
+            # Standard follows the same constrained content width as the WebView.
+            # Geometry is applied only to the child, so it never contributes a
+            # larger minimum width to the main application window.
+            reference_width = min(area_width, self._target_content_width())
+            x = area_x + max(0, (area_width - reference_width) // 2)
 
-        # The WebView's rendered assistant content starts slightly to the left
-        # of the Qt composer despite sharing the same nominal 800 px width.
-        # Extend only the composer's left edge by the matching visual inset and
-        # keep its current right edge untouched. Scale the correction with the
-        # WebView zoom so alignment remains stable at non-100% zoom levels.
-        left_extend = max(0, int(round(self.CHAT_CONTENT_LEFT_EXTEND * self._zoom_factor())))
-        left_extend = min(left_extend, max(0, x - area_x))
-        x -= left_extend
-
-        width = max(1, min(area_x + area_width - x, reference_width + left_extend))
+            # Match the rendered assistant content's small visual left inset.
+            left_extend = max(0, int(round(self.CHAT_CONTENT_LEFT_EXTEND * self._zoom_factor())))
+            left_extend = min(left_extend, max(0, x - area_x))
+            x -= left_extend
+            width = max(1, min(area_x + area_width - x, reference_width + left_extend))
         geometry = (x, 0, width, height)
         if geometry == self._content_geometry:
             return

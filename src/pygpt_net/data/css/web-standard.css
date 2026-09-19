@@ -15,7 +15,7 @@ body {{
   line-height: 1.5;
   padding: 0;
   margin: auto;
-  max-width: 100%;
+  max-width: 780px;
   border-radius: .25rem;
 }}
 h1,
@@ -307,7 +307,7 @@ think {{
 .edit-icon {{
   display: inline;
 }}
-.theme-blocks.display-timestamp .ts {{
+body.display-timestamp .ts {{
   display: inline;
 }}
 
@@ -773,9 +773,11 @@ think {{
 .tips.visible {{
  opacity: 1;
 }}
+
 .code-wrapper .code-header-wrapper {{
   margin: 0;
 }}
+
 /* Tool / Agents v2 status rows. Only the active row uses the waiting shimmer. */
 .agents-v2-status {{
     display: block;

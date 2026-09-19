@@ -16,6 +16,14 @@ from pygpt_net.utils import trans
 
 
 class Common:
+    STYLE_STANDARD = "standard"
+    STYLE_WIDE = "wide"
+    LEGACY_STYLE_MAP = {
+        "blocks": STYLE_STANDARD,
+        "chatgpt": STYLE_STANDARD,
+        "chatgpt_wide": STYLE_WIDE,
+    }
+
     def __init__(self, window=None):
         """
         Theme common controller
@@ -40,6 +48,14 @@ class Common:
         if name.startswith('light'):
             return 'light'
         return 'dark'
+
+    def normalize_style(self, style: str) -> str:
+        """Normalize current and legacy chat style identifiers."""
+        name = str(style or '').lower()
+        name = self.LEGACY_STYLE_MAP.get(name, name)
+        if name == self.STYLE_WIDE:
+            return self.STYLE_WIDE
+        return self.STYLE_STANDARD
 
     def is_light_theme(self) -> bool:
         """
@@ -151,27 +167,5 @@ class Common:
         return ''
 
     def get_styles_list(self) -> List[str]:
-        """
-        Return a list of available styles
-
-        :return: list of styles names
-        """
-        styles = []
-        app_dir = os.path.join(self.window.core.config.get_app_path(), 'data', 'css')
-        if not os.path.exists(app_dir):
-            return styles
-        for filename in os.listdir(app_dir):
-            if not filename.startswith("web-") or not filename.endswith('.css'):
-                continue
-            if filename.endswith('.darkest.css'):
-                continue
-            file = filename
-            to_replace = ['web-', '.css', '.light', '.dark']
-            for item in to_replace:
-                file = file.replace(item, '')
-            # 'blocks' is a retired web style; old profiles fall back to chatgpt.
-            if file == 'blocks':
-                continue
-            if file not in styles:
-                styles.append(file)
-        return sorted(styles)
+        """Return the built-in chat view styles."""
+        return [self.STYLE_STANDARD, self.STYLE_WIDE]

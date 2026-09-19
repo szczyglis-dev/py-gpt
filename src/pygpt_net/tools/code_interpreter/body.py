@@ -122,7 +122,7 @@ class Body:
         """
         classes = []
         classes_str = ""
-        style = self.window.core.config.get("theme.style", "blocks")
+        style = self.window.core.config.get("theme.style", "standard")
         if self.window.core.config.get('render.blocks'):
             classes.append("display-blocks")
         if self.window.core.config.get('ctx.edit_icons'):

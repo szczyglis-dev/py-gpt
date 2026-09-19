@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "app.version": "2.8.24",
-    "version": "2.8.24",
+    "app.version": "2.8.25",
+    "version": "2.8.25",
     "updated_at": "2026-09-18T11:38:00"
   },
   "access.audio.event.speech": false,
@@ -591,7 +591,7 @@
     }
   },
   "theme": "dark",
-  "theme.style": "chatgpt",
+  "theme.style": "standard",
   "updater.check.bg": true,
   "updater.check.bg.last_time": "",
   "updater.check.bg.last_version": "",

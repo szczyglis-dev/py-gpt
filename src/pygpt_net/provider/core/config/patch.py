@@ -622,7 +622,7 @@ class Patch:
 
                 # The Blocks web style and TXT history export were removed.
                 if data.get("theme.style") == "blocks":
-                    data["theme.style"] = "chatgpt"
+                    data["theme.style"] = "standard"
                     updated = True
                 for key in ("store_history", "store_history_time"):
                     if key in data:
@@ -1054,6 +1054,23 @@ class Patch:
                         # plugin config does not contain that key. Reset it too so
                         # the 2.8.24 query-focused defaults are guaranteed to win.
                         updated = True
+
+            # < 2.8.25
+            if old < parse_version("2.8.25"):
+                print("Migrating config from < 2.8.25...")
+
+                # Chat view style IDs were simplified in 2.8.25. Standard is
+                # the base style and Wide is only a max-width overlay.
+                style_map = {
+                    "blocks": "standard",
+                    "chatgpt": "standard",
+                    "chatgpt_wide": "wide",
+                }
+                old_style = data.get("theme.style")
+                new_style = style_map.get(old_style)
+                if new_style is not None and new_style != old_style:
+                    data["theme.style"] = new_style
+                    updated = True
 
         # update file
         migrated = False

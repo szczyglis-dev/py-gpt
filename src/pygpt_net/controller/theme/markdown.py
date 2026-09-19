@@ -61,7 +61,9 @@ class Markdown:
 
         :return: stylesheet
         """
-        web_style = self.window.core.config.get("theme.style", "chatgpt")
+        web_style = self.window.controller.theme.common.normalize_style(
+            self.window.core.config.get("theme.style", "standard")
+        )
         if "web" not in self.css or self.web_style != web_style:
             self.load()
         if "web" in self.css:
@@ -81,39 +83,49 @@ class Markdown:
         self.window.dispatch(event)
 
     def load(self):
-        """Load markdown styles"""
-        parents = [
-            "markdown",
-            "web",
-        ]
-        web_style = self.window.core.config.get("theme.style", "chatgpt")
-        for base_name in parents:
-            suffix = ""
-            if base_name == 'web':
-                suffix = "-" + web_style
-                self.web_style = web_style
-            theme = self.window.controller.theme.common.normalize_theme(
-                self.window.core.config.get('theme')
-            )
-            name = str(base_name)
-            color = '.light' if theme == 'light' else '.dark'
+        """Load markdown styles."""
+        theme = self.window.controller.theme.common.normalize_theme(
+            self.window.core.config.get('theme')
+        )
+        color = '.light' if theme == 'light' else '.dark'
+        css_dir = os.path.join(
+            self.window.core.config.get_app_path(),
+            'data',
+            'css',
+        )
 
-            # Load bundled CSS only. User/workdir CSS overrides are no longer supported.
-            file_base = name + suffix + '.css'
-            file_color = name + suffix + color + '.css'
-            paths = []
-            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_base))
-            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_color))
+        web_style = self.window.controller.theme.common.normalize_style(
+            self.window.core.config.get("theme.style", "standard")
+        )
+        self.web_style = web_style
+
+        # Standard is always the base. Wide is only a tiny,
+        # theme-independent max-width override appended on top of it.
+        files = {
+            "markdown": [
+                "markdown.css",
+                "markdown" + color + ".css",
+            ],
+            "web": [
+                "web-standard.css",
+                "web-standard" + color + ".css",
+            ],
+        }
+        if web_style == "wide":
+            files["web"].append("web-wide.css")
+
+        for base_name, filenames in files.items():
             content = ''
-            for path in paths:
+            for filename in filenames:
+                path = os.path.join(css_dir, filename)
                 if os.path.exists(path) and os.path.isfile(path):
                     with open(path, 'r') as file:
                         content += file.read()
 
-            self.css[base_name] = content  # always append default raw in case of errors in env vars
+            self.css[base_name] = content  # keep raw CSS if env expansion fails
             try:
-                self.css[base_name] = content.format(**os.environ)  # replace env vars
-            except KeyError as e:  # ignore missing env vars
+                self.css[base_name] = content.format(**os.environ)
+            except KeyError:
                 pass
 
     def get_default(self) -> str:

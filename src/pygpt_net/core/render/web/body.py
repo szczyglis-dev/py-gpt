@@ -824,7 +824,7 @@ class Body:
         :return: Full HTML string.
         """
         cfg_get = self.window.core.config.get
-        style = cfg_get("theme.style", "blocks")
+        style = cfg_get("theme.style", "standard")
         classes = ["theme-" + style]
         if cfg_get('render.blocks'):
             classes.append("display-blocks")

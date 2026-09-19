@@ -781,7 +781,7 @@
         "use": "styles",
         "label": "settings.theme.style",
         "description": "settings.theme.style.desc",
-        "value": "chatgpt",
+        "value": "standard",
         "advanced": false
     },
     "zoom": {

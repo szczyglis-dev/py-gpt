@@ -446,13 +446,13 @@ class Placeholder:
 
     def get_styles(self) -> List[Dict[str, str]]:
         """
-        Get styles list (blocks, chatgpt, etc.)
+        Get chat view styles list
 
         :return: Filled placeholder list
         """
         styles = self.window.controller.theme.common.get_styles_list()
         styles.sort()
-        return [{sid: sid} for sid in styles]
+        return [{sid: sid.replace("_", " ").title()} for sid in styles]
 
     def get_keys(self) -> List[Dict[str, str]]:
         """

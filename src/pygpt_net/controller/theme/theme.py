@@ -41,9 +41,10 @@ class Theme:
 
     def setup(self):
         """Setup theme"""
-        # Normalize the retired Blocks web style before any renderer CSS is loaded.
-        if self.window.core.config.get("theme.style") == "blocks":
-            self.window.core.config.set("theme.style", "chatgpt")
+        stored_style = self.window.core.config.get("theme.style")
+        normalized_style = self.common.normalize_style(stored_style)
+        if normalized_style != stored_style:
+            self.window.core.config.set("theme.style", normalized_style)
             self.window.core.config.save()
         current_theme = self.window.core.config.get('theme')
         normalized_theme = self.common.normalize_theme(current_theme)
@@ -139,13 +140,10 @@ class Theme:
 
         :param name: web style name
         """
-        # The legacy 'blocks' style was removed in 2.8.16. Keep a runtime
-        # fallback for old profiles/custom calls that still reference it.
-        if name == "blocks":
-            name = "chatgpt"
+        name = self.common.normalize_style(name)
         styles_list = self.common.get_styles_list()
         if name not in styles_list:
-            name = "chatgpt"
+            name = self.common.STYLE_STANDARD
         QApplication.processEvents()
         core = self.window.core
         core.config.set('theme.style', name)
@@ -156,6 +154,7 @@ class Theme:
         # profiles with many widgets/WebViews.
         self.markdown.update(force=False)
         self.menu.update_list()
+        self._sync_chat_input_width()
         self._remember_state(markdown_signature=self._get_markdown_signature())
 
     def toggle_option(
@@ -363,19 +362,26 @@ class Theme:
         cfg = self.window.core.config
         app_path = cfg.get_app_path()
         theme = self.common.normalize_theme(cfg.get('theme'))
-        web_style = str(cfg.get('theme.style', 'chatgpt'))
-        if web_style == 'blocks':
-            web_style = 'chatgpt'
+        web_style = self.common.normalize_style(cfg.get('theme.style', 'standard'))
 
         color = '.light' if theme == 'light' else '.dark'
+        css_dir = os.path.join(app_path, 'data', 'css')
 
-        files = []
-        for base_name, suffix in (('markdown', ''), ('web', '-' + web_style)):
-            file_base = base_name + suffix + '.css'
-            file_color = base_name + suffix + color + '.css'
-            css_dir = os.path.join(app_path, 'data', 'css')
-            files.append(self._file_signature(os.path.join(css_dir, file_base)))
-            files.append(self._file_signature(os.path.join(css_dir, file_color)))
+        # Renderer CSS is layered: Standard is always the base, and Wide
+        # contributes only a small, theme-independent max-width override.
+        css_files = [
+            'markdown.css',
+            'markdown' + color + '.css',
+            'web-standard.css',
+            'web-standard' + color + '.css',
+        ]
+        if web_style == 'wide':
+            css_files.append('web-wide.css')
+
+        files = [
+            self._file_signature(os.path.join(css_dir, filename))
+            for filename in css_files
+        ]
 
         return theme, web_style, tuple(files)
 
@@ -392,6 +398,12 @@ class Theme:
             self._current_material_signature = material_signature
         if markdown_signature is not None:
             self._current_markdown_signature = markdown_signature
+
+    def _sync_chat_input_width(self):
+        """Refresh Qt composer geometry after Standard/Wide changes."""
+        node = self.window.ui.nodes.get('input.container')
+        if node is not None and hasattr(node, 'sync_width'):
+            node.sync_width()
 
     def style(self, element: str) -> str:
         """
@@ -413,8 +425,10 @@ class Theme:
         """
         cfg = self.window.core.config
 
-        if cfg.get('theme.style') == 'blocks':
-            cfg.set('theme.style', 'chatgpt')
+        stored_style = cfg.get('theme.style')
+        normalized_style = self.common.normalize_style(stored_style)
+        if normalized_style != stored_style:
+            cfg.set('theme.style', normalized_style)
             cfg.save()
 
         stored_name = cfg.get('theme')
@@ -457,6 +471,7 @@ class Theme:
         self.menu.update_list()
         self.menu.update_density()
         self.menu.update_syntax()
+        self._sync_chat_input_width()
         self._remember_state(
             material_signature=material_signature,
             markdown_signature=markdown_signature,

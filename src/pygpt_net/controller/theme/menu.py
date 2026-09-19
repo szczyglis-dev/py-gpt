@@ -82,10 +82,6 @@ class Menu:
         for style in styles:
             style_id = style.lower()
             title = style.replace('_', ' ').title()
-            if title == "Chatgpt":
-                title = "ChatGPT"
-            elif title == "Chatgpt Wide":
-                title = "ChatGPT (wide)"
             act = QAction(title, w, checkable=True)
             act.setData(style_id)
             menu_style_dict[style_id] = act
