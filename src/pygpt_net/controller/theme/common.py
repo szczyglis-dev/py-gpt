@@ -42,7 +42,7 @@ class Common:
         Normalize a stored theme name to a supported built-in theme.
 
         :param theme: stored theme name
-        :return: ``dark``, ``gray``, ``matrix``, ``flare``, ``retro``, ``mint`` or ``light``
+        :return: ``dark``, ``gray``, ``matrix``, ``flare``, ``retro``, ``ocean``, ``mint`` or ``light``
         """
         name = str(theme or '').lower()
         if name.startswith('light'):
@@ -57,6 +57,8 @@ class Common:
             return 'flare'
         if name.startswith('retro'):
             return 'retro'
+        if name.startswith('ocean'):
+            return 'ocean'
         return 'dark'
 
     def normalize_style(self, style: str) -> str:
@@ -129,6 +131,8 @@ class Common:
             return trans('theme.flare')
         if theme == 'retro':
             return trans('theme.retro')
+        if theme == 'ocean':
+            return trans('theme.ocean')
         return trans('theme.dark')
 
     def get_style(self, element: str) -> str:
@@ -154,7 +158,7 @@ class Common:
 
         :return: list of themes names
         """
-        return ['light', 'mint', 'gray', 'dark', 'matrix', 'flare', 'retro']
+        return ['light', 'mint', 'gray', 'dark', 'matrix', 'flare', 'retro', 'ocean']
 
     def get_custom_themes_list(self) -> List[str]:
         """
@@ -164,7 +168,7 @@ class Common:
         """
         directory = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes')
         return [
-            name for name in ('dark', 'matrix', 'flare', 'retro', 'gray', 'mint', 'light')
+            name for name in ('dark', 'matrix', 'flare', 'retro', 'ocean', 'gray', 'mint', 'light')
             if os.path.exists(os.path.join(directory, name + '.xml'))
         ]
 

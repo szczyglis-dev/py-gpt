@@ -230,6 +230,7 @@ class NotepadOutput(QTextEdit):
             'matrix': '#0d1710',
             'flare': '#170d0d',
             'retro': '#1c1233',
+            'ocean': '#0d1a24',
         }[theme]
         self.setStyleSheet(
             'QTextEdit {'

@@ -196,6 +196,16 @@ class Markdown:
                 "pre-bg": "#21142f",
                 "pre": "#f4b7ff",
                 "code": "#f4b7ff",
+            },
+            "ocean": {
+                "a": "#66eaff",
+                "msg-user": "#9bd7e8",
+                "msg-bot": "#d9f7ff",
+                "cmd": "#568ba0",
+                "ts": "#7096a8",
+                "pre-bg": "#0d2230",
+                "pre": "#b8f4ff",
+                "code": "#b8f4ff",
             }
         }
 

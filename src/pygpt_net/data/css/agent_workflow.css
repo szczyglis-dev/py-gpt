@@ -80,6 +80,20 @@ body.theme-retro {
     --wf-bad: #ff5f8f;
     --wf-button: rgba(255,79,216,0.045);
 }
+body.theme-ocean {
+    --wf-text: #d9f7ff;
+    --wf-muted: #7096a8;
+    --wf-line: #275b75;
+    --wf-card: rgba(41,216,255,0.025);
+    --wf-card-border: rgba(41,216,255,0.16);
+    --wf-detail: rgba(92,255,216,0.035);
+    --wf-hover: rgba(41,216,255,0.08);
+    --wf-accent: #29d8ff;
+    --wf-ok: #5cffd8;
+    --wf-warn: #ffd166;
+    --wf-bad: #ff668c;
+    --wf-button: rgba(41,216,255,0.045);
+}
 body.theme-mint {
     --wf-text: #17382d;
     --wf-muted: #668075;
