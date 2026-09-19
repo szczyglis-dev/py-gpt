@@ -155,6 +155,16 @@ class Markdown:
                 "pre": "#000",
                 "code": "#000",
             },
+            "mint": {
+                "a": "#27785a",
+                "msg-user": "#355c4d",
+                "msg-bot": "#17382d",
+                "cmd": "#648074",
+                "ts": "#648074",
+                "pre-bg": "#e7f3ed",
+                "pre": "#17382d",
+                "code": "#17382d",
+            },
             "gray": {
                 "a": "#f1f3f4",
                 "msg-user": "#d7d9df",
@@ -184,6 +194,16 @@ class Markdown:
                 "pre-bg": "#1d0d0d",
                 "pre": "#ffb8b8",
                 "code": "#ffb8b8",
+            },
+            "retro": {
+                "a": "#39dfff",
+                "msg-user": "#c7a7e8",
+                "msg-bot": "#f4e9ff",
+                "cmd": "#806497",
+                "ts": "#9a80b2",
+                "pre-bg": "#21142f",
+                "pre": "#f4b7ff",
+                "code": "#f4b7ff",
             }
         }
 

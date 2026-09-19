@@ -1,0 +1,129 @@
+/* Retro theme: Dark-compatible synthwave palette with magenta/cyan accents. */
+body {{ 
+    --copy-btn-bg-hover: rgb(0 0 0 / 82%);
+    color: #f4e9ff;
+    background-color: #100b1f;
+}}
+::-webkit-scrollbar {{
+    background: transparent;
+}}
+::-webkit-scrollbar-thumb {{
+    background: #2b1b3d;
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: #ff4fd8;
+}}
+::-webkit-scrollbar-corner {{
+    background: transparent;
+}}
+p {{ 
+    color: #f4e9ff;
+}}
+a {{
+    color: #39dfff !important;
+}}
+a:hover {{
+    color: #8af1ff !important;
+    text-decoration: none;
+}}
+.msg-user {{
+    background: #21152f;
+    color: #f4e9ff;
+    border: 1px solid rgba(255, 79, 216, 0.08);
+}}
+.msg-user p {{
+    color: #f4e9ff;
+}}
+.msg-bot {{
+    color: #f4e9ff;
+}}
+.msg-bot p {{
+    color: #f4e9ff;
+}}
+.cmd {{
+    color: #806497 !important;
+}}
+.ts {{
+    color: #9a80b2;
+}}
+.list {{
+}}
+code {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.code-wrapper ::-webkit-scrollbar {{
+    background: transparent;
+}}
+.code-header-wrapper {{
+    background-color: #21142f;
+}}
+.code-header-action {{
+    color: #b79bcf !important;
+}}
+.code-header-action:hover {{
+    color: #f4b7ff;
+}}
+.code-header-action:hover img {{
+    filter: brightness(130%);
+}}
+.code-header-lang {{
+    color: #806497;
+}}
+.code-wrapper .code-header-action.code-header-copy:hover, 
+.code-wrapper .code-header-action.code-header-collapse:hover {{
+    transform: scale(1.06);
+    background: var(--copy-btn-bg-hover, rgb(0 0 0 / 82%));
+    border-color: rgba(255, 79, 216, 0.12);
+}}
+.action-icons a:hover {{
+    filter: brightness(140%);
+}}
+.name-bot::before {{
+    background-color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.name-user::before {{
+    background-color: #ff4fd8;
+}}
+.tool-output .content {{
+    color: #806497 !important;
+}}
+.tool-output .tool-output-toggle:hover {{
+    background-color: rgba(255, 79, 216, 0.08);
+}}
+.tool-output .tool-output-label {{
+    color: #9a80b2;
+}}
+.tool-output .tool-output-name {{
+    color: #f4b7ff;
+}}
+
+/* loader */
+.lds-ring {{
+   color: #ff4fd8;
+}}
+.append_live {{
+  color: #9a80b2;
+}}
+
+.tips p {{
+ color: #806497;
+}}
+.msg-box .name-header.name-bot {{
+    color: #c7a7e8;
+}}
+code {{
+    background: #21142f;
+    padding: 6px;
+}}
+/* Attachment/project mentions in user messages */
+.mention-anchor {{
+    color: #ff4fd8 !important;
+    background: rgba(255, 79, 216, 0.10);
+    border-radius: 4px;
+    padding: 1px 3px;
+    font-weight: 600;
+}}
+/* Align user bubbles to the same right edge as the input row. */
+.msg-box.msg-user {{
+    margin-right: 0px;
+}}

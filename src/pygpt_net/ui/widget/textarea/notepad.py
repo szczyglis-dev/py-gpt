@@ -224,10 +224,12 @@ class NotepadOutput(QTextEdit):
         # Match the preset-list surface in each built-in color theme.
         background = {
             'light': '#efefef',
+            'mint': '#e8f4ee',
             'gray': '#2b2d34',
             'dark': '#202020',
             'matrix': '#0d1710',
             'flare': '#170d0d',
+            'retro': '#1c1233',
         }[theme]
         self.setStyleSheet(
             'QTextEdit {'

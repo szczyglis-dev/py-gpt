@@ -257,7 +257,7 @@ class Theme:
         cfg = core.config
 
         base_name = os.path.splitext(os.path.basename(theme))[0]
-        is_light = base_name.startswith('light')
+        is_light = base_name.startswith(('light', 'mint'))
         extra = {
             'density_scale': cfg.get('layout.density'),
             'pyside6': True,
@@ -324,7 +324,7 @@ class Theme:
         cfg = self.window.core.config
         core = self.window.core
         app_path = cfg.get_app_path()
-        is_light = str(name).startswith('light')
+        is_light = str(name).startswith(('light', 'mint'))
         parts = [
             str(name),
             cfg.get('layout.density'),
@@ -481,9 +481,9 @@ class Theme:
         """
         Check if current theme uses dark-mode behavior.
 
-        Gray, Matrix and Flare intentionally follow Dark behavior; only Light returns False.
+        Gray, Matrix, Flare and Retro intentionally follow Dark behavior; Light and Mint return False.
 
-        :return: True for dark-compatible themes, False for Light
+        :return: True for dark-compatible themes, False for Light/Mint
         """
         current = self.window.core.config.get('theme')
-        return self.common.normalize_theme(current) != 'light'
+        return self.common.normalize_theme(current) not in ('light', 'mint')
