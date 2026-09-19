@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 13:00:00                  #
+# Updated Date: 2026.09.19 12:10:00                  #
 # ================================================== #
 
 import json
@@ -237,9 +237,11 @@ class ProfileExporter:
             self,
             zip_path: str,
             selected: Iterable[str],
+            sizes: Optional[Dict[str, int]] = None,
     ) -> int:
         selected = set(selected)
-        sizes = self.get_archive_section_sizes(zip_path)
+        if sizes is None:
+            sizes = self.get_archive_section_sizes(zip_path)
         raw = sum(int(sizes.get(section, 0) or 0) for section in selected)
         return int(raw * self.SPACE_MARGIN) + self.SPACE_RESERVE
 

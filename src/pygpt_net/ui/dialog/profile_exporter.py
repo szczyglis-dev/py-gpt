@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 13:00:00                  #
+# Updated Date: 2026.09.19 12:10:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -103,7 +103,18 @@ class ExportProfileDialog(QDialog):
 class ImportProfileDialog(QDialog):
     """Select sections and the new profile name for import."""
 
-    def __init__(self, window, controller, filename: str, exported, default_name: str):
+    def __init__(
+            self,
+            window,
+            controller,
+            filename: str,
+            exported,
+            default_name: str,
+            exported_at: str = "",
+            app_version: str = "",
+            sizes=None,
+            formatter=None,
+    ):
         super().__init__(window)
         self.window = window
         self.controller = controller
@@ -117,19 +128,35 @@ class ImportProfileDialog(QDialog):
         description.setWordWrap(True)
         description.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
+        export_info = HelpLabel(
+            trans("profile.import.exported_at").format(
+                date=exported_at,
+                version=app_version,
+            ),
+            self,
+        )
+        export_info.setVisible(bool(exported_at or app_version))
+
         exported = set(exported)
-        self.checkboxes = {}
+        sizes = sizes or {}
+        formatter = formatter or str
         labels = {
             "db": trans("profile.export.section.db"),
             "config": trans("profile.export.section.config"),
             "files": trans("profile.export.section.files"),
             "data": trans("profile.export.section.data"),
         }
+        self.rows = {}
+        self.checkboxes = {}
         for section in ("db", "config", "files", "data"):
-            checkbox = QCheckBox(labels[section], self)
-            checkbox.setEnabled(section in exported)
-            checkbox.setChecked(section in exported)
-            self.checkboxes[section] = checkbox
+            included = section in exported
+            row = _SectionRow(labels[section], included, self)
+            row.checkbox.setEnabled(included)
+            row.set_size(formatter(sizes.get(section, 0)))
+            self.rows[section] = row
+            # Keep this alias for compatibility with callers/tests that access
+            # import checkboxes directly.
+            self.checkboxes[section] = row.checkbox
 
         name_label = QLabel(trans("profile.import.name.label"), self)
         self.name_input = QLineEdit(default_name, self)
@@ -152,8 +179,9 @@ class ImportProfileDialog(QDialog):
         layout.setContentsMargins(18, 18, 18, 14)
         layout.setSpacing(10)
         layout.addWidget(description)
+        layout.addWidget(export_info)
         for section in ("db", "config", "files", "data"):
-            layout.addWidget(self.checkboxes[section])
+            layout.addWidget(self.rows[section])
         layout.addSpacing(6)
         layout.addWidget(name_label)
         layout.addWidget(self.name_input)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 13:42:00                  #
+# Updated Date: 2026.09.19 12:10:00                  #
 # ================================================== #
 
 import os
@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 
 from packaging.version import InvalidVersion, Version
-from PySide6.QtCore import Slot
+from PySide6.QtCore import QTimer, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 
 from pygpt_net.core.profile_exporter import (
@@ -37,6 +37,7 @@ class ProfileExporter:
         self.export_dialog = None
         self.import_dialog = None
         self.export_sizes = {}
+        self.export_start_pending = False
         self.import_state = None
         self.busy = False
 
@@ -53,13 +54,6 @@ class ProfileExporter:
             self.window.ui.dialogs.alert(trans("profile.operation.busy"))
             return
 
-        try:
-            # Persist the active in-memory profile state before measuring or
-            # archiving it so the ZIP reflects what the user currently sees.
-            self.window.controller.settings.save_all(force=True)
-        except Exception as exc:
-            self.window.core.debug.log(exc)
-
         self.export_sizes = {}
         self.export_dialog = ExportProfileDialog(self.window, self)
         self.export_dialog.rejected.connect(self._cancel_size_worker)
@@ -69,6 +63,18 @@ class ProfileExporter:
         self.export_dialog.activateWindow()
 
         self.window.update_status(trans("profile.export.status.sizing"))
+        # Let Qt paint the dialog before starting the directory scan. The scan
+        # itself runs in a worker, but starting it from this same call stack can
+        # still delay the first visible paint on large profiles.
+        QTimer.singleShot(0, self._start_export_size_worker)
+
+    def _start_export_size_worker(self):
+        if (
+                self.export_dialog is None
+                or not self.export_dialog.isVisible()
+                or self.size_worker is not None
+        ):
+            return
         worker = ProfileExporterWorker(self.window, "sizes")
         worker.signals.sizes.connect(self._on_export_sizes)
         worker.signals.error.connect(self._on_size_error)
@@ -142,6 +148,7 @@ class ProfileExporter:
             self._show_disk_space_error(exc, parent=self.export_dialog)
             return
 
+        self._cancel_size_worker()
         self.export_dialog.accept()
         self.export_dialog = None
         self.busy = True
@@ -152,6 +159,27 @@ class ProfileExporter:
             on_cancel=self.cancel,
             modal=True,
         )
+
+        # The potentially expensive profile flush used to run before the export
+        # dialog was even created. Defer it until the user actually starts the
+        # export, after the loader has been shown. The core exporter performs an
+        # authoritative size/free-space check again in its worker.
+        self.export_start_pending = True
+        QTimer.singleShot(
+            0,
+            lambda: self._start_export(filename, selected),
+        )
+
+    def _start_export(self, filename: str, selected):
+        if not self.busy or not self.export_start_pending:
+            return
+        self.export_start_pending = False
+        try:
+            # Persist the active in-memory profile state immediately before
+            # archiving so the ZIP reflects what the user currently sees.
+            self.window.controller.settings.save_all(force=True)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
 
         worker = ProfileExporterWorker(
             self.window,
@@ -204,13 +232,17 @@ class ProfileExporter:
             )
             return
 
-        # Preliminary warning before opening the options dialog, matching the
-        # import flow. The authoritative check is repeated later on the actual
-        # destination filesystem chosen by the user.
+        # Read archive sizes once. They are shown in the import dialog and are
+        # also reused by both free-space checks so we do not scan the ZIP
+        # central directory multiple times.
         try:
+            archive_sizes = self.window.core.profile_exporter.get_archive_section_sizes(
+                filename
+            )
             required = self.window.core.profile_exporter.estimate_import_required(
                 filename,
                 meta["exported"],
+                sizes=archive_sizes,
             )
             free = self.window.core.profile_exporter.get_free_space(
                 self.window.core.config.get_user_path()
@@ -228,6 +260,7 @@ class ProfileExporter:
         self.import_state = {
             "zip_path": filename,
             "meta": meta,
+            "sizes": archive_sizes,
         }
         self.import_dialog = ImportProfileDialog(
             self.window,
@@ -235,6 +268,10 @@ class ProfileExporter:
             filename=os.path.basename(filename),
             exported=meta["exported"],
             default_name=default_name,
+            exported_at=self._format_exported_at(meta["exported_at"]),
+            app_version=meta["app_version"],
+            sizes=archive_sizes,
+            formatter=self.window.core.profile_exporter.format_size,
         )
         self.import_dialog.setModal(True)
         self.import_dialog.show()
@@ -295,6 +332,17 @@ class ProfileExporter:
         self.worker = worker
         self.window.threadpool.start(worker)
 
+    @staticmethod
+    def _format_exported_at(value: str) -> str:
+        """Format the ISO timestamp stored in export metadata for display."""
+        try:
+            normalized = str(value).strip()
+            parse_value = normalized[:-1] + "+00:00" if normalized.endswith("Z") else normalized
+            dt = datetime.fromisoformat(parse_value)
+            return dt.isoformat(sep=" ", timespec="seconds")
+        except (TypeError, ValueError):
+            return str(value)
+
     def _choose_import_directory(self, zip_path: str, selected):
         while True:
             target = QFileDialog.getExistingDirectory(
@@ -342,6 +390,7 @@ class ProfileExporter:
                 required = self.window.core.profile_exporter.estimate_import_required(
                     zip_path,
                     selected,
+                    sizes=(self.import_state or {}).get("sizes"),
                 )
                 self.window.core.profile_exporter.ensure_space(target, required)
             except InsufficientDiskSpace as exc:
@@ -403,6 +452,11 @@ class ProfileExporter:
         worker.signals.error.connect(self._operation_error)
 
     def cancel(self):
+        if self.export_start_pending:
+            self.export_start_pending = False
+            self._finish_operation()
+            self.window.update_status(trans("profile.operation.cancelled"))
+            return
         if self.worker is not None:
             self.worker.cancel()
             self.window.update_status(trans("profile.operation.cancelling"))
@@ -431,6 +485,7 @@ class ProfileExporter:
     def _finish_operation(self):
         self.window.ui.dialogs.finish_loader()
         self.worker = None
+        self.export_start_pending = False
         self.busy = False
 
     def _profile_name_exists(self, name: str) -> bool:
