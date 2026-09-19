@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.24** | build: **2026-09-18** | Python: **>=3.10, <3.14**
+Release: **2.8.25** | build: **2026-09-19** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2612,6 +2612,15 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.25 (2026-09-19)**
+
+- Added support for **Agent Skills**, including importing from GitHub, local files, and formats compatible with Claude, Codex, OpenClaw, and other supported ecosystems. Added a dedicated **Skills** management interface for browsing, installing, enabling, disabling, and removing skills.
+- Added support for **Claude/Codex-style Connectors**, integrated with the MCP plugin. Connectors can be imported from GitHub, local files, Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible JSON, TOML, and YAML definitions. Connector management is available under **Config → MCP → Connectors**.
+- Added new application themes: **Matrix, Gray, Mint, Flare, Ocean, Sun, and Retro**.
+- Added **Full Screen mode (F11)** and support for a frameless window layout.
+- Optimized message sending from the chat input by moving pre-send preparation tasks to asynchronous workers, reducing UI blocking before requests are sent.
+- Various **UI fixes, layout improvements, workflow fixes, and usability refinements** across the application.
 
 **2.8.24 (2026-09-18)**
 
