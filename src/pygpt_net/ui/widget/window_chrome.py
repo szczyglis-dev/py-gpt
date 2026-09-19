@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.19 11:05:00                  #
+# Updated Date: 2026.09.19 22:30:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QEvent, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QCursor, QIcon, QMouseEvent
+from PySide6.QtGui import QColor, QCursor, QIcon, QMouseEvent, QPainter
 from PySide6.QtWidgets import (
     QAbstractButton,
     QAbstractItemView,
@@ -33,6 +33,47 @@ from PySide6.QtWidgets import (
     QPushButton,
     QWidget,
 )
+
+
+class HoverTintButton(QPushButton):
+    """Button that tints only its icon while hovered."""
+
+    def __init__(self, hover_color: str, parent=None):
+        super().__init__(parent)
+        self._hover_color = QColor(hover_color)
+        self._normal_icon = QIcon()
+        self._hover_icon = QIcon()
+        self._is_hovered = False
+
+    def setIcon(self, icon: QIcon):
+        """Keep the original icon and build a runtime-tinted hover variant."""
+        self._normal_icon = QIcon(icon)
+        self._hover_icon = self._tinted_icon(self._normal_icon)
+        super().setIcon(self._hover_icon if self._is_hovered else self._normal_icon)
+
+    def _tinted_icon(self, icon: QIcon) -> QIcon:
+        pixmap = icon.pixmap(self.iconSize(), QIcon.Normal, QIcon.Off)
+        if pixmap.isNull():
+            return QIcon(icon)
+
+        tinted = pixmap.copy()
+        painter = QPainter(tinted)
+        painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+        painter.fillRect(tinted.rect(), self._hover_color)
+        painter.end()
+        return QIcon(tinted)
+
+    def enterEvent(self, event):
+        self._is_hovered = True
+        if not self._hover_icon.isNull():
+            super().setIcon(self._hover_icon)
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self._is_hovered = False
+        if not self._normal_icon.isNull():
+            super().setIcon(self._normal_icon)
+        super().leaveEvent(event)
 
 
 class WindowChrome(QObject):
@@ -91,6 +132,7 @@ class WindowChrome(QObject):
                 "windowCloseButton",
                 "window_close.svg",
                 lambda checked=False: self.window.close(),
+                hover_icon_color="#ffffff",
             )
 
             layout.addWidget(self.btn_minimize)
@@ -100,6 +142,7 @@ class WindowChrome(QObject):
             self.container.setStyleSheet(
                 "QPushButton {"
                 "  border: 0;"
+                "  border-radius: 0px;"
                 "  margin: 0;"
                 "  padding: 0;"
                 "  background: transparent;"
@@ -135,8 +178,17 @@ class WindowChrome(QObject):
         self._position_resize_handles()
         self.update_state()
 
-    def _make_button(self, object_name: str, icon_name: str, callback) -> QPushButton:
-        button = QPushButton(self.container)
+    def _make_button(
+        self,
+        object_name: str,
+        icon_name: str,
+        callback,
+        hover_icon_color: str | None = None,
+    ) -> QPushButton:
+        if hover_icon_color is not None:
+            button = HoverTintButton(hover_icon_color, self.container)
+        else:
+            button = QPushButton(self.container)
         button.setObjectName(object_name)
         button.setFlat(True)
         button.setText("")

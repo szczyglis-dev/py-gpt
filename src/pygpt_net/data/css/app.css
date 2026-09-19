@@ -24,6 +24,6 @@ QListView::item {{
 }}
 /* Main application menu: add a little vertical breathing room globally. */
 QMenuBar::item {{
-  padding-top: 15px;
-  padding-bottom: 15px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }}
