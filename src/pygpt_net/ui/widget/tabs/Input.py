@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 15:05:00                  #
+# Updated Date: 2026.09.19 12:40:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QWidget, QStyle
@@ -21,6 +21,8 @@ class InputTabs(QTabWidget):
         super().__init__(window)
         self.window = window
         self._attachments_tab_index = 1
+        self._uploaded_tab_index = 3
+        self._context_tab_index = None
         self._compact_tab_tooltips = {
             0: 'input.tab',
             1: 'attachments.tab',
@@ -117,7 +119,9 @@ class InputTabs(QTabWidget):
         if event.button() == Qt.RightButton:
             tb = self.tabBar()
             pos_in_tabbar = tb.mapFrom(self, event.pos())
-            if tb.tabAt(pos_in_tabbar) == self._attachments_tab_index:
+            tab_index = tb.tabAt(pos_in_tabbar)
+            if tab_index in (self._attachments_tab_index, self._uploaded_tab_index):
+                self._context_tab_index = tab_index
                 self.show_context_menu(event.globalPos())
 
         super().mousePressEvent(event)
@@ -132,4 +136,8 @@ class InputTabs(QTabWidget):
         self._context_menu.exec(global_pos)
 
     def _on_clear_triggered(self, checked=False):
-        self.window.controller.attachment.clear()
+        if self._context_tab_index == self._uploaded_tab_index:
+            self.window.controller.chat.attachment.clear()
+        else:
+            self.window.controller.attachment.clear()
+        self._context_tab_index = None
