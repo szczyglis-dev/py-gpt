@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 16:50:00                  #
+# Updated Date: 2026.09.19 22:25:00                  #
 # ================================================== #
 
 import json
@@ -36,6 +36,13 @@ from .context import Context
 from .response import Response
 
 class Chat:
+    # Retrieval scores are backend/model dependent and are not a portable
+    # confidence scale. Ask the retriever for a bounded set of its best-ranked
+    # candidates and keep that ordering instead of applying absolute score
+    # thresholds (e.g. 0.2/0.5), which can silently discard valid context.
+    RETRIEVAL_TOP_K = 5
+    METADATA_MAX_NODES = 3
+
     def __init__(self, window=None, storage=None):
         """
         Chat with index core
@@ -209,14 +216,13 @@ class Chat:
         self.log(f"Idx: {idx}, retrieve only: {query}")
 
         index, llm = self.get_index(idx, model, stream=stream)
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(query)
+        nodes = self._retrieve_nodes(index, query)
         outputs = []
         self.log(f"Retrieved {len(nodes)} nodes...")
         for node in nodes:
             outputs.append({
-                "text": node.text,
-                "score": node.score,
+                "text": self._get_node_text(node),
+                "score": self._get_node_score(node),
             })
         if outputs:
             response = ""
@@ -818,21 +824,21 @@ class Chat:
         llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False, auto_embed=True)
         index = self.storage.get_ctx_idx(path, llm, embed_model)
 
-        # 1. try to retrieve directly from index
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(query)
-        response = ""
-        score = 0
-        for node in nodes:
-            if node.score > 0.5:
-                score = node.score
-                response = node.text
-                break
+        # 1. try to retrieve directly from index. Similarity scores are not
+        # comparable across all embedding models/vector stores, so do not use
+        # a fixed confidence threshold here. The retriever already returns the
+        # best-ranked candidates; provide the bounded top-k context downstream.
+        nodes = self._retrieve_nodes(index, query)
+        response = self._format_retrieved_nodes(nodes)
         output = ""
         if response:
             output = str(response)
             if verbose:
-                print(f"Found using retrieval: {output} (score: {score})")
+                score = self._get_node_score(nodes[0]) if nodes else None
+                print(
+                    f"Found using retrieval: {output} "
+                    f"(nodes: {len(nodes)}, best score: {score})"
+                )
         else:
             if verbose:
                 print("Not found using retrieval, trying with query engine...")
@@ -874,17 +880,85 @@ class Chat:
         if model is None:
             model = self.window.core.models.from_defaults()
         index, llm = self.get_index(idx, model, stream=False)
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(query)
-        response = ""
-        for node in nodes:
-            if node.score > 0.2:
-                response = node.text
-                break
-        output = ""
-        if response:
-            output = str(response)
-        return output
+        nodes = self._retrieve_nodes(index, query)
+        return self._format_retrieved_nodes(nodes)
+
+    @staticmethod
+    def _get_node_text(node: Any) -> str:
+        """Return text from a retrieved node without depending on score."""
+        if node is None:
+            return ""
+        text = getattr(node, "text", None)
+        if text is None:
+            wrapped = getattr(node, "node", None)
+            text = getattr(wrapped, "text", None) if wrapped is not None else None
+        if text is None:
+            return ""
+        return str(text).strip()
+
+    @staticmethod
+    def _get_node_score(node: Any):
+        """Return a node score for diagnostics/metadata only, never filtering."""
+        if node is None:
+            return None
+        try:
+            return node.get_score()
+        except (AttributeError, TypeError, ValueError):
+            return getattr(node, "score", None)
+
+    def _retrieve_nodes(
+            self,
+            index,
+            query: str,
+            top_k: Optional[int] = None,
+    ) -> List[Any]:
+        """Retrieve a bounded set of best-ranked, non-empty unique nodes.
+
+        The retriever's ordering is authoritative. Raw similarity scores are
+        intentionally not thresholded or re-ranked because their scale and
+        interpretation can vary between embedding models and vector stores.
+        """
+        if index is None:
+            return []
+
+        if top_k is None:
+            top_k = self.RETRIEVAL_TOP_K
+
+        kwargs = {}
+        if top_k is not None and top_k > 0:
+            kwargs["similarity_top_k"] = top_k
+
+        retriever = index.as_retriever(**kwargs)
+        retrieved = retriever.retrieve(query) or []
+        nodes = []
+        seen = set()
+
+        for node in retrieved:
+            text = self._get_node_text(node)
+            if not text:
+                continue
+
+            node_id = getattr(node, "node_id", None) or getattr(node, "id_", None)
+            if node_id is not None:
+                key = ("id", str(node_id))
+            else:
+                key = ("text", text)
+            if key in seen:
+                continue
+
+            seen.add(key)
+            nodes.append(node)
+
+        return nodes
+
+    def _format_retrieved_nodes(self, nodes: List[Any]) -> str:
+        """Join retrieved chunks in retriever ranking order."""
+        parts = []
+        for node in nodes or []:
+            text = self._get_node_text(node)
+            if text:
+                parts.append(text)
+        return "\n\n---\n\n".join(parts)
 
     def get_memory_buffer(
             self,
@@ -999,20 +1073,25 @@ class Chat:
                 or len(source_nodes) == 0):
             return {}
         metadata = {}
-        i = 1
-        max = 3
-        min_score = 0.2
         for node in source_nodes:
-            if hasattr(node, "id_"):
-                id = node.id_
-                if node.metadata is not None:
-                    score = node.get_score()
-                    if score > min_score:
-                        metadata[id] = node.metadata
-                        metadata[id]["score"] = score
-                        i += 1
-                        if i > max:
-                            break
+            if len(metadata) >= self.METADATA_MAX_NODES:
+                break
+            if not hasattr(node, "id_"):
+                continue
+
+            node_metadata = getattr(node, "metadata", None)
+            if node_metadata is None:
+                continue
+
+            # Keep the query engine/retriever ranking and do not hide sources
+            # behind a backend-specific absolute score threshold. Copy metadata
+            # before adding the diagnostic score so the source node is not
+            # mutated as a side effect of rendering citations.
+            item = dict(node_metadata)
+            score = self._get_node_score(node)
+            if score is not None:
+                item["score"] = score
+            metadata[node.id_] = item
         return metadata
 
     def log(self, msg: str):
