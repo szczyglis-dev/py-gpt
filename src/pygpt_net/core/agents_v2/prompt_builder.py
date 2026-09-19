@@ -75,6 +75,17 @@ class RuntimePromptBuilder:
         if rag_context:
             rag_context = "\n\n" + rag_context
 
+        skills_context = ""
+        try:
+            skills_context = str(self.runtime.window.core.skills.prompt_catalog() or "").strip()
+        except Exception as exc:
+            try:
+                self.runtime.window.core.debug.log(exc)
+            except Exception:
+                pass
+        if skills_context:
+            skills_context = "\n\n" + skills_context
+
         project_rules = ""
         if include_project_rules:
             if not bool(getattr(self.runtime, "project_rules_loaded", False)):
@@ -105,6 +116,7 @@ class RuntimePromptBuilder:
             + workflow_policy
             + runtime_environment
             + rag_context
+            + skills_context
             + "\n\n<additional_system_prompt>\n" + additional + "\n</additional_system_prompt>"
             + project_rules
         )

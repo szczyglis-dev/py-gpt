@@ -123,6 +123,8 @@ datas += [
     (r'src\pygpt_net\data\css\*', r'data\css'),
     (r'src\pygpt_net\data\fixtures\*', r'data\fixtures'),
     (r'src\pygpt_net\data\themes\*', r'data\themes'),
+    (r'src\pygpt_net\data\skills\*', r'data\skills'),
+    (r'src\pygpt_net\data\connectors\*', r'data\connectors'),
     (r'src\pygpt_net\data\fonts\Lato\*', r'data\fonts\Lato'),
     (r'src\pygpt_net\data\fonts\SpaceMono\*', r'data\fonts\SpaceMono'),
     (r'src\pygpt_net\data\fonts\MonaspaceArgon\*', r'data\fonts\MonaspaceArgon'),

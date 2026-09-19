@@ -16,6 +16,7 @@ from .debug import Debug
 from .file import File
 from .lang import Lang
 from .plugins import Plugins
+from .skills import Skills
 from .theme import Theme
 from .tools import Tools
 from .video import Video
@@ -36,6 +37,7 @@ class Menu:
         self.file = File(window)
         self.lang = Lang(window)
         self.plugins = Plugins(window)
+        self.skills = Skills(window)
         self.theme = Theme(window)
         self.tools = Tools(window)
         self.video = Video(window)
@@ -45,6 +47,7 @@ class Menu:
         self.window.ui.menu = {}
         self.file.setup()
         self.plugins.setup()
+        self.skills.setup()
         self.audio.setup()
         self.video.setup()
         self.config.setup()

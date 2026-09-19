@@ -48,6 +48,7 @@ Features
 * Manages files and attachments with options to upload, download, and organize.
 * Context history with the capability to revert to previous contexts (long-term memory), plus optional experimental advanced context handling for very long conversations.
 * Supports project-specific ``AGENTS.md`` rules for the main agent in Chat with Agents.
+* Supports portable ``SKILL.md``-based Agent Skills, with GitHub/local import, an Explore catalog, per-profile enable/disable management, and on-demand use in Chat with Agents.
 * Allows you to easily manage prompts with handy editable presets.
 * Provides an intuitive operation and interface.
 * Includes a notepad.

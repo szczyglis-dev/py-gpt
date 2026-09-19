@@ -59,6 +59,44 @@ class WorkflowView(QWebEngineView):
         except Exception:
             pass
 
+    def _is_render_target_active(self) -> bool:
+        """Return True when this workflow is the selected tab in a visible column.
+
+        ``QWidget.isVisible()`` is not a reliable routing signal for output tabs:
+        focus may belong to the other split-screen column even though this tab is
+        the current tab of its own visible column.  For tab-hosted workflow views
+        use the actual QTabWidget selection plus splitter geometry instead.
+        Dialog-hosted views have no owning tab and keep the normal Qt visibility
+        check.
+        """
+        if self.tab is None:
+            return self.isVisible()
+
+        try:
+            column_idx = int(self.tab.column_idx)
+            layout = self.window.ui.layout
+            tabs = layout.get_tabs_by_idx(column_idx)
+            column = layout.get_column_by_idx(column_idx)
+            if tabs is None or column is None or column.isHidden():
+                return False
+
+            current_idx = tabs.currentIndex()
+            if current_idx < 0:
+                return False
+            current_tab = self.window.core.tabs.get_tab_by_index(current_idx, column_idx)
+            if current_tab is None or current_tab.pid != self.tab.pid:
+                return False
+
+            splitter = self.window.ui.splitters.get("columns")
+            if splitter is not None:
+                sizes = splitter.sizes()
+                if column_idx >= len(sizes) or int(sizes[column_idx]) <= 0:
+                    return False
+
+            return True
+        except Exception:
+            return False
+
     def _install_web_content_filters(self, root=None):
         """Observe Chromium child widgets created inside QWebEngineView."""
         if root is None:
@@ -529,12 +567,12 @@ setInterval(wfUpdateTimers, 1000);
             return
         self._pending_snapshot = snapshot
         self._dirty = True
-        if self.isVisible() and not self._render_timer.isActive():
+        if self._is_render_target_active() and not self._render_timer.isActive():
             self._render_timer.start()
 
     def _flush_render(self):
         if (self._deleted or not self._dirty or not self._loaded
-                or self._sending or not self.isVisible()):
+                or self._sending or not self._is_render_target_active()):
             return
         snapshot = self._pending_snapshot
         self._pending_snapshot = None
@@ -566,11 +604,11 @@ setInterval(wfUpdateTimers, 1000);
         self._loaded = False
         self._sending = False
         self._dirty = True
-        if self.isVisible():
+        if self._is_render_target_active():
             self._recovery_timer.start()
 
     def _recover(self):
-        if not self._deleted and self.isVisible():
+        if not self._deleted and self._is_render_target_active():
             self.build()
 
     def showEvent(self, event):

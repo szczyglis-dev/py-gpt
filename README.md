@@ -57,6 +57,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Manages files and attachments with options to upload, download, and organize.
 - Context history with the capability to revert to previous contexts (long-term memory), plus optional **experimental** advanced context handling for very long conversations.
 - Supports project-specific `AGENTS.md` rules for the main agent in Chat with Agents.
+- Supports portable `SKILL.md`-based **Agent Skills**, with GitHub/local import, an Explore catalog, per-profile enable/disable management, and on-demand use in Chat with Agents.
 - Allows you to easily manage prompts with handy editable presets.
 - Provides an intuitive operation and interface.
 - Includes a notepad.
@@ -991,6 +992,37 @@ When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation beca
 
 **WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
 
+
+# Agent Skills
+
+PyGPT supports portable **Agent Skills**: reusable instruction packages built around a `SKILL.md` file, with optional scripts, references, assets, and vendor-specific metadata. The common format is compatible with Agent Skills used by systems such as Claude Code, Codex, and compatible community tools. PyGPT preserves the complete imported skill directory instead of converting it into a PyGPT-only format.
+
+Use the top-level **Skills** menu to manage installed skills, browse the **Explore** catalog, import from GitHub, import a local `SKILL.md`/`.skill`/ZIP/TAR package or folder, and open the profile skill directory. Installed skills are stored per profile under `<profile workdir>/agents/skills/` and can be enabled or disabled without removing them.
+
+The GitHub importer accepts a repository URL, a `tree`/`blob` URL pointing to a skill, a raw `SKILL.md` URL, or shorthand such as `owner/repository:path/to/skill`. Repositories and archives may contain multiple skills; PyGPT searches them for `SKILL.md` roots and imports the discovered packages.
+
+The **Explore** tab reads a JSON catalog whose URL is configurable through `skills.catalog.url` in `config.json`. PyGPT ships with a default catalog URL and a bundled local fallback. Skills to install are selected explicitly with checkboxes.
+
+In **Chat with Agents**, Skills use progressive disclosure. The agent initially receives only compact metadata for enabled skills. When a skill matches the current task, the runtime can use `load_skill` to retrieve its full instructions and resource manifest, `read_skill_resource` to read a specific packaged text resource, and `list_skills` to search the enabled set when needed. This avoids putting every installed `SKILL.md` into every prompt.
+
+When loaded, a skill is materialized below the active conversation data workdir as `.pygpt/skills/<skill-name>/`. In Docker sandboxes the same directory is available as `/data/.pygpt/skills/<skill-name>/`. Bundled modules such as `python -m scripts.run_loop` are executed with the skill root as the working directory so relative resources and Python module resolution work correctly. `{baseDir}` is resolved to the appropriate runtime skill path.
+
+Skills do not bypass PyGPT security. Loading a skill does not automatically execute its scripts, `allowed-tools` metadata does not grant permissions, and normal plugin/tool permissions, sandbox rules, and approval requirements remain authoritative. Review third-party `SKILL.md` instructions and executable files before using them.
+
+A minimal Skill looks like this:
+
+```markdown
+---
+name: hello-skill
+description: Provides a reusable greeting workflow.
+---
+
+# Hello Skill
+
+Use this skill when the user asks for the Hello Skill.
+```
+
+For the full import, catalog, runtime, script working-directory, resource, and security behavior, see the **Agent Skills** section in the documentation.
 
 # Context and memory
 

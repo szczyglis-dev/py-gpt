@@ -36,6 +36,7 @@ from pygpt_net.ui.dialog.profile import Profile, ProfileEdit
 from pygpt_net.ui.dialog.remote_store import RemoteStore
 from pygpt_net.ui.dialog.rename import Rename
 from pygpt_net.ui.dialog.settings import Settings
+from pygpt_net.ui.dialog.skills import Skills
 from pygpt_net.ui.dialog.snap import Snap
 from pygpt_net.ui.dialog.start import Start
 from pygpt_net.ui.dialog.system_info import SystemInfo
@@ -71,6 +72,7 @@ class Dialogs:
         self.profile_item = ProfileEdit(self.window)
         self.rename = Rename(self.window)
         self.snap = Snap(self.window)
+        self.skills = Skills(self.window)
         self.start = Start(self.window)
         self.system_info = SystemInfo(self.window)
         self.update = Update(self.window)

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "skill-creator",
+      "display_name": "Skill Creator",
+      "description": "Guide for creating and improving portable Agent Skills with SKILL.md, scripts, references and assets.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/skill-creator",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/skill-creator"
+    },
+    {
+      "name": "webapp-testing",
+      "display_name": "Web App Testing",
+      "description": "Playwright-based workflow for interacting with and testing local web applications, including screenshots and browser logs.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/webapp-testing",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/webapp-testing"
+    },
+    {
+      "name": "agents-sdk",
+      "display_name": "OpenAI Agents SDK",
+      "description": "Build, run, deploy and evaluate OpenAI Agents SDK applications using the current Codex plugin skill layout.",
+      "author": "OpenAI",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/openai-developers/skills/agents-sdk",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/openai-developers/skills/agents-sdk"
+    }
+  ]
+}

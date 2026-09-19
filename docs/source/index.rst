@@ -33,6 +33,7 @@ Contents
    profiles
    models
    plugins
+   skills
    tools
    functions
    tokens

@@ -42,6 +42,7 @@ from .remote_store import RemoteStore
 from .presets import Presets
 from .profile_exporter import ProfileExporter
 from .settings import Settings
+from .skills import Skills
 from .theme import Theme
 from .tools import Tools
 from .ui import UI
@@ -90,6 +91,7 @@ class Controller:
         self.realtime = Realtime(window)
         self.remote_store = RemoteStore(window)
         self.settings = Settings(window)
+        self.skills = Skills(window)
         self.theme = Theme(window)
         self.tools = Tools(window)
         self.ui = UI(window)
@@ -120,6 +122,7 @@ class Controller:
         self.idx.setup()
         self.ui.update_tokens()
         self.dialogs.setup()
+        self.skills.setup()
         self.audio.setup()
         self.attachment.setup()
         self.camera.setup_ui()
@@ -190,6 +193,7 @@ class Controller:
             self.ui.tabs.locked = False  # unlock tabs
 
             self.settings.reload()
+            self.skills.reload()
             self.assistant.reload()
             self.remote_store.reload()
             self.attachment.reload()

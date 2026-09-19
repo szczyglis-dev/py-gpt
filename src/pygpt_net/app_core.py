@@ -45,6 +45,7 @@ from .core.profile_exporter import ProfileExporter
 from .core.remote_store import RemoteStore
 from .core.security import Security
 from .core.settings import Settings
+from .core.skills import Skills
 from .core.tabs import Tabs
 from .core.text import Text
 from .core.tokens import Tokens
@@ -101,6 +102,7 @@ class Core:
         self.remote_store = RemoteStore(window)
         self.security = Security(window)
         self.settings = Settings(window)
+        self.skills = Skills(window)
         self.tabs = Tabs(window)
         self.text = Text(window)
         self.tokens = Tokens(window)

@@ -108,6 +108,11 @@ class WorkerRuntime:
             runtime_block = f"<runtime_environment>\n{runtime_context}\n</runtime_environment>"
         worker_base_prompt = self.runtime.strategy.worker_prompt
         controller_tag = self.runtime.strategy.worker_controller_tag
+        skills_context = ""
+        try:
+            skills_context = str(self.runtime.window.core.skills.prompt_catalog() or "").strip()
+        except Exception as exc:
+            self.runtime.window.core.debug.log(exc)
         return "\n\n".join(filter(None, [
             worker_base_prompt,
             f"<workflow_language>\n{language}\n</workflow_language>",
@@ -118,6 +123,7 @@ class WorkerRuntime:
             ),
             runtime_block,
             self.runtime._rag_prompt_context(),
+            skills_context,
             (
                 f"<{controller_tag}>\n{system_prompt}\n</{controller_tag}>"
                 if system_prompt else ""

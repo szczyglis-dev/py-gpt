@@ -33,6 +33,7 @@ class WorkerToolFactory:
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
         "task_complete", "swarm_send", "swarm_receive", "swarm_peers", "delegate_task", "report_status", "shared_context", "query_index", "swarm_start", "swarm_status",
+        "list_skills", "load_skill", "read_skill_resource",
     }
 
     def __init__(self, runtime):
@@ -77,6 +78,7 @@ class WorkerToolFactory:
         if rag is not None:
             tools.append(rag)
 
+        tools.extend(self._skill_tools())
         return tools
 
     def build_orchestrator(self, actor, exclude: Optional[set] = None) -> List[BaseTool]:
@@ -99,7 +101,60 @@ class WorkerToolFactory:
         rag = self._rag_tool()
         if rag is not None:
             tools.append(rag)
+        tools.extend(self._skill_tools())
         return tools
+
+    def _skill_tools(self) -> List[BaseTool]:
+        """Expose portable Agent Skills through progressive disclosure.
+
+        Only metadata is injected into actor prompts. These tools load the full
+        SKILL.md or one referenced resource when the actor actually needs it.
+        Bundled scripts are never executed here; load_skill only materializes the
+        package into the active workdir so normal PyGPT permissions/sandboxes
+        remain authoritative.
+        """
+        core = getattr(self.window, "core", None)
+        skills = getattr(core, "skills", None)
+        if skills is None:
+            return []
+
+        async def list_skills(query: str = "") -> str:
+            return skills.list_for_agent(query)
+
+        async def load_skill(name: str) -> str:
+            return skills.load_for_agent(name, ctx=self.runtime.context.ctx)
+
+        async def read_skill_resource(name: str, path: str) -> str:
+            return skills.read_resource_for_agent(name, path)
+
+        return [
+            FunctionTool.from_defaults(
+                async_fn=list_skills,
+                name="list_skills",
+                description=(
+                    "List enabled Agent Skills, optionally filtered by query. Use this only when the prompt catalog "
+                    "does not expose a clearly matching skill or when the user explicitly asks what skills are available."
+                ),
+            ),
+            FunctionTool.from_defaults(
+                async_fn=load_skill,
+                name="load_skill",
+                description=(
+                    "Load one enabled Agent Skill by name. Returns its SKILL.md instructions, resource manifest and "
+                    "execution working-directory paths, and materializes the skill below the current working directory. "
+                    "When a skill runs bundled scripts (especially `python -m scripts...`), use the returned skill-root "
+                    "working directory instead of the main workdir. Do not load unrelated skills speculatively."
+                ),
+            ),
+            FunctionTool.from_defaults(
+                async_fn=read_skill_resource,
+                name="read_skill_resource",
+                description=(
+                    "Read one specific text resource from an enabled skill, such as references/API.md or scripts/helper.py. "
+                    "Use only after loading the skill or when that exact resource is needed."
+                ),
+            ),
+        ]
 
     async def _report_status(self, worker, status: str) -> str:
         text = str(status or "").strip()[:240]
