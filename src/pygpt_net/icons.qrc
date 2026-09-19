@@ -161,6 +161,10 @@
         <file alias="webcam_off.svg">data/icons/webcam_off.svg</file>
         <file alias="width.svg">data/icons/width.svg</file>
         <file alias="window.svg">data/icons/window.svg</file>
+        <file alias="window_close.svg">data/icons/window_close.svg</file>
+        <file alias="window_maximize.svg">data/icons/window_maximize.svg</file>
+        <file alias="window_minimize.svg">data/icons/window_minimize.svg</file>
+        <file alias="window_restore.svg">data/icons/window_restore.svg</file>
         <file alias="work.svg">data/icons/work.svg</file>
         <file alias="zoom_in.svg">data/icons/zoom_in.svg</file>
         <file alias="zoom_out.svg">data/icons/zoom_out.svg</file>

@@ -22,7 +22,12 @@ from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
+from pygpt_net.ui.widget.window_chrome import WindowChrome
 from pygpt_net.utils import get_app_meta, freeze_updates, set_env, has_env, get_env, trans
+
+
+# Set to False to use the native system window frame/title bar.
+WINDOW_FRAMELESS = True
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -47,7 +52,12 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param args: launcher arguments
         """
         super().__init__()
-        self.setWindowFlags(self.windowFlags() | Qt.WindowMinMaxButtonsHint | Qt.WindowMaximizeButtonHint)
+        # Optional borderless main window. Set WINDOW_FRAMELESS = False above
+        # to fall back to the native system frame/title bar for platform testing.
+        # Do not add native min/max/close hints in frameless mode - on Linux they
+        # may request server-side decorations again.
+        if WINDOW_FRAMELESS:
+            self.setWindowFlag(Qt.FramelessWindowHint, True)
         self.app = app
         self.args = args
         self.timer = None
@@ -94,6 +104,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui = UI(self)
         with freeze_updates(self):
             self.ui.init()
+
+        # Custom frameless window chrome. Keep the attribute available in both
+        # modes because state/fullscreen handlers treat it as optional.
+        self.window_chrome = None
+        if WINDOW_FRAMELESS:
+            self.window_chrome = WindowChrome(self)
+            self.window_chrome.setup()
 
         # global shortcuts
         self.shortcuts = []
@@ -239,6 +256,8 @@ class MainWindow(QMainWindow, QtStyleTools):
     def showEvent(self, e):
         super().showEvent(e)
         QTimer.singleShot(0, self.ui.on_show)
+        if getattr(self, "window_chrome", None) is not None:
+            QTimer.singleShot(0, self.window_chrome.refresh)
 
     def paintEvent(self, e):
         """
@@ -407,6 +426,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param event: Event
         """
         if event.type() == QEvent.WindowStateChange:
+            if getattr(self, "window_chrome", None) is not None:
+                QTimer.singleShot(0, self.window_chrome.update_state)
             if self.isMinimized() and self.core.config.get('layout.tray.minimize'):
                 self.ui.tray_menu['restore'].setVisible(True)
                 self.hide()
@@ -529,6 +550,9 @@ class MainWindow(QMainWindow, QtStyleTools):
                 fullscreen_action.blockSignals(True)
                 fullscreen_action.setChecked(enable)
                 fullscreen_action.blockSignals(False)
+
+        if getattr(self, "window_chrome", None) is not None:
+            QTimer.singleShot(0, self.window_chrome.update_state)
 
     def setup_global_shortcuts(self):
         """Setup global shortcuts"""
