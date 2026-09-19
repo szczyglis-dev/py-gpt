@@ -77,35 +77,37 @@ def test_presets():
 def test_css():
     config = Config()
     path = os.path.join(config.get_app_path(), "data", "css")
+
+    # Global CSS layers shared by all themes.
     files = [
-        "style.css",
-        "style.dark.css",
-        "style.light.css",
-        "style.flare.css",
-        "style.gray.css",
-        "style.matrix.css",
-        "style.mint.css",
-        "style.ocean.css",
-        "style.retro.css",
-        "style.sun.css",
+        "app.css",
+        "chat.css",
+        "chat.wide.css",
         "fix_windows.css",
         "fix_windows.dark.css",
         "fix_windows.light.css",
         "agent_workflow.css",
-        "web-standard.css",
-        "web-standard.dark.css",
-        "web-standard.flare.css",
-        "web-standard.gray.css",
-        "web-standard.light.css",
-        "web-standard.matrix.css",
-        "web-standard.mint.css",
-        "web-standard.ocean.css",
-        "web-standard.retro.css",
-        "web-standard.sun.css",
-        "web-wide.css",
     ]
     for file in files:
         assert os.path.exists(os.path.join(path, file))
+
+    # Every bundled theme is now a directory containing its native Qt,
+    # qt-material and WebEngine layers.
+    themes = [
+        "light",
+        "mint",
+        "gray",
+        "dark",
+        "matrix",
+        "flare",
+        "retro",
+        "ocean",
+        "sun",
+    ]
+    for theme in themes:
+        theme_path = os.path.join(path, theme)
+        for file in ("app.css", "app.xml", "chat.css"):
+            assert os.path.exists(os.path.join(theme_path, file))
 
 
 def test_fonts():
