@@ -94,6 +94,20 @@ body.theme-ocean {
     --wf-bad: #ff668c;
     --wf-button: rgba(41,216,255,0.045);
 }
+body.theme-sun {
+    --wf-text: #fff1bf;
+    --wf-muted: #b28f52;
+    --wf-line: #6b451a;
+    --wf-card: rgba(255,173,20,0.025);
+    --wf-card-border: rgba(255,173,20,0.16);
+    --wf-detail: rgba(255,213,74,0.035);
+    --wf-hover: rgba(255,173,20,0.08);
+    --wf-accent: #ffad14;
+    --wf-ok: #ffd54a;
+    --wf-warn: #ff7a18;
+    --wf-bad: #ff5a36;
+    --wf-button: rgba(255,173,20,0.045);
+}
 body.theme-mint {
     --wf-text: #17382d;
     --wf-muted: #668075;

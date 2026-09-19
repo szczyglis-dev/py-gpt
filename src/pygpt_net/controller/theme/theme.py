@@ -15,6 +15,10 @@ from typing import Any, Optional
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.types.theme import (
+    DARK_COMPATIBLE_THEMES,
+    LIGHT_COMPATIBLE_THEMES,
+)
 from pygpt_net.utils import trans, freeze_updates
 
 from .common import Common
@@ -257,7 +261,7 @@ class Theme:
         cfg = core.config
 
         base_name = os.path.splitext(os.path.basename(theme))[0]
-        is_light = base_name.startswith(('light', 'mint'))
+        is_light = self.common.normalize_theme(base_name) in LIGHT_COMPATIBLE_THEMES
         extra = {
             'density_scale': cfg.get('layout.density'),
             'pyside6': True,
@@ -324,7 +328,7 @@ class Theme:
         cfg = self.window.core.config
         core = self.window.core
         app_path = cfg.get_app_path()
-        is_light = str(name).startswith(('light', 'mint'))
+        is_light = self.common.normalize_theme(name) in LIGHT_COMPATIBLE_THEMES
         parts = [
             str(name),
             cfg.get('layout.density'),
@@ -480,9 +484,9 @@ class Theme:
         """
         Check if current theme uses dark-mode behavior.
 
-        Gray, Matrix, Flare, Retro and Ocean intentionally follow Dark behavior; Light and Mint return False.
+        Gray, Matrix, Flare, Retro, Ocean and Sun intentionally follow Dark behavior; Light and Mint return False.
 
         :return: True for dark-compatible themes, False for Light/Mint
         """
         current = self.window.core.config.get('theme')
-        return self.common.normalize_theme(current) not in ('light', 'mint')
+        return self.common.normalize_theme(current) in DARK_COMPATIBLE_THEMES

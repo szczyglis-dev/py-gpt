@@ -206,6 +206,16 @@ class Markdown:
                 "pre-bg": "#0d2230",
                 "pre": "#b8f4ff",
                 "code": "#b8f4ff",
+            },
+            "sun": {
+                "a": "#ffc247",
+                "msg-user": "#e6bd69",
+                "msg-bot": "#fff1bf",
+                "cmd": "#9b753d",
+                "ts": "#b28f52",
+                "pre-bg": "#211606",
+                "pre": "#ffe9a6",
+                "code": "#ffe9a6",
             }
         }
 

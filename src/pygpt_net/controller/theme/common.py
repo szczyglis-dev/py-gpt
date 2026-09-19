@@ -12,6 +12,11 @@
 import os
 from typing import List
 
+from pygpt_net.core.types.theme import (
+    BUILTIN_THEMES,
+    LIGHT_COMPATIBLE_THEMES,
+    THEME_MATERIAL_ASSETS,
+)
 from pygpt_net.utils import trans
 
 
@@ -42,23 +47,16 @@ class Common:
         Normalize a stored theme name to a supported built-in theme.
 
         :param theme: stored theme name
-        :return: ``dark``, ``gray``, ``matrix``, ``flare``, ``retro``, ``ocean``, ``mint`` or ``light``
+        :return: normalized built-in theme name
         """
         name = str(theme or '').lower()
-        if name.startswith('light'):
-            return 'light'
-        if name.startswith('mint'):
-            return 'mint'
         if name.startswith(('gray', 'grey')):
             return 'gray'
-        if name.startswith('matrix'):
-            return 'matrix'
-        if name.startswith('flare'):
-            return 'flare'
-        if name.startswith('retro'):
-            return 'retro'
-        if name.startswith('ocean'):
-            return 'ocean'
+        for built_in in BUILTIN_THEMES:
+            if built_in == 'gray':
+                continue
+            if name.startswith(built_in):
+                return built_in
         return 'dark'
 
     def normalize_style(self, style: str) -> str:
@@ -75,7 +73,7 @@ class Common:
 
         :return: True if light theme, False otherwise
         """
-        return self.normalize_theme(self.window.core.config.get('theme')) in ('light', 'mint')
+        return self.normalize_theme(self.window.core.config.get('theme')) in LIGHT_COMPATIBLE_THEMES
 
     def toggle_tooltips(self):
         """Toggle visibility of static tooltips"""
@@ -113,27 +111,13 @@ class Common:
 
     def translate(self, theme: str) -> str:
         """
-        Translate theme name
+        Translate theme name.
 
         :param theme: theme name
         :return: translated theme name
         """
         theme = self.normalize_theme(theme)
-        if theme == 'light':
-            return trans('theme.light')
-        if theme == 'mint':
-            return trans('theme.mint')
-        if theme == 'gray':
-            return trans('theme.gray')
-        if theme == 'matrix':
-            return trans('theme.matrix')
-        if theme == 'flare':
-            return trans('theme.flare')
-        if theme == 'retro':
-            return trans('theme.retro')
-        if theme == 'ocean':
-            return trans('theme.ocean')
-        return trans('theme.dark')
+        return trans(f'theme.{theme}')
 
     def get_style(self, element: str) -> str:
         """
@@ -158,7 +142,7 @@ class Common:
 
         :return: list of themes names
         """
-        return ['light', 'mint', 'gray', 'dark', 'matrix', 'flare', 'retro', 'ocean']
+        return list(BUILTIN_THEMES)
 
     def get_custom_themes_list(self) -> List[str]:
         """
@@ -168,7 +152,7 @@ class Common:
         """
         directory = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes')
         return [
-            name for name in ('dark', 'matrix', 'flare', 'retro', 'ocean', 'gray', 'mint', 'light')
+            name for name in THEME_MATERIAL_ASSETS
             if os.path.exists(os.path.join(directory, name + '.xml'))
         ]
 
