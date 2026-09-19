@@ -2617,7 +2617,7 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.8.26 (2026-09-20)**
 
-- Refactored, improved, and simplified CSS/QML handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
+- Refactored, improved, and simplified CSS/QSS handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
 - Fixed and optimized RAG retrieval for improved reliability and performance.
 - Fixed the splitter resize policy and improved layout resizing behavior.
 
