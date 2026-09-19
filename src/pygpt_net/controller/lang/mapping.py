@@ -387,6 +387,7 @@ class Mapping:
         menu_text['config.profile.new'] = 'menu.config.profile.new'
         menu_text['config.save'] = 'menu.config.save'
         menu_text['theme.tooltips'] = 'menu.theme.tooltips'
+        menu_text['theme.fullscreen'] = 'menu.tray.screenshot.full_screen'
         menu_text['theme.settings'] = 'menu.theme.settings'
         menu_text['plugins.presets.new'] = 'menu.plugins.presets.new'
         menu_text['plugins.presets.edit'] = 'menu.plugins.presets.edit'

@@ -296,14 +296,19 @@ class Layout:
     def state_save(self):
         """Save window state"""
         data = {}
-        geometry = self.window.geometry()
+        fullscreen = self.window.isFullScreen()
+        geometry = self.window.normalGeometry() if fullscreen else self.window.geometry()
         data['geometry'] = {
             'x': geometry.x(),
             'y': geometry.y(),
             'width': geometry.width(),
             'height': geometry.height(),
         }
-        data['maximized'] = self.window.isMaximized()
+        data['maximized'] = (
+            self.window._fullscreen_restore_maximized
+            if fullscreen
+            else self.window.isMaximized()
+        )
         self.window.core.config.set('layout.window', data)
 
         # ------------------

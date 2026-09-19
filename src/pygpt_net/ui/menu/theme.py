@@ -40,6 +40,9 @@ class Theme:
             act = m.get('theme.tooltips')
             if isinstance(act, QAction):
                 act.setChecked(w.core.config.get('layout.tooltips'))
+            fullscreen = m.get('theme.fullscreen')
+            if isinstance(fullscreen, QAction):
+                fullscreen.setChecked(w.isFullScreen())
             return
 
         m['theme'] = {}
@@ -60,6 +63,16 @@ class Theme:
         m['theme.tooltips'].triggered.connect(self._on_toggle_tooltips)
         m['theme.tooltips'].setChecked(w.core.config.get('layout.tooltips'))
 
+        m['theme.fullscreen'] = QAction(
+            QIcon(":/icons/fullscreen.svg"),
+            trans("menu.tray.screenshot.full_screen"),
+            w,
+            checkable=True,
+        )
+        m['theme.fullscreen'].setShortcut("F11")
+        m['theme.fullscreen'].setChecked(w.isFullScreen())
+        m['theme.fullscreen'].triggered.connect(w.toggle_fullscreen)
+
         m['theme.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
                                       trans("menu.theme.settings"), w)
         m['theme.settings'].setMenuRole(QAction.MenuRole.NoRole)
@@ -71,6 +84,7 @@ class Theme:
         menu_theme.addMenu(m['theme.syntax'])
         menu_theme.addMenu(m['theme.density'])
         menu_theme.addAction(m['theme.tooltips'])
+        menu_theme.addAction(m['theme.fullscreen'])
         menu_theme.addAction(m['theme.settings'])
 
         self._loaded = True

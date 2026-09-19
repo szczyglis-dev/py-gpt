@@ -60,6 +60,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.update_timer_interval = 300000  # check every 5 minutes
         self.state = self.STATE_IDLE
         self.prevState = None
+        self._fullscreen_restore_maximized = False
         self.is_post_update = False
 
         # app ready emission control
@@ -435,7 +436,9 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def restore(self):
         """Restore window"""
-        if self.prevState == Qt.WindowMaximized or self.isMaximized():
+        if self.isFullScreen():
+            self.showFullScreen()
+        elif self.prevState == Qt.WindowMaximized or self.isMaximized():
             self.showMaximized()
         else:
             self.showNormal()
@@ -494,14 +497,38 @@ class MainWindow(QMainWindow, QtStyleTools):
     def _on_escape_shortcut(self):
         """
         Global ESC: deliver ESC to the focused/popup widget first so it can handle and cleanup correctly.
-        If nothing handles it, run the app-level escape handler.
+        If there is no popup/modal, leave fullscreen before running the app-level escape handler.
         """
         if self._route_escape_to_focus_or_popup():
+            return
+        if self.isFullScreen():
+            self.toggle_fullscreen(False)
             return
         try:
             self.controller.access.on_escape()
         except Exception:
             pass
+
+    def toggle_fullscreen(self, checked=None):
+        """Toggle native fullscreen mode while preserving the previous window state."""
+        enable = not self.isFullScreen() if checked is None else bool(checked)
+
+        if enable and not self.isFullScreen():
+            self._fullscreen_restore_maximized = self.isMaximized()
+            self.showFullScreen()
+        elif not enable and self.isFullScreen():
+            if self._fullscreen_restore_maximized:
+                self.showMaximized()
+            else:
+                self.showNormal()
+
+        action = getattr(self, 'ui', None)
+        if action is not None:
+            fullscreen_action = self.ui.menu.get('theme.fullscreen') if hasattr(self.ui, 'menu') else None
+            if fullscreen_action is not None and fullscreen_action.isChecked() != enable:
+                fullscreen_action.blockSignals(True)
+                fullscreen_action.setChecked(enable)
+                fullscreen_action.blockSignals(False)
 
     def setup_global_shortcuts(self):
         """Setup global shortcuts"""
