@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.19 11:40:00                  #
 # ================================================== #
 
 import os
@@ -367,11 +367,10 @@ class Theme:
         color = f'.{theme}'
         css_dir = os.path.join(app_path, 'data', 'css')
 
-        # Renderer CSS is layered: Standard is always the base, and Wide
+        # Web renderer CSS is layered: Standard is always the base, and Wide
         # contributes only a small, theme-independent max-width override.
+        # Legacy markdown styling is generated in Python and has no CSS assets.
         css_files = [
-            'markdown.css',
-            'markdown' + color + '.css',
             'web-standard.css',
             'web-standard' + color + '.css',
         ]

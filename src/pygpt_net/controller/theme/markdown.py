@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.19 11:40:00                  #
 # ================================================== #
 
 import os
@@ -40,17 +40,16 @@ class Markdown:
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
 
-    def set_default(self):
-        """Set default markdown CSS"""
-        self.css['markdown'] = self.get_default()
-
     def apply(self):
-        """Apply CSS to renderers"""
+        """Apply renderer theme styles."""
+        # The optional non-WebEngine renderer uses a small stylesheet generated
+        # in Python. External markdown*.css assets are no longer used.
+        legacy_css = self.get_legacy_css()
         if 'output' in self.window.ui.nodes:
             for pid in self.window.ui.nodes['output']:
                 try:
-                    self.window.ui.nodes['output'][pid].setStyleSheet(self.css['markdown'])  # plain text, always apply
-                except Exception as e:
+                    self.window.ui.nodes['output'][pid].setStyleSheet(legacy_css)
+                except Exception:
                     pass
         event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
         self.window.dispatch(event)  # per current engine
@@ -99,40 +98,33 @@ class Markdown:
         )
         self.web_style = web_style
 
-        # Standard is always the base. Wide is only a tiny,
-        # theme-independent max-width override appended on top of it.
-        files = {
-            "markdown": [
-                "markdown.css",
-                "markdown" + color + ".css",
-            ],
-            "web": [
-                "web-standard.css",
-                "web-standard" + color + ".css",
-            ],
-        }
+        # WebEngine owns the current chat rendering. Standard is always the
+        # base; Wide only appends a tiny, theme-independent width override.
+        filenames = [
+            "web-standard.css",
+            "web-standard" + color + ".css",
+        ]
         if web_style == "wide":
-            files["web"].append("web-wide.css")
+            filenames.append("web-wide.css")
 
-        for base_name, filenames in files.items():
-            content = ''
-            for filename in filenames:
-                path = os.path.join(css_dir, filename)
-                if os.path.exists(path) and os.path.isfile(path):
-                    with open(path, 'r') as file:
-                        content += file.read()
+        content = ''
+        for filename in filenames:
+            path = os.path.join(css_dir, filename)
+            if os.path.exists(path) and os.path.isfile(path):
+                with open(path, 'r') as file:
+                    content += file.read()
 
-            self.css[base_name] = content  # keep raw CSS if env expansion fails
-            try:
-                self.css[base_name] = content.format(**os.environ)
-            except KeyError:
-                pass
+        self.css["web"] = content  # keep raw CSS if env expansion fails
+        try:
+            self.css["web"] = content.format(**os.environ)
+        except KeyError:
+            pass
 
-    def get_default(self) -> str:
+    def get_legacy_css(self) -> str:
         """
-        Set default markdown CSS
+        Return minimal stylesheet for the optional legacy renderer.
 
-        :return: default CSS
+        :return: legacy renderer stylesheet
         """
         colors = {
             "dark": {

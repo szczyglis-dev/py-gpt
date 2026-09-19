@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2026.09.19 11:40:00                  #
 # ================================================== #
 
 import re
@@ -667,7 +667,7 @@ class Renderer(BaseRenderer):
 
     def on_theme_change(self):
         """On theme change"""
-        stylesheet = self.window.controller.theme.markdown.css['markdown']
+        stylesheet = self.window.controller.theme.markdown.get_legacy_css()
         for node in self.get_all_nodes():
             # self.window.ui.nodes['output_plain'].setStyleSheet(stylesheet)
             node.setStyleSheet(stylesheet)
