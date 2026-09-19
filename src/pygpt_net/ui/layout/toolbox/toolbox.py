@@ -211,6 +211,11 @@ class ToolboxMain:
         splitter.addWidget(toolbox_mode)  # mode/model
         splitter.addWidget(bottom_widget)  # system prompt, footer (names, temp, logo, etc.)
 
+        # Keep the system-prompt/footer pane at the user-selected height across
+        # window resizes. The upper toolbox area is the elastic pane.
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 0)
+
         hover = ToolboxSectionHover(splitter)
         hover.register(mode_widget)
         hover.register(model_widget)
