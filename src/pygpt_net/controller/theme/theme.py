@@ -364,7 +364,7 @@ class Theme:
         theme = self.common.normalize_theme(cfg.get('theme'))
         web_style = self.common.normalize_style(cfg.get('theme.style', 'standard'))
 
-        color = '.light' if theme == 'light' else '.dark'
+        color = f'.{theme}'
         css_dir = os.path.join(app_path, 'data', 'css')
 
         # Renderer CSS is layered: Standard is always the base, and Wide
@@ -479,9 +479,11 @@ class Theme:
 
     def is_dark_theme(self) -> bool:
         """
-        Check if current theme is dark
+        Check if current theme uses dark-mode behavior.
 
-        :return: True if dark theme, False otherwise
+        Gray intentionally follows Dark behavior; only Light returns False.
+
+        :return: True for dark-compatible themes, False for Light
         """
         current = self.window.core.config.get('theme')
-        return self.common.normalize_theme(current) == 'dark'
+        return self.common.normalize_theme(current) != 'light'

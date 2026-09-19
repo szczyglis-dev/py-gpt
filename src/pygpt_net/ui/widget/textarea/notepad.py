@@ -218,9 +218,15 @@ class NotepadOutput(QTextEdit):
     def apply_theme_style(self):
         """Apply chat-output typography and the plain-chat surface to the editor."""
         size = self.window.core.config.get('font_size')
-        is_light = self.window.controller.theme.common.is_light_theme()
-        # Match the preset-list surface in both light and dark themes.
-        background = '#efefef' if is_light else '#202020'
+        theme = self.window.controller.theme.common.normalize_theme(
+            self.window.core.config.get('theme')
+        )
+        # Match the preset-list surface in each built-in color theme.
+        background = {
+            'light': '#efefef',
+            'gray': '#2b2d34',
+            'dark': '#202020',
+        }[theme]
         self.setStyleSheet(
             'QTextEdit {'
             f'font-size: {size}px;'

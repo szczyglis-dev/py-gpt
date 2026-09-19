@@ -24,6 +24,20 @@ body.theme-dark {
     --wf-bad: #e48282;
     --wf-button: rgba(255,255,255,0.04);
 }
+body.theme-gray {
+    --wf-text: #f1f3f4;
+    --wf-muted: #a8adb5;
+    --wf-line: #4a4d56;
+    --wf-card: rgba(255,255,255,0.035);
+    --wf-card-border: rgba(255,255,255,0.10);
+    --wf-detail: rgba(255,255,255,0.045);
+    --wf-hover: rgba(255,255,255,0.07);
+    --wf-accent: #a8c7fa;
+    --wf-ok: #8bd49c;
+    --wf-warn: #e6c27a;
+    --wf-bad: #ef8f8f;
+    --wf-button: rgba(255,255,255,0.05);
+}
 body.theme-light {
     --wf-text: #202124;
     --wf-muted: #6d737a;

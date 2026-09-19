@@ -87,7 +87,7 @@ class Markdown:
         theme = self.window.controller.theme.common.normalize_theme(
             self.window.core.config.get('theme')
         )
-        color = '.light' if theme == 'light' else '.dark'
+        color = f'.{theme}'
         css_dir = os.path.join(
             self.window.core.config.get_app_path(),
             'data',
@@ -154,6 +154,16 @@ class Markdown:
                 "pre-bg": "#e9e9e9",
                 "pre": "#000",
                 "code": "#000",
+            },
+            "gray": {
+                "a": "#f1f3f4",
+                "msg-user": "#d7d9df",
+                "msg-bot": "#f1f3f4",
+                "cmd": "#8b8e96",
+                "ts": "#9aa0a6",
+                "pre-bg": "#30323a",
+                "pre": "#f1f3f4",
+                "code": "#f1f3f4",
             }
         }
 

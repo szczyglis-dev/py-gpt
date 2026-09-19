@@ -35,18 +35,20 @@ class Common:
     def get_extra_css(self, name: str) -> str:
         """Return the bundled application stylesheet for a theme."""
         theme = self.normalize_theme(name)
-        return 'style.light.css' if theme == 'light' else 'style.dark.css'
+        return f'style.{theme}.css'
 
     def normalize_theme(self, theme: str) -> str:
         """
-        Normalize legacy theme names to one of the two supported themes.
+        Normalize a stored theme name to a supported built-in theme.
 
         :param theme: stored theme name
-        :return: ``dark`` or ``light``
+        :return: ``dark``, ``gray`` or ``light``
         """
         name = str(theme or '').lower()
         if name.startswith('light'):
             return 'light'
+        if name.startswith(('gray', 'grey')):
+            return 'gray'
         return 'dark'
 
     def normalize_style(self, style: str) -> str:
@@ -109,6 +111,8 @@ class Common:
         theme = self.normalize_theme(theme)
         if theme == 'light':
             return trans('theme.light')
+        if theme == 'gray':
+            return trans('theme.gray')
         return trans('theme.dark')
 
     def get_style(self, element: str) -> str:
@@ -134,17 +138,17 @@ class Common:
 
         :return: list of themes names
         """
-        return ['light', 'dark']
+        return ['light', 'gray', 'dark']
 
     def get_custom_themes_list(self) -> List[str]:
         """
-        Return local theme assets used by the two supported themes.
+        Return local theme assets used by the supported built-in themes.
 
         :return: list of theme names
         """
         directory = os.path.join(self.window.core.config.get_app_path(), 'data', 'themes')
         return [
-            name for name in ('dark', 'light')
+            name for name in ('dark', 'gray', 'light')
             if os.path.exists(os.path.join(directory, name + '.xml'))
         ]
 
