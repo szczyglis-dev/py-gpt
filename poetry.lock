@@ -455,18 +455,6 @@ msal-extensions = ">=1.2.0"
 typing-extensions = ">=4.0.0"
 
 [[package]]
-name = "backoff"
-version = "2.2.1"
-description = "Function decoration for backoff and retry"
-optional = false
-python-versions = ">=3.7,<4.0"
-groups = ["main"]
-files = [
-    {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
-    {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
-]
-
-[[package]]
 name = "banks"
 version = "2.5.0"
 description = "A prompt programming language"
@@ -1045,18 +1033,18 @@ files = [
 
 [[package]]
 name = "chromadb"
-version = "1.1.0"
+version = "1.5.9"
 description = "Chroma."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "chromadb-1.1.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:edfd17f5e04f762622d19969daffc255ae06cc3a63d8f9e5b04f291177f4bd5f"},
-    {file = "chromadb-1.1.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:e847329f1e93252ae416478db54021cf7e86fe50bffc87e1429ead22d1ad0789"},
-    {file = "chromadb-1.1.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b97dd7282fda79ef94ce20ee83b7cb62795231ecc657da5781bd2be4c55d9046"},
-    {file = "chromadb-1.1.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:472d44f634e27b7b0ee42c17771c42af19a786f003500eb540add6f475791363"},
-    {file = "chromadb-1.1.0-cp39-abi3-win_amd64.whl", hash = "sha256:4f3eaad5817b81d9f90ba2727a8b956b5428db64c0350252b5d919f1fd74632e"},
-    {file = "chromadb-1.1.0.tar.gz", hash = "sha256:50be29e2ad45f1ac0b15f57e04f48766cf1e61de0fcc5e8d31dd738a5a773b48"},
+    {file = "chromadb-1.5.9-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:60701011b5e6409647fa40d12c7c5a66b2b0bfcf33a52db2ad53a30a2abc4957"},
+    {file = "chromadb-1.5.9-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:814b9c95617377f6501e5757d63dfddb554a283a7739c87b9fa573850174e6f3"},
+    {file = "chromadb-1.5.9-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9192d111bd662241625867962333d99369a00769a50f8b2f58cb388731274d7e"},
+    {file = "chromadb-1.5.9-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cc09b3df76e5a5cb386aed2715a2eea152e3949f9e1ba93c7119505377749929"},
+    {file = "chromadb-1.5.9-cp39-abi3-win_amd64.whl", hash = "sha256:4fd0b560e56761b7f3cb4d5c6205fd5f20814484b4a3e4e9af9038c2b428fc6c"},
+    {file = "chromadb-1.5.9.tar.gz", hash = "sha256:5c20e62a455c28bacac927f26116a73fd8e1799e0d908be8e8a4f02197a54731"},
 ]
 
 [package.dependencies]
@@ -1075,9 +1063,9 @@ opentelemetry-exporter-otlp-proto-grpc = ">=1.2.0"
 opentelemetry-sdk = ">=1.2.0"
 orjson = ">=3.9.12"
 overrides = ">=7.3.1"
-posthog = ">=2.4.0,<6.0.0"
 pybase64 = ">=1.4.1"
-pydantic = ">=1.9"
+pydantic = ">=2.0"
+pydantic-settings = ">=2.0"
 pypika = ">=0.48.9"
 pyyaml = ">=6.0.0"
 rich = ">=10.11.0"
@@ -6119,30 +6107,6 @@ redis = ["redis"]
 tests = ["coverage-conditional-plugin (>=0.9.0)", "portalocker[redis]", "pytest (>=5.4.1)", "pytest-cov (>=2.8.1)", "pytest-mypy (>=0.8.0)", "pytest-rerunfailures (>=15.0)", "pytest-timeout (>=2.1.0)", "sphinx (>=6.0.0)", "types-pywin32 (>=310.0.0.20250429)", "types-redis"]
 
 [[package]]
-name = "posthog"
-version = "5.4.0"
-description = "Integrate PostHog into any python application."
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "posthog-5.4.0-py3-none-any.whl", hash = "sha256:284dfa302f64353484420b52d4ad81ff5c2c2d1d607c4e2db602ac72761831bd"},
-    {file = "posthog-5.4.0.tar.gz", hash = "sha256:701669261b8d07cdde0276e5bc096b87f9e200e3b9589c5ebff14df658c5893c"},
-]
-
-[package.dependencies]
-backoff = ">=1.10.0"
-distro = ">=1.5.0"
-python-dateutil = ">=2.2"
-requests = ">=2.7,<3.0"
-six = ">=1.5"
-
-[package.extras]
-dev = ["django-stubs", "lxml", "mypy", "mypy-baseline", "packaging", "pre-commit", "pydantic", "ruff", "setuptools", "tomli", "tomli_w", "twine", "types-mock", "types-python-dateutil", "types-requests", "types-setuptools", "types-six", "wheel"]
-langchain = ["langchain (>=0.2.0)"]
-test = ["anthropic", "coverage", "django", "freezegun (==1.5.1)", "google-genai", "langchain-anthropic (>=0.3.15)", "langchain-community (>=0.3.25)", "langchain-core (>=0.3.65)", "langchain-openai (>=0.3.22)", "langgraph (>=0.4.8)", "mock (>=2.0.0)", "openai", "parameterized (>=0.8.1)", "pydantic", "pytest", "pytest-asyncio", "pytest-timeout"]
-
-[[package]]
 name = "primp"
 version = "1.3.1"
 description = "HTTP client that can impersonate web browsers"
@@ -11038,4 +11002,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "777d503edbd338d29ad48216962ef005fb50aa44634a69b29e2e33b848748e65"
+content-hash = "2263805ba5048c912371d55865c41b05065e421d9683e55833fa3c502e52b869"

@@ -173,12 +173,12 @@ hiddenimports = [
     'sqlalchemy.dialects.sqlite.aiosqlite',
 ]
 for pkg in [
-    'chromadb', 'chromadb.migrations', 'chromadb.telemetry',
+    'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert', 'aiosqlite',
     # Kernel modules are partly imported lazily/dynamically at runtime.
     'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
-    'debugpy', 'zmq.backend',
+    'debugpy', 'zmq.backend.cython',
 ]:
     hiddenimports += collect_submodules(pkg)
 
