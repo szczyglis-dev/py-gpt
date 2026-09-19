@@ -192,7 +192,8 @@ def test_agents_v2_tool_factory_build_adds_status_shared_context_and_plugin_tool
     tools = factory.build(make_worker())
 
     assert [tool.metadata.name for tool in tools] == [
-        "normal_tool", "report_status", "shared_context"
+        "normal_tool", "report_status", "shared_context",
+        "list_skills", "load_skill", "read_skill_resource",
     ]
 
 

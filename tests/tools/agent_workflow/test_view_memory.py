@@ -53,13 +53,15 @@ def test_controller_skips_publish_when_workflow_is_hidden(monkeypatch):
 def make_view():
     page = MagicMock()
     core = SimpleNamespace(agent_workflow=SimpleNamespace(snapshot=MagicMock(return_value={'run_id': 'latest'})))
-    return SimpleNamespace(
+    view = SimpleNamespace(
         _deleted=False, _dirty=True, _loaded=True, _sending=False,
         _generation=1, _pending_snapshot=None, _render_timer=MagicMock(),
         _recovery_timer=MagicMock(), _on_terminated=MagicMock(),
         window=SimpleNamespace(core=core), isVisible=MagicMock(return_value=True),
-        page=MagicMock(return_value=page),
+        page=MagicMock(return_value=page), tab=None,
     )
+    view._is_render_target_active = lambda: WorkflowView._is_render_target_active(view)
+    return view
 
 
 def test_hidden_view_does_not_snapshot_or_send():

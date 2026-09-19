@@ -7,6 +7,7 @@ from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.mcp import Plugin
 from pygpt_net.plugin.mcp.worker import Worker
+from pygpt_net.plugin.mcp.runtime import build_headers
 from tests.mocks import mock_window
 
 
@@ -239,7 +240,7 @@ def test_worker_extract_text_blocks_with_fake_mcp_types():
 def test_worker_misc_server_helpers_match_plugin_behavior():
     worker = Worker()
     assert worker._parse_stdio_command("stdio: python x.py --a") == ("python", ["x.py", "--a"])
-    assert worker._build_headers({"authorization": "Bearer x"}) == {"Authorization": "Bearer x"}
+    assert build_headers({"authorization": "Bearer x"}) == {"Authorization": "Bearer x"}
     assert worker._server_key({"server_address": "https://host.test/mcp"}) == "http::host.test/mcp"
 
 

@@ -11,7 +11,7 @@
 import os
 from inspect import signature
 from types import SimpleNamespace
-from unittest.mock import MagicMock, call, ANY
+from unittest.mock import MagicMock, call, ANY, patch
 import pytest
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
@@ -223,52 +223,69 @@ def test_send_input_attachments_success():
     win = create_dummy_window()
     win.ui.nodes['input'].toPlainText.return_value = "attachment text"
     win.core.config.get = MagicMock(return_value=MODE_CHAT)
-    win.controller.chat.attachment.has.return_value = True
-    inp = Input(win)
-    inp.send_input(force=False)
-    calls = win.dispatch.call_args_list
-    found_busy = any(isinstance(arg[0], KernelEvent) and arg[0].data.get("msg") == "Reading attachments..." for arg, _ in calls)
-    assert found_busy
-    handle_kwargs = {}
-    if win.controller.chat.attachment.handle.call_args.kwargs:
-        handle_kwargs["request_token"] = 1
-    win.controller.chat.attachment.handle.assert_called_once_with(
-        MODE_CHAT, "attachment text", **handle_kwargs
-    )
+    win.controller.kernel.stopped.return_value = False
+    win.core.ctx.output.has_request.side_effect = [False, True]
 
-def test_send_input_attachments_native_status():
-    win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "native attachment"
-    win.core.config.get = MagicMock(return_value=MODE_CHAT)
-    win.controller.chat.attachment.has.return_value = True
-    win.core.attachments.native.get_provider.return_value = "openai"
     inp = Input(win)
-    inp.send_input(force=False)
-    calls = win.dispatch.call_args_list
-    found_busy = any(
-        isinstance(arg[0], KernelEvent)
-        and arg[0].data.get("msg") == "Processing attachments..."
-        for arg, _ in calls
+    inp.generating = True
+
+    worker = MagicMock()
+    with patch("pygpt_net.controller.chat.input.InputWorker", return_value=worker) as worker_cls:
+        inp.send_input(force=False)
+
+    meta = win.core.ctx.get_meta_by_id.return_value
+    win.controller.chat.attachment.begin_turn.assert_called_once_with(meta)
+    worker_cls.assert_called_once_with(
+        window=win,
+        request_id=1,
+        mode=MODE_CHAT,
+        text="attachment text",
+        meta=meta,
     )
-    assert found_busy
-    handle_kwargs = {}
-    if win.controller.chat.attachment.handle.call_args.kwargs:
-        handle_kwargs["request_token"] = 1
-    win.controller.chat.attachment.handle.assert_called_once_with(
-        MODE_CHAT, "native attachment", **handle_kwargs
-    )
+    worker.signals.success.connect.assert_called_once()
+    worker.signals.error.connect.assert_called_once()
+    win.threadpool.start.assert_called_once_with(worker)
+    win.controller.chat.attachment.handle.assert_not_called()
+
+
+def test_send_input_attachments_are_deferred_to_worker():
+    win = create_dummy_window()
+    inp = Input(win)
+    meta = win.core.ctx.get_meta_by_id.return_value
+
+    worker = MagicMock()
+    with patch("pygpt_net.controller.chat.input.InputWorker", return_value=worker):
+        inp._start_preprocessing(MODE_CHAT, "native attachment", meta)
+
+    win.controller.chat.attachment.handle.assert_not_called()
+    win.controller.chat.attachment.upload.assert_not_called()
+    win.threadpool.start.assert_called_once_with(worker)
+    assert inp._preprocess_worker is worker
+    assert inp._preprocess_id == 1
+
 
 def test_send_input_attachments_error():
     win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "attachment error"
-    win.core.config.get = MagicMock(return_value=MODE_CHAT)
-    win.controller.chat.attachment.has.return_value = True
-    win.controller.chat.attachment.handle.side_effect = Exception("error")
     inp = Input(win)
-    inp.send_input(force=False)
-    calls = win.dispatch.call_args_list
-    found_error = any(isinstance(arg[0], KernelEvent) and arg[0].data.get("msg", "").startswith("Error processing attachments:") for arg, _ in calls)
-    assert found_error
+    inp.generating = True
+    inp._preprocess_id = 1
+    error = RuntimeError("attachment error")
+
+    inp._on_preprocess_error(1, error)
+
+    assert inp.generating is False
+    assert inp._preprocess_id is None
+    assert inp._preprocess_worker is None
+    error_events = [
+        args[0]
+        for args, _ in win.dispatch.call_args_list
+        if args and isinstance(args[0], KernelEvent) and args[0].name == KernelEvent.STATE_ERROR
+    ]
+    assert len(error_events) == 1
+    assert "attachment error" in error_events[0].data.get("msg", "")
+    win.controller.chat.common.sync_send_stop_buttons.assert_called_once_with()
+    win.core.ctx.output.finish_request.assert_called_once_with(win.core.ctx.output.get_request_meta.return_value)
+    win.controller.ui.tabs.sync_focused_chat_context.assert_called_once_with()
 
 def test_send_calls_execute():
     win = create_dummy_window()
@@ -292,6 +309,7 @@ def test_send_calls_execute():
         "model_override": None,
         "agent_continue": False,
         "runtime_attachments": {"runtime": "attachment"},
+        "send_initialized": False,
     }
     if "preflight_busy" in signature(Input.execute).parameters:
         expected.update(preflight_busy=False, preflight_token=None)
@@ -324,6 +342,7 @@ def test_send_internal_reply_preserves_origin_mode_and_model():
         "model_override": "origin-model",
         "agent_continue": False,
         "runtime_attachments": {},
+        "send_initialized": False,
     }
     if "preflight_busy" in signature(Input.execute).parameters:
         expected.update(preflight_busy=False, preflight_token=None)

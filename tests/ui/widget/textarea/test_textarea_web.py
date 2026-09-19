@@ -150,6 +150,7 @@ def test_web_focus_helpers_route_column_focus():
     window = _window()
     tab = SimpleNamespace(column_idx=2)
     widget = SimpleNamespace(window=window, tab=tab, setFocus=MagicMock())
+    widget._activate_tab_column = lambda: ChatWebOutput._activate_tab_column(widget)
     ChatWebOutput.on_focus(widget, object())
     window.controller.ui.tabs.on_column_focus.assert_called_once_with(2)
     widget.setFocus.assert_called_once_with()

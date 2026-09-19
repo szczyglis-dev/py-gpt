@@ -14,7 +14,7 @@ def _bare_controller():
         "remote_store", "agent", "agents_v2", "tools", "ctx", "presets", "idx",
         "dialogs", "audio", "attachment", "camera", "access", "realtime",
         "media", "settings", "plugins", "model", "launcher", "calendar",
-        "painter", "notepad", "files", "theme", "profile_exporter",
+        "painter", "notepad", "files", "theme", "profile_exporter", "skills", "connectors",
     ):
         setattr(controller, name, MagicMock())
 
@@ -54,6 +54,8 @@ def test_controller_setup_calls_all_primary_components():
     controller.idx.setup.assert_called_once_with()
     controller.ui.update_tokens.assert_called_once_with()
     controller.dialogs.setup.assert_called_once_with()
+    controller.skills.setup.assert_called_once_with()
+    controller.connectors.setup.assert_called_once_with()
     controller.audio.setup.assert_called_once_with()
     controller.attachment.setup.assert_called_once_with()
     controller.camera.setup_ui.assert_called_once_with()
@@ -124,6 +126,8 @@ def test_controller_reload_success_unlocks_and_restarts_components():
     controller.ui.tabs.reload.assert_called_once_with(restore_data=False)
     controller.ctx.reload.assert_called_once_with()
     controller.ui.tabs.restore_after_ctx_reload.assert_called_once_with()
+    controller.skills.reload.assert_called_once_with()
+    controller.connectors.reload.assert_called_once_with()
     controller.agents_v2.reload.assert_called_once_with()
     controller.ui.tabs.reload_after.assert_called_once_with()
     controller.ctx.reload_after.assert_called_once_with()

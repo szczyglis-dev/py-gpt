@@ -77,9 +77,10 @@ def _window():
         state="idle", is_post_update=False, is_closing=False,
         timer=None, post_timer=None, update_timer=None, prevState=None,
         hide=MagicMock(), restore=MagicMock(), activateWindow=MagicMock(),
-        showMinimized=MagicMock(), showMaximized=MagicMock(), showNormal=MagicMock(),
+        showMinimized=MagicMock(), showMaximized=MagicMock(), showNormal=MagicMock(), showFullScreen=MagicMock(),
         isVisible=MagicMock(return_value=True), isActiveWindow=MagicMock(return_value=True),
         isMinimized=MagicMock(return_value=False), isMaximized=MagicMock(return_value=False),
+        isFullScreen=MagicMock(return_value=False), toggle_fullscreen=MagicMock(),
         dispatch=MagicMock(), _esc_shortcut=None,
     )
 

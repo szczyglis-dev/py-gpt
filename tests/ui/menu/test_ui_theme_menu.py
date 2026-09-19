@@ -20,6 +20,8 @@ def test_theme_setup_builds_menu_tree_and_marks_loaded():
     window = SimpleNamespace(
         ui=SimpleNamespace(menu=ui_menu),
         core=SimpleNamespace(config=MagicMock()),
+        isFullScreen=MagicMock(return_value=False),
+        toggle_fullscreen=MagicMock(),
     )
     window.core.config.get.return_value = True
     widget = SimpleNamespace(window=window, _loaded=False, _on_toggle_tooltips=MagicMock(), _open_settings=MagicMock())
@@ -46,12 +48,13 @@ def test_theme_setup_builds_menu_tree_and_marks_loaded():
     assert widget._loaded is True
     assert set((
         "menu.theme", "theme.theme", "theme.style", "theme.syntax",
-        "theme.density", "theme.tooltips", "theme.settings"
+        "theme.density", "theme.tooltips", "theme.fullscreen", "theme.settings"
     )).issubset(ui_menu)
     ui_menu["theme.tooltips"].setChecked.assert_called_once_with(True)
     ui_menu["theme.settings"].setMenuRole.assert_called_once_with("no-role")
     assert ui_menu["menu.theme"].addMenu.call_count == 4
-    assert ui_menu["menu.theme"].addAction.call_count == 2
+    assert ui_menu["menu.theme"].addAction.call_count == 3
+    ui_menu["theme.fullscreen"].setChecked.assert_called_once_with(False)
 
 
 def test_theme_setup_when_loaded_only_refreshes_tooltip_check_state(qapp):

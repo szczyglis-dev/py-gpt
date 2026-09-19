@@ -70,6 +70,7 @@ def test_send(mock_window):
         "model_override": None,
         "agent_continue": False,
         "runtime_attachments": None,
+        "send_initialized": False,
     }
     if "preflight_busy" in signature(Input.execute).parameters:
         expected.update(preflight_busy=False, preflight_token=None)
