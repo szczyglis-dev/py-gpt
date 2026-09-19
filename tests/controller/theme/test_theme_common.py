@@ -15,15 +15,28 @@ from tests.mocks import mock_window
 from pygpt_net.controller import Theme
 
 
-def test_get_extra_css(mock_window):
-    """Test get extra css"""
-    mock_window.core.config.data['theme'] = 'dark_teal'
+def test_get_theme_asset_paths(mock_window, tmp_path):
+    """Theme CSS is resolved from global, bundled and profile layers."""
+    builtin = tmp_path / "builtin"
+    user = tmp_path / "user"
+    (builtin / "dark").mkdir(parents=True)
+    (user / "dark").mkdir(parents=True)
+
+    expected = [
+        builtin / "app.css",
+        builtin / "dark" / "app.css",
+        user / "app.css",
+        user / "dark" / "app.css",
+    ]
+    for path in expected:
+        path.write_text("test", encoding="utf-8")
+
     theme = Theme(mock_window)
-    with patch('os.path.exists') as os_path_exists, \
-        patch('os.path.join') as os_path_join:
-        os_path_exists.return_value=True
-        os_path_join.return_value='test'
-        assert theme.common.get_extra_css('dark_teal') == 'style.dark.css'
+    with patch.object(theme.common, "get_builtin_css_dir", return_value=str(builtin)), \
+            patch.object(theme.common, "get_user_css_dir", return_value=str(user)):
+        paths = theme.common.get_theme_asset_paths("dark_teal", "app.css")
+
+    assert paths == [str(path) for path in expected]
 
 
 def test_translate(mock_window):

@@ -24,8 +24,15 @@ def _configure_theme(mock_window, theme="light", style="standard"):
         }.get(key, default)
 
     mock_window.core.config.get = MagicMock(side_effect=config_get)
-    mock_window.controller.theme.common.normalize_theme.return_value = theme
-    mock_window.controller.theme.common.normalize_style.return_value = style
+
+
+def _create_theme(mock_window, theme="light", style="standard"):
+    _configure_theme(mock_window, theme=theme, style=style)
+    controller = Theme(mock_window)
+    # Markdown intentionally resolves Common through the active theme
+    # controller, just like it does in the real application.
+    mock_window.controller.theme = controller
+    return controller
 
 
 def test_update(mock_window):
@@ -46,8 +53,7 @@ def test_update(mock_window):
 
 def test_get_legacy_css(mock_window):
     """Legacy renderer CSS is generated in Python; markdown*.css assets are no longer used."""
-    _configure_theme(mock_window, theme="light")
-    theme = Theme(mock_window)
+    theme = _create_theme(mock_window, theme="light")
 
     css = theme.markdown.get_legacy_css()
 
@@ -58,8 +64,7 @@ def test_get_legacy_css(mock_window):
 
 def test_apply(mock_window):
     """Apply generated legacy CSS and notify the current renderer about a theme change."""
-    _configure_theme(mock_window, theme="light")
-    theme = Theme(mock_window)
+    theme = _create_theme(mock_window, theme="light")
     output = MagicMock()
     mock_window.ui.nodes = {"output": {1: output}}
 
@@ -77,29 +82,39 @@ def test_apply(mock_window):
 
 def test_load(mock_window):
     """Load the standard WebEngine CSS base plus the active color theme."""
-    _configure_theme(mock_window, theme="light", style="standard")
-    theme = Theme(mock_window)
+    theme = _create_theme(mock_window, theme="light", style="standard")
+    theme.common.normalize_theme = MagicMock(return_value="light")
+    theme.common.normalize_style = MagicMock(return_value="standard")
+    theme.common.get_theme_asset_paths = MagicMock(
+        return_value=["chat.css", "light/chat.css"]
+    )
 
-    with patch("os.path.exists", return_value=True), \
-            patch("os.path.isfile", return_value=True), \
-            patch("builtins.open", mock_open(read_data="test")) as mock_file:
+    with patch("builtins.open", mock_open(read_data="test")) as mock_file:
         theme.markdown.load()
 
     assert theme.markdown.css["web"] == "testtest"
     assert theme.markdown.web_style == "standard"
+    theme.common.get_theme_asset_paths.assert_called_once_with("light", "chat.css")
     assert mock_file.call_count == 2
 
 
 def test_load_wide_appends_width_override(mock_window):
     """Wide style reuses standard CSS and appends only the width override."""
-    _configure_theme(mock_window, theme="ocean", style="wide")
-    theme = Theme(mock_window)
+    theme = _create_theme(mock_window, theme="ocean", style="wide")
+    theme.common.normalize_theme = MagicMock(return_value="ocean")
+    theme.common.normalize_style = MagicMock(return_value="wide")
+    theme.common.get_theme_asset_paths = MagicMock(
+        return_value=["chat.css", "ocean/chat.css"]
+    )
+    theme.common.get_global_asset_paths = MagicMock(
+        return_value=["chat.wide.css"]
+    )
 
-    with patch("os.path.exists", return_value=True), \
-            patch("os.path.isfile", return_value=True), \
-            patch("builtins.open", mock_open(read_data="x")) as mock_file:
+    with patch("builtins.open", mock_open(read_data="x")) as mock_file:
         theme.markdown.load()
 
     assert theme.markdown.css["web"] == "xxx"
     assert theme.markdown.web_style == "wide"
+    theme.common.get_theme_asset_paths.assert_called_once_with("ocean", "chat.css")
+    theme.common.get_global_asset_paths.assert_called_once_with("chat.wide.css")
     assert mock_file.call_count == 3
