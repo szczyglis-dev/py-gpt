@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.8.26 (2026-09-20)
+
+- Refactored, improved, and simplified CSS/QML handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
+- Fixed and optimized RAG retrieval for improved reliability and performance.
+- Fixed the splitter resize policy and improved layout resizing behavior.
+
 ## 2.8.25 (2026-09-19)
 
 - Added support for **Agent Skills**, including importing from GitHub, local files, and formats compatible with Claude, Codex, OpenClaw, and other supported ecosystems. Added a dedicated **Skills** management interface for browsing, installing, enabling, disabling, and removing skills.

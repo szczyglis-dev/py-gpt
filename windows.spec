@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 import sys
 
 from PyInstaller.utils.hooks import (
@@ -9,6 +10,19 @@ from PyInstaller.utils.hooks import (
 )
 
 block_cipher = None
+
+
+def add_data_tree(datas, src_root, dest_root):
+    """
+    Add all files below src_root recursively while preserving directory layout
+    below dest_root in the PyInstaller bundle.
+    """
+    for root, _, files in os.walk(src_root):
+        rel = os.path.relpath(root, src_root)
+        dest = dest_root if rel == "." else os.path.join(dest_root, rel)
+        for filename in files:
+            datas.append((os.path.join(root, filename), dest))
+
 
 hiddenimports = [
     'chromadb.api.segment',
@@ -108,6 +122,13 @@ try:
     )
 except Exception:
     pass
+
+add_data_tree(
+    datas,
+    r'src\pygpt_net\data\css',
+    r'data\css',
+)
+
 datas += [
     (r'src\pygpt_net\data\config\presets\*', r'data\config\presets'),
     (r'src\pygpt_net\data\config\config.json', r'data\config'),
@@ -120,7 +141,6 @@ datas += [
     (r'src\pygpt_net\data\icons\chat\*', r'data\icons\chat'),
     (r'src\pygpt_net\data\locale\*', r'data\locale'),
     (r'src\pygpt_net\data\audio\*', r'data\audio'),
-    (r'src\pygpt_net\data\css\*', r'data\css'),
     (r'src\pygpt_net\data\fixtures\*', r'data\fixtures'),
     (r'src\pygpt_net\data\skills\*', r'data\skills'),
     (r'src\pygpt_net\data\connectors\*', r'data\connectors'),

@@ -9,6 +9,19 @@ from PyInstaller.utils.hooks import (
 )
 import PySide6
 
+
+def add_data_tree(datas, src_root, dest_root):
+    """
+    Add all files below src_root recursively while preserving directory layout
+    below dest_root in the PyInstaller bundle.
+    """
+    for root, _, files in os.walk(src_root):
+        rel = os.path.relpath(root, src_root)
+        dest = dest_root if rel == "." else os.path.join(dest_root, rel)
+        for filename in files:
+            datas.append((os.path.join(root, filename), dest))
+
+
 RT_HOOK_PATH = os.path.abspath('rt_wayland.py')
 if not os.path.exists(RT_HOOK_PATH):
     with open(RT_HOOK_PATH, 'w', encoding='utf-8') as f:
@@ -82,6 +95,14 @@ try:
 except Exception:
     pass
 
+# CSS themes use a recursive directory layout (data/css/<theme-id>/...).
+# Preserve the complete tree in the frozen application.
+add_data_tree(
+    datas,
+    'src/pygpt_net/data/css',
+    'data/css',
+)
+
 datas += [
     ('src/pygpt_net/data/config/presets/*', 'data/config/presets'),
     ('src/pygpt_net/data/config/config.json', 'data/config'),
@@ -94,7 +115,6 @@ datas += [
     ('src/pygpt_net/data/icons/chat/*', 'data/icons/chat'),
     ('src/pygpt_net/data/locale/*', 'data/locale'),
     ('src/pygpt_net/data/audio/*', 'data/audio'),
-    ('src/pygpt_net/data/css/*', 'data/css'),
     ('src/pygpt_net/data/fixtures/*', 'data/fixtures'),
     ('src/pygpt_net/data/skills/*', 'data/skills'),
     ('src/pygpt_net/data/connectors/*', 'data/connectors'),

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.25** | build: **2026-09-19** | Python: **>=3.10, <3.14**
+Release: **2.8.26** | build: **2026-09-20** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2614,6 +2614,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.26 (2026-09-20)**
+
+- Refactored, improved, and simplified CSS/QML handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
+- Fixed and optimized RAG retrieval for improved reliability and performance.
+- Fixed the splitter resize policy and improved layout resizing behavior.
 
 **2.8.25 (2026-09-19)**
 
