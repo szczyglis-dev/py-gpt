@@ -53,11 +53,26 @@ class Config:
             lambda: w.controller.agents_v2.editor.toggle_editor()
         )
 
-        m['config.mcp'] = QAction(icon_settings, tr("menu.config.mcp"), w)
-        m['config.mcp'].setMenuRole(QAction.MenuRole.NoRole)
-        m['config.mcp'].triggered.connect(
+        m['config.mcp'] = QMenu(tr("menu.config.mcp"), w)
+        m['config.mcp.connectors'] = QAction(icon_settings, tr("menu.config.mcp.connectors"), w)
+        m['config.mcp.connectors'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.mcp.connectors'].triggered.connect(
+            lambda: w.controller.connectors.open(False)
+        )
+        m['config.mcp.enabled'] = QAction(tr("menu.config.mcp.enabled"), w, checkable=True)
+        m['config.mcp.enabled'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.mcp.enabled'].triggered.connect(
+            lambda _checked=False: w.controller.plugins.toggle('mcp')
+        )
+        m['config.mcp.settings'] = QAction(icon_settings, tr("menu.config.mcp.settings"), w)
+        m['config.mcp.settings'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.mcp.settings'].triggered.connect(
             lambda: w.controller.plugins.settings.open_plugin('mcp')
         )
+        m['config.mcp'].addAction(m['config.mcp.connectors'])
+        m['config.mcp'].addAction(m['config.mcp.settings'])
+        m['config.mcp'].addSeparator()
+        m['config.mcp'].addAction(m['config.mcp.enabled'])
 
         m['config.access'] = QAction(icon_access, tr("menu.config.access"), w)
         m['config.access'].setMenuRole(QAction.MenuRole.NoRole)
@@ -120,7 +135,7 @@ class Config:
         menu.addAction(m['config.settings'])
         menu.addMenu(m['config.models'])
         menu.addAction(m['config.agents'])
-        menu.addAction(m['config.mcp'])
+        menu.addMenu(m['config.mcp'])
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])

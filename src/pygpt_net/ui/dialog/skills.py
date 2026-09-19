@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 14:00:00                  #
+# Updated Date: 2026.09.19 17:40:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -30,6 +30,23 @@ from pygpt_net.utils import trans
 
 class SkillsDialog(BaseDialog):
     pass
+
+
+def _configure_tree_columns(tree: QTreeWidget, widths: dict[int, int]):
+    """Configure catalog/list columns for manual resizing and horizontal scrolling."""
+    header = tree.header()
+    # Keep regular sections manually resizable, but let the real last column
+    # (Source) consume any otherwise-empty header viewport on the right.
+    # This removes the visual "blank column" while preserving horizontal
+    # scrolling when the user widens the interactive sections.
+    header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+    header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+    header.setStretchLastSection(True)
+    tree.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+    tree.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    tree.setTextElideMode(Qt.TextElideMode.ElideRight)
+    for column, width in widths.items():
+        tree.setColumnWidth(column, width)
 
 
 class Skills:
@@ -74,8 +91,9 @@ class Skills:
         tab = QWidget()
 
         tree = QTreeWidget()
-        tree.setColumnCount(4)
+        tree.setColumnCount(5)
         tree.setHeaderLabels([
+            trans("skills.column.enabled"),
             trans("skills.column.name"),
             trans("skills.column.description"),
             trans("skills.column.standard"),
@@ -85,23 +103,29 @@ class Skills:
         tree.setAlternatingRowColors(True)
         tree.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         tree.setUniformRowHeights(True)
-        tree.header().setStretchLastSection(False)
-        tree.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        tree.customContextMenuRequested.connect(
+            self.window.controller.skills.show_installed_context_menu
+        )
+        _configure_tree_columns(tree, {1: 190, 2: 430, 3: 150, 4: 300})
         nodes["skills.installed.list"] = tree
 
         btn_github = QPushButton(QIcon(":/icons/download.svg"), trans("skills.import.github"))
         btn_github.clicked.connect(self.window.controller.skills.import_github)
+        nodes["skills.installed.btn.github"] = btn_github
         btn_file = QPushButton(QIcon(":/icons/folder_open.svg"), trans("skills.import.file"))
         btn_file.clicked.connect(self.window.controller.skills.import_file)
+        nodes["skills.installed.btn.file"] = btn_file
         btn_folder = QPushButton(QIcon(":/icons/folder.svg"), trans("skills.import.folder"))
         btn_folder.clicked.connect(self.window.controller.skills.import_folder)
-        btn_remove = QPushButton(QIcon(":/icons/delete.svg"), trans("skills.remove"))
-        btn_remove.clicked.connect(self.window.controller.skills.remove_selected)
+        nodes["skills.installed.btn.folder"] = btn_folder
         btn_open = QPushButton(QIcon(":/icons/folder_open.svg"), trans("skills.open_dir"))
         btn_open.clicked.connect(self.window.controller.skills.open_directory)
+        nodes["skills.installed.btn.open"] = btn_open
         btn_refresh = QPushButton(QIcon(":/icons/reload.svg"), trans("action.refresh"))
         btn_refresh.clicked.connect(self.window.controller.skills.refresh_installed)
-        for btn in (btn_github, btn_file, btn_folder, btn_remove, btn_open, btn_refresh):
+        nodes["skills.installed.btn.refresh"] = btn_refresh
+        for btn in (btn_github, btn_file, btn_folder, btn_open, btn_refresh):
             btn.setAutoDefault(False)
 
         buttons = QHBoxLayout()
@@ -109,7 +133,6 @@ class Skills:
         buttons.addWidget(btn_file)
         buttons.addWidget(btn_folder)
         buttons.addStretch(1)
-        buttons.addWidget(btn_remove)
         buttons.addWidget(btn_open)
         buttons.addWidget(btn_refresh)
 
@@ -135,35 +158,39 @@ class Skills:
         btn_refresh = QPushButton(QIcon(":/icons/reload.svg"), trans("skills.catalog.refresh"))
         btn_refresh.clicked.connect(self.window.controller.skills.refresh_catalog)
         btn_refresh.setAutoDefault(False)
+        catalog_label = QLabel(trans("skills.catalog.url"))
+        nodes["skills.catalog.label"] = catalog_label
+        nodes["skills.catalog.btn.refresh"] = btn_refresh
         top = QHBoxLayout()
-        top.addWidget(QLabel(trans("skills.catalog.url")))
+        top.addWidget(catalog_label)
         top.addWidget(url, 1)
         top.addWidget(btn_refresh)
 
         tree = QTreeWidget()
-        tree.setColumnCount(5)
+        tree.setColumnCount(6)
         tree.setHeaderLabels([
             "",
             trans("skills.column.name"),
             trans("skills.column.description"),
             trans("skills.column.author"),
             trans("skills.column.standard"),
+            trans("skills.column.source"),
         ])
         tree.setRootIsDecorated(False)
         tree.setAlternatingRowColors(True)
         # Installation is controlled only by the explicit checkbox column.
-        # Disable row selection so highlighted rows cannot be mistaken for the
-        # set of skills that will be installed.
-        tree.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        # A normal row click may highlight a row for navigation, but it never
+        # changes which skills are selected for installation.
+        tree.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         tree.setUniformRowHeights(True)
-        tree.header().setStretchLastSection(False)
-        tree.header().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        tree.header().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        _configure_tree_columns(tree, {1: 190, 2: 450, 3: 180, 4: 160, 5: 320})
         nodes["skills.explore.list"] = tree
 
         btn_install = QPushButton(QIcon(":/icons/download.svg"), trans("skills.install"))
         btn_install.clicked.connect(self.window.controller.skills.install_selected)
         btn_install.setAutoDefault(False)
+        btn_install.setEnabled(False)
+        nodes["skills.explore.btn.install"] = btn_install
         bottom = QHBoxLayout()
         bottom.addStretch(1)
         bottom.addWidget(btn_install)

@@ -107,6 +107,80 @@ class Custom:
         except (AttributeError, KeyError, RuntimeError):
             pass
 
+        # Agent Skills dialog. Tabs and QTreeWidget headers are created with
+        # translated strings and are not covered by the generic node mapping.
+        # Refresh them explicitly so an already open dialog follows a runtime
+        # language switch, including its persisted status line.
+        try:
+            tabs = self.window.ui.nodes.get("skills.tabs")
+            if tabs is not None:
+                tabs.setTabText(0, trans("skills.tab.installed"))
+                tabs.setTabText(1, trans("skills.tab.explore"))
+
+            installed = self.window.ui.nodes.get("skills.installed.list")
+            if installed is not None:
+                header = installed.headerItem()
+                for column, key in enumerate((
+                    "skills.column.enabled",
+                    "skills.column.name",
+                    "skills.column.description",
+                    "skills.column.standard",
+                    "skills.column.source",
+                )):
+                    header.setText(column, trans(key))
+
+            explore = self.window.ui.nodes.get("skills.explore.list")
+            if explore is not None:
+                header = explore.headerItem()
+                for column, key in enumerate((
+                    None,
+                    "skills.column.name",
+                    "skills.column.description",
+                    "skills.column.author",
+                    "skills.column.standard",
+                )):
+                    header.setText(column, "" if key is None else trans(key))
+
+            self.window.controller.skills.retranslate_status()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+
+        # MCP Connectors dialog uses the same dynamic tab/header pattern as
+        # Agent Skills, so keep its open view synchronized with the locale too.
+        try:
+            tabs = self.window.ui.nodes.get("connectors.tabs")
+            if tabs is not None:
+                tabs.setTabText(0, trans("connectors.tab.installed"))
+                tabs.setTabText(1, trans("connectors.tab.explore"))
+
+            installed = self.window.ui.nodes.get("connectors.installed.list")
+            if installed is not None:
+                header = installed.headerItem()
+                for column, key in enumerate((
+                    "connectors.column.active",
+                    "connectors.column.name",
+                    "connectors.column.transport",
+                    "connectors.column.address",
+                    "connectors.column.source",
+                )):
+                    header.setText(column, trans(key))
+
+            explore = self.window.ui.nodes.get("connectors.explore.list")
+            if explore is not None:
+                header = explore.headerItem()
+                for column, key in enumerate((
+                    None,
+                    "connectors.column.name",
+                    "connectors.column.description",
+                    "connectors.column.publisher",
+                    "connectors.column.source",
+                )):
+                    header.setText(column, "" if key is None else trans(key))
+
+            self.window.controller.connectors.retranslate_status()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+
         # Chat with Agents runtime mode selector. QComboBox item texts are not
         # covered by the generic node mapping, so retranslate them in-place
         # while keeping their stable machine-readable itemData values.

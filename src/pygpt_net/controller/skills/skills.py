@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 14:00:00                  #
+# Updated Date: 2026.09.19 17:50:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import Qt, QThreadPool, QUrl, Slot
 from PySide6.QtGui import QDesktopServices, QIcon, QPixmap
-from PySide6.QtWidgets import QFileDialog, QInputDialog, QMessageBox, QTreeWidgetItem
+from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox, QTreeWidgetItem
 
 from pygpt_net.utils import trans
 
@@ -26,12 +26,18 @@ class Skills:
         self._workers = set()
         self._refreshing = False
         self._catalog = []
+        self._status_state = {"installed": None, "explore": None}
 
     def setup(self):
         self.window.ui.dialogs.skills.setup()
         tree = self.window.ui.nodes["skills.installed.list"]
         tree.itemChanged.connect(self._on_enabled_changed)
+        explore_tree = self.window.ui.nodes["skills.explore.list"]
+        explore_tree.itemChanged.connect(self._update_install_button)
+        explore_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        explore_tree.customContextMenuRequested.connect(self.show_explore_context_menu)
         self.refresh_installed()
+        self._update_install_button()
         self.window.ui.nodes["skills.catalog.url"].setText(self.window.core.skills.get_catalog_url())
 
     def reload(self):
@@ -64,14 +70,19 @@ class Skills:
             tree.clear()
             for skill in self.window.core.skills.list_installed(force=True):
                 item = QTreeWidgetItem(tree)
-                item.setText(0, skill.get("display_name") or skill["name"])
-                item.setText(1, skill.get("description", ""))
-                item.setText(2, skill.get("standard", "agent-skills"))
+                item.setText(1, skill.get("display_name") or skill["name"])
+                item.setText(2, skill.get("description", ""))
+                item.setText(3, skill.get("standard", "agent-skills"))
                 source = skill.get("source", "local")
                 if skill.get("issues"):
                     source += " ⚠"
-                    item.setToolTip(0, "\n".join(skill["issues"]))
-                item.setText(3, source)
+                    item.setToolTip(1, "\n".join(skill["issues"]))
+                item.setText(4, source)
+                if source:
+                    item.setToolTip(4, source)
+                description = str(skill.get("description") or "")
+                if description:
+                    item.setToolTip(2, description)
                 item.setData(0, Qt.ItemDataRole.UserRole, skill["name"])
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(
@@ -80,10 +91,8 @@ class Skills:
                 )
                 icon_path = skill.get("icon_path")
                 if icon_path and os.path.isfile(icon_path):
-                    item.setIcon(0, QIcon(icon_path))
+                    item.setIcon(1, QIcon(icon_path))
             tree.resizeColumnToContents(0)
-            tree.resizeColumnToContents(2)
-            tree.resizeColumnToContents(3)
             self._update_installed_status()
         finally:
             self._refreshing = False
@@ -94,7 +103,12 @@ class Skills:
             return
         skills = self.window.core.skills.list_installed()
         enabled = sum(1 for item in skills if item.get("enabled"))
-        node.setText(trans("skills.status.installed").format(total=len(skills), enabled=enabled))
+        self._set_status_key(
+            "skills.status.installed",
+            targets=("installed",),
+            total=len(skills),
+            enabled=enabled,
+        )
 
     @Slot(QTreeWidgetItem, int)
     def _on_enabled_changed(self, item, column):
@@ -140,18 +154,31 @@ class Skills:
         self.window.core.config.set_last_used_dir(path)
         self._start_worker("import_local", path=path, enable=True)
 
-    def remove_selected(self):
+    def show_installed_context_menu(self, pos):
         tree = self.window.ui.nodes.get("skills.installed.list")
-        if tree is None or tree.currentItem() is None:
+        if tree is None:
             return
-        item = tree.currentItem()
+        item = tree.itemAt(pos)
+        if item is None:
+            return
         name = str(item.data(0, Qt.ItemDataRole.UserRole) or "")
         if not name:
             return
+        menu = QMenu(tree)
+        remove_action = menu.addAction(QIcon(":/icons/delete.svg"), trans("skills.remove"))
+        selected = menu.exec(tree.viewport().mapToGlobal(pos))
+        if selected == remove_action:
+            self.remove_skill(name, item.text(1) or name)
+
+    def remove_skill(self, name: str, display_name: str = ""):
+        name = str(name or "").strip()
+        if not name:
+            return
+        display_name = str(display_name or name)
         answer = QMessageBox.question(
             self.window,
             trans("skills.remove"),
-            trans("skills.remove.confirm").format(name=name),
+            trans("skills.remove.confirm").format(name=display_name),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -160,9 +187,21 @@ class Skills:
         try:
             self.window.core.skills.remove(name)
             self.refresh_installed()
-            self._set_status(trans("skills.status.removed").format(name=name))
+            self._set_status_key("skills.status.removed", name=display_name)
         except Exception as exc:
             self.window.ui.dialogs.alert(str(exc))
+
+    def remove_selected(self):
+        """Compatibility wrapper for callers outside the dialog UI."""
+        tree = self.window.ui.nodes.get("skills.installed.list")
+        if tree is None:
+            return
+        item = tree.currentItem()
+        if item is None:
+            return
+        name = str(item.data(0, Qt.ItemDataRole.UserRole) or "")
+        if name:
+            self.remove_skill(name, item.text(1) or name)
 
     def open_directory(self):
         path = self.window.core.skills.get_root_dir()
@@ -174,6 +213,31 @@ class Skills:
         if url:
             self.window.core.skills.set_catalog_url(url)
         self._start_worker("catalog", url=url or self.window.core.skills.get_catalog_url())
+
+    def show_explore_context_menu(self, pos):
+        tree = self.window.ui.nodes.get("skills.explore.list")
+        if tree is None:
+            return
+        item = tree.itemAt(pos)
+        if item is None:
+            return
+        idx = item.data(0, Qt.ItemDataRole.UserRole)
+        try:
+            entry = self._catalog[int(idx)]
+        except (TypeError, ValueError, IndexError):
+            return
+        name = str(entry.get("name") or "")
+        installed = {x["name"] for x in self.window.core.skills.list_installed()}
+        if name in installed:
+            return
+        menu = QMenu(tree)
+        install_action = menu.addAction(QIcon(":/icons/download.svg"), trans("action.install"))
+        selected = menu.exec(tree.viewport().mapToGlobal(pos))
+        if selected == install_action:
+            button = self.window.ui.nodes.get("skills.explore.btn.install")
+            if button is not None:
+                button.setEnabled(False)
+            self._start_worker("install_catalog_many", entries=[entry], enable=True)
 
     def install_selected(self):
         tree = self.window.ui.nodes.get("skills.explore.list")
@@ -190,10 +254,26 @@ class Skills:
             except (TypeError, ValueError, IndexError):
                 continue
         if not entries:
+            self._update_install_button()
             return
+        button = self.window.ui.nodes.get("skills.explore.btn.install")
+        if button is not None:
+            button.setEnabled(False)
         # Install checked entries serially inside one worker. Registry updates
         # must not race when several skills are selected at once.
         self._start_worker("install_catalog_many", entries=entries, enable=True)
+
+    @Slot(QTreeWidgetItem, int)
+    def _update_install_button(self, *_args):
+        tree = self.window.ui.nodes.get("skills.explore.list")
+        button = self.window.ui.nodes.get("skills.explore.btn.install")
+        if tree is None or button is None:
+            return
+        checked = any(
+            tree.topLevelItem(row).checkState(0) == Qt.CheckState.Checked
+            for row in range(tree.topLevelItemCount())
+        )
+        button.setEnabled(checked)
 
     def _render_catalog(self, entries):
         self._catalog = list(entries or [])
@@ -217,6 +297,10 @@ class Skills:
             item.setText(2, str(entry.get("description") or ""))
             item.setText(3, str(entry.get("author") or entry.get("publisher") or ""))
             item.setText(4, str(entry.get("standard") or "Agent Skills"))
+            source = str(entry.get("url") or entry.get("homepage") or "")
+            item.setText(5, source)
+            if source:
+                item.setToolTip(5, source)
             raw_icon = entry.get("_icon_bytes")
             if raw_icon:
                 pixmap = QPixmap()
@@ -225,18 +309,39 @@ class Skills:
             homepage = str(entry.get("homepage") or entry.get("url") or "")
             if homepage:
                 item.setToolTip(1, homepage)
+            description = item.text(2)
+            if description:
+                item.setToolTip(2, description)
         tree.resizeColumnToContents(0)
-        tree.resizeColumnToContents(1)
-        tree.resizeColumnToContents(3)
-        tree.resizeColumnToContents(4)
-        node = self.window.ui.nodes.get("skills.explore.status")
-        if node is not None:
-            node.setText(trans("skills.status.catalog").format(total=len(self._catalog)))
+        # QTreeWidget may make the first inserted item current automatically.
+        # Keep the catalog visually neutral until the user explicitly clicks a
+        # row; install selection is represented only by column-0 checkboxes.
+        tree.clearSelection()
+        tree.setCurrentItem(None)
+        self._update_install_button()
+        self._set_status_key(
+            "skills.status.catalog",
+            targets=("explore",),
+            total=len(self._catalog),
+        )
 
     def _start_worker(self, action: str, **kwargs):
+        status_key = {
+            "catalog": "skills.status.loading_catalog",
+            "import_github": "skills.status.importing_github",
+            "import_local": "skills.status.importing_local",
+            "install_catalog": "skills.status.installing",
+            "install_catalog_many": "skills.status.installing",
+        }.get(action)
+        if status_key:
+            targets = ("explore",) if action == "catalog" else ("installed", "explore")
+            self._set_status_key(status_key, targets=targets)
+
         worker = SkillsWorker(self.window, action, **kwargs)
         self._workers.add(worker)
-        worker.signals.status.connect(self._set_status)
+        worker.signals.status.connect(
+            lambda text, a=action: self._set_worker_status(a, text)
+        )
         worker.signals.finished.connect(lambda a, r, w=worker: self._on_worker_finished(w, a, r))
         worker.signals.error.connect(lambda a, e, w=worker: self._on_worker_error(w, a, e))
         QThreadPool.globalInstance().start(worker)
@@ -247,6 +352,37 @@ class Skills:
             node = self.window.ui.nodes.get(key)
             if node is not None:
                 node.setText(str(text or ""))
+
+    def _set_worker_status(self, action: str, text: str):
+        """Route worker progress to the tab that owns the operation."""
+        if action == "catalog":
+            targets = ("explore",)
+        else:
+            targets = ("installed", "explore")
+        value = str(text or "")
+        for target in targets:
+            node = self.window.ui.nodes.get(f"skills.{target}.status")
+            if node is not None:
+                node.setText(value)
+
+    def _set_status_key(self, key: str, targets=("installed", "explore"), **kwargs):
+        state = (str(key), dict(kwargs))
+        text = trans(key).format(**kwargs)
+        for target in targets:
+            self._status_state[target] = state
+            node = self.window.ui.nodes.get(f"skills.{target}.status")
+            if node is not None:
+                node.setText(text)
+
+    def retranslate_status(self):
+        """Refresh persisted dialog status texts after a runtime locale change."""
+        for target, state in self._status_state.items():
+            if not state:
+                continue
+            key, kwargs = state
+            node = self.window.ui.nodes.get(f"skills.{target}.status")
+            if node is not None:
+                node.setText(trans(key).format(**kwargs))
 
     def _on_worker_finished(self, worker, action: str, result):
         self._workers.discard(worker)
@@ -260,11 +396,13 @@ class Skills:
             self._render_catalog(self._catalog)
         names = [str(item.get("name")) for item in (result or []) if isinstance(item, dict)]
         if names:
-            self._set_status(trans("skills.status.imported").format(names=", ".join(names)))
+            self._set_status_key("skills.status.imported", names=", ".join(names))
         else:
-            self._set_status(trans("skills.status.ready"))
+            self._set_status_key("skills.status.ready")
 
     def _on_worker_error(self, worker, action: str, error):
         self._workers.discard(worker)
-        self._set_status(trans("skills.status.error").format(error=error))
+        if action == "install_catalog_many":
+            self._update_install_button()
+        self._set_status_key("skills.status.error", error=error)
         self.window.ui.dialogs.alert(str(error))

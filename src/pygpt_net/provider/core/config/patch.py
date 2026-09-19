@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 09:00:00                  #
+# Updated Date: 2026.09.19 17:20:00                  #
 # ================================================== #
 
 import copy
@@ -1058,6 +1058,17 @@ class Patch:
             # < 2.8.25
             if old < parse_version("2.8.25"):
                 print("Migrating config from < 2.8.25...")
+
+                # Catalog URLs are configurable from 2.8.25. Keep the bundled
+                # defaults/fallbacks in the catalog providers for missing or empty values.
+                to_add = [
+                    "skills.catalog.url",
+                    "connectors.catalog.url",
+                ]
+                for key in to_add:
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
 
                 # Chat view style IDs were simplified in 2.8.25. Standard is
                 # the base style and Wide is only a max-width overlay.

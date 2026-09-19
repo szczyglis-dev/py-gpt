@@ -34,6 +34,7 @@ Contents
    models
    plugins
    skills
+   connectors
    tools
    functions
    tokens

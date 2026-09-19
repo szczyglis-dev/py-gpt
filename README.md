@@ -45,6 +45,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing` and `xAI Grok Voice`.
 - Plugins support with built-in plugins like `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.
 - MCP support.
+- Built-in **MCP Connectors** manager with catalog browsing and import from common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
 - Camera capture for real-time image analysis in Chat and other supported modes, controlled from the `Audio / Video` menu.
 - Image analysis via vision models.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
@@ -1023,6 +1024,22 @@ Use this skill when the user asks for the Hello Skill.
 ```
 
 For the full import, catalog, runtime, script working-directory, resource, and security behavior, see the **Agent Skills** section in the documentation.
+
+# MCP Connectors
+
+PyGPT includes a built-in **MCP Connectors** manager for importing, browsing, and managing Model Context Protocol server definitions. Connectors are a convenience layer over the existing **MCP** plugin: imported definitions are normalized directly into the MCP plugin server registry, so there is no separate connector runtime or duplicate tool registry.
+
+Open **Config -> MCP... -> Connectors...** to manage them. The **Installed** tab lets you enable/disable connectors, add or edit entries manually, remove them, import configurations, and jump to the normal MCP plugin settings. Imported connectors are disabled by default until you explicitly enable them.
+
+The importer accepts GitHub/config URLs, local files, and folders. It recognizes common MCP configuration layouts used by Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible generic JSON, JSONC/JSON5, TOML, YAML, and YML files. Vendor-specific fields are normalized into PyGPT's MCP server format where supported, while additional metadata is preserved for reference.
+
+The **Explore** tab reads a JSON catalog. Its URL can be set with `connectors.catalog.url` in `config.json`; when no custom URL is configured, PyGPT uses the built-in catalog URL and can fall back to the bundled local catalog if that default remote catalog cannot be loaded. Catalog entries are selected explicitly with checkboxes and are installed disabled until enabled by the user.
+
+After a connector is enabled, the regular **MCP** plugin handles its transport, server connection/startup, tool discovery, cached tool metadata, allow/deny filtering, and execution. Local `stdio` servers and remote HTTP/Streamable HTTP or SSE servers are supported according to the MCP plugin configuration.
+
+Review imported connector commands, URLs, environment variables, HTTP headers, authorization data, working directories, and tool filters before enabling them. Local connectors may start external processes and remote connectors may send requests or credentials to external services.
+
+For the full import formats, catalog behavior, runtime mapping, and security notes, see the **MCP Connectors** section in the documentation.
 
 # Context and memory
 

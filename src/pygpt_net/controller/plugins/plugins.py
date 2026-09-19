@@ -218,6 +218,12 @@ class Plugins:
         for pid, action in menu_plugins.items():
             action.setChecked(self.enabled.get(pid, False))
 
+        mcp_action = self.window.ui.menu.get('config.mcp.enabled')
+        if mcp_action is not None:
+            registered = self.window.core.plugins.is_registered('mcp')
+            mcp_action.setEnabled(registered)
+            mcp_action.setChecked(registered and self.enabled.get('mcp', False))
+
         self.handle_types()
         self.window.controller.ui.mode.update()
         self.window.controller.ui.vision.update()

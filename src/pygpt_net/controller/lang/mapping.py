@@ -349,11 +349,37 @@ class Mapping:
         nodes['tool.indexer.ctx.header.tip'] = 'tool.indexer.tab.ctx.tip'
         nodes['tool.indexer.browse.header.tip'] = 'tool.indexer.tab.browse.tip'
 
+        # Agent Skills dialog
+        nodes['skills.info'] = 'skills.info'
+        nodes['skills.btn.close'] = 'action.close'
+        nodes['skills.installed.btn.github'] = 'skills.import.github'
+        nodes['skills.installed.btn.file'] = 'skills.import.file'
+        nodes['skills.installed.btn.folder'] = 'skills.import.folder'
+        nodes['skills.installed.btn.open'] = 'skills.open_dir'
+        nodes['skills.installed.btn.refresh'] = 'action.refresh'
+        nodes['skills.catalog.label'] = 'skills.catalog.url'
+        nodes['skills.catalog.btn.refresh'] = 'skills.catalog.refresh'
+        nodes['skills.explore.btn.install'] = 'skills.install'
+
+        # MCP Connectors dialog
+        nodes['connectors.info'] = 'connectors.info'
+        nodes['connectors.btn.close'] = 'action.close'
+        nodes['connectors.installed.btn.github'] = 'connectors.import.github'
+        nodes['connectors.installed.btn.file'] = 'connectors.import.file'
+        nodes['connectors.installed.btn.folder'] = 'connectors.import.folder'
+        nodes['connectors.installed.btn.add'] = 'action.add'
+        nodes['connectors.installed.btn.edit'] = 'action.edit'
+        nodes['connectors.installed.btn.mcp'] = 'connectors.mcp_settings'
+        nodes['connectors.catalog.label'] = 'connectors.catalog.url'
+        nodes['connectors.catalog.btn.refresh'] = 'action.refresh'
+        nodes['connectors.explore.btn.install'] = 'connectors.install'
+
         menu_title = {}
         menu_title['menu.app'] = 'menu.file'
         menu_title['menu.config'] = 'menu.config'
         menu_title['config.profile'] = 'menu.config.profile'
         menu_title['config.models'] = 'menu.config.models'
+        menu_title['config.mcp'] = 'menu.config.mcp'
         menu_title['menu.lang'] = 'menu.lang'
         menu_title['menu.debug'] = 'menu.debug'
         menu_title['menu.theme'] = 'menu.theme'
@@ -362,6 +388,7 @@ class Mapping:
         menu_title['theme.density'] = 'menu.theme.density'
         menu_title['theme.style'] = 'menu.theme.style'
         menu_title['menu.plugins'] = 'menu.plugins'
+        menu_title['menu.skills'] = 'menu.skills'
         menu_title['menu.plugins.presets'] = 'menu.plugins.presets'
         menu_title['menu.about'] = 'menu.info'
         menu_title['menu.audio'] = 'menu.audio'
@@ -377,7 +404,9 @@ class Mapping:
         menu_text['app.exit'] = 'menu.file.exit'
         menu_text['config.settings'] = 'menu.config.settings'
         menu_text['config.agents'] = 'menu.config.agents'
-        menu_text['config.mcp'] = 'menu.config.mcp'
+        menu_text['config.mcp.settings'] = 'menu.config.mcp.settings'
+        menu_text['config.mcp.connectors'] = 'menu.config.mcp.connectors'
+        menu_text['config.mcp.enabled'] = 'menu.config.mcp.enabled'
         menu_text['config.models.edit'] = 'menu.config.models.edit'
         menu_text['config.models.import.provider'] = 'menu.config.models.import.provider'
         menu_text['config.access'] = 'menu.config.access'
@@ -392,6 +421,12 @@ class Mapping:
         menu_text['plugins.presets.new'] = 'menu.plugins.presets.new'
         menu_text['plugins.presets.edit'] = 'menu.plugins.presets.edit'
         menu_text['plugins.settings'] = 'menu.plugins.settings'
+        menu_text['skills.manage'] = 'skills.manage'
+        menu_text['skills.explore'] = 'skills.explore'
+        menu_text['skills.import.github'] = 'skills.import.github'
+        menu_text['skills.import.file'] = 'skills.import.file'
+        menu_text['skills.import.folder'] = 'skills.import.folder'
+        menu_text['skills.open_dir'] = 'skills.open_dir'
         menu_text['menu.plugins.section.common'] = 'menu.plugins.section.common'
         menu_text['menu.plugins.section.other'] = 'menu.plugins.section.other'
         menu_text['info.about'] = 'menu.info.about'
@@ -454,6 +489,8 @@ class Mapping:
         dialog_title['profile.editor'] = 'dialog.profile.editor'
         dialog_title['profile.item'] = 'dialog.profile.item.editor'
         dialog_title['tool.indexer'] = 'tool.indexer.title'
+        dialog_title['skills'] = 'skills.title'
+        dialog_title['connectors'] = 'connectors.title'
 
         tooltips = {}
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
@@ -475,6 +512,8 @@ class Mapping:
         placeholders['ctx.search'] = 'ctx.list.search.placeholder'
         placeholders['interpreter.input'] = 'interpreter.input.placeholder'
         placeholders['input'] = 'input.placeholder'
+        placeholders['skills.catalog.url'] = 'skills.catalog.url.placeholder'
+        placeholders['connectors.catalog.url'] = 'connectors.catalog.url.placeholder'
 
         mapping = {}
         mapping['nodes'] = nodes

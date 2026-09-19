@@ -22,6 +22,7 @@ from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
+from .runtime import build_env, build_headers, float_option, parse_stdio, tool_allowed
 
 
 class Plugin(BasePlugin):
@@ -269,7 +270,14 @@ class Plugin(BasePlugin):
             async def _run_discovery():
                 if transport == "stdio":
                     cmd, args = self._parse_stdio_command(address)
-                    params = StdioServerParameters(command=cmd, args=args)
+                    kwargs = {"command": cmd, "args": args}
+                    env = build_env(server)
+                    cwd = (server.get("cwd") or "").strip()
+                    if env is not None:
+                        kwargs["env"] = env
+                    if cwd:
+                        kwargs["cwd"] = cwd
+                    params = StdioServerParameters(**kwargs)
                     async with stdio_client(params) as (read, write):
                         async with ClientSession(read, write) as session:
                             await session.initialize()
@@ -287,7 +295,8 @@ class Plugin(BasePlugin):
                 else:
                     raise RuntimeError(f"Unsupported MCP transport: {transport}")
 
-            return await asyncio.wait_for(_run_discovery(), timeout=per_server_timeout)
+            timeout = float_option(server, "startup_timeout_sec", per_server_timeout)
+            return await asyncio.wait_for(_run_discovery(), timeout=timeout)
 
         # Cache / run discovery per server concurrently to bound total time
         tasks = []
@@ -296,7 +305,7 @@ class Plugin(BasePlugin):
             if not address:
                 continue
 
-            transport = self._detect_transport(address)
+            transport = self._detect_transport(address, server)
             server_tag = self._make_server_tag(server, server_idx)
             server_key = self._server_key(server)
             headers = self._build_headers(server)
@@ -351,9 +360,7 @@ class Plugin(BasePlugin):
             server_idx, server_tag, transport, allowed, disabled, tools, server = outcome
             for tool in tools:
                 tname = getattr(tool, "name", None) or tool.get("name")
-                if disabled and tname in disabled:
-                    continue
-                if allowed and tname not in allowed:
+                if not tool_allowed(tname, allowed, disabled):
                     continue
                 results.append((server_idx, server_tag, transport, tool, server))
 
@@ -430,13 +437,16 @@ class Plugin(BasePlugin):
         items = [x for x in items if x]
         return set(items) if items else None
 
-    def _detect_transport(self, address: str) -> str:
+    def _detect_transport(self, address: str, server: Optional[dict] = None) -> str:
         """
-        Detect transport from address:
+        Detect transport from explicit connector metadata or address:
         - 'stdio: ...' -> stdio
         - 'http(s)://.../mcp' or general http(s) -> http (Streamable HTTP)
         - 'sse://' or 'sse+http(s)://' or path containing '/sse' -> sse
         """
+        explicit = str((server or {}).get("transport") or "").strip().lower()
+        if explicit in ("stdio", "http", "sse"):
+            return explicit
         if address.lower().startswith("stdio:"):
             return "stdio"
         lower = address.lower()
@@ -455,11 +465,7 @@ class Plugin(BasePlugin):
 
     def _parse_stdio_command(self, address: str) -> Tuple[str, List[str]]:
         """Parse 'stdio: <command line>' into (command, args)."""
-        cmdline = address[len("stdio:"):].strip()
-        tokens = shlex.split(cmdline)
-        if not tokens:
-            raise ValueError("Invalid stdio address: empty command")
-        return tokens[0], tokens[1:]
+        return parse_stdio(address)
 
     def _make_server_tag(self, server: dict, idx: int) -> str:
         """
@@ -483,16 +489,8 @@ class Plugin(BasePlugin):
             return f"server_{idx}"
 
     def _build_headers(self, server: dict) -> Optional[dict]:
-        """
-        Build optional headers for HTTP/SSE transports.
-        Currently supports Authorization only.
-        """
-        auth = (server.get("authorization") or "").strip()
-        headers = {}
-        if auth:
-            # If user passed only token, you may expect 'Bearer <token>'
-            headers["Authorization"] = auth
-        return headers or None
+        """Build connector HTTP/SSE headers, including env-backed values."""
+        return build_headers(server)
 
     def _slugify(self, text: str) -> str:
         """
@@ -563,11 +561,16 @@ class Plugin(BasePlugin):
         """Signature of current config to invalidate cache when config changes."""
         norm: List[str] = []
         for idx, srv in active_servers:
-            addr = (srv.get("server_address") or "").strip()
-            label = (srv.get("label") or "").strip()
-            auth = (srv.get("authorization") or "").strip()
-            a = ",".join(sorted(list(self._parse_csv(srv.get("allowed_commands")) or [])))
-            d = ",".join(sorted(list(self._parse_csv(srv.get("disabled_commands")) or [])))
-            norm.append(f"{idx}|{label}|{addr}|AUTH:{bool(auth)}|A:{a}|D:{d}")
-        blob = "|#|".join(norm)
-        return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+            allowed = ",".join(sorted(list(self._parse_csv(srv.get("allowed_commands")) or [])))
+            disabled = ",".join(sorted(list(self._parse_csv(srv.get("disabled_commands")) or [])))
+            fields = [
+                str(idx), str(srv.get("label") or ""), str(srv.get("server_address") or ""),
+                str(srv.get("transport") or ""), str(srv.get("authorization") or ""),
+                str(srv.get("headers") or ""), str(srv.get("env_http_headers") or ""),
+                str(srv.get("bearer_token_env_var") or ""), str(srv.get("env") or ""),
+                str(srv.get("cwd") or ""), str(srv.get("startup_timeout_sec") or ""),
+                allowed, disabled,
+            ]
+            norm.append("|".join(fields))
+        return hashlib.sha256("|#|".join(norm).encode("utf-8")).hexdigest()
+

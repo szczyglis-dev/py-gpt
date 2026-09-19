@@ -36,6 +36,7 @@ Features
 * Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing`` and ``xAI Grok Voice``.
 * Plugins support with built-in plugins like ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * MCP support.
+* Built-in MCP Connectors manager with catalog browsing and import from common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
 * Camera capture for real-time image analysis in Chat and other supported modes, controlled from the ``Audio / Video`` menu.
 * Image analysis via vision models.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.

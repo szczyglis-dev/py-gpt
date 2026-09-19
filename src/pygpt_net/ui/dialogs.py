@@ -18,6 +18,7 @@ from pygpt_net.ui.dialog.agents import Agents as AgentsV2Editor
 from pygpt_net.ui.dialog.applog import AppLog
 from pygpt_net.ui.dialog.assistant import Assistant
 from pygpt_net.ui.dialog.changelog import Changelog
+from pygpt_net.ui.dialog.connectors import Connectors
 from pygpt_net.ui.dialog.create import Create
 from pygpt_net.ui.dialog.db import Database
 from pygpt_net.ui.dialog.debug import Debug
@@ -59,6 +60,7 @@ class Dialogs:
         self.assistant = Assistant(self.window)
         self.app_log = AppLog(self.window)
         self.changelog = Changelog(self.window)
+        self.connectors = Connectors(self.window)
         self.create = Create(self.window)
         self.database = Database(self.window)
         self.debug = Debug(self.window)

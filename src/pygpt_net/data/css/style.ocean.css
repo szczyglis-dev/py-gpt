@@ -43,6 +43,28 @@ QListView::item {{
   min-height: 20px;
 }}
 
+/* Keep checkable item indicators visible on dark/colored rows. */
+QTreeView::indicator,
+QListView::indicator,
+QTableView::indicator {{
+  width: 14px;
+  height: 14px;
+  border: 1px solid #aeb2b5;
+  border-radius: 2px;
+}}
+QTreeView::indicator:unchecked,
+QListView::indicator:unchecked,
+QTableView::indicator:unchecked {{
+  background-color: rgba(0, 0, 0, 20);
+  border: 1px solid #aeb2b5;
+}}
+QTreeView::indicator:checked,
+QListView::indicator:checked,
+QTableView::indicator:checked {{
+  background-color: #c8cbcd;
+  border: 1px solid #f0f0f0;
+}}
+
 /* Subtle hover for list/tree items (non-selected) */
 QListView::item:hover:!selected,
 QTreeView::item:hover:!selected {{

@@ -21,6 +21,7 @@ from .camera import Camera
 from .chat import Chat
 from .command import Command
 from .config import Config
+from .connectors import Connectors
 from .ctx import Ctx
 from .debug import Debug
 from .dialogs import Dialogs
@@ -70,6 +71,7 @@ class Controller:
         self.chat = Chat(window)
         self.command = Command(window)
         self.config = Config(window)
+        self.connectors = Connectors(window)
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)
@@ -123,6 +125,7 @@ class Controller:
         self.ui.update_tokens()
         self.dialogs.setup()
         self.skills.setup()
+        self.connectors.setup()
         self.audio.setup()
         self.attachment.setup()
         self.camera.setup_ui()
@@ -194,6 +197,7 @@ class Controller:
 
             self.settings.reload()
             self.skills.reload()
+            self.connectors.reload()
             self.assistant.reload()
             self.remote_store.reload()
             self.attachment.reload()
