@@ -878,7 +878,7 @@ class Chat:
         nodes = retriever.retrieve(query)
         response = ""
         for node in nodes:
-            if node.score > 0.5:
+            if node.score > 0.2:
                 response = node.text
                 break
         output = ""
@@ -1001,7 +1001,7 @@ class Chat:
         metadata = {}
         i = 1
         max = 3
-        min_score = 0.3
+        min_score = 0.2
         for node in source_nodes:
             if hasattr(node, "id_"):
                 id = node.id_
