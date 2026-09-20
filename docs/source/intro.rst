@@ -4,9 +4,9 @@ Introduction
 Overview
 ----------------
 
-**PyGPT** is an **all-in-one desktop AI assistant** supporting models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``o1``, ``o3``), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, and models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``Gemma 4``, ``Qwen 3.6``, ``Llama 4``, ``Mistral Small 3.2``, ``DeepSeek``, ``Bielik``, ``Nemotron``, and ``gpt-oss``.
+**PyGPT** is an **all-in-one desktop AI assistant** supporting models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, etc.), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, and models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``Gemma``, ``Qwen``, ``Llama``, ``Mistral``, ``DeepSeek``, ``Bielik``, ``Nemotron``, and ``gpt-oss``.
 
-It supports chat, agents, completions, Chat with Files (via ``LlamaIndex``), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
+It supports chat, agents, completions, Chat with Files (RAG), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 
 **PyGPT** also provides speech synthesis through ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI``, plus speech recognition with ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Bing`` and ``xAI Grok Voice``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -26,9 +26,9 @@ Features
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
 * 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
-* Supports multiple models like ``OpenAI GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``o1``, ``o3``, ``o4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Gemma 4``, ``Qwen 3.6``, ``Llama 4``, ``Mistral Small 3.2``, ``DeepSeek``, ``Bielik``, ``Nemotron``, ``gpt-oss``, etc.
-* Chat with your own Files: integrated ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
-* Built-in vector databases support and automated files and data embedding.
+* Supports multiple models like ``OpenAI GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Gemma``, ``Qwen``, ``Llama``, ``Mistral``, ``DeepSeek``, ``Bielik``, ``Nemotron``, ``gpt-oss``, etc.
+* Chat with your own Files: integrated RAG ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
+* Built-in vector databases support and automated files, db context and data embedding.
 * Image generation via models like ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
 * Video generation via models like ``Veo3`` and ``Sora2``.
 * Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
@@ -37,6 +37,10 @@ Features
 * Plugins support with built-in plugins like ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
 * MCP support.
 * Built-in MCP Connectors manager with catalog browsing and import from common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
+* Includes Chat with Agents, a multi-agent mode with Chat, Orchestrator, and Swarm workflows for direct agent interaction, controlled background delegation, or large parallel worker groups.
+* Supports project-specific ``AGENTS.md`` rules for the main agent in Chat with Agents.
+* Supports portable ``SKILL.md``-based Agent Skills, with GitHub/local import, an Explore catalog, per-profile enable/disable management, and on-demand use in Chat with Agents.
+* Built-in ``Python/OS`` tool with real-time Python / IPython execution.
 * Camera capture for real-time image analysis in Chat and other supported modes, controlled from the ``Audio / Video`` menu.
 * Image analysis via vision models.
 * Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
@@ -45,18 +49,13 @@ Features
 * Tools and commands execution (via plugins: access to the local filesystem, Python/OS, system commands execution, and more).
 * Custom commands creation and execution.
 * Crontab / Task scheduler included.
-* Built-in ``Python/OS`` tool with real-time Python / IPython execution.
 * Manages files and attachments with options to upload, download, and organize.
 * Context history with the capability to revert to previous contexts (long-term memory), plus optional experimental advanced context handling for very long conversations.
-* Supports project-specific ``AGENTS.md`` rules for the main agent in Chat with Agents.
-* Supports portable ``SKILL.md``-based Agent Skills, with GitHub/local import, an Explore catalog, per-profile enable/disable management, and on-demand use in Chat with Agents.
 * Allows you to easily manage prompts with handy editable presets.
 * Provides an intuitive operation and interface.
 * Includes a notepad.
 * Includes simple painter / drawing tool.
 * Includes the node-based Agent Builder (Legacy) for older agent modes.
-* Includes Chat with Agents, a multi-agent mode with Chat, Orchestrator, and Swarm workflows for direct agent interaction, controlled background delegation, or large parallel worker groups.
-* Includes Experts as reusable specialized agents powered by the same Agents v2 runtime and exposed to conversations through the regular ``expert_call`` tool.
 * Supports multiple languages.
 * Requires no previous knowledge of using AI models.
 * Fully configurable.
