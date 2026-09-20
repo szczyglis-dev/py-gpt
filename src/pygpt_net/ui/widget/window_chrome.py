@@ -31,6 +31,8 @@ from PySide6.QtWidgets import (
     QTabBar,
     QTextEdit,
     QPushButton,
+    QLabel,
+    QSizePolicy,
     QWidget,
 )
 
@@ -89,6 +91,8 @@ class WindowChrome(QObject):
         self.window = window
         self.menu_bar = None
         self.container = None
+        self.profile_label = None
+        self.version_label = None
         self.btn_minimize = None
         self.btn_maximize = None
         self.btn_close = None
@@ -115,8 +119,18 @@ class WindowChrome(QObject):
             self.container.setObjectName("windowControls")
 
             layout = QHBoxLayout(self.container)
-            layout.setContentsMargins(0, 0, 0, 0)
+            # Keep metadata compact and nudge it slightly below the top edge.
+            # The labels use a non-expanding size policy below, so spare menu-bar
+            # width never turns into a large gap between profile and version.
+            layout.setContentsMargins(0, 5, 0, 0)
             layout.setSpacing(0)
+
+            self.profile_label = self._make_meta_label("windowProfileLabel")
+            profile_font = self.profile_label.font()
+            profile_font.setBold(True)
+            self.profile_label.setFont(profile_font)
+
+            self.version_label = self._make_meta_label("windowVersionLabel")
 
             self.btn_minimize = self._make_button(
                 "windowMinimizeButton",
@@ -135,6 +149,10 @@ class WindowChrome(QObject):
                 hover_icon_color="#ffffff",
             )
 
+            layout.addWidget(self.profile_label)
+            layout.addSpacing(20)
+            layout.addWidget(self.version_label)
+            layout.addSpacing(20)
             layout.addWidget(self.btn_minimize)
             layout.addWidget(self.btn_maximize)
             layout.addWidget(self.btn_close)
@@ -169,6 +187,7 @@ class WindowChrome(QObject):
         self.menu_bar.installEventFilter(self)
         self._install_drag_filters()
         self._setup_resize_handles()
+        self.refresh_metadata()
         self.update_state()
         QTimer.singleShot(0, self.refresh)
 
@@ -176,7 +195,61 @@ class WindowChrome(QObject):
         """Refresh locally filtered passive widgets and edge handles."""
         self._install_drag_filters()
         self._position_resize_handles()
+        self.refresh_metadata()
         self.update_state()
+
+
+    def _make_meta_label(self, object_name: str) -> QLabel:
+        """Create a compact secondary-text label for the frameless menu bar."""
+        label = QLabel(self.container)
+        label.setObjectName(object_name)
+        label.setProperty('class', 'label-help')
+        label.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
+        label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
+        label.setFixedHeight(self.BUTTON_HEIGHT)
+        label.setFocusPolicy(Qt.NoFocus)
+        label.setTextInteractionFlags(Qt.NoTextInteraction)
+        label.setContentsMargins(0, 0, 0, 0)
+        return label
+
+    def refresh_metadata(self):
+        """Refresh current profile name and application version in the title bar."""
+        if self.profile_label is not None:
+            try:
+                name = self.window.core.config.profile.get_current_name()
+            except (AttributeError, RuntimeError):
+                name = ""
+            profile_text = str(name or "")
+            self.profile_label.setText(profile_text)
+            # QMenuBar corner widgets do not always recalculate their width when
+            # a child label changes after setup (for example after profile
+            # switch/rename). Reserve the exact text width so the right-aligned
+            # profile name cannot lose its leading characters.
+            self.profile_label.setMinimumWidth(
+                self.profile_label.fontMetrics().horizontalAdvance(profile_text) + 2
+                if profile_text else 0
+            )
+
+        if self.version_label is not None:
+            try:
+                version = self.window.meta.get("version", "")
+            except (AttributeError, RuntimeError):
+                version = ""
+
+            version_text = f"v{version}" if version else ""
+            self.version_label.setText(version_text)
+            self.version_label.setMinimumWidth(
+                self.version_label.fontMetrics().horizontalAdvance(version_text) + 2
+                if version_text else 0
+            )
+
+        if self.container is not None:
+            self.profile_label.updateGeometry() if self.profile_label is not None else None
+            self.version_label.updateGeometry() if self.version_label is not None else None
+            self.container.updateGeometry()
+            self.container.adjustSize()
+            if self.menu_bar is not None:
+                self.menu_bar.updateGeometry()
 
     def _make_button(
         self,

@@ -132,6 +132,9 @@ class Profile:
         self.update_menu()
         self.update_list()
         self.window.ui.update_title()
+        chrome = getattr(self.window, "window_chrome", None)
+        if chrome is not None:
+            chrome.refresh_metadata()
         self.switching = False
         self.window.update_status(trans("dialog.profile.status.changed") + ": " + name)
         self.window.ui.dialogs.close('profile.item')
@@ -274,6 +277,9 @@ class Profile:
             self.window.update_status(trans("dialog.profile.status.updated"))
             if uuid == current:
                 self.window.ui.update_title()
+                chrome = getattr(self.window, "window_chrome", None)
+                if chrome is not None:
+                    chrome.refresh_metadata()
                 if old_path != path_stripped:
                     self.switch(uuid, force=True)
 
