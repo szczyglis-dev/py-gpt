@@ -56,7 +56,7 @@ directory.
 The active project data workdir is resolved at runtime. The ``Files`` tab,
 ``Files I/O``, Python interpreter, filesystem-aware tools and model-facing data
 paths use the data directory that belongs to the current conversation. In
-Docker sandboxes the same host directory is exposed as ``/data``. Switching to
+Docker sandboxes the same host directory is exposed as ``/mnt/data``. Switching to
 a conversation in another project therefore changes the effective ``data``
 root without changing the application's base workdir.
 

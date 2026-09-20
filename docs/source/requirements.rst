@@ -93,9 +93,9 @@ To manage future updates just use:
     $ sudo snap connect pygpt:alsa
 
 
-**Connecting IPython in Docker in Snap version**:
+**Connecting the Docker sandbox in the Snap version**:
 
-To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
+To use Docker-backed plugin sandboxes in the Snap version, you must connect PyGPT to the Docker daemon:
 
 .. code-block:: console
 

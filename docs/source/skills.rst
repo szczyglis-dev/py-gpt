@@ -136,11 +136,11 @@ The installed source package lives in the profile-level ``agents/skills`` direct
 
 relative to the current data workdir. This also makes Skills compatible with project-specific data workdirs.
 
-For local host execution, PyGPT gives the agent the absolute host path to the materialized skill. When a Python or system tool is running in the Docker sandbox, the same active data directory is mounted under ``/data``, so the skill is available at:
+For local host execution, PyGPT gives the agent the absolute host path to the materialized skill. When a Python or system tool is running in the Docker sandbox, the same active data directory is mounted under ``/mnt/data``, so the skill is available at:
 
 .. code-block:: text
 
-   /data/.pygpt/skills/<skill-name>/
+   /mnt/data/.pygpt/skills/<skill-name>/
 
 Skill packages often contain Python modules under ``scripts/`` and use commands such as:
 

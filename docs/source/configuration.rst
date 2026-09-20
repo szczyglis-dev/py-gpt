@@ -826,7 +826,7 @@ Conversations outside projects and projects using the shared workdir continue to
 use ``<profile workdir>/data``.
 
 This runtime override is used by the Files view, Files I/O, Python interpreter,
-filesystem-aware tools, file-download paths and Docker ``/data`` mappings. It
+filesystem-aware tools, file-download paths and Docker ``/mnt/data`` mappings. It
 does **not** relocate ``config.json``, ``models.json``, ``db.sqlite``, ``tmp``,
 ``cache``, ``css``, ``locale``, fonts, logs or other profile-level paths.
 ``tmp`` always remains in the base profile workdir. ``img``, ``capture`` and

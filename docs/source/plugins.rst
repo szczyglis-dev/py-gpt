@@ -28,13 +28,13 @@ The following plugins are currently available:
 * ``Memory (inline)`` - maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
 * ``Mouse and keyboard`` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 * ``OpenStreetMap`` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
-* ``Python interpreter`` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+* ``Python interpreter`` - lets models execute Python or IPython code on the host or through a selectable sandbox backend (currently Docker), with mutually exclusive standard-Python/IPython tool sets and project-aware file access.
 * ``RAG (inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 * ``Real time`` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
 * ``Serial port / USB`` - gives models access to configured serial and USB devices for reading data and sending commands.
 * ``Server (SSH/FTP)`` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
 * ``Slack`` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
-* ``System (OS)`` - provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
+* ``System (OS)`` - executes system commands through a selectable host/sandbox backend (currently Disabled or Docker), with project-aware runtime paths.
 * ``Telegram`` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 * ``Tuya (IoT)`` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
 * ``TwelveLabs`` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
@@ -2004,22 +2004,28 @@ Python interpreter
 
 **Executing Code**
 
-The plugin operates similarly to the ``Code Interpreter`` feature in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the active ``data`` directory. For conversations in a project with a custom workdir, that project directory becomes the runtime data root; otherwise the shared ``<profile workdir>/data`` directory is used. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in a Docker container.
+The plugin provides local Python execution for model-generated code and for code started manually from the ``Python/OS`` window. It uses the active conversation's runtime ``data`` workdir, so a project with a custom data workdir is handled automatically. Execution can run directly on the host or through the selected sandbox backend. The ``Sandbox`` selector currently provides ``Disabled`` and ``Docker``; additional sandbox backends can be added independently of the interpreter mode.
 
-**IPython:** IPython is the recommended execution mode and offers significant improvements over the legacy Python workflow. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
+The ``Use IPython`` option selects which Python tool set is exposed to the model:
 
-To use IPython in sandbox mode, Docker must be installed on your system. When the sandbox is started, the active conversation's runtime ``data`` workdir is mounted as ``/data``. Switching to a project with a custom data workdir changes this mapping at runtime; the base profile workdir itself is not remapped.
+* when enabled (default), only the IPython tools are exposed: ``ipython_exec``, ``ipython_sys_exec`` and ``ipython_kernel_restart``;
+* when disabled, only the standard Python tools are exposed: ``python_exec``, ``python_exec_file`` and ``python_sys_exec``.
 
-**IPython system commands:** The ``ipython_sys_exec`` tool is available for executing operating-system commands inside the active IPython environment. It is similar to ``sys_exec`` from the ``System (OS)`` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, ``ipython_sys_exec`` executes the command inside that Docker container.
+The two execution tool sets are never exposed together. HTML Canvas tools are independent of this selection.
 
-**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless ``sudo`` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the ``Python interpreter`` plugin settings.
+**IPython:** IPython is the recommended execution mode and keeps kernel state between calls, which is useful for iterative development and data analysis. It also supports IPython magic/shell syntax such as ``!pip install <package_name>``. Use ``ipython_exec`` for Python code and ``ipython_sys_exec`` for operating-system commands in the same runtime environment.
 
+**Standard Python:** ``python_exec`` executes Python code directly. The model provides only the ``code`` argument; PyGPT handles the temporary script path internally. Use ``python_exec_file`` only when an existing Python file should be executed. ``python_sys_exec`` runs shell/system commands in the same selected host or sandbox runtime as the standard Python interpreter.
 
-You can find the installation instructions here: https://docs.docker.com/engine/install/
+**Sandbox:** Select the backend in ``Plugins -> Settings -> Python interpreter -> General -> Sandbox``. ``Disabled`` runs the selected interpreter on the host. ``Docker`` runs it in the Docker backend. In Docker mode the active conversation's host ``data`` workdir is mounted as ``/mnt/data`` and is used as the runtime working directory. A custom project data workdir is remapped automatically when that project is active.
 
-**Connecting IPython in Docker in Snap version**:
+**Docker permissions:** The stock Docker images run as the unprivileged ``pygpt`` user by default, with passwordless ``sudo`` available when elevated privileges are required. The IPython and standard-Python Docker settings have separate ``Run as root`` options.
 
-To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
+Docker installation: https://docs.docker.com/engine/install/
+
+**Connecting Docker in the Snap version**:
+
+To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemon:
 
 .. code-block:: console
 
@@ -2029,7 +2035,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
     $ sudo snap connect pygpt:docker docker:docker-daemon
 
-**Python interpreter:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon above the input field to open the Python/OS window. You can also open it from the main menu: ``Tools -> Python / OS``. Alternatively, enable split-screen mode and open ``Python/OS`` in the second view column, or add it as a tool to a tab. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Python/OS window:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon above the input field to open it, use ``Tools -> Python / OS``, or pin it in a split/output tab. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled. The same ``Use IPython`` setting controls manual execution from this window, so the UI and model-facing tool set use the same interpreter mode.
 
 .. image:: images/v2_interpreter_icon.png
    :width: 600
@@ -2038,7 +2044,7 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
    :width: 600
 
 .. important::
-   Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the ``Python interpreter`` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+   Local execution requires a working host Python/IPython environment. If host execution fails because of Python, package, kernel, or environment issues, select ``Docker`` in the plugin's ``Sandbox`` option to use the isolated Docker backend.
 
    Docker installation: https://docs.docker.com/engine/install/
 
@@ -2051,111 +2057,103 @@ To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
 
 **General**
 
+- ``Use IPython`` *use_ipython*
+
+Select the interpreter mode. When enabled, PyGPT exposes only the IPython tool set. When disabled, it exposes only the standard Python tool set. *Default:* ``True``
+
+- ``Sandbox`` *sandbox*
+
+Select the execution backend. Available values are ``Disabled`` and ``Docker``. ``Disabled`` executes on the host; ``Docker`` executes in the Docker sandbox. *Default:* ``Disabled``
+
 - ``Connect to the Python/OS window`` *attach_output*
 
 Automatically attach code input/output to the Python/OS window. *Default:* ``True``
 
 - ``Max interpreter window entries`` *output_max_entries*
 
-Maximum number of input/output blocks kept in the interpreter window. Set to ``0`` for no limit. *Default:* ``30``
+Maximum number of input/output blocks kept in the interpreter window. Set to ``0`` for no limit. *Default:* ``10``
 
 - ``Always run code in a fresh kernel`` *fresh_kernel*
 
-If enabled, each code execution uses the same path as the interpreter's **Run in a fresh kernel** action instead of reusing the current kernel state. *Default:* ``False``
-
-- ``Tool: get_python_output`` *cmd.get_python_output*
-
-Allows ``get_python_output`` command execution. If enabled, it allows retrieval of the output from the Python/OS window. *Default:* ``True``
-
-- ``Tool: get_python_input`` *cmd.get_python_input*
-
-Allows ``get_python_input`` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python/OS window. *Default:* ``True``
-
-- ``Tool: clear_python_output`` *cmd.clear_python_output*
-
-Allows ``clear_python_output`` command execution. If enabled, it allows clear the output of the Python/OS window. *Default:* ``True``
+If enabled, each IPython execution uses the same path as the interpreter's **Run in a fresh kernel** action instead of reusing the current kernel state. *Default:* ``False``
 
 
 **IPython**
 
-- ``Sandbox (docker container)`` *sandbox_ipython*
-
-Executes IPython in a Docker sandbox. Docker must be installed and running. *Default:* ``False``
-
 - ``Run as root`` *ipython_run_as_root*
 
-Run the IPython sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. *Default:* ``False``
+Run the IPython Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
 
 - ``Dockerfile for IPython kernel`` *ipython_dockerfile*
 
-You can customize the Dockerfile for the image used by IPython by editing the configuration above and rebuilding the image via Tools -> Rebuild IPython Docker Image.
+Dockerfile used to build the IPython kernel image. You can customize it and rebuild the image via ``Tools -> Rebuild IPython Docker Image``.
 
 - ``Session Key`` *ipython_session_key*
 
-It must match the key provided in the Dockerfile.
+Session key used by the IPython kernel connection. It must match the key provided by the container configuration.
 
 - ``Docker image name`` *ipython_image_name*
 
-Custom Docker image name
+Custom Docker image name. *Default:* ``pygpt_ipython_kernel``
 
 - ``Docker container name`` *ipython_container_name*
 
-Custom Docker container name
+Custom Docker container name. *Default:* ``pygpt_ipython_kernel_container``
 
 - ``Connection address`` *ipython_conn_addr*
 
-Default: 127.0.0.1
+Default: ``127.0.0.1``
 
 - ``Port: shell`` *ipython_port_shell*
 
-Default: 5555
+Default: ``5555``
 
 - ``Port: iopub`` *ipython_port_iopub*
 
-Default: 5556
+Default: ``5556``
 
 - ``Port: stdin`` *ipython_port_stdin*
 
-Default: 5557
+Default: ``5557``
 
 - ``Port: control`` *ipython_port_control*
 
-Default: 5558
+Default: ``5558``
 
 - ``Port: hb`` *ipython_port_hb*
 
-Default: 5559
+Default: ``5559``
 
-- ``Tool: ipython_execute`` *cmd.ipython_execute*
+- ``Tool: ipython_exec`` *cmd.ipython_exec*
 
-Allows Python code execution in IPython interpreter (in current kernel). *Default:* ``True``
+Executes Python code in the current IPython kernel. The tool accepts one required ``code`` parameter. *Default:* ``True``
 
-- ``Tool: python_kernel_restart`` *cmd.ipython_kernel_restart*
+- ``Tool: ipython_sys_exec`` *cmd.ipython_sys_exec*
 
-Allows to restart IPython kernel. *Default:* ``True``
+Executes a shell/system command in the active IPython environment. With ``Sandbox = Docker`` the command runs inside the Docker runtime; with ``Sandbox = Disabled`` it runs on the host. *Default:* ``True``
+
+- ``Tool: ipython_kernel_restart`` *cmd.ipython_kernel_restart*
+
+Restarts the IPython kernel. Normally automatic recovery handles a kernel failure; this tool is intended for manual recovery when needed. *Default:* ``True``
 
 
-**Python (legacy)**
-
-- ``Sandbox (docker container)`` *sandbox_docker*
-
-Executes legacy Python commands in a Docker sandbox. Docker must be installed and running. *Default:* ``False``
+**Python (legacy / standard Python)**
 
 - ``Run as root`` *docker_run_as_root*
 
-Run the legacy Python sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. *Default:* ``False``
+Run the standard Python Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
 
 - ``Python command template`` *python_cmd_tpl*
 
-Python command template (use {filename} as path to file placeholder). *Default:* ``python3 {filename}``
+Python command template used to execute the temporary or selected Python file; use ``{filename}`` as the file-path placeholder. *Default:* ``python3 {filename}``
 
 - ``Dockerfile`` *dockerfile*
 
-You can customize the Dockerfile for the image used by legacy Python by editing the configuration above and rebuilding the image via Tools -> Rebuild Python (Legacy) Docker Image.
+Dockerfile used by the standard Python Docker backend. You can customize it and rebuild the image via ``Tools -> Rebuild Python (Legacy) Docker Image``.
 
 - ``Docker image name`` *image_name*
 
-Custom Docker image name
+Custom Docker image name. *Default:* ``pygpt_python_legacy``
 
 - ``Docker container name`` *container_name*
 
@@ -2163,38 +2161,38 @@ Custom Docker container name. *Default:* ``pygpt_python_legacy_container``
 
 - ``Docker run command`` *docker_entrypoint*
 
-Command used to keep the legacy Python container alive. *Default:* ``tail -f /dev/null``
+Command used to keep the standard Python container alive. *Default:* ``tail -f /dev/null``
 
 - ``Docker volumes`` *docker_volumes*
 
-Host-to-container volume mappings. The stock configuration maps the active conversation's runtime ``data`` workdir to ``/data``. If a project uses a custom data workdir, the Docker mapping is updated at runtime for that project. The application's base workdir and its non-data directories are not remapped.
+Host-to-container volume mappings. The stock configuration maps the active conversation's runtime ``data`` workdir to ``/mnt/data``. If a project uses a custom data workdir, the Docker mapping is updated at runtime for that project. The application's base workdir and its non-data directories are not remapped.
 
 - ``Docker ports`` *docker_ports*
 
 Optional host-to-container port mappings. The default list is empty.
 
-- ``Tool: code_execute`` *cmd.code_execute*
+- ``Tool: python_exec`` *cmd.python_exec*
 
-Allows ``code_execute`` command execution. If enabled, provides Python code execution (generate and execute from file). *Default:* ``True``
+Executes Python code directly. The public tool accepts only the required ``code`` parameter; PyGPT manages the temporary script path internally. *Default:* ``True``
 
-- ``Tool: code_execute_all`` *cmd.code_execute_all*
+- ``Tool: python_exec_file`` *cmd.python_exec_file*
 
-Allows ``code_execute_all`` command execution. If enabled, provides execution of all the Python code in interpreter window. *Default:* ``True``
+Executes an existing Python file. The tool accepts the required ``path`` parameter. *Default:* ``True``
 
-- ``Tool: code_execute_file`` *cmd.code_execute_file*
+- ``Tool: python_sys_exec`` *cmd.python_sys_exec*
 
-Allows ``code_execute_file`` command execution. If enabled, provides Python code execution from existing .py file. *Default:* ``True``
+Executes a shell/system command in the standard Python runtime. With ``Sandbox = Docker`` the command runs inside the Docker backend; with ``Sandbox = Disabled`` it runs on the host. *Default:* ``True``
 
 
 **HTML Canvas**
 
-- ``Tool: render_html_output`` *cmd.render_html_output*
+- ``Tool: html_render_output`` *cmd.html_render_output*
 
-Allows ``render_html_output`` command execution. If enabled, it allows to render HTML/JS code in built-in HTML/JS browser (HTML Canvas). *Default:* ``True``
+Renders HTML/JS code in the built-in HTML Canvas. *Default:* ``True``
 
-- ``Tool: get_html_output`` *cmd.get_html_output*
+- ``Tool: html_get_output`` *cmd.html_get_output*
 
-Allows ``get_html_output`` command execution. If enabled, it allows retrieval current output from HTML Canvas. *Default:* ``True``
+Returns the current output from HTML Canvas. *Default:* ``True``
 
 
 RAG (inline)
@@ -2625,15 +2623,23 @@ Upload a file via external flow and share in Slack.
 System (OS)
 -----------
 
-The plugin provides access to the operating system and executes system commands.
+The plugin provides operating-system command execution through a selectable execution backend. The ``Sandbox`` option is the single execution-mode selector: ``Disabled`` runs ``sys_exec`` directly on the host, while ``Docker`` runs it in the Docker sandbox. The backend layer is separate from the tool itself, so additional sandbox implementations can be added without changing the ``sys_exec`` contract.
+
+When ``Sandbox = Docker``, the active conversation's runtime ``data`` directory is mounted at ``/mnt/data`` and used as the command working directory. Project-specific data workdirs are mapped automatically. Host-side security checks apply to non-sandbox execution; sandbox execution uses the selected sandbox backend's isolation.
+
+``sys_exec`` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled.
 
 **Options:**
 
 **General**
 
+- ``Sandbox`` *sandbox*
+
+Select the execution backend. Available values are ``Disabled`` and ``Docker``. ``Disabled`` executes commands on the host; ``Docker`` executes them in the Docker sandbox. *Default:* ``Disabled``
+
 - ``Auto-append CWD to sys_exec`` *auto_cwd*
 
-Automatically append the current runtime data working directory to ``sys_exec`` commands. In a project with a custom data workdir this resolves to the project directory; otherwise it resolves to the shared profile ``data`` directory. *Default:* ``True``
+Automatically append the current runtime working directory to ``sys_exec`` commands. On the host this is the active conversation's data workdir. In the Docker backend the runtime working directory is ``/mnt/data``. *Default:* ``True``
 
 - ``Connect to the Python/OS window`` *attach_output*
 
@@ -2641,62 +2647,59 @@ Mirror ``sys_exec`` command input and output to the Python/OS window. *Default:*
 
 - ``Tool: sys_exec`` *cmd.sys_exec*
 
-Allows ``sys_exec`` command execution. If enabled, provides system commands execution. *Default:* ``True``
+Allows system command execution through the currently selected execution backend. Commands are non-interactive and should not wait for stdin. *Default:* ``True``
 
-**Sandbox (Docker)**
-
-- ``Sandbox (docker container)`` *sandbox_docker*
-
-  Executes all ``sys_exec`` shell commands inside an isolated Docker container. Requires Docker to be installed and running. Default: ``False``
+**Sandbox (Docker backend)**
 
 - ``Run as root`` *docker_run_as_root*
 
-  Run the System sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` can be used for commands that require root privileges. Default: ``False``
+  Run the Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` can be used for commands that require root privileges. *Default:* ``False``
 
 - ``Dockerfile`` *dockerfile*
 
-  The Dockerfile used to build the sandbox image. The stock image is based on Python 3.12 Alpine, includes commonly used shell/network utilities, uses ``/data`` as the workdir, and runs as the unprivileged ``pygpt`` user by default. You can customize it and rebuild via Tools → “Rebuild Docker sandbox Images”.
+  The Dockerfile used to build the sandbox image. The stock image is based on Python 3.12 Alpine, includes commonly used shell/network utilities, uses ``/mnt/data`` as the workdir, and runs as the unprivileged ``pygpt`` user by default. You can customize it and rebuild via ``Tools -> Rebuild Docker sandbox Images``.
 
 - ``Docker image name`` *image_name*
 
-  Name of the Docker image used by the sandbox. Default: ``pygpt_system``
+  Name of the Docker image used by the sandbox. *Default:* ``pygpt_system``
 
 - ``Docker container name`` *container_name*
 
-  Name of the Docker container started for the sandbox. Default: ``pygpt_system_container``
+  Name of the Docker container started for the sandbox. *Default:* ``pygpt_system_container``
 
 - ``Docker run command`` *docker_entrypoint*
 
-  Command executed when starting the container (keeps container alive). Default: ``tail -f /dev/null``
+  Command executed when starting the container (keeps the container alive). *Default:* ``tail -f /dev/null``
 
 - ``Docker volumes`` *docker_volumes*
 
-  Host ↔ container volume mappings. By default, the active runtime ``data`` workdir on the host is mapped read/write to ``/data`` in the container. A custom project data workdir is therefore mounted automatically when a conversation from that project runs the tool.
-  
+  Host ↔ container volume mappings. By default, the active runtime ``data`` workdir on the host is mapped read/write to ``/mnt/data`` in the container. A custom project data workdir is therefore mounted automatically when a conversation from that project runs the tool.
+
   Structure of each item:
-  
+
   - ``enabled`` (bool) – include this mapping
-  - ``docker`` (text) – container path (e.g. ``/data``)
+  - ``docker`` (text) – container path (e.g. ``/mnt/data``)
   - ``host`` (text) – host path (e.g. ``{workdir}``)
-  
-  Default: one runtime mapping of the active data workdir → ``/data``
+
+  Default: one runtime mapping of the active data workdir → ``/mnt/data``
 
 - ``Docker ports`` *docker_ports*
 
   Host ↔ container port mappings. You can specify protocol on the container side (e.g. ``8888/tcp``), otherwise TCP is assumed.
-  
+
   Structure of each item:
-  
+
   - ``enabled`` (bool) – include this mapping
   - ``docker`` (text) – container port (e.g. ``8888`` or ``8888/tcp``)
   - ``host`` (int) – host port (e.g. ``8888``)
-  
+
   Default: empty list (no ports exposed)
 
 Notes:
 
-- When sandboxing is enabled, relative paths passed in commands are resolved against the active conversation's data workdir and mounted into the container at ``/data``.
-- The plugin checks for Docker availability and will prompt to build the image if it does not exist.
+- When ``Sandbox = Docker``, relative paths passed in commands are resolved against ``/mnt/data`` inside the container.
+- The plugin checks Docker availability and prompts to build the image if it does not exist.
+- ``Sandbox = Disabled`` uses host execution and does not start or require Docker.
 
 **WinAPI (Windows)**
 
