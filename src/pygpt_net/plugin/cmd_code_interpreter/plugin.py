@@ -344,13 +344,15 @@ class Plugin(BasePlugin):
 
     @Slot(object)
     def handle_html_output(self, data):
-        """
-        Handle HTML/JS canvas output
-
-        :param data: HTML/JS code
-        """
-        self.window.tools.get("html_canvas").set_output(data)
-        self.window.tools.get("html_canvas").auto_open()
+        """Handle HTML/JS canvas output and preserve its execution workdir."""
+        base_dir = None
+        html = data
+        if isinstance(data, dict):
+            html = data.get("html", "")
+            base_dir = data.get("base_dir")
+        canvas = self.window.tools.get("html_canvas")
+        canvas.set_output(str(html), base_dir=base_dir)
+        canvas.auto_open()
 
     @Slot(str)
     def handle_python_run(self, code: str):

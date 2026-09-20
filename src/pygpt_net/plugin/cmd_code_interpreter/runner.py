@@ -94,13 +94,13 @@ class Runner:
         """
         self._emit_signal("output_end", type)
 
-    def send_html_output(self, data: str):
-        """
-        Send HTML output to canvas
-
-        :param data: HTML code
-        """
-        self._emit_signal("html_output", data)
+    def send_html_output(self, data: str, ctx=None):
+        """Send HTML output to canvas with its host-side asset base directory."""
+        base_dir = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
+        self._emit_signal("html_output", {
+            "html": data,
+            "base_dir": base_dir,
+        })
 
     def handle_result(self, stdout, stderr, log_category: str = "code"):
         """

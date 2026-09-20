@@ -46,6 +46,7 @@ class HtmlCanvas(BaseTool):
         self.is_edit = False
         self.auto_opened = False
         self.file_output = ".canvas.html"
+        self._base_dir = None
         self.signals = ToolSignals()
 
     def setup(self):
@@ -110,6 +111,12 @@ class HtmlCanvas(BaseTool):
         """
         return os.path.join(self.window.core.config.get_user_dir("tmp"), self.file_output)
 
+    def get_base_dir(self) -> str:
+        """Return the host data directory used to resolve relative canvas assets."""
+        if self._base_dir:
+            return self._base_dir
+        return self.window.core.filesystem.get_data_dir()
+
     def get_dialog_id(self) -> str:
         """
         Get dialog ID
@@ -118,12 +125,15 @@ class HtmlCanvas(BaseTool):
         """
         return self.dialog_id
 
-    def set_output(self, output: str):
+    def set_output(self, output: str, base_dir: str = None):
         """
-        Set output HTML
+        Set output HTML.
 
         :param output: Output HTML code
+        :param base_dir: Host data directory used for relative canvas assets
         """
+        if base_dir:
+            self._base_dir = os.path.abspath(str(base_dir))
         path = self.get_current_path()
         with open(path, "w", encoding="utf-8") as f:
             f.write(output)

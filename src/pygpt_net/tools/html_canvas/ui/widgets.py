@@ -9,6 +9,8 @@
 # Updated Date: 2025.09.22 18:00:00                  #
 # ================================================== #
 
+import os
+
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -250,12 +252,27 @@ class ToolWidget:
     @Slot(str)
     def load_output(self, path: str):
         """
-        Load output content
+        Load output content.
 
-        :param path: Content
+        The persistent canvas file lives in the profile tmp directory, but
+        generated HTML commonly references assets from the active workdir/data
+        directory. Load the HTML string with an explicit host data base URL so
+        relative CSS/JS/image paths resolve against data instead of tmp.
+
+        :param path: Canvas HTML file path
         """
-        self.output.setUrl(QUrl().fromLocalFile(path))
-        # Hide navigation bar when loading from local file/path
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except (OSError, UnicodeError):
+            content = ""
+
+        base_dir = self.tool.get_base_dir()
+        base_url = QUrl.fromLocalFile(os.path.join(base_dir, ""))
+        self.output.html_content = content
+        self.output.setHtml(content, baseUrl=base_url)
+
+        # Hide navigation bar when loading generated/local canvas content.
         self._show_navbar(False)
 
     # ------------------

@@ -245,7 +245,7 @@ class Worker(BaseWorker):
         """
         try:
             if self.has_param(item, "html"):
-                self.plugin.runner.send_html_output(self.get_param(item, "html")) # handle in main thread
+                self.plugin.runner.send_html_output(self.get_param(item, "html"), ctx=self.ctx)  # handle in main thread
             result = "OK"
         except Exception as e:
             result = self.throw_error(e)
