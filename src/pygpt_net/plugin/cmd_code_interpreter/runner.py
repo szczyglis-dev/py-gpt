@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 09:00:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 import os.path
 import re
-import subprocess
 import threading
-import docker
 
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxItem
@@ -58,30 +56,6 @@ class Runner:
         if not emitted and self.signals is signals:
             self.detach_signals(signals)
         return emitted
-
-    @staticmethod
-    def _communicate_subprocess(command, **kwargs):
-        """
-        Run a subprocess with non-interactive stdin as the default.
-
-        Explicit stdin is always preserved. If ``input`` is supplied, use a
-        pipe exactly like subprocess.run(). Only executions without either
-        source get DEVNULL so commands cannot block waiting for user input.
-        """
-        input_data = kwargs.pop("input", None)
-        has_input = input_data is not None
-
-        if has_input:
-            if "stdin" in kwargs:
-                raise ValueError("stdin and input arguments may not both be used")
-            kwargs["stdin"] = subprocess.PIPE
-        elif "stdin" not in kwargs:
-            kwargs["stdin"] = subprocess.DEVNULL
-
-        process = subprocess.Popen(command, **kwargs)
-        if has_input:
-            return process.communicate(input=input_data)
-        return process.communicate()
 
     def send_interpreter_input(self, data: str):
         """
@@ -150,9 +124,9 @@ class Runner:
             self.log(result)
         return result
 
-    def handle_result_docker(self, response) -> str:
+    def handle_result_sandbox(self, response) -> str:
         """
-        Handle result from docker container
+        Handle result from sandbox backend
 
         :param response: response
         :return: result
@@ -181,336 +155,8 @@ class Runner:
         return response
 
     def is_sandbox(self) -> bool:
-        """
-        Check if sandbox is enabled
-
-        :return: True if sandbox is enabled
-        """
-        return self.plugin.is_docker_sandbox() and not self.plugin.is_ipython_enabled()
-
-    def is_sandbox_ipython(self) -> bool:
-        """
-        Check if Docker sandbox is active for the selected IPython backend.
-
-        :return: True if sandbox is enabled
-        """
-        return self.plugin.is_docker_sandbox() and self.plugin.is_ipython_enabled()
-
-    def get_docker(self) -> docker.client.DockerClient:
-        """
-        Get docker client
-
-        :return: docker client instance
-        """
-        return docker.from_env()
-
-    def get_docker_image(self) -> str:
-        """
-        Get docker image name
-
-        :return: docker image
-        """
-        return self.plugin.get_option_value('sandbox_docker_image')
-
-    def get_volumes(self, ctx=None) -> dict:
-        """
-        Get docker volumes
-
-        :return: docker volumes
-        """
-        path = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
-        mapping = {}
-        mapping[path] = {
-            "bind": "/mnt/data",
-            "mode": "rw",
-        }
-        return mapping
-
-    def run_docker(self, cmd: str, ctx=None) -> bytes or None:
-        """
-        Run docker container with command and return response
-
-        :param cmd: command to run
-        :return: response
-        """
-        try:
-            response = self.plugin.docker.execute(cmd, ctx=ctx)
-        except Exception as e:
-            # self.error(e)
-            response = str(e).encode("utf-8")
-        return response
-
-
-    def python_exec_file_host(self, ctx, item: dict, request: dict) -> dict or None:
-        """
-        Execute code from file on host machine
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :return: response dict
-        """
-        msg = "Executing Python file: {}".format(item["params"]['path'])
-        self.log(msg)
-        path = self.prepare_path(item["params"]['path'], on_host=True, ctx=ctx)
-        self.plugin.window.core.security.ensure_read(path, sandbox=False, ctx=ctx)
-
-        # check if file exists
-        if not os.path.isfile(path):
-            return {
-                "request": request,
-                "result": "File not found",
-            }
-
-        """
-        # send input to interpreter
-        with open(path, 'r', encoding="utf-8") as file:
-            code = file.read()
-            self.append_input(code)
-            self.send_interpreter_input(code)  # send input to interpreter
-        """
-
-        # run code
-        cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
-        self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
-        self.log("Running command: {}".format(cmd))
-        try:
-            self.send_interpreter_output_begin("stdout")
-            stdout, stderr = self._communicate_subprocess(
-                cmd,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except Exception as e:
-            self.error(e)
-            stdout = None
-            stderr = str(e).encode("utf-8")
-        result = self.handle_result(stdout, stderr)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def python_exec_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """
-        Execute code from file in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :return: response dict
-        """
-        path = item["params"]['path']
-        msg = "Executing Python file: {}".format(path)
-        self.log(msg, sandbox=True)
-        path = self.prepare_path(path, on_host=False, ctx=ctx)
-        cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=path,
-        )
-
-        """
-        # send input to interpreter
-        with open(self.prepare_path(path, on_host=True, ctx=ctx), 'r', encoding="utf-8") as file:
-            code = file.read()
-            self.append_input(code)
-            self.send_interpreter_input(code)  # send input to interpreter
-        """
-
-        self.log("Running command: {}".format(cmd), sandbox=True)
-        self.send_interpreter_output_begin("stdout")
-        response = self.run_docker(cmd, ctx=ctx)
-        result = self.handle_result_docker(response)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def python_exec_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
-        """
-        Execute code on host machine
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :param all: execute all
-        :return: response dict
-        """
-        # write code to file
-        data = item["params"]['code']
-        if not all:
-            path = self.plugin.window.tools.get("interpreter").file_current
-            if "path" in item["params"]:
-                path = item["params"]['path']
-            path = self.prepare_path(path, on_host=True, ctx=ctx)
-            self.plugin.window.core.security.ensure_write(path, sandbox=False, ctx=ctx)
-            msg = "Saving Python file: {}".format(path)
-            self.log(msg)
-            with open(path, 'w', encoding="utf-8") as file:
-                file.write(data)
-        else:
-            path = self.prepare_path(self.plugin.window.tools.get("interpreter").file_input, on_host=True, ctx=ctx)
-            self.plugin.window.core.security.ensure_read(path, sandbox=False, ctx=ctx)
-
-        self.append_input(data, ctx=ctx)
-        self.send_interpreter_input(data)  # send input to interpreter
-
-        # run code
-        cmd = self.plugin.get_option_value('python_cmd_tpl').format(filename=path)
-        self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
-        self.log("Running command: {}".format(cmd))
-        try:
-            self.send_interpreter_output_begin("stdout")
-            stdout, stderr = self._communicate_subprocess(
-                cmd,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except Exception as e:
-            self.error(e)
-            stdout = None
-            stderr = str(e).encode("utf-8")
-        result = self.handle_result(stdout, stderr)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def python_exec_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
-        """
-        Execute code in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :param all: execute all
-        :return: response dict
-        """
-        data = item["params"]['code']
-        if not all:
-            path = self.plugin.window.tools.get("interpreter").file_current
-            if "path" in item["params"]:
-                path = item["params"]['path']
-            msg = "Saving Python file: {}".format(path)
-            self.log(msg, sandbox=True)
-            with open(self.prepare_path(path, on_host=True, ctx=ctx), 'w', encoding="utf-8") as file:
-                file.write(data)
-        else:
-            path = self.plugin.window.tools.get("interpreter").file_input
-
-        self.append_input(data, ctx=ctx)
-        self.send_interpreter_input(data)  # send input to interpreter
-
-        # run code
-        path = self.prepare_path(path, on_host=False, ctx=ctx)
-        msg = "Executing Python code: {}".format(item["params"]['code'])
-        self.log(msg, sandbox=True)
-        cmd = self.plugin.get_option_value('python_cmd_tpl').format(
-            filename=path,
-        )
-        self.log("Running command: {}".format(cmd), sandbox=True)
-        self.send_interpreter_output_begin("stdout")
-        response = self.run_docker(cmd, ctx=ctx)
-        result = self.handle_result_docker(response)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def ipython_sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """Execute a system command on the host for the IPython tool."""
-        command = item["params"]["command"]
-        self.plugin.window.core.security.ensure_command(command, sandbox=False)
-        self.log("Executing IPython system command: {}".format(command))
-        self.log("Running command: {}".format(command))
-        self.send_interpreter_input(command)  # show command in interpreter output
-        try:
-            self.send_interpreter_output_begin("stdout")
-            stdout, stderr = self._communicate_subprocess(
-                command,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except Exception as e:
-            self.error(e)
-            stdout = None
-            stderr = str(e).encode("utf-8")
-        result = self.handle_result(stdout, stderr)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def ipython_sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """Execute a system command inside the running IPython Docker container."""
-        command = item["params"]["command"]
-        self.log("Executing IPython system command: {}".format(command), sandbox=True)
-        self.log("Running command: {}".format(command), sandbox=True)
-        self.send_interpreter_input(command)  # show command in interpreter output
-        self.send_interpreter_output_begin("stdout")
-        response = self.plugin.ipython_docker.execute_system(command, ctx=ctx)
-        result = self.handle_result_docker(response)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def python_sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """Execute a system command on the host for the legacy Python tool."""
-        command = item["params"]["command"]
-        self.plugin.window.core.security.ensure_command(command, sandbox=False)
-        self.log("Executing legacy Python system command: {}".format(command))
-        self.log("Running command: {}".format(command))
-        self.send_interpreter_input(command)  # show command in interpreter output
-        try:
-            self.send_interpreter_output_begin("stdout")
-            stdout, stderr = self._communicate_subprocess(
-                command,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except Exception as e:
-            self.error(e)
-            stdout = None
-            stderr = str(e).encode("utf-8")
-        result = self.handle_result(stdout, stderr)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def python_sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """Execute a system command inside the legacy Python Docker container."""
-        command = item["params"]["command"]
-        self.log("Executing legacy Python system command: {}".format(command), sandbox=True)
-        self.log("Running command: {}".format(command), sandbox=True)
-        self.send_interpreter_input(command)  # show command in interpreter output
-        self.send_interpreter_output_begin("stdout")
-        response = self.plugin.docker.execute(command, ctx=ctx)
-        result = self.handle_result_docker(response)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
+        """Return True when the current execution backend is sandboxed."""
+        return self.plugin.get_execution_backend().sandboxed
 
     def ipython_exec(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         """
@@ -522,7 +168,8 @@ class Runner:
         :param all: execute all
         :return: response dict
         """
-        sandbox = self.is_sandbox_ipython()
+        backend = self.plugin.get_execution_backend()
+        sandbox = backend.sandboxed
         data = item["params"]['code']
 
         # Model/tool executions should recover a genuinely dead kernel once on
@@ -563,20 +210,11 @@ class Runner:
         try:
             self.log("Please wait...", sandbox=sandbox)
             self.send_interpreter_output_begin("stdout")
-            interpreter = self.plugin.get_interpreter()
-            if sandbox:
-                result = interpreter.execute(
-                    data,
-                    current=True,
-                    auto_init=auto_init,  # auto initialize after error
-                    ctx=ctx,
-                )
-            else:
-                result = interpreter.execute(
-                    data,
-                    current=True,
-                    auto_init=auto_init,  # auto initialize after error
-                )
+            result = backend.execute_ipython(
+                data,
+                ctx=ctx,
+                auto_init=auto_init,  # auto initialize after error
+            )
             result = self.handle_result_ipython(ctx, result)
             self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
@@ -599,7 +237,8 @@ class Runner:
         :param all: execute all
         :return: response dict
         """
-        sandbox = self.is_sandbox_ipython()
+        backend = self.plugin.get_execution_backend()
+        sandbox = backend.sandboxed
         self.append_input("", ctx=ctx)
         self.send_interpreter_input("")  # send input to interpreter tool
 
@@ -607,11 +246,7 @@ class Runner:
         self.log("Connecting to IPython interpreter...", sandbox=sandbox)
         try:
             self.log("Restarting IPython kernel...", sandbox=sandbox)
-            interpreter = self.plugin.get_interpreter()
-            if sandbox:
-                response = interpreter.restart_kernel(ctx=ctx)
-            else:
-                response = interpreter.restart_kernel()
+            response = backend.restart_ipython(ctx=ctx)
         except Exception as e:
             self.error(e)
             response = False
@@ -672,58 +307,13 @@ class Runner:
             else:
                 f.write("")
 
-    def is_absolute_path(self, path: str) -> bool:
-        """
-        Check if path is absolute
-
-        :param path: path to check
-        :return: True if absolute
-        """
-        return os.path.isabs(path)
-
-    def is_interpreter_temp_path(self, path: str) -> bool:
-        """Check whether path is one of the interpreter's internal temporary files."""
-        if not path or self.is_absolute_path(path):
-            return False
-        name = os.path.normpath(path).replace("\\", "/")
-        interpreter = self.plugin.window.tools.get("interpreter")
-        return name in {
-            interpreter.file_current,
-            interpreter.file_input,
-            interpreter.file_output,
-            interpreter.file_output_json,
-        }
-
     def prepare_path(self, path: str, on_host: bool = True, ctx=None) -> str:
-        """
-        Prepare path
-
-        :param path: path to prepare
-        :param on_host: is on host
-        :return: prepared path
-        """
-        if on_host and (self.is_sandbox() or self.is_sandbox_ipython()):
-            mapped = self.plugin.window.core.filesystem.from_sandbox_data_path(path, ctx=ctx)
-            if mapped != path:
-                return mapped
-
-        if self.is_absolute_path(path):
-            return path
-
-        if self.is_interpreter_temp_path(path):
-            if on_host or not self.is_sandbox():
-                return os.path.join(
-                    self.plugin.window.core.config.get_user_dir("tmp"),
-                    path,
-                )
-            return "/pygpt_tmp/{}".format(path.replace("\\", "/"))
-
-        if not self.is_sandbox() or on_host:
-            return os.path.join(
-                self.plugin.window.core.filesystem.get_data_dir(ctx=ctx),
-                path,
-            )
-        return path
+        """Translate a path using the active execution backend."""
+        return self.plugin.get_execution_backend().prepare_path(
+            path,
+            on_host=on_host,
+            ctx=ctx,
+        )
 
     def error(self, err: any):
         """
@@ -756,9 +346,9 @@ class Runner:
         :param msg: message to log
         :param sandbox: is sandbox mode
         """
-        prefix = ''
+        prefix = ""
         if sandbox:
-            prefix += '[DOCKER]'
-        full_msg = prefix + ' ' + str(msg)
+            prefix = self.plugin.get_execution_backend().log_prefix
+        full_msg = (prefix + " " if prefix else "") + str(msg)
 
         self._emit_signal("log", full_msg)

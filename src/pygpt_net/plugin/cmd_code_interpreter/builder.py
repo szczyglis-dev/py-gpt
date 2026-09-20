@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:55:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal, QObject
@@ -15,6 +15,8 @@ from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 from pygpt_net.utils import trans
+
+from .sandbox import SandboxMode
 
 class Builder(QObject):
     def __init__(self, plugin=None):
@@ -100,7 +102,7 @@ class Worker(BaseWorker):
         try:
             interpreter = self.plugin.ipython_docker
             interpreter.build_image()
-            if self.restart and self.plugin.is_docker_sandbox() and self.plugin.is_ipython_enabled():
+            if self.restart and self.plugin.is_sandbox_mode(SandboxMode.DOCKER) and self.plugin.is_ipython_enabled():
                 interpreter.restart()
             safe_emit(self.signals, "build_finished")
         except Exception as e:

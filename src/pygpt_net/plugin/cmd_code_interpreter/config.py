@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 09:00:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -118,9 +118,9 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "ipython_sys_exec",
             instruction="execute a system/shell command in the IPython interpreter environment. "
-                        "When the IPython Docker sandbox is enabled, execute the command inside the same "
-                        "running IPython container. When the sandbox is disabled, execute it on the host. "
-                        "Use this for operating-system commands and command-line tools; use ipython_exec "
+                        "When a sandbox is selected, execute the command inside the selected sandbox runtime; "
+                        "when sandboxing is disabled, execute it on the host. Use this for operating-system "
+                        "commands and command-line tools; use ipython_exec "
                         "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
                         "for stdin; pass all required answers/options in the command itself.",
             params=[
@@ -345,9 +345,9 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "python_sys_exec",
             instruction="execute a system/shell command in the standard Python interpreter environment. "
-                        "When the Python Docker sandbox is enabled, execute the command inside the same "
-                        "Python container. When the sandbox is disabled, execute it on the host. Use this for "
-                        "operating-system commands and command-line tools; use python_exec/python_exec_file "
+                        "When a sandbox is selected, execute the command inside the selected sandbox runtime; "
+                        "when sandboxing is disabled, execute it on the host. Use this for operating-system "
+                        "commands and command-line tools; use python_exec/python_exec_file "
                         "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
                         "for stdin; pass all required answers/options in the command itself.",
             params=[

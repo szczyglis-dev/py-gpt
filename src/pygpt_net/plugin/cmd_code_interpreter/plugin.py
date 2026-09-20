@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 09:00:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 import os
@@ -20,16 +20,8 @@ from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
-from .dockerfile import (
-    IPYTHON_DOCKERFILE,
-    IPYTHON_DOCKERFILE_LEGACY,
-    IPYTHON_DOCKERFILE_PRE_BUNDLED,
-    IPYTHON_DOCKERFILE_PRE_NODEJS,
-    PYTHON_LEGACY_DOCKERFILE,
-    PYTHON_LEGACY_DOCKERFILE_39,
-    PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
-)
 from .sandbox import SandboxMode
+from .execution import ExecutionManager
 from .docker import Docker
 from .builder import Builder
 from .ipython import LocalKernel
@@ -37,9 +29,6 @@ from .ipython import DockerKernel
 from .output import Output
 from .runner import Runner
 
-from pygpt_net.core.docker.docker import migrate_default_dockerfile
-
-from pygpt_net.utils import trans
 
 
 class Plugin(BasePlugin):
@@ -74,6 +63,7 @@ class Plugin(BasePlugin):
         self.worker = None
         self.config = Config(self)
         self.init_options()
+        self.execution = ExecutionManager(self)
 
     def init_options(self):
         """Initialize options"""
@@ -84,79 +74,61 @@ class Plugin(BasePlugin):
         return bool(self.get_option_value("use_ipython"))
 
     def get_sandbox_mode(self) -> SandboxMode:
-        """Return the selected sandbox mode, falling back to disabled."""
+        """Return the selected execution/sandbox mode."""
+        if hasattr(self, "execution"):
+            return self.execution.get_mode()
         value = self.get_option_value("sandbox")
         try:
             return SandboxMode(value)
         except (TypeError, ValueError):
             return SandboxMode.DISABLED
 
+    def get_execution_backend(self):
+        """Return the backend responsible for the selected execution mode."""
+        return self.execution.get_backend()
+
+    def is_sandbox_mode(self, mode: str | SandboxMode) -> bool:
+        """Return True when the requested sandbox mode is selected."""
+        value = mode.value if isinstance(mode, SandboxMode) else str(mode)
+        return self.get_sandbox_mode().value == value
+
     def is_docker_sandbox(self) -> bool:
-        """Return True when Docker is the selected execution sandbox."""
-        return self.get_sandbox_mode() == SandboxMode.DOCKER
+        """Compatibility helper for Docker-specific UI/build code."""
+        return self.is_sandbox_mode(SandboxMode.DOCKER)
+
+    def is_sandbox_enabled(self) -> bool:
+        """Return True when commands run through any isolated sandbox backend."""
+        return self.get_execution_backend().sandboxed
+
+    def get_runtime_workdir(self, ctx=None) -> str:
+        """Return the working directory visible to the active execution backend."""
+        return self.get_execution_backend().get_runtime_workdir(ctx=ctx)
+
+    def map_host_path_to_runtime(self, path: str, ctx=None) -> str:
+        """Map a host path to the namespace visible to the active backend."""
+        return self.get_execution_backend().map_host_path_to_runtime(path, ctx=ctx)
+
+    def get_filesystem_context(self, host_data_dir: str) -> str:
+        """Return model-facing filesystem guidance for the active backend."""
+        return self.get_execution_backend().get_filesystem_context(
+            host_data_dir,
+            self.is_ipython_enabled(),
+        )
 
     def is_command_active(self, cmd: str) -> bool:
-        """Return whether a command belongs to the selected interpreter backend."""
+        """Return whether a command belongs to the selected interpreter/backend."""
         ipython_commands = {"ipython_exec", "ipython_sys_exec", "ipython_kernel_restart"}
         python_commands = {"python_exec", "python_exec_file", "python_sys_exec"}
-        if cmd in ipython_commands:
-            return self.is_ipython_enabled()
-        if cmd in python_commands:
-            return not self.is_ipython_enabled()
-        return True
+        if cmd in ipython_commands and not self.is_ipython_enabled():
+            return False
+        if cmd in python_commands and self.is_ipython_enabled():
+            return False
+        return self.get_execution_backend().supports_command(cmd)
 
     def migrate_docker_defaults(self) -> bool:
-        """Upgrade unchanged stock Dockerfiles without overwriting user customizations."""
-        migrated_ipython = migrate_default_dockerfile(
-            self,
-            "ipython_dockerfile",
-            IPYTHON_DOCKERFILE.replace("/mnt/data", "/data"),
-            IPYTHON_DOCKERFILE,
-        )
-        if not migrated_ipython:
-            migrated_ipython = migrate_default_dockerfile(
-                self,
-                "ipython_dockerfile",
-                IPYTHON_DOCKERFILE_LEGACY,
-                IPYTHON_DOCKERFILE,
-            )
-        if not migrated_ipython:
-            migrated_ipython = migrate_default_dockerfile(
-                self,
-                "ipython_dockerfile",
-                IPYTHON_DOCKERFILE_PRE_BUNDLED,
-                IPYTHON_DOCKERFILE,
-            )
-        if not migrated_ipython:
-            migrated_ipython = migrate_default_dockerfile(
-                self,
-                "ipython_dockerfile",
-                IPYTHON_DOCKERFILE_PRE_NODEJS,
-                IPYTHON_DOCKERFILE,
-            )
-
-        migrated_python = migrate_default_dockerfile(
-            self,
-            "dockerfile",
-            PYTHON_LEGACY_DOCKERFILE.replace("/mnt/data", "/data"),
-            PYTHON_LEGACY_DOCKERFILE,
-        )
-        if not migrated_python:
-            migrated_python = migrate_default_dockerfile(
-                self,
-                "dockerfile",
-                PYTHON_LEGACY_DOCKERFILE_39,
-                PYTHON_LEGACY_DOCKERFILE,
-            )
-        if not migrated_python:
-            migrated_python = migrate_default_dockerfile(
-                self,
-                "dockerfile",
-                PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
-                PYTHON_LEGACY_DOCKERFILE,
-            )
-
-        return migrated_ipython or migrated_python
+        """Compatibility wrapper for Docker backend default migration."""
+        backend = self.execution.get_backend(SandboxMode.DOCKER)
+        return backend.migrate_defaults()
 
     def make_temp_file_path(self, extension: str = "png"):
         """
@@ -200,10 +172,10 @@ class Plugin(BasePlugin):
                 data['html'] = ''
 
     def cmd_syntax(self, data: dict, ctx: CtxItem = None):
-        """Expose only tools for the selected Python backend."""
+        """Expose only tools for the selected interpreter and execution backend."""
         data_dir = self.window.core.filesystem.get_data_dir(ctx=ctx)
+        backend = self.get_execution_backend()
         use_ipython = self.is_ipython_enabled()
-        sandbox = self.is_docker_sandbox()
 
         ipython_commands = {
             "ipython_exec",
@@ -223,75 +195,13 @@ class Plugin(BasePlugin):
                 continue
             if item in python_commands and use_ipython:
                 continue
+            if not backend.supports_command(item):
+                continue
 
             cmd = self.get_cmd(item)
-            if item in ipython_commands:
-                if sandbox:
-                    if item == "ipython_sys_exec":
-                        cmd["instruction"] += (
-                            "\nThe command runs inside the same Docker container as the current IPython kernel. "
-                            "Directory /mnt/data is the container's workdir and is mapped on the host to: {}"
-                        ).format(data_dir)
-                    else:
-                        cmd["instruction"] += (
-                            "\nIPython works in a Docker container. Directory /mnt/data is the container's workdir "
-                            "and is mapped on the host to: {}"
-                        ).format(data_dir)
-                    if self.get_option_value("ipython_run_as_root"):
-                        cmd["instruction"] += (
-                            "\nThe IPython Docker sandbox is configured to run as root. sudo is not required."
-                        )
-                    else:
-                        cmd["instruction"] += (
-                            "\nThe IPython Docker sandbox normally runs as the unprivileged 'pygpt' user. "
-                            "Ordinary pip installs do not require root; use passwordless sudo only for "
-                            "operations that require root privileges."
-                        )
-                elif item == "ipython_sys_exec":
-                    cmd["instruction"] += (
-                        "\nThe command runs on the host system, in the same host environment used by the "
-                        "local IPython interpreter. The application data directory is: {}"
-                    ).format(data_dir)
-                else:
-                    cmd["instruction"] += (
-                        "\nIPython works in the local environment. Directory {} is the workdir; "
-                        "use it by default to save files."
-                    ).format(data_dir)
-
-            elif item in python_commands:
-                if sandbox:
-                    if item == "python_sys_exec":
-                        cmd["instruction"] += (
-                            "\nThe command runs inside the same Docker container as the standard Python "
-                            "interpreter. Directory /mnt/data is the container's workdir and is mapped on the host to: {}"
-                        ).format(data_dir)
-                    else:
-                        cmd["instruction"] += (
-                            "\nPython works in a Docker container. Directory /mnt/data is the container's workdir "
-                            "and is mapped on the host to: {}"
-                        ).format(data_dir)
-                    if self.get_option_value("docker_run_as_root"):
-                        cmd["instruction"] += (
-                            "\nThe Python Docker sandbox is configured to run as root. sudo is not required."
-                        )
-                    else:
-                        cmd["instruction"] += (
-                            "\nThe Python Docker sandbox normally runs as the unprivileged 'pygpt' user. "
-                            "Ordinary pip installs do not require root; use passwordless sudo only for "
-                            "operations that require root privileges."
-                        )
-                elif item == "python_sys_exec":
-                    cmd["instruction"] += (
-                        "\nThe command runs on the host system, in the same host environment used by the "
-                        "standard Python interpreter. The application data directory is: {}"
-                    ).format(data_dir)
-                else:
-                    cmd["instruction"] += (
-                        "\nPython works in the local environment. Directory {} is the workdir; "
-                        "use it by default to save files."
-                    ).format(data_dir)
-
-            data['cmd'].append(cmd)
+            if item in ipython_commands or item in python_commands:
+                cmd["instruction"] += backend.get_tool_instruction(item, data_dir)
+            data["cmd"].append(cmd)
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
         """
@@ -318,57 +228,9 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
-        # ipython
-        if self.is_docker_sandbox() and self.is_ipython_enabled():
-            ipython_commands = [
-                "ipython_exec",
-                "ipython_sys_exec",
-                "ipython_kernel_restart",
-            ]
-            if any(x in [x["cmd"] for x in my_commands] for x in ipython_commands):
-                # check for Docker installed
-                if not self.get_interpreter().is_docker_installed():
-                    # snap version
-                    if self.window.core.platforms.is_snap():
-                        self.error(trans('ipython.docker.install.snap'))
-                        self.window.update_status(trans('ipython.docker.install.snap'))
-                    # other versions
-                    else:
-                        self.error(trans('ipython.docker.install'))
-                        self.window.update_status(trans('ipython.docker.install'))
-                    return
-                # check if image exists
-                if not self.get_interpreter().is_image():
-                    self.error(trans('ipython.image.build'))
-                    self.window.update_status(trans('ipython.docker.build.start'))
-                    self.builder.build_image()
-                    return
-
-        # legacy python
-        if self.is_docker_sandbox() and not self.is_ipython_enabled():
-            sandbox_commands = [
-                "python_sys_exec",
-                "python_exec",
-                "python_exec_file",
-            ]
-            if any(x in [x["cmd"] for x in my_commands] for x in sandbox_commands):
-                # check for Docker installed
-                if not self.docker.is_docker_installed():
-                    # snap version
-                    if self.window.core.platforms.is_snap():
-                        self.error(trans('docker.install.snap'))
-                        self.window.update_status(trans('docker.install.snap'))
-                    # other versions
-                    else:
-                        self.error(trans('docker.install'))
-                        self.window.update_status(trans('docker.install'))
-                    return
-                # check if image exists
-                if not self.docker.is_image():
-                    self.error(trans('docker.image.build'))
-                    self.window.update_status(trans('docker.build.start'))
-                    self.docker.build()
-                    return
+        backend = self.get_execution_backend()
+        if not backend.prepare(my_commands):
+            return
 
         # set state: busy
         if not silent:
@@ -478,7 +340,7 @@ class Plugin(BasePlugin):
         if self.is_ipython_enabled():
             cmd = "ipython_exec"
             if self.get_option_value("fresh_kernel"):
-                self.get_interpreter().restart_kernel()
+                self.get_execution_backend().restart_ipython()
                 time.sleep(1)
         self.window.tools.get("interpreter").clear_output()
         commands = [
@@ -501,12 +363,7 @@ class Plugin(BasePlugin):
         self.window.tools.get("interpreter").auto_open()
 
     def get_interpreter(self):
-        """
-        Get interpreter
-
-        :return: interpreter
-        """
-        if self.is_docker_sandbox() and self.is_ipython_enabled():
-            return self.ipython_docker
-        else:
+        """Return the IPython kernel selected by the active execution backend."""
+        if not self.is_ipython_enabled():
             return self.ipython_local
+        return self.get_execution_backend().get_ipython_interpreter()

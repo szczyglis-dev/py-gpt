@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 import os
@@ -128,56 +128,27 @@ class Plugin(BasePlugin):
         return prompt
 
     def build_runtime_filesystem_context(self, ctx: CtxItem = None) -> str:
-        """Build host/sandbox filesystem guidance for the current runtime.
-
-        The host data path is always the working directory for Files I/O. If an
-        enabled Code Interpreter uses either Docker sandbox (IPython and/or legacy
-        Python), explicitly describe the separate container namespace and /mnt/data
-        volume mapping so the model does not pass host paths into sandbox code.
-
-        :return: prompt fragment
-        """
+        """Build host/sandbox filesystem guidance for the current runtime."""
         host_data_dir = self.window.core.filesystem.get_data_dir(ctx=ctx)
         parts = ["CURRENT WORKING DIRECTORY: " + host_data_dir]
 
-        ipython_sandbox, legacy_sandbox = self.get_code_interpreter_sandbox_modes()
-        if not ipython_sandbox and not legacy_sandbox:
-            return "\n\n".join(parts)
+        plugin_id = "cmd_code_interpreter"
+        try:
+            if not self.window.controller.plugins.is_enabled(plugin_id):
+                return "\n\n".join(parts)
+            plugin = self.window.core.plugins.get(plugin_id)
+            if plugin is None or not plugin.is_sandbox_enabled():
+                return "\n\n".join(parts)
+            guidance = plugin.get_filesystem_context(host_data_dir)
+            if guidance:
+                parts.append(guidance)
+        except Exception as e:
+            self.window.core.debug.log(e)
 
-        guidance = [
-            "IMPORTANT FILESYSTEM CONTEXT:",
-            "The CURRENT WORKING DIRECTORY shown above is a path on the HOST filesystem. "
-            "Use this host path only with host-side Files I/O tools (for example read_file, "
-            "save_file, append_file, list_dir, mkdir, file_* and other Files I/O operations).",
-            "A Docker Code Interpreter sandbox has a separate filesystem namespace. Never use "
-            "the host CURRENT WORKING DIRECTORY path directly inside sandboxed Python, IPython "
-            "or sandbox shell/system commands.",
-        ]
-
-        if ipython_sandbox:
-            guidance.append(
-                "For the IPython Docker sandbox, use /mnt/data as the working directory inside "
-                "ipython_exec, IPython shell or magic commands, and "
-                "ipython_sys_exec."
-            )
-
-        if legacy_sandbox:
-            guidance.append(
-                "For the legacy Python Docker sandbox, use /mnt/data as the working directory inside "
-                "python_exec/python_exec_file and python_sys_exec."
-            )
-
-        guidance.append(
-            "The container path /mnt/data is mapped to the same host directory: " + host_data_dir
-        )
-        parts.append(" ".join(guidance))
         return "\n\n".join(parts)
 
     def get_code_interpreter_sandbox_modes(self) -> tuple[bool, bool]:
-        """Return active Code Interpreter Docker sandbox modes.
-
-        This is evaluated at prompt-build time so changing plugin activation or
-        the selected sandbox mode immediately changes the generated filesystem context.
+        """Return active Code Interpreter sandbox modes.
 
         :return: (ipython_sandbox, legacy_python_sandbox)
         """
@@ -190,7 +161,7 @@ class Plugin(BasePlugin):
             if plugin is None:
                 return False, False
 
-            sandbox = bool(plugin.is_docker_sandbox())
+            sandbox = bool(plugin.is_sandbox_enabled())
             if plugin.is_ipython_enabled():
                 return sandbox, False
             return False, sandbox
@@ -199,11 +170,11 @@ class Plugin(BasePlugin):
             return False, False
 
     def is_ipython_sandbox_active(self) -> bool:
-        """Backward-compatible helper for the IPython Docker sandbox."""
+        """Backward-compatible helper for the IPython sandbox."""
         return self.get_code_interpreter_sandbox_modes()[0]
 
     def is_legacy_sandbox_active(self) -> bool:
-        """Check whether the enabled Code Interpreter uses legacy Python Docker."""
+        """Check whether the enabled Code Interpreter uses sandboxed legacy Python."""
         return self.get_code_interpreter_sandbox_modes()[1]
 
     def cmd_syntax(self, data: dict):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 14:00:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -832,10 +832,10 @@ class Skills:
                 plugin = self.window.core.plugins.get("cmd_code_interpreter")
                 if plugin is not None and plugin.is_ipython_enabled():
                     if self._has_tool(plugin, "ipython_sys_exec"):
-                        mode = "sandbox" if plugin.is_docker_sandbox() else "host"
+                        mode = "sandbox" if plugin.is_sandbox_enabled() else "host"
                         return "ipython_sys_exec", mode
                 elif plugin is not None and self._has_tool(plugin, "python_sys_exec"):
-                    mode = "sandbox" if plugin.is_docker_sandbox() else "host"
+                    mode = "sandbox" if plugin.is_sandbox_enabled() else "host"
                     return "python_sys_exec", mode
         except Exception as exc:
             self._log(exc)
@@ -843,19 +843,25 @@ class Skills:
         return "shell", "host"
 
     def _execution_context(self, materialized: str, ctx=None) -> dict:
-        """Describe the correct skill cwd for host and Docker execution.
+        """Describe the correct skill cwd for host and sandbox execution.
 
         Skill bundles frequently contain ``scripts`` packages and document
         commands such as ``python -m scripts.run_loop``. Python only resolves
         that module reliably when the skill root is the working directory (or
-        explicitly present on PYTHONPATH). The materialized tree is inside the
-        active data mount, so the same files are available as an absolute host
-        path and as ``/mnt/data/...`` inside either PyGPT Docker sandbox.
+        explicitly present on PYTHONPATH). Code Interpreter backends provide
+        their own host-to-runtime path mapping; System OS keeps its Docker mapping.
         """
         host_path = os.path.realpath(materialized)
-        sandbox_path = self._sandbox_workdir_path(materialized, ctx=ctx)
         relative_path = self._display_workdir_path(materialized, ctx=ctx)
         tool, mode = self._preferred_shell_runtime()
+        sandbox_path = self._sandbox_workdir_path(materialized, ctx=ctx)
+        if mode == "sandbox" and tool in {"ipython_sys_exec", "python_sys_exec"}:
+            try:
+                plugin = self.window.core.plugins.get("cmd_code_interpreter")
+                if plugin is not None:
+                    sandbox_path = plugin.map_host_path_to_runtime(materialized, ctx=ctx)
+            except Exception as exc:
+                self._log(exc)
         preferred = sandbox_path if mode == "sandbox" else host_path
 
         try:

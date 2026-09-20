@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 09:00:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
 
-from pygpt_net.core.qt import safe_emit
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -34,17 +33,29 @@ class Worker(BaseWorker):
         self.plugin = None
         self.cmds = None
         self.ctx = None
+        self.backend = None
+
+    def get_backend(self):
+        """Return the backend fixed for this worker run, or resolve it lazily."""
+        if self.backend is not None:
+            return self.backend
+        return self.plugin.get_execution_backend()
 
     @Slot()
     def run(self):
         signals = self.signals
+        backend = None
+        interpreter = None
         try:
             # Runner and kernel objects are shared by plugin workers. Bind Qt
             # signals in the worker thread so overlapping tool calls cannot
             # replace another worker's signal source while it is restarting.
             if self.plugin is not None and signals is not None:
+                backend = self.plugin.get_execution_backend()
+                self.backend = backend
+                interpreter = self.plugin.get_interpreter()
                 self.plugin.runner.attach_signals(signals)
-                self.plugin.get_interpreter().attach_signals(signals)
+                interpreter.attach_signals(signals)
 
             responses = []
             for item in self.cmds:
@@ -110,7 +121,8 @@ class Worker(BaseWorker):
                 except Exception:
                     pass
                 try:
-                    self.plugin.get_interpreter().detach_signals(signals)
+                    if interpreter is not None:
+                        interpreter.detach_signals(signals)
                 except Exception:
                     pass
             self.cleanup()
@@ -135,26 +147,14 @@ class Worker(BaseWorker):
         return self.make_response(item, result, extra=extra)
 
     def cmd_ipython_sys_exec(self, item: dict) -> dict:
-        """
-        Execute a system command in the IPython environment.
-
-        :param item: command item
-        :return: response item
-        """
+        """Execute a system command in the selected IPython execution backend."""
         request = self.from_request(item)
         try:
-            if self.plugin.runner.is_sandbox_ipython():
-                result = self.plugin.runner.ipython_sys_exec_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
-            else:
-                result = self.plugin.runner.ipython_sys_exec_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
+            result = self.get_backend().ipython_sys_exec(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
         except Exception as e:
             result = self.throw_error(e)
 
@@ -162,26 +162,14 @@ class Worker(BaseWorker):
         return self.make_response(item, result, extra=extra)
 
     def cmd_python_sys_exec(self, item: dict) -> dict:
-        """
-        Execute a system command in the legacy Python environment.
-
-        :param item: command item
-        :return: response item
-        """
+        """Execute a system command in the selected standard Python backend."""
         request = self.from_request(item)
         try:
-            if self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.python_sys_exec_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
-            else:
-                result = self.plugin.runner.python_sys_exec_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
+            result = self.get_backend().python_sys_exec(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
         except Exception as e:
             result = self.throw_error(e)
 
@@ -210,26 +198,14 @@ class Worker(BaseWorker):
         return self.make_response(item, result, extra=extra)
 
     def cmd_python_exec_file(self, item: dict) -> dict:
-        """
-        Execute code command from existing file
-
-        :param item: command item
-        :return: response item
-        """
+        """Execute Python code from an existing file using the selected backend."""
         request = self.from_request(item)
         try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.python_exec_file_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
-            else:
-                result = self.plugin.runner.python_exec_file_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
+            result = self.get_backend().python_exec_file(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
         except Exception as e:
             result = self.throw_error(e)
 
@@ -237,28 +213,15 @@ class Worker(BaseWorker):
         return self.make_response(item, result, extra=extra)
 
     def cmd_python_exec(self, item: dict) -> dict:
-        """
-        Execute code command
-
-        :param item: command item
-        :return: response item
-        """
+        """Execute Python code using the selected backend."""
         request = self.from_request(item)
         try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.python_exec_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                    all=bool(item.get("_execute_all", False)),
-                )
-            else:
-                result = self.plugin.runner.python_exec_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                    all=bool(item.get("_execute_all", False)),
-                )
+            result = self.get_backend().python_exec(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+                all=bool(item.get("all", False)),
+            )
         except Exception as e:
             result = self.throw_error(e)
 
