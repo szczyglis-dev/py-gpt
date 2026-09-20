@@ -18,6 +18,7 @@ from PySide6.QtCore import Slot
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.sandbox import BuiltinSandboxPreparer
 
 from .config import Config
 from .sandbox import SandboxMode
@@ -64,13 +65,16 @@ class Plugin(BasePlugin):
         self.config = Config(self)
         self.init_options()
         self.execution = ExecutionManager(self)
+        self.builtin_preparer = BuiltinSandboxPreparer(self, "Python")
 
     def init_options(self):
         """Initialize options"""
         self.config.from_defaults(self)
 
     def is_ipython_enabled(self) -> bool:
-        """Return True when the IPython execution backend is selected."""
+        """Return True when IPython is selected and supported by the backend."""
+        if self.is_sandbox_mode(SandboxMode.BUILTIN):
+            return False
         return bool(self.get_option_value("use_ipython"))
 
     def get_sandbox_mode(self) -> SandboxMode:
@@ -95,6 +99,10 @@ class Plugin(BasePlugin):
     def is_docker_sandbox(self) -> bool:
         """Compatibility helper for Docker-specific UI/build code."""
         return self.is_sandbox_mode(SandboxMode.DOCKER)
+
+    def is_builtin_sandbox(self) -> bool:
+        """Return True when the uv-managed built-in sandbox is selected."""
+        return self.is_sandbox_mode(SandboxMode.BUILTIN)
 
     def is_sandbox_enabled(self) -> bool:
         """Return True when commands run through any isolated sandbox backend."""

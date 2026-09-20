@@ -28,6 +28,11 @@ parts:
     python-requirements:
       - requirements.txt
 
+    # Built-in sandbox runtime manager. Keep this explicit so the
+    # uv executable is always staged even before requirements.txt is regenerated.
+    python-packages:
+      - uv==0.12.15
+
     stage-packages:
       - libasound2t64
       - libasound2-data
@@ -179,6 +184,12 @@ apps:
       QML2_IMPORT_PATH: "$SNAP/lib/python3.12/site-packages/PySide6/Qt/qml:$SNAP/qml"
 
       PATH: "$SNAP_COMMON/docker-executables/bin:$PATH"
+
+      # Built-in sandbox: uv is bundled with the snap. Reuse the snap
+      # Python as the venv base because strict confinement may prevent
+      # executing a separately downloaded interpreter.
+      PYGPT_UV_BIN: "$SNAP/bin/uv"
+      PYGPT_SANDBOX_PYTHON: "$SNAP/bin/python3"
 
       QTWEBENGINE_DISABLE_SANDBOX: "1"
 

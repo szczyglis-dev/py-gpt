@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
+from .builtin import BuiltinBackend
 from .docker import DockerBackend
 from .host import HostBackend
 from ..sandbox import SandboxMode
@@ -19,6 +20,7 @@ class ExecutionManager:
 
     BACKENDS = {
         SandboxMode.DISABLED.value: HostBackend,
+        SandboxMode.BUILTIN.value: BuiltinBackend,
         SandboxMode.DOCKER.value: DockerBackend,
     }
 

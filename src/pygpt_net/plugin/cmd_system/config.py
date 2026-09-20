@@ -53,7 +53,7 @@ class Config(BaseConfig):
             type="combo",
             value=SandboxMode.DISABLED.value,
             label="Sandbox",
-            description="Select the execution sandbox. Docker must be installed and running when Docker is selected.",
+            description="Select the execution sandbox. Built-in sandbox uses an isolated uv-managed environment; Docker requires Docker to be installed and running.",
             keys=SandboxMode.options(),
             tab="general",
         )

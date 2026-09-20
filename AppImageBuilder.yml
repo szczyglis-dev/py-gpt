@@ -84,6 +84,7 @@ AppDir:
     "$APPDIR/usr/pyenv/bin/python3" -m ensurepip --upgrade || true
     "$APPDIR/usr/pyenv/bin/python3" -m pip install -U pip wheel setuptools
     "$APPDIR/usr/pyenv/bin/pip" install -r "$APPDIR/usr/src/requirements.txt"
+    "$APPDIR/usr/pyenv/bin/pip" install "uv==0.12.15"
 
     cat > "$APPDIR/usr/src/pygpt_net/data/appimage.conf" << 'EOF_APPIMAGE_CONF'
     yes
@@ -100,6 +101,7 @@ AppDir:
       QT_PLUGIN_PATH: "$APPDIR/usr/pyenv/lib/python3.10/site-packages/PySide6/Qt/plugins"
       QT_XKB_CONFIG_ROOT: "$APPDIR/usr/share/X11/xkb"
       PYTHONPATH: "$APPDIR/usr/src:$APPDIR/usr/pyenv/lib/python3.10/site-packages"
+      PYGPT_UV_BIN: "$APPDIR/usr/pyenv/bin/uv"
 
 AppImage:
   arch: x86_64

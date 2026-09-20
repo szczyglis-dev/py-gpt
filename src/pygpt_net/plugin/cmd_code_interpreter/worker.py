@@ -41,6 +41,14 @@ class Worker(BaseWorker):
             return self.backend
         return self.plugin.get_execution_backend()
 
+    @staticmethod
+    def _is_builtin_preparing(response) -> bool:
+        """Keep first-use preparation visible even for normally silent calls."""
+        if not isinstance(response, dict):
+            return False
+        result = response.get("result")
+        return isinstance(result, dict) and bool(result.get("builtin_sandbox_preparing"))
+
     @Slot()
     def run(self):
         signals = self.signals
@@ -71,7 +79,7 @@ class Worker(BaseWorker):
 
                         elif item["cmd"] == "python_exec":
                             response = self.cmd_python_exec(item)
-                            if "silent" in item:
+                            if "silent" in item and not self._is_builtin_preparing(response):
                                 response = None
 
                         elif item["cmd"] == "ipython_exec":

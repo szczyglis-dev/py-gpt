@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import os, glob
+import os, glob, shutil
 from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
@@ -20,6 +20,29 @@ def add_data_tree(datas, src_root, dest_root):
         dest = dest_root if rel == "." else os.path.join(dest_root, rel)
         for filename in files:
             datas.append((os.path.join(root, filename), dest))
+
+
+def find_uv_binary():
+    """Locate uv installed in the build environment for bundling."""
+    candidates = []
+    try:
+        import uv
+        try:
+            candidates.append(os.fspath(uv.find_uv_bin()))
+        except (AttributeError, FileNotFoundError, OSError):
+            pass
+    except ImportError:
+        pass
+    found = shutil.which('uv')
+    if found:
+        candidates.append(found)
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return [(path, '.')]
+    raise RuntimeError("uv executable not found; install uv==0.12.15 in the PyInstaller build environment")
+
+
+uv_bins = find_uv_binary()
 
 
 RT_HOOK_PATH = os.path.abspath('rt_wayland.py')
@@ -206,7 +229,7 @@ block_cipher = None
 a = Analysis(
     ['src/pygpt_net/app.py'],
     pathex=['src', 'src/pygpt_net'],
-    binaries=qt_binaries + dyn_bins,
+    binaries=qt_binaries + dyn_bins + uv_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

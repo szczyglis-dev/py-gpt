@@ -14,11 +14,13 @@ from enum import Enum
 
 class SandboxMode(str, Enum):
     DISABLED = "disabled"
+    BUILTIN = "builtin"
     DOCKER = "docker"
 
     @classmethod
     def options(cls) -> list[dict[str, str]]:
         return [
             {cls.DISABLED.value: "Disabled"},
+            {cls.BUILTIN.value: "Built-in sandbox"},
             {cls.DOCKER.value: "Docker"},
         ]

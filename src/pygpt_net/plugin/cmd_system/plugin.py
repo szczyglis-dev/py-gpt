@@ -16,6 +16,7 @@ from PySide6.QtCore import Slot
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.sandbox import BuiltinSandboxPreparer
 
 from .config import Config
 from .docker import Docker
@@ -84,6 +85,7 @@ class Plugin(BasePlugin):
         self.config = Config(self)
         self.init_options()
         self.execution = ExecutionManager(self)
+        self.builtin_preparer = BuiltinSandboxPreparer(self, "System / OS")
 
     def init_options(self):
         """Initialize options"""
@@ -112,6 +114,10 @@ class Plugin(BasePlugin):
     def is_docker_sandbox(self) -> bool:
         """Return True when the Docker execution backend is selected."""
         return self.is_sandbox_mode(SandboxMode.DOCKER)
+
+    def is_builtin_sandbox(self) -> bool:
+        """Return True when the uv-managed built-in sandbox is selected."""
+        return self.is_sandbox_mode(SandboxMode.BUILTIN)
 
     def is_sandbox_enabled(self) -> bool:
         """Return True when sys_exec uses any isolated sandbox backend."""
