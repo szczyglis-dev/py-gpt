@@ -9,17 +9,18 @@ if _SRC_PATH_ADDED:
     sys.path.insert(0, _SRC_PATH)
 
 _ENV_MISSING = object()
-_QT_QPA_PLATFORM_BEFORE = os.environ.get('QT_QPA_PLATFORM', _ENV_MISSING)
-os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+_TEST_ENV = {
+    'ENV_TEST': '1',
+    'TEST_LANGUAGE': 'en',
+    'QT_QPA_PLATFORM': 'offscreen',
+}
+_ENV_BEFORE = {key: os.environ.get(key, _ENV_MISSING) for key in _TEST_ENV}
 
-
-@pytest.fixture(scope='session', autouse=True)
-def set_env_vars():
-    monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setenv('ENV_TEST', '1')  # set env = test
-    monkeypatch.setenv('TEST_LANGUAGE', 'en')  # force EN locale for tests
-    yield
-    monkeypatch.undo()
+# These values must be available while pytest imports test modules during
+# collection. A session fixture is too late for imports performed at module
+# scope (notably pygpt_net.core.audio -> PySide6.QtMultimedia).
+for key, value in _TEST_ENV.items():
+    os.environ.setdefault(key, value)
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -30,10 +31,11 @@ def pytest_sessionfinish(session, exitstatus):
         except ValueError:
             pass
 
-    if _QT_QPA_PLATFORM_BEFORE is _ENV_MISSING:
-        os.environ.pop('QT_QPA_PLATFORM', None)
-    else:
-        os.environ['QT_QPA_PLATFORM'] = _QT_QPA_PLATFORM_BEFORE
+    for key, previous in _ENV_BEFORE.items():
+        if previous is _ENV_MISSING:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = previous
 
 
 @pytest.fixture(autouse=True)
