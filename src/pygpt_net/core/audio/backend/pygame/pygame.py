@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 04:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 import time
@@ -19,7 +19,7 @@ from threading import Lock
 from PySide6.QtCore import QTimer
 from pygpt_net.core.qt import safe_emit
 
-from ..shared import f32_to_s16le, build_rt_input_delta_event
+from ..shared import f32_to_s16le, build_rt_input_delta_event, InputLevelMeter
 
 class PygameBackend:
     MIN_FRAMES = 25  # minimum frames to start transcription
@@ -62,6 +62,9 @@ class PygameBackend:
         self.selected_device = None
         self.initialized = False
         self.mode = "input"  # input|control
+
+        # Logarithmic input meter (dBFS) with attack/release smoothing.
+        self._input_meter = InputLevelMeter()
 
         # --- REALTIME INPUT (mic -> dispatcher) ---
         self._rt_signals = None           # set with set_rt_signals()
@@ -233,6 +236,7 @@ class PygameBackend:
 
     def reset_audio_level(self):
         """Reset the audio level bar (if available)."""
+        self._input_meter.reset()
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
@@ -369,9 +373,9 @@ class PygameBackend:
         # Compute RMS
         rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
 
-        # For float32 audio, the range is approximately -1.0 to 1.0.
-        level = min(max(rms, 0.0), 1.0)
-        level_percent = int(level * 100)
+        # Float32 capture uses full scale 1.0. Map RMS logarithmically to
+        # dBFS so normal speech uses the available bar width effectively.
+        level_percent = self._input_meter.update(rms, 1.0)
 
         QTimer.singleShot(0, lambda: self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode))
 

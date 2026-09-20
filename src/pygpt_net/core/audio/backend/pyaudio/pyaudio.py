@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 04:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 from typing import List, Tuple, Optional
@@ -27,6 +27,7 @@ from ..shared import (
     convert_s16_pcm,
     build_rt_input_delta_event,
     build_output_volume_event,
+    InputLevelMeter,
 )
 
 class PyaudioBackend:
@@ -78,6 +79,9 @@ class PyaudioBackend:
         # file playback worker + guard timer
         self._file_thread: Optional[_FilePlaybackThread] = None
         self._file_check_timer: Optional[QTimer] = None
+
+        # Logarithmic input meter (dBFS) with attack/release smoothing.
+        self._input_meter = InputLevelMeter()
 
     def init(self):
         """Initialize audio input backend."""
@@ -213,6 +217,7 @@ class PyaudioBackend:
 
     def reset_audio_level(self):
         """Reset the audio level bar."""
+        self._input_meter.reset()
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
@@ -332,9 +337,7 @@ class PyaudioBackend:
 
         rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
         normalization_factor = self.get_normalization_factor(self.format)
-        level = rms / normalization_factor
-        level = min(max(level, 0.0), 1.0)
-        level_percent = int(level * 100)
+        level_percent = self._input_meter.update(rms, normalization_factor)
 
         # Update UI on the main thread only when recording is active
         if self._input_active:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 # Shared helpers for audio backends
@@ -24,6 +24,7 @@ from .conversions import (
     convert_s16_pcm,
 )
 from .envelope import compute_envelope_from_file
+from .meter import InputLevelMeter
 
 __all__ = [
     "build_rt_input_delta_event",
@@ -35,4 +36,5 @@ __all__ = [
     "f32_to_s16le",
     "convert_s16_pcm",
     "compute_envelope_from_file",
+    "InputLevelMeter",
 ]

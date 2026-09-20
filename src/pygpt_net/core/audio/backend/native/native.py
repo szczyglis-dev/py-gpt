@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 04:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -32,6 +32,7 @@ from ..shared import (
     convert_s16_pcm,
     build_rt_input_delta_event,
     build_output_volume_event,
+    InputLevelMeter,
 )
 from .player import NativePlayer
 
@@ -84,6 +85,9 @@ class NativeBackend(QObject):
 
         self._dtype = None
         self._norm = None
+
+        # Logarithmic input meter (dBFS) with attack/release smoothing.
+        self._input_meter = InputLevelMeter()
 
         self._rt_session: Optional[RealtimeSession] = None
         self._rt_signals = None  # set by core.audio.output on initialize()
@@ -258,6 +262,7 @@ class NativeBackend(QObject):
 
     def reset_audio_level(self):
         """Reset the audio level bar"""
+        self._input_meter.reset()
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
@@ -440,14 +445,9 @@ class NativeBackend(QObject):
         # Compute RMS of the audio samples as float64 for precision
         rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
 
-        # Normalize RMS value based on the sample format
-        level = rms / normalization_factor
-
-        # Ensure level is within 0.0 to 1.0
-        level = min(max(level, 0.0), 1.0)
-
-        # Scale to 0-100
-        level_percent = level * 100
+        # Map RMS to a logarithmic dBFS scale relative to the maximum
+        # representable amplitude of the active sample format.
+        level_percent = self._input_meter.update(rms, normalization_factor)
 
         # Update the level bar widget
         self.update_audio_level(level_percent)

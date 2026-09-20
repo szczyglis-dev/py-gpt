@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.27 07:00:00                  #
+# Updated Date: 2026.09.20 17:40:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QPainter, QPalette
 from PySide6.QtWidgets import QWidget
 
@@ -25,6 +25,7 @@ class InputBar(QWidget):
 
         :param level: level
         """
+        level = min(max(float(level), 0.0), 100.0)
         if self._level == level:
             return
         self._level = level
@@ -40,23 +41,14 @@ class InputBar(QWidget):
         painter = QPainter(self)
         painter.fillRect(self.rect(), Qt.transparent)
         level_width = (self._level / 100.0) * self.width()
+        center_x = self.width() / 2.0
+        rect_x = center_x - (level_width / 2.0)
         painter.setBrush(palette.color(QPalette.ButtonText))
         painter.setPen(Qt.NoPen)
-        painter.drawRect(0, 0, level_width, self.height())
+        painter.drawRect(
+            QRectF(rect_x, 0.0, level_width, float(self.height()))
+        )
 
-    """
-        # --- bar from center ---
-        def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), Qt.transparent)
-        level_width = (self._level / 100.0) * self.width()
-        half_level_width = level_width / 2
-        center_x = self.width() / 2
-        rect_x = center_x - half_level_width
-        painter.setBrush(Qt.green)
-        painter.setPen(Qt.NoPen)
-        painter.drawRect(rect_x, 0, level_width, self.height())
-    """
 
 
 class OutputBar(QWidget):
@@ -71,6 +63,7 @@ class OutputBar(QWidget):
 
         :param level: level
         """
+        level = min(max(float(level), 0.0), 100.0)
         if self._level == level:
             return
         self._level = level
@@ -86,20 +79,10 @@ class OutputBar(QWidget):
         painter = QPainter(self)
         painter.fillRect(self.rect(), Qt.transparent)
         level_width = (self._level / 100.0) * self.width()
+        center_x = self.width() / 2.0
+        rect_x = center_x - (level_width / 2.0)
         painter.setBrush(palette.color(QPalette.ButtonText))
         painter.setPen(Qt.NoPen)
-        painter.drawRect(0, 0, level_width, self.height())
-
-    """
-        # --- bar from center ---
-        def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), Qt.transparent)
-        level_width = (self._level / 100.0) * self.width()
-        half_level_width = level_width / 2
-        center_x = self.width() / 2
-        rect_x = center_x - half_level_width
-        painter.setBrush(Qt.green)
-        painter.setPen(Qt.NoPen)
-        painter.drawRect(rect_x, 0, level_width, self.height())
-    """
+        painter.drawRect(
+            QRectF(rect_x, 0.0, level_width, float(self.height()))
+        )
