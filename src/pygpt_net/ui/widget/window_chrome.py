@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.19 22:30:00                  #
+# Updated Date: 2026.09.20 20:20:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,8 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QWidget,
 )
+
+from pygpt_net.utils import trans
 
 
 class HoverTintButton(QPushButton):
@@ -85,6 +87,8 @@ class WindowChrome(QObject):
     ICON_SIZE = 15
     BUTTON_WIDTH = 34
     BUTTON_HEIGHT = 26
+    PROFILE_MENU_SPACING = 20
+    PROFILE_TOP_OFFSET = 0
 
     def __init__(self, window):
         super().__init__(window)
@@ -92,7 +96,6 @@ class WindowChrome(QObject):
         self.menu_bar = None
         self.container = None
         self.profile_label = None
-        self.version_label = None
         self.btn_minimize = None
         self.btn_maximize = None
         self.btn_close = None
@@ -101,6 +104,7 @@ class WindowChrome(QObject):
         # Linux can crash natively when a Python event filter sees all app events.
         self._drag_widgets = set()
         self._resize_handles = {}
+        self._tracked_menu_action_ids = set()
 
         self._manual_dragging = False
         self._manual_drag_offset = QPoint()
@@ -119,18 +123,24 @@ class WindowChrome(QObject):
             self.container.setObjectName("windowControls")
 
             layout = QHBoxLayout(self.container)
-            # Keep metadata compact and nudge it slightly below the top edge.
-            # The labels use a non-expanding size policy below, so spare menu-bar
-            # width never turns into a large gap between profile and version.
+            # Keep native-like window controls compact in the right corner.
             layout.setContentsMargins(0, 5, 0, 0)
             layout.setSpacing(0)
 
-            self.profile_label = self._make_meta_label("windowProfileLabel")
+            # Profile belongs to the left side of the menu bar, immediately
+            # after the final visible menu action.
+            self.profile_label = self._make_meta_label(
+                "windowProfileLabel",
+                parent=self.menu_bar,
+                alignment=Qt.AlignVCenter | Qt.AlignLeft,
+            )
+            # Keep mouse events enabled so QLabel can display its tooltip.
+            # WindowChrome handles dragging/double-clicking on the label just like
+            # the empty menu-bar area.
+            self.profile_label.installEventFilter(self)
             profile_font = self.profile_label.font()
             profile_font.setBold(True)
             self.profile_label.setFont(profile_font)
-
-            self.version_label = self._make_meta_label("windowVersionLabel")
 
             self.btn_minimize = self._make_button(
                 "windowMinimizeButton",
@@ -149,10 +159,6 @@ class WindowChrome(QObject):
                 hover_icon_color="#ffffff",
             )
 
-            layout.addWidget(self.profile_label)
-            layout.addSpacing(20)
-            layout.addWidget(self.version_label)
-            layout.addSpacing(20)
             layout.addWidget(self.btn_minimize)
             layout.addWidget(self.btn_maximize)
             layout.addWidget(self.btn_close)
@@ -185,6 +191,7 @@ class WindowChrome(QObject):
         # embeds QWebEngineView and a global Python event filter is unsafe there.
         self.window.installEventFilter(self)
         self.menu_bar.installEventFilter(self)
+        self._track_menu_actions()
         self._install_drag_filters()
         self._setup_resize_handles()
         self.refresh_metadata()
@@ -199,21 +206,47 @@ class WindowChrome(QObject):
         self.update_state()
 
 
-    def _make_meta_label(self, object_name: str) -> QLabel:
+    def _track_menu_actions(self):
+        """Reposition the profile whenever a top-level menu action changes."""
+        if self.menu_bar is None:
+            return
+        for action in self.menu_bar.actions():
+            action_id = id(action)
+            if action_id in self._tracked_menu_action_ids:
+                continue
+            action.changed.connect(self._schedule_profile_position)
+            self._tracked_menu_action_ids.add(action_id)
+
+    def _schedule_profile_position(self):
+        """Queue placement after Qt has recalculated menu action geometry."""
+        QTimer.singleShot(0, self._position_profile_label)
+
+    def _make_meta_label(
+        self,
+        object_name: str,
+        parent=None,
+        alignment=Qt.AlignVCenter | Qt.AlignRight,
+    ) -> QLabel:
         """Create a compact secondary-text label for the frameless menu bar."""
-        label = QLabel(self.container)
+        label = QLabel(parent or self.container)
         label.setObjectName(object_name)
         label.setProperty('class', 'label-help')
-        label.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
+        label.setAlignment(alignment)
         label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
         label.setFixedHeight(self.BUTTON_HEIGHT)
         label.setFocusPolicy(Qt.NoFocus)
         label.setTextInteractionFlags(Qt.NoTextInteraction)
         label.setContentsMargins(0, 0, 0, 0)
+        # Some themes (notably the light one) apply a global QWidget margin.
+        # These labels are positioned manually in the menu bar, so inheriting
+        # that margin changes both the apparent top offset and usable text
+        # width between themes. Keep their box metrics theme-independent while
+        # still inheriting the theme's .label-help text color.
+        label.setStyleSheet("margin: 0px; padding: 0px;")
         return label
 
     def refresh_metadata(self):
-        """Refresh current profile name and application version in the title bar."""
+        """Refresh current profile metadata in the title bar."""
         if self.profile_label is not None:
             try:
                 name = self.window.core.config.profile.get_current_name()
@@ -221,35 +254,51 @@ class WindowChrome(QObject):
                 name = ""
             profile_text = str(name or "")
             self.profile_label.setText(profile_text)
-            # QMenuBar corner widgets do not always recalculate their width when
-            # a child label changes after setup (for example after profile
-            # switch/rename). Reserve the exact text width so the right-aligned
-            # profile name cannot lose its leading characters.
-            self.profile_label.setMinimumWidth(
-                self.profile_label.fontMetrics().horizontalAdvance(profile_text) + 2
-                if profile_text else 0
-            )
-
-        if self.version_label is not None:
-            try:
-                version = self.window.meta.get("version", "")
-            except (AttributeError, RuntimeError):
-                version = ""
-
-            version_text = f"v{version}" if version else ""
-            self.version_label.setText(version_text)
-            self.version_label.setMinimumWidth(
-                self.version_label.fontMetrics().horizontalAdvance(version_text) + 2
-                if version_text else 0
-            )
+            self.profile_label.setToolTip(trans("window.profile.tooltip"))
+            self.profile_label.ensurePolished()
+            if profile_text:
+                metrics = self.profile_label.fontMetrics()
+                # Keep a small safety area for bold glyph overhang/rounding.
+                # Using the final polished font makes this stable after a theme
+                # switch (light and dark may otherwise report different hints).
+                width = max(
+                    metrics.horizontalAdvance(profile_text) + 8,
+                    self.profile_label.sizeHint().width() + 4,
+                )
+            else:
+                width = 0
+            self.profile_label.setMinimumWidth(width)
+            self.profile_label.setMaximumWidth(width)
 
         if self.container is not None:
             self.profile_label.updateGeometry() if self.profile_label is not None else None
-            self.version_label.updateGeometry() if self.version_label is not None else None
             self.container.updateGeometry()
             self.container.adjustSize()
             if self.menu_bar is not None:
                 self.menu_bar.updateGeometry()
+                self._position_profile_label()
+
+    def _position_profile_label(self):
+        """Place the profile name directly after the final visible menu item."""
+        if self.menu_bar is None or self.profile_label is None:
+            return
+
+        right = 0
+        for action in self.menu_bar.actions():
+            if not action.isVisible():
+                continue
+            rect = self.menu_bar.actionGeometry(action)
+            if rect.isValid() and not rect.isEmpty():
+                right = max(right, rect.right() + 1)
+
+        x = right + self.PROFILE_MENU_SPACING
+        width = self.profile_label.minimumWidth()
+        # Center against the current menu-bar height, then apply one explicit
+        # optical offset. Keeping the adjustment in a constant makes the profile
+        # position stable across themes and easy to tune.
+        y = max(0, (self.menu_bar.height() - self.BUTTON_HEIGHT) // 2 + self.PROFILE_TOP_OFFSET)
+        self.profile_label.setGeometry(x, y, width, self.BUTTON_HEIGHT)
+        self.profile_label.raise_()
 
     def _make_button(
         self,
@@ -286,7 +335,12 @@ class WindowChrome(QObject):
         """Refresh controls after maximize/fullscreen state changes."""
         if self.container is not None:
             # F11 fullscreen remains completely chrome-free.
-            self.container.setVisible(not self.window.isFullScreen())
+            visible = not self.window.isFullScreen()
+            self.container.setVisible(visible)
+            if self.profile_label is not None:
+                self.profile_label.setVisible(visible)
+                if visible:
+                    self._position_profile_label()
 
         if self.btn_maximize is not None:
             if self.window.isMaximized():
@@ -577,6 +631,28 @@ class WindowChrome(QObject):
                 QTimer.singleShot(0, self.update_state)
             return False
 
+        if watched is self.menu_bar and event_type in (
+            QEvent.Resize,
+            QEvent.Show,
+            QEvent.LayoutRequest,
+            QEvent.ActionAdded,
+            QEvent.ActionRemoved,
+        ):
+            if event_type == QEvent.ActionAdded:
+                QTimer.singleShot(0, self._track_menu_actions)
+            self._schedule_profile_position()
+            return False
+
+        if watched is self.menu_bar and event_type in (
+            QEvent.StyleChange,
+            QEvent.FontChange,
+            QEvent.PaletteChange,
+        ):
+            # Theme changes can alter the effective font metrics. Recalculate
+            # metadata widths after Qt has polished the new style.
+            QTimer.singleShot(0, self.refresh_metadata)
+            return False
+
         if event_type not in (
             QEvent.MouseButtonPress,
             QEvent.MouseButtonDblClick,
@@ -605,6 +681,14 @@ class WindowChrome(QObject):
         if watched in self._resize_handles:
             if event_type == QEvent.MouseButtonPress:
                 return self._start_resize(self._resize_handles[watched], global_pos, watched)
+            return False
+
+        if watched is self.profile_label:
+            if event_type == QEvent.MouseButtonDblClick:
+                self._toggle_maximized()
+                return True
+            if event_type == QEvent.MouseButtonPress:
+                return self._start_move(global_pos, watched)
             return False
 
         if watched is self.menu_bar:
