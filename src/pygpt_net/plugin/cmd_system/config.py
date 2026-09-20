@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 11:00:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -53,7 +53,7 @@ class Config(BaseConfig):
             type="combo",
             value=SandboxMode.DISABLED.value,
             label="Sandbox",
-            description="Disabled runs system commands directly on the host (unsafe). Built-in runs commands in a dedicated uv-managed CPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option.",
+            description="Disabled runs system commands directly on the host (unsafe). Built-in runs commands in a dedicated uv-managed CPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option. The system-command whitelist/blacklist applies in every execution mode.",
             keys=SandboxMode.options(),
             tab="general",
         )
@@ -153,7 +153,7 @@ class Config(BaseConfig):
                 },
             ],
             enabled=True,
-            description="Allows system commands execution",
+            description="Allows system command execution through the selected backend. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="general",
         )
 

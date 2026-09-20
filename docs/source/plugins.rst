@@ -28,13 +28,13 @@ The following plugins are currently available:
 * ``Memory (inline)`` - maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
 * ``Mouse and keyboard`` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 * ``OpenStreetMap`` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
-* ``Python interpreter`` - lets models execute Python or IPython code on the host, in the built-in uv-managed CPython sandbox, or in Docker, with mutually exclusive standard-Python/IPython tool sets and project-aware file access.
+* ``Python interpreter`` - lets models execute Python or IPython code on the host, in the built-in uv-managed CPython runtime, or in Docker, with mutually exclusive standard-Python/IPython tool sets and project-aware working directories.
 * ``RAG (inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 * ``Real time`` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
 * ``Serial port / USB`` - gives models access to configured serial and USB devices for reading data and sending commands.
 * ``Server (SSH/FTP)`` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
 * ``Slack`` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
-* ``System (OS)`` - executes system commands on the host, in the built-in uv-managed sandbox, or in Docker, with project-aware runtime paths.
+* ``System (OS)`` - executes system commands on the host, in the built-in uv-managed runtime, or in Docker, with project-aware runtime paths.
 * ``Telegram`` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 * ``Tuya (IoT)`` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
 * ``TwelveLabs`` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
@@ -2017,7 +2017,65 @@ The two execution tool sets are never exposed together. HTML Canvas tools are in
 
 **Standard Python:** ``python_exec`` executes Python code directly. The model provides only the ``code`` argument; PyGPT handles the temporary script path internally. Use ``python_exec_file`` only when an existing Python file should be executed. ``python_sys_exec`` runs shell/system commands in the same selected host or sandbox runtime as the standard Python interpreter.
 
-**Sandbox:** Select the backend in ``Plugins -> Settings -> Python interpreter -> General -> Sandbox``. ``Disabled`` runs Python/IPython directly on the host and is unsafe for untrusted code. ``Built-in sandbox`` uses a separate uv-managed CPython/IPython environment with OS-level isolation where available; it provides a moderate level of isolation and does not require Docker. ``Docker`` requires Docker to be installed and running and provides the strongest isolation of the available options. In both sandbox modes, the active conversation's ``data`` workdir is used as the runtime working directory; Docker exposes it as ``/mnt/data`` while the built-in sandbox keeps the host path and restricts filesystem access around it where supported.
+**Sandbox:** Select the backend in ``Plugins -> Settings -> Python interpreter -> General -> Sandbox``. Available modes are ``Disabled``, ``Built-in sandbox`` and ``Docker``. ``Built-in sandbox`` is the default mode for the Python interpreter plugin.
+
+Execution and isolation rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``Disabled``
+^^^^^^^^^^^^
+
+``Disabled`` uses the host Python/IPython environment and executes shell commands on the host. There is no sandbox boundary. Host-side Security guards are still applied where a plugin operation explicitly passes through them (for example, command whitelist/blacklist checks for dedicated system-command tools and path checks for plugin-managed file arguments), but they do not intercept arbitrary filesystem, subprocess or network access performed by executed Python/IPython code itself. Treat code executed in this mode as normal code running with the OS permissions of the PyGPT process.
+
+``Built-in sandbox``
+^^^^^^^^^^^^^^^^^^^^
+
+The built-in backend is a **separate execution environment**, not a filesystem or container security boundary. It is intended to keep model-executed Python and command-line tooling separate from the Python environment used to run PyGPT itself, without requiring Docker.
+
+The built-in runtime is created under the base PyGPT profile workdir. The default layout is:
+
+.. code-block:: text
+
+   %workdir%/
+   ├── data/                         # default conversation data workdir
+   ├── tmp/                          # PyGPT application/interpreter temporary files
+   └── sandbox/
+       ├── runtime/                  # uv-managed CPython runtimes (Python 3.12)
+       ├── cache/                    # uv package/runtime cache
+       ├── python/                   # venv used by the Python interpreter plugin
+       ├── os/                       # separate venv used by the System (OS) plugin
+       └── state/
+           ├── python/
+           │   ├── home/             # HOME/USERPROFILE for Python built-in processes
+           │   └── tmp/              # TMP/TEMP/TMPDIR for Python built-in processes
+           └── os/
+               ├── home/             # HOME/USERPROFILE for System built-in processes
+               └── tmp/              # TMP/TEMP/TMPDIR for System built-in processes
+
+``%workdir%`` above means the base profile workdir. A project's custom ``data`` workdir may be located elsewhere; it does not move the base ``sandbox`` directory.
+
+For the Python plugin, both standard Python and IPython use ``%workdir%/sandbox/python``. The environment is provisioned by ``uv`` and has its own Python executable, ``pip`` and packages. PyGPT prepends this environment's ``bin``/``Scripts`` directory to ``PATH``, sets ``VIRTUAL_ENV`` to the built-in venv, disables the user site with ``PYTHONNOUSERSITE=1``, removes inherited ``PYTHONHOME``/``PYTHONPATH`` and uses the private ``state/python/home`` and ``state/python/tmp`` directories for HOME and temporary files. This prevents the built-in interpreter from accidentally using PyGPT's own virtual environment, but it is **environment separation only**.
+
+The active conversation's ``data`` workdir is the process CWD. Normally this is ``%workdir%/data``. If the conversation belongs to a project with a custom data workdir, that project directory becomes the CWD automatically. Relative paths are resolved from this directory.
+
+There is deliberately **no host filesystem restriction** in the built-in backend. Absolute paths remain host paths, and Python code, IPython code and shell commands can read or write any host location allowed to the OS account running PyGPT. The built-in process also uses the host network stack and runs with the same user privileges as PyGPT; it does not use a separate mount namespace, user namespace or network namespace. On Windows, child processes are additionally attached to a Job Object with kill-on-close/process-lifetime handling, but this does not restrict filesystem or network access.
+
+Standard ``python_exec`` calls run in separate child processes. IPython uses a persistent kernel in the same built-in environment, so variables/imports remain available between calls until the kernel is restarted. ``python_sys_exec`` and ``ipython_sys_exec`` execute shell commands using the same built-in environment and CWD. On Unix-like systems the shell is ``/bin/sh``; on Windows it is ``cmd.exe``/``COMSPEC``.
+
+The working-directory filesystem read/write restrictions are still bypassed for Built-in execution; this change does not add filesystem isolation. The system-command whitelist/blacklist is handled separately and **does apply** to the dedicated ``python_sys_exec`` and ``ipython_sys_exec`` tools in Built-in mode, using the whitelist/blacklist for the host operating system. This is an application-level command guard only: arbitrary Python/IPython code can still start processes itself (for example with ``subprocess`` or ``os.system``), so Built-in must still be treated as code with host-level filesystem/network access.
+
+``Docker``
+^^^^^^^^^^
+
+Docker provides the actual container boundary and is the strongest isolation option supplied by these plugins. The active conversation's ``data`` workdir is mounted read/write at ``/mnt/data`` by the stock configuration and ``/mnt/data`` is used as the runtime CWD. Project-specific data workdirs are mapped automatically.
+
+The container cannot see arbitrary host paths unless they are explicitly exposed through Docker volume mappings or by other Docker configuration. Adding custom entries to ``Docker volumes`` expands the host filesystem visible to the container. The default volume list exposes only the active runtime ``data`` workdir. The application-level ``%workdir%/sandbox`` and ``%workdir%/tmp`` directories are not mounted by the stock configuration.
+
+The stock Docker images run as the unprivileged ``pygpt`` user by default. Passwordless ``sudo`` is available inside the stock container, and the IPython and standard-Python Docker settings have separate ``Run as root`` options. Root inside the container is still subject to the container boundary, but it can fully access any host volumes that have been mounted into that container. No host ports are published by the stock configuration unless entries are added to ``Docker ports``. Normal Docker networking may still allow outbound network access according to the Docker daemon/network configuration.
+
+Docker isolation depends on the Docker daemon, image, privileges, capabilities and volume/port mappings configured by the user. Avoid mounting sensitive host directories or the Docker socket into model-controlled containers.
+
+For the dedicated Python system-command tools (``python_sys_exec`` and ``ipython_sys_exec``), PyGPT checks the system-command whitelist/blacklist **before** sending the command to Docker. The stock Docker runtimes are Linux containers, so these checks use the ``Security -> Linux`` command list even when the PyGPT host is Windows or macOS. This does not inspect processes spawned indirectly by arbitrary Python/IPython code.
 
 **Docker permissions:** The stock Docker images run as the unprivileged ``pygpt`` user by default, with passwordless ``sudo`` available when elevated privileges are required. The IPython and standard-Python Docker settings have separate ``Run as root`` options.
 
@@ -2044,7 +2102,7 @@ To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemo
    :width: 600
 
 .. important::
-   Host execution requires a working host Python/IPython environment. ``Built-in sandbox`` creates its own uv-managed CPython environment on first use. ``Docker`` requires Docker and provides the strongest isolation.
+   Host execution requires a working host Python/IPython environment. ``Built-in sandbox`` (the Python plugin default) creates its own uv-managed CPython environment on first use, but it does not restrict host filesystem or network access. ``Docker`` requires Docker and provides the strongest isolation. The system-command whitelist/blacklist applies to the dedicated Python system-command tools in all three execution modes.
 
    Docker installation: https://docs.docker.com/engine/install/
 
@@ -2063,7 +2121,7 @@ Select the interpreter mode. When enabled, PyGPT exposes only the IPython tool s
 
 - ``Sandbox`` *sandbox*
 
-Select the execution backend. ``Disabled`` executes on the host and is unsafe for untrusted code. ``Built-in sandbox`` uses a uv-managed CPython/IPython environment with moderate OS-level isolation where available. ``Docker`` requires Docker and provides the strongest isolation of the available options. *Default:* ``Disabled``
+Select the execution backend. ``Disabled`` executes in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed CPython/IPython environment and separate processes, but does not restrict host filesystem or network access. ``Docker`` runs in a container and provides the strongest isolation of the available options. Filesystem Security restrictions keep their existing sandbox behavior, while the system-command whitelist/blacklist applies to ``python_sys_exec`` and ``ipython_sys_exec`` in every mode. *Default:* ``Built-in sandbox``
 
 - ``Connect to the Python/OS window`` *attach_output*
 
@@ -2130,7 +2188,7 @@ Executes Python code in the current IPython kernel. The tool accepts one require
 
 - ``Tool: ipython_sys_exec`` *cmd.ipython_sys_exec*
 
-Executes a shell/system command in the active IPython environment. With ``Sandbox = Docker`` the command runs inside the Docker runtime; with ``Sandbox = Disabled`` it runs on the host. *Default:* ``True``
+Executes a shell/system command in the active IPython environment. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker runtime and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment. *Default:* ``True``
 
 - ``Tool: ipython_kernel_restart`` *cmd.ipython_kernel_restart*
 
@@ -2181,7 +2239,7 @@ Executes an existing Python file. The tool accepts the required ``path`` paramet
 
 - ``Tool: python_sys_exec`` *cmd.python_sys_exec*
 
-Executes a shell/system command in the standard Python runtime. With ``Sandbox = Docker`` the command runs inside the Docker backend; with ``Sandbox = Disabled`` it runs on the host. *Default:* ``True``
+Executes a shell/system command in the standard Python runtime. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in Python venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker backend and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment. *Default:* ``True``
 
 
 **HTML Canvas**
@@ -2623,9 +2681,35 @@ Upload a file via external flow and share in Slack.
 System (OS)
 -----------
 
-The plugin provides operating-system command execution through a selectable execution backend. The ``Sandbox`` option is the single execution-mode selector: ``Disabled`` runs ``sys_exec`` directly on the host and is unsafe for untrusted commands; ``Built-in sandbox`` runs commands in a separate uv-managed CPython environment with OS-level isolation where available; ``Docker`` runs them in the Docker sandbox and provides the strongest isolation. The backend layer is separate from the tool itself, so additional sandbox implementations can be added without changing the ``sys_exec`` contract.
+The plugin provides operating-system command execution through a selectable execution backend. The ``Sandbox`` option is the single execution-mode selector: ``Disabled``, ``Built-in sandbox`` or ``Docker``. The backend layer is separate from the ``sys_exec`` tool contract, so the same tool is used regardless of execution mode.
 
-When ``Sandbox = Docker``, the active conversation's runtime ``data`` directory is mounted at ``/mnt/data`` and used as the command working directory. Project-specific data workdirs are mapped automatically. Host-side security checks apply to non-sandbox execution; sandbox execution uses the selected sandbox backend's isolation.
+System/OS execution and isolation rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``Disabled`` executes ``sys_exec`` in the host environment. The command runs with the privileges of the PyGPT process. The configured system-command whitelist/blacklist is checked before execution, using the policy for the host operating system.
+
+``Built-in sandbox`` uses a dedicated uv-managed environment under ``%workdir%/sandbox/os``. It shares the same base built-in runtime infrastructure described in the Python interpreter section:
+
+.. code-block:: text
+
+   %workdir%/sandbox/
+   ├── runtime/              # uv-managed CPython runtimes
+   ├── cache/                # uv cache
+   ├── python/               # Python interpreter plugin venv
+   ├── os/                   # System (OS) plugin venv
+   └── state/os/
+       ├── home/             # HOME/USERPROFILE for built-in System commands
+       └── tmp/              # TMP/TEMP/TMPDIR for built-in System commands
+
+The System built-in venv is separate from the Python interpreter venv. Its ``bin``/``Scripts`` directory is placed first in ``PATH`` and it has its own packaging tools, so commands and packages installed into ``sandbox/os`` do not modify PyGPT's own Python environment or ``sandbox/python``.
+
+The active conversation's ``data`` workdir is used as the command CWD. Normally this is ``%workdir%/data``; a project's custom data workdir is used automatically when configured. Relative command paths therefore start from the active data workdir.
+
+Despite its name, the System built-in backend is **not a filesystem sandbox**. Commands are started as separate host processes (``/bin/sh -c`` on Unix-like systems or ``cmd.exe``/``COMSPEC`` on Windows) with a private HOME/TMP and the built-in venv environment, but they run as the same OS user as PyGPT and can access the host filesystem and network according to that user's permissions. On Windows the process is additionally attached to a Job Object for process-lifetime handling; this does not restrict filesystem or network access.
+
+The system-command whitelist/blacklist is **not bypassed** in ``Sandbox = Built-in sandbox``. ``sys_exec`` is checked before the child process starts, using the policy for the host operating system. Filesystem read/write restrictions remain separate and keep their existing sandbox behavior; Built-in still has normal host filesystem/network access with the PyGPT user's permissions.
+
+``Docker`` runs ``sys_exec`` inside the configured container. Before the command enters the container, PyGPT checks it against the Linux system-command whitelist/blacklist because the stock System Docker image is Linux-based. The active conversation's runtime ``data`` directory is mounted read/write at ``/mnt/data`` and used as the command CWD. Project-specific data workdirs are mapped automatically. By default no other PyGPT workdir directories are mounted. Custom ``Docker volumes`` can expose additional host paths, and custom ``Docker ports`` can publish container ports. The stock image runs as the unprivileged ``pygpt`` user with passwordless ``sudo`` unless ``Run as root`` is enabled.
 
 ``sys_exec`` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled.
 
@@ -2635,7 +2719,7 @@ When ``Sandbox = Docker``, the active conversation's runtime ``data`` directory 
 
 - ``Sandbox`` *sandbox*
 
-Select the execution backend. ``Disabled`` executes commands on the host and is unsafe for untrusted commands. ``Built-in sandbox`` uses a uv-managed CPython environment with moderate OS-level isolation where available. ``Docker`` requires Docker and provides the strongest isolation of the available options. *Default:* ``Disabled``
+Select the execution backend. ``Disabled`` executes commands in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed environment and separate process execution, but does not restrict host filesystem or network access. ``Docker`` requires Docker and provides the strongest isolation of the available options. The system-command whitelist/blacklist applies to ``sys_exec`` in every mode; Host/Built-in use the host OS policy and Docker uses the Linux policy. *Default:* ``Disabled``
 
 - ``Auto-append CWD to sys_exec`` *auto_cwd*
 
@@ -2647,7 +2731,7 @@ Mirror ``sys_exec`` command input and output to the Python/OS window. *Default:*
 
 - ``Tool: sys_exec`` *cmd.sys_exec*
 
-Allows system command execution through the currently selected execution backend. Commands are non-interactive and should not wait for stdin. *Default:* ``True``
+Allows system command execution through the currently selected execution backend. Commands are checked against the configured system-command whitelist/blacklist before execution in Host, Built-in and Docker modes. Commands are non-interactive and should not wait for stdin. *Default:* ``True``
 
 **Sandbox (Docker backend)**
 
@@ -2699,7 +2783,8 @@ Notes:
 
 - When ``Sandbox = Docker``, relative paths passed in commands are resolved against ``/mnt/data`` inside the container.
 - The plugin checks Docker availability and prompts to build the image if it does not exist.
-- ``Sandbox = Disabled`` uses unsafe host execution and does not start or require Docker. ``Sandbox = Built-in sandbox`` does not require Docker; ``Sandbox = Docker`` requires Docker to be installed and running.
+- ``Sandbox = Disabled`` uses the host environment and does not start or require Docker. ``Sandbox = Built-in sandbox`` does not require Docker and uses ``%workdir%/sandbox/os``, but it still has host filesystem/network access. ``Sandbox = Docker`` requires Docker to be installed and running.
+- The system-command whitelist/blacklist applies to ``sys_exec`` in all three modes. Host and Built-in use the current host OS list; Docker uses the Linux list. This application-level check does not replace Docker isolation and does not inspect commands launched indirectly by other code.
 
 **WinAPI (Windows)**
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.19 16:05:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 import os
@@ -16,11 +16,11 @@ from typing import Iterable, List, Optional
 
 
 class SecurityError(PermissionError):
-    """Raised when a host-side plugin operation is blocked by Security settings."""
+    """Raised when a plugin operation is blocked by Security settings."""
 
 
 class Security:
-    """Shared host-side security checks used by plugins."""
+    """Shared application-level security checks used by plugins."""
 
     READ_RESTRICT_KEY = "security.filesystem.read.restrict"
     WRITE_RESTRICT_KEY = "security.filesystem.write.restrict"
@@ -50,13 +50,20 @@ class Security:
             return "macos"
         return "linux"
 
-    def get_os_label(self) -> str:
+    def _resolve_os_id(self, os_id: Optional[str] = None) -> str:
+        """Return a normalized Security command-policy OS identifier."""
+        value = str(os_id or self.get_os_id()).strip().lower()
+        if value not in {"linux", "windows", "macos"}:
+            return self.get_os_id()
+        return value
+
+    def get_os_label(self, os_id: Optional[str] = None) -> str:
         """Return the human-readable operating-system label used by the Settings UI."""
         return {
             "linux": "Linux",
             "windows": "Windows",
             "macos": "macOS",
-        }[self.get_os_id()]
+        }[self._resolve_os_id(os_id)]
 
     def is_read_restricted(self) -> bool:
         return bool(self.window.core.config.get(self.READ_RESTRICT_KEY, True))
@@ -169,33 +176,33 @@ class Security:
             parts = re.split(r"[;,]+", str(value))
         return {str(item).strip().lower() for item in parts if str(item).strip()}
 
-    def get_command_whitelist(self) -> set:
-        key = self.WHITELIST_KEY_PREFIX + self.get_os_id()
+    def get_command_whitelist(self, os_id: Optional[str] = None) -> set:
+        key = self.WHITELIST_KEY_PREFIX + self._resolve_os_id(os_id)
         return self._parse_list(self.window.core.config.get(key, ""))
 
-    def get_command_blacklist(self) -> set:
-        key = self.BLACKLIST_KEY_PREFIX + self.get_os_id()
+    def get_command_blacklist(self, os_id: Optional[str] = None) -> set:
+        key = self.BLACKLIST_KEY_PREFIX + self._resolve_os_id(os_id)
         return self._parse_list(self.window.core.config.get(key, ""))
 
     def is_command_whitelist_enabled(self) -> bool:
         return bool(self.window.core.config.get(self.WHITELIST_ENABLED_KEY, False))
 
-    def _normalize_command_name(self, value: str) -> str:
+    def _normalize_command_name(self, value: str, os_id: Optional[str] = None) -> str:
         name = os.path.basename(str(value).strip().strip('"\''))
         name = name.lower()
-        if self.get_os_id() == "windows":
+        if self._resolve_os_id(os_id) == "windows":
             for ext in self._WINDOWS_EXTENSIONS:
                 if name.endswith(ext):
                     name = name[:-len(ext)]
                     break
         return name
 
-    def _segment_command(self, segment: str) -> Optional[str]:
+    def _segment_command(self, segment: str, os_id: Optional[str] = None) -> Optional[str]:
         segment = segment.strip()
         if not segment:
             return None
         try:
-            tokens = shlex.split(segment, posix=self.get_os_id() != "windows")
+            tokens = shlex.split(segment, posix=self._resolve_os_id(os_id) != "windows")
         except ValueError:
             tokens = segment.split()
         if not tokens:
@@ -208,10 +215,10 @@ class Security:
         if idx >= len(tokens):
             return None
 
-        name = self._normalize_command_name(tokens[idx])
+        name = self._normalize_command_name(tokens[idx], os_id=os_id)
         return name or None
 
-    def extract_command_names(self, command: str) -> List[str]:
+    def extract_command_names(self, command: str, os_id: Optional[str] = None) -> List[str]:
         """Extract executable/builtin names from a possibly chained shell command."""
         if command is None:
             return []
@@ -222,7 +229,7 @@ class Security:
         # PowerShell/cmd are treated as executables themselves. Allowing an interpreter
         # intentionally grants it the ability to run its own command language.
         parts = self._SHELL_SPLIT_RE.split(text)
-        if self.get_os_id() == "windows":
+        if self._resolve_os_id(os_id) == "windows":
             expanded = []
             for part in parts:
                 expanded.extend(re.split(r"(?<!\^)&", part))
@@ -230,7 +237,7 @@ class Security:
 
         names = []
         for part in parts:
-            name = self._segment_command(part)
+            name = self._segment_command(part, os_id=os_id)
             if name and name not in names:
                 names.append(name)
         return names
@@ -333,33 +340,42 @@ class Security:
                     messages.append(msg)
         return messages
 
-    def ensure_command(self, command: str, sandbox: bool = False) -> List[str]:
-        """Validate a host system command against the current OS whitelist/blacklist."""
-        if sandbox:
-            return self.extract_command_names(command)
+    def ensure_command(
+        self,
+        command: str,
+        sandbox: bool = False,
+        os_id: Optional[str] = None,
+    ) -> List[str]:
+        """Validate a system command against the configured whitelist/blacklist.
 
-        names = self.extract_command_names(command)
+        The command policy is application-level and applies to host, built-in and
+        Docker execution. ``sandbox`` is retained for API compatibility and does
+        not bypass command filtering. ``os_id`` selects the policy for the runtime
+        OS; Docker callers use ``linux`` because the stock containers are Linux.
+        """
+        policy_os = self._resolve_os_id(os_id)
+        names = self.extract_command_names(command, os_id=policy_os)
         if not names:
             return names
 
         if self.is_command_whitelist_enabled():
-            allowed = self.get_command_whitelist()
+            allowed = self.get_command_whitelist(os_id=policy_os)
             denied = [name for name in names if name not in allowed]
             if denied:
                 raise SecurityError(
                     "Permission denied - system command '{}' is not allowed by the enabled whitelist. "
                     "Edit Settings -> Security -> {} -> System commands whitelist. "
                     "Whitelist rules take precedence over the blacklist."
-                    .format(denied[0], self.get_os_label())
+                    .format(denied[0], self.get_os_label(policy_os))
                 )
             return names
 
-        blocked = self.get_command_blacklist()
+        blocked = self.get_command_blacklist(os_id=policy_os)
         denied = [name for name in names if name in blocked]
         if denied:
             raise SecurityError(
                 "Permission denied - system command '{}' is blocked by the blacklist. "
                 "Edit Settings -> Security -> {} -> System commands blacklist."
-                .format(denied[0], self.get_os_label())
+                .format(denied[0], self.get_os_label(policy_os))
             )
         return names

@@ -43,19 +43,35 @@ System commands
 
 PyGPT provides per-OS command whitelists and blacklists for Linux, Windows and macOS.
 
-* If the whitelist is enabled, only command names listed for the current OS are allowed.
+* If the whitelist is enabled, only command names listed for the applicable runtime OS are allowed.
 * When the whitelist is enabled it takes precedence over the blacklist.
 * If the whitelist is disabled, commands listed in the blacklist are blocked.
+* The command policy applies to ``sys_exec``, ``python_sys_exec`` and ``ipython_sys_exec`` in every execution backend: ``Disabled`` (host), ``Built-in sandbox`` and ``Docker``.
+* Host and Built-in execution use the policy for the host operating system. The stock Docker backends are Linux containers, so Docker system-command tools use the Linux whitelist/blacklist even when PyGPT itself runs on Windows or macOS.
 
-These checks are application-level guards around host-side plugin command execution. They are not a
-process sandbox.
+These checks are application-level guards around the dedicated system-command tools. They are not a
+process sandbox and do not inspect arbitrary commands started by executed Python code, for example via
+``subprocess``, ``os.system`` or an IPython shell escape submitted as normal Python/IPython code.
 
 Sandbox behavior
 ~~~~~~~~~~~~~~~~
 
-Configured sandbox execution is isolated separately and bypasses the host-side Security filters described
-above. For process-level isolation, use a supported sandbox such as the Docker mode provided by the
-Python interpreter plugin.
+Filesystem and command policies are intentionally separate. The workdir filesystem read/write Security
+restrictions keep their existing behavior and are bypassed by sandbox backends. The system-command
+whitelist/blacklist is **not** bypassed: it is checked before dedicated system-command tools are sent to
+Host, Built-in or Docker execution.
+
+The ``Built-in sandbox`` used by the Python interpreter and System (OS) plugins provides a separate
+uv-managed environment and separate-process execution, but it does **not** restrict host filesystem or
+network access. Built-in commands run with the OS permissions of the PyGPT process. Treat Built-in as
+environment/process separation rather than a filesystem or network security boundary; the command
+whitelist/blacklist is an additional application-level guard for the dedicated system-command tools.
+
+``Docker`` provides the container boundary. By default these plugins expose only the active runtime
+``data`` workdir to the container at ``/mnt/data``; custom volume mappings can expose additional host
+paths. The command whitelist/blacklist is evaluated before a dedicated system-command tool enters the
+container. See the Python interpreter and System (OS) sections in :doc:`plugins` for the complete backend
+layout and isolation rules.
 
 Computer Use confirmations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

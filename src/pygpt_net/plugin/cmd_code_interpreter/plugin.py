@@ -39,7 +39,7 @@ class Plugin(BasePlugin):
         self.is_common_plugin = True
         self.name = "Python interpreter"
         self.description = "Provides Python/HTML/JS code execution"
-        self.prefix = "Python => code"
+        self.prefix = "Python -> code"
         self.type = [
             'interpreter',
         ]

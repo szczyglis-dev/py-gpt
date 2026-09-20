@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:35:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 import os
@@ -212,6 +212,7 @@ class DockerBackend(ExecutionBackend):
     def ipython_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
         command = item["params"]["command"]
+        self.plugin.window.core.security.ensure_command(command, sandbox=True, os_id="linux")
         runner.log("Executing IPython system command: {}".format(command), sandbox=True, category="exec")
         runner.log("Running command: {}".format(command), sandbox=True, category="exec")
         runner.send_interpreter_input(command)
@@ -228,6 +229,7 @@ class DockerBackend(ExecutionBackend):
     def python_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
         command = item["params"]["command"]
+        self.plugin.window.core.security.ensure_command(command, sandbox=True, os_id="linux")
         runner.log("Executing legacy Python system command: {}".format(command), sandbox=True, category="exec")
         runner.log("Running command: {}".format(command), sandbox=True, category="exec")
         runner.send_interpreter_input(command)

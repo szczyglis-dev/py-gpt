@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 11:00:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 import os
@@ -71,6 +71,7 @@ class DockerBackend(ExecutionBackend):
     def sys_exec(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
         command = item["params"]["command"]
+        self.plugin.window.core.security.ensure_command(command, sandbox=True, os_id="linux")
 
         runner.send_interpreter_input(command)
         runner.log("Executing system command: {}".format(command), prefix=self.log_prefix)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:35:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -41,9 +41,9 @@ class Config(BaseConfig):
         plugin.add_option(
             "sandbox",
             type="combo",
-            value=SandboxMode.DISABLED.value,
+            value=SandboxMode.BUILTIN.value,
             label="Sandbox",
-            description="Disabled runs Python/IPython directly on the host (unsafe). Built-in runs a dedicated uv-managed CPython/IPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option.",
+            description="Disabled runs Python/IPython directly on the host (unsafe). Built-in runs a dedicated uv-managed CPython/IPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option. System-command whitelist/blacklist rules apply to the dedicated system-command tools in every execution mode.",
             keys=SandboxMode.options(),
             tab="general",
         )
@@ -132,7 +132,7 @@ class Config(BaseConfig):
                 },
             ],
             enabled=True,
-            description="Allows system commands execution in the IPython environment",
+            description="Allows system command execution in the IPython environment. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="ipython",
         )
 
@@ -353,7 +353,7 @@ class Config(BaseConfig):
                 },
             ],
             enabled=True,
-            description="Allows system commands execution in the standard Python environment",
+            description="Allows system command execution in the standard Python environment. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="python_legacy",
         )
         plugin.add_cmd(
