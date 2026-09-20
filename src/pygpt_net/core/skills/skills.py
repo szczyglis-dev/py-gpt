@@ -822,7 +822,7 @@ class Skills:
             if self._plugin_enabled("cmd_system"):
                 plugin = self.window.core.plugins.get("cmd_system")
                 if plugin is not None and self._has_tool(plugin, "sys_exec"):
-                    mode = "sandbox" if bool(plugin.get_option_value("sandbox_docker")) else "host"
+                    mode = "sandbox" if plugin.is_sandbox_enabled() else "host"
                     return "sys_exec", mode
         except Exception as exc:
             self._log(exc)
@@ -848,16 +848,20 @@ class Skills:
         Skill bundles frequently contain ``scripts`` packages and document
         commands such as ``python -m scripts.run_loop``. Python only resolves
         that module reliably when the skill root is the working directory (or
-        explicitly present on PYTHONPATH). Code Interpreter backends provide
-        their own host-to-runtime path mapping; System OS keeps its Docker mapping.
+        explicitly present on PYTHONPATH). System/OS and Code Interpreter backends provide
+        their own host-to-runtime path mappings.
         """
         host_path = os.path.realpath(materialized)
         relative_path = self._display_workdir_path(materialized, ctx=ctx)
         tool, mode = self._preferred_shell_runtime()
         sandbox_path = self._sandbox_workdir_path(materialized, ctx=ctx)
-        if mode == "sandbox" and tool in {"ipython_sys_exec", "python_sys_exec"}:
+        if mode == "sandbox":
             try:
-                plugin = self.window.core.plugins.get("cmd_code_interpreter")
+                plugin = None
+                if tool == "sys_exec":
+                    plugin = self.window.core.plugins.get("cmd_system")
+                elif tool in {"ipython_sys_exec", "python_sys_exec"}:
+                    plugin = self.window.core.plugins.get("cmd_code_interpreter")
                 if plugin is not None:
                     sandbox_path = plugin.map_host_path_to_runtime(materialized, ctx=ctx)
             except Exception as exc:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:45:00                  #
+# Updated Date: 2026.09.20 11:00:00                  #
 # ================================================== #
 
 import os.path
@@ -118,122 +118,22 @@ class Runner:
         self.log(result)
         return result
 
-    def handle_result_docker(self, response) -> str:
-        """
-        Handle result from docker container
-
-        :param response: response
-        :return: result
-        """
+    def handle_result_sandbox(self, response, prefix: str = "") -> str:
+        """Handle a byte/string result returned by an isolated execution backend."""
         result = None
         if response:
             try:
-                result = response.decode('utf-8', errors="replace")
+                result = response.decode("utf-8", errors="replace")
             except Exception:
                 result = str(response)
         if result is not None:
             self.send_interpreter_output(result, "stdout")
-        self.log(
-            "Result: {}".format(result),
-            sandbox=True,
-        )
+        self.log("Result: {}".format(result), prefix=prefix)
         return result
 
-    def is_sandbox(self) -> bool:
-        """
-        Check if sandbox is enabled
-
-        :return: True if sandbox is enabled
-        """
-        return self.plugin.get_option_value('sandbox_docker')
-
-    def get_docker(self) -> Any:
-        """
-        Get docker client
-
-        :return: docker client instance
-        """
-        import docker
-        return docker.from_env()
-
-    def get_volumes(self, ctx=None) -> dict:
-        """
-        Get docker volumes
-
-        :return: docker volumes
-        """
-        path = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
-        mapping = {}
-        mapping[path] = {
-            "bind": "/mnt/data",
-            "mode": "rw",
-        }
-        return mapping
-
-    def run_docker(self, cmd: str, ctx=None) -> bytes or None:
-        """
-        Run docker container with command and return response
-
-        :param cmd: command to run
-        :return: response
-        """
-        client = self.get_docker()
-        mapping = self.get_volumes(ctx=ctx)
-        try:
-            response = self.plugin.docker.execute(cmd, ctx=ctx)
-        except Exception as e:
-            response = str(e).encode("utf-8")
-        return response
-
-    def sys_exec_host(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """
-        Execute system command on host
-        """
-        self.plugin.window.core.security.ensure_command(item["params"]['command'], sandbox=False)
-        self.send_interpreter_input(item["params"]['command'])
-        msg = "Executing system command: {}".format(item["params"]['command'])
-        self.log(msg)
-        self.log("Running command: {}".format(item["params"]['command']))
-        self.send_interpreter_output_begin("stdout")
-        try:
-            stdout, stderr = self._communicate_subprocess(
-                item["params"]['command'],
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except Exception as e:
-            self.error(e)
-            stdout = None
-            stderr = str(e).encode("utf-8")
-        result = self.handle_result(stdout, stderr)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
-        """
-        Execute system command in sandbox (docker)
-        """
-        self.send_interpreter_input(item["params"]['command'])
-        msg = "Executing system command: {}".format(item["params"]['command'])
-        self.log(msg, sandbox=True)
-        self.log(
-            "Running command: {}".format(item["params"]['command']),
-            sandbox=True,
-        )
-        self.send_interpreter_output_begin("stdout")
-        response = self.run_docker(item["params"]['command'], ctx=ctx)
-        result = self.handle_result_docker(response)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
+    def handle_result_docker(self, response) -> str:
+        """Backward-compatible alias for Docker result handling."""
+        return self.handle_result_sandbox(response, prefix="[DOCKER]")
 
     def parse_result(self, result, ctx=None):
         """
@@ -259,29 +159,12 @@ class Runner:
         return os.path.isabs(path)
 
     def prepare_path(self, path: str, on_host: bool = True, ctx=None) -> str:
-        """
-        Prepare path
-
-        :param path: path to prepare
-        :param on_host: is on host
-        :return: prepared path
-        """
-        if not path:
-            return path
-        if on_host and self.is_sandbox():
-            mapped = self.plugin.window.core.filesystem.from_sandbox_data_path(path, ctx=ctx)
-            if mapped != path:
-                return mapped
-        if self.is_absolute_path(path):
-            return path
-        else:
-            if not self.is_sandbox() or on_host:
-                return os.path.join(
-                    self.plugin.window.core.filesystem.get_data_dir(ctx=ctx),
-                    path,
-                )
-            else:
-                return path
+        """Prepare a path using the active System/OS execution backend."""
+        return self.plugin.get_execution_backend().prepare_path(
+            path,
+            on_host=on_host,
+            ctx=ctx,
+        )
 
     def error(self, err: any):
         """
@@ -304,14 +187,11 @@ class Runner:
         if self.signals is not None:
             safe_emit(self.signals, "debug", msg)
 
-    def log(self, msg, sandbox: bool = False):
-        """
-        Log message to console
-        """
-        prefix = ''
-        if sandbox:
-            prefix += '[DOCKER]'
-        full_msg = prefix + ' ' + str(msg)
+    def log(self, msg, sandbox: bool = False, prefix: str = ""):
+        """Log a message to the console with an optional backend prefix."""
+        if not prefix and sandbox:
+            prefix = "[SANDBOX]"
+        full_msg = ((prefix + " ") if prefix else "") + str(msg)
 
         if self.signals is not None:
             safe_emit(self.signals, "log", full_msg)

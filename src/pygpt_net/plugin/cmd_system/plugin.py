@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 14:15:00                  #
+# Updated Date: 2026.09.20 11:00:00                  #
 # ================================================== #
 
 import platform
@@ -18,14 +18,11 @@ from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
-from .dockerfile import SYSTEM_DOCKERFILE, SYSTEM_DOCKERFILE_39
 from .docker import Docker
+from .execution import ExecutionManager
 from .output import Output
 from .runner import Runner
-
-from pygpt_net.core.docker.docker import migrate_default_dockerfile
-
-from pygpt_net.utils import trans
+from .sandbox import SandboxMode
 
 
 class Plugin(BasePlugin):
@@ -86,27 +83,56 @@ class Plugin(BasePlugin):
         self.worker = None
         self.config = Config(self)
         self.init_options()
+        self.execution = ExecutionManager(self)
 
     def init_options(self):
         """Initialize options"""
         self.config.from_defaults(self)
 
+    def get_sandbox_mode(self) -> SandboxMode:
+        """Return the selected System/OS execution mode."""
+        if hasattr(self, "execution"):
+            return self.execution.get_mode()
+        value = self.get_option_value("sandbox")
+        if isinstance(value, bool):
+            return SandboxMode.DOCKER if value else SandboxMode.DISABLED
+        if value in (None, ""):
+            return SandboxMode.DISABLED
+        return SandboxMode(value)
+
+    def get_execution_backend(self):
+        """Return the backend responsible for sys_exec execution."""
+        return self.execution.get_backend()
+
+    def is_sandbox_mode(self, mode: str | SandboxMode) -> bool:
+        """Return True when the requested sandbox mode is selected."""
+        value = mode.value if isinstance(mode, SandboxMode) else str(mode)
+        return self.get_sandbox_mode().value == value
+
+    def is_docker_sandbox(self) -> bool:
+        """Return True when the Docker execution backend is selected."""
+        return self.is_sandbox_mode(SandboxMode.DOCKER)
+
+    def is_sandbox_enabled(self) -> bool:
+        """Return True when sys_exec uses any isolated sandbox backend."""
+        return self.get_execution_backend().sandboxed
+
+    def get_runtime_workdir(self, ctx=None) -> str:
+        """Return the working directory visible to sys_exec."""
+        return self.get_execution_backend().get_runtime_workdir(ctx=ctx)
+
+    def map_host_path_to_runtime(self, path: str, ctx=None) -> str:
+        """Map a host path to the namespace visible to sys_exec."""
+        return self.get_execution_backend().map_host_path_to_runtime(path, ctx=ctx)
+
+    def get_filesystem_context(self, host_data_dir: str) -> str:
+        """Return model-facing filesystem guidance for the active backend."""
+        return self.get_execution_backend().get_filesystem_context(host_data_dir)
+
     def migrate_docker_defaults(self) -> bool:
-        """Upgrade unchanged stock sandbox Dockerfiles."""
-        migrated = migrate_default_dockerfile(
-            self,
-            "dockerfile",
-            SYSTEM_DOCKERFILE.replace("/mnt/data", "/data"),
-            SYSTEM_DOCKERFILE,
-        )
-        if not migrated:
-            migrated = migrate_default_dockerfile(
-                self,
-                "dockerfile",
-                SYSTEM_DOCKERFILE_39,
-                SYSTEM_DOCKERFILE,
-            )
-        return migrated
+        """Compatibility wrapper for Docker backend default migration."""
+        backend = self.execution.get_backend(SandboxMode.DOCKER)
+        return backend.migrate_defaults()
 
     def handle(self, event: Event, *args, **kwargs):
         """
@@ -139,43 +165,37 @@ class Plugin(BasePlugin):
                 data['html'] = ''
 
     def cmd_syntax(self, data: dict, ctx: CtxItem = None):
-        """
-        Event: CMD_SYNTAX
-
-        :param data: event data dict
-        """
-        # get current working directory
-        os_name = self.window.core.platforms.get_as_string(env_suffix=False)
-        cwd = self.window.core.filesystem.get_data_dir(ctx=ctx)
+        """Expose System/OS tools with guidance for the active execution backend."""
+        backend = self.get_execution_backend()
         is_windows = (platform.system() == "Windows")
         winapi_enabled = self.get_option_value("winapi_enabled")
 
         for item in self.allowed_cmds:
-            # Gate WinAPI commands to Windows platform (and enabled flag)
+            # WinAPI always targets the host Windows desktop and is independent
+            # from the sys_exec sandbox backend.
             if item in self.winapi_cmds:
                 if not is_windows or not winapi_enabled:
                     continue
 
-            if self.has_cmd(item):
-                cmd = self.get_cmd(item)
-                # Keep original sys_exec instruction enhancement
-                if self.get_option_value("auto_cwd") and item == "sys_exec":
-                    cmd["instruction"] += "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing " \
-                                          "ANY command to \"command\" param. Current workdir is: {cwd}. " \
-                                          "Current OS is: {os}".format(
-                        cwd=cwd,
-                        os=os_name)
-                if item == "sys_exec" and self.get_option_value("sandbox_docker"):
-                    if self.get_option_value("docker_run_as_root"):
-                        cmd["instruction"] += (
-                            "\nThe Docker sandbox is configured to run as root. sudo is not required."
-                        )
-                    else:
-                        cmd["instruction"] += (
-                            "\nThe Docker sandbox normally runs as the unprivileged 'pygpt' user. "
-                            "Use sudo only for commands that require root privileges; sudo is passwordless."
-                        )
-                data['cmd'].append(cmd)  # append command
+            if not self.has_cmd(item):
+                continue
+
+            cmd = self.get_cmd(item)
+            if item == "sys_exec":
+                if not backend.supports_command(item):
+                    continue
+                if self.get_option_value("auto_cwd"):
+                    cmd["instruction"] += (
+                        "\nIMPORTANT: ALWAYS use absolute (not relative) path when passing "
+                        "ANY command to \"command\" param. Current workdir is: {cwd}. "
+                        "Current OS is: {os}"
+                    ).format(
+                        cwd=backend.get_runtime_workdir(ctx=ctx),
+                        os=backend.get_runtime_os_name(),
+                    )
+                cmd["instruction"] += backend.get_tool_instruction(ctx=ctx)
+
+            data['cmd'].append(cmd)
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
         """
@@ -200,28 +220,9 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
-        if self.get_option_value("sandbox_docker"):
-            sandbox_commands = [
-                "sys_exec",
-            ]
-            if any(x in [x["cmd"] for x in my_commands] for x in sandbox_commands):
-                # check for Docker installed
-                if not self.docker.is_docker_installed():
-                    # snap version
-                    if self.window.core.platforms.is_snap():
-                        self.error(trans('docker.install.snap'))
-                        self.window.update_status(trans('docker.install.snap'))
-                    # other versions
-                    else:
-                        self.error(trans('docker.install'))
-                        self.window.update_status(trans('docker.install'))
-                    return
-                # check if image exists
-                if not self.docker.is_image():
-                    self.error(trans('docker.image.build'))
-                    self.window.update_status(trans('docker.build.start'))
-                    self.docker.build()
-                    return
+        backend = self.get_execution_backend()
+        if not backend.prepare(my_commands):
+            return
 
         # set state: busy
         if not silent:
@@ -267,4 +268,3 @@ class Plugin(BasePlugin):
         if not self.get_option_value("attach_output"):
             return
         self.window.tools.get("interpreter").output_end(type)
-

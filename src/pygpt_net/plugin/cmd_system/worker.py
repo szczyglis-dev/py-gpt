@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 14:15:00                  #
+# Updated Date: 2026.09.20 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -140,18 +140,12 @@ class Worker(BaseWorker):
         """
         request = self.from_request(item)
         try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.sys_exec_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
-            else:
-                result = self.plugin.runner.sys_exec_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
+            backend = self.plugin.get_execution_backend()
+            result = backend.sys_exec(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
         except Exception as e:
             result = self.throw_error(e)
 

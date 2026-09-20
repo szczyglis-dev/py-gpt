@@ -1116,6 +1116,27 @@ class Patch:
                         interpreter.pop(key)
                         updated = True
 
+                # System/OS now uses the same extensible sandbox selector model:
+                # disabled = direct host execution, docker = Docker backend.
+                system_plugin = plugins.get("cmd_system")
+                if not isinstance(system_plugin, dict):
+                    system_plugin = {}
+                    plugins["cmd_system"] = system_plugin
+                old_system_sandbox = system_plugin.get("sandbox")
+                if isinstance(old_system_sandbox, bool):
+                    system_sandbox_enabled = old_system_sandbox
+                elif old_system_sandbox in ("disabled", "docker"):
+                    system_sandbox_enabled = old_system_sandbox == "docker"
+                else:
+                    system_sandbox_enabled = bool(system_plugin.get("sandbox_docker"))
+                system_sandbox = "docker" if system_sandbox_enabled else "disabled"
+                if system_plugin.get("sandbox") != system_sandbox:
+                    system_plugin["sandbox"] = system_sandbox
+                    updated = True
+                if "sandbox_docker" in system_plugin:
+                    system_plugin.pop("sandbox_docker")
+                    updated = True
+
                 legacy_use_ipython = data.get("interpreter.ipython")
                 if "use_ipython" not in interpreter:
                     interpreter["use_ipython"] = (
@@ -1189,6 +1210,40 @@ class Patch:
                     if self.window.core.plugins.remove_plugin_param_from_presets(
                             "cmd_code_interpreter", key):
                         updated = True
+
+                # Preserve System/OS sandbox state in plugin presets while
+                # migrating the old bool key to the new enum selector.
+                if self.window.core.plugins.presets is None:
+                    self.window.core.plugins.load_presets()
+                presets = self.window.core.plugins.presets or {}
+                presets_updated = False
+                for preset in presets.values():
+                    preset_config = preset.get("config") if isinstance(preset, dict) else None
+                    if not isinstance(preset_config, dict):
+                        continue
+                    system_preset = preset_config.get("cmd_system")
+                    if not isinstance(system_preset, dict):
+                        continue
+                    old_preset_sandbox = system_preset.get("sandbox")
+                    if isinstance(old_preset_sandbox, bool):
+                        preset_sandbox_enabled = old_preset_sandbox
+                    elif old_preset_sandbox in ("disabled", "docker"):
+                        preset_sandbox_enabled = old_preset_sandbox == "docker"
+                    elif "sandbox_docker" in system_preset:
+                        preset_sandbox_enabled = bool(system_preset.get("sandbox_docker"))
+                    else:
+                        preset_sandbox_enabled = None
+                    if preset_sandbox_enabled is not None:
+                        preset_sandbox = "docker" if preset_sandbox_enabled else "disabled"
+                        if system_preset.get("sandbox") != preset_sandbox:
+                            system_preset["sandbox"] = preset_sandbox
+                            presets_updated = True
+                    if "sandbox_docker" in system_preset:
+                        system_preset.pop("sandbox_docker")
+                        presets_updated = True
+                if presets_updated:
+                    self.window.core.plugins.save_presets()
+                    updated = True
 
         # update file
         migrated = False

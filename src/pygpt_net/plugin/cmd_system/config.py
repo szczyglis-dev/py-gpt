@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:10:00                  #
+# Updated Date: 2026.09.20 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
 
 
 from .dockerfile import SYSTEM_DOCKERFILE
+from .sandbox import SandboxMode
 
 
 class Config(BaseConfig):
@@ -47,16 +48,17 @@ class Config(BaseConfig):
         }
         ports_items = []
 
-        # Sandbox / sys_exec (original)
         plugin.add_option(
-            "sandbox_docker",
-            type="bool",
-            value=False,
-            label="Sandbox (docker container)",
-            description="Executes commands in sandbox (docker container). "
-                        "Docker must be installed and running.",
-            tab="sandbox",
+            "sandbox",
+            type="combo",
+            value=SandboxMode.DISABLED.value,
+            label="Sandbox",
+            description="Select the execution sandbox. Docker must be installed and running when Docker is selected.",
+            keys=SandboxMode.options(),
+            tab="general",
         )
+
+        # Docker sandbox options
         plugin.add_option(
             "docker_run_as_root",
             type="bool",
