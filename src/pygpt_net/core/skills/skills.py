@@ -830,11 +830,12 @@ class Skills:
         try:
             if self._plugin_enabled("cmd_code_interpreter"):
                 plugin = self.window.core.plugins.get("cmd_code_interpreter")
-                if plugin is not None and self._has_tool(plugin, "ipython_sys_exec"):
-                    mode = "sandbox" if bool(plugin.get_option_value("sandbox_ipython")) else "host"
-                    return "ipython_sys_exec", mode
-                if plugin is not None and self._has_tool(plugin, "python_sys_exec"):
-                    mode = "sandbox" if bool(plugin.get_option_value("sandbox_docker")) else "host"
+                if plugin is not None and plugin.is_ipython_enabled():
+                    if self._has_tool(plugin, "ipython_sys_exec"):
+                        mode = "sandbox" if plugin.is_docker_sandbox() else "host"
+                        return "ipython_sys_exec", mode
+                elif plugin is not None and self._has_tool(plugin, "python_sys_exec"):
+                    mode = "sandbox" if plugin.is_docker_sandbox() else "host"
                     return "python_sys_exec", mode
         except Exception as exc:
             self._log(exc)

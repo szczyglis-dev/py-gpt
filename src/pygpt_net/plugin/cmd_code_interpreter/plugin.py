@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 14:10:00                  #
+# Updated Date: 2026.09.20 09:00:00                  #
 # ================================================== #
 
 import os
@@ -19,8 +19,8 @@ from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
-from .config import (
-    Config,
+from .config import Config
+from .dockerfile import (
     IPYTHON_DOCKERFILE,
     IPYTHON_DOCKERFILE_LEGACY,
     IPYTHON_DOCKERFILE_PRE_BUNDLED,
@@ -29,6 +29,7 @@ from .config import (
     PYTHON_LEGACY_DOCKERFILE_39,
     PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
 )
+from .sandbox import SandboxMode
 from .docker import Docker
 from .builder import Builder
 from .ipython import LocalKernel
@@ -54,19 +55,14 @@ class Plugin(BasePlugin):
         ]
         self.order = 100
         self.allowed_cmds = [
-            # "ipython_execute_new",
-            "ipython_execute",
+            "ipython_exec",
             "ipython_sys_exec",
             "ipython_kernel_restart",
+            "python_exec",
+            "python_exec_file",
             "python_sys_exec",
-            "code_execute",
-            "code_execute_file",
-            "code_execute_all",
-            "get_python_output",
-            "get_python_input",
-            "clear_python_output",
-            "render_html_output",
-            "get_html_output",
+            "html_render_output",
+            "html_get_output",
         ]
         self.use_locale = True
         self.docker = Docker(self)
@@ -82,6 +78,32 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         self.config.from_defaults(self)
+
+    def is_ipython_enabled(self) -> bool:
+        """Return True when the IPython execution backend is selected."""
+        return bool(self.get_option_value("use_ipython"))
+
+    def get_sandbox_mode(self) -> SandboxMode:
+        """Return the selected sandbox mode, falling back to disabled."""
+        value = self.get_option_value("sandbox")
+        try:
+            return SandboxMode(value)
+        except (TypeError, ValueError):
+            return SandboxMode.DISABLED
+
+    def is_docker_sandbox(self) -> bool:
+        """Return True when Docker is the selected execution sandbox."""
+        return self.get_sandbox_mode() == SandboxMode.DOCKER
+
+    def is_command_active(self, cmd: str) -> bool:
+        """Return whether a command belongs to the selected interpreter backend."""
+        ipython_commands = {"ipython_exec", "ipython_sys_exec", "ipython_kernel_restart"}
+        python_commands = {"python_exec", "python_exec_file", "python_sys_exec"}
+        if cmd in ipython_commands:
+            return self.is_ipython_enabled()
+        if cmd in python_commands:
+            return not self.is_ipython_enabled()
+        return True
 
     def migrate_docker_defaults(self) -> bool:
         """Upgrade unchanged stock Dockerfiles without overwriting user customizations."""
@@ -164,103 +186,98 @@ class Plugin(BasePlugin):
                 data['html'] = ''
 
     def cmd_syntax(self, data: dict, ctx: CtxItem = None):
-        """
-        Event: CMD_SYNTAX
+        """Expose only tools for the selected Python backend."""
+        data_dir = self.window.core.filesystem.get_data_dir(ctx=ctx)
+        use_ipython = self.is_ipython_enabled()
+        sandbox = self.is_docker_sandbox()
 
-        :param data: event data dict
-        """
-        # get current working directory
-        legacy_data = self.window.core.filesystem.get_data_dir(ctx=ctx)
-        ipython_data = legacy_data
-
-        ipython_enabled = any(
-            self.has_cmd(cmd)
-            for cmd in ["ipython_execute", "ipython_execute_new"]
-        )
-        legacy_enabled = any(
-            self.has_cmd(cmd)
-            for cmd in ["code_execute", "code_execute_file", "code_execute_all"]
-        )
+        ipython_commands = {
+            "ipython_exec",
+            "ipython_sys_exec",
+            "ipython_kernel_restart",
+        }
+        python_commands = {
+            "python_exec",
+            "python_exec_file",
+            "python_sys_exec",
+        }
 
         for item in self.allowed_cmds:
-            if self.has_cmd(item):
-                # Expose the system-command tool that belongs to the active
-                # interpreter. When both interpreter families are enabled,
-                # both tools are intentionally available.
-                if item == "ipython_sys_exec" and not ipython_enabled:
-                    continue
-                if item == "python_sys_exec" and not legacy_enabled:
-                    continue
+            if not self.has_cmd(item):
+                continue
+            if item in ipython_commands and not use_ipython:
+                continue
+            if item in python_commands and use_ipython:
+                continue
 
-                cmd = self.get_cmd(item)
-                if item in ["ipython_execute", "ipython_execute_new", "ipython_sys_exec"]:
-                    if self.get_option_value("sandbox_ipython"):
-                        if item == "ipython_sys_exec":
-                            cmd["instruction"] += (
-                                "\nThe command runs inside the same Docker container as the current IPython kernel. "
-                                "Directory /data is the container's workdir and is mapped on the host to: {}"
-                            ).format(ipython_data)
-                        else:
-                            cmd["instruction"] += (
-                                "\nIPython works in Docker container. Directory /data is the container's workdir - "
-                                "directory is mapped as volume in host machine to: {}"
-                            ).format(ipython_data)
-                        if self.get_option_value("ipython_run_as_root"):
-                            cmd["instruction"] += (
-                                "\nThe IPython Docker sandbox is configured to run as root. sudo is not required."
-                            )
-                        else:
-                            cmd["instruction"] += (
-                                "\nThe IPython Docker sandbox normally runs as the unprivileged 'pygpt' user. "
-                                "Ordinary pip installs do not require root; use passwordless sudo only for "
-                                "operations that require root privileges."
-                            )
+            cmd = self.get_cmd(item)
+            if item in ipython_commands:
+                if sandbox:
+                    if item == "ipython_sys_exec":
+                        cmd["instruction"] += (
+                            "\nThe command runs inside the same Docker container as the current IPython kernel. "
+                            "Directory /data is the container's workdir and is mapped on the host to: {}"
+                        ).format(data_dir)
                     else:
-                        if item == "ipython_sys_exec":
-                            cmd["instruction"] += (
-                                "\nThe command runs on the host system, in the same host environment used by the "
-                                "local Python interpreter. The application data directory is: {}"
-                            ).format(legacy_data)
-                        else:
-                            cmd["instruction"] += (
-                                "\nIPython works in local environment. Directory {} is the workdir - "
-                                "use it by default to save files: {}"
-                            ).format(ipython_data, legacy_data)
-                elif item in ["code_execute", "code_execute_file", "code_execute_all", "python_sys_exec"]:
-                    if self.get_option_value("sandbox_docker"):
-                        if item == "python_sys_exec":
-                            cmd["instruction"] += (
-                                "\nThe command runs inside the same Docker container as the legacy Python "
-                                "interpreter. Directory /data is the container's workdir and is mapped on the "
-                                "host to: {}"
-                            ).format(legacy_data)
-                        else:
-                            cmd["instruction"] += (
-                                "\nPython works in Docker container. Directory /data is the container's workdir - "
-                                "directory is mapped as volume in host machine to: {}"
-                            ).format(legacy_data)
-                        if self.get_option_value("docker_run_as_root"):
-                            cmd["instruction"] += (
-                                "\nThe Python Docker sandbox is configured to run as root. sudo is not required."
-                            )
-                        else:
-                            cmd["instruction"] += (
-                                "\nThe Python Docker sandbox normally runs as the unprivileged 'pygpt' user. "
-                                "Ordinary pip installs do not require root; use passwordless sudo only for "
-                                "operations that require root privileges."
-                            )
+                        cmd["instruction"] += (
+                            "\nIPython works in a Docker container. Directory /data is the container's workdir "
+                            "and is mapped on the host to: {}"
+                        ).format(data_dir)
+                    if self.get_option_value("ipython_run_as_root"):
+                        cmd["instruction"] += (
+                            "\nThe IPython Docker sandbox is configured to run as root. sudo is not required."
+                        )
                     else:
-                        if item == "python_sys_exec":
-                            cmd["instruction"] += (
-                                "\nThe command runs on the host system, in the same host environment used by the "
-                                "legacy Python Interpreter. The application data directory is: {}"
-                            ).format(legacy_data)
-                        else:
-                            cmd["instruction"] += (
-                                "\nPython works in local environment. Directory {} is the workdir - "
-                                "use it by default to save files: {}"
-                            ).format(legacy_data, legacy_data)
-                data['cmd'].append(cmd)  # append command
+                        cmd["instruction"] += (
+                            "\nThe IPython Docker sandbox normally runs as the unprivileged 'pygpt' user. "
+                            "Ordinary pip installs do not require root; use passwordless sudo only for "
+                            "operations that require root privileges."
+                        )
+                elif item == "ipython_sys_exec":
+                    cmd["instruction"] += (
+                        "\nThe command runs on the host system, in the same host environment used by the "
+                        "local IPython interpreter. The application data directory is: {}"
+                    ).format(data_dir)
+                else:
+                    cmd["instruction"] += (
+                        "\nIPython works in the local environment. Directory {} is the workdir; "
+                        "use it by default to save files."
+                    ).format(data_dir)
+
+            elif item in python_commands:
+                if sandbox:
+                    if item == "python_sys_exec":
+                        cmd["instruction"] += (
+                            "\nThe command runs inside the same Docker container as the standard Python "
+                            "interpreter. Directory /data is the container's workdir and is mapped on the host to: {}"
+                        ).format(data_dir)
+                    else:
+                        cmd["instruction"] += (
+                            "\nPython works in a Docker container. Directory /data is the container's workdir "
+                            "and is mapped on the host to: {}"
+                        ).format(data_dir)
+                    if self.get_option_value("docker_run_as_root"):
+                        cmd["instruction"] += (
+                            "\nThe Python Docker sandbox is configured to run as root. sudo is not required."
+                        )
+                    else:
+                        cmd["instruction"] += (
+                            "\nThe Python Docker sandbox normally runs as the unprivileged 'pygpt' user. "
+                            "Ordinary pip installs do not require root; use passwordless sudo only for "
+                            "operations that require root privileges."
+                        )
+                elif item == "python_sys_exec":
+                    cmd["instruction"] += (
+                        "\nThe command runs on the host system, in the same host environment used by the "
+                        "standard Python interpreter. The application data directory is: {}"
+                    ).format(data_dir)
+                else:
+                    cmd["instruction"] += (
+                        "\nPython works in the local environment. Directory {} is the workdir; "
+                        "use it by default to save files."
+                    ).format(data_dir)
+
+            data['cmd'].append(cmd)
 
     def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
         """
@@ -276,20 +293,21 @@ class Plugin(BasePlugin):
         force = False
         my_commands = []
         for item in cmds:
-            if item["cmd"] in self.allowed_cmds:
+            cmd = item.get("cmd")
+            forced = bool(item.get("force"))
+            if cmd in self.allowed_cmds and (forced or self.is_command_active(cmd)):
                 my_commands.append(item)
                 is_cmd = True
-                if "force" in item and item["force"]:
+                if forced:
                     force = True  # call from tool
 
         if not is_cmd:
             return
 
         # ipython
-        if self.get_option_value("sandbox_ipython"):
+        if self.is_docker_sandbox() and self.is_ipython_enabled():
             ipython_commands = [
-                "ipython_execute_new",
-                "ipython_execute",
+                "ipython_exec",
                 "ipython_sys_exec",
                 "ipython_kernel_restart",
             ]
@@ -313,12 +331,11 @@ class Plugin(BasePlugin):
                     return
 
         # legacy python
-        if self.get_option_value("sandbox_docker"):
+        if self.is_docker_sandbox() and not self.is_ipython_enabled():
             sandbox_commands = [
                 "python_sys_exec",
-                "code_execute",
-                "code_execute_all",
-                "code_execute_file",
+                "python_exec",
+                "python_exec_file",
             ]
             if any(x in [x["cmd"] for x in my_commands] for x in sandbox_commands):
                 # check for Docker installed
@@ -443,9 +460,9 @@ class Plugin(BasePlugin):
 
         :param code: Python code to execute
         """
-        cmd = "code_execute"
-        if self.window.tools.get("interpreter").is_ipython():
-            cmd = "ipython_execute"
+        cmd = "python_exec"
+        if self.is_ipython_enabled():
+            cmd = "ipython_exec"
             if self.get_option_value("fresh_kernel"):
                 self.get_interpreter().restart_kernel()
                 time.sleep(1)
@@ -475,7 +492,7 @@ class Plugin(BasePlugin):
 
         :return: interpreter
         """
-        if self.get_option_value("sandbox_ipython"):
+        if self.is_docker_sandbox() and self.is_ipython_enabled():
             return self.ipython_docker
         else:
             return self.ipython_local

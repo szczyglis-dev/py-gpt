@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 17:20:00                  #
+# Updated Date: 2026.09.20 09:00:00                  #
 # ================================================== #
 
 import copy
@@ -1082,6 +1082,96 @@ class Patch:
                 if new_style is not None and new_style != old_style:
                     data["theme.style"] = new_style
                     updated = True
+
+            # < 2.8.27
+            if old < parse_version("2.8.27"):
+                print("Migrating config from < 2.8.27...")
+
+                plugins = data.get("plugins")
+                if not isinstance(plugins, dict):
+                    plugins = {}
+                    data["plugins"] = plugins
+                interpreter = plugins.get("cmd_code_interpreter")
+                if not isinstance(interpreter, dict):
+                    interpreter = {}
+                    plugins["cmd_code_interpreter"] = interpreter
+
+                # Code Interpreter now has one extensible sandbox selector shared
+                # by the selected Python backend. Accept the historical singular
+                # bool as well as the two backend-specific bools used by 2.8.x.
+                old_sandbox = interpreter.get("sandbox")
+                if isinstance(old_sandbox, bool):
+                    sandbox_enabled = old_sandbox
+                elif old_sandbox in ("disabled", "docker"):
+                    sandbox_enabled = old_sandbox == "docker"
+                else:
+                    sandbox_enabled = bool(interpreter.get("sandbox_ipython")) \
+                        or bool(interpreter.get("sandbox_docker"))
+                sandbox = "docker" if sandbox_enabled else "disabled"
+                if interpreter.get("sandbox") != sandbox:
+                    interpreter["sandbox"] = sandbox
+                    updated = True
+                for key in ("sandbox_ipython", "sandbox_docker"):
+                    if key in interpreter:
+                        interpreter.pop(key)
+                        updated = True
+
+                legacy_use_ipython = data.get("interpreter.ipython")
+                if "use_ipython" not in interpreter:
+                    interpreter["use_ipython"] = (
+                        bool(legacy_use_ipython) if isinstance(legacy_use_ipython, bool) else True
+                    )
+                    updated = True
+                if "interpreter.ipython" in data:
+                    data.pop("interpreter.ipython")
+                    updated = True
+
+                # Preserve command enable/disable state while moving to the new
+                # public tool names. New keys win if they already exist.
+                command_renames = {
+                    "cmd.code_execute": "cmd.python_exec",
+                    "cmd.code_execute_file": "cmd.python_exec_file",
+                    "cmd.ipython_execute": "cmd.ipython_exec",
+                    "cmd.render_html_output": "cmd.html_render_output",
+                    "cmd.get_html_output": "cmd.html_get_output",
+                }
+                for old_key, new_key in command_renames.items():
+                    if old_key in interpreter:
+                        if new_key not in interpreter:
+                            interpreter[new_key] = interpreter[old_key]
+                        interpreter.pop(old_key)
+                        updated = True
+
+                for key in (
+                    "cmd.code_execute_all",
+                    "cmd.get_python_output",
+                    "cmd.get_python_input",
+                    "cmd.clear_python_output",
+                    "cmd.ipython_execute_new",
+                ):
+                    if key in interpreter:
+                        interpreter.pop(key)
+                        updated = True
+
+                # Old preset overrides reference keys that no longer exist. Drop
+                # them so presets fall back to the new plugin defaults/options.
+                for key in (
+                    "sandbox_ipython",
+                    "sandbox_docker",
+                    "cmd.code_execute",
+                    "cmd.code_execute_file",
+                    "cmd.code_execute_all",
+                    "cmd.get_python_output",
+                    "cmd.get_python_input",
+                    "cmd.clear_python_output",
+                    "cmd.ipython_execute",
+                    "cmd.ipython_execute_new",
+                    "cmd.render_html_output",
+                    "cmd.get_html_output",
+                ):
+                    if self.window.core.plugins.remove_plugin_param_from_presets(
+                            "cmd_code_interpreter", key):
+                        updated = True
 
         # update file
         migrated = False

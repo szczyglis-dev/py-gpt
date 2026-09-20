@@ -219,7 +219,7 @@ class Config:
         :return: workdir path
         """
         workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
-        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
+        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox") == "docker":
             workdir = "/data"
         return workdir
 

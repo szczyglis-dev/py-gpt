@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 14:10:00                  #
+# Updated Date: 2026.09.20 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -55,27 +55,16 @@ class Worker(BaseWorker):
                     if (item["cmd"] in self.plugin.allowed_cmds
                             and (self.plugin.has_cmd(item["cmd"]) or 'force' in item)):
 
-                        if item["cmd"] == "code_execute_file":
-                            response = self.cmd_code_execute_file(item)
+                        if item["cmd"] == "python_exec_file":
+                            response = self.cmd_python_exec_file(item)
 
-                        elif item["cmd"] == "code_execute":
-                            response = self.cmd_code_execute(item)
+                        elif item["cmd"] == "python_exec":
+                            response = self.cmd_python_exec(item)
                             if "silent" in item:
                                 response = None
 
-                        elif item["cmd"] == "code_execute_all":
-                            response = self.cmd_code_execute_all(item)
-                            if "silent" in item:
-                                response = None
-
-                        elif item["cmd"] == "ipython_execute_new":
-                            response = self.cmd_ipython_execute_new(item)
-                            if "silent" in item:
-                                self.ctx.bag = response  # store tmp response
-                                response = None
-
-                        elif item["cmd"] == "ipython_execute":
-                            response = self.cmd_ipython_execute(item)
+                        elif item["cmd"] == "ipython_exec":
+                            response = self.cmd_ipython_exec(item)
                             if "silent" in item:
                                 self.ctx.bag = response  # store tmp response
                                 response = None
@@ -92,20 +81,11 @@ class Worker(BaseWorker):
                                 self.ctx.bag = response  # store tmp response
                                 response = None
 
-                        elif item["cmd"] == "get_python_output":
-                            response = self.cmd_get_python_output(item)
+                        elif item["cmd"] == "html_render_output":
+                            response = self.cmd_html_render_output(item)
 
-                        elif item["cmd"] == "get_python_input":
-                            response = self.cmd_get_python_input(item)
-
-                        elif item["cmd"] == "clear_python_output":
-                            response = self.cmd_clear_python_output(item)
-
-                        elif item["cmd"] == "render_html_output":
-                            response = self.cmd_render_html_output(item)
-
-                        elif item["cmd"] == "get_html_output":
-                            response = self.cmd_get_html_output(item)
+                        elif item["cmd"] == "html_get_output":
+                            response = self.cmd_html_get_output(item)
 
                         if response:
                             responses.append(response)
@@ -135,26 +115,7 @@ class Worker(BaseWorker):
                     pass
             self.cleanup()
 
-    def cmd_ipython_execute_new(self, item: dict) -> dict:
-        """
-        Execute code in IPython interpreter (new kernel)
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            result = self.plugin.runner.ipython_execute_new(
-                ctx=self.ctx,
-                item=item,
-                request=self.from_request(item),
-            )
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_ipython_execute(self, item: dict) -> dict:
+    def cmd_ipython_exec(self, item: dict) -> dict:
         """
         Execute code in IPython interpreter (current kernel)
 
@@ -162,7 +123,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            result = self.plugin.runner.ipython_execute(
+            result = self.plugin.runner.ipython_exec(
                 ctx=self.ctx,
                 item=item,
                 request=self.from_request(item),
@@ -246,10 +207,9 @@ class Worker(BaseWorker):
         extra = {
             'plugin': "cmd_code_interpreter",
         }
-        # self.cmd_clear_python_output(item)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_code_execute_file(self, item: dict) -> dict:
+    def cmd_python_exec_file(self, item: dict) -> dict:
         """
         Execute code command from existing file
 
@@ -259,13 +219,13 @@ class Worker(BaseWorker):
         request = self.from_request(item)
         try:
             if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.code_execute_file_host(
+                result = self.plugin.runner.python_exec_file_host(
                     ctx=self.ctx,
                     item=item,
                     request=request,
                 )
             else:
-                result = self.plugin.runner.code_execute_file_sandbox(
+                result = self.plugin.runner.python_exec_file_sandbox(
                     ctx=self.ctx,
                     item=item,
                     request=request,
@@ -276,7 +236,7 @@ class Worker(BaseWorker):
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_code_execute(self, item: dict) -> dict:
+    def cmd_python_exec(self, item: dict) -> dict:
         """
         Execute code command
 
@@ -286,16 +246,18 @@ class Worker(BaseWorker):
         request = self.from_request(item)
         try:
             if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.code_execute_host(
+                result = self.plugin.runner.python_exec_host(
                     ctx=self.ctx,
                     item=item,
                     request=request,
+                    all=bool(item.get("_execute_all", False)),
                 )
             else:
-                result = self.plugin.runner.code_execute_sandbox(
+                result = self.plugin.runner.python_exec_sandbox(
                     ctx=self.ctx,
                     item=item,
                     request=request,
+                    all=bool(item.get("_execute_all", False)),
                 )
         except Exception as e:
             result = self.throw_error(e)
@@ -303,80 +265,7 @@ class Worker(BaseWorker):
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_code_execute_all(self, item: dict) -> dict:
-        """
-        Execute all code command
-
-        :param item: command item
-        :return: response item
-        """
-        request = self.from_request(item)
-        try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.code_execute_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                    all=True,
-                )
-            else:
-                result = self.plugin.runner.code_execute_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                    all=True,
-                )
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_get_python_output(self, item: dict) -> dict:
-        """
-        Get python output
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            result = self.plugin.window.tools.get("interpreter").get_current_output()
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_get_python_input(self, item: dict) -> dict:
-        """
-        Get python input (edit code)
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            result = self.plugin.window.tools.get("interpreter").get_current_history()
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_clear_python_output(self, item: dict) -> dict:
-        """
-        Clear python output
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            safe_emit(self.signals, "clear")
-            result = "OK"
-        except Exception as e:
-            result = self.throw_error(e)
-        return self.make_response(item, result)
-
-    def cmd_render_html_output(self, item: dict) -> dict:
+    def cmd_html_render_output(self, item: dict) -> dict:
         """
         Show output in HTML canvas
 
@@ -391,7 +280,7 @@ class Worker(BaseWorker):
             result = self.throw_error(e)
         return self.make_response(item, result)
 
-    def cmd_get_html_output(self, item: dict) -> dict:
+    def cmd_html_get_output(self, item: dict) -> dict:
         """
         Get HTML canvas output
 
@@ -421,7 +310,7 @@ class Worker(BaseWorker):
             'code': {}
         }
         lang = "python"
-        if cmd in ["render_html_output", "get_html_output"]:
+        if cmd in ["html_render_output", "html_get_output"]:
             lang = "html"
         elif cmd in ["ipython_sys_exec", "python_sys_exec", "sys_exec"]:
             lang = "bash"

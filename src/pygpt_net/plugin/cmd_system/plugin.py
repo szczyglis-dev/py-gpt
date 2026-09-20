@@ -17,7 +17,8 @@ from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
-from .config import Config, SYSTEM_DOCKERFILE, SYSTEM_DOCKERFILE_39
+from .config import Config
+from .dockerfile import SYSTEM_DOCKERFILE, SYSTEM_DOCKERFILE_39
 from .docker import Docker
 from .output import Output
 from .runner import Runner

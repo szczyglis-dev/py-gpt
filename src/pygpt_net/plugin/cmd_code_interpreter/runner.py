@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 14:10:00                  #
+# Updated Date: 2026.09.20 09:00:00                  #
 # ================================================== #
 
 import os.path
@@ -186,15 +186,15 @@ class Runner:
 
         :return: True if sandbox is enabled
         """
-        return self.plugin.get_option_value('sandbox_docker')
+        return self.plugin.is_docker_sandbox() and not self.plugin.is_ipython_enabled()
 
     def is_sandbox_ipython(self) -> bool:
         """
-        Check if sandbox is enabled for IPython
+        Check if Docker sandbox is active for the selected IPython backend.
 
         :return: True if sandbox is enabled
         """
-        return self.plugin.get_option_value('sandbox_ipython')
+        return self.plugin.is_docker_sandbox() and self.plugin.is_ipython_enabled()
 
     def get_docker(self) -> docker.client.DockerClient:
         """
@@ -241,7 +241,7 @@ class Runner:
         return response
 
 
-    def code_execute_file_host(self, ctx, item: dict, request: dict) -> dict or None:
+    def python_exec_file_host(self, ctx, item: dict, request: dict) -> dict or None:
         """
         Execute code from file on host machine
 
@@ -294,7 +294,7 @@ class Runner:
             "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
-    def code_execute_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
+    def python_exec_file_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
         Execute code from file in sandbox (docker)
 
@@ -330,7 +330,7 @@ class Runner:
             "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
-    def code_execute_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
+    def python_exec_host(self, ctx: CtxItem, item: dict, request: dict, all: bool = False) -> dict:
         """
         Execute code on host machine
 
@@ -383,7 +383,7 @@ class Runner:
             "context": "PYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
-    def code_execute_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
+    def python_exec_sandbox(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         """
         Execute code in sandbox (docker)
 
@@ -512,64 +512,7 @@ class Runner:
             "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
-    def ipython_execute_new(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
-        """
-        Execute code in IPython interpreter (new kernel)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request: request item
-        :param all: execute all
-        :return: response dict
-        """
-        sandbox = self.is_sandbox_ipython()
-        data = item["params"]['code']
-        if not all:
-            path = self.plugin.window.tools.get("interpreter").file_current
-            if "path" in item["params"]:
-                path = item["params"]['path']
-            msg = "Saving Python file: {}".format(path)
-            self.log(msg, sandbox=sandbox)
-            host_path = self.prepare_path(path, on_host=True, ctx=ctx)
-            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox, ctx=ctx)
-            with open(host_path, 'w', encoding="utf-8") as file:
-                file.write(data)
-        else:
-            path = self.plugin.window.tools.get("interpreter").file_input
-
-        host_path = self.prepare_path(path, on_host=True, ctx=ctx)
-        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox, ctx=ctx)
-        with open(host_path, 'r', encoding="utf-8") as file:
-            data = file.read()
-
-        self.append_input(data, ctx=ctx)
-        self.send_interpreter_input(data)  # send input to interpreter tool
-
-        # run code in IPython interpreter
-        msg = "Executing Python code: {}".format(item["params"]['code'])
-        self.log(msg, sandbox=sandbox)
-        self.log("Connecting to IPython interpreter...", sandbox=sandbox)
-        try:
-            self.log("Please wait...", sandbox=sandbox)
-            self.send_interpreter_output_begin("stdout")
-            interpreter = self.plugin.get_interpreter()
-            if sandbox:
-                result = interpreter.execute(data, current=False, ctx=ctx)
-            else:
-                result = interpreter.execute(data, current=False)
-            result = self.handle_result_ipython(ctx, result)
-            self.log("Python Code Executed.", sandbox=sandbox)
-        except Exception as e:
-            self.error(e)
-            result = str(e)
-        self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
-
-    def ipython_execute(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
+    def ipython_exec(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         """
         Execute code in IPython interpreter (current kernel)
 

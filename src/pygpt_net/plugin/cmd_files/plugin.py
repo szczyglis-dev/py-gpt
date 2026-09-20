@@ -157,14 +157,14 @@ class Plugin(BasePlugin):
         if ipython_sandbox:
             guidance.append(
                 "For the IPython Docker sandbox, use /data as the working directory inside "
-                "ipython_execute/ipython_execute_new, IPython shell or magic commands, and "
+                "ipython_exec, IPython shell or magic commands, and "
                 "ipython_sys_exec."
             )
 
         if legacy_sandbox:
             guidance.append(
                 "For the legacy Python Docker sandbox, use /data as the working directory inside "
-                "code_execute/code_execute_file/code_execute_all and python_sys_exec."
+                "python_exec/python_exec_file and python_sys_exec."
             )
 
         guidance.append(
@@ -177,7 +177,7 @@ class Plugin(BasePlugin):
         """Return active Code Interpreter Docker sandbox modes.
 
         This is evaluated at prompt-build time so changing plugin activation or
-        either sandbox option immediately changes the generated filesystem context.
+        the selected sandbox mode immediately changes the generated filesystem context.
 
         :return: (ipython_sandbox, legacy_python_sandbox)
         """
@@ -190,10 +190,10 @@ class Plugin(BasePlugin):
             if plugin is None:
                 return False, False
 
-            return (
-                bool(plugin.get_option_value("sandbox_ipython")),
-                bool(plugin.get_option_value("sandbox_docker")),
-            )
+            sandbox = bool(plugin.is_docker_sandbox())
+            if plugin.is_ipython_enabled():
+                return sandbox, False
+            return False, sandbox
         except Exception as e:
             self.window.core.debug.log(e)
             return False, False

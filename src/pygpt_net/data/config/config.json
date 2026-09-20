@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "app.version": "2.8.26",
-    "version": "2.8.26",
+    "app.version": "2.8.27",
+    "version": "2.8.27",
     "updated_at": "2026-09-20T11:38:00"
   },
   "access.audio.event.speech": false,
@@ -251,7 +251,6 @@
   "interpreter.edit": false,
   "interpreter.execute_all": false,
   "interpreter.input": "",
-  "interpreter.ipython": true,
   "lang": "en",
   "layout.density": -1,
   "layout.dialog.geometry": {},

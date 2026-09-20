@@ -100,7 +100,7 @@ class Worker(BaseWorker):
         try:
             interpreter = self.plugin.ipython_docker
             interpreter.build_image()
-            if self.restart and self.plugin.get_option_value("sandbox_ipython"):
+            if self.restart and self.plugin.is_docker_sandbox() and self.plugin.is_ipython_enabled():
                 interpreter.restart()
             safe_emit(self.signals, "build_finished")
         except Exception as e:

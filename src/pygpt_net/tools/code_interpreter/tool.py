@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 14:17:00                  #
+# Updated Date: 2026.09.20 09:00:00                  #
 # ================================================== #
 
 import json
@@ -74,8 +74,8 @@ class CodeInterpreter(BaseTool):
             safe_emit(self.signals, "set_checkbox_all", self.window.core.config.get("interpreter.execute_all"))
         if self.window.core.config.has("interpreter.auto_clear"):
             safe_emit(self.signals, "set_checkbox_auto_clear", self.window.core.config.get("interpreter.auto_clear"))
-        if self.window.core.config.has("interpreter.ipython"):
-            safe_emit(self.signals, "set_checkbox_ipython", self.window.core.config.get("interpreter.ipython"))
+        self.ipython = self.is_ipython()
+        safe_emit(self.signals, "set_checkbox_ipython", self.ipython)
         if self.ipython:
             safe_emit(self.signals, "toggle_all_visible", False)
 
@@ -451,6 +451,12 @@ class CodeInterpreter(BaseTool):
 
         :return: True if ipython is enabled, False otherwise
         """
+        try:
+            plugin = self.window.core.plugins.get("cmd_code_interpreter")
+            if plugin is not None:
+                return bool(plugin.is_ipython_enabled())
+        except Exception:
+            pass
         return self.ipython
 
     def is_opened(self) -> bool:
@@ -483,36 +489,34 @@ class CodeInterpreter(BaseTool):
             input_textarea.clear()
             input_textarea.setFocus()
             return
-        elif input.strip().startswith("/clear"):
+        if input.strip().startswith("/clear"):
             self.clear(force=True)
             input_textarea.clear()
             input_textarea.setFocus()
             return
+        if input == "":
+            return
 
-        if self.is_all():
-            cmd = "code_execute_all"
-        else:
-            if input == "":
-                return
-            cmd = "code_execute"
+        use_ipython = self.is_ipython()
+        self.ipython = use_ipython
+        safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
+        execute_all = self.is_all() and not use_ipython
+        cmd = "ipython_exec" if use_ipython else "python_exec"
+        command = {
+            "cmd": cmd,
+            "params": {
+                "code": input,
+                "path": self.file_current,
+                "auto_init": True,  # auto initialize kernel if not initialized after error
+            },
+            "silent": True,
+            "force": True,
+        }
+        if execute_all:
+            command["_execute_all"] = True
 
-        if self.ipython:
-            cmd = "ipython_execute"
-
-        commands = [
-            {
-                "cmd": cmd,
-                "params": {
-                    "code": input,
-                    "path": self.file_current,
-                    "auto_init": True,  # auto initialize kernel if not initialized after error
-                },
-                "silent": True,
-                "force": True,
-            }
-        ]
         event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
+            'commands': [command],
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
@@ -530,33 +534,31 @@ class CodeInterpreter(BaseTool):
         if input == "/restart":
             self.restart_kernel()
             return
-        elif input == "/clear":
+        if input == "/clear":
             self.clear(force=True)
             return
+        if input == "":
+            return
 
-        if self.is_all():
-            cmd = "code_execute_all"
-        else:
-            if input == "":
-                return
-            cmd = "code_execute"
+        use_ipython = self.is_ipython()
+        self.ipython = use_ipython
+        safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
+        execute_all = self.is_all() and not use_ipython
+        cmd = "ipython_exec" if use_ipython else "python_exec"
+        command = {
+            "cmd": cmd,
+            "params": {
+                "code": input,
+                "path": self.file_current,
+            },
+            "silent": True,
+            "force": True,
+        }
+        if execute_all:
+            command["_execute_all"] = True
 
-        if self.ipython:
-            cmd = "ipython_execute"
-
-        commands = [
-            {
-                "cmd": cmd,
-                "params": {
-                    "code": input,
-                    "path": self.file_current,
-                },
-                "silent": True,
-                "force": True,
-            }
-        ]
         event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
+            'commands': [command],
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
@@ -695,7 +697,13 @@ class CodeInterpreter(BaseTool):
         :param widget: ToolWidget instance
         """
         self.ipython = widget.checkbox_ipython.isChecked()
-        self.window.core.config.set("interpreter.ipython", self.ipython)
+        plugin = self.window.core.plugins.get("cmd_code_interpreter")
+        if plugin is not None:
+            plugin.set_option_value("use_ipython", self.ipython)
+            plugins_cfg = self.window.core.config.data.setdefault("plugins", {})
+            plugin_cfg = plugins_cfg.setdefault("cmd_code_interpreter", {})
+            plugin_cfg["use_ipython"] = self.ipython
+            self.window.core.config.save()
         safe_emit(self.signals, "set_checkbox_ipython", self.ipython)
         if self.ipython:
             safe_emit(self.signals, "toggle_all_visible", False)
