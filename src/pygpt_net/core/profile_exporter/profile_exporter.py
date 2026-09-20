@@ -67,7 +67,11 @@ class ProfileExporter:
     }
 
     CONFIG_DIRS = {"presets", "css", "locale", "fonts"}
-    RUNTIME_DIRS = {"tmp", "cache", "__pycache__"}
+    # Profile-local runtime environments/caches are reproducible and must
+    # never be treated as portable profile data.  In particular, the
+    # built-in uv-managed interpreter lives under ``sandbox/`` and can be
+    # very large.
+    RUNTIME_DIRS = {"tmp", "cache", "__pycache__", "sandbox"}
     EXCLUDED_ROOT_FILES = {
         "app.log",
         "path.cfg",
@@ -305,6 +309,8 @@ class ProfileExporter:
                     normalized = info.filename.replace("\\", "/")
                     for section, prefix in self.ARCHIVE_PREFIX.items():
                         if normalized.startswith(prefix + "/"):
+                            if self._archive_member_is_runtime(section, normalized):
+                                break
                             result[section] += int(info.file_size)
                             break
         except (zipfile.BadZipFile, OSError, InvalidProfileArchive):
@@ -566,6 +572,12 @@ class ProfileExporter:
                     normalized = info.filename.replace("\\", "/")
                     for section, prefix in self.ARCHIVE_PREFIX.items():
                         if normalized == prefix or normalized.startswith(prefix + "/"):
+                            # Older PyGPT exports may contain profile-local
+                            # runtime directories.  Do not restore them into a
+                            # newly imported profile; they are provisioned on
+                            # demand by the current application version.
+                            if self._archive_member_is_runtime(section, normalized):
+                                break
                             members_by_section[section].append(info)
                             break
 
@@ -787,6 +799,24 @@ class ProfileExporter:
         mode = (info.external_attr >> 16) & 0xFFFF
         if mode and stat.S_ISLNK(mode):
             raise InvalidProfileArchive("Symbolic links are not supported")
+
+    def _archive_member_is_runtime(self, section: str, normalized: str) -> bool:
+        """Return True for root-level runtime dirs stored in old archives.
+
+        Runtime dirs are part of the profile root (the ``files``/``config``
+        archive namespaces), not of the user-managed ``data`` directory.  A
+        user folder named ``data/sandbox`` therefore remains portable.
+        """
+        if section not in (self.SECTION_CONFIG, self.SECTION_FILES):
+            return False
+        prefix = self.ARCHIVE_PREFIX.get(section, "")
+        if not prefix:
+            return False
+        relative = normalized[len(prefix):].lstrip("/")
+        if not relative:
+            return False
+        top_level = relative.split("/", 1)[0]
+        return top_level in self.RUNTIME_DIRS
 
     @staticmethod
     def _normalized_paths(paths: Optional[Iterable[str]] = None) -> set:
