@@ -46,30 +46,41 @@ class WorkdirSizeWorker(QRunnable):
 
     @Slot()
     def run(self):
-        total = 0
+        profile_total = 0
+        full_total = 0
         try:
             root = os.path.abspath(self.path)
+            sandbox_root = os.path.join(root, "sandbox")
             for dirpath, dirnames, filenames in os.walk(root):
-                # The built-in interpreter is a reproducible runtime
-                # environment, not profile payload.  Do not include its
-                # potentially large uv runtime/venvs in Workdir size.  Only
-                # exclude the profile-root sandbox; a user-created
-                # data/sandbox directory still counts normally.
-                if os.path.abspath(dirpath) == root:
-                    dirnames[:] = [name for name in dirnames if name != "sandbox"]
+                abs_dir = os.path.abspath(dirpath)
+                try:
+                    in_root_sandbox = os.path.commonpath((abs_dir, sandbox_root)) == sandbox_root
+                except ValueError:
+                    in_root_sandbox = False
+
                 for name in filenames:
                     path = os.path.join(dirpath, name)
                     try:
                         if os.path.islink(path):
                             continue
-                        total += os.path.getsize(path)
+                        size = os.path.getsize(path)
+                        full_total += size
+                        # The built-in interpreter sandbox is a reproducible
+                        # runtime environment, not profile payload.  The first
+                        # value therefore keeps the profile/export footprint,
+                        # while the second value reports the complete workdir.
+                        # Only <workdir>/sandbox is excluded; data/sandbox and
+                        # similarly named nested directories still count.
+                        if not in_root_sandbox:
+                            profile_total += size
                     except OSError:
-                        # Files in tmp/cache directories may disappear while
-                        # the directory is being scanned.
+                        # Files in tmp/cache/sandbox may disappear while the
+                        # directory is being scanned.
                         continue
         except OSError:
-            total = None
-        safe_emit(self.signals, "result", self.path, total)
+            profile_total = None
+            full_total = None
+        safe_emit(self.signals, "result", self.path, (profile_total, full_total))
 
 
 class SystemInfo(QObject):
@@ -214,10 +225,15 @@ class SystemInfo(QObject):
         if path != self.window.core.config.get_path():
             return
 
-        if size is None:
+        if not isinstance(size, (tuple, list)) or len(size) != 2:
             value = "-"
         else:
-            value = self.window.core.filesystem.sizeof_fmt(size)
+            profile_size, full_size = size
+            if profile_size is None or full_size is None:
+                value = "-"
+            else:
+                fs = self.window.core.filesystem
+                value = f"{fs.sizeof_fmt(profile_size)} / {fs.sizeof_fmt(full_size)}"
         self.values["workdir_size"] = value
         self._render()
 
@@ -262,9 +278,32 @@ class SystemInfo(QObject):
     @staticmethod
     def _get_ram_string(fs) -> str:
         try:
-            used = psutil.Process(os.getpid()).memory_info().rss
+            process = psutil.Process(os.getpid())
+            used = process.memory_info().rss
+            used_with_web = used
+            web_processes = 0
+
+            # QtWebEngine runs renderer/GPU/utility work in helper processes.
+            # Add only QtWebEngineProcess descendants here; unrelated plugin,
+            # sandbox or user subprocesses must not inflate this figure.
+            for child in process.children(recursive=True):
+                try:
+                    name = (child.name() or "").lower()
+                    exe = os.path.basename(child.exe() or "").lower()
+                    if "qtwebengineprocess" not in name and "qtwebengineprocess" not in exe:
+                        continue
+                    used_with_web += child.memory_info().rss
+                    web_processes += 1
+                except (psutil.Error, OSError):
+                    continue
+
             total = psutil.virtual_memory().total
-            return f"{fs.sizeof_fmt(used)} / {fs.sizeof_fmt(total)}"
+            process_label = "WebProcess" if web_processes == 1 else "WebProcesses"
+            return (
+                f"{fs.sizeof_fmt(used)} "
+                f"({fs.sizeof_fmt(used_with_web)} with {web_processes} {process_label}) / "
+                f"{fs.sizeof_fmt(total)}"
+            )
         except (psutil.Error, OSError):
             return "-"
 
