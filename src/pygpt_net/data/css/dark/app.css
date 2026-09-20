@@ -708,6 +708,24 @@ QPushButton#chatInputReasoningEffort:hover {{
   margin-right: 0px;
 }}
 
+/* Regular inset toolbox combo boxes keep their rounded right edge. */
+.toolbox QComboBox {{
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}}
+.toolbox QComboBox::drop-down {{
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}}
+.toolbox QComboBox[toolboxEdgeRight="true"] {{
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}}
+.toolbox QComboBox[toolboxEdgeRight="true"]::drop-down {{
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}}
+
 /* Final combo popup selection precedence. */
 QListView#ComboPopupList::item:selected,
 QListView#ComboPopupList::item:selected:hover,

@@ -63,6 +63,12 @@ class Mode:
             combo.setMinimumWidth(0)
             ui_nodes[self.id] = combo
 
+        # The mode selector intentionally reaches the toolbox right edge. Keep
+        # only this combo square on the right; regular inset toolbox combos use
+        # the normal rounded right corners.
+        if hasattr(combo, "combo"):
+            combo.combo.setProperty("toolboxEdgeRight", True)
+
         header_layout = QVBoxLayout()
         header_layout.addWidget(label)
         header_layout.setContentsMargins(5, 5, 0, 0)
