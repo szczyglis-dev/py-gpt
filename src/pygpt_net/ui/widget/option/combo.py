@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 08:40:00                  #
+# Updated Date: 2026.09.20 12:45:00
 # ================================================== #
 import sys
 
@@ -1682,6 +1682,49 @@ class OptionCombo(QWidget):
 
         self.current_id = self.combo.itemData(index)
         self.window.controller.config.combo.on_update(self.parent_id, self.id, self.option, self.current_id)
+
+    def update_locale(self):
+        """Refresh translated combo item labels while preserving the selected value."""
+        current_id = self.combo.currentData()
+        previous_locked = self.locked
+        self.locked = True
+        try:
+            self.combo.clear()
+            if isinstance(self.keys, list):
+                for item in self.keys:
+                    if isinstance(item, dict):
+                        for key, value in item.items():
+                            key = str(key)
+                            if key.startswith("separator::"):
+                                self.combo.addSeparator(trans(value))
+                            else:
+                                self.combo.addItem(trans(value), key)
+                    else:
+                        if isinstance(item, str) and item.startswith("separator::"):
+                            self.combo.addSeparator(item.split("separator::", 1)[1])
+                        else:
+                            self.combo.addItem(trans(item) if isinstance(item, str) else str(item), item)
+            elif isinstance(self.keys, dict):
+                for key, value in self.keys.items():
+                    key = str(key)
+                    if key.startswith("separator::"):
+                        self.combo.addSeparator(trans(value))
+                    else:
+                        self.combo.addItem(trans(value), key)
+
+            index = self.combo.findData(current_id)
+            if index == -1 and self.current_id is not None:
+                index = self.combo.findData(self.current_id)
+            if index == -1:
+                index = self.combo.first_valid_index()
+            if index != -1:
+                self.combo.setCurrentIndex(index)
+                self.current_id = self.combo.itemData(index)
+            else:
+                self.combo.setCurrentIndex(-1)
+        finally:
+            self.locked = previous_locked
+        self.fit_to_content()
 
     def fit_to_content(self):
         """Fit to content"""

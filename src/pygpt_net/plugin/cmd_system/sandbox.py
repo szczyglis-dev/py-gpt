@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 11:00:00                  #
+# Updated Date: 2026.09.20 12:45:00
 # ================================================== #
 
 from enum import Enum
@@ -20,7 +20,7 @@ class SandboxMode(str, Enum):
     @classmethod
     def options(cls) -> list[dict[str, str]]:
         return [
-            {cls.DISABLED.value: "Disabled"},
-            {cls.BUILTIN.value: "Built-in sandbox"},
-            {cls.DOCKER.value: "Docker"},
+            {cls.DISABLED.value: "sandbox.mode.disabled"},
+            {cls.BUILTIN.value: "sandbox.mode.builtin"},
+            {cls.DOCKER.value: "sandbox.mode.docker"},
         ]

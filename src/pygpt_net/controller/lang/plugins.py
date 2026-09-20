@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 20:25:00                  #
+# Updated Date: 2026.09.20 12:45:00
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -90,6 +90,13 @@ class Plugins:
 
                 label_key = f'plugin.{plugin_id}.{option_id}.label'
                 desc_key = f'plugin.{plugin_id}.{option_id}.desc'
+
+                # Combo item captions may use global locale keys. Refresh them
+                # after a language switch without changing the stored value.
+                if option.get('type') == 'combo' and cfg_domain and option_id in cfg_domain:
+                    widget = cfg_domain[option_id]
+                    if hasattr(widget, 'update_locale'):
+                        widget.update_locale()
 
                 is_bool = option.get('type') == 'bool'
                 need_label = (label_key in ui_nodes) or (is_bool and cfg_domain and option_id in cfg_domain)

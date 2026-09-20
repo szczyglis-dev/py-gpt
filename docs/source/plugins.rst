@@ -28,13 +28,13 @@ The following plugins are currently available:
 * ``Memory (inline)`` - maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
 * ``Mouse and keyboard`` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 * ``OpenStreetMap`` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
-* ``Python interpreter`` - lets models execute Python or IPython code on the host or through a selectable sandbox backend (currently Docker), with mutually exclusive standard-Python/IPython tool sets and project-aware file access.
+* ``Python interpreter`` - lets models execute Python or IPython code on the host, in the built-in uv-managed CPython sandbox, or in Docker, with mutually exclusive standard-Python/IPython tool sets and project-aware file access.
 * ``RAG (inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 * ``Real time`` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
 * ``Serial port / USB`` - gives models access to configured serial and USB devices for reading data and sending commands.
 * ``Server (SSH/FTP)`` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
 * ``Slack`` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
-* ``System (OS)`` - executes system commands through a selectable host/sandbox backend (currently Disabled or Docker), with project-aware runtime paths.
+* ``System (OS)`` - executes system commands on the host, in the built-in uv-managed sandbox, or in Docker, with project-aware runtime paths.
 * ``Telegram`` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 * ``Tuya (IoT)`` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
 * ``TwelveLabs`` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
@@ -2004,7 +2004,7 @@ Python interpreter
 
 **Executing Code**
 
-The plugin provides local Python execution for model-generated code and for code started manually from the ``Python/OS`` window. It uses the active conversation's runtime ``data`` workdir, so a project with a custom data workdir is handled automatically. Execution can run directly on the host or through the selected sandbox backend. The ``Sandbox`` selector currently provides ``Disabled`` and ``Docker``; additional sandbox backends can be added independently of the interpreter mode.
+The plugin provides local Python execution for model-generated code and for code started manually from the ``Python/OS`` window. It uses the active conversation's runtime ``data`` workdir, so a project with a custom data workdir is handled automatically. Execution can run directly on the host or through the selected sandbox backend. The ``Sandbox`` selector provides ``Disabled``, ``Built-in sandbox``, and ``Docker``.
 
 The ``Use IPython`` option selects which Python tool set is exposed to the model:
 
@@ -2017,7 +2017,7 @@ The two execution tool sets are never exposed together. HTML Canvas tools are in
 
 **Standard Python:** ``python_exec`` executes Python code directly. The model provides only the ``code`` argument; PyGPT handles the temporary script path internally. Use ``python_exec_file`` only when an existing Python file should be executed. ``python_sys_exec`` runs shell/system commands in the same selected host or sandbox runtime as the standard Python interpreter.
 
-**Sandbox:** Select the backend in ``Plugins -> Settings -> Python interpreter -> General -> Sandbox``. ``Disabled`` runs the selected interpreter on the host. ``Docker`` runs it in the Docker backend. In Docker mode the active conversation's host ``data`` workdir is mounted as ``/mnt/data`` and is used as the runtime working directory. A custom project data workdir is remapped automatically when that project is active.
+**Sandbox:** Select the backend in ``Plugins -> Settings -> Python interpreter -> General -> Sandbox``. ``Disabled`` runs Python/IPython directly on the host and is unsafe for untrusted code. ``Built-in sandbox`` uses a separate uv-managed CPython/IPython environment with OS-level isolation where available; it provides a moderate level of isolation and does not require Docker. ``Docker`` requires Docker to be installed and running and provides the strongest isolation of the available options. In both sandbox modes, the active conversation's ``data`` workdir is used as the runtime working directory; Docker exposes it as ``/mnt/data`` while the built-in sandbox keeps the host path and restricts filesystem access around it where supported.
 
 **Docker permissions:** The stock Docker images run as the unprivileged ``pygpt`` user by default, with passwordless ``sudo`` available when elevated privileges are required. The IPython and standard-Python Docker settings have separate ``Run as root`` options.
 
@@ -2044,7 +2044,7 @@ To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemo
    :width: 600
 
 .. important::
-   Local execution requires a working host Python/IPython environment. If host execution fails because of Python, package, kernel, or environment issues, select ``Docker`` in the plugin's ``Sandbox`` option to use the isolated Docker backend.
+   Host execution requires a working host Python/IPython environment. ``Built-in sandbox`` creates its own uv-managed CPython environment on first use. ``Docker`` requires Docker and provides the strongest isolation.
 
    Docker installation: https://docs.docker.com/engine/install/
 
@@ -2063,7 +2063,7 @@ Select the interpreter mode. When enabled, PyGPT exposes only the IPython tool s
 
 - ``Sandbox`` *sandbox*
 
-Select the execution backend. Available values are ``Disabled`` and ``Docker``. ``Disabled`` executes on the host; ``Docker`` executes in the Docker sandbox. *Default:* ``Disabled``
+Select the execution backend. ``Disabled`` executes on the host and is unsafe for untrusted code. ``Built-in sandbox`` uses a uv-managed CPython/IPython environment with moderate OS-level isolation where available. ``Docker`` requires Docker and provides the strongest isolation of the available options. *Default:* ``Disabled``
 
 - ``Connect to the Python/OS window`` *attach_output*
 
@@ -2623,7 +2623,7 @@ Upload a file via external flow and share in Slack.
 System (OS)
 -----------
 
-The plugin provides operating-system command execution through a selectable execution backend. The ``Sandbox`` option is the single execution-mode selector: ``Disabled`` runs ``sys_exec`` directly on the host, while ``Docker`` runs it in the Docker sandbox. The backend layer is separate from the tool itself, so additional sandbox implementations can be added without changing the ``sys_exec`` contract.
+The plugin provides operating-system command execution through a selectable execution backend. The ``Sandbox`` option is the single execution-mode selector: ``Disabled`` runs ``sys_exec`` directly on the host and is unsafe for untrusted commands; ``Built-in sandbox`` runs commands in a separate uv-managed CPython environment with OS-level isolation where available; ``Docker`` runs them in the Docker sandbox and provides the strongest isolation. The backend layer is separate from the tool itself, so additional sandbox implementations can be added without changing the ``sys_exec`` contract.
 
 When ``Sandbox = Docker``, the active conversation's runtime ``data`` directory is mounted at ``/mnt/data`` and used as the command working directory. Project-specific data workdirs are mapped automatically. Host-side security checks apply to non-sandbox execution; sandbox execution uses the selected sandbox backend's isolation.
 
@@ -2635,7 +2635,7 @@ When ``Sandbox = Docker``, the active conversation's runtime ``data`` directory 
 
 - ``Sandbox`` *sandbox*
 
-Select the execution backend. Available values are ``Disabled`` and ``Docker``. ``Disabled`` executes commands on the host; ``Docker`` executes them in the Docker sandbox. *Default:* ``Disabled``
+Select the execution backend. ``Disabled`` executes commands on the host and is unsafe for untrusted commands. ``Built-in sandbox`` uses a uv-managed CPython environment with moderate OS-level isolation where available. ``Docker`` requires Docker and provides the strongest isolation of the available options. *Default:* ``Disabled``
 
 - ``Auto-append CWD to sys_exec`` *auto_cwd*
 
@@ -2699,7 +2699,7 @@ Notes:
 
 - When ``Sandbox = Docker``, relative paths passed in commands are resolved against ``/mnt/data`` inside the container.
 - The plugin checks Docker availability and prompts to build the image if it does not exist.
-- ``Sandbox = Disabled`` uses host execution and does not start or require Docker.
+- ``Sandbox = Disabled`` uses unsafe host execution and does not start or require Docker. ``Sandbox = Built-in sandbox`` does not require Docker; ``Sandbox = Docker`` requires Docker to be installed and running.
 
 **WinAPI (Windows)**
 

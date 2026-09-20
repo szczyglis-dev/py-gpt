@@ -97,10 +97,10 @@ Remote vector stores management.
 Python/OS
 ---------
 
-This tool allows you to run Python code directly from within the app. It is integrated with the ``Python interpreter`` plugin. The plugin's ``Use IPython`` option selects IPython (default) or standard Python, while ``Sandbox`` selects host execution (``Disabled``) or the Docker backend. In Docker mode the active conversation data workdir is available as ``/mnt/data``. Application-managed interpreter/IPython input, output, and connection files are kept under ``%workdir%/tmp``.
+This tool allows you to run Python code directly from within the app. It is integrated with the ``Python interpreter`` plugin. The plugin's ``Use IPython`` option selects IPython (default) or standard Python, while ``Sandbox`` selects host execution (``Disabled``), the built-in uv-managed CPython sandbox, or Docker. ``Disabled`` is unsafe for untrusted code, the built-in sandbox provides moderate OS-level isolation where supported, and Docker provides the strongest isolation. In Docker mode the active conversation data workdir is available as ``/mnt/data``. Application-managed interpreter/IPython input, output, and connection files are kept under ``%workdir%/tmp``.
 
 .. important::
-   Local Python/IPython execution requires a working Python environment on the host system. If host execution fails because of Python, package, kernel, or environment issues, set ``Sandbox`` to ``Docker`` in the ``Python interpreter`` plugin settings. Docker provides an isolated and reproducible runtime.
+   Host Python/IPython execution requires a working Python environment on the host system. ``Built-in sandbox`` creates its own uv-managed CPython environment on first use and does not require Docker. ``Docker`` requires Docker and provides the strongest isolation of the available options.
 
    Docker installation: https://docs.docker.com/engine/install/
 
