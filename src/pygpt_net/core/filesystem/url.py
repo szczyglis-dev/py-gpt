@@ -5,116 +5,106 @@
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
 
+from .web_link import WebLinkResolver
+
+
 class Url:
     def __init__(self, window=None):
-        """
-        Filesystem URL handler
-
-        :param window: Window instance
-        """
+        """Filesystem URL handler."""
         self.window = window
+        self.resolver = WebLinkResolver(window)
 
-    def handle(self,  url: QUrl):
-        """
-        Handle URL, bridge action or local file
-
-        :param url: url
-        """
-        if not url.toString().strip():
+    def handle(self, url: QUrl, ctx=None):
+        """Handle URL, bridge action or local file."""
+        link = self.resolver.resolve(url, ctx=ctx)
+        if not link.original:
             return
 
-        # JS bridge
-        if url.toString().startswith('bridge://open_find'):
-            pid = int(url.toString().split(':')[2])
-            if pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][pid].find_open()
-            return
-        elif url.toString() == 'bridge://escape':
-            self.window.controller.access.on_escape()
-            return
-        elif url.toString() == 'bridge://focus':
-            pid = self.window.controller.ui.tabs.get_current_pid()
-            if pid in self.window.ui.nodes['output']:
-                self.window.ui.nodes['output'][pid].on_focus_js()
-            return
-        elif url.toString().startswith('bridge://play_video/'):
-            path = self.window.core.filesystem.normalize_local_path(
-                url.toString().replace("bridge://play_video/", "", 1)
-            )
-            self.window.controller.media.play_video(path)
-            return
-        elif url.toString().startswith('bridge://open_image/'):
-            path = self.window.core.filesystem.normalize_local_path(
-                url.toString().replace("bridge://open_image/", "", 1)
-            )
-            self.window.tools.get("viewer").open_preview(path)
-            return
-        elif url.toString().startswith('bridge://download/'):
-            path = self.window.core.filesystem.normalize_local_path(
-                url.toString().replace("bridge://download/", "", 1)
-            )
-            self.window.controller.files.download_local(path)
+        # All bridge parsing/unwrapping is centralized in WebLinkResolver.
+        if link.is_bridge:
+            action = link.bridge_action
+            if action == "open_find":
+                try:
+                    pid = int(link.bridge_payload)
+                except (TypeError, ValueError):
+                    return
+                if pid in self.window.ui.nodes['output']:
+                    self.window.ui.nodes['output'][pid].find_open()
+                return
+            if action == "escape":
+                self.window.controller.access.on_escape()
+                return
+            if action == "focus":
+                pid = self.window.controller.ui.tabs.get_current_pid()
+                if pid in self.window.ui.nodes['output']:
+                    self.window.ui.nodes['output'][pid].on_focus_js()
+                return
+            if action == "play_video":
+                target = link.local_path or link.target or link.bridge_payload
+                if target:
+                    self.window.controller.media.play_video(target)
+                return
+            if action == "open_image":
+                target = link.local_path or link.target or link.bridge_payload
+                if target:
+                    self.window.tools.get("viewer").open_preview(target)
+                return
+            if action == "download":
+                if link.local_path:
+                    self.window.controller.files.download_local(link.local_path)
+                elif link.target:
+                    # Keep remote bridge targets inside the regular URL flow;
+                    # never leak bridge://... to the OS/browser.
+                    self.window.controller.dialogs.info.open_url(link.target)
+                return
             return
 
-        # -------------
-        extra_schemes = (
-            'extra-audio-read',
-            'extra-code-copy',
-            'extra-copy',
-            'extra-delete',
-            'extra-delete-chain',
-            'extra-edit',
-            'extra-replay'
-        )
+        target = link.target or link.original
+        scheme = QUrl(target, QUrl.TolerantMode).scheme().lower()
 
-        # local file
-        if not url.scheme().startswith('http') and url.scheme() not in extra_schemes:
-            path = self.window.core.filesystem.normalize_local_path(
-                url.toLocalFile() or url.toString(),
-                auto_prefix=False,
-            )
-            self.window.controller.files.open(path)
-
-        # extra actions
-        elif url.scheme() == 'extra-delete':  # ctx item delete
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.delete_item(int(id))
-        elif url.scheme() == 'extra-delete-chain':  # exact tool-chain delete
+        if scheme == 'extra-delete':
+            id_ = target.split(':')[1]
+            self.window.controller.ctx.extra.delete_item(int(id_))
+            return
+        if scheme == 'extra-delete-chain':
             try:
-                payload = url.toString().split(':', 1)[1]
+                payload = target.split(':', 1)[1]
                 start_id, end_id = payload.split(',', 1)
-                self.window.controller.ctx.extra.delete_item_chain(
-                    int(start_id),
-                    int(end_id),
-                )
+                self.window.controller.ctx.extra.delete_item_chain(int(start_id), int(end_id))
             except (IndexError, TypeError, ValueError):
-                return
-        elif url.scheme() == 'extra-edit':  # ctx item edit
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.edit_item(int(id))
-        elif url.scheme() == 'extra-copy':  # ctx item copy
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.copy_item(int(id))
-        elif url.scheme() == 'extra-replay':  # ctx regen response
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.replay_item(int(id))
-        elif url.scheme() == 'extra-audio-read':  # ctx audio read
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.audio_read_item(int(id))
-        elif url.scheme() == 'extra-code-copy':  # copy code block
-            id = url.toString().split(':')[1]
-            self.window.controller.ctx.extra.copy_code_block(int(id))
-        else:
-            # external link
-            if url.scheme().startswith('http'):
-                self.window.controller.dialogs.info.open_url(url.toString())
-                return
+                pass
+            return
+        if scheme == 'extra-edit':
+            id_ = target.split(':')[1]
+            self.window.controller.ctx.extra.edit_item(int(id_))
+            return
+        if scheme == 'extra-copy':
+            id_ = target.split(':')[1]
+            self.window.controller.ctx.extra.copy_item(int(id_))
+            return
+        if scheme == 'extra-replay':
+            id_ = target.split(':')[1]
+            self.window.controller.ctx.extra.replay_item(int(id_))
+            return
+        if scheme == 'extra-audio-read':
+            id_ = target.split(':')[1]
+            self.window.controller.ctx.extra.audio_read_item(int(id_))
+            return
+        if scheme == 'extra-code-copy':
+            id_ = target.split(':')[1]
+            self.window.controller.ctx.extra.copy_code_block(int(id_))
+            return
 
-            QDesktopServices.openUrl(url)
+        if link.kind == "local" and link.local_path:
+            self.window.controller.files.open(link.local_path)
+            return
+        if link.kind == "web":
+            self.window.controller.dialogs.info.open_url(link.target)
+            return
+        if link.can_open_external and link.target:
+            QDesktopServices.openUrl(QUrl(link.target, QUrl.TolerantMode))

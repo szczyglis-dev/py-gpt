@@ -8,9 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
+import base64
+import mimetypes
 import os
 import shutil
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, unquote_to_bytes, urlparse
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl
@@ -352,60 +354,131 @@ class ChatWebOutput(QWebEngineView):
         self.html_content = "<html>" + html + "</html>"
 
     def _context_link_url(self) -> str:
-        """Return the anchor URL under the current WebEngine context-menu request."""
+        """Return the resource URL under the WebEngine context-menu request.
+
+        Prefer the anchor href. When RMB is used directly on an image/media
+        element without an anchor, fall back to mediaUrl() so the same open /
+        download actions are still available.
+        """
         try:
             getter = getattr(self, "lastContextMenuRequest", None)
             request = getter() if callable(getter) else None
             if request is None:
                 return ""
-            url = request.linkUrl()
-            if url is None or url.isEmpty() or not url.isValid():
-                return ""
-            return url.toString()
+
+            link = request.linkUrl()
+            if link is not None and not link.isEmpty() and link.isValid():
+                return link.toString()
+
+            media_getter = getattr(request, "mediaUrl", None)
+            media = media_getter() if callable(media_getter) else None
+            if media is not None and not media.isEmpty() and media.isValid():
+                return media.toString()
         except Exception:
-            return ""
+            pass
+        return ""
 
-    def _open_link_external(self, url: str):
-        """Open an href in the system/default web browser."""
-        if url:
-            QDesktopServices.openUrl(QUrl(url))
+    def _resolve_web_link(self, url: str):
+        """Resolve a href/media URL through the shared filesystem resolver."""
+        try:
+            return self.window.core.filesystem.url.resolver.resolve(
+                url,
+                ctx=self.meta,
+            )
+        except Exception as exc:
+            self.window.core.debug.error(exc)
+            return None
 
-    def _open_link_internal(self, url: str):
-        """Open an href in PyGPT's internal Web Browser tool."""
-        if not url:
+    def _open_link_external(self, link):
+        """Open a resolved href in the OS/default external application."""
+        if isinstance(link, str):
+            link = self._resolve_web_link(link)
+        if link is None or not link.can_open_external:
+            return
+
+        if link.kind == "local" and link.local_path:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(link.local_path))
+            return
+        if link.target:
+            QDesktopServices.openUrl(QUrl(link.target, QUrl.TolerantMode))
+
+    def _open_link_internal(self, link):
+        """Open a resolved href in PyGPT's internal Web Browser tool."""
+        if isinstance(link, str):
+            link = self._resolve_web_link(link)
+        if link is None or not link.can_open_internal or not link.target:
             return
         try:
             tool = self.window.tools.get("web_browser")
             if tool is None:
                 return
-            # Follow the same sequence as the existing URL-opening controller.
-            # This action must always target PyGPT's internal browser regardless
-            # of the global external/internal URL preference.
-            tool.set_url(url)
+            # Always force the internal browser for this context-menu action,
+            # independently from the global external/internal URL preference.
+            tool.set_url(link.target)
             tool.auto_open(load=False)
         except Exception as exc:
             self.window.core.debug.error(exc)
 
     @staticmethod
-    def _download_filename(url: str) -> str:
-        """Build a safe suggested filename for a linked resource/page."""
+    def _download_filename(link) -> str:
+        """Build a safe suggested filename for a resolved resource."""
+        if link is None:
+            return "download.bin"
+
+        if link.local_path:
+            name = os.path.basename(link.local_path.rstrip(os.sep)).strip()
+            if name:
+                return name
+
+        if link.kind == "data":
+            try:
+                header = link.target.split(',', 1)[0]
+                mime = header[5:].split(';', 1)[0].strip()
+                ext = mimetypes.guess_extension(mime) if mime else None
+                return "download" + (ext or ".bin")
+            except Exception:
+                return "download.bin"
+
         try:
-            parsed = urlparse(url)
+            parsed = urlparse(link.target or "")
             name = os.path.basename(unquote(parsed.path or "")).strip()
         except Exception:
             name = ""
         if not name or name in (".", ".."):
-            name = "download.html"
+            name = "download.bin"
         return name
 
-    def _download_link(self, url: str):
-        """Download an href (file/page/image/etc.) to a user-selected path."""
-        if not url:
+    @staticmethod
+    def _write_data_url(url: str, target: str) -> bool:
+        """Write a data: URL directly instead of handing it to Chromium."""
+        try:
+            header, payload = url.split(',', 1)
+            if ';base64' in header.lower():
+                data = base64.b64decode(unquote_to_bytes(payload), validate=False)
+            else:
+                data = unquote_to_bytes(payload)
+            with open(target, 'wb') as handle:
+                handle.write(data)
+            return True
+        except Exception:
+            return False
+
+    def _download_link(self, link):
+        """Download a resolved href (remote/local/data/blob) to disk."""
+        if isinstance(link, str):
+            link = self._resolve_web_link(link)
+        if link is None or not link.can_download:
             return
 
-        filename = self._download_filename(url)
+        # A directory is not a file download. Reuse the existing folder copy
+        # flow, which prompts for a target directory instead of Save As.
+        if link.kind == "local" and link.local_path and os.path.isdir(link.local_path):
+            self.window.controller.files.download_local(link.local_path)
+            return
+
+        filename = self._download_filename(link)
         try:
-            base_dir = self.window.core.filesystem.get_data_dir()
+            base_dir = self.window.core.filesystem.get_data_dir(ctx=self.meta)
             configured = str(self.window.core.config.get("download.dir") or "").strip()
             if configured:
                 base_dir = os.path.join(base_dir, configured)
@@ -422,36 +495,37 @@ class ChatWebOutput(QWebEngineView):
         if not target:
             return
 
-        # Chat output hrefs may point at local/sandbox files instead of an
-        # HTTP resource. Reuse the filesystem normalizer and copy those
-        # directly; WebEngine handles remote pages/images/files.
-        try:
-            qurl = QUrl(url)
-            if not qurl.scheme().lower().startswith("http") and qurl.scheme().lower() not in ("data", "qrc"):
-                raw_path = qurl.toLocalFile() or url
-                if url.startswith("bridge://download/"):
-                    raw_path = url.replace("bridge://download/", "", 1)
-                source = self.window.core.filesystem.normalize_local_path(
-                    raw_path,
-                    auto_prefix=False,
-                )
-                if source and os.path.isfile(source):
-                    if os.path.realpath(source) != os.path.realpath(target):
-                        shutil.copy2(source, target)
-                    self.window.update_status(f"{trans('status.saved')}: {target}")
-                    return
-        except Exception:
-            pass
+        if link.kind == "local":
+            source = link.local_path
+            if not source or not os.path.isfile(source):
+                self.window.update_status(f"{trans('status.error')} File not found: {source or link.target}")
+                return
+            try:
+                if os.path.realpath(source) != os.path.realpath(target):
+                    shutil.copy2(source, target)
+                self.window.update_status(f"{trans('status.saved')}: {target}")
+            except Exception as exc:
+                self.window.update_status(f"{trans('status.error')} {exc}")
+            return
 
+        if link.kind == "data":
+            if self._write_data_url(link.target, target):
+                self.window.update_status(f"{trans('status.saved')}: {target}")
+            else:
+                self.window.update_status(f"{trans('status.error')} Invalid data URL")
+            return
+
+        # HTTP(S) and blob: downloads are handed back to this exact WebEngine
+        # page. This preserves Chromium cookies/session/redirects and is also
+        # required for blob: URLs, which only exist in the current page.
+        source_url = link.target
         entry = {
-            "url": QUrl(url).toString(),
+            "url": QUrl(source_url, QUrl.TolerantMode).toString(),
             "target": os.path.abspath(target),
         }
         self._pending_link_downloads.append(entry)
         try:
-            # QWebEnginePage.download() emits profile.downloadRequested. The
-            # handler below sets the chosen directory/file before accept().
-            self.page().download(QUrl(url), os.path.basename(target))
+            self.page().download(QUrl(source_url, QUrl.TolerantMode), os.path.basename(target))
             QtCore.QTimer.singleShot(10000, lambda e=entry: self._expire_pending_download(e))
         except Exception as exc:
             self._expire_pending_download(entry)
@@ -537,30 +611,46 @@ class ChatWebOutput(QWebEngineView):
         # and capture the plain string in actions that may fire after the menu
         # event itself has returned.
         link_url = self._context_link_url()
-        if link_url:
+        resolved_link = self._resolve_web_link(link_url) if link_url else None
+        link_actions_added = False
+
+        if resolved_link is not None and resolved_link.can_open_external:
             action = QAction(
                 QIcon(":/icons/public_filled.svg"),
                 trans("web.context_menu.open_browser"),
                 self,
             )
-            action.triggered.connect(lambda checked=False, url=link_url: self._open_link_external(url))
+            action.triggered.connect(
+                lambda checked=False, link=resolved_link: self._open_link_external(link)
+            )
             menu.addAction(action)
+            link_actions_added = True
 
+        if resolved_link is not None and resolved_link.can_open_internal:
             action = QAction(
                 QIcon(":/icons/web_on.svg"),
                 trans("web.context_menu.open_internal"),
                 self,
             )
-            action.triggered.connect(lambda checked=False, url=link_url: self._open_link_internal(url))
+            action.triggered.connect(
+                lambda checked=False, link=resolved_link: self._open_link_internal(link)
+            )
             menu.addAction(action)
+            link_actions_added = True
 
+        if resolved_link is not None and resolved_link.can_download:
             action = QAction(
                 QIcon(":/icons/download.svg"),
                 trans("web.context_menu.download"),
                 self,
             )
-            action.triggered.connect(lambda checked=False, url=link_url: self._download_link(url))
+            action.triggered.connect(
+                lambda checked=False, link=resolved_link: self._download_link(link)
+            )
             menu.addAction(action)
+            link_actions_added = True
+
+        if link_actions_added:
             menu.addSeparator()
 
         has_selection = self.page().hasSelection()
@@ -798,7 +888,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
     def acceptNavigationRequest(self, url, _type, isMainFrame):
         if _type == QWebEnginePage.NavigationTypeLinkClicked:
-            self.window.core.filesystem.url.handle(url)
+            self.window.core.filesystem.url.handle(url, ctx=self.view.meta)
             return False
         return super().acceptNavigationRequest(url, _type, isMainFrame)
 

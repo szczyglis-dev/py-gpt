@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2026.09.20 19:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize
@@ -47,8 +47,34 @@ class ToolWidget:
         self.btn_go = None
 
     def on_open(self):
-        """On open"""
-        pass
+        """Restore the reusable browser view when the dialog is opened again."""
+        if self.output is None:
+            return
+        try:
+            self.output.show()
+            self.output.raise_()
+        except RuntimeError:
+            # The destructive on_delete() path is reserved for real widget/tab
+            # teardown. A normal dialog close must never delete BrowserOutput.
+            pass
+
+    def on_close(self):
+        """Soft-close the browser dialog without destroying its WebEngine view.
+
+        Tool dialogs are persistent and are shown again on the next open. Deleting
+        BrowserOutput here leaves the navigation controls alive with a stale Python
+        wrapper around an already deleted C++ object, so the second open is blank
+        and navigation actions raise RuntimeError. Stop the current page and clear
+        it, but keep the view and all signal connections reusable.
+        """
+        if self.output is None:
+            return
+        try:
+            self.output.stop()
+            self.output.setUrl(QUrl("about:blank"))
+        except RuntimeError:
+            # Defensive only: older sessions may already contain a deleted view.
+            pass
 
     def on_delete(self):
         """On delete"""
@@ -219,7 +245,7 @@ class ToolWidget:
                 pass
 
         self.tool.signals.url.connect(self.open_url)
-        self.tool.signals.closed.connect(self.on_delete)
+        self.tool.signals.closed.connect(self.on_close)
 
         layout = QVBoxLayout()
         layout.addLayout(output_layout, 1)
