@@ -95,8 +95,8 @@ class BuiltinKernel(LocalKernel):
 
         manager = KernelManager(connection_file=connection_file)
         # Do not use the application's kernelspec: it would rewrite `python` to
-        # sys.executable and start the PyGPT environment. Keep the full sandbox
-        # launcher command, including Landlock/Seatbelt where available.
+        # sys.executable and start the PyGPT environment. Keep the full built-in
+        # interpreter command instead.
         manager.kernel_spec.argv = command
         manager.start_kernel(cwd=cwd, env=env)
 

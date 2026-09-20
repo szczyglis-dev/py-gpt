@@ -212,12 +212,12 @@ class DockerBackend(ExecutionBackend):
     def ipython_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
         command = item["params"]["command"]
-        runner.log("Executing IPython system command: {}".format(command), sandbox=True)
-        runner.log("Running command: {}".format(command), sandbox=True)
+        runner.log("Executing IPython system command: {}".format(command), sandbox=True, category="exec")
+        runner.log("Running command: {}".format(command), sandbox=True, category="exec")
         runner.send_interpreter_input(command)
         runner.send_interpreter_output_begin("stdout")
         response = self.plugin.ipython_docker.execute_system(command, ctx=ctx)
-        result = runner.handle_result_sandbox(response)
+        result = runner.handle_result_sandbox(response, log_category="exec")
         runner.send_interpreter_output_end("stdout")
         return {
             "request": request,
@@ -228,12 +228,12 @@ class DockerBackend(ExecutionBackend):
     def python_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
         command = item["params"]["command"]
-        runner.log("Executing legacy Python system command: {}".format(command), sandbox=True)
-        runner.log("Running command: {}".format(command), sandbox=True)
+        runner.log("Executing legacy Python system command: {}".format(command), sandbox=True, category="exec")
+        runner.log("Running command: {}".format(command), sandbox=True, category="exec")
         runner.send_interpreter_input(command)
         runner.send_interpreter_output_begin("stdout")
         response = self.plugin.docker.execute(command, ctx=ctx)
-        result = runner.handle_result_sandbox(response)
+        result = runner.handle_result_sandbox(response, log_category="exec")
         runner.send_interpreter_output_end("stdout")
         return {
             "request": request,

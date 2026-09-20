@@ -43,7 +43,7 @@ class Config(BaseConfig):
             type="combo",
             value=SandboxMode.DISABLED.value,
             label="Sandbox",
-            description="Disabled runs Python/IPython directly on the host (unsafe). Built-in sandbox runs a uv-managed built-in CPython/IPython environment with OS-level isolation where available (moderate security). Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option.",
+            description="Disabled runs Python/IPython directly on the host (unsafe). Built-in runs a dedicated uv-managed CPython/IPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option.",
             keys=SandboxMode.options(),
             tab="general",
         )

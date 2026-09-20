@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.09.20 15:10:00                  #
 # ================================================== #
 
 import os
@@ -39,7 +39,7 @@ class Plugin(BasePlugin):
         self.is_common_plugin = True
         self.name = "Python interpreter"
         self.description = "Provides Python/HTML/JS code execution"
-        self.prefix = "Code"
+        self.prefix = "Python => code"
         self.type = [
             'interpreter',
         ]
@@ -70,6 +70,23 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         self.config.from_defaults(self)
+
+    @Slot(object)
+    def handle_log(self, msg):
+        """Route Python system-exec logs to a distinct console prefix."""
+        if isinstance(msg, dict) and msg.get("__pygpt_python_log__"):
+            if self.is_threaded():
+                return
+            text = str(msg.get("message", ""))
+            prefix = str(msg.get("prefix") or self.prefix)
+            full = f"[{prefix}] {text}"
+            log_enabled = self.is_log()
+            self.debug(full, not log_enabled)
+            self.window.update_status(full.replace("\n", " "))
+            if log_enabled:
+                print(full)
+            return
+        super().handle_log(msg)
 
     def is_ipython_enabled(self) -> bool:
         """Return True when the IPython interpreter option is enabled."""

@@ -53,12 +53,12 @@ class Config(BaseConfig):
             type="combo",
             value=SandboxMode.DISABLED.value,
             label="Sandbox",
-            description="Disabled runs system commands directly on the host (unsafe). Built-in sandbox runs commands in a uv-managed built-in CPython environment with OS-level isolation where available (moderate security). Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option.",
+            description="Disabled runs system commands directly on the host (unsafe). Built-in runs commands in a dedicated uv-managed CPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option.",
             keys=SandboxMode.options(),
             tab="general",
         )
 
-        # Docker sandbox options
+        # Sandbox options
         plugin.add_option(
             "docker_run_as_root",
             type="bool",

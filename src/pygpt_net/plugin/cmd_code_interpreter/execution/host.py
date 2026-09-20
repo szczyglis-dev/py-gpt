@@ -43,8 +43,8 @@ class HostBackend(ExecutionBackend):
     def _run_system_command(self, ctx, command: str, request: dict, label: str) -> dict:
         runner = self.runner
         self.plugin.window.core.security.ensure_command(command, sandbox=False)
-        runner.log("Executing {} system command: {}".format(label, command))
-        runner.log("Running command: {}".format(command))
+        runner.log("Executing {} system command: {}".format(label, command), category="exec")
+        runner.log("Running command: {}".format(command), category="exec")
         runner.send_interpreter_input(command)
         try:
             runner.send_interpreter_output_begin("stdout")
@@ -58,7 +58,7 @@ class HostBackend(ExecutionBackend):
             runner.error(e)
             stdout = None
             stderr = str(e).encode("utf-8")
-        result = runner.handle_result(stdout, stderr)
+        result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
         return {
             "request": request,

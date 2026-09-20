@@ -6,20 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 12:00:00                  #
+# Updated Date: 2026.09.20 16:05:00                  #
 # ================================================== #
 
 from __future__ import annotations
 
 import ctypes
 import json
-import logging
 import os
 import shutil
 import subprocess
 import sys
 import threading
-from pathlib import Path
 from typing import Optional, Sequence
 
 from .packages import (
@@ -36,31 +34,21 @@ class BuiltinSandboxError(RuntimeError):
 class BuiltinSandboxRuntime:
     """Managed Python runtime used by the built-in Code/System sandboxes.
 
-    ``uv`` manages the interpreter/virtual environment, while the child process
-    is additionally restricted with an OS-specific best-effort sandbox:
-
-    * Linux: Landlock filesystem allow-list (when supported by the kernel).
-    * macOS: ``/usr/bin/sandbox-exec`` Seatbelt profile (when available).
-    * Windows: a Job Object with kill-on-close plus an isolated HOME/TEMP/venv.
-
-    The sandbox venv is intentionally independent from the Python environment
-    used to run/freeze PyGPT itself.
+    ``uv`` manages an interpreter/virtual environment independent from the
+    Python environment used to run/freeze PyGPT itself. Commands execute in a
+    separate child process. On Windows the child is additionally attached to a
+    Job Object with kill-on-close.
     """
 
     PYTHON_VERSION = "3.12"
     _prepare_lock = threading.RLock()
-    _LANDLOCK_LAUNCHER = ".pygpt_landlock.py"
     _MARKER = ".pygpt-sandbox.json"
-    _FALLBACK_WARNING_PREFIX = "[BUILT-IN SANDBOX] WARNING:"
 
     def __init__(self, window, name: str):
         if name not in {"python", "os"}:
             raise ValueError(f"Unsupported built-in sandbox name: {name}")
         self.window = window
         self.name = name
-        self._landlock_preflight_result = None
-        self._landlock_preflight_details = ""
-        self._fallback_warning = None
 
     # ------------------------------------------------------------------
     # Paths / environment
@@ -258,7 +246,7 @@ class BuiltinSandboxRuntime:
 
     def _marker_data(self) -> dict:
         return {
-            "version": 5,
+            "version": 6,
             "python": self.PYTHON_VERSION,
             "base_python": self._base_python() or "managed",
             "name": self.name,
@@ -361,9 +349,7 @@ class BuiltinSandboxRuntime:
 
                 # Resolve uv's minor-version alias to the concrete patch-specific
                 # interpreter before creating the venv. uv intentionally exposes
-                # e.g. cpython-3.12-... as a symlink to cpython-3.12.14-...; using
-                # the canonical interpreter avoids mixed base_prefix/exec_prefix
-                # paths when the child is later restricted by Landlock/Seatbelt.
+                # e.g. cpython-3.12-... as a symlink to cpython-3.12.14-....
                 find = subprocess.run(
                     [
                         uv_bin, "python", "find", self.PYTHON_VERSION,
@@ -393,19 +379,12 @@ class BuiltinSandboxRuntime:
                     )
                 python_flags = ["--no-python-downloads"]
 
-            # uv 0.10+ intentionally points managed venv interpreters at a
-            # minor-version intermediary (e.g. cpython-3.12-linux-...) so uv can
-            # transparently move them between patch releases.  That symlink is
-            # problematic for python-build-standalone when a filesystem sandbox
-            # is applied: CPython can resolve base_prefix and base_exec_prefix
-            # through different paths and fail before importing `encodings`.
-            #
-            # Keep uv responsible for installing the managed CPython and for all
-            # package operations, but create managed venvs with the concrete
-            # patch-specific interpreter and real executable copies.  Packaged
-            # interpreters (notably Snap) keep using `uv venv`, because copying
-            # an executable out of a confined read-only package may not be
-            # executable from writable storage.
+            # Keep uv responsible for installing the managed CPython and package
+            # operations, while managed runtimes use a concrete patch-specific
+            # interpreter and real executable copies. Packaged interpreters
+            # (notably Snap) keep using ``uv venv`` because copying an executable
+            # out of a confined read-only package may not be executable from
+            # writable storage.
             if base_python:
                 command = [
                     uv_bin,
@@ -450,9 +429,8 @@ class BuiltinSandboxRuntime:
                 raise BuiltinSandboxError(f"Unable to create built-in sandbox environment: {details}")
 
             # A managed venv must identify itself as the venv before we install
-            # anything into it.  This also catches future uv/PBS path-layout
-            # regressions early with a useful error instead of a fatal CPython
-            # bootstrap traceback under Landlock.
+            # anything into it. This catches future uv/PBS path-layout regressions
+            # early with a useful error.
             identity_code = (
                 "import encodings, os, sys; "
                 "print(os.path.realpath(sys.prefix)); "
@@ -560,8 +538,6 @@ class BuiltinSandboxRuntime:
             self._ensure_private_dirs()
             with open(self.marker_path, "w", encoding="utf-8") as handle:
                 json.dump(self._marker_data(), handle, indent=2, sort_keys=True)
-            # A recreated venv/runtime needs a fresh Landlock compatibility probe.
-            self._landlock_preflight_result = None
             return self.python_bin
 
     # ------------------------------------------------------------------
@@ -578,18 +554,17 @@ class BuiltinSandboxRuntime:
             return False
 
     def resolve_data_path(self, path: str, ctx=None, allow_internal: bool = False) -> str:
-        """Resolve a tool path and reject host paths outside the sandbox roots."""
+        """Resolve a built-in runtime path without filesystem access filtering.
+
+        Relative paths are resolved against the current PyGPT data directory;
+        absolute paths are preserved (after ``realpath`` normalization). The
+        built-in backend intentionally does not enforce a filesystem boundary.
+        """
         if not path:
             raise BuiltinSandboxError("Empty path")
         data_dir = self.get_data_dir(ctx=ctx)
-        resolved = os.path.realpath(path if os.path.isabs(path) else os.path.join(data_dir, path))
-        if self._is_within(resolved, data_dir):
-            return resolved
-        if allow_internal and self._is_within(resolved, self.venv_root):
-            return resolved
-        raise BuiltinSandboxError(
-            f"Built-in sandbox path is outside the data directory: {resolved}. "
-            f"Allowed data directory: {data_dir}"
+        return os.path.realpath(
+            path if os.path.isabs(path) else os.path.join(data_dir, path)
         )
 
     def temp_path(self, filename: str) -> str:
@@ -613,68 +588,17 @@ class BuiltinSandboxRuntime:
             argv = [shell, "-c", command]
         return self._communicate(argv, ctx=ctx)
 
-    def _warn_isolation_fallback(self, reason: str):
-        """Log an explicit warning when OS isolation falls back to subprocess-only."""
-        reason = str(reason or "unknown reason").strip()
-        message = (
-            f"{self._FALLBACK_WARNING_PREFIX} {self.name}: OS filesystem isolation "
-            f"is unavailable; using separate-process isolation only. Reason: {reason}"
-        )
-        if message == self._fallback_warning:
-            return
-        self._fallback_warning = message
-        # Always make this visible in the process console, regardless of the
-        # configured app log level. Keep it in app.log as a warning as well.
-        try:
-            print(message)
-        except Exception:
-            pass
-        try:
-            logger = logging.getLogger()
-            if logger.hasHandlers():
-                logger.warning(message)
-        except Exception:
-            pass
-
     def prepare_process(self, argv: Sequence[str], ctx=None):
-        """Prepare a child command with the Built-in sandbox environment.
-
-        This is shared by short-lived Python/shell commands and persistent
-        processes such as the Built-in IPython kernel.
-        """
+        """Prepare a child command with the built-in runtime environment."""
         data_dir = self.get_data_dir(ctx=ctx)
         env = self._build_env(ctx=ctx)
-        command = list(argv)
-
-        if sys.platform == "darwin":
-            command = self._wrap_macos(command, data_dir)
-        elif sys.platform.startswith("linux"):
-            env["PYGPT_SANDBOX_RO"] = os.pathsep.join(self._linux_read_roots())
-            env["PYGPT_SANDBOX_RW"] = os.pathsep.join([
-                data_dir, self.venv_root, self.cache_root, self.state_root,
-                self.app_temp_dir,
-            ])
-            # Verify that the uv-managed interpreter can fully initialize after
-            # Landlock is applied. If a kernel/runtime combination rejects one
-            # of Python's own runtime paths, degrade to process isolation rather
-            # than launching a broken interpreter.
-            if self._linux_landlock_preflight(data_dir, env):
-                command = self._wrap_linux(command, data_dir)
-            else:
-                self._warn_isolation_fallback(self._landlock_preflight_details)
-
-        return command, data_dir, env
+        return list(argv), data_dir, env
 
     def attach_process_job(self, process):
         """Attach a Windows child to the Built-in sandbox Job Object."""
         if os.name != "nt":
             return None
-        job = self._attach_windows_job(process)
-        if not job:
-            self._warn_isolation_fallback(
-                "Windows Job Object could not be attached to the child process"
-            )
-        return job
+        return self._attach_windows_job(process)
 
     @staticmethod
     def close_process_job(job):
@@ -714,383 +638,6 @@ class BuiltinSandboxRuntime:
             return process.communicate()
         finally:
             self.close_process_job(job)
-
-    # ------------------------------------------------------------------
-    # Linux: Landlock
-    # ------------------------------------------------------------------
-
-    def _landlock_launcher_path(self) -> str:
-        return os.path.join(self.private_root, self._LANDLOCK_LAUNCHER)
-
-    def _write_landlock_launcher(self) -> str:
-        self._ensure_private_dirs()
-        path = self._landlock_launcher_path()
-        source = r'''#!/usr/bin/env python3
-import ctypes
-import errno
-import os
-import sys
-
-# Linux Landlock syscall numbers are part of the generic syscall table used by
-# the supported PyGPT Linux architectures (x86_64/aarch64).
-SYS_LANDLOCK_CREATE_RULESET = 444
-SYS_LANDLOCK_ADD_RULE = 445
-SYS_LANDLOCK_RESTRICT_SELF = 446
-LANDLOCK_CREATE_RULESET_VERSION = 1
-LANDLOCK_RULE_PATH_BENEATH = 1
-PR_SET_NO_NEW_PRIVS = 38
-
-EXECUTE = 1 << 0
-WRITE_FILE = 1 << 1
-READ_FILE = 1 << 2
-READ_DIR = 1 << 3
-REMOVE_DIR = 1 << 4
-REMOVE_FILE = 1 << 5
-MAKE_CHAR = 1 << 6
-MAKE_DIR = 1 << 7
-MAKE_REG = 1 << 8
-MAKE_SOCK = 1 << 9
-MAKE_FIFO = 1 << 10
-MAKE_BLOCK = 1 << 11
-MAKE_SYM = 1 << 12
-REFER = 1 << 13
-TRUNCATE = 1 << 14
-IOCTL_DEV = 1 << 15
-RESOLVE_UNIX = 1 << 16
-
-SCOPE_ABSTRACT_UNIX_SOCKET = 1 << 0
-SCOPE_SIGNAL = 1 << 1
-LANDLOCK_ABI = None
-
-class RulesetAttr(ctypes.Structure):
-    _fields_ = [
-        ("handled_access_fs", ctypes.c_uint64),
-        ("handled_access_net", ctypes.c_uint64),
-        ("scoped", ctypes.c_uint64),
-    ]
-
-class PathBeneathAttr(ctypes.Structure):
-    _pack_ = 1
-    _fields_ = [("allowed_access", ctypes.c_uint64), ("parent_fd", ctypes.c_int)]
-
-libc = ctypes.CDLL(None, use_errno=True)
-libc.syscall.restype = ctypes.c_long
-
-
-def syscall(number, *args):
-    result = libc.syscall(number, *args)
-    if result < 0:
-        err = ctypes.get_errno()
-        raise OSError(err, os.strerror(err))
-    return result
-
-
-def apply_landlock(ro_paths, rw_paths):
-    global LANDLOCK_ABI
-    try:
-        abi = syscall(
-            SYS_LANDLOCK_CREATE_RULESET,
-            ctypes.c_void_p(),
-            ctypes.c_size_t(0),
-            ctypes.c_uint32(LANDLOCK_CREATE_RULESET_VERSION),
-        )
-    except OSError as exc:
-        if exc.errno in (errno.ENOSYS, errno.EOPNOTSUPP, errno.EINVAL, errno.EPERM):
-            raise RuntimeError(f"Landlock unavailable: {exc}") from exc
-        raise
-
-    LANDLOCK_ABI = abi
-    handled = (
-        EXECUTE | WRITE_FILE | READ_FILE | READ_DIR | REMOVE_DIR | REMOVE_FILE |
-        MAKE_CHAR | MAKE_DIR | MAKE_REG | MAKE_SOCK | MAKE_FIFO | MAKE_BLOCK | MAKE_SYM
-    )
-    if abi >= 2:
-        handled |= REFER
-    if abi >= 3:
-        handled |= TRUNCATE
-    if abi >= 5:
-        handled |= IOCTL_DEV
-    if abi >= 9:
-        # Prevent connections to pathname UNIX sockets outside allow-listed
-        # writable roots (e.g. Docker/system service sockets).
-        handled |= RESOLVE_UNIX
-
-    scoped = 0
-    if abi >= 6:
-        # Keep abstract UNIX sockets and signals inside the new Landlock
-        # domain. TCP/UDP networking remains available for package installs.
-        scoped = SCOPE_ABSTRACT_UNIX_SOCKET | SCOPE_SIGNAL
-
-    ruleset_attr = RulesetAttr(
-        handled_access_fs=handled,
-        handled_access_net=0,
-        scoped=scoped,
-    )
-    if abi < 4:
-        ruleset_size = ctypes.sizeof(ctypes.c_uint64)
-    elif abi < 6:
-        ruleset_size = ctypes.sizeof(ctypes.c_uint64) * 2
-    else:
-        ruleset_size = ctypes.sizeof(ctypes.c_uint64) * 3
-    ruleset_fd = syscall(
-        SYS_LANDLOCK_CREATE_RULESET,
-        ctypes.byref(ruleset_attr),
-        ctypes.c_size_t(ruleset_size),
-        ctypes.c_uint32(0),
-    )
-
-    read_access = EXECUTE | READ_FILE | READ_DIR
-    rw_access = handled
-    open_flags = getattr(os, "O_PATH", os.O_RDONLY) | getattr(os, "O_CLOEXEC", 0)
-
-    def add(path, access):
-        if not path or not os.path.exists(path):
-            return
-        fd = os.open(path, open_flags)
-        try:
-            attr = PathBeneathAttr(allowed_access=access & handled, parent_fd=fd)
-            syscall(
-                SYS_LANDLOCK_ADD_RULE,
-                ruleset_fd,
-                ctypes.c_int(LANDLOCK_RULE_PATH_BENEATH),
-                ctypes.byref(attr),
-                ctypes.c_uint32(0),
-            )
-        finally:
-            os.close(fd)
-
-    try:
-        for item in ro_paths:
-            add(item, read_access)
-        for item in rw_paths:
-            add(item, rw_access)
-        if libc.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0:
-            err = ctypes.get_errno()
-            raise OSError(err, os.strerror(err))
-        syscall(SYS_LANDLOCK_RESTRICT_SELF, ruleset_fd, ctypes.c_uint32(0))
-    finally:
-        os.close(ruleset_fd)
-    return True
-
-
-def main():
-    if "--" not in sys.argv:
-        raise SystemExit("missing -- separator")
-    sep = sys.argv.index("--")
-    ro_paths = [p for p in os.environ.get("PYGPT_SANDBOX_RO", "").split(os.pathsep) if p]
-    rw_paths = [p for p in os.environ.get("PYGPT_SANDBOX_RW", "").split(os.pathsep) if p]
-    try:
-        active = apply_landlock(ro_paths, rw_paths)
-    except Exception as exc:
-        active = False
-        print(
-            "PYGPT_LANDLOCK_FALLBACK: "
-            f"abi={LANDLOCK_ABI if LANDLOCK_ABI is not None else 'unknown'}; "
-            f"{type(exc).__name__}: {exc}",
-            file=sys.stderr,
-            flush=True,
-        )
-    os.environ["PYGPT_BUILTIN_SANDBOX_FS"] = "landlock" if active else "process"
-    argv = sys.argv[sep + 1:]
-    if not argv:
-        raise SystemExit("missing command")
-    os.execvpe(argv[0], argv, os.environ)
-
-
-if __name__ == "__main__":
-    main()
-'''
-        try:
-            current = Path(path).read_text(encoding="utf-8") if os.path.isfile(path) else None
-        except OSError:
-            current = None
-        if current != source:
-            Path(path).write_text(source, encoding="utf-8")
-        return path
-
-    def _linux_read_roots(self) -> list[str]:
-        roots = []
-        candidates = [
-            "/bin", "/sbin", "/usr", "/lib", "/lib64", "/etc",
-            "/dev", "/proc", "/sys", self.runtime_root,
-        ]
-        snap_root = os.environ.get("SNAP")
-        if snap_root:
-            candidates.append(snap_root)
-        base_python = self._base_python()
-        if base_python:
-            candidates.append(os.path.dirname(base_python))
-        seen = set()
-        for path in candidates:
-            if not path or not os.path.exists(path):
-                continue
-            real = os.path.realpath(path)
-            if real not in seen:
-                seen.add(real)
-                roots.append(real)
-        return roots
-
-    @staticmethod
-    def _linux_lsm_info() -> str:
-        """Return active Linux Security Modules for fallback diagnostics."""
-        try:
-            value = Path("/sys/kernel/security/lsm").read_text(encoding="utf-8").strip()
-            return value or "unknown"
-        except OSError as exc:
-            return f"unavailable ({exc})"
-
-    def _linux_landlock_preflight(self, data_dir: str, env: dict[str, str]) -> bool:
-        """Return True only when Python can initialize inside our Landlock domain.
-
-        This is intentionally a runtime probe: python-build-standalone layout
-        and Landlock behavior both depend on the runtime/kernel versions. A failed probe
-        falls back to the existing process-isolation mode instead of making the
-        Code Interpreter unusable.
-        """
-        cached = getattr(self, "_landlock_preflight_result", None)
-        if cached is not None:
-            return bool(cached)
-
-        launcher = self._write_landlock_launcher()
-        probe_path = os.path.join(self.temp_dir, ".landlock-probe")
-        try:
-            Path(probe_path).write_text("probe", encoding="utf-8")
-        except OSError as exc:
-            self._landlock_preflight_result = False
-            self._landlock_preflight_details = f"unable to create Landlock probe file: {exc}"
-            return False
-
-        probe_env = dict(env)
-        probe_env["PYGPT_SANDBOX_PROBE"] = probe_path
-        # Verify a real path outside the allow-list is denied, not only that the
-        # Landlock syscall sequence reported success. The parent of the PyGPT
-        # workdir is intentionally not part of RO/RW roots.
-        deny_probe = os.path.dirname(self.profile_root.rstrip(os.sep)) or os.sep
-        probe_env["PYGPT_SANDBOX_DENY_PROBE"] = deny_probe
-        probe_code = """
-import encodings
-import importlib
-import os
-
-if os.environ.get("PYGPT_BUILTIN_SANDBOX_FS") != "landlock":
-    print("PYGPT_LANDLOCK_NOT_ACTIVE", file=__import__("sys").stderr)
-    raise SystemExit(3)
-importlib.import_module("json")
-open(os.devnull, "rb").close()
-probe_path = os.environ["PYGPT_SANDBOX_PROBE"]
-open(probe_path, "rb").close()
-with open(probe_path, "ab") as handle:
-    handle.write(b"x")
-outside_path = os.environ["PYGPT_SANDBOX_DENY_PROBE"]
-denied = False
-try:
-    os.listdir(outside_path)
-except PermissionError:
-    denied = True
-if not denied:
-    print(f"PYGPT_LANDLOCK_OUTSIDE_PATH_READABLE: {outside_path}", file=__import__("sys").stderr)
-    raise SystemExit(4)
-print("PYGPT_LANDLOCK_OK")
-"""
-        probe = [
-            self.python_bin, "-u", launcher, "--",
-            self.python_bin, "-I", "-c", probe_code,
-        ]
-        try:
-            result = subprocess.run(
-                probe,
-                cwd=data_dir,
-                env=probe_env,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=15,
-                check=False,
-            )
-            ok = (
-                result.returncode == 0
-                and b"PYGPT_LANDLOCK_OK" in (result.stdout or b"")
-            )
-            if ok:
-                self._landlock_preflight_details = ""
-            else:
-                stdout = (result.stdout or b"").decode("utf-8", errors="replace").strip()
-                stderr = (result.stderr or b"").decode("utf-8", errors="replace").strip()
-                detail = stderr or stdout or "no diagnostic output"
-                self._landlock_preflight_details = (
-                    f"Landlock preflight failed with exit code {result.returncode}: {detail}; "
-                    f"active LSMs: {self._linux_lsm_info()}"
-                )
-        except (OSError, subprocess.SubprocessError) as exc:
-            ok = False
-            self._landlock_preflight_details = (
-                f"Landlock preflight could not run: {exc}; "
-                f"active LSMs: {self._linux_lsm_info()}"
-            )
-        finally:
-            try:
-                os.unlink(probe_path)
-            except OSError:
-                pass
-        self._landlock_preflight_result = ok
-        return ok
-
-    def _wrap_linux(self, argv: list[str], data_dir: str) -> list[str]:
-        launcher = self._write_landlock_launcher()
-        return [self.python_bin, "-u", launcher, "--", *argv]
-
-    # ------------------------------------------------------------------
-    # macOS: Seatbelt sandbox-exec
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _sb_quote(path: str) -> str:
-        return '"' + str(path).replace("\\", "\\\\").replace('"', '\\"') + '"'
-
-    def _macos_profile(self, data_dir: str) -> str:
-        read_roots = [
-            "/System", "/usr", "/bin", "/sbin", "/Library", "/private/etc",
-            "/dev", self.runtime_root, self.venv_root, self.state_root,
-            self.app_temp_dir, data_dir,
-        ]
-        write_roots = [
-            data_dir, self.venv_root, self.cache_root, self.state_root,
-            self.app_temp_dir,
-        ]
-        read_rules = "\n".join(
-            f"(allow file-read* (subpath {self._sb_quote(os.path.realpath(p))}))"
-            for p in read_roots if os.path.exists(p)
-        )
-        write_rules = "\n".join(
-            f"(allow file-write* (subpath {self._sb_quote(os.path.realpath(p))}))"
-            for p in write_roots if os.path.exists(p)
-        )
-        return f'''(version 1)
-(deny default)
-(allow process-fork)
-(allow process-exec)
-(allow signal (target same-sandbox))
-(allow process-info* (target same-sandbox))
-(allow mach-priv-task-port (target same-sandbox))
-(allow user-preference-read)
-(allow sysctl-read)
-(allow mach-lookup)
-(allow ipc-posix*)
-(allow iokit-open)
-(allow network*)
-(allow file-read-metadata)
-(allow file-map-executable)
-{read_rules}
-{write_rules}
-(allow file-write-data (literal "/dev/null"))
-'''
-
-    def _wrap_macos(self, argv: list[str], data_dir: str) -> list[str]:
-        sandbox_exec = "/usr/bin/sandbox-exec"
-        if not os.path.isfile(sandbox_exec):
-            self._warn_isolation_fallback("/usr/bin/sandbox-exec is not available")
-            return argv
-        return [sandbox_exec, "-p", self._macos_profile(data_dir), *argv]
 
     # ------------------------------------------------------------------
     # Windows: Job Object
@@ -1176,18 +723,15 @@ print("PYGPT_LANDLOCK_OK")
     # ------------------------------------------------------------------
 
     def isolation_name(self) -> str:
-        if sys.platform.startswith("linux"):
-            return "Linux Landlock (with process-isolation fallback)"
-        if sys.platform == "darwin":
-            return "macOS Seatbelt/sandbox-exec (with process-isolation fallback)"
         if os.name == "nt":
             return "Windows Job Object/process isolation"
         return "separate-process isolation"
 
     def filesystem_context(self, data_dir: str) -> str:
         return (
-            "The built-in sandbox uses a separate uv-managed virtual environment at "
-            f"{self.venv_root}. Its working directory is {data_dir}. Use that data "
-            "directory for all user files. The sandbox runs in a separate process; "
-            f"filesystem/process isolation is provided by {self.isolation_name()}."
+            "The built-in runtime uses a separate uv-managed virtual environment at "
+            f"{self.venv_root}. Its working directory is {data_dir}. Relative paths "
+            "are resolved from that directory. The process can access the host "
+            "filesystem according to the permissions of the PyGPT process; the "
+            "built-in backend does not enforce filesystem access restrictions."
         )

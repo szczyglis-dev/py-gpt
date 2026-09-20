@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.09.20 15:10:00                  #
 # ================================================== #
 
 import os.path
@@ -102,7 +102,7 @@ class Runner:
         """
         self._emit_signal("html_output", data)
 
-    def handle_result(self, stdout, stderr):
+    def handle_result(self, stdout, stderr, log_category: str = "code"):
         """
         Handle result from subprocess
 
@@ -114,17 +114,17 @@ class Runner:
         if stdout:
             result = stdout.decode("utf-8")
             self.send_interpreter_output(result, "stdout")
-            self.log("STDOUT: {}".format(result))
+            self.log("STDOUT: {}".format(result), category=log_category)
         if stderr:
             result = stderr.decode("utf-8")
             self.send_interpreter_output(result, "stderr")
-            self.log("STDERR: {}".format(result))
+            self.log("STDERR: {}".format(result), category=log_category)
         if result is None:
             result = "No result (STDOUT/STDERR empty)"
-            self.log(result)
+            self.log(result, category=log_category)
         return result
 
-    def handle_result_sandbox(self, response) -> str:
+    def handle_result_sandbox(self, response, log_category: str = "code") -> str:
         """
         Handle result from sandbox backend
 
@@ -138,6 +138,7 @@ class Runner:
         self.log(
             "Result: {}".format(result),
             sandbox=True,
+            category=log_category,
         )
         return result
 
@@ -345,16 +346,18 @@ class Runner:
         """
         self._emit_signal("debug", msg)
 
-    def log(self, msg, sandbox: bool = False):
-        """
-        Log message to console
-
-        :param msg: message to log
-        :param sandbox: is sandbox mode
-        """
+    def log(self, msg, sandbox: bool = False, category: str = "code"):
+        """Log a message using the code or system-exec Python channel."""
         prefix = ""
         if sandbox:
             prefix = self.plugin.get_execution_backend().log_prefix
         full_msg = (prefix + " " if prefix else "") + str(msg)
 
-        self._emit_signal("log", full_msg)
+        if category == "exec":
+            self._emit_signal("log", {
+                "__pygpt_python_log__": True,
+                "prefix": "Python -> exec",
+                "message": full_msg,
+            })
+        else:
+            self._emit_signal("log", full_msg)

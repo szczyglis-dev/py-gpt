@@ -172,7 +172,7 @@ class BuiltinBackend(ExecutionBackend):
         command = item["params"]["command"]
         self.plugin.window.core.security.ensure_command(command, sandbox=True)
         runner.send_interpreter_input(command)
-        runner.log(f"Executing Python environment system command: {command}", sandbox=True)
+        runner.log(f"Executing Python environment system command: {command}", sandbox=True, category="exec")
         runner.send_interpreter_output_begin("stdout")
         try:
             stdout, stderr = self.runtime.run_shell(command, ctx=ctx)
@@ -180,7 +180,7 @@ class BuiltinBackend(ExecutionBackend):
             runner.error(exc)
             stdout = None
             stderr = str(exc).encode("utf-8")
-        result = runner.handle_result(stdout, stderr)
+        result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
         return {
             "request": request,
@@ -195,7 +195,7 @@ class BuiltinBackend(ExecutionBackend):
         command = item["params"]["command"]
         self.plugin.window.core.security.ensure_command(command, sandbox=True)
         runner.send_interpreter_input(command)
-        runner.log(f"Executing Built-in IPython system command: {command}", sandbox=True)
+        runner.log(f"Executing Built-in IPython system command: {command}", sandbox=True, category="exec")
         runner.send_interpreter_output_begin("stdout")
         try:
             stdout, stderr = self.runtime.run_shell(command, ctx=ctx)
@@ -203,7 +203,7 @@ class BuiltinBackend(ExecutionBackend):
             runner.error(exc)
             stdout = None
             stderr = str(exc).encode("utf-8")
-        result = runner.handle_result(stdout, stderr)
+        result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
         return {
             "request": request,
@@ -215,8 +215,8 @@ class BuiltinBackend(ExecutionBackend):
         return self.runtime.get_data_dir(ctx=ctx)
 
     def map_host_path_to_runtime(self, path: str, ctx=None) -> str:
-        # Unlike Docker there is no synthetic filesystem namespace; the data
-        # directory is the real host path, access-restricted in the child.
+        # Unlike Docker there is no synthetic filesystem namespace; paths map
+        # directly to the host filesystem.
         return self.runtime.resolve_data_path(path, ctx=ctx)
 
     def get_tool_instruction(self, cmd: str, data_dir: str) -> str:
