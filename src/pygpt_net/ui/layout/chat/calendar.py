@@ -189,10 +189,14 @@ class Calendar:
         ui.splitters['calendar'] = QSplitter(Qt.Horizontal)
         ui.splitters['calendar'].addWidget(select_widget)
         ui.splitters['calendar'].addWidget(widget)
-        # Keep the calendar/select pane at its chosen width and let the
-        # note/content pane absorb window-width changes.
-        ui.splitters['calendar'].setStretchFactor(0, 0)
+
+        # Default to a wide calendar and a compact note pane (75/25).
+        # This is only the initial geometry: the layout controller may restore
+        # a previously saved user position afterwards, and manual splitter
+        # changes remain fully resizable/persistent.
+        ui.splitters['calendar'].setStretchFactor(0, 3)
         ui.splitters['calendar'].setStretchFactor(1, 1)
+        ui.splitters['calendar'].setSizes([750, 250])
 
         ui.splitters['calendar'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         filters.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)

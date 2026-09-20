@@ -8,13 +8,19 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
+import os
+import shutil
+from urllib.parse import unquote, urlparse
+
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl
 from PySide6.QtWebChannel import QWebChannel
-from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
+from PySide6.QtWebEngineCore import (
+    QWebEngineSettings, QWebEnginePage, QWebEngineProfile, QWebEngineDownloadRequest,
+)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout, QWidget
+from PySide6.QtGui import QAction, QDesktopServices, QIcon
+from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout, QWidget, QFileDialog
 
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
@@ -47,6 +53,11 @@ class ChatWebOutput(QWebEngineView):
         self.setProperty('class', 'layout-output-web')
         self.setMouseTracking(True)
 
+        # Context-menu downloads are handed back to Chromium/WebEngine, so
+        # they reuse the page profile, cookies, redirects and content handling.
+        # The pending entry supplies the exact path chosen in our save dialog.
+        self._pending_link_downloads = []
+
         # OpenGL widgets
         self._glwidget = None
         self._glwidget_filter_installed = False
@@ -59,6 +70,10 @@ class ChatWebOutput(QWebEngineView):
         # self._profile = self._make_profile(self)
         self.setPage(CustomWebEnginePage(self.window, self, profile=None))
         self._install_web_content_filters()
+        try:
+            self.page().profile().downloadRequested.connect(self._on_download_requested)
+        except Exception:
+            pass
 
     def _make_profile(self, parent=None) -> QWebEngineProfile:
         """Make profile"""
@@ -174,6 +189,13 @@ class ChatWebOutput(QWebEngineView):
 
         self.hide()
         self._detach_gl_event_filter()
+
+        self._pending_link_downloads.clear()
+
+        try:
+            self.page().profile().downloadRequested.disconnect(self._on_download_requested)
+        except Exception:
+            pass
 
         if self.finder:
             try:
@@ -329,6 +351,180 @@ class ChatWebOutput(QWebEngineView):
         """
         self.html_content = "<html>" + html + "</html>"
 
+    def _context_link_url(self) -> str:
+        """Return the anchor URL under the current WebEngine context-menu request."""
+        try:
+            getter = getattr(self, "lastContextMenuRequest", None)
+            request = getter() if callable(getter) else None
+            if request is None:
+                return ""
+            url = request.linkUrl()
+            if url is None or url.isEmpty() or not url.isValid():
+                return ""
+            return url.toString()
+        except Exception:
+            return ""
+
+    def _open_link_external(self, url: str):
+        """Open an href in the system/default web browser."""
+        if url:
+            QDesktopServices.openUrl(QUrl(url))
+
+    def _open_link_internal(self, url: str):
+        """Open an href in PyGPT's internal Web Browser tool."""
+        if not url:
+            return
+        try:
+            tool = self.window.tools.get("web_browser")
+            if tool is None:
+                return
+            # Follow the same sequence as the existing URL-opening controller.
+            # This action must always target PyGPT's internal browser regardless
+            # of the global external/internal URL preference.
+            tool.set_url(url)
+            tool.auto_open(load=False)
+        except Exception as exc:
+            self.window.core.debug.error(exc)
+
+    @staticmethod
+    def _download_filename(url: str) -> str:
+        """Build a safe suggested filename for a linked resource/page."""
+        try:
+            parsed = urlparse(url)
+            name = os.path.basename(unquote(parsed.path or "")).strip()
+        except Exception:
+            name = ""
+        if not name or name in (".", ".."):
+            name = "download.html"
+        return name
+
+    def _download_link(self, url: str):
+        """Download an href (file/page/image/etc.) to a user-selected path."""
+        if not url:
+            return
+
+        filename = self._download_filename(url)
+        try:
+            base_dir = self.window.core.filesystem.get_data_dir()
+            configured = str(self.window.core.config.get("download.dir") or "").strip()
+            if configured:
+                base_dir = os.path.join(base_dir, configured)
+            os.makedirs(base_dir, exist_ok=True)
+            suggested = os.path.join(base_dir, filename)
+        except Exception:
+            suggested = filename
+
+        target, _ = QFileDialog.getSaveFileName(
+            self,
+            trans("web.context_menu.download"),
+            suggested,
+        )
+        if not target:
+            return
+
+        # Chat output hrefs may point at local/sandbox files instead of an
+        # HTTP resource. Reuse the filesystem normalizer and copy those
+        # directly; WebEngine handles remote pages/images/files.
+        try:
+            qurl = QUrl(url)
+            if not qurl.scheme().lower().startswith("http") and qurl.scheme().lower() not in ("data", "qrc"):
+                raw_path = qurl.toLocalFile() or url
+                if url.startswith("bridge://download/"):
+                    raw_path = url.replace("bridge://download/", "", 1)
+                source = self.window.core.filesystem.normalize_local_path(
+                    raw_path,
+                    auto_prefix=False,
+                )
+                if source and os.path.isfile(source):
+                    if os.path.realpath(source) != os.path.realpath(target):
+                        shutil.copy2(source, target)
+                    self.window.update_status(f"{trans('status.saved')}: {target}")
+                    return
+        except Exception:
+            pass
+
+        entry = {
+            "url": QUrl(url).toString(),
+            "target": os.path.abspath(target),
+        }
+        self._pending_link_downloads.append(entry)
+        try:
+            # QWebEnginePage.download() emits profile.downloadRequested. The
+            # handler below sets the chosen directory/file before accept().
+            self.page().download(QUrl(url), os.path.basename(target))
+            QtCore.QTimer.singleShot(10000, lambda e=entry: self._expire_pending_download(e))
+        except Exception as exc:
+            self._expire_pending_download(entry)
+            self.window.update_status(f"{trans('status.error')} {exc}")
+
+    def _expire_pending_download(self, entry):
+        """Drop an unmatched WebEngine download request token."""
+        try:
+            self._pending_link_downloads.remove(entry)
+        except ValueError:
+            pass
+
+    def _on_download_requested(self, download):
+        """Accept only a link download initiated by this ChatWebOutput instance."""
+        if not self._pending_link_downloads:
+            return
+
+        try:
+            request_page = download.page()
+        except Exception:
+            request_page = None
+        if request_page is not None and request_page is not self.page():
+            return
+
+        try:
+            request_url = download.url().toString()
+        except Exception:
+            request_url = ""
+
+        match = None
+        for entry in self._pending_link_downloads:
+            if entry.get("url") == request_url:
+                match = entry
+                break
+        # Redirects or provider-normalized URLs can differ from the original.
+        # Page identity is sufficient when this view has one pending request.
+        if match is None and request_page is self.page() and len(self._pending_link_downloads) == 1:
+            match = self._pending_link_downloads[0]
+        if match is None:
+            return
+
+        self._expire_pending_download(match)
+        target = match.get("target") or ""
+        try:
+            download.setDownloadDirectory(os.path.dirname(target))
+            download.setDownloadFileName(os.path.basename(target))
+            download.isFinishedChanged.connect(
+                lambda d=download, path=target: self._on_link_download_finished(d, path)
+            )
+            download.accept()
+        except Exception as exc:
+            try:
+                download.cancel()
+            except Exception:
+                pass
+            self.window.update_status(f"{trans('status.error')} {exc}")
+
+    def _on_link_download_finished(self, download, target: str):
+        """Report final WebEngine download state in the global status line."""
+        try:
+            if not download.isFinished():
+                return
+            state = download.state()
+            if state == QWebEngineDownloadRequest.DownloadState.DownloadCompleted:
+                self.window.update_status(f"{trans('status.saved')}: {target}")
+            elif state == QWebEngineDownloadRequest.DownloadState.DownloadInterrupted:
+                reason = download.interruptReasonString()
+                self.window.update_status(
+                    f"{trans('status.error')} {reason}".strip()
+                )
+        except Exception:
+            pass
+
     def on_context_menu(self, position):
         """
         Context menu event
@@ -336,6 +532,36 @@ class ChatWebOutput(QWebEngineView):
         :param position: QPoint - position of the context menu
         """
         menu = QMenu(self)
+
+        # QWebEngineContextMenuRequest is short-lived. Resolve the href now
+        # and capture the plain string in actions that may fire after the menu
+        # event itself has returned.
+        link_url = self._context_link_url()
+        if link_url:
+            action = QAction(
+                QIcon(":/icons/public_filled.svg"),
+                trans("web.context_menu.open_browser"),
+                self,
+            )
+            action.triggered.connect(lambda checked=False, url=link_url: self._open_link_external(url))
+            menu.addAction(action)
+
+            action = QAction(
+                QIcon(":/icons/web_on.svg"),
+                trans("web.context_menu.open_internal"),
+                self,
+            )
+            action.triggered.connect(lambda checked=False, url=link_url: self._open_link_internal(url))
+            menu.addAction(action)
+
+            action = QAction(
+                QIcon(":/icons/download.svg"),
+                trans("web.context_menu.download"),
+                self,
+            )
+            action.triggered.connect(lambda checked=False, url=link_url: self._download_link(url))
+            menu.addAction(action)
+            menu.addSeparator()
 
         has_selection = self.page().hasSelection()
 

@@ -17,7 +17,7 @@ from logging import ERROR, WARNING, INFO, DEBUG
 
 from PySide6 import QtCore
 from PySide6.QtCore import QCoreApplication, Qt
-from PySide6.QtGui import QScreen, QPixmapCache
+from PySide6.QtGui import QPixmapCache
 from PySide6.QtWidgets import QApplication
 from PySide6.QtWebEngineCore import QWebEngineUrlScheme
 
@@ -350,13 +350,34 @@ class Launcher:
 
     def run(self):
         """Run app"""
+        first_run = not bool(self.window.core.config.get("license.accepted"))
         self.window.setup()
-        geometry = self.window.screen().availableGeometry()
-        pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
-        margin = 100
-        self.window.resize(geometry.width() - margin, geometry.height() - margin)
-        self.window.show()
-        self.window.move(pos)
+
+        screen = QApplication.primaryScreen() or self.window.screen()
+        geometry = screen.availableGeometry() if screen is not None else self.window.geometry()
+
+        if first_run:
+            # Establish a real normal (unmaximized) geometry first. Qt keeps it
+            # as normalGeometry(), so Restore/Unmaximize has sensible bounds
+            # even though the very first launch starts maximized.
+            width = max(640, int(geometry.width() * 0.80))
+            height = max(480, int(geometry.height() * 0.80))
+            width = min(width, geometry.width())
+            height = min(height, geometry.height())
+            x = geometry.x() + max(0, (geometry.width() - width) // 2)
+            y = geometry.y() + max(0, (geometry.height() - height) // 2)
+            self.window.setGeometry(x, y, width, height)
+            self.window.showMaximized()
+        else:
+            pos = geometry.topLeft()
+            margin = 100
+            self.window.resize(
+                geometry.width() - margin,
+                geometry.height() - margin,
+            )
+            self.window.show()
+            self.window.move(pos)
+
         self.window.post_setup()
         self.app.setWindowIcon(self.window.ui.get_app_icon())
         self.window.ui.tray.setup(self.app)

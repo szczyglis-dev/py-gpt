@@ -52,6 +52,13 @@ code {{
 .code-wrapper ::-webkit-scrollbar {{
     background: transparent;
 }}
+
+.code-wrapper ::-webkit-scrollbar-thumb {{
+    background: #464646;
+}}
+.code-wrapper ::-webkit-scrollbar-thumb:hover {{
+    background: #fff;
+}}
 .code-header-wrapper {{
     background-color: #303030;
 }}

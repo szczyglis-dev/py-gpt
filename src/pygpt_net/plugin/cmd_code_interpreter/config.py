@@ -286,7 +286,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "output_max_entries",
             type="int",
-            value=10,
+            value=15,
             min=0,
             max=10000,
             label="Max interpreter window entries",

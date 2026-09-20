@@ -72,7 +72,7 @@ class Indexes:
         header.addWidget(nodes['indexes.label'])
         header.addStretch(1)
         header.addWidget(nodes['indexes.new'], alignment=Qt.AlignRight)
-        header.setContentsMargins(5, 0, 0, 0)
+        header.setContentsMargins(5, 0, 5, 0)
 
         nodes[self.id] = IndexList(self.window, self.id)
         nodes[self.id].selection_locked = self.window.controller.idx.change_locked
@@ -83,7 +83,7 @@ class Indexes:
         layout = QVBoxLayout()
         layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes[self.id])
-        layout.setContentsMargins(2, 5, 5, 5)
+        layout.setContentsMargins(2, 5, 0, 5)
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         nodes[self.id].setModel(self.window.ui.models[self.id])

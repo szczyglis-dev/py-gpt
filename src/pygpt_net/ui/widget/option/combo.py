@@ -298,6 +298,17 @@ class ComboPopupListView(QListView):
         except Exception:
             return False
 
+    def _fallback_text_color_for_bg(self, bg: QColor, default_fg: QColor) -> QColor:
+        """Return a readable text color for the given current-item background."""
+        if not self._is_valid_color(bg):
+            return default_fg
+        try:
+            # Perceived luminance (WCAG-style coefficients) to choose a safe contrast.
+            luminance = (0.2126 * bg.redF()) + (0.7152 * bg.greenF()) + (0.0722 * bg.blueF())
+            return QColor('#000000') if luminance >= 0.5 else QColor('#ffffff')
+        except Exception:
+            return default_fg
+
     def current_selected_style(self):
         """
         Resolve effective style values for the 'current-selected' mark from:
@@ -316,7 +327,8 @@ class ComboPopupListView(QListView):
         default_bg = QColor(0, 0, 0, 0)
         default_stripe = self.palette().color(QPalette.Highlight)
 
-        fg = self._cs_fg if self._is_valid_color(self._cs_fg) else (
+        fg_is_explicit = self._is_valid_color(self._cs_fg)
+        fg = self._cs_fg if fg_is_explicit else (
             probe.palette().color(QPalette.Text) if probe is not None else default_fg
         )
         bg = self._cs_bg if self._is_valid_color(self._cs_bg) else (
@@ -327,6 +339,9 @@ class ComboPopupListView(QListView):
             alt = probe.palette().color(QPalette.Window)
             if self._is_valid_color(alt):
                 bg = alt
+
+        if not fg_is_explicit and self._is_valid_color(bg):
+            fg = self._fallback_text_color_for_bg(bg, fg)
 
         stripe_w = self._cs_left_w
         stripe_color = self._cs_left_color if self._is_valid_color(self._cs_left_color) else (

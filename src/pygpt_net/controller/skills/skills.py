@@ -120,6 +120,7 @@ class Skills:
         enabled = item.checkState(0) == Qt.CheckState.Checked
         self.window.core.skills.set_enabled(str(name), enabled)
         self._update_installed_status()
+        self.window.controller.plugins.update_info()
 
     def import_github(self):
         value, ok = QInputDialog.getText(
@@ -187,6 +188,7 @@ class Skills:
         try:
             self.window.core.skills.remove(name)
             self.refresh_installed()
+            self.window.controller.plugins.update_info()
             self._set_status_key("skills.status.removed", name=display_name)
         except Exception as exc:
             self.window.ui.dialogs.alert(str(exc))
@@ -390,6 +392,7 @@ class Skills:
             self._render_catalog(result)
             return
         self.refresh_installed()
+        self.window.controller.plugins.update_info()
         if action == "install_catalog_many":
             # Rebuild Explore from the cached catalog so newly installed rows get
             # their checkboxes cleared and are marked as already installed.

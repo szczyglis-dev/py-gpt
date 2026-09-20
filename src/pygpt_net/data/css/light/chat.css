@@ -46,6 +46,15 @@ a:hover {{
 code {{
     color: #000;
 }}
+.code-wrapper ::-webkit-scrollbar {{
+    background: transparent;
+}}
+.code-wrapper ::-webkit-scrollbar-thumb {{
+    background: #e2e2e2;
+}}
+.code-wrapper ::-webkit-scrollbar-thumb:hover {{
+    background: #cfcfcf;
+}}
 .code-wrapper {{
     color: #fff;
     border: 1px solid #d4d4d4;

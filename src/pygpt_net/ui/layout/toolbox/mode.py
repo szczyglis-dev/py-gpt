@@ -71,6 +71,6 @@ class Mode:
         layout.addLayout(header_layout)
         layout.addWidget(combo)
         layout.addStretch()
-        layout.setContentsMargins(2, 5, 5, 5)
+        layout.setContentsMargins(2, 5, 0, 5)
 
         return layout

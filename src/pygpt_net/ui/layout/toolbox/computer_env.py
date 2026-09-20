@@ -91,5 +91,5 @@ class ComputerEnv:
         layout = QVBoxLayout()
         layout.addLayout(env_layout)
         layout.addWidget(sandbox, 0)
-        layout.setContentsMargins(2, 5, 5, 5)
+        layout.setContentsMargins(2, 5, 0, 5)
         return layout

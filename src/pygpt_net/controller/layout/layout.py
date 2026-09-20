@@ -263,6 +263,11 @@ class Layout:
     def state_restore(self):
         """Restore window state"""
         config = self.window.core.config
+        # The first launch deliberately establishes its own centered normal
+        # geometry and starts maximized. Do not let stale/default layout data
+        # override that before the license has been accepted.
+        if not bool(config.get('license.accepted')):
+            return
         if not config.has('layout.window'):
             return
         data = config.get('layout.window')
@@ -297,7 +302,7 @@ class Layout:
         """Save window state"""
         data = {}
         fullscreen = self.window.isFullScreen()
-        geometry = self.window.normalGeometry() if fullscreen else self.window.geometry()
+        geometry = self.window.normalGeometry() if (fullscreen or self.window.isMaximized()) else self.window.geometry()
         data['geometry'] = {
             'x': geometry.x(),
             'y': geometry.y(),

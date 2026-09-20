@@ -305,6 +305,9 @@ class Mode:
 
         presets_editor.toggle_extra_options()
 
+        # Skills are shown in the chat footer only in Agents v2, so refresh the
+        # combined plugin/MCP/Skill status immediately after a mode switch.
+        ctrl.plugins.update_info()
         self.toggle_chat_footer()
 
     def toggle_chat_footer(self):

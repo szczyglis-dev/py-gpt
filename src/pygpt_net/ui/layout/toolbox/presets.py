@@ -73,7 +73,7 @@ class Presets:
         header.addWidget(nodes['preset.agents.label'])
         header.addWidget(nodes['preset.experts.label'])
         header.addWidget(nodes['preset.presets.new'], alignment=Qt.AlignRight)
-        header.setContentsMargins(5, 0, 0, 0)
+        header.setContentsMargins(5, 0, 5, 0)
 
         nodes[self.id] = PresetList(self.window, self.id)
         nodes[self.id].selection_locked = self.window.controller.presets.preset_change_locked
@@ -81,13 +81,14 @@ class Presets:
 
         nodes['tip.toolbox.presets'] = HelpLabel(trans('tip.toolbox.presets'), self.window)
         nodes['tip.toolbox.presets'].setAlignment(Qt.AlignCenter)
+        nodes['tip.toolbox.presets'].setContentsMargins(0, 0, 5, 0)
 
         layout = QVBoxLayout()
         layout.addStretch()
         layout.addLayout(header)
         layout.addWidget(nodes[self.id], 1)
         layout.addWidget(nodes['tip.toolbox.presets'])
-        layout.setContentsMargins(2, 5, 5, 5)
+        layout.setContentsMargins(2, 5, 0, 5)
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         nodes[self.id].setModel(self.window.ui.models[self.id])

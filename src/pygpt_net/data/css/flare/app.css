@@ -688,3 +688,22 @@ QPushButton#chatInputReasoningEffort {{
 QPushButton#chatInputReasoningEffort:hover {{
   color: #b98787;
 }}
+
+/* Toolbox controls: flush right edge for list/text/combo widgets. */
+.toolbox QLineEdit,
+.toolbox QTextEdit,
+.toolbox QPlainTextEdit,
+.toolbox QComboBox,
+.toolbox QListView,
+.toolbox QTreeView {{
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  padding-right: 0px;
+  margin-right: 0px;
+}}
+.toolbox QComboBox::drop-down {{
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  margin-right: 0px;
+}}
+

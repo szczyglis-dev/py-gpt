@@ -50,7 +50,7 @@ class Raw:
 
         rows = QVBoxLayout()
         rows.addLayout(cols)
-        rows.setContentsMargins(2, 5, 5, 5)
+        rows.setContentsMargins(2, 5, 0, 5)
 
         container.setLayout(rows)
         container.setContentsMargins(2, 0, 0, 0)

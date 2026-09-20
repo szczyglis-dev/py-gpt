@@ -15,7 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 
 from pygpt_net.core.types import (
-    MODE_AUDIO, MODE_EXPERT,
+    MODE_AUDIO, MODE_EXPERT, MODE_AGENT_V2,
 )
 from pygpt_net.controller.plugins.presets import Presets
 from pygpt_net.controller.plugins.settings import Settings
@@ -492,19 +492,50 @@ class Plugins:
                     fn()
 
     def update_info(self):
-        """Update plugins info"""
+        """Update enabled plugin/MCP/Skill counters below the chat input."""
         pm = self.window.core.plugins
         enabled_names = []
-        c = 0
+        plugin_count = 0
         for pid in pm.get_ids():
             if self.is_enabled(pid):
-                c += 1
+                plugin_count += 1
                 enabled_names.append(pm.get_name(pid))
+
+        counters = []
+        if plugin_count > 0:
+            key = 'chatbox.plugins' if plugin_count == 1 else 'chatbox.plugins.plural'
+            counters.append(f"{plugin_count} {trans(key)}")
+
+        # MCP count means active configured MCP servers. Keep it hidden when
+        # the MCP plugin itself is disabled, even if server rows remain active
+        # in its saved configuration.
+        if self.is_enabled("mcp"):
+            try:
+                mcp = pm.get("mcp")
+                servers = mcp.get_option_value("servers") if mcp is not None else []
+                mcp_count = sum(
+                    1 for server in (servers or [])
+                    if isinstance(server, dict) and bool(server.get("active", False))
+                )
+                if mcp_count > 0:
+                    key = 'chatbox.mcp' if mcp_count == 1 else 'chatbox.mcp.plural'
+                    counters.append(f"{mcp_count} {trans(key)}")
+            except Exception:
+                pass
+
+        # Skills participate only in the Agents v2 / Chat with Agents runtime.
+        if self.window.core.config.get("mode") == MODE_AGENT_V2:
+            try:
+                skill_count = len(self.window.core.skills.list_installed(enabled_only=True))
+                if skill_count > 0:
+                    key = 'chatbox.skills' if skill_count == 1 else 'chatbox.skills.plural'
+                    counters.append(f"{skill_count} {trans(key)}")
+            except Exception:
+                pass
 
         enabled_names.sort(key=str.casefold)
         tooltip = "\n".join(enabled_names)
-        count_str = f"{c} {trans('chatbox.plugins')}" if c > 0 else ""
-        self.window.ui.nodes['chat.plugins'].setText(count_str)
+        self.window.ui.nodes['chat.plugins'].setText("   ".join(counters))
         self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
 
     def _apply_cmds_common(

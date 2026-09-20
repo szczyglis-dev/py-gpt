@@ -47,7 +47,7 @@ class Audio:
         audio_layout.addStretch(1)
         audio_layout.addWidget(self.window.ui.nodes['audio.auto_turn'])
         audio_layout.addWidget(self.window.ui.nodes['audio.loop'])
-        audio_layout.setContentsMargins(5, 0, 15, 0)
+        audio_layout.setContentsMargins(5, 0, 5, 0)
 
         audio_widget = QWidget()
         audio_widget.setLayout(audio_layout)

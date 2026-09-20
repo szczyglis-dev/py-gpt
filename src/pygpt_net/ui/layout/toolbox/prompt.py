@@ -70,7 +70,7 @@ class Prompt:
         header_layout.addWidget(nodes['toolbox.prompt.label'])
         header_layout.addStretch(1)
         header_layout.addWidget(nodes['cmd.enabled'])
-        header_layout.setContentsMargins(5, 0, 10, 0)
+        header_layout.setContentsMargins(5, 0, 5, 0)
 
         option = w.controller.presets.editor.get_option('prompt')
         nodes['preset.prompt'] = PromptTextarea(w, 'preset', 'prompt', option)
@@ -125,15 +125,16 @@ class Prompt:
         mode_select_layout.addWidget(mode_label, 0)
         mode_select_layout.addWidget(mode_combo, 1)
         mode_select_layout.addWidget(manage_agents, 0, Qt.AlignRight | Qt.AlignVCenter)
-        mode_select_layout.setContentsMargins(0, 0, 0, 0)
+        mode_select_layout.setContentsMargins(0, 0, 5, 0)
 
         mode_layout.addWidget(mode_select_widget)
-        mode_layout.setContentsMargins(3, 0, 5, 0)
+        mode_layout.setContentsMargins(3, 0, 0, 0)
         mode_widget.setVisible(w.core.config.get("mode") == MODE_AGENT_V2)
         nodes['agent.v2.mode.widget'] = mode_widget
 
         nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), w)
         nodes['tip.toolbox.prompt'].setAlignment(Qt.AlignCenter)
+        nodes['tip.toolbox.prompt'].setContentsMargins(0, 0, 5, 0)
 
         # Keep System prompt and Agents v2 runtime mode as separate logical
         # hover areas. The outer widget is layout-only and is deliberately not
@@ -150,7 +151,7 @@ class Prompt:
         layout = QVBoxLayout(layout_widget)
         layout.addWidget(prompt_section)
         layout.addWidget(nodes['agent.v2.mode.widget'])
-        layout.setContentsMargins(2, 5, 5, 5)
+        layout.setContentsMargins(2, 5, 0, 5)
 
         self.hover_sections = [
             prompt_section,

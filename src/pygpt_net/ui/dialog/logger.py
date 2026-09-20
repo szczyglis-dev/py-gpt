@@ -33,6 +33,7 @@ class Logger:
         self.window.logger.setProperty('class', 'text-editor')
 
         self.window.console = ConsoleInput(self.window)
+        self.window.ui.nodes['logger.console'] = self.window.console
 
         # TAB completion commands
         if hasattr(self.window.core.debug, "console") and hasattr(self.window.core.debug.console, "get_supported_commands"):

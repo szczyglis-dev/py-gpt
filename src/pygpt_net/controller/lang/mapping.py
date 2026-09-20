@@ -512,6 +512,7 @@ class Mapping:
         placeholders['ctx.search'] = 'ctx.list.search.placeholder'
         placeholders['interpreter.input'] = 'interpreter.input.placeholder'
         placeholders['input'] = 'input.placeholder'
+        placeholders['logger.console'] = 'logger.console.placeholder'
         placeholders['skills.catalog.url'] = 'skills.catalog.url.placeholder'
         placeholders['connectors.catalog.url'] = 'connectors.catalog.url.placeholder'
 

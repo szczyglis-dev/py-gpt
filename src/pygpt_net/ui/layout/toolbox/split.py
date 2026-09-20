@@ -43,6 +43,6 @@ class Split:
         split_layout.addWidget(QLabel("", split_widget))
         split_layout.addStretch(1)
         split_layout.addWidget(self.window.ui.nodes['layout.split'])
-        split_layout.setContentsMargins(5, 0, 15, 0)
+        split_layout.setContentsMargins(5, 0, 5, 0)
 
         return split_widget

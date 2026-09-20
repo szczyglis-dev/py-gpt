@@ -224,11 +224,12 @@ class OptionDictItems(QTreeView):
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # Dictionary options can contain many fields (MCP servers are a
-        # good example). Stretching every section forces Qt to squeeze all
-        # columns into the viewport, often down to a few characters. Keep
-        # columns interactive instead and let the view scroll horizontally.
+        # good example). Keep sections interactive and horizontal scrolling
+        # enabled, but stretch the final real section into any spare viewport
+        # space. Otherwise QHeaderView leaves a blank header area after the
+        # last column which looks like an extra, header-only column.
         header = self.header()
-        header.setStretchLastSection(False)
+        header.setStretchLastSection(True)
         header.setCascadingSectionResizes(False)
         header.setMinimumSectionSize(56)
         header.setDefaultSectionSize(180)
