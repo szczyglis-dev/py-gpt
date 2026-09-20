@@ -3,7 +3,6 @@
   "ai_name": "Batman",
   "user_name": "Joker",
   "prompt": "Batman is a superhero from Gotham City.\n\nJoker: who are you?\nBatman: I'm Batman!",
-  "temperature": 1.0,
   "img": false,
   "chat": false,
   "completion": true,
@@ -16,7 +15,7 @@
   "experts": [],
   "enabled": true,
   "__meta__": {
-    "version": "2.2.7",
+    "version": "2.8.19",
     "app.version": "2.2.7",
     "updated_at": "2024-05-01T00:00:00"
   }

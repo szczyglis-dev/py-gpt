@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:25:00                  #
+# Updated Date: 2026.09.19 22:25:00                  #
 # ================================================== #
 
 import json
@@ -26,7 +26,8 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "idx_llama_index"
-        self.name = "Llama-index (inline)"
+        self.is_common_plugin = True
+        self.name = "RAG (inline)"
         self.description = "Integrates Llama-index storage in any chat"
         self.prefix = "Idx"
         self.allowed_cmds = [
@@ -163,7 +164,6 @@ class Plugin(BasePlugin):
             system_prompt=sys_prompt,
             model=model,
             max_tokens=self.get_option_value("prepare_question_max_tokens"),
-            temperature=0.0,
         )
         event = KernelEvent(KernelEvent.CALL, {
             'context': bridge_context,
@@ -213,12 +213,20 @@ class Plugin(BasePlugin):
         """
         idx = self.get_effective_idx(idx)
         indexes = [item.strip() for item in idx.split(",") if item.strip()]
-        response = ""
+        responses = []
+        seen = set()
         for index in indexes:
             response = self.window.core.idx.chat.query_retrieval(query, index)
-            if response is not None and response != "":
-                break
-        return response
+            value = str(response or "").strip()
+            if not value or value in seen:
+                continue
+            seen.add(value)
+            responses.append(value)
+
+        # Do not stop at the first configured index. With score-independent
+        # retrieval every non-empty index can return candidates, so stopping
+        # early would silently hide context from the remaining indexes.
+        return "\n\n---\n\n".join(responses)
 
     def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
         """

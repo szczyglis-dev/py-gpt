@@ -165,7 +165,7 @@ class BaseRenderer:
         """
         pass
 
-    def reload(self):
+    def reload(self, meta: Optional[CtxMeta] = None):
         """Reload all outputs, called externally only on theme change to redraw content"""
         pass
 
@@ -420,7 +420,9 @@ class BaseRenderer:
 
     def tool_output_clear(
             self,
-            meta: CtxMeta
+            meta: CtxMeta,
+            ctx: Optional[CtxItem] = None,
+            immediate: bool = False,
     ):
         """
         Clear tool output
@@ -431,7 +433,9 @@ class BaseRenderer:
 
     def tool_output_begin(
             self,
-            meta: CtxMeta
+            meta: CtxMeta,
+            tool_names: Optional[list] = None,
+            ctx: Optional[CtxItem] = None,
     ):
         """
         Begin tool output
@@ -455,6 +459,14 @@ class BaseRenderer:
         :param state: state name
         :param meta: context meta
         """
+        pass
+
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
+        """Set transient agent workflow status (optional renderer capability)."""
+        pass
+
+    def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem):
+        """Clear transient agent workflow status (optional renderer capability)."""
         pass
 
     def append_live(

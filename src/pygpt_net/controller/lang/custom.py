@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 20:31:00
+# Updated Date: 2026.09.18 22:23:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -24,6 +24,7 @@ from pygpt_net.core.types import (
     MODE_VISION,
     MODE_RESEARCH,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_COMPUTER,
 )
 from pygpt_net.utils import trans
@@ -65,6 +66,7 @@ class Custom:
         self.window.ui.config['preset'][MODE_AGENT].setText(trans("preset.agent"))
         self.window.ui.config['preset'][MODE_AGENT_LLAMA].setText(trans("preset.agent_llama"))
         self.window.ui.config['preset'][MODE_AGENT_OPENAI].setText(trans("preset.agent_openai"))
+        self.window.ui.config['preset'][MODE_AGENT_V2].setText(trans("preset.agent_v2"))
         self.window.ui.config['preset'][MODE_EXPERT].setText(trans("preset.expert"))
         self.window.ui.config['preset'][MODE_AUDIO].setText(trans("preset.audio"))
         self.window.ui.config['preset'][MODE_RESEARCH].setText(trans("preset.research"))
@@ -73,11 +75,135 @@ class Custom:
 
         self.window.ui.tabs['preset.editor.tabs'].setTabText(0, trans("preset.tab.general"))
         self.window.ui.tabs['preset.editor.tabs'].setTabText(1, trans("preset.tab.personalize"))
-        self.window.ui.tabs['preset.editor.tabs'].setTabText(2, trans("preset.tab.experts"))
-        self.window.ui.tabs['preset.editor.tabs'].setTabText(3, trans("preset.tab.remote_tools"))
+        self.window.ui.tabs['preset.editor.tabs'].setTabText(2, trans("preset.tab.remote_tools"))
+
+        # Shared preset prompt tab and the Autonomous-mode hint are not part of
+        # the generic option-label mapping, so update them explicitly when the
+        # application language changes.
+        self.window.ui.nodes['preset.prompt.agent.desc'].setText(trans("preset.prompt.agent.desc"))
+        preset_extra = self.window.ui.tabs['preset.editor.extra']
+        preset_mode = self.window.core.config.get('mode')
+        if preset_mode == MODE_AGENT:
+            preset_extra.setTabText(0, trans("preset.prompt.agent"))
+        elif preset_mode == MODE_AGENT_V2:
+            preset_extra.setTabText(0, trans("preset.prompt.agent_v2"))
+        elif preset_mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+            preset_extra.setTabText(0, trans("preset.prompt.agent_llama"))
+        else:
+            preset_extra.setTabText(0, trans("preset.prompt"))
 
 
         self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
+
+        # Models editor/importer contain dynamic option labels and combo entries
+        # which are translated when the dialogs are built. Refresh them in-place
+        # so an already open dialog follows a runtime language switch.
+        try:
+            self.window.model_settings.retranslate()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+        try:
+            self.window.model_importer.retranslate()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+
+        # Agent Skills dialog. Tabs and QTreeWidget headers are created with
+        # translated strings and are not covered by the generic node mapping.
+        # Refresh them explicitly so an already open dialog follows a runtime
+        # language switch, including its persisted status line.
+        try:
+            tabs = self.window.ui.nodes.get("skills.tabs")
+            if tabs is not None:
+                tabs.setTabText(0, trans("skills.tab.installed"))
+                tabs.setTabText(1, trans("skills.tab.explore"))
+
+            installed = self.window.ui.nodes.get("skills.installed.list")
+            if installed is not None:
+                header = installed.headerItem()
+                for column, key in enumerate((
+                    "skills.column.enabled",
+                    "skills.column.name",
+                    "skills.column.description",
+                    "skills.column.standard",
+                    "skills.column.source",
+                )):
+                    header.setText(column, trans(key))
+
+            explore = self.window.ui.nodes.get("skills.explore.list")
+            if explore is not None:
+                header = explore.headerItem()
+                for column, key in enumerate((
+                    None,
+                    "skills.column.name",
+                    "skills.column.description",
+                    "skills.column.author",
+                    "skills.column.standard",
+                )):
+                    header.setText(column, "" if key is None else trans(key))
+
+            self.window.controller.skills.retranslate_status()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+
+        # MCP Connectors dialog uses the same dynamic tab/header pattern as
+        # Agent Skills, so keep its open view synchronized with the locale too.
+        try:
+            tabs = self.window.ui.nodes.get("connectors.tabs")
+            if tabs is not None:
+                tabs.setTabText(0, trans("connectors.tab.installed"))
+                tabs.setTabText(1, trans("connectors.tab.explore"))
+
+            installed = self.window.ui.nodes.get("connectors.installed.list")
+            if installed is not None:
+                header = installed.headerItem()
+                for column, key in enumerate((
+                    "connectors.column.active",
+                    "connectors.column.name",
+                    "connectors.column.transport",
+                    "connectors.column.address",
+                    "connectors.column.source",
+                )):
+                    header.setText(column, trans(key))
+
+            explore = self.window.ui.nodes.get("connectors.explore.list")
+            if explore is not None:
+                header = explore.headerItem()
+                for column, key in enumerate((
+                    None,
+                    "connectors.column.name",
+                    "connectors.column.description",
+                    "connectors.column.publisher",
+                    "connectors.column.source",
+                )):
+                    header.setText(column, "" if key is None else trans(key))
+
+            self.window.controller.connectors.retranslate_status()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+
+        # Chat with Agents runtime mode selector. QComboBox item texts are not
+        # covered by the generic node mapping, so retranslate them in-place
+        # while keeping their stable machine-readable itemData values.
+        combo = self.window.ui.nodes.get('agent.v2.mode')
+        if combo is not None:
+            mode_keys = {
+                'chat': 'agent.v2.mode.chat',
+                'orchestrator': 'agent.v2.mode.orchestrator',
+                'swarm': 'agent.v2.mode.swarm',
+            }
+            for i in range(combo.count()):
+                key = mode_keys.get(str(combo.itemData(i) or ''))
+                if key:
+                    combo.setItemText(i, trans(key))
+            combo.setToolTip(trans('agent.v2.mode.tooltip'))
+
+        manage_agents = self.window.ui.nodes.get('agent.v2.manage')
+        if manage_agents is not None:
+            manage_agents.setToolTip(trans('toolbox.agent.v2.manage.tooltip'))
+        try:
+            self.window.agents_v2_editor.retranslate()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
 
         # painter drawing modes (combo + RMB submenu)
         try:
@@ -97,12 +223,32 @@ class Custom:
         self.window.ui.nodes['output_files'].btn_clear.setText(trans('idx.btn.clear'))
 
         # input: tabs
-        self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
-        self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab'))
+        input_tabs = self.window.ui.tabs['input']
+        # Keep the main Input tab icon-only. Language/profile reloads call this
+        # mapping again, so restoring the translated label here would undo the
+        # compact tab presentation created by the input layout.
+        input_tabs.set_compact_tab_count(0, 0)
+        input_tabs.retranslate_compact_tabs()
         mode = self.window.core.config.get('mode')
         self.window.controller.attachment.update_tab(mode)
         self.window.controller.assistant.files.update_tab()
-        self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
+        # Context-uploaded files use tab 3 outside Assistant mode and keep the
+        # same compact icon + optional numeric count contract.
+        self.window.controller.chat.attachment.update_tab(self.window.core.ctx.get_current_meta())
+        try:
+            input_node = self.window.ui.nodes['input']
+            # Send/Stop are icon-only controls, so locale changes update their
+            # tooltips instead of restoring translated text labels.
+            send_btn = self.window.ui.nodes.get('input.send_btn')
+            stop_btn = self.window.ui.nodes.get('input.stop_btn')
+            if send_btn is not None:
+                send_btn.setToolTip(trans('input.btn.send'))
+            if stop_btn is not None:
+                stop_btn.setToolTip(trans('input.btn.stop'))
+            input_node.update_reasoning_effort()
+            input_node.refresh_right_bar()
+        except (AttributeError, KeyError):
+            pass
 
         # input: attachments
         self.window.ui.models['attachments'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))

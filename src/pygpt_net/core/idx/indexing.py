@@ -255,7 +255,7 @@ class Indexing:
         :param path: file path
         :return: True if excluded
         """
-        data_dir = self.window.core.config.get_user_dir("data")
+        data_dir = self.window.core.filesystem.get_data_dir()
         tmp_dir = self.window.core.config.get_user_dir("tmp")
         # interpreter/canvas temporary files; keep legacy data paths excluded too
         names = [

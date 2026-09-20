@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:55:00                  #
+# Updated Date: 2026.09.10 13:10:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -30,7 +30,7 @@ ARG PYGPT_UID=1000
 ARG PYGPT_GID=1000
 
 # Small set of commonly useful command-line tools plus passwordless sudo.
-RUN apk add --no-cache git curl ca-certificates sudo
+RUN apk add --no-cache git curl wget ca-certificates sudo bash zip unzip tar gzip bzip2 xz jq file tree coreutils findutils
 
 RUN set -eux; \
     group_name="$(awk -F: -v gid="$PYGPT_GID" '$3 == gid {print $1; exit}' /etc/group)"; \
@@ -167,9 +167,19 @@ class Config(BaseConfig):
             description="Automatically append current working directory to sys_exec command",
             tab="general",
         )
+        plugin.add_option(
+            "attach_output",
+            type="bool",
+            value=True,
+            label="Connect to the Python interpreter window",
+            description="Attach sys_exec command input/output to the Python interpreter window.",
+            tab="general",
+        )
         plugin.add_cmd(
             "sys_exec",
             instruction="execute ANY system command, script or app in user's environment. "
+                        "Execution is non-interactive: do not run commands that prompt or wait for stdin; pass all "
+                        "required answers/options in the command itself. "
                         "Do not use this command to install Python libraries, use IPython environment and IPython commands instead.",
             params=[
                 {

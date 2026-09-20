@@ -43,7 +43,10 @@ class OpenAIAssistantAgent(BaseAgent):
         tools = kwargs.get("tools", [])
         verbose = kwargs.get("verbose", False)
         model = context.model
-        system_prompt = self.get_option(preset, "base", "prompt")
+        system_prompt = self.append_system_prompt_extra(
+            self.get_option(preset, "base", "prompt"),
+            kwargs,
+        )
         ctx = context.ctx
         thread_id = None
         assistant_id = None

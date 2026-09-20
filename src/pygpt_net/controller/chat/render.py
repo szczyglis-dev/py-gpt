@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2026.09.12 20:20:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -73,7 +73,7 @@ class Render:
         elif name == RenderEvent.END:
             self.end(data.get("meta"), data.get("ctx"), data.get("stream", False))
         elif name == RenderEvent.RELOAD:
-            self.reload()
+            self.reload(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.RESET:
             self.reset(data.get("meta"))
         elif name == RenderEvent.PREPARE:
@@ -82,12 +82,21 @@ class Render:
         elif name == RenderEvent.STREAM_BEGIN:
             self.stream_begin(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_APPEND:
-            self.instance().append_chunk(
-                data.get("meta"),
-                data.get("ctx"),
-                data.get("chunk", ""),
-                data.get("begin", False),
-            )
+            if data.get("partial", False):
+                self.instance().append_part_chunk(
+                    data.get("meta"),
+                    data.get("ctx"),
+                    data.get("part_key"),
+                    data.get("chunk", ""),
+                    data.get("begin", False),
+                )
+            else:
+                self.instance().append_chunk(
+                    data.get("meta"),
+                    data.get("ctx"),
+                    data.get("chunk", ""),
+                    data.get("begin", False),
+                )
         elif name == RenderEvent.STREAM_NEXT:
             self.next_chunk(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_END:
@@ -124,9 +133,17 @@ class Render:
         elif name == RenderEvent.TOOL_UPDATE:
             self.tool_output_update(data.get("meta"), data.get("tool_data"))
         elif name == RenderEvent.TOOL_CLEAR:
-            self.tool_output_clear(data.get("meta"))
+            self.tool_output_clear(
+                data.get("meta"),
+                data.get("ctx"),
+                immediate=bool(data.get("immediate", False)),
+            )
         elif name == RenderEvent.TOOL_BEGIN:
-            self.tool_output_begin(data.get("meta"))
+            self.tool_output_begin(
+                data.get("meta"),
+                data.get("tool_names") or [],
+                data.get("ctx"),
+            )
         elif name == RenderEvent.TOOL_END:
             self.tool_output_end()
 
@@ -156,6 +173,11 @@ class Render:
             )
         elif name == RenderEvent.LIVE_CLEAR:
             self.clear_live(data.get("meta"), data.get("ctx"))
+
+        elif name == RenderEvent.AGENT_STATUS:
+            self.agent_status(data.get("meta"), data.get("ctx"), data.get("status", ""))
+        elif name == RenderEvent.AGENT_STATUS_CLEAR:
+            self.agent_status_clear(data.get("meta"), data.get("ctx"))
 
         elif name == RenderEvent.ACTION_REGEN_SUBMIT:
             self.on_reply_submit(data.get("ctx"))
@@ -201,6 +223,14 @@ class Render:
         self.instance().clear_live(meta, ctx)
         self.update()
 
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str) -> None:
+        """Set/replace the one transient Agents v2 status line."""
+        self.instance().agent_status(meta, ctx, status)
+
+    def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem) -> None:
+        """Clear the transient Agents v2 status line."""
+        self.instance().agent_status_clear(meta, ctx)
+
     def get_pid(self, meta: CtxMeta) -> int:
         """
         Get PID for context meta
@@ -218,6 +248,10 @@ class Render:
         :param ctx: context item
         :param stream: True if it is a stream
         """
+        # Pin every render segment to a concrete chat-tab PID. The first BEGIN
+        # prefers the active chat; later tool/agent segments can resolve the same
+        # mapped chat even if focus has moved to another split-screen column.
+        self.window.core.ctx.output.pin_render_pid(meta)
         self.instance().begin(meta, ctx, stream)
         self.update()
 
@@ -231,6 +265,13 @@ class Render:
         """
         self.instance().end(meta, ctx, stream)
         self.update()
+        # A top-level request owns one chat for its whole lifetime, including
+        # tool/agent continuation segments. Do not create a routing gap between
+        # END and the next BEGIN just because keyboard focus moved elsewhere.
+        # finish_request() drops the pin after the final owning-chat reload.
+        output = self.window.core.ctx.output
+        if not output.has_request():
+            output.unpin_render_pid(meta=meta)
 
     def end_extra(self, meta: CtxMeta, ctx: CtxItem, stream: bool = False) -> None:
         """
@@ -284,7 +325,11 @@ class Render:
         """
         self.instance().on_load(meta)
         self.update()
-        self.window.controller.ui.tabs.update_tooltip(meta.name)  # update tab tooltip
+        if meta is not None:
+            self.window.controller.ui.tabs.update_tooltip(
+                meta.name,
+                meta_id=meta.id,
+            )
 
     def fresh(self, meta: Optional[CtxMeta] = None) -> None:
         """
@@ -303,9 +348,21 @@ class Render:
         self.instance().reset(meta)  # TODO: get meta id on load
         self.update()
 
-    def reload(self) -> None:
-        """Reload current output"""
-        self.instance().reload()  # TODO: or all outputs?
+    def reload(
+            self,
+            meta: Optional[CtxMeta] = None,
+            ctx: Optional[CtxItem] = None,
+    ) -> None:
+        """
+        Reload the output that owns the event.
+
+        Do not resolve the target from keyboard focus/current column: a tool in
+        the other split-screen column may own focus while this chat is being
+        rebuilt.
+        """
+        if meta is None and ctx is not None:
+            meta = getattr(ctx, "meta", None)
+        self.instance().reload(meta)
         self.update()
 
     def append_context(self, meta: CtxMeta, items: List[CtxItem], clear: bool = True) -> None:
@@ -544,22 +601,30 @@ class Render:
         self.instance().tool_output_update(meta, content)
         self.update()
 
-    def tool_output_clear(self, meta: CtxMeta) -> None:
-        """
-        Clear tool output
-
-        :param meta: context meta
-        """
-        self.instance().tool_output_clear(meta)
+    def tool_output_clear(
+            self,
+            meta: CtxMeta,
+            ctx: Optional[CtxItem] = None,
+            immediate: bool = False,
+    ) -> None:
+        """Retire a tool-waiting status; optionally remove its DOM row immediately."""
+        self.instance().tool_output_clear(meta, ctx, immediate=immediate)
         self.update()
 
-    def tool_output_begin(self, meta: CtxMeta) -> None:
-        """
-        Begin tool output
-
-        :param meta: context meta
-        """
-        self.instance().tool_output_begin(meta)
+    def tool_output_begin(
+            self,
+            meta: CtxMeta,
+            tool_names: Optional[list] = None,
+            ctx: Optional[CtxItem] = None,
+    ) -> None:
+        """Begin a chronological tool waiting status inside the current turn."""
+        # A queued TOOL_BEGIN can arrive just after STOP/ESC. Never resurrect a
+        # waiting status once the kernel has been halted.
+        if self.window.controller.kernel.stopped():
+            self.instance().tool_output_clear(meta, ctx, immediate=True)
+            self.update()
+            return
+        self.instance().tool_output_begin(meta, tool_names or [], ctx)
         self.update()
 
     def tool_output_end(self) -> None:
@@ -581,6 +646,20 @@ class Render:
         """
         if self.get_engine() == "web":
             self.web_renderer.on_js_ready(pid)
+            # If this page finished initializing after its tab was selected,
+            # perform the visible-layout correction now as well.
+            QTimer.singleShot(0, lambda pid=pid: self.remeasure_user_messages(pid))
+
+    def remeasure_user_messages(self, pid: int) -> None:
+        """Re-evaluate user-message collapse for the currently visible chat tab."""
+        if self.window.core.config.get('render.plain') or self.get_engine() != "web":
+            return
+
+        tab = self.window.controller.ui.tabs.get_current_tab()
+        if tab is None or tab.type != Tab.TAB_CHAT or tab.pid != pid:
+            return
+
+        self.web_renderer.remeasure_user_messages(pid)
 
     def get_engine(self) -> str:
         """
@@ -592,13 +671,34 @@ class Render:
 
     def switch(self) -> None:
         """
-        Switch renderer (markdown/web <==> plain text) - active, TODO: remove from settings, leave only checkbox
+        Switch renderer (markdown/web <==> plain text) - active, TODO: remove from settings, leave only checkbox.
+
+        Renderer selection must happen *before* any renderer/theme operation.
+        In particular, switching to plain text used to call
+        ``theme.markdown.clear()`` while the Web renderer was still active.
+        That cleared every WebView, including chats hidden behind other tabs,
+        while only the currently visible chats were rebuilt afterwards.  Those
+        hidden WebViews still reported ``loaded=True`` and therefore remained
+        empty when their tab was selected later.
+
+        Plain text has its own output widgets, so there is no reason to destroy
+        the Web/Markdown contents when switching to it.  Keep those views intact
+        and rebuild only the chats currently visible in each output column.
         """
         plain = self.window.core.config.get('render.plain')
         nodes = self.window.ui.nodes
+
+        # Select the target renderer first. Theme/render events below must be
+        # delivered to the renderer that is about to become visible, not to the
+        # one we are leaving.
         if plain:
-            self.window.controller.theme.markdown.clear()
-            nodes['output.timestamp'].setVisible(True)
+            self.renderer = self.plaintext_renderer
+        elif self.engine == "web":
+            self.renderer = self.web_renderer
+        else:
+            self.renderer = self.markdown_renderer
+
+        if plain:
             outputs = nodes.get('output', {})
             outputs_plain = nodes.get('output_plain', {})
             for pid, w_plain in outputs_plain.items():
@@ -610,7 +710,7 @@ class Render:
                 except Exception:
                     continue
         else:
-            nodes['output.timestamp'].setVisible(False)
+            # Apply the current theme to the renderer that is becoming active.
             self.window.controller.theme.markdown.update(force=True)
             outputs = nodes.get('output', {})
             outputs_plain = nodes.get('output_plain', {})
@@ -623,15 +723,56 @@ class Render:
                 except Exception:
                     continue
 
-        if plain:
-            self.renderer = self.plaintext_renderer
-        else:
-            if self.engine == "web":
-                self.renderer = self.web_renderer
-            else:
-                self.renderer = self.markdown_renderer
+        # Do not reload only the globally selected context here. In split view
+        # each column can have a different active chat and its own output PID.
+        # Rebuild the selected chat in every column with the newly selected
+        # renderer, without changing global context/focus. Hidden tabs keep their
+        # existing WebView content and therefore need no eager rebuild.
+        self._refresh_active_chat_outputs()
 
-        self.window.controller.ctx.refresh()
+    def _refresh_active_chat_outputs(self) -> None:
+        """Rebuild the active chat output in every tab column."""
+        core = self.window.core
+        tabs_core = core.tabs
+        ctx_core = core.ctx
+        ctx_ctrl = self.window.controller.ctx
+        output = ctx_core.output
+
+        request_active = output.has_request()
+
+        for column_idx in range(tabs_core.NUM_COLS):
+            tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
+            if tabs is None:
+                continue
+
+            tab = tabs_core.get_tab_by_index(tabs.currentIndex(), column_idx)
+            if tab is None or tab.type != Tab.TAB_CHAT or tab.data_id is None:
+                continue
+
+            meta = ctx_core.get_meta_by_id(tab.data_id)
+            if meta is None:
+                continue
+
+            # During an in-flight request its render pin is authoritative; do
+            # not replace it just to refresh another column. In the normal idle
+            # case pin temporarily to the concrete tab PID so this also works
+            # when the same context is open in both columns.
+            if request_active:
+                ctx_ctrl.refresh_output(meta)
+                continue
+
+            previous_pid = output.get_pinned_pid(meta)
+            pinned_pid = output.pin_render_pid(meta, pid=tab.pid, force=True)
+            if pinned_pid != tab.pid:
+                continue
+
+            try:
+                ctx_ctrl.refresh_output(meta)
+            finally:
+                if previous_pid is not None:
+                    output.render_pids[meta.id] = previous_pid
+                else:
+                    output.unpin_render_pid(meta=meta)
 
     def instance(self) -> BaseRenderer:
         """

@@ -14,6 +14,8 @@ from typing import List, Dict, Optional
 from packaging.version import Version
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
+from pygpt_net.item.ctx_part import CtxItemPart
+from pygpt_net.item.ctx_part_task import CtxItemPartTask
 
 
 class BaseProvider:
@@ -36,6 +38,18 @@ class BaseProvider:
 
     def update_item(self, item: CtxItem) -> bool:
         pass
+
+    def append_part(self, part: CtxItemPart) -> bool:
+        return False
+
+    def update_part(self, part: CtxItemPart) -> bool:
+        return False
+
+    def append_part_task(self, task: CtxItemPartTask) -> bool:
+        return False
+
+    def update_part_task(self, task: CtxItemPartTask) -> bool:
+        return False
 
     def create(self, meta: CtxMeta) -> int:
         pass

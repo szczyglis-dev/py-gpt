@@ -14,7 +14,7 @@ import re
 import time
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 import pytest
 
 from pygpt_net.core.render.web.pid import PidData
@@ -34,6 +34,8 @@ def fake_node():
 def fake_window(fake_node):
     w = SimpleNamespace()
     w.core = SimpleNamespace()
+    w.core.command = MagicMock()
+    w.core.command.visible_tool_names.side_effect = lambda names: names
     w.core.ctx = SimpleNamespace()
     w.core.ctx.output = MagicMock()
     w.core.ctx.output.get_current = MagicMock(return_value=fake_node)
@@ -71,9 +73,13 @@ def renderer(fake_window):
     r.helpers.format_user_text = MagicMock(side_effect=lambda x: x)
     r.helpers.post_format_text = MagicMock(side_effect=lambda x: x)
     r.helpers.pre_format_text = MagicMock(side_effect=lambda x: x)
+    r.helpers.extract_tool_calls = MagicMock(return_value=[])
+    r.helpers.extract_extra_tool_calls = MagicMock(return_value=[])
+    r.helpers.strip_tool_calls = MagicMock(side_effect=lambda x: x)
     r.body = MagicMock()
-    r.body.get_image_html = MagicMock(side_effect=lambda image, n, c: f"<img>{image}</img>")
-    r.body.get_file_html = MagicMock(side_effect=lambda file, n, c: f"<file>{file}</file>")
+    r.body.build_extras_dicts = MagicMock(return_value=({}, {}, {}, {}))
+    r.body.get_image_html = MagicMock(side_effect=lambda image, n, c, ctx=None: f"<img>{image}</img>")
+    r.body.get_file_html = MagicMock(side_effect=lambda file, n, c, ctx=None: f"<file>{file}</file>")
     r.body.get_url_html = MagicMock(side_effect=lambda url, n, c: f"<url>{url}</url>")
     r.body.get_collapsible_extra_rows_html = MagicMock(
         side_effect=lambda rows: f'<div class="extra-items-list">{"<br/>".join(rows)}</div>'
@@ -120,6 +126,15 @@ class DummyCtxItem:
         self.meta = DummyCtxMeta()
     def get_display_output(self, output=None):
         return self.output if output is None else output
+
+    def get_agents_v2_response_output(self):
+        return None
+
+    def get_agents_v2_final_output(self):
+        return None
+
+    def get_part_tool_calls(self, visible_only=False, part=None):
+        return []
 
     def to_dict(self):
         return {"id": self.id}
@@ -286,23 +301,60 @@ class TestRenderer:
         renderer.get_or_create_pid = MagicMock(return_value=1)
         renderer.update_names = MagicMock()
         renderer.tool_output_end = MagicMock()
-        renderer.is_stream = MagicMock(return_value=False)
-        renderer.append_node = MagicMock()
+        renderer.prepare_input = MagicMock(return_value="prepared input")
+        block = MagicMock()
+        block.to_json.return_value = "render-block-json"
+        renderer._build_render_block = MagicMock(return_value=block)
+        renderer.append = MagicMock()
         renderer.pids = {1: MagicMock()}
 
+        renderer.append_input(meta, ctx, flush=True, append=False)
+
+        renderer.tool_output_end.assert_called_once_with()
+        renderer.get_or_create_pid.assert_called_once_with(meta)
+        renderer.update_names.assert_called_once_with(meta, ctx)
+        renderer.prepare_input.assert_called_once_with(meta, ctx, True, False)
+        renderer._build_render_block.assert_called_once_with(
+            meta, ctx, input_text="prepared input", output_text=None
+        )
+        block.to_json.assert_called_once_with(wrap=True)
+        renderer.append.assert_called_once_with(1, "render-block-json")
+
     def test_append_chunk(self, renderer, fake_window):
-        return  # todo: mock QTimer
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        ctx.id = 2
+        previous = DummyCtxItem()
+        previous.id = 1
+        pctx = SimpleNamespace(item=previous, header="")
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(buffer="")}
-        renderer.is_debug = MagicMock(return_value=False)
+        renderer.pids = {1: pctx}
+        renderer._hide_previous_agent_action_icons = MagicMock()
+        renderer._stream_reset = MagicMock()
+        renderer._stream_push = MagicMock()
+        renderer.update_names = MagicMock()
+        renderer.get_name_header = MagicMock(return_value="header")
         node = fake_window.core.ctx.output.get_current(meta)
+        renderer.get_output_node = MagicMock(return_value=node)
         node.page().runJavaScript = MagicMock()
-        renderer.prev_chunk_newline = False
-        renderer.prev_chunk_replace = False
-        renderer.append_chunk(meta, ctx, "chunk", True)
-        node.page().runJavaScript.assert_called()
+
+        renderer.append_chunk(meta, ctx, "chunk", begin=True)
+
+        assert pctx.item is ctx
+        assert pctx.header == "header"
+        assert renderer._loading_visible[1] is False
+        renderer._hide_previous_agent_action_icons.assert_called_once_with(meta, ctx)
+        renderer._stream_reset.assert_called_once_with(1)
+        renderer.update_names.assert_called_once_with(meta, ctx)
+        assert node.page().runJavaScript.call_args_list == [
+            call("if (typeof window.hideLoading !== 'undefined') hideLoading(false);"),
+            call(
+                "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
+                "if (typeof window.beginStream !== 'undefined') beginStream(true);"
+                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", []);"
+            ),
+        ]
+        renderer._stream_push.assert_called_once_with(1, "header", "chunk")
 
     def test_next_chunk(self, renderer, fake_window):
         meta = DummyCtxMeta()
@@ -741,7 +793,8 @@ class TestRenderer:
         renderer.get_output_node = MagicMock(return_value=fake_window.core.ctx.output.get_current(meta))
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
-        renderer.tool_output_begin(meta)
+        fake_window.core.command.realtime_visible_tool_names.return_value = ["search"]
+        renderer.tool_output_begin(meta, ["search"])
         node.page().runJavaScript.assert_called()
 
     def test_tool_output_end(self, renderer, fake_window):

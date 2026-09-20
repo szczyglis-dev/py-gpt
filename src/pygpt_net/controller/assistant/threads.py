@@ -15,6 +15,7 @@ from typing import Optional, Any, List, Dict
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent, RenderEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -200,7 +201,7 @@ class Threads(QObject):
         # handle content images
         if images_ids:
             image_paths = self.window.controller.assistant.files.handle_received_ids(images_ids, ".png")
-            ctx.images = self.window.core.filesystem.make_local_list(list(image_paths))
+            ctx.images = self.window.core.filesystem.make_local_list(list(image_paths), ctx=ctx)
 
         # citations
         if citations:
@@ -212,7 +213,7 @@ class Threads(QObject):
         paths += self.window.controller.assistant.files.handle_received_ids(file_ids)
         if paths:
             # convert to local paths
-            local_paths = self.window.core.filesystem.make_local_list(list(paths))
+            local_paths = self.window.core.filesystem.make_local_list(list(paths), ctx=ctx)
             text_msg = ctx.output  # use current output
             if text_msg:
                 # map file ids to local paths
@@ -234,7 +235,7 @@ class Threads(QObject):
                     if path.split('.')[-1].lower() in self.img_ext:
                         img_files.append(path)
                 if img_files:
-                    ctx.images = self.window.core.filesystem.make_local_list(list(img_files))
+                    ctx.images = self.window.core.filesystem.make_local_list(list(img_files), ctx=ctx)
 
         ctx.from_previous()  # append previous result again before save
         self.window.core.ctx.update_item(ctx)
@@ -445,7 +446,7 @@ class Threads(QObject):
         # ---- not stream only ----
 
         # run status listener
-        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        safe_emit(self.window, "stateChanged", self.window.STATE_BUSY)
         self.log("Run: starting run worker...")
 
         # worker
@@ -468,7 +469,7 @@ class Threads(QObject):
 
         :param ctx: CtxItem
         """
-        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        safe_emit(self.window, "stateChanged", self.window.STATE_BUSY)
 
     def handle_stream_end(self, ctx: CtxItem):
         """
@@ -509,7 +510,7 @@ class Threads(QObject):
         :param ctx: CtxItem
         :param stream: True if stream
         """
-        self.window.stateChanged.emit(self.window.STATE_BUSY)
+        safe_emit(self.window, "stateChanged", self.window.STATE_BUSY)
         self.window.controller.chat.common.lock_input()  # lock input, show stop button
 
     @Slot(object, object)
@@ -636,7 +637,7 @@ class RunWorker(QRunnable):
     def run(self):
         """Run thread"""
         try:
-            self.signals.started.emit()
+            safe_emit(self.signals, "started")
             while self.check \
                     and not self.window.is_closing \
                     and not self.window.controller.assistant.threads.stop:
@@ -649,23 +650,23 @@ class RunWorker(QRunnable):
                         self.ctx.output_tokens = run.usage.completion_tokens
                         self.ctx.total_tokens = run.usage.total_tokens
 
-                self.signals.updated.emit(run, self.ctx)  # handle status update
+                safe_emit(self.signals, "updated", run, self.ctx)  # handle status update
 
                 # finished or failed
                 if status in self.stop_reasons:
                     self.check = False
                     if self.signals.destroyed is not None:
-                        self.signals.destroyed.emit()
+                        safe_emit(self.signals, "destroyed")
                     return
                 time.sleep(1)
 
             if self.signals.destroyed is not None:
-                self.signals.destroyed.emit()
+                safe_emit(self.signals, "destroyed")
 
         except Exception as e:
             self.window.core.debug.log(e)
             if self.signals.destroyed is not None:
-                self.signals.destroyed.emit()
+                safe_emit(self.signals, "destroyed")
 
         finally:
             self.cleanup()

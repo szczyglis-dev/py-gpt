@@ -138,16 +138,17 @@ class NodesManager {
 		const isWrapped = (trimmed.startsWith('<div') && /class=["']msg-box msg-user["']/.test(trimmed));
 		if (!isWrapped) {
 			// Treat incoming payload as plain text (escape + convert newlines to <br>).
-			const safe = (typeof Utils !== 'undefined' && Utils.escapeHtml) ?
-				Utils.escapeHtml(html) :
-				String(html).replace(/[&<>"']/g, m => ({
-					'&': '&amp;',
-					'<': '&lt;',
-					'>': '&gt;',
-					'"': '&quot;',
-					"'": '&#039;'
-				} [m]));
-			const body = safe.replace(/\r?\n/g, '<br>');
+			const body = (typeof Utils !== 'undefined' && Utils.renderMentionText) ?
+				Utils.renderMentionText(html) :
+				((typeof Utils !== 'undefined' && Utils.escapeHtml) ?
+					Utils.escapeHtml(html) :
+					String(html).replace(/[&<>"']/g, m => ({
+						'&': '&amp;',
+						'<': '&lt;',
+						'>': '&gt;',
+						'"': '&quot;',
+						"'": '&#039;'
+					} [m])).replace(/\r?\n/g, '<br>'));
 			// Minimal, margin-less user message (no empty msg-extra to avoid extra spacing).
 			html = `<div class="msg-box msg-user"><div class="msg"><p style="margin:0">${body}</p></div></div>`;
 		}
@@ -203,6 +204,7 @@ class NodesManager {
 
 			scrollMgr.scrollToBottom(false);
 			scrollMgr.scheduleScrollFabUpdate();
+			scrollMgr.scheduleMessageVirtualizationRefresh();
 			return;
 		}
 
@@ -236,6 +238,7 @@ class NodesManager {
 				// Only now scroll to bottom and update FAB – uses post-collapse heights.
 				scrollMgr.scrollToBottom(false);
 				scrollMgr.scheduleScrollFabUpdate();
+				scrollMgr.scheduleMessageVirtualizationRefresh();
 			};
 
 			if (maybePromise && typeof maybePromise.then === 'function') {
@@ -247,6 +250,7 @@ class NodesManager {
 			// In case of error, do a conservative scroll to keep UX responsive.
 			scrollMgr.scrollToBottom(false);
 			scrollMgr.scheduleScrollFabUpdate();
+			scrollMgr.scheduleMessageVirtualizationRefresh();
 		}
 	}
 
@@ -276,6 +280,7 @@ class NodesManager {
 
 			scrollMgr.scrollToBottom(false, true);
 			scrollMgr.scheduleScrollFabUpdate();
+			scrollMgr.scheduleMessageVirtualizationRefresh();
 			return;
 		}
 
@@ -306,6 +311,7 @@ class NodesManager {
 				// Now scroll and update FAB using the collapsed layout.
 				scrollMgr.scrollToBottom(false, true);
 				scrollMgr.scheduleScrollFabUpdate();
+				scrollMgr.scheduleMessageVirtualizationRefresh();
 			};
 
 			if (maybePromise && typeof maybePromise.then === 'function') {
@@ -316,6 +322,7 @@ class NodesManager {
 		} catch (_) {
 			scrollMgr.scrollToBottom(false, true);
 			scrollMgr.scheduleScrollFabUpdate();
+			scrollMgr.scheduleMessageVirtualizationRefresh();
 		}
 	}
 
@@ -326,7 +333,16 @@ class NodesManager {
 		const extra = el.querySelector('.msg-extra');
 		if (!extra) return;
 
+		// A delayed extra may target a history row that is currently virtualized.
+		// Materialize it first, mutate/render, then re-measure before it can return
+		// to the virtual pool.
+		try { scrollMgr.beginMessageMutation(el); } catch (_) {}
 		extra.insertAdjacentHTML('beforeend', content);
+
+		// Extras live below the streaming timeline. If FOLLOW owns the viewport,
+		// reconcile to the real bottom in the same JS turn; ResizeObserver then
+		// catches later async height changes (Markdown, images, fonts/icons).
+		try { scrollMgr.syncBottomNowIfFollowing(); } catch (_) {}
 
 		try {
 			const maybePromise = this.renderer.renderPendingMarkdown(extra);
@@ -350,6 +366,10 @@ class NodesManager {
 					if (mm === 'finalize-only') this.math.schedule(extra, 0, true);
 					else this.math.schedule(extra);
 				} catch (_) {}
+
+				// Markdown conversion can change line wrapping/height after insertion.
+				try { scrollMgr.endMessageMutation(el); } catch (_) {}
+				try { scrollMgr.syncBottomNowIfFollowing(); } catch (_) {}
 			};
 
 			if (maybePromise && typeof maybePromise.then === 'function') {
@@ -358,7 +378,7 @@ class NodesManager {
 				post();
 			}
 		} catch (_) {
-			/* swallow */
+			try { scrollMgr.endMessageMutation(el); } catch (__) {}
 		}
 
 		scrollMgr.scheduleScroll(true);
@@ -386,6 +406,7 @@ class NodesManager {
 		try {
 			this.renderer.renderPendingMarkdown();
 		} catch (_) {}
+		scrollMgr.scheduleMessageVirtualizationRefresh();
 		scrollMgr.scheduleScroll(true);
 	}
 
@@ -404,6 +425,7 @@ class NodesManager {
 		try {
 			this.renderer.renderPendingMarkdown(container);
 		} catch (_) {}
+		scrollMgr.scheduleMessageVirtualizationRefresh();
 		scrollMgr.scheduleScroll(true);
 	}
 }

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.23 07:00:00                  #
+# Updated Date: 2026.09.10 13:45:00                  #
 # ================================================== #
 
 import os.path
@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import QRect
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -44,6 +45,51 @@ class Runner:
         """
         self.signals = signals
 
+    @staticmethod
+    def _communicate_subprocess(command, **kwargs):
+        """
+        Run a subprocess with non-interactive stdin as the default.
+
+        Explicit stdin is always preserved. If ``input`` is supplied, use a
+        pipe exactly like subprocess.run(). Only executions without either
+        source get DEVNULL so commands cannot block waiting for user input.
+        """
+        input_data = kwargs.pop("input", None)
+        has_input = input_data is not None
+
+        if has_input:
+            if "stdin" in kwargs:
+                raise ValueError("stdin and input arguments may not both be used")
+            kwargs["stdin"] = subprocess.PIPE
+        elif "stdin" not in kwargs:
+            kwargs["stdin"] = subprocess.DEVNULL
+
+        process = subprocess.Popen(command, **kwargs)
+        if has_input:
+            return process.communicate(input=input_data)
+        return process.communicate()
+
+    def send_interpreter_output_begin(self, type: str):
+        """Begin an output block in the Python interpreter window."""
+        if self.signals is not None:
+            safe_emit(self.signals, "output_begin", type)
+
+    def send_interpreter_output(self, data: str, type: str):
+        """Send content to the Python interpreter window."""
+        if self.signals is not None:
+            safe_emit(self.signals, "output", str(data), type)
+
+    def send_interpreter_output_end(self, type: str):
+        """End an output block in the Python interpreter window."""
+        if self.signals is not None:
+            safe_emit(self.signals, "output_end", type)
+
+    def send_interpreter_input(self, data: str):
+        """Send a command as an input block to the Python interpreter window."""
+        self.send_interpreter_output_begin("stdin")
+        self.send_interpreter_output(data, "stdin")
+        self.send_interpreter_output_end("stdin")
+
     # -------------------------------
     # Common helpers / logging
     # -------------------------------
@@ -55,18 +101,21 @@ class Runner:
         :param stderr: stderr
         :return: result
         """
-        result = None
+        out = None
+        err = None
         if stdout:
-            result = stdout.decode("utf-8", errors="replace")
-            self.log("STDOUT: {}".format(result))
+            out = stdout.decode("utf-8", errors="replace")
+            self.send_interpreter_output(out, "stdout")
+            self.log("STDOUT: {}".format(out))
         if stderr:
             err = stderr.decode("utf-8", errors="replace")
-            # Prefer stderr if non-empty
-            result = err if err else result
+            self.send_interpreter_output(err, "stderr")
             self.log("STDERR: {}".format(err))
-        if result is None:
-            result = "No result (STDOUT/STDERR empty)"
-            self.log(result)
+        combined = "\n".join(part for part in (out, err) if part)
+        if combined:
+            return combined
+        result = "No result (STDOUT/STDERR empty)"
+        self.log(result)
         return result
 
     def handle_result_docker(self, response) -> str:
@@ -82,6 +131,8 @@ class Runner:
                 result = response.decode('utf-8', errors="replace")
             except Exception:
                 result = str(response)
+        if result is not None:
+            self.send_interpreter_output(result, "stdout")
         self.log(
             "Result: {}".format(result),
             sandbox=True,
@@ -105,13 +156,13 @@ class Runner:
         import docker
         return docker.from_env()
 
-    def get_volumes(self) -> dict:
+    def get_volumes(self, ctx=None) -> dict:
         """
         Get docker volumes
 
         :return: docker volumes
         """
-        path = self.plugin.window.core.config.get_user_dir('data')
+        path = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
         mapping = {}
         mapping[path] = {
             "bind": "/data",
@@ -119,7 +170,7 @@ class Runner:
         }
         return mapping
 
-    def run_docker(self, cmd: str) -> bytes or None:
+    def run_docker(self, cmd: str, ctx=None) -> bytes or None:
         """
         Run docker container with command and return response
 
@@ -127,9 +178,9 @@ class Runner:
         :return: response
         """
         client = self.get_docker()
-        mapping = self.get_volumes()
+        mapping = self.get_volumes(ctx=ctx)
         try:
-            response = self.plugin.docker.execute(cmd)
+            response = self.plugin.docker.execute(cmd, ctx=ctx)
         except Exception as e:
             response = str(e).encode("utf-8")
         return response
@@ -139,47 +190,52 @@ class Runner:
         Execute system command on host
         """
         self.plugin.window.core.security.ensure_command(item["params"]['command'], sandbox=False)
+        self.send_interpreter_input(item["params"]['command'])
         msg = "Executing system command: {}".format(item["params"]['command'])
         self.log(msg)
         self.log("Running command: {}".format(item["params"]['command']))
+        self.send_interpreter_output_begin("stdout")
         try:
-            process = subprocess.Popen(
+            stdout, stderr = self._communicate_subprocess(
                 item["params"]['command'],
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdout, stderr = process.communicate()
         except Exception as e:
             self.error(e)
             stdout = None
             stderr = str(e).encode("utf-8")
         result = self.handle_result(stdout, stderr)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
     def sys_exec_sandbox(self, ctx: CtxItem, item: dict, request: dict) -> dict:
         """
         Execute system command in sandbox (docker)
         """
+        self.send_interpreter_input(item["params"]['command'])
         msg = "Executing system command: {}".format(item["params"]['command'])
         self.log(msg, sandbox=True)
         self.log(
             "Running command: {}".format(item["params"]['command']),
             sandbox=True,
         )
-        response = self.run_docker(item["params"]['command'])
+        self.send_interpreter_output_begin("stdout")
+        response = self.run_docker(item["params"]['command'], ctx=ctx)
         result = self.handle_result_docker(response)
+        self.send_interpreter_output_end("stdout")
         return {
             "request": request,
             "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
         }
 
-    def parse_result(self, result):
+    def parse_result(self, result, ctx=None):
         """
         Parse result
 
@@ -191,7 +247,7 @@ class Runner:
         img_ext = ["png", "jpg", "jpeg", "gif", "bmp", "tiff"]
         s = str(result).strip()
         if any(s.lower().endswith('.' + ext) for ext in img_ext):
-            path = self.prepare_path(s.replace("file://", ""), on_host=True)
+            path = self.prepare_path(s.replace("file://", ""), on_host=True, ctx=ctx)
             if os.path.isfile(path):
                 return "![Image](file://{})".format(path)
         return str(result)
@@ -202,7 +258,7 @@ class Runner:
         """
         return os.path.isabs(path)
 
-    def prepare_path(self, path: str, on_host: bool = True) -> str:
+    def prepare_path(self, path: str, on_host: bool = True, ctx=None) -> str:
         """
         Prepare path
 
@@ -212,12 +268,16 @@ class Runner:
         """
         if not path:
             return path
+        if on_host and self.is_sandbox():
+            mapped = self.plugin.window.core.filesystem.from_sandbox_data_path(path, ctx=ctx)
+            if mapped != path:
+                return mapped
         if self.is_absolute_path(path):
             return path
         else:
             if not self.is_sandbox() or on_host:
                 return os.path.join(
-                    self.plugin.window.core.config.get_user_dir('data'),
+                    self.plugin.window.core.filesystem.get_data_dir(ctx=ctx),
                     path,
                 )
             else:
@@ -228,21 +288,21 @@ class Runner:
         Log error message
         """
         if self.signals is not None:
-            self.signals.error.emit(err)
+            safe_emit(self.signals, "error", err)
 
     def status(self, msg: str):
         """
         Send status message
         """
         if self.signals is not None:
-            self.signals.status.emit(msg)
+            safe_emit(self.signals, "status", msg)
 
     def debug(self, msg: any):
         """
         Log debug message
         """
         if self.signals is not None:
-            self.signals.debug.emit(msg)
+            safe_emit(self.signals, "debug", msg)
 
     def log(self, msg, sandbox: bool = False):
         """
@@ -254,7 +314,7 @@ class Runner:
         full_msg = prefix + ' ' + str(msg)
 
         if self.signals is not None:
-            self.signals.log.emit(full_msg)
+            safe_emit(self.signals, "log", full_msg)
 
     # -------------------------------
     # WinAPI helpers
@@ -535,10 +595,10 @@ class Runner:
     # -------------------------------
     # WinAPI: screenshots
     # -------------------------------
-    def _save_pixmap(self, pix, path: str) -> Tuple[bool, str]:
+    def _save_pixmap(self, pix, path: str, ctx=None) -> Tuple[bool, str]:
         """Save QPixmap to disk, ensure dir."""
-        abspath = self.prepare_path(path)
-        self.plugin.window.core.security.ensure_write(abspath, sandbox=False)
+        abspath = self.prepare_path(path, ctx=ctx)
+        self.plugin.window.core.security.ensure_write(abspath, sandbox=False, ctx=ctx)
         try:
             os.makedirs(os.path.dirname(abspath), exist_ok=True)
         except Exception:
@@ -550,7 +610,8 @@ class Runner:
                        hwnd: Optional[int] = None,
                        title: Optional[str] = None,
                        exact: bool = False,
-                       path: Optional[str] = None) -> Dict:
+                       path: Optional[str] = None,
+                       ctx=None) -> Dict:
         self._ensure_windows()
         handle, candidates, err = self._resolve_window(hwnd, title, exact=exact, visible_only=False)
         if candidates is not None:
@@ -570,10 +631,10 @@ class Runner:
         if pix.isNull():
             return {"result": "Failed", "context": "grabWindow returned null pixmap."}
 
-        ok, abspath = self._save_pixmap(pix, path)
+        ok, abspath = self._save_pixmap(pix, path, ctx=ctx)
         if not ok:
             return {"result": "Failed", "context": f"Could not save screenshot to: {abspath}"}
-        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath)
+        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath, ctx=ctx)
         return {"result": abspath, "context": context}
 
     def win_area_screenshot(self,
@@ -582,7 +643,8 @@ class Runner:
                             title: Optional[str] = None,
                             exact: bool = False,
                             relative: bool = False,
-                            path: Optional[str] = None) -> Dict:
+                            path: Optional[str] = None,
+                            ctx=None) -> Dict:
         self._ensure_windows()
         if any(v is None for v in [x, y, width, height]):
             return {"result": "Missing geometry", "context": "Params x,y,width,height are required."}
@@ -610,10 +672,10 @@ class Runner:
         if pix.isNull():
             return {"result": "Failed", "context": "grabWindow returned null pixmap."}
 
-        ok, abspath = self._save_pixmap(pix, path)
+        ok, abspath = self._save_pixmap(pix, path, ctx=ctx)
         if not ok:
             return {"result": "Failed", "context": f"Could not save screenshot to: {abspath}"}
-        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath)
+        context = "SYS OUTPUT:\n--------------------------------\n" + self.parse_result(abspath, ctx=ctx)
         return {"result": abspath, "context": context}
 
     # -------------------------------

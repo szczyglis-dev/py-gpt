@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 21:20:00                  #
+# Updated Date: 2026.09.13 19:42:00                  #
 # ================================================== #
 
 from typing import Any, Dict, List, Optional
@@ -77,6 +77,17 @@ def extract_tool_calls_from_message(message: Any) -> List[Dict[str, Any]]:
         name = _get(block, "tool_name", None)
         if tool_id is None and name is None:
             continue
+
+        # Native Ollama /api/chat does not expose OpenAI-style tool-call IDs.
+        # PyGPT's Ollama LlamaIndex adapter intentionally uses the function name
+        # as the protocol identifier so a later role=tool message can map it back
+        # to Ollama's required ``tool_name`` field. Keep the generic stream parser
+        # compatible with that representation; otherwise the tool executes in the
+        # non-stream path but streamed Chat with Files never records/preserves the
+        # call for the continuation request.
+        if tool_id in (None, "") and name not in (None, ""):
+            tool_id = name
+
         call = _normalize_tool_call(
             tool_id=tool_id,
             name=name,

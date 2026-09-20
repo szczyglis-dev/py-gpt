@@ -23,11 +23,13 @@ def mock_get(key):
         return 200
 
 
-def test_from_str():
+def test_from_str(monkeypatch):
     """Test from_str"""
     text = "This is a test"
-    Tokens.from_str = MagicMock(return_value=4)
+    from_str_mock = MagicMock(return_value=4)
+    monkeypatch.setattr(Tokens, "from_str", from_str_mock)
     assert Tokens.from_str(text, 'gpt-3.5') == 4
+    from_str_mock.assert_called_once_with(text, 'gpt-3.5')
 
 
 def test_get_extra():
@@ -84,8 +86,9 @@ def test_from_ctx():
     item.output_timestamp = 2
 
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.tokens.Tokens.from_str', return_value=8):
-        assert Tokens.from_ctx(item, 'chat', model) == 40
+    with patch('pygpt_net.core.tokens.tokens.Tokens.from_str', return_value=8), \
+            patch('pygpt_net.core.tokens.tokens.Tokens._const_tokens', return_value=1):
+        assert Tokens.from_ctx(item, 'chat', model) == 42
 
 
 def test_get_config():

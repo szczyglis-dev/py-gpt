@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.05 02:00:00                  #
+# Updated Date: 2026.09.18 22:34:00
 # ================================================== #
 
-from PySide6.QtCore import Qt, QEvent, QTimer
+from PySide6.QtCore import Qt, QEvent, QTimer, QSize
 from PySide6.QtGui import (
     QAction,
     QIcon,
@@ -18,13 +18,27 @@ from PySide6.QtGui import (
     QFontMetrics,
     QColor,
 )
-from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton
 
+from pygpt_net.core.events import Event
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 from .highlight import MarkerHighlighter
+
+
+class NotepadHelpLabel(HelpLabel):
+    """Help label that follows the full responsive width of the notepad tab."""
+
+    def __init__(self, text, window=None):
+        super().__init__(text, window)
+        self.setMinimumWidth(0)
+        policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        # Preserve QLabel's height-for-width behaviour used by word wrapping.
+        # Without this flag the layout may reserve only a single text line.
+        policy.setHeightForWidth(True)
+        self.setSizePolicy(policy)
 
 
 class NotepadWidget(QWidget):
@@ -38,14 +52,43 @@ class NotepadWidget(QWidget):
         self.window = window
         self.id = 1  # assigned in setup
         self.textarea = NotepadOutput(self.window)
-        self.window.ui.nodes['tip.output.tab.notepad'] = HelpLabel(trans('tip.output.tab.notepad'), self.window)
+        self.window.ui.nodes['tip.output.tab.notepad'] = NotepadHelpLabel(
+            trans('tip.output.tab.notepad'),
+            self.window,
+        )
         self.opened = False
         self.tab = None
 
+        # When Chat Input is hidden on a Notepad tab, keep the simple audio
+        # input action available directly below the notepad. The wrapper owns
+        # the requested 15 px breathing room and disappears completely when
+        # simple audio input is disabled/advanced.
+        self.mic_button = QPushButton(self)
+        self.mic_button.setObjectName('notepadMicButton')
+        self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
+        self.mic_button.setIconSize(QSize(20, 20))
+        self.mic_button.setFixedSize(QSize(26, 26))
+        self.mic_button.setCursor(Qt.PointingHandCursor)
+        self.mic_button.setFocusPolicy(Qt.NoFocus)
+        self.mic_button.setFlat(True)
+        self.mic_button.setToolTip(trans('audio.speak.btn'))
+        self.mic_button.clicked.connect(self.toggle_microphone)
+
+        self.mic_container = QWidget(self)
+        mic_layout = QHBoxLayout(self.mic_container)
+        mic_layout.setContentsMargins(15, 15, 15, 15)
+        mic_layout.setSpacing(0)
+        mic_layout.addStretch(1)
+        mic_layout.addWidget(self.mic_button, 0, Qt.AlignCenter)
+        mic_layout.addStretch(1)
+        self.mic_container.setVisible(False)
+
         layout = QVBoxLayout()
-        layout.addWidget(self.textarea)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'])
+        layout.addWidget(self.textarea, 1)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0)
+        layout.addWidget(self.mic_container, 0)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         self.setLayout(layout)
         self.setProperty('class', 'layout-notepad')
 
@@ -61,6 +104,23 @@ class NotepadWidget(QWidget):
     def scroll_to_bottom(self):
         """Scroll down"""
         self.textarea.scroll_to_bottom()
+
+    def toggle_microphone(self):
+        """Toggle simple microphone recording from the Notepad tab."""
+        self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
+
+    def set_mic_visible(self, visible: bool):
+        """Show/hide the dedicated Notepad microphone including its margins."""
+        self.mic_container.setVisible(bool(visible))
+
+    def set_mic_state(self, active: bool):
+        """Mirror the recording icon/tooltip used by ChatInput."""
+        if active:
+            self.mic_button.setIcon(QIcon(':/icons/mic_off.svg'))
+            self.mic_button.setToolTip(trans('audio.speak.btn.stop.tooltip'))
+        else:
+            self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
+            self.mic_button.setToolTip(trans('audio.speak.btn'))
 
     def setText(self, text: str):
         """
@@ -107,7 +167,7 @@ class NotepadOutput(QTextEdit):
         self.window = window
         self.finder = Finder(window, self)
         self.setAcceptRichText(False)
-        self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+        self.apply_theme_style()
 
         # Ensure the editor always accepts keyboard focus on single click
         self.setFocusPolicy(Qt.StrongFocus)
@@ -120,7 +180,9 @@ class NotepadOutput(QTextEdit):
         self.tab = None
         self.last_scroll_pos = None
         self.installEventFilter(self)
-        self.setProperty('class', 'layout-notepad')
+        self.setProperty('class', 'layout-notepad-output')
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.initialized = False
 
         metrics = QFontMetrics(self.font())
@@ -146,6 +208,43 @@ class NotepadOutput(QTextEdit):
 
         # schedule guard for column-focus sync
         self._column_focus_sync_scheduled = False
+
+    def minimumSizeHint(self):
+        """Never let the notepad enforce a minimum width on an output column."""
+        size = super().minimumSizeHint()
+        size.setWidth(0)
+        return size
+
+    def apply_theme_style(self):
+        """Apply chat-output typography and the plain-chat surface to the editor."""
+        size = self.window.core.config.get('font_size')
+        theme = self.window.controller.theme.common.normalize_theme(
+            self.window.core.config.get('theme')
+        )
+        # Match the preset-list surface in each built-in color theme.
+        backgrounds = {
+            'light': '#efefef',
+            'mint': '#e8f4ee',
+            'gray': '#2b2d34',
+            'dark': '#202020',
+            'matrix': '#0d1710',
+            'flare': '#170d0d',
+            'retro': '#1c1233',
+            'ocean': '#0d1a24',
+            'sun': '#1b1206',
+        }
+        background = backgrounds.get(theme)
+        if background is None:
+            background = '#efefef' if self.window.controller.theme.common.is_light_theme_id(theme) else '#202020'
+        self.setStyleSheet(
+            'QTextEdit {'
+            f'font-size: {size}px;'
+            f'background-color: {background};'
+            'border: none;'
+            'border-radius: 10px;'
+            'padding: 13px 10px 10px 10px;'
+            '}'
+        )
 
     def on_delete(self):
         """On delete"""
@@ -365,6 +464,10 @@ class NotepadOutput(QTextEdit):
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
+
+        # Add insert date/time submenu
+        datetime_menu = self.window.ui.context_menu.get_insert_datetime_menu(menu, self)
+        menu.addMenu(datetime_menu)
 
         # Add zoom submenu
         zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "font_size", self.value, self.on_zoom_changed)

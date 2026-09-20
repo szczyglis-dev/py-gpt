@@ -452,6 +452,7 @@ class ImageViewer(BaseTool):
                 if normal is not None:
                     dialog.setGeometry(normal)
                 dialog._edge_max = False
+                QtCore.QTimer.singleShot(0, dialog.fit_to_width)
                 return
 
             # store current geometry to allow restoring later
@@ -473,6 +474,7 @@ class ImageViewer(BaseTool):
             available = screen.availableGeometry()
             dialog.setGeometry(available)
             dialog._edge_max = True
+            QtCore.QTimer.singleShot(0, dialog.fit_to_width)
         except Exception as e:
             # fallback to native maximize if anything goes wrong
             try:
@@ -480,6 +482,7 @@ class ImageViewer(BaseTool):
                     dialog.showNormal()
                 else:
                     dialog.showMaximized()
+                QtCore.QTimer.singleShot(0, dialog.fit_to_width)
             except Exception:
                 # last resort: ignore
                 self.window.core.debug.log(e)

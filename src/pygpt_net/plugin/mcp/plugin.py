@@ -22,12 +22,14 @@ from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 
 from .config import Config
+from .runtime import build_env, build_headers, float_option, parse_stdio, tool_allowed
 
 
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "mcp"
+        self.is_common_plugin = True
         self.name = "MCP"
         self.description = "Use remote tools via MCP"
         self.prefix = "RemoteTool"
@@ -187,8 +189,46 @@ class Plugin(BasePlugin):
     # ---------------------------
 
     def _discover_tools_sync(self, active_servers: List[Tuple[int, dict]]) -> List[Tuple[int, str, str, Any, dict]]:
-        """Run async discovery in a dedicated loop and return collected tools."""
-        return asyncio.run(self._discover_tools_async(active_servers))
+        """Run async discovery in a dedicated loop and return collected tools.
+
+        If an event loop is already running (e.g. from agents v2), we create
+        a new loop in a separate thread to avoid ``RuntimeError: This event
+        loop is already running``.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop is None:
+            return asyncio.run(self._discover_tools_async(active_servers))
+
+        import threading
+
+        result = None
+        exc = None
+
+        def _target():
+            nonlocal result, exc
+            try:
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    result = new_loop.run_until_complete(
+                        self._discover_tools_async(active_servers)
+                    )
+                finally:
+                    new_loop.close()
+            except Exception as e:
+                exc = e
+
+        thread = threading.Thread(target=_target, daemon=True)
+        thread.start()
+        thread.join(timeout=30)
+
+        if exc is not None:
+            raise exc
+        return result if result is not None else []
 
     async def _discover_tools_async(
         self,
@@ -219,12 +259,53 @@ class Plugin(BasePlugin):
         except Exception:
             ttl = 300
 
+        async def list_tools_for_session(session: ClientSession) -> List[Any]:
+            tools_resp = await session.list_tools()
+            return list(tools_resp.tools)
+
+        async def _discover_single_server(
+            server_idx: int, server: dict, address: str, transport: str, headers: Optional[dict]
+        ) -> List[Any]:
+            """Discover tools for a single server (called concurrently)."""
+            async def _run_discovery():
+                if transport == "stdio":
+                    cmd, args = self._parse_stdio_command(address)
+                    kwargs = {"command": cmd, "args": args}
+                    env = build_env(server)
+                    cwd = (server.get("cwd") or "").strip()
+                    if env is not None:
+                        kwargs["env"] = env
+                    if cwd:
+                        kwargs["cwd"] = cwd
+                    params = StdioServerParameters(**kwargs)
+                    async with stdio_client(params) as (read, write):
+                        async with ClientSession(read, write) as session:
+                            await session.initialize()
+                            return await list_tools_for_session(session)
+                elif transport == "http":
+                    async with streamablehttp_client(address, headers=headers or None) as (read, write, _):
+                        async with ClientSession(read, write) as session:
+                            await session.initialize()
+                            return await list_tools_for_session(session)
+                elif transport == "sse":
+                    async with sse_client(address, headers=headers or None) as (read, write):
+                        async with ClientSession(read, write) as session:
+                            await session.initialize()
+                            return await list_tools_for_session(session)
+                else:
+                    raise RuntimeError(f"Unsupported MCP transport: {transport}")
+
+            timeout = float_option(server, "startup_timeout_sec", per_server_timeout)
+            return await asyncio.wait_for(_run_discovery(), timeout=timeout)
+
+        # Cache / run discovery per server concurrently to bound total time
+        tasks = []
         for server_idx, server in active_servers:
             address = (server.get("server_address") or "").strip()
             if not address:
                 continue
 
-            transport = self._detect_transport(address)
+            transport = self._detect_transport(address, server)
             server_tag = self._make_server_tag(server, server_idx)
             server_key = self._server_key(server)
             headers = self._build_headers(server)
@@ -232,7 +313,6 @@ class Plugin(BasePlugin):
             allowed = self._parse_csv(server.get("allowed_commands"))
             disabled = self._parse_csv(server.get("disabled_commands"))
 
-            # Cache
             cached_tools = None
             if cache_enabled:
                 cached = self._tools_cache.get(server_key)
@@ -240,62 +320,49 @@ class Plugin(BasePlugin):
                     if (time.time() - float(cached.get("ts", 0))) <= ttl:
                         cached_tools = cached.get("tools", None)
 
-            async def list_tools_for_session(session: ClientSession) -> List[Any]:
-                tools_resp = await session.list_tools()
-                return list(tools_resp.tools)
-
-            try:
-                if cached_tools is None:
-                    async def _run_discovery():
-                        if transport == "stdio":
-                            cmd, args = self._parse_stdio_command(address)
-                            params = StdioServerParameters(command=cmd, args=args)
-                            async with stdio_client(params) as (read, write):
-                                async with ClientSession(read, write) as session:
-                                    await session.initialize()
-                                    return await list_tools_for_session(session)
-
-                        elif transport == "http":
-                            # Streamable HTTP – pass Authorization if set
-                            async with streamablehttp_client(address, headers=headers or None) as (read, write, _):
-                                async with ClientSession(read, write) as session:
-                                    await session.initialize()
-                                    return await list_tools_for_session(session)
-
-                        elif transport == "sse":
-                            # SSE – pass Authorization if set
-                            async with sse_client(address, headers=headers or None) as (read, write):
-                                async with ClientSession(read, write) as session:
-                                    await session.initialize()
-                                    return await list_tools_for_session(session)
-
-                        else:
-                            raise RuntimeError(f"Unsupported MCP transport for server '{server_tag}': {transport}")
-
-                    tools = await asyncio.wait_for(_run_discovery(), timeout=per_server_timeout)
-
-                    if cache_enabled:
-                        self._tools_cache[server_key] = {
-                            "ts": time.time(),
-                            "transport": transport,
-                            "tools": tools,
-                        }
-                else:
+            async def _with_cache(server_idx=server_idx, server=server, address=address,
+                                  transport=transport, server_tag=server_tag, server_key=server_key,
+                                  headers=headers, allowed=allowed, disabled=disabled,
+                                  cached_tools=cached_tools):
+                try:
                     tools = cached_tools
+                    if tools is None:
+                        tools = await _discover_single_server(
+                            server_idx, server, address, transport, headers
+                        )
+                        if cache_enabled:
+                            self._tools_cache[server_key] = {
+                                "ts": time.time(),
+                                "transport": transport,
+                                "tools": tools,
+                            }
+                    return (server_idx, server_tag, transport, allowed, disabled, tools, server)
+                except asyncio.TimeoutError:
+                    self.error(f"MCP: timeout during discovery on server '{server_tag}'")
+                    return None
+                except Exception as e:
+                    self.log(f"MCP discovery error on '{server_tag}': {e}")
+                    self.error(f"MCP: discovery error on '{server_tag}': {e}")
+                    return None
 
-                for tool in tools:
-                    tname = getattr(tool, "name", None) or tool.get("name")
-                    if disabled and tname in disabled:
-                        continue
-                    if allowed and tname not in allowed:
-                        continue
-                    results.append((server_idx, server_tag, transport, tool, server))
+            tasks.append(_with_cache())
 
-            except asyncio.TimeoutError:
-                self.error(f"MCP: timeout during discovery on server '{server_tag}'")
-            except Exception as e:
-                self.log(f"MCP discovery error on '{server_tag}': {e}")
-                self.error(f"MCP: discovery error on '{server_tag}': {e}")
+        if not tasks:
+            return results
+
+        done = await asyncio.gather(*tasks, return_exceptions=True)
+        for outcome in done:
+            if isinstance(outcome, Exception):
+                self.log(f"MCP discovery error: {outcome}")
+                continue
+            if outcome is None:
+                continue
+            server_idx, server_tag, transport, allowed, disabled, tools, server = outcome
+            for tool in tools:
+                tname = getattr(tool, "name", None) or tool.get("name")
+                if not tool_allowed(tname, allowed, disabled):
+                    continue
+                results.append((server_idx, server_tag, transport, tool, server))
 
         return results
 
@@ -370,13 +437,16 @@ class Plugin(BasePlugin):
         items = [x for x in items if x]
         return set(items) if items else None
 
-    def _detect_transport(self, address: str) -> str:
+    def _detect_transport(self, address: str, server: Optional[dict] = None) -> str:
         """
-        Detect transport from address:
+        Detect transport from explicit connector metadata or address:
         - 'stdio: ...' -> stdio
         - 'http(s)://.../mcp' or general http(s) -> http (Streamable HTTP)
         - 'sse://' or 'sse+http(s)://' or path containing '/sse' -> sse
         """
+        explicit = str((server or {}).get("transport") or "").strip().lower()
+        if explicit in ("stdio", "http", "sse"):
+            return explicit
         if address.lower().startswith("stdio:"):
             return "stdio"
         lower = address.lower()
@@ -395,11 +465,7 @@ class Plugin(BasePlugin):
 
     def _parse_stdio_command(self, address: str) -> Tuple[str, List[str]]:
         """Parse 'stdio: <command line>' into (command, args)."""
-        cmdline = address[len("stdio:"):].strip()
-        tokens = shlex.split(cmdline)
-        if not tokens:
-            raise ValueError("Invalid stdio address: empty command")
-        return tokens[0], tokens[1:]
+        return parse_stdio(address)
 
     def _make_server_tag(self, server: dict, idx: int) -> str:
         """
@@ -423,16 +489,8 @@ class Plugin(BasePlugin):
             return f"server_{idx}"
 
     def _build_headers(self, server: dict) -> Optional[dict]:
-        """
-        Build optional headers for HTTP/SSE transports.
-        Currently supports Authorization only.
-        """
-        auth = (server.get("authorization") or "").strip()
-        headers = {}
-        if auth:
-            # If user passed only token, you may expect 'Bearer <token>'
-            headers["Authorization"] = auth
-        return headers or None
+        """Build connector HTTP/SSE headers, including env-backed values."""
+        return build_headers(server)
 
     def _slugify(self, text: str) -> str:
         """
@@ -503,11 +561,16 @@ class Plugin(BasePlugin):
         """Signature of current config to invalidate cache when config changes."""
         norm: List[str] = []
         for idx, srv in active_servers:
-            addr = (srv.get("server_address") or "").strip()
-            label = (srv.get("label") or "").strip()
-            auth = (srv.get("authorization") or "").strip()
-            a = ",".join(sorted(list(self._parse_csv(srv.get("allowed_commands")) or [])))
-            d = ",".join(sorted(list(self._parse_csv(srv.get("disabled_commands")) or [])))
-            norm.append(f"{idx}|{label}|{addr}|AUTH:{bool(auth)}|A:{a}|D:{d}")
-        blob = "|#|".join(norm)
-        return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+            allowed = ",".join(sorted(list(self._parse_csv(srv.get("allowed_commands")) or [])))
+            disabled = ",".join(sorted(list(self._parse_csv(srv.get("disabled_commands")) or [])))
+            fields = [
+                str(idx), str(srv.get("label") or ""), str(srv.get("server_address") or ""),
+                str(srv.get("transport") or ""), str(srv.get("authorization") or ""),
+                str(srv.get("headers") or ""), str(srv.get("env_http_headers") or ""),
+                str(srv.get("bearer_token_env_var") or ""), str(srv.get("env") or ""),
+                str(srv.get("cwd") or ""), str(srv.get("startup_timeout_sec") or ""),
+                allowed, disabled,
+            ]
+            norm.append("|".join(fields))
+        return hashlib.sha256("|#|".join(norm).encode("utf-8")).hexdigest()
+

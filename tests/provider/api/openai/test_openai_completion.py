@@ -23,10 +23,6 @@ def dummy_window():
     tokens.from_text.return_value = 20
     config = MagicMock()
     config.get.side_effect = lambda key: {
-        'temperature': 0.7,
-        'top_p': 1,
-        'frequency_penalty': 0,
-        'presence_penalty': 0,
         'max_total_tokens': 1000,
         'use_context': True
     }[key]
@@ -91,10 +87,6 @@ def test_build_with_context(dummy_window, dummy_model):
 
 def test_build_without_context(dummy_window, dummy_model):
     dummy_window.core.config.get.side_effect = lambda key: {
-        'temperature': 0.7,
-        'top_p': 1,
-        'frequency_penalty': 0,
-        'presence_penalty': 0,
         'max_total_tokens': 1000,
         'use_context': False
     }[key]
@@ -112,10 +104,10 @@ def test_send(dummy_window, dummy_context):
     args, kwargs = client.completions.create.call_args
     assert kwargs["prompt"] == "constructed prompt"
     assert kwargs["model"] == dummy_context.model.id
-    assert kwargs["temperature"] == 0.7
-    assert kwargs["top_p"] == 1
-    assert kwargs["frequency_penalty"] == 0
-    assert kwargs["presence_penalty"] == 0
+    assert "temperature" not in kwargs
+    assert "top_p" not in kwargs
+    assert "frequency_penalty" not in kwargs
+    assert "presence_penalty" not in kwargs
     assert kwargs["stop"] == ["User:"]
     assert kwargs["stream"] == dummy_context.stream
     assert kwargs["max_tokens"] == 50

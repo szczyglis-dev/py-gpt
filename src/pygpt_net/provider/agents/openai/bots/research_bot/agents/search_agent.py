@@ -14,6 +14,7 @@ from agents.model_settings import ModelSettings
 
 from pygpt_net.core.types import OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH
 from pygpt_net.item.preset import PresetItem
+from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 
 
@@ -50,4 +51,5 @@ def get_search_agent(
     if config["allow_local_tools"] or config["allow_remote_tools"]:
         kwargs["model_settings"] = ModelSettings(tool_choice="required")
 
+    append_reasoning_model_settings(kwargs, window, config["model"])
     return Agent(**kwargs)

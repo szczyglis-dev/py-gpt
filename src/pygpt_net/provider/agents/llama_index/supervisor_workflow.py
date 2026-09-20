@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 01:00:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -57,12 +57,19 @@ class SupervisorAgent(BaseAgent):
             prompt_supervisor = SUPERVISOR_PROMPT
         if not prompt_worker:
             prompt_worker = WORKER_PROMPT
+        prompt_supervisor = self.append_system_prompt_extra(prompt_supervisor, kwargs)
+        prompt_worker = self.append_system_prompt_extra(prompt_worker, kwargs)
 
         # get worker LLM from options
         model_worker = window.core.models.get(
             self.get_option(preset, "worker", "model")
         )
-        llm_worker = window.core.idx.llm.get(model_worker, stream=False)
+        llm_worker = window.core.idx.llm.get_agent(
+            model_worker,
+            stream=False,
+            allow_remote_tools=True,
+            computer_runtime=kwargs.get("computer_runtime"),
+        )
         worker_memory_session_id = ""
         if context.ctx and context.ctx.meta:
             worker_memory_session_id = "llama_worker_session_" + str(context.ctx.meta.id)

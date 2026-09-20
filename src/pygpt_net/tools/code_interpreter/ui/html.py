@@ -6,20 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 import json
 import re
 from typing import Optional
 
-from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer, QUrl, QCoreApplication, QEventLoop
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QTimer, QUrl
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import QMenu
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxMeta, CtxItem
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.tools.code_interpreter.body import Body
@@ -109,12 +110,19 @@ class HtmlOutput(QWebEngineView):
         self.loaded = False  # flag to check if loaded
         self.is_dialog = False
         self.nodes = []  # code blocks
+        self._scroll_on_first_show = True
 
         # OpenGL widgets
         self._glwidget = None
         self._glwidget_filter_installed = False
         self._unloaded = False  # flag to check if unloaded
         self._destroyed = False
+        self._needs_recovery = False
+        self._recovery_timer = QTimer(self)
+        self._recovery_timer.setSingleShot(True)
+        self._recovery_timer.setInterval(1000)
+        self._recovery_timer.timeout.connect(self._recover_renderer)
+        self.renderProcessTerminated.connect(self._on_renderer_terminated)
 
         # self._profile = self._make_profile(self)
         self.setPage(CustomWebEnginePage(self.window, self, profile=None))
@@ -163,6 +171,8 @@ class HtmlOutput(QWebEngineView):
         """Clean up on delete"""
         if self._destroyed:
             return
+        self._destroyed = True
+        self._recovery_timer.stop()
         if not self._unloaded:
             self.unload()
 
@@ -216,14 +226,6 @@ class HtmlOutput(QWebEngineView):
         except Exception as e:
             self._on_delete_failed(e)
 
-        try:
-            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
-            QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
-        except Exception as e:
-            self._on_delete_failed(e)
-
-        self._destroyed = True
-
     def init(self, force: bool = False):
         """
         Initialize HTML output
@@ -232,6 +234,7 @@ class HtmlOutput(QWebEngineView):
         """
         if self.initialized and not force:
             return
+        self.loaded = False
         body = self.body.get_html(0)
         self.setHtml(body, baseUrl="file://")
         self.initialized = True
@@ -339,11 +342,51 @@ class HtmlOutput(QWebEngineView):
         """
         self.init()
         self.nodes = []
+        self.set_plaintext(
+            "".join(str(node.content) for node in nodes if isinstance(node, CodeBlock))
+        )
         if not self.page():
             return
         self.page().runJavaScript(
             f"clearOutput();")
         self.insert_nodes(nodes)
+
+    def trim_nodes(self, max_entries: int) -> bool:
+        """
+        Keep only the newest output blocks.
+
+        :param max_entries: Maximum number of blocks, 0 for unlimited
+        :return: True if the buffer was changed
+        """
+        try:
+            max_entries = int(max_entries)
+        except (TypeError, ValueError):
+            return False
+        if max_entries <= 0:
+            return False
+
+        nodes = [
+            node for node in self.nodes
+            if isinstance(node, CodeBlock)
+            and (node.content != "" or node.images or node.files)
+        ]
+        changed = len(nodes) != len(self.nodes)
+        if len(nodes) > max_entries:
+            nodes = nodes[-max_entries:]
+            changed = True
+        if not changed:
+            return False
+
+        self.nodes = list(nodes)
+        self.set_plaintext("".join(str(node.content) for node in self.nodes))
+
+        if self.loaded and self.page():
+            self.page().runJavaScript("clearOutput();")
+            for node in self.nodes:
+                self.insert_output(node)
+            QTimer.singleShot(0, self.scroll_to_bottom)
+        self.update_current_content()
+        return True
 
     def insert_nodes(self, nodes: list):
         """
@@ -365,6 +408,47 @@ class HtmlOutput(QWebEngineView):
             return
         self.page().runJavaScript(
             f"scrollToBottom();")
+
+    def _scroll_to_bottom_after_show(self):
+        """Re-apply bottom position after the web view/layout becomes visible."""
+        if not self.nodes and not self.plain:
+            return
+        QTimer.singleShot(0, self.scroll_to_bottom)
+        QTimer.singleShot(100, self.scroll_to_bottom)
+
+    def showEvent(self, event):
+        """Keep interpreter output at the newest entry when it becomes visible."""
+        super(HtmlOutput, self).showEvent(event)
+        if self._needs_recovery:
+            self._recover_renderer()
+        if not self.nodes and not self.plain:
+            return
+
+        # A tab embedded in a collapsible column can keep its QWebEngineView
+        # alive while the parent column is hidden. QtWebEngine may reset the
+        # viewport to the top when that parent becomes visible again, so the
+        # tab must re-apply the bottom position on every show. Dialog output
+        # already gets rebuilt when opened, therefore retaining the previous
+        # one-shot behavior there avoids changing the standalone window flow.
+        if self.is_dialog and not self._scroll_on_first_show:
+            return
+
+        self._scroll_on_first_show = False
+        self._scroll_to_bottom_after_show()
+
+    def resizeEvent(self, event):
+        """Restore bottom position when a zero-width/height tool column is expanded."""
+        old_size = event.oldSize()
+        new_size = event.size()
+        super(HtmlOutput, self).resizeEvent(event)
+
+        if self.is_dialog or (not self.nodes and not self.plain):
+            return
+
+        was_collapsed = old_size.width() <= 0 or old_size.height() <= 0
+        is_visible = new_size.width() > 0 and new_size.height() > 0
+        if was_collapsed and is_visible:
+            self._scroll_to_bottom_after_show()
 
     def insert_output(self, node: CodeBlock):
         """
@@ -425,7 +509,7 @@ class HtmlOutput(QWebEngineView):
         # render images
         if ctx.images:
             for img in ctx.images:
-                url, path = self.window.core.filesystem.extract_local_url(img)
+                url, path = self.window.core.filesystem.extract_local_url(img, ctx=ctx)
                 self.page().runJavaScript(
                     f"appendImage('{path}', '{url}');")
 
@@ -541,7 +625,7 @@ class HtmlOutput(QWebEngineView):
             # audio read
             action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
             action.triggered.connect(
-                lambda: self.signals.audio_read.emit(selected_text)
+                lambda: safe_emit(self.signals, "audio_read", selected_text)
             )
             menu.addAction(action)
 
@@ -552,7 +636,7 @@ class HtmlOutput(QWebEngineView):
             # save as (selected)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(selected_text, 'txt')
+                lambda: safe_emit(self.signals, "save_as", selected_text, 'txt')
             )
             menu.addAction(action)
         else:
@@ -564,14 +648,14 @@ class HtmlOutput(QWebEngineView):
             # save as (all) - plain
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (text)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
+                lambda: safe_emit(self.signals, "save_as", re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
             )
             menu.addAction(action)
 
             # save as (all) - html
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
+                self.save_html
             )
             menu.addAction(action)
 
@@ -622,9 +706,32 @@ class HtmlOutput(QWebEngineView):
         self.html_content = ""
 
     def update_current_content(self):
-        """Update current content"""
-        if self.loaded:
-            self.page().runJavaScript("document.documentElement.innerHTML", 0, self.set_html_content)
+        """Invalidate the optional export cache without copying the entire DOM."""
+        self.html_content = ""
+
+    def save_html(self):
+        """Fetch HTML once, when explicitly requested for export."""
+        if self.loaded and not self._destroyed:
+            self.page().runJavaScript(
+                "document.documentElement.innerHTML", 0,
+                lambda html: safe_emit(self.signals, "save_as", html, "html")
+                if not self._destroyed and isinstance(html, str) else None,
+            )
+
+    def _on_renderer_terminated(self, *args):
+        if self._destroyed or self._unloaded:
+            return
+        self.loaded = False
+        self.initialized = False
+        self._needs_recovery = True
+        if self.isVisible():
+            self._recovery_timer.start()
+
+    def _recover_renderer(self):
+        if self._destroyed or self._unloaded or not self.isVisible():
+            return
+        self._needs_recovery = False
+        self.init(force=True)
 
     def clear_content(self):
         """Clear content"""
@@ -636,14 +743,14 @@ class HtmlOutput(QWebEngineView):
 
         :param success: True if loaded successfully
         """
+        if self._destroyed or self._unloaded:
+            return
         if success:
+            self._needs_recovery = False
             self.init()
             if self.nodes:
                 for node in list(self.nodes):
                     self.insert_output(node)
-                if not self.loaded:
-                    if self.is_dialog:
-                        self.nodes = []
             self.loaded = True
             QTimer.singleShot(100, self.scroll_to_bottom)  # wait for rendering to complete
             self.update_current_content()
@@ -811,7 +918,7 @@ class CustomWebEnginePage(QWebEnginePage):
         :param source_id: source ID
         """
         pass
-        # self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
+        # safe_emit(self.signals, "js_message", line_number, message, source_id)  # handled in debug controller
 
     def cleanup(self):
         """Cleanup method to release resources"""

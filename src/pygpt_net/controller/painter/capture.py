@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 15:05:00                  #
+# Updated Date: 2026.09.08 19:15:00                  #
 # ================================================== #
 
 import datetime
@@ -27,6 +27,12 @@ from pygpt_net.utils import trans
 
 
 class Capture:
+    # Hotspot of data/icons/cursor.png.  The PNG is 48x48 with transparent
+    # padding; the actual arrow tip is at approximately (17, 11).  Keep the
+    # hotspot explicit instead of centering the bitmap so screenshot
+    # coordinates match the point that will actually be clicked.
+    CURSOR_HOTSPOT = (17, 11)
+
     def __init__(self, window=None):
         """
         Painter capture controller
@@ -51,6 +57,36 @@ class Capture:
             self.window.ui.tray.show_capture_flash()
         return True
 
+    def _overlay_custom_cursor(self, img: Image.Image, cursor_x: float, cursor_y: float) -> Image.Image:
+        """Overlay the bundled cursor with its click hotspot at (cursor_x, cursor_y)."""
+        x = int(round(cursor_x))
+        y = int(round(cursor_y))
+
+        # Do not render a clipped cursor from another monitor.  Computer Use
+        # coordinates are relative to the monitor represented by this image.
+        if x < 0 or y < 0 or x >= img.width or y >= img.height:
+            return img.convert('RGBA')
+
+        cursor_path = os.path.join(
+            self.window.core.config.get_app_path(),
+            "data",
+            "icons",
+            "cursor.png",
+        )
+        with Image.open(cursor_path) as source:
+            cursor_img = source.convert('RGBA')
+
+        hotspot_x, hotspot_y = self.CURSOR_HOTSPOT
+        paste_x = x - hotspot_x
+        paste_y = y - hotspot_y
+
+        # alpha_composite uses the source alpha exactly once (unlike using the
+        # same RGBA image as both source and paste mask) and clips cleanly at
+        # image boundaries.
+        result = img.convert('RGBA')
+        result.alpha_composite(cursor_img, dest=(paste_x, paste_y))
+        return result
+
     def capture_screen_with_custom_cursor(self, save_path: str) -> str:
         """
         Capture screen with custom cursor
@@ -58,42 +94,46 @@ class Capture:
         :param save_path: Save path
         :return: Save path
         """
-        cursor_path = os.path.join(self.window.core.config.get_app_path(), "data", "icons", "cursor.png")
+        mouse = Controller()
 
-        with mss.mss() as sct:
+        with mss.mss(with_cursor=False) as sct:
             monitor = sct.monitors[1]
-            screenshot = sct.grab(monitor)
+
+            # Keep the cursor sample and screen grab coherent.  If the pointer
+            # moves while the screenshot is being taken, retry once so hover
+            # state, screenshot and cursor marker describe the same position as
+            # closely as possible.
+            screenshot = None
+            cursor_pos = mouse.position
+            for _ in range(2):
+                before = mouse.position
+                screenshot = sct.grab(monitor)
+                after = mouse.position
+                cursor_pos = after
+                if tuple(before) == tuple(after):
+                    cursor_pos = before
+                    break
+
             img = Image.frombytes('RGB', screenshot.size, screenshot.rgb)
 
-        mouse = Controller()
-        cursor_x, cursor_y = mouse.position
-
-        cursor_x -= monitor['left']
-        cursor_y -= monitor['top']
-
-        img = img.convert('RGBA')
-
-        cursor_img = Image.open(cursor_path).convert('RGBA')
-        cursor_width, cursor_height = cursor_img.size
-
-        paste_x = int(cursor_x - 20)
-        paste_y = int(cursor_y - 20)
-
-        img.paste(cursor_img, (paste_x, paste_y), cursor_img)
-
+        cursor_x = float(cursor_pos[0]) - float(monitor['left'])
+        cursor_y = float(cursor_pos[1]) - float(monitor['top'])
+        img = self._overlay_custom_cursor(img, cursor_x, cursor_y)
         img.save(save_path)
         return save_path
 
     def screenshot(
             self,
             attach_cursor: bool = False,
-            silent: bool = False
+            silent: bool = False,
+            append_to_ctx: bool = True
     ) -> Optional[Union[str, bool]]:
         """
         Make screenshot and append to attachments
 
         :param attach_cursor: True to with custom cursor
         :param silent: Silent mode
+        :param append_to_ctx: If False, mark attachment as transport-only (do not persist/render in ctx)
         :return: Path to screenshot or False if failed
         """
         if not silent:
@@ -121,7 +161,7 @@ class Capture:
                     sct_img = sct.grab(monitor)
                     mss.tools.to_png(sct_img.rgb, sct_img.size, output=path)
 
-            self.attach(name, path, 'screenshot', silent=silent)
+            self.attach(name, path, 'screenshot', silent=silent, append_to_ctx=append_to_ctx)
 
             if not silent:
                 self.window.controller.painter.open(path)
@@ -223,13 +263,19 @@ class Capture:
     def screenshot_playwright(
             self,
             page,
-            silent: bool = False
+            silent: bool = False,
+            append_to_ctx: bool = True,
+            attach_cursor: bool = False,
+            cursor_position: Optional[tuple] = None
     ) -> Optional[Union[str, bool]]:
         """
         Make screenshot and append to attachments
 
         :param page : Playwright page
         :param silent: Silent mode
+        :param append_to_ctx: If False, mark attachment as transport-only (do not persist/render in ctx)
+        :param attach_cursor: If True, overlay the bundled cursor at cursor_position
+        :param cursor_position: Pointer position in Playwright viewport (CSS) pixels
         :return: Path to screenshot or False if failed
         """
         if not silent:
@@ -253,7 +299,26 @@ class Capture:
             else:
                 return False
 
-            self.attach(name, path, 'screenshot', silent=silent)
+            if attach_cursor and cursor_position is not None:
+                with Image.open(path) as source:
+                    img = source.convert('RGBA')
+
+                cursor_x, cursor_y = cursor_position
+                # Playwright mouse coordinates are CSS viewport pixels.  Scale
+                # them to screenshot pixels when a non-1 device scale factor is
+                # used so the cursor hotspot remains exact.
+                viewport = getattr(page, "viewport_size", None)
+                if isinstance(viewport, dict):
+                    viewport_w = int(viewport.get("width", 0) or 0)
+                    viewport_h = int(viewport.get("height", 0) or 0)
+                    if viewport_w > 0 and viewport_h > 0:
+                        cursor_x = float(cursor_x) * img.width / viewport_w
+                        cursor_y = float(cursor_y) * img.height / viewport_h
+
+                img = self._overlay_custom_cursor(img, cursor_x, cursor_y)
+                img.save(path)
+
+            self.attach(name, path, 'screenshot', silent=silent, append_to_ctx=append_to_ctx)
 
             if not silent:
                 self.window.controller.painter.open(path)
@@ -306,7 +371,8 @@ class Capture:
             name: str,
             path: str,
             type: str = 'drawing',
-            silent: bool = False
+            silent: bool = False,
+            append_to_ctx: bool = True
     ):
         """
         Attach image to attachments
@@ -315,6 +381,7 @@ class Capture:
         :param path: image path
         :param type: capture type (drawing, screenshot)
         :param silent: silent mode
+        :param append_to_ctx: If False, attachment is available to the provider but hidden from ctx/UI
         """
         mode = self.window.core.config.get('mode')
         if type == 'drawing':
@@ -326,7 +393,8 @@ class Capture:
         title = title.replace('cap-', '').replace('_', ' ')
 
         # make attachment
-        self.window.core.attachments.new(mode, title, path, False)
+        extra = {"append_to_ctx": bool(append_to_ctx)}
+        self.window.core.attachments.new(mode, title, path, False, extra=extra)
         self.window.core.attachments.save()
 
         if not silent:

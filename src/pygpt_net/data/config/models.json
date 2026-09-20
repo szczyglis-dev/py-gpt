@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.8.9",
-        "app.version": "2.8.9",
-        "updated_at": "2026-09-05T18:30:00"
+        "version": "2.8.26",
+        "app.version": "2.8.26",
+        "updated_at": "2026-09-20T09:00:00"
     },
     "items": {
         "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
@@ -10,22 +10,14 @@
             "name": "bielik-11b-v3.0",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 32768,
             "tokens": 4096,
             "default": false,
@@ -38,6 +30,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "claude-fable-5": {
@@ -45,28 +38,15 @@
             "name": "claude-fable-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "claude-fable-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key_anthropic}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1000000,
             "tokens": 128000,
             "default": false,
@@ -80,6 +60,37 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "claude-fable-5-1": {
+            "id": "claude-fable-5-1",
+            "name": "claude-fable-5-1",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1000000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "claude-haiku-4-5": {
@@ -87,28 +98,15 @@
             "name": "claude-haiku-4-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "claude-haiku-4-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key_anthropic}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 64000,
             "default": false,
@@ -122,6 +120,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "claude-opus-4-5": {
@@ -129,28 +128,15 @@
             "name": "claude-opus-4-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "claude-opus-4-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key_anthropic}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 64000,
             "default": false,
@@ -164,6 +150,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "claude-opus-5": {
@@ -171,28 +158,15 @@
             "name": "claude-opus-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "claude-opus-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key_anthropic}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1000000,
             "tokens": 128000,
             "default": false,
@@ -206,6 +180,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "claude-sonnet-4-5": {
@@ -213,28 +188,15 @@
             "name": "claude-sonnet-4-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "claude-sonnet-4-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key_anthropic}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 64000,
             "default": false,
@@ -248,6 +210,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "claude-sonnet-5": {
@@ -255,28 +218,15 @@
             "name": "claude-sonnet-5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "claude-sonnet-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "ANTHROPIC_API_KEY",
-                        "value": "{api_key_anthropic}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1000000,
             "tokens": 128000,
             "default": false,
@@ -290,55 +240,7 @@
             "extra": {},
             "imported": false,
             "provider": "anthropic",
-            "tool_calls": true
-        },
-        "computer-use-preview": {
-            "id": "computer-use-preview",
-            "name": "computer-use-preview",
-            "mode": [
-                "agent_openai",
-                "computer"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "computer-use-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "deep-research-max-preview-04-2026": {
@@ -347,22 +249,6 @@
             "mode": [
                 "research"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/deep-research-max-preview-04-2026",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -379,6 +265,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deep-research-preview-04-2026": {
@@ -387,22 +274,6 @@
             "mode": [
                 "research"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/deep-research-preview-04-2026",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -419,6 +290,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deep-research-pro-preview-12-2025": {
@@ -427,22 +299,6 @@
             "mode": [
                 "research"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/deep-research-pro-preview-12-2025",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -459,6 +315,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deepseek-r1:8b": {
@@ -466,22 +323,14 @@
             "name": "deepseek-r1:8b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "deepseek-r1:8b",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 128000,
             "tokens": 8192,
             "default": false,
@@ -494,6 +343,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "deepseek_api_v4_flash": {
@@ -505,28 +355,10 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "agent_openai"
+                "agent_v2",
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "deepseek-v4-flash",
-                        "type": "str"
-                    },
-                    {
-                        "name": "api_key",
-                        "value": "{api_key_deepseek}",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "DEEPSEEK_API_KEY",
-                        "value": "{api_key_deepseek}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 393216,
             "default": false,
@@ -539,6 +371,7 @@
             "extra": {},
             "imported": false,
             "provider": "deepseek_api",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "deepseek_api_v4_pro": {
@@ -550,28 +383,10 @@
                 "agent_llama",
                 "expert",
                 "chat",
-                "agent_openai"
+                "agent_v2",
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "deepseek-v4-pro",
-                        "type": "str"
-                    },
-                    {
-                        "name": "api_key",
-                        "value": "{api_key_deepseek}",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "DEEPSEEK_API_KEY",
-                        "value": "{api_key_deepseek}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 393216,
             "default": false,
@@ -584,6 +399,7 @@
             "extra": {},
             "imported": false,
             "provider": "deepseek_api",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-2.5-computer-use-preview-10-2025": {
@@ -592,22 +408,6 @@
             "mode": [
                 "computer"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-2.5-computer-use-preview-10-2025",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 64000,
             "default": false,
@@ -621,6 +421,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-2.5-flash": {
@@ -632,24 +433,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-2.5-flash",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -665,6 +453,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-2.5-flash-image": {
@@ -673,22 +462,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-2.5-flash-image",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 32768,
             "tokens": 32768,
             "default": false,
@@ -703,6 +476,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gemini-2.5-flash-native-audio-latest": {
@@ -711,22 +485,6 @@
             "mode": [
                 "audio"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-2.5-flash-native-audio-latest",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 131072,
             "tokens": 8192,
             "default": false,
@@ -742,6 +500,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-2.5-pro": {
@@ -753,24 +512,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-2.5-pro",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -786,6 +532,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3-flash-preview": {
@@ -793,29 +540,16 @@
             "name": "gemini-3-flash-preview",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "agent_openai",
-                "expert"
+                "expert",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3-flash-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -831,6 +565,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3-pro-image": {
@@ -839,22 +574,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3-pro-image",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 65536,
             "tokens": 32768,
             "default": false,
@@ -869,6 +588,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gemini-3.1-flash-image": {
@@ -877,22 +597,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.1-flash-image",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 131072,
             "tokens": 32768,
             "default": false,
@@ -907,6 +611,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": false
         },
         "gemini-3.1-flash-lite-image": {
@@ -915,22 +620,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.1-flash-lite-image",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 65536,
             "tokens": 4096,
             "default": false,
@@ -945,6 +634,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.1-flash-live-preview": {
@@ -953,22 +643,6 @@
             "mode": [
                 "audio"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.1-flash-live-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 131072,
             "tokens": 65536,
             "default": false,
@@ -985,6 +659,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-3.1-pro-preview": {
@@ -996,24 +671,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.1-pro-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -1029,6 +691,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.5-flash": {
@@ -1040,24 +703,12 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.5-flash",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -1073,6 +724,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.5-flash-lite": {
@@ -1084,24 +736,12 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.5-flash-lite",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -1117,6 +757,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.6-flash": {
@@ -1128,24 +769,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.6-flash",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -1161,6 +789,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-3.7-flash": {
@@ -1172,24 +801,12 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-3.7-flash",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -1205,6 +822,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gemini-flash-latest": {
@@ -1216,24 +834,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-flash-latest",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -1249,6 +854,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemini-pro-latest": {
@@ -1260,24 +866,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/gemini-pro-latest",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}"
-                    }
-                ]
-            },
             "ctx": 1048576,
             "tokens": 65536,
             "default": false,
@@ -1293,6 +886,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gemma4:e4b": {
@@ -1300,22 +894,14 @@
             "name": "gemma4:e4b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gemma4:e4b",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 256000,
             "tokens": 8192,
             "default": false,
@@ -1329,6 +915,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-3.5-turbo": {
@@ -1336,39 +923,14 @@
             "name": "gpt-3.5-turbo",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-3.5-turbo",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 4096,
             "tokens": 4096,
             "default": false,
@@ -1381,6 +943,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-3.5-turbo-instruct": {
@@ -1389,10 +952,6 @@
             "mode": [
                 "completion"
             ],
-            "llama_index": {
-                "args": [],
-                "env": []
-            },
             "ctx": 4096,
             "tokens": 4096,
             "default": false,
@@ -1405,6 +964,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4": {
@@ -1412,39 +972,14 @@
             "name": "gpt-4",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 8192,
             "tokens": 4096,
             "default": false,
@@ -1457,6 +992,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4-turbo": {
@@ -1464,40 +1000,15 @@
             "name": "gpt-4-turbo",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4-turbo",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
@@ -1511,168 +1022,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-4.1": {
-            "id": "gpt-4.1",
-            "name": "gpt-4.1",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4.1",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1047576,
-            "tokens": 32768,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-4.1-mini": {
-            "id": "gpt-4.1-mini",
-            "name": "gpt-4.1-mini",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4.1-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1047576,
-            "tokens": 32768,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-4.1-nano": {
-            "id": "gpt-4.1-nano",
-            "name": "gpt-4.1-nano",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4.1-nano",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1047576,
-            "tokens": 32768,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4o": {
@@ -1680,40 +1030,15 @@
             "name": "gpt-4o",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4o",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 16384,
             "default": true,
@@ -1727,6 +1052,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-4o-mini": {
@@ -1734,40 +1060,15 @@
             "name": "gpt-4o-mini",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-4o-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
@@ -1781,548 +1082,22 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
-        "gpt-5": {
-            "id": "gpt-5",
-            "name": "gpt-5 (medium)",
+        "gpt-5.3-codex": {
+            "id": "gpt-5.3-codex",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-high": {
-            "id": "gpt-5",
-            "name": "gpt-5 (high)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-low": {
-            "id": "gpt-5",
-            "name": "gpt-5 (low)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-mini": {
-            "id": "gpt-5-mini",
-            "name": "gpt-5-mini (medium)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-mini-high": {
-            "id": "gpt-5-mini",
-            "name": "gpt-5-mini (high)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-mini-low": {
-            "id": "gpt-5-mini",
-            "name": "gpt-5-mini (low)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-nano": {
-            "id": "gpt-5-nano",
-            "name": "gpt-5-nano (medium)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5-nano",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-nano-high": {
-            "id": "gpt-5-nano",
-            "name": "gpt-5-nano (high)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5-nano",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5-nano-low": {
-            "id": "gpt-5-nano",
-            "name": "gpt-5-nano (low)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5-nano",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.2-high": {
-            "id": "gpt-5.2",
-            "name": "gpt-5.2 (high)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "agent",
-                "agent_llama",
                 "agent_openai",
-                "expert"
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.2",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 400000,
             "tokens": 128000,
             "default": false,
@@ -2333,170 +1108,28 @@
             "output": [
                 "text"
             ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
             "imported": false,
             "provider": "openai",
-            "tool_calls": true
+            "reasoning_effort": true,
+            "tool_calls": true,
+            "name": "gpt-5.3-codex",
+            "extra": {}
         },
-        "gpt-5.2-low": {
-            "id": "gpt-5.2",
-            "name": "gpt-5.2 (low)",
+        "gpt-5.6-luna": {
+            "id": "gpt-5.6-luna",
+            "name": "gpt-5.6-luna",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
+                "vision",
                 "agent",
                 "agent_llama",
+                "expert",
                 "agent_openai",
-                "expert"
+                "computer",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.2",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.2-medium": {
-            "id": "gpt-5.2",
-            "name": "gpt-5.2 (medium)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "agent",
-                "agent_llama",
-                "agent_openai",
-                "expert"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.2",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
-            "ctx": 400000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-luna-high": {
-            "id": "gpt-5.6-luna",
-            "name": "gpt-5.6-luna (high)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-luna",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 1050000,
             "tokens": 128000,
             "default": false,
@@ -2506,486 +1139,105 @@
             ],
             "output": [
                 "text"
-            ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-luna-low": {
-            "id": "gpt-5.6-luna",
-            "name": "gpt-5.6-luna (low)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-luna",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-luna-medium": {
-            "id": "gpt-5.6-luna",
-            "name": "gpt-5.6-luna (medium)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-luna",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-sol-high": {
-            "id": "gpt-5.6-sol",
-            "name": "gpt-5.6-sol (high)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-sol",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-sol-low": {
-            "id": "gpt-5.6-sol",
-            "name": "gpt-5.6-sol (low)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-sol",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-sol-medium": {
-            "id": "gpt-5.6-sol",
-            "name": "gpt-5.6-sol (medium)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-sol",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-terra-high": {
-            "id": "gpt-5.6-terra",
-            "name": "gpt-5.6-terra (high)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-terra",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-terra-low": {
-            "id": "gpt-5.6-terra",
-            "name": "gpt-5.6-terra (low)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-terra",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-5.6-terra-medium": {
-            "id": "gpt-5.6-terra",
-            "name": "gpt-5.6-terra (medium)",
-            "mode": [
-                "chat",
-                "llama_index",
-                "vision",
-                "agent",
-                "agent_llama",
-                "expert",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-5.6-terra",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 1050000,
-            "tokens": 128000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "gpt-image-1": {
-            "id": "gpt-image-1",
-            "name": "gpt-image-1",
-            "mode": [
-                "img"
-            ],
-            "llama_index": {
-                "args": [],
-                "env": []
-            },
-            "ctx": 0,
-            "tokens": 0,
-            "default": true,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "image"
             ],
             "extra": {},
             "imported": false,
             "provider": "openai",
-            "tool_calls": false
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "gpt-5.6-sol": {
+            "id": "gpt-5.6-sol",
+            "name": "gpt-5.6-sol",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1050000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "gpt-5.6-terra": {
+            "id": "gpt-5.6-terra",
+            "name": "gpt-5.6-terra",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1050000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "gpt-6-astra": {
+            "id": "gpt-6-astra",
+            "name": "gpt-6-astra",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1050000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": true,
+            "tool_calls": true
         },
         "gpt-image-1.5": {
             "id": "gpt-image-1.5",
@@ -2993,37 +1245,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-image-1.5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 0,
             "tokens": 0,
             "default": false,
@@ -3037,6 +1258,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gpt-image-2": {
@@ -3045,37 +1267,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-image-2",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 0,
             "tokens": 0,
             "default": false,
@@ -3089,6 +1280,51 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
+            "tool_calls": false
+        },
+        "gpt-image-2.5-flare": {
+            "id": "gpt-image-2.5-flare",
+            "name": "gpt-image-2.5-flare",
+            "mode": [
+                "img"
+            ],
+            "ctx": 0,
+            "tokens": 0,
+            "default": true,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": false,
+            "tool_calls": false
+        },
+        "gpt-image-2.5-sunburst": {
+            "id": "gpt-image-2.5-sunburst",
+            "name": "gpt-image-2.5-sunburst",
+            "mode": [
+                "img"
+            ],
+            "ctx": 0,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "image"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "gpt-oss-120b": {
@@ -3100,19 +1336,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-oss:120b",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 128000,
             "tokens": 8000,
             "default": false,
@@ -3125,6 +1353,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-oss-120b-huggingface-router": {
@@ -3136,28 +1365,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "openai/gpt-oss-120b:novita",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_hugging_face}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_hugging_face}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 8000,
             "default": false,
@@ -3170,6 +1382,7 @@
             "extra": {},
             "imported": false,
             "provider": "huggingface_router",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-oss-20b": {
@@ -3181,19 +1394,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-oss:20b",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 128000,
             "tokens": 8000,
             "default": false,
@@ -3206,6 +1411,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-oss-20b-huggingface-router": {
@@ -3217,28 +1423,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "openai/gpt-oss-20b:novita",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_hugging_face}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_hugging_face}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 8000,
             "default": false,
@@ -3251,6 +1440,7 @@
             "extra": {},
             "imported": false,
             "provider": "huggingface_router",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "gpt-realtime": {
@@ -3259,37 +1449,6 @@
             "mode": [
                 "audio"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-realtime",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 32000,
             "tokens": 4096,
             "default": true,
@@ -3304,6 +1463,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-realtime-2.1": {
@@ -3312,37 +1472,6 @@
             "mode": [
                 "audio"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-realtime-2.1",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 32000,
             "default": false,
@@ -3358,6 +1487,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "gpt-realtime-2.1-mini": {
@@ -3366,37 +1496,6 @@
             "mode": [
                 "audio"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "gpt-realtime-2.1-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 32000,
             "default": false,
@@ -3412,6 +1511,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-2-vision": {
@@ -3419,28 +1519,11 @@
             "name": "grok-2-vision",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-2-vision",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
             "ctx": 32768,
             "tokens": 16384,
             "default": false,
@@ -3454,6 +1537,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-3-mini": {
@@ -3461,31 +1545,14 @@
             "name": "grok-3-mini",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
             "ctx": 131072,
             "tokens": 16384,
             "default": false,
@@ -3498,6 +1565,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-3-mini-fast": {
@@ -3505,31 +1573,14 @@
             "name": "grok-3-mini-fast",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "agent_llama",
                 "expert",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-3-mini-fast",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
             "ctx": 131072,
             "tokens": 16384,
             "default": false,
@@ -3542,6 +1593,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "grok-4.3": {
@@ -3549,33 +1601,16 @@
             "name": "grok-4.3",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "expert",
                 "agent_openai",
-                "audio"
+                "audio",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-4.3",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
             "ctx": 1000000,
             "tokens": 0,
             "default": false,
@@ -3591,6 +1626,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "grok-4.5": {
@@ -3598,33 +1634,16 @@
             "name": "grok-4.5",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "expert",
                 "agent_openai",
-                "audio"
+                "audio",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-4.5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
             "ctx": 500000,
             "tokens": 0,
             "default": false,
@@ -3640,6 +1659,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "grok-4.6": {
@@ -3647,33 +1667,16 @@
             "name": "grok-4.6",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "vision",
                 "agent",
                 "agent_llama",
                 "expert",
                 "agent_openai",
-                "audio"
+                "audio",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-4.6",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}"
-                    }
-                ]
-            },
             "ctx": 500000,
             "tokens": 0,
             "default": false,
@@ -3689,6 +1692,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "grok-imagine-image": {
@@ -3697,27 +1701,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-imagine-image",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 0,
             "tokens": 0,
             "default": false,
@@ -3731,6 +1714,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "grok-imagine-image-quality-latest": {
@@ -3739,27 +1723,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-imagine-image-quality-latest",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 0,
             "tokens": 0,
             "default": false,
@@ -3773,6 +1736,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "grok-imagine-video": {
@@ -3781,27 +1745,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-imagine-video",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 0,
             "tokens": 0,
             "default": false,
@@ -3816,6 +1759,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "grok-imagine-video-1.5": {
@@ -3824,27 +1768,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "grok-imagine-video-1.5",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_xai}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_xai}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 0,
             "tokens": 0,
             "default": false,
@@ -3859,6 +1782,7 @@
             "extra": {},
             "imported": false,
             "provider": "x_ai",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "imagen-4.0-generate-001": {
@@ -3867,22 +1791,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/imagen-4.0-generate-001",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 480,
             "tokens": 0,
             "default": false,
@@ -3895,6 +1803,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "llama2-uncensored": {
@@ -3906,18 +1815,10 @@
                 "agent_llama",
                 "agent_openai",
                 "expert",
-                "chat"
+                "chat",
+                "agent_v2",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "llama2-uncensored",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 128000,
             "tokens": 4096,
             "default": false,
@@ -3930,6 +1831,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "llama3.1": {
@@ -3937,22 +1839,14 @@
             "name": "llama3.1",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "llama3.1",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 131072,
             "tokens": 8192,
             "default": false,
@@ -3966,6 +1860,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "llama4:scout": {
@@ -3973,22 +1868,14 @@
             "name": "llama4:scout",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "llama4:scout",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 10000000,
             "tokens": 8192,
             "default": false,
@@ -4002,6 +1889,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "mistral-small3.2:latest": {
@@ -4009,22 +1897,14 @@
             "name": "mistral-small3.2",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "mistral-small3.2:latest",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 128000,
             "tokens": 8192,
             "default": false,
@@ -4038,6 +1918,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "nano-banana-pro-preview": {
@@ -4046,22 +1927,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/nano-banana-pro-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 131072,
             "tokens": 32768,
             "default": false,
@@ -4076,6 +1941,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "nemotron-3.5-lightning:30b": {
@@ -4083,22 +1949,14 @@
             "name": "nemotron-3.5-lightning:30b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "nemotron-3.5-lightning:30b",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 1048576,
             "tokens": 8192,
             "default": false,
@@ -4111,6 +1969,7 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "o1": {
@@ -4118,40 +1977,15 @@
             "name": "o1",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
                 "llama_index",
                 "agent_llama",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o1",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 100000,
             "default": false,
@@ -4165,6 +1999,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "o1-pro": {
@@ -4172,40 +2007,15 @@
             "name": "o1-pro",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
                 "llama_index",
                 "agent_llama",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o1-pro",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
@@ -4219,6 +2029,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "o3": {
@@ -4226,40 +2037,15 @@
             "name": "o3",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
                 "llama_index",
                 "agent_llama",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
@@ -4273,49 +2059,27 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
-        "o3-deep-research": {
-            "id": "o3-deep-research",
-            "name": "o3-deep-research",
+        "o3-mini": {
+            "id": "o3-mini",
+            "name": "o3-mini",
             "mode": [
                 "chat",
-                "research",
-                "agent_openai"
+                "agent_v2",
+                "agent",
+                "expert",
+                "llama_index",
+                "agent_llama",
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-deep-research",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
             "input": [
-                "text",
-                "image"
+                "text"
             ],
             "output": [
                 "text"
@@ -4323,168 +2087,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-high": {
-            "id": "o3-mini",
-            "name": "o3-mini (high)",
-            "mode": [
-                "chat",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "high"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-low": {
-            "id": "o3-mini",
-            "name": "o3-mini (low)",
-            "mode": [
-                "chat",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "low"
-            },
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o3-mini-medium": {
-            "id": "o3-mini",
-            "name": "o3-mini (medium)",
-            "mode": [
-                "chat",
-                "agent",
-                "expert",
-                "llama_index",
-                "agent_llama",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {
-                "reasoning_effort": "medium"
-            },
-            "imported": false,
-            "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "o3-pro": {
@@ -4492,40 +2095,15 @@
             "name": "o3-pro",
             "mode": [
                 "chat",
+                "agent_v2",
                 "vision",
                 "agent",
                 "expert",
                 "llama_index",
                 "agent_llama",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o3-pro",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 100000,
             "default": false,
@@ -4539,6 +2117,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "o4-mini": {
@@ -4546,127 +2125,16 @@
             "name": "o4-mini",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent",
                 "expert",
                 "agent_llama",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o4-mini",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "o4-mini-deep-research": {
-            "id": "o4-mini-deep-research",
-            "name": "o4-mini-deep-research",
-            "mode": [
-                "chat",
-                "research",
-                "agent_openai"
-            ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "o4-mini-deep-research",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}"
-                    }
-                ]
-            },
-            "ctx": 200000,
-            "tokens": 100000,
-            "default": false,
-            "input": [
-                "text",
-                "image"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "openai",
-            "tool_calls": true
-        },
-        "qwen3.6:27b": {
-            "id": "qwen3.6:27b",
-            "name": "qwen3.6:27b",
-            "mode": [
-                "chat",
-                "llama_index",
-                "agent_llama",
                 "agent_openai",
-                "agent",
-                "expert"
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "qwen3.6:27b",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
-            "ctx": 256000,
-            "tokens": 8192,
+            "ctx": 200000,
+            "tokens": 100000,
             "default": false,
             "input": [
                 "text",
@@ -4677,7 +2145,8 @@
             ],
             "extra": {},
             "imported": false,
-            "provider": "ollama",
+            "provider": "openai",
+            "reasoning_effort": true,
             "tool_calls": true
         },
         "qwen3.5:9b": {
@@ -4685,22 +2154,14 @@
             "name": "qwen3.5:9b",
             "mode": [
                 "chat",
+                "agent_v2",
                 "llama_index",
                 "agent_llama",
                 "agent_openai",
                 "agent",
-                "expert"
+                "expert",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "qwen3.5:9b",
-                        "type": "str"
-                    }
-                ],
-                "env": []
-            },
             "ctx": 256000,
             "tokens": 8192,
             "default": false,
@@ -4714,6 +2175,36 @@
             "extra": {},
             "imported": false,
             "provider": "ollama",
+            "reasoning_effort": false,
+            "tool_calls": true
+        },
+        "qwen3.6:27b": {
+            "id": "qwen3.6:27b",
+            "name": "qwen3.6:27b",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "llama_index",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert",
+                "completion"
+            ],
+            "ctx": 256000,
+            "tokens": 8192,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "ollama",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "sonar": {
@@ -4725,28 +2216,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "sonar",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_perplexity}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_perplexity}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
@@ -4759,7 +2233,8 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "reasoning_effort": false,
+            "tool_calls": false
         },
         "sonar-deep-research": {
             "id": "sonar-deep-research",
@@ -4770,28 +2245,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "sonar-deep-research",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_perplexity}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_perplexity}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 16384,
             "default": false,
@@ -4804,7 +2262,8 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "reasoning_effort": true,
+            "tool_calls": false
         },
         "sonar-pro": {
             "id": "sonar-pro",
@@ -4815,28 +2274,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "sonar-pro",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_perplexity}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_perplexity}"
-                    }
-                ]
-            },
             "ctx": 200000,
             "tokens": 8000,
             "default": false,
@@ -4849,7 +2291,8 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "reasoning_effort": false,
+            "tool_calls": false
         },
         "sonar-reasoning-pro": {
             "id": "sonar-reasoning-pro",
@@ -4860,28 +2303,11 @@
                 "agent_llama",
                 "expert",
                 "chat",
+                "agent_v2",
                 "research",
-                "agent_openai"
+                "agent_openai",
+                "completion"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "sonar-reasoning-pro",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key_perplexity}"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint_perplexity}"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 8000,
             "default": false,
@@ -4894,7 +2320,8 @@
             "extra": {},
             "imported": false,
             "provider": "perplexity",
-            "tool_calls": true
+            "reasoning_effort": true,
+            "tool_calls": false
         },
         "sora-2": {
             "id": "sora-2",
@@ -4902,37 +2329,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "sora-2",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 0,
             "default": false,
@@ -4946,6 +2342,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "sora-2-pro": {
@@ -4954,37 +2351,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "sora-2-pro",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_BASE",
-                        "value": "{api_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "AZURE_OPENAI_ENDPOINT",
-                        "value": "{api_azure_endpoint}",
-                        "type": "str"
-                    },
-                    {
-                        "name": "OPENAI_API_VERSION",
-                        "value": "{api_azure_version}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 128000,
             "tokens": 0,
             "default": false,
@@ -4998,6 +2364,7 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
             "tool_calls": true
         },
         "veo-3.1-fast-generate-preview": {
@@ -5006,22 +2373,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/veo-3.1-fast-generate-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1024,
             "tokens": 0,
             "default": false,
@@ -5035,6 +2386,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "veo-3.1-generate-preview": {
@@ -5043,22 +2395,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/veo-3.1-generate-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1024,
             "tokens": 0,
             "default": false,
@@ -5072,6 +2408,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         },
         "veo-3.1-lite-generate-preview": {
@@ -5080,22 +2417,6 @@
             "mode": [
                 "img"
             ],
-            "llama_index": {
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "models/veo-3.1-lite-generate-preview",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "GOOGLE_API_KEY",
-                        "value": "{api_key_google}",
-                        "type": "str"
-                    }
-                ]
-            },
             "ctx": 1024,
             "tokens": 0,
             "default": false,
@@ -5109,6 +2430,7 @@
             "extra": {},
             "imported": false,
             "provider": "google",
+            "reasoning_effort": false,
             "tool_calls": false
         }
     }

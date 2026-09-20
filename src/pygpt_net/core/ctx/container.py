@@ -6,18 +6,44 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.17 21:50:00                  #
 # ================================================== #
 
 from typing import List
 
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QSizePolicy
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.item.ctx import CtxItem
 
 from .bag import Bag
+
+
+class PlainChatOutput(ChatOutput):
+    """Plain-text chat output constrained to the same content width as WebView."""
+
+    MAX_WIDTH = 800
+
+    def __init__(self, window=None):
+        super().__init__(window)
+        self.setMaximumWidth(self.MAX_WIDTH)
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # Keep the plain-text content aligned with the tabbed Notepad, whose
+        # editor has 3 px more space above the text than the default output.
+        self.setViewportMargins(0, 8, 0, 0)
+
+    def sizeHint(self):
+        size = super().sizeHint()
+        size.setWidth(self.MAX_WIDTH)
+        return size
+
+    def minimumSizeHint(self):
+        size = super().minimumSizeHint()
+        size.setWidth(0)
+        return size
 
 
 class Container:
@@ -38,7 +64,7 @@ class Container:
         :return: Widget
         """
         # plain output
-        output_plain = ChatOutput(self.window)
+        output_plain = PlainChatOutput(self.window)
         output_plain.set_tab(tab)
 
         # web
@@ -80,7 +106,7 @@ class Container:
 
         # build layout
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['output_plain'][tab.pid])
+        layout.addWidget(self.window.ui.nodes['output_plain'][tab.pid], 0, Qt.AlignHCenter)
         layout.addWidget(self.window.ui.nodes['output'][tab.pid])
         layout.setContentsMargins(0, 0, 0, 0)
         return self.window.core.tabs.from_layout(layout)
@@ -93,28 +119,77 @@ class Container:
         """
         nodes = self.window.ui.nodes
 
-        if tab.pid in nodes['output_plain']:
-            nodes['output_plain'][tab.pid].on_delete()  # clean up
-            nodes['output_plain'][tab.pid] = None
-            del nodes['output_plain'][tab.pid]
-        if tab.pid in nodes['output']:
-            nodes['output'][tab.pid].on_delete()  # clean up
-            nodes['output'][tab.pid] = None
-            del nodes['output'][tab.pid]
+        # Unregister widgets before cleanup.  WebView cleanup is asynchronous
+        # (deleteLater), so renderer lookups must stop seeing the old wrapper as
+        # soon as teardown begins.
+        output_plain = nodes['output_plain'].pop(tab.pid, None)
+        if output_plain is not None:
+            output_plain.on_delete()
+
+        output = nodes['output'].pop(tab.pid, None)
+        if output is not None:
+            output.on_delete()
 
         self.window.controller.chat.render.remove_pid(tab.pid)  # remove pid data from renderer registry
         self.window.core.ctx.output.remove_pid(tab.pid)  # remove pid from ctx output mapping
 
     def get_active_pid(self) -> int:
         """
-        Get active PID
+        Get PID of the chat that owns the active context.
 
-        :return: PID
+        An in-flight request is authoritative. Once a render target has been
+        pinned, context reads/writes must stay on that chat even if another chat
+        in the second column receives focus. Without this, the shared Ctx core
+        can start reading the second tab's Bag while the first request is still
+        running, which makes histories/responses bleed between both WebViews.
+
+        :return: chat-tab PID
         """
+        core = self.window.core
+        tabs = core.tabs
+        ctx = getattr(core, "ctx", None)
+        output = getattr(ctx, "output", None) if ctx is not None else None
+        meta = ctx.get_current_meta() if ctx is not None else None
+
+        # A top-level request owner is stronger than both global context and UI
+        # focus. It also exists before a new/empty chat has a CtxMeta.
+        if output is not None:
+            chat_pid = output.get_request_pid()
+            if chat_pid is not None:
+                return chat_pid
+
+        # Request/render pin has priority over UI focus, including focus on a
+        # *different chat tab*. This is the important split-view isolation rule.
+        if output is not None and meta is not None:
+            chat_pid = output.get_pinned_pid(meta)
+            if chat_pid is not None:
+                return chat_pid
+
+        # Normal idle case: the focused chat owns its own Bag.
         pid = self.window.controller.ui.tabs.get_current_pid()
-        if pid is not None:
+        tab = tabs.get_tab_by_pid(pid) if pid is not None else None
+        if tab is not None and tab.type == Tab.TAB_CHAT:
             return pid
-        return 0  # default bag
+
+        # Focus is on a non-chat tab (Code Interpreter, Files, etc.). Resolve
+        # the current meta's mapped chat instead of allocating a Bag for tool PID.
+        if output is not None and meta is not None:
+            chat_pid = output.get_pid(meta)
+            chat_tab = tabs.get_tab_by_pid(chat_pid) if chat_pid is not None else None
+            if chat_tab is not None and chat_tab.type == Tab.TAB_CHAT:
+                return chat_pid
+
+        if output is not None:
+            chat_pid = output.get_last_chat_pid()
+            chat_tab = tabs.get_tab_by_pid(chat_pid) if chat_pid is not None else None
+            if chat_tab is not None and chat_tab.type == Tab.TAB_CHAT:
+                return chat_pid
+
+        first_chat = tabs.get_first_tab_by_type(Tab.TAB_CHAT)
+        if first_chat is not None:
+            return first_chat.pid
+
+        return 0
 
     def get_active_tab_id(self) -> int:
         """

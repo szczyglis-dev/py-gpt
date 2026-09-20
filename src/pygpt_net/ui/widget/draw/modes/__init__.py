@@ -4,6 +4,7 @@
 from .base import DrawMode, DRAW_MODE_ORDER, DRAW_MODE_NAMES, DRAW_MODE_TRANSLATION_KEYS
 from .free import FreeDrawMode
 from .shapes import ArrowDrawMode, RectangleDrawMode, CircleDrawMode, LineDrawMode
+from .text import TextDrawMode
 
 
 def create_draw_mode_handlers():
@@ -14,6 +15,7 @@ def create_draw_mode_handlers():
         DrawMode.RECTANGLE: RectangleDrawMode(),
         DrawMode.CIRCLE: CircleDrawMode(),
         DrawMode.LINE: LineDrawMode(),
+        DrawMode.TEXT: TextDrawMode(),
     }
 
 
@@ -22,5 +24,6 @@ __all__ = [
     "DRAW_MODE_ORDER",
     "DRAW_MODE_NAMES",
     "DRAW_MODE_TRANSLATION_KEYS",
+    "TextDrawMode",
     "create_draw_mode_handlers",
 ]

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 17:30:00                  #
+# Updated Date: 2026.09.10 09:50:00                  #
 # ================================================== #
 
 import os
@@ -34,14 +34,14 @@ class Analyzer:
         model_id = core.plugins.get_option("openai_vision", "model")
         if model_id and core.models.has(model_id):
             model = core.models.get(model_id)
-            if model.is_image_input() and model.is_supported(MODE_CHAT):
+            if model.is_image_input():
                 return model
 
-        # Keep the current model when it already supports image input in Chat.
+        # Keep the current model when it already declares image input support.
         current_id = core.config.get("model")
         if current_id and core.models.has(current_id):
             model = core.models.get(current_id)
-            if model.is_image_input() and model.is_supported(MODE_CHAT):
+            if model.is_image_input():
                 return model
 
         # Backward-compatible fallback for old plugin configurations.
@@ -98,7 +98,7 @@ class Analyzer:
 
             model = self._get_model()
             if model is None:
-                return "FAILED: No image-capable Chat model is configured in the Vision (inline) plugin."
+                return "FAILED: No image-capable model is configured in the Vision (inline) plugin."
 
             tmp_ctx = CtxItem(mode=MODE_CHAT)
             tmp_ctx.output_name = ctx.output_name or "assistant"

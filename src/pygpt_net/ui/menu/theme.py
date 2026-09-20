@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -40,6 +40,9 @@ class Theme:
             act = m.get('theme.tooltips')
             if isinstance(act, QAction):
                 act.setChecked(w.core.config.get('layout.tooltips'))
+            fullscreen = m.get('theme.fullscreen')
+            if isinstance(fullscreen, QAction):
+                fullscreen.setChecked(w.isFullScreen())
             return
 
         m['theme'] = {}
@@ -48,10 +51,10 @@ class Theme:
         m['theme.layout.density'] = {}
         m['menu.theme'] = QMenu(trans("menu.theme"), w)
 
+        m['theme.theme'] = QMenu(trans("menu.theme.color_theme"), w)
+
         m['theme.style'] = QMenu(trans("menu.theme.style"), w)
 
-        m['theme.dark'] = QMenu(trans("menu.theme.dark"), w)
-        m['theme.light'] = QMenu(trans("menu.theme.light"), w)
         m['theme.syntax'] = QMenu(trans("menu.theme.syntax"), w)
 
         m['theme.density'] = QMenu(trans("menu.theme.density"), w)
@@ -60,18 +63,28 @@ class Theme:
         m['theme.tooltips'].triggered.connect(self._on_toggle_tooltips)
         m['theme.tooltips'].setChecked(w.core.config.get('layout.tooltips'))
 
+        m['theme.fullscreen'] = QAction(
+            QIcon(":/icons/fullscreen.svg"),
+            trans("menu.tray.screenshot.full_screen"),
+            w,
+            checkable=True,
+        )
+        m['theme.fullscreen'].setShortcut("F11")
+        m['theme.fullscreen'].setChecked(w.isFullScreen())
+        m['theme.fullscreen'].triggered.connect(w.toggle_fullscreen)
+
         m['theme.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
                                       trans("menu.theme.settings"), w)
         m['theme.settings'].setMenuRole(QAction.MenuRole.NoRole)
         m['theme.settings'].triggered.connect(self._open_settings)
 
         menu_theme = m['menu.theme']
+        menu_theme.addMenu(m['theme.theme'])
         menu_theme.addMenu(m['theme.style'])
-        menu_theme.addMenu(m['theme.dark'])
-        menu_theme.addMenu(m['theme.light'])
         menu_theme.addMenu(m['theme.syntax'])
         menu_theme.addMenu(m['theme.density'])
         menu_theme.addAction(m['theme.tooltips'])
+        menu_theme.addAction(m['theme.fullscreen'])
         menu_theme.addAction(m['theme.settings'])
 
         self._loaded = True

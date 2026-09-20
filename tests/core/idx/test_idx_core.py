@@ -337,6 +337,7 @@ def test_to_file_id(mock_window):
     provider = MagicMock()
     files = Files(mock_window, provider)
     root_dir = os.path.normpath(mock_window.core.config.get_user_dir('data'))
+    mock_window.core.filesystem.get_data_dir = MagicMock(return_value=root_dir)
 
     if platform.system() == 'Windows':
         res = files.get_id(path=root_dir + "\\dir\\file.txt")

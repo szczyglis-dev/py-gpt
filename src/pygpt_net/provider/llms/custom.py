@@ -9,8 +9,9 @@
 # Updated Date: 2026.09.05 12:30:00                  #
 # ================================================== #
 
-from typing import List, Dict
+from typing import Dict, List, Optional
 
+from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import MODE_LLAMA_INDEX
@@ -33,7 +34,7 @@ class CustomLLM(BaseLLM):
         self.name = name
         self.api_base = api_base
         self.api_key = api_key or ""
-        self.type = [MODE_LLAMA_INDEX]
+        self.type = [MODE_LLAMA_INDEX, "embeddings"]
         self.is_runtime_custom = True
 
     def get_api_key(self) -> str:
@@ -49,13 +50,7 @@ class CustomLLM(BaseLLM):
         """Return LlamaIndex OpenAILike wrapper for Chat with Files/agents."""
         from llama_index.llms.openai_like import OpenAILike
 
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args:
-            args["api_key"] = self.get_api_key()
-        if "api_base" not in args:
-            args["api_base"] = self.api_base
+        args = self.prepare_openai_compatible_args(window, model)
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
@@ -63,26 +58,18 @@ class CustomLLM(BaseLLM):
         if model.ctx and "context_window" not in args:
             args["context_window"] = model.ctx
 
-        # Per-model credentials, when set, still have the highest priority.
-        custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
-        custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
-        if custom_api_key:
-            args["api_key"] = custom_api_key
-        if custom_api_endpoint:
-            args["api_base"] = custom_api_endpoint
-
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
-    def get_models(self, window) -> List[Dict]:
-        """Return models exposed by the provider's OpenAI-compatible /models endpoint."""
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None,
+    ) -> BaseEmbedding:
+        """Return OpenAI-compatible embeddings for a runtime custom provider."""
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        return OpenAILikeEmbedding(**args)

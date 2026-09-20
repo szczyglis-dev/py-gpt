@@ -31,6 +31,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.handler_simple = Simple(self)
         self.id = "audio_input"
+        self.is_common_plugin = True
         self.name = "Audio Input"
         self.type = [
             'audio.input',

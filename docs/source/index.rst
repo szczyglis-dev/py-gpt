@@ -6,7 +6,7 @@
 PyGPT - pygpt.net
 ====================
 
-| **Release:** 2.8.9 (2026-09-05)
+| **Release:** 2.8.26 (2026-09-20)
 | **Project Website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt
@@ -33,6 +33,8 @@ Contents
    profiles
    models
    plugins
+   skills
+   connectors
    tools
    functions
    tokens

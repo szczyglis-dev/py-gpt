@@ -229,6 +229,10 @@ class Plugins:
 
             area_widget = QWidget()
             area_widget.setLayout(area)
+            # Keep a stable plugin identity on the tab. Tab/list positions may
+            # differ after a runtime language change because translated plugin
+            # names can sort differently.
+            area_widget.setProperty('plugin_id', id)
 
             # append to tab
             self.window.ui.tabs['plugin.settings'].addTab(area_widget, name_txt)
@@ -357,7 +361,6 @@ class Plugins:
                 apply(option)
                 widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
             elif t == 'cmd':
-                apply(option)
                 widgets[key] = OptionCmd(self.window, plugin, parent, key, option)  # command
 
         return widgets
@@ -523,11 +526,17 @@ class Plugins:
         """
         model = self.window.ui.models[id]
         model.removeRows(0, model.rowCount())
-        i = 0
-        for n in data:
+
+        # Re-sort by the currently active locale, but store the stable plugin
+        # id in every row. Runtime language changes can change alphabetical
+        # order, so row numbers must never be used as plugin identifiers.
+        pm = self.window.core.plugins
+        plugin_ids = [pid for pid in pm.get_ids(sort=True) if pid in data]
+        for i, plugin_id in enumerate(plugin_ids):
             model.insertRow(i)
-            name = self.window.core.plugins.get_name(data[n].id)
-            tooltip = self.window.core.plugins.get_desc(data[n].id)
-            model.setData(model.index(i, 0), name)
-            model.setData(model.index(i, 0), tooltip, Qt.ToolTipRole)
-            i += 1
+            index = model.index(i, 0)
+            name = pm.get_name(plugin_id)
+            tooltip = pm.get_desc(plugin_id)
+            model.setData(index, name)
+            model.setData(index, tooltip, Qt.ToolTipRole)
+            model.setData(index, plugin_id, Qt.UserRole)

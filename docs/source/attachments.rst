@@ -18,10 +18,29 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 
 .. tip::
-   Attachments uploaded in a project are available in all contexts in that project.
+   Project-wide attachment sharing is optional. Enable ``Settings -> Files and attachments -> General -> Make attachments available in the whole project`` to make attachments added in one chat available to all chats in the same project. The option is disabled by default; when disabled, attachments remain available only in the chat where they were added.
 
 .. image:: images/v2_file_input.png
    :width: 800
+
+Mentioning attachments, workdir files, and conversations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The message input supports inline ``@`` mentions for current attachments, files or directories from the active data workdir, and previously saved conversations. Type ``@`` to open a small scrollable picker above the input. Current attachments are shown first, followed by files and directories from the active workdir. Continue typing after ``@`` to filter the list; deleting characters updates the matches immediately. You can select an item with the mouse or with the keyboard (arrow keys plus ``Enter``/``Tab``; ``Esc`` closes the picker).
+
+A numeric mention is treated specially. Type an exact conversation ID such as ``@123``. If that context exists in the local context database, the picker adds a **Chat history** section containing the conversation title. Selecting it keeps the numeric ID internally while displaying the conversation title as the mention label. This lets PyGPT reliably resolve the same stored conversation later even if the visible title is more descriptive than the ID.
+
+When the message is sent, a conversation mention is resolved through the Chat history backend even when the optional **Chat history (inline)** plugin is not enabled. PyGPT passes the **current user request** to the history summarizer and retrieves only information from the referenced conversation that is relevant to that request. It is therefore query-focused retrieval/summarization, not a generic summary and not an unconditional copy of the entire old conversation. For long conversations, the transcript is packed according to the selected summarizer model's context window, processed from the newest chunks toward older chunks, and query-focused extracts are reduced recursively until one bounded result remains. The summarizer model and summary budget are configured in the Chat history plugin settings.
+
+The resulting provider-facing input contains a structured block such as ``<conversation id="123" title="Previous title">...relevant context...</conversation>``. The block gives the target model the source conversation ID/title together with the retrieved context. The stored message and chat UI continue to render the compact ``@Previous title`` mention rather than exposing the expanded retrieval block.
+
+Selected mentions are rendered with a distinct color in the input and in conversation history so they remain easy to identify. Directories are displayed with a trailing ``/``. Mention metadata is preserved when a stored message is reloaded or edited.
+
+For non-conversation mentions, the ``@`` syntax is also a user-interface reference rather than extra prompt syntax. Before the request is sent, PyGPT converts a normal attachment mention to its plain attachment name and a workdir file/directory mention to its portable path, for example ``%workdir%/data/docs/spec.md``. If the mentioned attachment is an image and the final request model actually accepts image input, the runtime provider prompt uses ``Attached Image #N`` instead of the filename, where ``N`` follows the image-attachment order used by the multimodal request. This substitution is runtime-only: the stored conversation and UI keep the original attachment name.
+
+.. important::
+
+   Mentioning a workdir file or directory does **not** automatically read its contents into the prompt. It identifies the exact path the user is referring to. The model still needs an available file/tool path (for example ``Files I/O``), RAG/index access, or another supported mechanism to inspect that file. Attachment mentions continue to use the normal attachment-processing rules described below. Conversation-ID mentions are different: PyGPT explicitly retrieves query-focused context from the referenced conversation database entry before the request is sent.
 
 You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and can be converted into text and/or indexed for use as additional context. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
@@ -70,6 +89,9 @@ Files sent through the native path are marked with the ``(Native)`` suffix in th
 
    To inspect native-upload activity in the console, enable ``Settings -> Debug -> Log attachments usage to console``. Messages such as ``Uploading native attachment: ...`` are printed only when attachment logging is enabled.
 
+Attachment context modes
+^^^^^^^^^^^^^^^^^^^^^^^^
+
 The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
 
 - ``Full context``: Provides best results. This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
@@ -78,7 +100,7 @@ The content from the uploaded attachments will be used in the current conversati
 
 - ``Summary``: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the ``Files and attachments`` section.
 
-In the ``RAG`` and ``Summary`` mode, you can enable an additional setting by going to ``Settings -> Files and attachments -> Use history in RAG query``. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the ``RAG limit`` option, you can set a limit on how many recent entries in a discussion should be considered (``0 = no limit, default: 3``).
+In the ``RAG`` and ``Summary`` mode, you can enable an additional setting by going to ``Settings -> Files and attachments -> RAG -> Use history in RAG query``. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the ``RAG limit`` option, you can set a limit on how many recent entries in a discussion should be considered (``0 = no limit, default: 3``).
 
 **Images as Additional Context**
 
@@ -90,23 +112,25 @@ To use the ``RAG`` mode, the file must be indexed in the vector database. This o
 
 **Embeddings**
 
-When using RAG to query attachments, the documents are indexed into a temporary vector store. With multiple providers and models available, you can select the model used for querying attachments in: ``Config -> Settings -> Files and Attachments``. You can also choose the embedding models for specified providers in ``Config -> Settings -> Indexes / LlamaIndex -> Embeddings -> Default embedding models`` list. By default, when querying an attachment using RAG, the default embedding model and provider corresponding to the RAG query model will be used. If no default configuration is provided for a specific provider, the global embedding configuration will be used.
+When using RAG to query attachments, the documents are indexed into a temporary vector store. The query model is configured in ``Config -> Settings -> Files and attachments -> RAG -> Model for RAG queries``. Embedding configuration is shared with the rest of RAG under ``Config -> Settings -> Indexes / RAG -> Embeddings``.
 
-For example, if the RAG query model is ``gpt-4o-mini``, then the default model for the provider ``OpenAI`` will be used. If the default model for ``OpenAI`` is not specified on the list, the global provider and model will be used.
+``Default embedding models`` maps each model provider to its default embedding model and is used for file indexing, conversation-context indexing, and attachments. For attachment RAG, PyGPT first tries the mapping that matches the RAG query model's provider; if no mapping is available, it falls back to the global ``Embeddings provider`` and its default model. Credentials and endpoints are inherited from the selected provider's normal global settings, including runtime custom providers. ``Global embeddings provider **kwargs`` and ``Global embeddings provider ENV vars`` in **Advanced** are optional overrides and normally remain empty. ``Embeddings timeout`` controls embedding request timeout and defaults to 60 seconds.
 
 Downloading files
 -----------------
 
-**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an ``data`` folder located within the user's working directory. To view or manage these files, users can navigate to the ``Files`` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
+**PyGPT** automatically downloads and saves files created by the model in the active ``data`` workdir. Outside projects, and in projects that use the shared workdir, this is the normal ``<profile workdir>/data`` directory. A project can instead define its own data workdir; when a conversation from that project is active, the ``Files`` tab displays that project directory and file-producing tools use it automatically.
 
-This ``data`` directory is also where the application stores files that are generated locally by the AI, such as code files or any other outputs requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated ``LlamaIndex``) and use it's contents as additional context provided to discussion.
+The active ``data`` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with the integrated ``LlamaIndex`` support. The project override applies only to this logical data root; it does not move profile-level paths such as ``tmp``, configuration files, the database or other application directories.
 
-The ``Files I/O`` plugin takes care of file operations in the ``data`` directory, while the ``Code Interpreter`` plugin allows for the execution of code from these files.
+The ``Files I/O`` and ``Python interpreter`` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as ``/data``.
+
+If ``Settings -> Files and attachments -> General -> Store images, captures, and uploads in the workdir data directory`` is enabled, ``img``, ``capture`` and ``upload`` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. The internal ``tmp`` directory always remains in the base profile workdir.
 
 .. image:: images/v2_file_output.png
    :width: 800
 
-To allow the model to manage files or python code execution, the ``+ Tools`` option must be active, along with the above-mentioned plugins:
+To allow the model to manage files or execute Python code, enable the ``Tools`` switch together with the required plugins:
 
 .. image:: images/v2_code_execute.png
    :width: 400

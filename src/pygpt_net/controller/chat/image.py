@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:20:00
+# Updated Date: 2026.09.15 14:00:00
 # ================================================== #
 
 import os
@@ -15,8 +15,9 @@ from typing import Optional, List
 from PySide6.QtCore import Slot
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.image_state import remember_generated_image_path
+from pygpt_net.core.image.state import remember_generated_image_path
 from pygpt_net.core.types import MODE_IMAGE
+from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.events import Event, KernelEvent, RenderEvent
 from pygpt_net.utils import trans
@@ -86,14 +87,14 @@ class Image:
                         tmp_video_id = item.extra.get('video_id')
                         if video_id is None and tmp_video_id:
                             if not tmp_video_id.startswith("http://") and not tmp_video_id.startswith("https://"):
-                                video_id = core.filesystem.to_workdir(tmp_video_id, auto_prefix=False)
+                                video_id = core.filesystem.to_workdir(tmp_video_id, auto_prefix=False, ctx=item)
                             else:
                                 video_id = tmp_video_id
                     if core.config.get("img.remix"):
                         tmp_image_id = item.extra.get('image_id')
                         if image_id is None and tmp_image_id:
                             if not tmp_image_id.startswith("http://") and not tmp_image_id.startswith("https://"):
-                                image_id = core.filesystem.to_workdir(tmp_image_id, auto_prefix=False)
+                                image_id = core.filesystem.to_workdir(tmp_image_id, auto_prefix=False, ctx=item)
                             else:
                                 image_id = tmp_image_id
                 if image_id and video_id:
@@ -135,7 +136,7 @@ class Image:
             ctx=ctx,
             mode=MODE_IMAGE,
             model=model_data,  # model instance
-            prompt=text,
+            prompt=mentions_to_model_text(text, attachments=files),
             attachments=files,
         )
         try:
@@ -187,7 +188,7 @@ class Image:
         ico_download = os.path.join(ico_dir, "download.svg")
         ico_preview = os.path.join(ico_dir, "view.svg")
         for path in paths:
-            safe_path = self.window.core.filesystem.make_local(path)
+            safe_path = self.window.core.filesystem.make_local(path, ctx=ctx)
             """
             urls.append(f"![image]({ico_preview}) [**{trans('action.preview')}**]({safe_path})  "
                         f"![image]({ico_download})[**{trans('action.download')}**](bridge://download/{safe_path})")
@@ -200,7 +201,7 @@ class Image:
         if not core.config.get('img_raw'):
             string += f"\nPrompt: {prompt}"
 
-        local_urls = core.filesystem.make_local_list(paths)
+        local_urls = core.filesystem.make_local_list(paths, ctx=ctx)
         ctx.images = local_urls  # save images paths
         remember_generated_image_path(core, ctx, paths)
         ctx.set_output(string.strip())
@@ -248,7 +249,7 @@ class Image:
             string += f"{i}) `{path}`\n"
             i += 1
 
-        local_urls = core.filesystem.make_local_list(paths)
+        local_urls = core.filesystem.make_local_list(paths, ctx=ctx)
 
         # Do not replace images already attached to this context. In particular,
         # the Image generation plugin stores the user's reference image in
@@ -275,31 +276,60 @@ class Image:
         render_ctx.meta = ctx.meta
         render_ctx.images = list(local_urls)
 
-        # WARNING:
-        # if internal (sync) mode, then re-send OK status response, if not, append only img result
-        # it will only inform system that image was generated, user will see it in chat with image after render
-        # of ctx item (link to images are appended to ctx item)
+        # Image generation has its own async provider worker and therefore does
+        # not pass through BasePlugin.handle_finished(). Detect a structured
+        # image task explicitly and feed its result back into the normal Reply
+        # pipeline; otherwise the partial task stays ``pending`` forever.
+        part = ctx.get_active_part()
+        pending_image_task = False
+        if part is not None:
+            for task in list(getattr(part, "tasks", None) or []):
+                extra = task.extra if isinstance(task.extra, dict) else {}
+                tool_name = str(extra.get("tool_name") or task.task_name or task.name or "")
+                if tool_name == "image" and extra.get("status") != "completed":
+                    pending_image_task = True
+                    break
+
+        # Send a compact structured tool result back to the model, but do not
+        # expose local/sandbox file paths there. The generated images are
+        # already persisted in ctx.images and rendered in the UI separately.
+        # Raw paths here caused the model to echo sandbox:/... markdown links.
+        # Return generated image paths to the model as workdir-local paths
+        # ("%workdir%/..."), not sandbox/file URLs. This keeps the result useful
+        # for follow-up tool calls without leaking bridge/sandbox link prefixes.
+        tool_response = {
+            "cmd": "image",
+            "request": {
+                "cmd": "image",
+            },
+            "result": (
+                "OK. Generated {} image(s). The generated image is attached to the chat automatically; "
+                "do not include sandbox:, file://, or local filesystem paths in the user-facing reply."
+            ).format(len(paths)),
+            "paths": list(local_urls),
+            "meta": {
+                "images_count": len(paths),
+                "images_attached": True,
+            },
+        }
+        data = {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }
+        render_data = {
+            "meta": ctx.meta,
+            "ctx": render_ctx,
+        }
+
+        # Agents/other internal calls already relied on REPLY_ADD. Keep that
+        # behavior, but use EXTRA_END (the old code accidentally appended the
+        # same image block twice). ``agent_call`` is consumed specially by
+        # controller.kernel.reply and does not require ctx.reply=True.
         if ctx.internal:
-            ctx.results.append(
-                {
-                    "request": {
-                        "cmd": "image",
-                    },
-                    "result": "OK. Generated {} image(s).".format(len(paths)),
-                    "paths": paths,
-                }
-            )
+            ctx.results.append(tool_response)
             ctx.reply = False
-            data = {
-                "meta": ctx.meta,
-                "ctx": ctx,
-            }
-            render_data = {
-                "meta": ctx.meta,
-                "ctx": render_ctx,
-            }
-            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))  # show generated image only
-            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))  # end extra
+            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))
+            dispatch(RenderEvent(RenderEvent.EXTRA_END, data))
 
             context = BridgeContext()
             context.ctx = ctx
@@ -309,21 +339,34 @@ class Image:
                     "flush": True,
                 },
             }))
-            controller.chat.common.unlock_input()  # unlock input
-            dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))  # end of tool, hide spinner icon
+            controller.chat.common.unlock_input()
+            dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))
             return
 
-        # NOT internal-mode, user called, so append only img output to chat (show images now):
-        data = {
-            "meta": ctx.meta,
-            "ctx": ctx,
-        }
-        render_data = {
-            "meta": ctx.meta,
-            "ctx": render_ctx,
-        }
-        dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))  # show generated image only
-        dispatch(RenderEvent(RenderEvent.EXTRA_END, data))  # end extra
+        if pending_image_task:
+            # Normal Chat tool call: the image worker finished asynchronously,
+            # so now complete the matching ctx_item_partial_task and continue
+            # the SAME durable turn. Do not unlock/end the tool renderer here;
+            # Reply.flush() sends the function output to the model, and the
+            # continuation response will promote the task to ui_ready and clear
+            # the animated Tool: image status.
+            ctx.results.append(tool_response)
+            ctx.reply = True
+            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))
+            dispatch(RenderEvent(RenderEvent.EXTRA_END, data))
 
-        controller.chat.common.unlock_input()  # unlock input
-        dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))  # end of tool, hide spinner icon
+            context = BridgeContext()
+            context.ctx = ctx
+            dispatch(KernelEvent(KernelEvent.REPLY_ADD, {
+                'context': context,
+                'extra': {},
+            }))
+            return
+
+        # Standalone/non-tool inline image generation: show the image and finish
+        # exactly as before; there is no model continuation to wait for.
+        dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, render_data))
+        dispatch(RenderEvent(RenderEvent.EXTRA_END, data))
+
+        controller.chat.common.unlock_input()
+        dispatch(RenderEvent(RenderEvent.TOOL_UPDATE, data))

@@ -18,6 +18,7 @@ from uuid import uuid4
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.utils import trans
 
 
@@ -80,14 +81,14 @@ class WorkdirWorker(QRunnable):
             elif self.action == "reset":
                 self.worker_reset()
             else:
-                self.signals.error.emit(f"Unknown action: {self.action}")
+                safe_emit(self.signals, "error", f"Unknown action: {self.action}")
 
         except Exception as e:
             self.window.core.debug.log(e)
-            self.signals.error.emit(str(e))
+            safe_emit(self.signals, "error", str(e))
 
         finally:
-            self.signals.finished.emit()
+            safe_emit(self.signals, "finished")
             self.cleanup()
 
     def cleanup(self):
@@ -116,13 +117,13 @@ class WorkdirWorker(QRunnable):
                 if self.window.core.config.profile.remove(uuid):
                     if not os.path.exists(path) or not os.path.isdir(path):
                         if not self.batch:
-                            self.signals.deleted.emit(name)
-                            self.signals.alert.emit(trans("dialog.profile.alert.path.not_exists"))
+                            safe_emit(self.signals, "deleted", name)
+                            safe_emit(self.signals, "alert", trans("dialog.profile.alert.path.not_exists"))
                             return
                         else:
                             print("Directory not exists, ignoring: ", path)
-                            self.signals.updateGlobalStatus.emit(f"Directory not exists: {path}")
-                            self.signals.deleted.emit(name)
+                            safe_emit(self.signals, "updateGlobalStatus", f"Directory not exists: {path}")
+                            safe_emit(self.signals, "deleted", name)
                             return # nothing to delete
                     print(f"Clearing workdir: {path}")
                     try:
@@ -133,7 +134,7 @@ class WorkdirWorker(QRunnable):
                         )
                     except Exception as e:
                         print("Error deleting profile files: ", e)
-                    self.signals.deleted.emit(name)
+                    safe_emit(self.signals, "deleted", name)
 
     def worker_duplicate(self):
         """Duplicate profile"""
@@ -143,7 +144,7 @@ class WorkdirWorker(QRunnable):
 
         profiles = self.window.controller.settings.profile.get_profiles()
         if uuid not in profiles:
-            self.signals.alert.emit("Profile not found!")
+            safe_emit(self.signals, "alert", "Profile not found!")
             return
         profile = profiles[uuid]
 
@@ -161,7 +162,7 @@ class WorkdirWorker(QRunnable):
         path_from = profile['workdir'].replace("%HOME%", str(Path.home()))
         path_to = new_path
         print(f"Copying all files from {path_from} to: {path_to}")
-        self.signals.updateGlobalStatus.emit("Copying files...")
+        safe_emit(self.signals, "updateGlobalStatus", "Copying files...")
         result = self.window.core.filesystem.copy_workdir(
             path_from,
             path_to,
@@ -169,11 +170,11 @@ class WorkdirWorker(QRunnable):
             copy_datadir=copy_datadir,
         )
         if not result:
-            self.signals.alert.emit("Error copying files!")
-            self.signals.updateGlobalStatus.emit("Error copying files!")
+            safe_emit(self.signals, "alert", "Error copying files!")
+            safe_emit(self.signals, "updateGlobalStatus", "Error copying files!")
             return
         print("[OK] All files copied successfully.")
-        self.signals.duplicated.emit(new_uuid, new_name)
+        safe_emit(self.signals, "duplicated", new_uuid, new_name)
 
     def worker_reset(self):
         """Reset profile"""
@@ -189,11 +190,11 @@ class WorkdirWorker(QRunnable):
                 path = profile['workdir'].replace("%HOME%", str(Path.home()))
                 if not os.path.exists(path) or not os.path.isdir(path):
                     if not self.batch:
-                        self.signals.alert.emit(f"Directory not exists: {path}")
+                        safe_emit(self.signals, "alert", f"Directory not exists: {path}")
                         return
                     else:
                         print("Directory not exists, ignoring: ", path)
-                        self.signals.updateGlobalStatus.emit(f"Directory not exists: {path}")
+                        safe_emit(self.signals, "updateGlobalStatus", f"Directory not exists: {path}")
                         return
                 print("Clearing workdir: ", path)
                 if uuid == current:
@@ -204,48 +205,48 @@ class WorkdirWorker(QRunnable):
                     remove_datadir=remove_datadir,
                 )
                 if uuid == current and not self.batch:
-                    self.signals.switch.emit(uuid)  # switch to profile
-                self.signals.updateGlobalStatus.emit(f"Profile cleared: {profile['name']}")
+                    safe_emit(self.signals, "switch", uuid)  # switch to profile
+                safe_emit(self.signals, "updateGlobalStatus", f"Profile cleared: {profile['name']}")
 
     def worker_migrate(self):
         """Migrate working directory"""
         if self.window.controller.settings.workdir.busy:
-            self.signals.alert.emit("Workdir migration in progress...")
+            safe_emit(self.signals, "alert", "Workdir migration in progress...")
             return
 
         # check if not the same directory
         current = self.window.core.config.get_user_path()
         if current == self.path:
-            self.signals.alert.emit(trans("dialog.workdir.result.same_directory"))
+            safe_emit(self.signals, "alert", trans("dialog.workdir.result.same_directory"))
             self.window.controller.settings.workdir.busy = False
-            self.signals.hideStatus.emit()
+            safe_emit(self.signals, "hideStatus")
             return
 
         # check if path is not already a workdir
         if self.window.core.filesystem.is_workdir_in_path(self.path):
             msg = trans("dialog.workdir.update.confirm").format(path=self.path)
-            self.signals.confirm.emit("workdir.update", self.path, msg)
+            safe_emit(self.signals, "confirm", "workdir.update", self.path, msg)
             return
 
         # check if path is empty
         if not self.window.core.filesystem.is_directory_empty(self.path):
-            self.signals.alert.emit(trans("dialog.workdir.change.empty.alert"))
+            safe_emit(self.signals, "alert", trans("dialog.workdir.change.empty.alert"))
             return
 
         # confirm move
         if not self.force:
             msg = trans("dialog.workdir.change.confirm").format(path=self.path)
-            self.signals.confirm.emit("workdir.change", self.path, msg)
+            safe_emit(self.signals, "confirm", "workdir.change", self.path, msg)
             return
 
-        self.signals.hideStatus.emit()
+        safe_emit(self.signals, "hideStatus")
         self.window.controller.settings.workdir.busy = True
         print(f"Migrating workdir from: {current} to: {self.path}...")
 
         # check if path exists
         if not os.path.exists(self.path) or not os.path.isdir(self.path):
-            self.signals.alert.emit(trans("dialog.workdir.result.directory_not_exists"))
-            self.signals.hideStatus.emit()
+            safe_emit(self.signals, "alert", trans("dialog.workdir.result.directory_not_exists"))
+            safe_emit(self.signals, "hideStatus")
             self.window.controller.settings.workdir.busy = False
             return
 
@@ -253,27 +254,27 @@ class WorkdirWorker(QRunnable):
         space_required = self.window.core.filesystem.get_directory_size(current, human_readable=False)
         space_free = self.window.core.filesystem.get_free_disk_space(self.path, human_readable=False)
         if space_required > space_free:
-            self.signals.alert.emit(trans("dialog.workdir.result.no_free_space").format(
+            safe_emit(self.signals, "alert", trans("dialog.workdir.result.no_free_space").format(
                 required=self.window.core.filesystem.get_directory_size(current),
                 free=self.window.core.filesystem.get_free_disk_space(self.path),
             ))
             self.window.controller.settings.workdir.busy = False
-            self.signals.hideStatus.emit()
+            safe_emit(self.signals, "hideStatus")
             return
 
         # copy workdir
-        self.signals.updateGlobalStatus.emit(trans("dialog.workdir.result.wait"))
+        safe_emit(self.signals, "updateGlobalStatus", trans("dialog.workdir.result.wait"))
         QApplication.processEvents()  # process events to update UI
         try:
             result = self.window.core.filesystem.copy_workdir(current, self.path)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.signals.alert.emit(str(e))
+            safe_emit(self.signals, "alert", str(e))
             print("Error migrating workdir: ", e)
             result = False
 
         # reload UI, config, etc.
-        self.signals.after_migrate.emit(result, self.profile_name, current, self.path)
+        safe_emit(self.signals, "after_migrate", result, self.profile_name, current, self.path)
 
 
 class Workdir:

@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.09.15 10:56:00                  #
 # ================================================== #
 
 from .access import Access
 from .agent import Agent
+from .agents_v2 import AgentsV2
+from .agent_workflow import AgentWorkflow
 from .assistant import Assistant
 from .attachment import Attachment
 from .audio import Audio
@@ -19,6 +21,7 @@ from .camera import Camera
 from .chat import Chat
 from .command import Command
 from .config import Config
+from .connectors import Connectors
 from .ctx import Ctx
 from .debug import Debug
 from .dialogs import Dialogs
@@ -38,12 +41,14 @@ from .plugins import Plugins
 from .realtime import Realtime
 from .remote_store import RemoteStore
 from .presets import Presets
+from .profile_exporter import ProfileExporter
 from .settings import Settings
+from .skills import Skills
 from .theme import Theme
 from .tools import Tools
 from .ui import UI
 
-from pygpt_net.utils import trans, mem_clean
+from pygpt_net.utils import trans, mem_clean, freeze_updates
 
 
 class Controller:
@@ -56,6 +61,8 @@ class Controller:
         self.window = window
         self.access = Access(window)
         self.agent = Agent(window)
+        self.agents_v2 = AgentsV2(window)
+        self.agent_workflow = AgentWorkflow(window)
         self.assistant = Assistant(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
@@ -64,6 +71,7 @@ class Controller:
         self.chat = Chat(window)
         self.command = Command(window)
         self.config = Config(window)
+        self.connectors = Connectors(window)
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)
@@ -81,9 +89,11 @@ class Controller:
         self.painter = Painter(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
+        self.profile_exporter = ProfileExporter(window)
         self.realtime = Realtime(window)
         self.remote_store = RemoteStore(window)
         self.settings = Settings(window)
+        self.skills = Skills(window)
         self.theme = Theme(window)
         self.tools = Tools(window)
         self.ui = UI(window)
@@ -102,6 +112,7 @@ class Controller:
 
         # setup controllers
         self.lang.setup()
+        self.agent_workflow.setup()
         self.assistant.setup()
         self.remote_store.setup()
         self.chat.setup()
@@ -109,9 +120,12 @@ class Controller:
         self.tools.setup()
         self.ctx.setup()
         self.presets.setup()
+        self.profile_exporter.setup()
         self.idx.setup()
         self.ui.update_tokens()
         self.dialogs.setup()
+        self.skills.setup()
+        self.connectors.setup()
         self.audio.setup()
         self.attachment.setup()
         self.camera.setup_ui()
@@ -124,6 +138,7 @@ class Controller:
         self.settings.setup()
         self.plugins.settings.setup()
         self.model.editor.setup()
+        self.agents_v2.setup()
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
@@ -158,14 +173,31 @@ class Controller:
 
         print(trans("status.reloading.profile.begin"))
 
+        # Keep the mode loaded from the current profile as the source of truth
+        # for this reload. Restoring tabs/contexts below may temporarily apply
+        # a context mode and overwrite config['mode']. That must not leak into
+        # a freshly switched profile.
+        profile_mode = self.window.core.config.get("mode")
+
         try:
             self.ui.tabs.locked = True  # lock tabs
             self.window.core.reload()  # db, config, patch, etc.
-            self.ui.tabs.reload()
+
+            # Profile/workdir reload is intentionally two-phase. First rebuild
+            # tab widgets from the *new profile* config, but do not restore any
+            # chat selection yet. CtxMeta records still belong to the previous
+            # profile until ctx.reload() has finished. Restoring a tab earlier
+            # can therefore resolve the new tab's data_id against the old DB
+            # (IDs are profile-local and may overlap), producing wrong titles
+            # and even wrong context assignments.
+            self.ui.tabs.reload(restore_data=False)
             self.ctx.reload()
+            self.ui.tabs.restore_after_ctx_reload()
             self.ui.tabs.locked = False  # unlock tabs
 
             self.settings.reload()
+            self.skills.reload()
+            self.connectors.reload()
             self.assistant.reload()
             self.remote_store.reload()
             self.attachment.reload()
@@ -173,6 +205,7 @@ class Controller:
             self.presets.reload()
             self.idx.reload()
             self.agent.reload()
+            self.agents_v2.reload()
             self.calendar.reload()
             self.plugins.reload()
             self.painter.reload()
@@ -189,8 +222,30 @@ class Controller:
             # post-reload
             self.ui.tabs.reload_after()
             self.ctx.reload_after()
+
+            # ctx/tab restoration can call ctx.reload_config(), which restores
+            # the mode stored in a context. On a profile switch this could leave
+            # the UI/config on the mode from the previously active state instead
+            # of the mode loaded from the target profile. Restore the profile
+            # value without calling mode.set(), so the current context is not
+            # modified as a side effect of the profile switch.
+            if profile_mode:
+                self.window.core.config.set("mode", profile_mode)
+                self.ui.init_toolbox()
+                self.ui.update()
+
             self.kernel.restart()
-            self.theme.reload_all()  # do not reload theme if no change
+            # Applying a global QSS recursively repolishes the whole widget tree.
+            # Suppress intermediate paints while syncing the profile theme.
+            with freeze_updates(self.window):
+                self.theme.reload_all()  # do not reload theme if no change
+
+            # Tab/context restoration happens before all controllers have
+            # finished reloading.  Re-apply the final active-tab state only now,
+            # after renderer/theme synchronization, so the footer/status area
+            # and the visible chat WebView do not stay in an intermediate state
+            # until the user clicks another conversation/tab.
+            self.ui.tabs.finalize_profile_reload()
 
         except Exception as e:
             self.window.core.debug.log(e)

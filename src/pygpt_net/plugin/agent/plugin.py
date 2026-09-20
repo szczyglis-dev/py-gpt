@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2026.09.16 11:30:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.plugin import BasePlugin
@@ -20,7 +20,8 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "agent"
-        self.name = "Autonomous Agent (inline)"
+        self.is_common_plugin = True
+        self.name = "Autonomous mode"
         self.description = "Enables inline autonomous mode (Agent) in current mode. " \
                            "WARNING: Please use with caution - this mode, when connected with other plugins, " \
                            "may produce unexpected results!"
@@ -102,15 +103,6 @@ class Plugin(BasePlugin):
         elif name == Event.PLUGIN_SETTINGS_CHANGED:
             self.window.controller.agent.legacy.update()  # update agent status bar
 
-        elif name in [
-            Event.CMD_INLINE,
-            Event.CMD_EXECUTE,
-        ]:
-            if self.get_option_value("auto_stop"):
-                self.cmd(
-                    ctx,
-                    data['commands'],
-                )
 
     def is_active_prompt(self) -> bool:
         """
@@ -130,11 +122,10 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        pre_prompt = ("YOU ARE NOW AN AUTONOMOUS AGENT AND YOU ARE ENTERING NOW INTO AGENT MODE.\n"
-                      "Use below instructions in every agent run iteration:\n\n")
-        return pre_prompt + self.window.controller.agent.legacy.on_system_prompt(
+        legacy = self.window.controller.agent.legacy
+        return legacy.on_system_prompt(
             prompt,
-            append_prompt=self.get_first_active_prompt(),
+            append_prompt=legacy.normalize_instruction_prompt(self.get_first_active_prompt()),
             auto_stop=self.get_option_value("auto_stop"),
         )
 
@@ -146,15 +137,6 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         return self.window.controller.agent.legacy.on_input_before(prompt)
-
-    def cmd(self, ctx: CtxItem, cmds: list):
-        """
-        Events: CMD_INLINE, CMD_EXECUTE
-
-        :param ctx: CtxItem
-        :param cmds: commands dict
-        """
-        self.window.controller.agent.legacy.cmd(ctx, cmds)  # force execute
 
     def on_stop(self):
         """

@@ -374,6 +374,7 @@ class IndexerTool(BaseTool):
             return
 
         table = self.window.ui.nodes['tool.indexer.browser'].get_current_table()
+        doc_id = None
         query = "SELECT doc_id FROM {} WHERE id=:id".format(table)
         stmt = text(query).bindparams(id=id)
         with self.window.core.db.get_db().connect() as conn:

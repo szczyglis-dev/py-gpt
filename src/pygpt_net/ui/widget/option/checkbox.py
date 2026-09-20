@@ -9,6 +9,7 @@
 # Updated Date: 2026.01.21 01:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QLabel
 
@@ -66,6 +67,7 @@ class OptionCheckbox(QWidget):
             )
         )
         self.label = QLabel(self.title)
+        self.label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
 

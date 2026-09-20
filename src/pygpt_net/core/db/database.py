@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 16:00:00                  #
+# Updated Date: 2026.09.11 15:15:00                  #
 # ================================================== #
 
 import os
@@ -86,6 +86,16 @@ class Database:
             'audio_id',
             'audio_expires_ts',
         ]
+        columns["ctx_item_partial"] = [
+            'id', 'uuid', 'parent_item_id', 'agent_id', 'name', 'output',
+            'extra_json', 'created_at', 'updated_at',
+        ]
+        columns["ctx_item_partial_task"] = [
+            'id', 'uuid', 'parent_item_part_id', 'agent_id', 'name',
+            'task_name', 'task_summary', 'input', 'output', 'tool_call_id',
+            'tool_input_json', 'tool_output_json', 'extra_json',
+            'created_at', 'updated_at',
+        ]
         columns["ctx_meta"] = [
             'id',
             'name',
@@ -123,6 +133,7 @@ class Database:
             'created_ts',
             'uuid',
             'additional_ctx_json',
+            'extra_json',
         ]
         columns["idx_ctx"] = [
             'id',
@@ -162,6 +173,28 @@ class Database:
             'last_meta',
             'last_item',
             'last_update',
+        ]
+        columns["memory"] = [
+            'id',
+            'project_id',
+            'updated_at',
+            'content',
+        ]
+        columns["memory_keys"] = [
+            'id',
+            'project_id',
+            'key',
+            'updated_at',
+            'content',
+        ]
+        columns["memory_ctx"] = [
+            'id',
+            'meta_id',
+            'updated_at',
+            'last_item_id',
+            'generation',
+            'revision',
+            'content',
         ]
         columns["notepad"] = [
             'id',
@@ -240,6 +273,27 @@ class Database:
                 'default_order': 'DESC',
                 'primary_key': 'id',
             },
+            'ctx_item_partial': {
+                'columns': columns["ctx_item_partial"],
+                'sort_by': columns["ctx_item_partial"],
+                'search_fields': ['id', 'uuid', 'parent_item_id', 'agent_id', 'name', 'output'],
+                'timestamp_columns': ['created_at', 'updated_at'],
+                'json_columns': ['extra_json'],
+                'default_sort': 'id',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'ctx_item_partial_task': {
+                'columns': columns["ctx_item_partial_task"],
+                'sort_by': columns["ctx_item_partial_task"],
+                'search_fields': ['id', 'uuid', 'parent_item_part_id', 'agent_id', 'name', 'task_name',
+                                  'task_summary', 'input', 'output', 'tool_call_id'],
+                'timestamp_columns': ['created_at', 'updated_at'],
+                'json_columns': ['tool_input_json', 'tool_output_json', 'extra_json'],
+                'default_sort': 'id',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
             'ctx_meta': {
                 'columns': columns["ctx_meta"],
                 'sort_by': columns["ctx_meta"],
@@ -255,7 +309,7 @@ class Database:
                 'sort_by': columns["ctx_group"],
                 'search_fields': ['id', 'name'],
                 'timestamp_columns': ['created_ts', 'updated_ts'],
-                'json_columns': ['additional_ctx_json'],
+                'json_columns': ['additional_ctx_json', 'extra_json'],
                 'default_sort': 'id',
                 'default_order': 'DESC',
                 'primary_key': 'id',
@@ -299,6 +353,36 @@ class Database:
                 'default_sort': 'last_update',
                 'default_order': 'DESC',
                 'primary_key': 'group_id',
+            },
+            'memory': {
+                'columns': columns["memory"],
+                'sort_by': columns["memory"],
+                'search_fields': ['id', 'project_id', 'content'],
+                'timestamp_columns': ['updated_at'],
+                'json_columns': [],
+                'default_sort': 'updated_at',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'memory_keys': {
+                'columns': columns["memory_keys"],
+                'sort_by': columns["memory_keys"],
+                'search_fields': ['id', 'project_id', 'key', 'content'],
+                'timestamp_columns': ['updated_at'],
+                'json_columns': [],
+                'default_sort': 'updated_at',
+                'default_order': 'DESC',
+                'primary_key': 'id',
+            },
+            'memory_ctx': {
+                'columns': columns["memory_ctx"],
+                'sort_by': columns["memory_ctx"],
+                'search_fields': ['id', 'meta_id', 'content'],
+                'timestamp_columns': ['updated_at'],
+                'json_columns': [],
+                'default_sort': 'updated_at',
+                'default_order': 'DESC',
+                'primary_key': 'id',
             },
             'notepad': {
                 'columns': columns["notepad"],

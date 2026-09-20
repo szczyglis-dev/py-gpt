@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2026.09.12 17:34:00                  #
 # ================================================== #
 
 from typing import Any, Optional
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
+    MODE_AGENT,
     MODE_ASSISTANT,
     MODE_IMAGE,
     MODE_AUDIO,
@@ -49,7 +50,8 @@ class Output:
             reply: bool = False,
             internal: bool = False,
             context: Optional[BridgeContext] = None,
-            extra: Optional[dict] = None
+            extra: Optional[dict] = None,
+            render: bool = True,
     ):
         """
         Handle response from LLM
@@ -63,7 +65,9 @@ class Output:
         :param context: BridgeContext (optional)
         :param extra: Extra data (optional)
         """
-        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY))  # state: busy
+        self.window.dispatch(KernelEvent(KernelEvent.STATE_BUSY, {
+            "meta": getattr(ctx, "meta", None),
+        }))  # state: busy
 
         # if stream then append chunk by chunk
         end = True
@@ -85,13 +89,15 @@ class Output:
                 ctx=ctx,
                 mode=mode,
                 stream=stream,
+                render=render,
             )
 
     def handle_after(
             self,
             ctx: CtxItem,
             mode: str,
-            stream: bool = False
+            stream: bool = False,
+            render: bool = True,
     ):
         """
         Handle response from LLM
@@ -104,18 +110,56 @@ class Output:
         dispatch = self.window.dispatch
         log = self.window.controller.chat.log
 
-        # check if tool calls detected
+        # Normalize both native tool calls and legacy <tool> syntax into
+        # structured commands/tasks. Tool syntax is removed from visible output;
+        # the request itself is rendered later from ctx_item_partial_task.
+        part = ctx.get_active_part()
+        multi_part = part is not None and len(ctx.parts or []) > 1
+        legacy_source = part.output if multi_part else ctx.output
+        legacy_cmds = core.command.extract_cmds(legacy_source)
+        if legacy_cmds:
+            ctx.cmds_before = legacy_cmds
+            if multi_part:
+                # Continuations are folded into one parent item before this
+                # handler runs. Strip protocol markup from the active partial,
+                # not from the already-composed parent cache.
+                part.output = core.command.strip_cmds(part.output)
+                core.ctx.update_part(ctx, part, sync_item=True)
+            else:
+                ctx.output = core.command.strip_cmds(ctx.output)
+
         if ctx.tool_calls:
-            # if not internal commands in a text body then append tool calls as commands (prevent double commands)
-            if not core.command.has_cmds(ctx.output):
-                core.command.append_tool_calls(ctx)  # append tool calls as commands
-                if not isinstance(ctx.extra, dict):
-                    ctx.extra = {}
-                ctx.extra["tool_calls"] = ctx.tool_calls
-                stream = False  # disable stream mode, show tool calls at the end
-                log("Tool call received...")
-            else:  # prevent execute twice
-                log("Ignoring tool call because command received...")
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            stored_tool_calls = core.command.tool_calls_for_storage(ctx.tool_calls)
+            if stored_tool_calls:
+                ctx.extra["tool_calls"] = stored_tool_calls
+            else:
+                ctx.extra.pop("tool_calls", None)
+            if not ctx.cmds_before:
+                ctx.cmds_before = core.command.tool_calls_to_cmds(ctx.tool_calls)
+            log("Tool call received...")
+
+        # Provider/model fallback: occasionally a model prints a function-like
+        # ``goal_update(status=...)`` line instead of making the native call (or
+        # emitting legacy <tool> markup). Recover only a trailing standalone line
+        # and strip it from visible output before applying run control.
+        if mode == MODE_AGENT:
+            self.window.controller.agent.legacy.consume_text_control_fallback(ctx)
+
+        has_tool_request = bool(ctx.tool_calls or ctx.cmds_before)
+        part = ctx.get_active_part()
+        if part is not None:
+            # Simple/legacy responses still write directly to ctx.output. For a
+            # multi-part turn (tool continuation / Agents v2), the active part
+            # has already been updated by the continuation merger/streamer.
+            # Copying the composed parent output back into that last part would
+            # duplicate all previous partial outputs on every tool roundtrip.
+            if len(ctx.parts or []) <= 1:
+                part.output = ctx.output
+                core.ctx.update_part(ctx, part, sync_item=True)
+            else:
+                ctx.sync_output_from_parts()
 
         # event: context after
         dispatch(Event(Event.CTX_AFTER, {
@@ -124,28 +168,27 @@ class Output:
 
         log("Appending output to chat window...")
 
-        # only append output if not in stream mode, TODO: plugin output add
+        # only append output if not in stream mode. Continuation responses are
+        # rebuilt in-place from the parent item, so they suppress incremental
+        # node creation and use RELOAD instead.
         stream_global = core.config.get('stream', False)
-        if not stream:
-            if stream_global:  # use global stream settings here to persist previously added input
+        if render and not stream:
+            if stream_global:
                 dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
-                    "meta": ctx.meta,
-                    "ctx": ctx,
-                    "flush": True,
-                    "append": True,
+                    "meta": ctx.meta, "ctx": ctx, "flush": True, "append": True,
+                }))
+            if ctx.get_display_output():
+                dispatch(RenderEvent(RenderEvent.OUTPUT_APPEND, {"meta": ctx.meta, "ctx": ctx}))
+                dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, {
+                    "meta": ctx.meta, "ctx": ctx, "footer": True,
                 }))
 
-            dispatch(RenderEvent(RenderEvent.OUTPUT_APPEND, {
-                "meta": ctx.meta,
-                "ctx": ctx,
-            }))
-            dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, {
-                "meta": ctx.meta,
-                "ctx": ctx,
-                "footer": True,
-            }))  # + icons
-
-        self.handle_complete(ctx)
+        # A tool request is an intermediate state of the same turn. Do not run
+        # post-update/history/audio/unlock until a later response contains no
+        # further tool calls.
+        if not has_tool_request:
+            self.handle_complete(ctx)
+        return has_tool_request
 
     def handle_complete(self, ctx: CtxItem):
         """
@@ -156,20 +199,20 @@ class Output:
         core = self.window.core
         controller = self.window.controller
         dispatch = self.window.dispatch
-        mode = core.config.get('mode')
+        mode = getattr(ctx, 'mode', None) or core.config.get('mode')
 
         # post update context, store last mode, etc.
         core.ctx.post_update(mode)
         core.ctx.store()
 
         controller.ctx.update_ctx()
-        controller.ctx.store_history(ctx, "output")  # store to history
-
         controller.chat.audio.handle_output(ctx)  # handle audio output
         controller.chat.common.auto_unlock(ctx)  # unlock input if allowed
         if mode != MODE_AUDIO:
             controller.chat.common.show_response_tokens(ctx)  # update tokens
-            dispatch(KernelEvent(KernelEvent.STATE_IDLE, self.STATE_PARAMS))  # state: idle
+            state = dict(self.STATE_PARAMS)
+            state["meta"] = getattr(ctx, "meta", None)
+            dispatch(KernelEvent(KernelEvent.STATE_IDLE, state))  # state: idle
         else:
             if not controller.audio.is_recording():
                 self.window.update_status("...")  # wait for audio
@@ -195,29 +238,53 @@ class Output:
         controller = self.window.controller
         dispatch = self.window.dispatch
 
-        # if commands enabled: post-execute commands (not assistant mode)
+        # Post-execute tools through one common lifecycle. expert_call is a regular
+        # plugin tool now, so it is recorded, executed and returned exactly like
+        # every other local command.
+        pending = False
         if mode != MODE_ASSISTANT:
             ctx.clear_reply()  # reset results
-            expert_calls = controller.agent.experts.handle(ctx)
-            if expert_calls == 0:  # handle commands only if no expert calls in queue
-                controller.chat.command.handle(ctx)
+            pending = bool(controller.chat.command.handle(ctx))
 
-            ctx.from_previous()  # append previous result again before save
-            core.ctx.update_item(ctx)  # update ctx in DB
+            ctx.from_previous()
+            core.ctx.update_item(ctx)
+
+        if pending:
+            # TOOL_CALL is queued in kernel.stack. Safety-confirmed/internal force
+            # calls may already execute inline and leave the stack empty; handle()
+            # is a no-op in that case.
+            controller.kernel.stack.handle()
+            return False
+
+        # Mark a durable, tool-free response as final. This marker is used only
+        # when reconstructing history/reloading the WebView so completed turns do
+        # not replay transient "Planning..." / "Using tool..." rows.
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        interrupted = bool(getattr(ctx, "stopped", False) or ctx.extra.get("response_interrupted"))
+        if not interrupted:
+            ctx.stopped = False
+            ctx.extra["response_final"] = True
+            ctx.extra.pop("response_interrupted", None)
+            core.ctx.update_item(ctx)
+        else:
+            ctx.extra.pop("response_final", None)
+            core.ctx.update_item(ctx)
 
         # render: end
-        if ctx.sub_calls == 0:  # if no experts called
+        if ctx.sub_calls == 0:
             dispatch(RenderEvent(RenderEvent.END, {
-                "meta": ctx.meta,
-                "ctx": ctx,
-                "stream": stream,
+                "meta": ctx.meta, "ctx": ctx, "stream": stream,
             }))
 
-        controller.chat.common.auto_unlock(ctx)  # unlock input if allowed
-        controller.ctx.prepare_summary(ctx)  # prepare ctx name
+        controller.chat.common.auto_unlock(ctx)
+        controller.ctx.prepare_summary(ctx)
 
         if self.window.state != self.window.STATE_ERROR and mode != MODE_ASSISTANT:
-            dispatch(KernelEvent(KernelEvent.STATE_IDLE, self.STATE_PARAMS))  # state: idle
+            state = dict(self.STATE_PARAMS)
+            state["meta"] = getattr(ctx, "meta", None)
+            dispatch(KernelEvent(KernelEvent.STATE_IDLE, state))
+        return True
 
     def handle_end(
             self,
@@ -241,6 +308,21 @@ class Output:
         dispatch(Event(Event.CTX_END, {
             'mode': mode,
         }, ctx=ctx))
+
+        # Schedule a compact conversation checkpoint when the unsummarized tail
+        # approaches the configured context-window threshold. This runs outside
+        # the active request and never removes durable conversation rows.
+        try:
+            self.window.core.context_manager.on_ctx_end(ctx)
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+
+        # RenderEvent.END may drop the render pin before the final RELOAD below.
+        # Restore it while the request is still marked as generating so the
+        # owning chat cannot be remapped to another focused chat tab.
+        render_output = self.window.core.ctx.output
+        render_output.pin_render_pid(getattr(ctx, "meta", None))
+
         controller.chat.input.generating = False  # unlock
 
         log("End.")
@@ -248,8 +330,18 @@ class Output:
 
         # restore state to idle if no errors
         if self.window.state != self.window.STATE_ERROR:
-            dispatch(KernelEvent(KernelEvent.STATE_IDLE, self.STATE_PARAMS))
+            state = dict(self.STATE_PARAMS)
+            state["meta"] = getattr(ctx, "meta", None)
+            dispatch(KernelEvent(KernelEvent.STATE_IDLE, state))
 
         if mode != MODE_ASSISTANT:
             controller.kernel.stack.handle()  # handle reply
-            dispatch(RenderEvent(RenderEvent.RELOAD))  # reload chat window
+            dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))  # reload owning chat
+
+        # Keep ownership through the final reload. If stack.handle()
+        # synchronously started a continuation, it is still the same top-level
+        # request and ownership must survive. Otherwise release now and only then
+        # synchronize core.ctx with whichever chat the user focused meanwhile.
+        if not controller.chat.input.generating:
+            render_output.finish_request(meta=getattr(ctx, "meta", None))
+            controller.ui.tabs.sync_focused_chat_context()

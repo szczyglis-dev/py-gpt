@@ -22,6 +22,7 @@ from pygpt_net.core.types import (
     OPENAI_COMPATIBLE_PROVIDERS,
     MULTIMODAL_VIDEO,
 )
+from pygpt_net.provider.core.model.compat import is_openai_o_series
 
 @dataclass(slots=True)
 class ModelItem:
@@ -41,6 +42,7 @@ class ModelItem:
     name: Optional[str] = None
     output: list = field(default_factory=lambda: ["text"])
     provider: str = "openai"
+    reasoning_effort: bool = False
     tokens: int = 0
     tool_calls: bool = False
 
@@ -66,6 +68,7 @@ class ModelItem:
         self.name = None
         self.output = ["text"]  # multimodal support: image, audio, etc.
         self.provider = "openai"  # default provider
+        self.reasoning_effort = False  # allow runtime reasoning-effort selection
         self.tokens = 0
         self.tool_calls = False  # native tool calls available
 
@@ -104,6 +107,8 @@ class ModelItem:
             self.output = output.split(',')
         if 'provider' in data:
             self.provider = data['provider']
+        if 'reasoning_effort' in data:
+            self.reasoning_effort = bool(data['reasoning_effort'])
         if 'tokens' in data:
             self.tokens = data['tokens']
         if 'tool_calls' in data:
@@ -138,6 +143,7 @@ class ModelItem:
             'imported': self.imported,
             'is_hidden': self.is_hidden,
             'provider': self.provider,
+            'reasoning_effort': self.reasoning_effort,
             'tool_calls': self.tool_calls,
             'llama_index.args': [],
             'llama_index.env': []
@@ -213,10 +219,7 @@ class ModelItem:
 
         if (self.id.startswith("gpt-")
                 or self.id.startswith("chatgpt")
-                or self.id.startswith("o1")
-                or self.id.startswith("o3")
-                or self.id.startswith("o4")
-                or self.id.startswith("o5")
+                or is_openai_o_series(self.id)
                 or self.id.startswith("codex-")
                 or self.id.startswith("computer-use")):
             return True

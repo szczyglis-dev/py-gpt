@@ -14,16 +14,22 @@ from types import SimpleNamespace
 from unittest.mock import Mock, MagicMock
 import pytest
 
+from pygpt_net.core.types import MODE_LLAMA_INDEX
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
+
 chat_mod = importlib.import_module("pygpt_net.core.idx.chat")
 Chat = chat_mod.Chat
 
 class FakeModelItem:
     def __init__(self, id="fake-model"):
         self.id = id
+        self.provider = "openai"
 
 class FakeCtx:
     def __init__(self, input_text="hi"):
         self.input = input_text
+        self.final_input = input_text
         self.stream = None
         self.input_tokens = None
         self.output_tokens = None
@@ -71,6 +77,10 @@ class FakeResponseClass:
         self.from_llm_stream = Mock()
         self.from_index = Mock()
         self.from_llm = Mock()
+        self.collect_llm_urls = Mock(return_value=[])
+        self.stream_with_llm_artifacts = Mock(
+            side_effect=lambda ctx, llm, stream: stream
+        )
 
 def make_window(config_map=None):
     cfg = config_map or {}
@@ -106,7 +116,8 @@ def make_window(config_map=None):
     models = SimpleNamespace(is_tool_call_allowed=lambda mode, model: True, from_defaults=lambda: FakeModelItem())
     plugins = SimpleNamespace(get_option=lambda a,b: False)
     agents = SimpleNamespace(provider=SimpleNamespace(get=Mock()), tools=SimpleNamespace(prepare=Mock()), runner=SimpleNamespace(llama_workflow=SimpleNamespace(run=Mock())))
-    return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents), idx_logger_message=Mock())
+    api = SimpleNamespace(logger=SimpleNamespace(log_input=Mock(), log_output=Mock()))
+    return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents, api=api), idx_logger_message=Mock())
 
 def make_chat(monkeypatch, config_map=None, storage=None):
     monkeypatch.setattr(chat_mod, "Context", FakeContextClass)
@@ -233,10 +244,16 @@ def test_retrieval_builds_output_and_metadata(monkeypatch):
 def test_is_stream_allowed_behavior(monkeypatch):
     chat = make_chat(monkeypatch)
     win = chat.window
-    win.core.config._m.update({"cmd": True, "llama.idx.react": True})
-    assert chat.is_stream_allowed() is False
-    win.core.config._m.update({"cmd": False, "llama.idx.react": True})
-    assert chat.is_stream_allowed() is True
+    model = FakeModelItem()
+    win.core.config._m.update({"cmd": True})
+    win.core.models.is_tool_call_allowed = Mock(return_value=False)
+    assert chat.is_stream_allowed(model) is False
+    win.core.models.is_tool_call_allowed.assert_called_once_with(MODE_LLAMA_INDEX, model)
+
+    win.core.models.is_tool_call_allowed.reset_mock()
+    win.core.config._m.update({"cmd": False})
+    assert chat.is_stream_allowed(model) is True
+    win.core.models.is_tool_call_allowed.assert_not_called()
 
 def test_query_file_indexes_and_cleans_tmp(monkeypatch):
     storage = Mock()
@@ -368,3 +385,47 @@ def test_get_metadata_filters_and_limits():
     assert len(meta) == 3
     assert all("score" in v for v in meta.values())
     mp.undo()
+
+
+def test_call_agent_runs_react_agent_and_returns_output(monkeypatch):
+    chat = make_chat(monkeypatch)
+    model = ModelItem("agent-model")
+    context = SimpleNamespace(model=model)
+    response_ctx = SimpleNamespace(output="agent answer")
+    call_once = Mock(return_value=response_ctx)
+    chat.window.core.agents.runner.call_once = call_once
+    tools = []
+    item = CtxItem()
+    item.input = "question"
+
+    output = chat.call_agent(
+        context=context,
+        tools=tools,
+        ctx=item,
+        query="question",
+        history=["history"],
+        llm=object(),
+        index=None,
+        system_prompt="system",
+    )
+
+    assert output == "agent answer"
+    call = call_once.call_args.kwargs
+    assert call["extra"]["agent_provider"] == "react"
+    assert call["extra"]["agent_tools"] is tools
+    assert call["context"].prompt == "question"
+    assert call["context"].history == ["history"]
+    chat.window.core.api.logger.log_input.assert_called_once()
+    chat.window.core.api.logger.log_output.assert_called_once()
+
+
+def test_call_agent_returns_fallback_when_runner_has_no_context(monkeypatch):
+    chat = make_chat(monkeypatch)
+    chat.window.core.agents.runner.call_once = Mock(return_value=None)
+    context = SimpleNamespace(model=ModelItem("agent-model"))
+    item = CtxItem()
+    item.input = "q"
+
+    assert chat.call_agent(
+        context=context, tools=[], ctx=item, query="q", history=[]
+    ) == "No response from agent."

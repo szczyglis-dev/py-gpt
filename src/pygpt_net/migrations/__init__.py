@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 16:00:00                  #
+# Updated Date: 2026.09.11 15:15:00                  #
 # ================================================== #
 
 from .Version20231227152900 import Version20231227152900  # 2.0.59
@@ -27,6 +27,11 @@ from .Version20260102190000 import Version20260102190000  # 2.7.5
 from .Version20260121190000 import Version20260121190000  # 2.7.10
 from .Version20260122140000 import Version20260122140000  # 2.7.10
 from .Version20260904170000 import Version20260904170000  # 2.8.8
+from .Version20260907120000 import Version20260907120000  # 2.8.8+
+from .Version20260909193000 import Version20260909193000  # 2.8.13+ memory
+from .Version20260911120000 import Version20260911120000  # 2.8.14+ project workdir
+from .Version20260911150000 import Version20260911150000  # 2.8.14+ keyed memory
+from .Version20260914180000 import Version20260914180000  # 2.8.18+ conversation context memory
 
 class Migrations:
     def __init__(self):
@@ -58,4 +63,9 @@ class Migrations:
             Version20260121190000(),  # 2.7.10
             Version20260122140000(),  # 2.7.10
             Version20260904170000(),  # 2.8.8
+            Version20260907120000(),  # 2.8.8+ context parts/tasks
+            Version20260909193000(),  # 2.8.13+ memory
+            Version20260911120000(),  # 2.8.14+ project workdir
+            Version20260911150000(),  # 2.8.14+ keyed memory
+            Version20260914180000(),  # 2.8.18+ conversation context memory
         ]

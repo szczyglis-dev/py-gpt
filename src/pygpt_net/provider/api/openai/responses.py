@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 13:09:00                  #
+# Updated Date: 2026.09.08 13:40:00                  #
 # ================================================== #
 
 import base64
@@ -21,14 +21,21 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_OPENAI,
     MODE_AGENT_LLAMA,
+    MODE_AGENT_V2,
     MODE_EXPERT,
     MODE_COMPUTER,
     OPENAI_DISABLE_TOOLS,
 )
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
+from pygpt_net.provider.core.model.compat import (
+    is_openai_reasoning_model_id,
+    supports_future_computer_mode,
+)
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.preset import PresetItem
@@ -44,6 +51,7 @@ class Responses:
         MODE_AGENT,
         MODE_AGENT_LLAMA,
         MODE_AGENT_OPENAI,
+        MODE_AGENT_V2,
         MODE_EXPERT,
         MODE_COMPUTER,
     ]
@@ -62,6 +70,17 @@ class Responses:
         self.prev_internal_response_id = None
         self.instruction = None
         self.mcp_tools = None
+
+    @staticmethod
+    def _can_resume_server_response(item: Optional[CtxItem]) -> bool:
+        """Return whether ``item.msg_id`` is safe as previous_response_id."""
+        if item is None or not getattr(item, "msg_id", None):
+            return False
+        extra = getattr(item, "extra", None)
+        return not bool(
+            getattr(item, "stopped", False)
+            or (isinstance(extra, dict) and extra.get("response_interrupted"))
+        )
 
     def send(
             self,
@@ -92,6 +111,7 @@ class Responses:
             ctx = CtxItem()  # create empty context
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
+        self.window.core.context_manager.mark_request_generation(ctx)
 
         api = self.window.core.api.openai
         client = api.get_client(mode, model)
@@ -108,6 +128,7 @@ class Responses:
             user_name=user_name,
             multimodal_ctx=multimodal_ctx,
             is_expert_call=is_expert_call,  # use separated previous response ID for expert calls
+            current_ctx=ctx,
         )
         msg_tokens = self.window.core.tokens.from_messages(
             messages,
@@ -124,22 +145,33 @@ class Responses:
 
         # extra API kwargs
         response_kwargs = {}
+        if self.window.core.context_manager.enabled():
+            # The local checkpoint/generation mechanism normally rolls the
+            # conversation well before the hard model limit. ``auto`` is a
+            # provider-side last line of defence for server-only state (hosted
+            # tool items/reasoning) that cannot be estimated perfectly locally.
+            response_kwargs["truncation"] = "auto"
 
         # tools prepare
         tools = api.tools.prepare_responses_api(model, functions)
 
-        # Reasoning models: request the provider-supported readable summary.
-        # OpenAI deliberately does not expose raw chain-of-thought; summary=auto
-        # is the supported presentation/debugging surface in Responses API.
+        # Reasoning effort controls model compute independently of the optional
+        # readable summary. Never request that summary when live reasoning is off.
         model_id_lc = str(model.id or "").lower()
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
         is_reasoning_model = (
-            bool(model.extra and "reasoning_effort" in model.extra)
-            or model_id_lc.startswith(("o1", "o3", "o4", "gpt-5"))
+            bool(getattr(model, "reasoning_effort", False))
+            or is_openai_reasoning_model_id(model_id_lc)
         )
         if is_reasoning_model:
-            response_kwargs['reasoning'] = {"summary": "auto"}
-            if model.extra and "reasoning_effort" in model.extra:
-                response_kwargs['reasoning']['effort'] = model.extra["reasoning_effort"]
+            reasoning_cfg = {}
+            if show_reasoning:
+                reasoning_cfg["summary"] = "auto"
+            if reasoning_effort:
+                reasoning_cfg["effort"] = reasoning_effort
+            if reasoning_cfg:
+                response_kwargs['reasoning'] = reasoning_cfg
 
         # append remote tools
         tools = api.remote_tools.append_to_tools(
@@ -189,20 +221,29 @@ class Responses:
         if system_prompt:
             response_kwargs['instructions'] = system_prompt
 
-        # http://platform.openai.com/docs/guides/tools-computer-use
-        if mode == MODE_COMPUTER or model.id.startswith("computer-use"):
-            response_kwargs['truncation'] = "auto"
+        if mode == MODE_COMPUTER and show_reasoning:
             response_kwargs.setdefault('reasoning', {})["summary"] = "concise"
 
         model_id = (model.get_ollama_model() or model.id or "").strip() if model.is_ollama() else (model.id or "")
         if not model_id:
             raise ValueError("Model name is required for the API request.")
-        response = client.responses.create(
-            input=messages,
-            model=model_id,
-            stream=stream,
+        request_kwargs = {
+            "input": messages,
+            "model": model_id,
+            "stream": stream,
             **response_kwargs,
+        }
+        self.window.core.api.logger.log_input(
+            type="responses.create", provider=str(model.provider or "openai"),
+            kwargs=request_kwargs, input=messages, history=context.history,
+            extra=extra, model=model_id, path="client.responses.create",
         )
+        response = client.responses.create(**request_kwargs)
+        if not stream:
+            self.window.core.api.logger.log_output(
+                type="responses.create", provider=str(model.provider or "openai"),
+                output=response, model=model_id,
+            )
 
         # store previous response ID
         if not stream and response:
@@ -221,6 +262,7 @@ class Responses:
             user_name: Optional[str] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
             is_expert_call: bool = False,
+            current_ctx: Optional[CtxItem] = None,
     ) -> list:
         """
         Build list of chat messages
@@ -234,6 +276,7 @@ class Responses:
         :param user_name: username
         :param multimodal_ctx: Multimodal context
         :param is_expert_call: if True then expert call, use previous response ID from context
+        :param current_ctx: current durable context item, used by continuous-context generations
         :return: messages list
         """
         messages = []
@@ -267,10 +310,14 @@ class Responses:
                 max_ctx_tokens,
             )
 
+            break_server_chain = (
+                not is_expert_call
+                and self.window.core.context_manager.should_break_server_chain(items, current_ctx)
+            )
             has_response_id_in_last_item = False
-            if items and len(items) > 0:
+            if items and len(items) > 0 and not break_server_chain:
                 last_item = items[-1]
-                if last_item and last_item.msg_id:
+                if self._can_resume_server_response(last_item):
                     has_response_id_in_last_item = True
 
             for item in items:
@@ -314,10 +361,11 @@ class Responses:
 
                     # ---- tool output ----
                     is_tool_output = False  # reset tool output flag
-                    is_last_item = item == items[-1] if items else False
+                    is_last_item = item is items[-1] if items else False
 
                     # MCP approval request
-                    if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                    if (not break_server_chain and is_last_item and tool_call_native_enabled
+                            and item.extra and isinstance(item.extra, dict)):
                         if "mcp_approval_request" in item.extra and isinstance(item.extra["mcp_approval_request"], dict):
                             mcp_approval_request = item.extra["mcp_approval_request"]
                             if "id" in mcp_approval_request:
@@ -329,7 +377,8 @@ class Responses:
                                 messages.append(msg)
 
                     # tool calls
-                    if is_last_item and tool_call_native_enabled and item.extra and isinstance(item.extra, dict):
+                    if (not break_server_chain and is_last_item and tool_call_native_enabled
+                            and item.extra and isinstance(item.extra, dict)):
                         if "tool_calls" in item.extra and isinstance(item.extra["tool_calls"], list):
                             for tool_call in item.extra["tool_calls"]:
                                 output_type = "function_call_output"
@@ -345,27 +394,35 @@ class Responses:
                                     if output_type == "function_call_output":
                                         if tool_call["call_id"] and tool_call["function"]["name"]:
                                             if "tool_output" in item.extra and isinstance(item.extra["tool_output"], list):
+                                                exact_output = None
+                                                legacy_output = None
                                                 for tool_output in item.extra["tool_output"]:
-                                                    if ("cmd" in tool_output
-                                                            and tool_output["cmd"] == tool_call["function"]["name"]):
-                                                        msg = {
-                                                            "type": "function_call_output",
-                                                            "call_id": tool_call["call_id"],
-                                                            "output": str(tool_output),
-                                                        }
-                                                        is_tool_output = True
-                                                        messages.append(msg)
-                                                        break
-                                                    elif "result" in tool_output:
-                                                        # if result is present, append it as function call output
-                                                        msg = {
-                                                            "type": "function_call_output",
-                                                            "call_id": tool_call["call_id"],
-                                                            "output": str(tool_output["result"]),
-                                                        }
-                                                        is_tool_output = True
-                                                        messages.append(msg)
-                                                        break
+                                                    if not isinstance(tool_output, dict):
+                                                        continue
+                                                    output_cmd = tool_output.get("cmd")
+                                                    if output_cmd:
+                                                        if output_cmd == tool_call["function"]["name"]:
+                                                            exact_output = tool_output
+                                                            break
+                                                        # A named output belongs to another call; never use it
+                                                        # as a positional fallback for this call_id.
+                                                        continue
+                                                    if legacy_output is None and "result" in tool_output:
+                                                        legacy_output = tool_output
+
+                                                tool_output = exact_output or legacy_output
+                                                if tool_output is not None:
+                                                    msg = {
+                                                        "type": "function_call_output",
+                                                        "call_id": tool_call["call_id"],
+                                                        "output": str(
+                                                            tool_output
+                                                            if exact_output is not None
+                                                            else tool_output.get("result")
+                                                        ),
+                                                    }
+                                                    is_tool_output = True
+                                                    messages.append(msg)
 
                                     # computer call output
                                     elif output_type == "computer_call":
@@ -377,8 +434,9 @@ class Responses:
                                                     "call_id": tool_call["call_id"],
                                                     "type": "computer_call_output",
                                                     "output": {
-                                                        "type": "input_image",
-                                                        "image_url": f"data:image/png;base64,{base64img}"
+                                                        "type": "computer_screenshot",
+                                                        "image_url": f"data:image/png;base64,{base64img}",
+                                                        "detail": "original",
                                                     },
                                                 }
                                                 # safety checks
@@ -396,22 +454,69 @@ class Responses:
                                                         msg["acknowledged_safety_checks"] = safety_checks
                                                 is_tool_output = True
                                                 messages = [msg]  # replace messages with tool output
+
+                                                # Responses' computer_call_output has a strict screenshot-only
+                                                # output schema. If PyGPT could not implement/execute the action,
+                                                # report that separately as ordinary input text instead of either
+                                                # dropping the error or adding a non-schema field to the tool output.
+                                                computer_errors = []
+                                                for tool_output in item.extra.get("tool_output") or []:
+                                                    if not isinstance(tool_output, dict):
+                                                        continue
+                                                    result = tool_output.get("result")
+                                                    if isinstance(result, dict) and result.get("error"):
+                                                        computer_errors.append(str(result.get("error")))
+                                                    elif isinstance(result, str) and result.lower().startswith("error"):
+                                                        computer_errors.append(result)
+                                                if computer_errors:
+                                                    error_text = "\n".join(dict.fromkeys(computer_errors))
+                                                    messages.append({
+                                                        "role": "user",
+                                                        "content": [{
+                                                            "type": "input_text",
+                                                            "text": f"[PyGPT Computer Use executor] Error: {error_text}",
+                                                        }],
+                                                    })
                                                 break
 
                     # --- previous message ID ---
-                    if (item.msg_id
+                    if (not break_server_chain
+                            and self._can_resume_server_response(item)
                             and ((item.cmds is None or len(item.cmds) == 0) or is_tool_output)):  # if no cmds before or tool output
                         if is_expert_call:
                             self.prev_internal_response_id = item.msg_id
                         else:
                             self.prev_response_id = item.msg_id  # previous response ID to use in current input
 
+        # A Files I/O tool may attach a local image only for this continuation.
+        # Function-call output objects do not have a portable image payload across
+        # APIs, so send the image immediately after the function_call_output as a
+        # normal multimodal user item. The marker is transport-only and never
+        # enters the durable chat attachment list.
+        if is_tool_output and model.is_image_input() and attachments:
+            runtime_images = {
+                key: attachment
+                for key, attachment in attachments.items()
+                if isinstance(getattr(attachment, "extra", None), dict)
+                and attachment.extra.get("runtime_tool_attachment") is True
+                and getattr(attachment, "path", None)
+                and self.window.core.api.openai.vision.is_image(attachment.path)
+            }
+            if runtime_images:
+                runtime_content = self.window.core.api.openai.vision.build_content(
+                    content="Image attachment returned by the preceding tool for native analysis.",
+                    attachments=runtime_images,
+                    responses_api=True,
+                )
+                messages.append({
+                    "role": "user",
+                    "content": runtime_content,
+                })
+
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
             content = str(prompt)
-            if (model.is_image_input()
-                    and mode != MODE_COMPUTER
-                    and not model.id.startswith("computer-use")):
+            if model.is_image_input() and mode != MODE_COMPUTER:
                 content = self.window.core.api.openai.vision.build_content(
                     content=content,
                     attachments=attachments,
@@ -465,6 +570,7 @@ class Responses:
         """
         output = ""
         force_func_call = False  # force function call flag
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
 
         if mode in [
             MODE_CHAT,
@@ -488,7 +594,8 @@ class Responses:
         try:
             details = getattr(response.usage, "output_tokens_details", None)
             reasoning_tokens = getattr(details, "reasoning_tokens", 0) if details else 0
-            ensure_reasoning_metadata(ctx, "openai", reasoning_tokens)
+            if show_reasoning:
+                ensure_reasoning_metadata(ctx, "openai", reasoning_tokens)
         except Exception:
             pass
 
@@ -542,26 +649,18 @@ class Responses:
             elif output.type == "computer_call":
                 id = output.id
                 call_id = output.call_id
-                action = output.action
-                tool_calls, is_call = self.window.core.api.openai.computer.handle_action(
+                computer = self.window.core.api.openai.computer
+                tool_calls, is_call = computer.handle_actions(
                     id=id,
                     call_id=call_id,
-                    action=action,
+                    actions=computer.get_actions(output),
                     tool_calls=tool_calls,
                 )
-                if output.pending_safety_checks:
-                    ctx.extra["pending_safety_checks"] = []
-                    for item in output.pending_safety_checks:
-                        check = {
-                            "id": item.id,
-                            "code": item.code,
-                            "message": item.message,
-                        }
-                        ctx.extra["pending_safety_checks"].append(check)
+                computer.store_pending_safety_checks(ctx, output)
                 if is_call:
                     force_func_call = True  # force function call for computer use
 
-            elif output.type == "reasoning":
+            elif output.type == "reasoning" and show_reasoning:
                 summaries = []
                 for summary in getattr(output, "summary", None) or []:
                     if getattr(summary, "type", "") == "summary_text" and getattr(summary, "text", None):
@@ -726,34 +825,40 @@ class Responses:
         allowed = False  # default is not to use responses API
         if model is not None:
             if model.is_gpt():
-                if model.id.startswith("computer-use"):
-                    return True
+                effective_parent_mode = parent_mode or mode
 
+                # GA Computer Use is a Responses API tool. When it is enabled
+                # from Remote Tools, force the Responses path regardless of the
+                # user's generic api_use_responses preference; otherwise the
+                # setting would be silently ignored by Chat Completions.
+                preset_computer_use = False
+                if is_expert_call and preset and preset.remote_tools:
+                    preset_tools = {
+                        item.strip() for item in str(preset.remote_tools).split(",") if item.strip()
+                    }
+                    preset_computer_use = "computer_use" in preset_tools
+
+                remote_computer_use = bool(
+                    (model.has_mode(MODE_COMPUTER)
+                     or supports_future_computer_mode(model.provider, model.id))
+                    and (
+                        self.window.core.config.get("remote_tools.computer_use", False)
+                        or preset_computer_use
+                    )
+                )
+                if (remote_computer_use
+                        and mode in self.RESPONSES_ALLOWED_MODES
+                        and effective_parent_mode in self.RESPONSES_ALLOWED_MODES):
+                    allowed = True
                 # check mode
-                if (mode in self.RESPONSES_ALLOWED_MODES
-                        and parent_mode in self.RESPONSES_ALLOWED_MODES
+                elif (mode in self.RESPONSES_ALLOWED_MODES
+                        and effective_parent_mode in self.RESPONSES_ALLOWED_MODES
                         and self.window.core.config.get('api_use_responses', False)):
                     allowed = True  # use responses API for chat mode, only OpenAI models
 
-                    # agents
-                    if self.window.controller.agent.legacy.enabled():
-                        if not self.window.core.config.get('agent.api_use_responses', False):
-                            allowed = False
-
-                    # experts
-                    if self.window.controller.agent.experts.enabled():
-                        if not self.window.core.config.get('experts.api_use_responses', False):
-                            allowed = False
-
-                    # expert instance call
-                    if is_expert_call:
-                        if self.window.core.config.get('experts.internal.api_use_responses', False):
-                            allowed = True
-                        else:
-                            allowed = False
-                            if preset:
-                                # check if any remote tools enabled
-                                if len(preset.remote_tools) > 0:
-                                    allowed = True  # force enable
+                    # Expert manager requests use the same global Responses
+                    # setting as Chat. Headless Expert instances are executed by
+                    # the Agents v2 LLM runtime and no longer have separate API
+                    # transport configuration here.
         return allowed
 

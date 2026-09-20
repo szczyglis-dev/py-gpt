@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.26 19:00:00                  #
+# Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 
+from inspect import signature
 from unittest.mock import MagicMock, patch
 
 from tests.mocks import mock_window
@@ -58,14 +59,22 @@ def test_send(mock_window):
     extra = {}
 
     input.send(context, extra)
-    input.execute.assert_called_once_with(
-        text="xxx",
-        force=False,
-        reply=False,
-        internal=False,
-        prev_ctx=None,
-        multimodal_ctx=context.multimodal_ctx,
-    )
+    expected = {
+        "text": "xxx",
+        "force": False,
+        "reply": False,
+        "internal": False,
+        "prev_ctx": None,
+        "multimodal_ctx": context.multimodal_ctx,
+        "mode_override": None,
+        "model_override": None,
+        "agent_continue": False,
+        "runtime_attachments": None,
+        "send_initialized": False,
+    }
+    if "preflight_busy" in signature(Input.execute).parameters:
+        expected.update(preflight_busy=False, preflight_token=None)
+    input.execute.assert_called_once_with(**expected)
 
 
 def test_execute_text(mock_window):
@@ -93,6 +102,10 @@ def test_execute_text(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
+            agent_continue=False,
+            runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -155,6 +168,10 @@ def test_execute_no_ctx(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
+            agent_continue=False,
+            runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -210,6 +227,10 @@ def test_execute_vision_mode(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
+            agent_continue=False,
+            runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 
@@ -252,6 +273,10 @@ def test_execute_vision_plugin(mock_window):
             internal=False,
             prev_ctx=None,
             multimodal_ctx=None,
+            mode_override=None,
+            model_override=None,
+            agent_continue=False,
+            runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
 

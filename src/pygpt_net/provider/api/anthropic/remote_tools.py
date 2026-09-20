@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.08 14:20:00                  #
 # ================================================== #
 
 import json
@@ -58,7 +58,11 @@ class RemoteTools:
             return [s.strip() for s in str(raw).split(",") if s.strip()]
 
         # --- Web Search (server tool) ---
-        is_web = self.window.controller.chat.remote_tools.enabled(model, "web_search")
+        remote_tools = self.window.controller.chat.remote_tools
+        is_web = (
+            remote_tools.enabled(model, "web_search")
+            and remote_tools.supported(model, "web_search")
+        )
         if is_web:
             ttype = cfg.get("remote_tools.anthropic.web_search.type", "web_search_20250305")
             tname = "web_search"
@@ -89,6 +93,11 @@ class RemoteTools:
                 }
                 tool_def["user_location"] = {k: v for k, v in tool_def["user_location"].items() if v is not None}
             tools.append(tool_def)
+
+        # --- Computer Use (Anthropic-defined client tool) ---
+        if cfg_bool("remote_tools.anthropic.computer_use", default=False) \
+                and self.window.core.api.anthropic.computer.supports_model(model):
+            tools.append(self.window.core.api.anthropic.computer.get_tool(model=model))
 
         # --- Code Execution (server tool) ---
         is_code_exec = cfg_bool("remote_tools.anthropic.code_execution", default=False)

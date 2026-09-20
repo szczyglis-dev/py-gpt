@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 00:00:00                  #
+# Updated Date: 2026.09.17 15:50:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -93,7 +93,11 @@ class Config(BaseConfig):
         # commands
         plugin.add_cmd(
             "send_file",
-            instruction="send file as attachment from my computer to you for analyze",
+            instruction=(
+                "send file as a normal persistent chat attachment; use attach_runtime_file instead when a local "
+                "file should be passed only to the immediate next model request for native analysis without adding "
+                "it to the persistent chat attachment list"
+            ),
             params=[
                 {
                     "name": "path",
@@ -106,8 +110,48 @@ class Config(BaseConfig):
             description="Enable: Upload file as attachment",
         )
         plugin.add_cmd(
+            "deliver_file_to_user",
+            instruction=(
+                "deliver an existing local file to the user as a response artifact; use only for an intentional "
+                "user-facing deliverable after it is ready, never for files merely read, searched or inspected. "
+                "Use send_file/attach_runtime_file when the file is input for the model rather than output for the user"
+            ),
+            params=[
+                {
+                    "name": "path",
+                    "type": "str",
+                    "description": "path to the file to deliver",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Deliver file to user",
+        )
+        plugin.add_cmd(
+            "attach_runtime_file",
+            instruction=(
+                "attach one or more existing local files as runtime-only attachments to the next model request; "
+                "use this especially when you need the active multimodal model to inspect a local image natively "
+                "(for example a PNG/JPEG/WebP screenshot) instead of reading or describing it through read_file; "
+                "the attachment is available immediately after this tool result in normal Chat and agent loops, "
+                "does not need to be added to the persistent chat attachment list, and is analyzed only when the "
+                "active model/provider supports that attachment type"
+            ),
+            params=[
+                {
+                    "name": "path",
+                    "type": "list",
+                    "description": "path(s) to local files to attach to the immediate next model request",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Attach runtime file for model analysis",
+        )
+        plugin.add_cmd(
             "read_file",
-            instruction="read data from files",
+            instruction=("read data from files; when a local image should be visually inspected by the active "
+                         "multimodal model, use attach_runtime_file instead of read_file"),
             params=[
                 {
                     "name": "path",
@@ -136,7 +180,7 @@ class Config(BaseConfig):
                     "required": True,
                 },
             ],
-            enabled=True,
+            enabled=False,
             description="Enable: Query file with Llama-index",
             tab="indexing",
         )
@@ -422,28 +466,75 @@ class Config(BaseConfig):
             description="If enabled, model will be able to index file or directory using Llama-index",
         )
         plugin.add_cmd(
+            "pack_archive",
+            instruction="pack files or directories into a ZIP or TAR archive; archive format is detected from destination extension",
+            params=[
+                {
+                    "name": "src",
+                    "type": "list",
+                    "description": "source file(s) or directory/directories to pack",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "destination archive path (.zip, .tar, .tar.gz/.tgz, .tar.bz2/.tbz2, .tar.xz/.txz)",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Pack files/directories into ZIP or TAR archive",
+        )
+        plugin.add_cmd(
+            "unpack_archive",
+            instruction="unpack a ZIP or TAR archive into a directory; archive format is detected automatically",
+            params=[
+                {
+                    "name": "src",
+                    "type": "str",
+                    "description": "source archive path (.zip, .tar, .tar.gz/.tgz, .tar.bz2/.tbz2, .tar.xz/.txz)",
+                    "required": True,
+                },
+                {
+                    "name": "dst",
+                    "type": "str",
+                    "description": "destination directory",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Enable: Unpack ZIP or TAR archive",
+        )
+        plugin.add_cmd(
             "find",
-            instruction="find file or directory, use empty path to search in current dir",
+            instruction=(
+                "find files or directories by their name/basename pattern only; "
+                "this tool searches filesystem entry names, NOT text or other content inside files. "
+                "Use an empty path to search in the current directory"
+            ),
             params=[
                 {
                     "name": "pattern",
                     "type": "str",
-                    "description": "name pattern",
+                    "description": (
+                        "file or directory name glob pattern, e.g. '*.py', 'test_*', "
+                        "or 'config.json'; matches names only, never file contents"
+                    ),
                     "required": True,
                 },
                 {
                     "name": "path",
                     "type": "str",
-                    "description": "search directory",
+                    "description": "directory in which to search; use an empty value for the current directory",
                     "required": True,
                 },
                 {
                     "name": "recursive",
                     "type": "bool",
-                    "description": "recursive search",
+                    "description": "search recursively through subdirectories",
                     "required": True,
                 },
             ],
             enabled=True,
-            description="Enable: Find file or directory",
+            description="Enable: Find file or directory by name",
         )

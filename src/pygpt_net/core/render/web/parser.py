@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import re
 
 import markdown
 from mdx_math import MathExtension
@@ -96,8 +97,18 @@ class Parser:
         :param text: markdown text
         :return: markdown text with prepared paths
         """
-        # Replace sandbox paths with file paths
-        return text.replace("](sandbox:", "](file://") if "](sandbox:" in text else text
+        # Resolve model-facing sandbox paths against the current PyGPT workdir.
+        # The old sandbox: -> file:// replacement turned sandbox:/img/x.png
+        # into file:///img/x.png (host filesystem root), which is incorrect.
+        if "sandbox:" not in text.lower():
+            return text
+        fs = self.window.core.filesystem
+        return re.sub(
+            r'\(sandbox:([^)]+)\)',
+            lambda m: f'({fs.get_local_url("sandbox:" + m.group(1))})',
+            text,
+            flags=re.IGNORECASE,
+        )
 
     def parse(self, text: str, reset: bool = True) -> str:
         """

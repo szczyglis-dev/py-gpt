@@ -1,10 +1,10 @@
-Indexing and project indexes
-============================
+Indexing and RAG
+================
 
 PyGPT uses LlamaIndex and a vector store to provide persistent RAG data for
 ``Chat with Files`` and related plugins. File indexing and conversation-context
 indexing are separate workflows and can be configured independently in
-``Settings -> Indexes / LlamaIndex``.
+``Settings -> Indexes / RAG``.
 
 Index types
 -----------
@@ -12,7 +12,7 @@ Index types
 PyGPT uses three related index concepts:
 
 * **Configured indexes** are the normal persistent indexes listed in
-  ``Settings -> Indexes / LlamaIndex -> Indexes``. They can contain files,
+  ``Settings -> Indexes / RAG -> General -> Indexes``. They can contain files,
   external data, and indexed conversation context.
 * **Project indexes** are isolated persistent indexes created automatically for
   projects. They are shown to the user as ``Current project`` and are not added
@@ -37,9 +37,17 @@ The main options include recursive directory indexing, replacement of old
 versions during re-indexing, excluded extensions, stop-on-error behavior, and
 custom metadata for file and web/external documents.
 
+The Files view is project-aware. If the active conversation belongs to a project
+with a custom data workdir, the view uses that directory as its filesystem root;
+outside projects, or when ``Use shared workdir`` is enabled, it uses the shared
+``<profile workdir>/data`` directory. File-indexing actions therefore operate on
+files from the effective data workdir of the active conversation.
+
 When the current conversation belongs to a project, ``Current project`` is
 available as a runtime index target. Selecting it indexes the file or directory
-into the isolated index for that project.
+into the isolated index for that project. The project's filesystem data workdir
+and its isolated vector index are separate concepts: changing the data workdir
+does not move, rename or rebuild the project's vector index.
 
 Context indexing
 ----------------
@@ -109,7 +117,7 @@ The active project index can be used from multiple places:
 * In ``Chat with Files``, choose ``Current project`` from the index selector.
 * In the Files view, use ``RMB -> Embed into index -> Current project`` for a file or
   directory.
-* In the ``Chat with files (LlamaIndex, inline)`` plugin, enable
+* In the ``RAG (inline)`` plugin, enable
   ``Use project index if in use`` to query the active project's isolated index
   automatically.
 * In the ``Files I/O`` plugin, enable ``Use project index if in use`` so

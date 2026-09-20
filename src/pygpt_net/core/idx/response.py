@@ -17,6 +17,7 @@ from pygpt_net.provider.api.reasoning import (
     is_tagged_reasoning_model, strip_and_store_tagged_reasoning,
 )
 from pygpt_net.provider.api.llama_index.stream import message_has_tool_calls
+from pygpt_net.provider.llms.artifacts import drain_llm_urls
 
 class Response:
     def __init__(self, window=None):
@@ -26,6 +27,22 @@ class Response:
         :param window: Window instance
         """
         self.window = window
+
+    def collect_llm_urls(self, ctx: CtxItem, llm) -> None:
+        """Drain provider-native source URLs captured by a LlamaIndex LLM adapter."""
+        drain_llm_urls(
+            ctx,
+            llm,
+            on_error=self.window.core.debug.log,
+        )
+
+    def stream_with_llm_artifacts(self, ctx: CtxItem, llm, stream):
+        """Yield a sync LlamaIndex stream and collect provider artifacts at EOF."""
+        try:
+            for chunk in stream:
+                yield chunk
+        finally:
+            self.collect_llm_urls(ctx, llm)
 
     def _prepare_output(self, ctx: CtxItem, model: ModelItem, output: Any) -> str:
         """Normalize local <think> reasoning without affecting other providers."""
@@ -61,28 +78,28 @@ class Response:
         if cmd_enabled:
             # tools enabled
             if use_react:
-                self.from_react(ctx, model, response)  # TOOLS + REACT, non-stream
+                self.from_react(ctx, model, llm, response)  # TOOLS + REACT, non-stream
             else:
                 if stream:
                     if use_index:
-                        self.from_index_stream(ctx, model, response)  # INDEX + STREAM
+                        self.from_index_stream(ctx, model, llm, response)  # INDEX + STREAM
                     else:
                         self.from_llm_stream(ctx, model, llm, response)  # LLM + STREAM
                 else:
                     if use_index:
-                        self.from_index(ctx, model, response)  # TOOLS + INDEX
+                        self.from_index(ctx, model, llm, response)  # TOOLS + INDEX
                     else:
                         self.from_llm(ctx, model, llm, response)  # TOOLS + LLM
         else:
             # no tools
             if stream:
                 if use_index:
-                    self.from_index_stream(ctx, model, response)  # INDEX + STREAM
+                    self.from_index_stream(ctx, model, llm, response)  # INDEX + STREAM
                 else:
                     self.from_llm_stream(ctx, model, llm, response)  # LLM + STREAM
             else:
                 if use_index:
-                    self.from_index(ctx, model, response)  # INDEX
+                    self.from_index(ctx, model, llm, response)  # INDEX
                 else:
                     self.from_llm(ctx, model, llm, response)  # LLM
 
@@ -90,6 +107,7 @@ class Response:
             self,
             ctx: CtxItem,
             model: ModelItem,
+            llm,
             response: Any
     ) -> None:
         """
@@ -101,11 +119,13 @@ class Response:
         """
         output = self._prepare_output(ctx, model, response)
         ctx.set_output(output, "")
+        self.collect_llm_urls(ctx, llm)
 
     def from_index(
             self,
             ctx: CtxItem,
             model: ModelItem,
+            llm,
             response: Any
     ) -> None:
         """
@@ -117,6 +137,7 @@ class Response:
         """
         output = self._prepare_output(ctx, model, response.response)
         ctx.set_output(output, "")
+        self.collect_llm_urls(ctx, llm)
 
     def from_llm(
             self,
@@ -144,11 +165,13 @@ class Response:
         )
         ctx.set_output(output, "")
         ctx.tool_calls = self.window.core.command.unpack_tool_calls_from_llama(tool_calls)
+        self.collect_llm_urls(ctx, llm)
 
     def from_index_stream(
             self,
             ctx: CtxItem,
             model: ModelItem,
+            llm,
             response: Any
     ) -> None:
         """
@@ -158,7 +181,7 @@ class Response:
         :param model: ModelItem
         :param response: Response data
         """
-        ctx.stream = response.response_gen
+        ctx.stream = self.stream_with_llm_artifacts(ctx, llm, response.response_gen)
         ctx.set_output("", "")
 
     def from_llm_stream(
@@ -176,7 +199,8 @@ class Response:
         :param llm: LLM instance
         :param response: Response data
         """
-        ctx.stream = self._stream_with_prev_message(response)  # chunk is in response.delta
+        stream = self._stream_with_prev_message(response)  # chunk is in response.delta
+        ctx.stream = self.stream_with_llm_artifacts(ctx, llm, stream)
         ctx.set_output("", "")
 
     def _stream_with_prev_message(self, response: Any):

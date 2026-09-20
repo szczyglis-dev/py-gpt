@@ -6,20 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.09.09 16:40:00
 # ================================================== #
 
 import json
 import os
-import re
 from typing import Optional, Dict, Any, List, Set
 
 from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
+from pygpt_net.provider.core.model.compat import supports_anthropic_adaptive_thinking
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
+from .utils import append_ctx_urls, extract_web_fetch_urls, extract_web_search_urls
 
 import anthropic
 from anthropic.types import Message
@@ -83,7 +86,7 @@ class Chat:
 
         # Enable Computer Use tool in computer mode (use the official Tool/ComputerUse object)
         if mode == MODE_COMPUTER or (model and isinstance(model.id, str) and "computer-use" in model.id.lower()):
-            tool = self.window.core.api.anthropic.computer.get_tool()
+            tool = self.window.core.api.anthropic.computer.get_tool(model=model)
             tools = [tool]  # reset tools to only Computer Use (multiple tools not supported together)
 
         # MCP: servers from config
@@ -95,9 +98,6 @@ class Chat:
             betas.add("files-api-2025-04-14")
 
         max_tokens = context.max_tokens if context.max_tokens else 1024
-        temperature = self.window.core.config.get('temperature')
-        top_p = self.window.core.config.get('top_p')
-
         params: Dict[str, Any] = {
             "model": model.id,
             "messages": msgs,
@@ -106,15 +106,23 @@ class Chat:
         # Add optional fields only if provided
         if system_prompt:
             params["system"] = system_prompt  # SDK expects string or blocks, not None
-        # Claude 4.x: top_p is rejected when temperature is also present.
-        # Opus 4.x and claude-3-7-sonnet have deprecated temperature entirely (extended thinking).
-        _no_temp = ("claude-opus-4-", "claude-3-7-sonnet", "claude-fable-5", "claude-opus-5", "claude-sonnet-5")
-        if temperature is not None and not any(model.id.startswith(p) for p in _no_temp):
-            params["temperature"] = temperature
         if tools:  # only include when non-empty list
             params["tools"] = tools  # must be a valid list per API
         if mcp_servers:
             params["mcp_servers"] = mcp_servers  # MCP connector servers per docs
+
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+        if reasoning_effort:
+            # anthropic==0.75.0 exposes output_config only on the beta helper;
+            # stable Messages.create() rejects it as a Python keyword argument.
+            # Send the field through extra_body so the same code works with the
+            # pinned SDK and with newer SDKs where output_config is first-class.
+            extra_body = dict(params.get("extra_body") or {})
+            output_config = dict(extra_body.get("output_config") or {})
+            output_config["effort"] = reasoning_effort
+            extra_body["output_config"] = output_config
+            params["extra_body"] = extra_body
 
         # Request readable summarized thinking only where it does not interfere
         # with the app's separate client/server-tool continuation flow. Anthropic
@@ -124,14 +132,9 @@ class Chat:
         no_tools = not tools and not mcp_servers and mode != MODE_COMPUTER
         model_id_lc = str(model.id or "").lower()
         thinking_cfg = None
-        if no_tools:
-            # Claude 4.6+ and Claude 5 use adaptive thinking.
-            version_match = re.search(r"-4-(\d+)(?:-|$)", model_id_lc)
-            is_adaptive = (
-                bool(version_match and int(version_match.group(1)) >= 6)
-                or bool(re.search(r"-(?:opus|sonnet|fable|haiku|mythos)-5(?:-|$)", model_id_lc))
-            )
-            if is_adaptive:
+        if no_tools and show_reasoning:
+            # Claude 4.6+ and later generations use adaptive thinking.
+            if supports_anthropic_adaptive_thinking(model_id_lc):
                 thinking_cfg = {"type": "adaptive", "display": "summarized"}
             # Claude 4.5 / 3.7 use legacy fixed-budget extended thinking.
             elif ("-4-5" in model_id_lc or "claude-3-7-sonnet" in model_id_lc) and max_tokens > 1024:
@@ -143,10 +146,13 @@ class Chat:
                 }
 
         if thinking_cfg is not None:
-            params["thinking"] = thinking_cfg
-            # Sampling temperature is incompatible with thinking on affected
-            # Claude generations; default sampling is the safest common path.
-            params.pop("temperature", None)
+            # anthropic==0.75.0 only has the legacy typed thinking schema in
+            # Messages.create(). Newer adaptive/display fields can still be
+            # forwarded safely in the raw request body via extra_body.
+            extra_body = dict(params.get("extra_body") or {})
+            extra_body["thinking"] = thinking_cfg
+            params["extra_body"] = extra_body
+            params.pop("thinking", None)
 
         if mode == MODE_AUDIO:
             stream = False  # no native TTS
@@ -154,16 +160,26 @@ class Chat:
         # Decide whether to call stable or beta endpoint
         use_beta = len(betas) > 0
 
+        request_kwargs = dict(params)
         if stream:
-            if use_beta:
-                return client.beta.messages.create(stream=True, betas=list(betas), **params)
-            else:
-                return client.messages.create(stream=True, **params)
+            request_kwargs["stream"] = True
+        if use_beta:
+            request_kwargs["betas"] = list(betas)
+        path = "client.beta.messages.create" if use_beta else "client.messages.create"
+        self.window.core.api.logger.log_input(
+            type="messages.create", provider="anthropic", kwargs=request_kwargs,
+            input=msgs, history=context.history, extra=extra, model=model.id, path=path,
+        )
+        if use_beta:
+            response = client.beta.messages.create(**request_kwargs)
         else:
-            if use_beta:
-                return client.beta.messages.create(betas=list(betas), **params)
-            else:
-                return client.messages.create(**params)
+            response = client.messages.create(**request_kwargs)
+        if not stream:
+            self.window.core.api.logger.log_output(
+                type="messages.create", provider="anthropic",
+                output=response, model=model.id,
+            )
+        return response
 
     def unpack_response(self, mode: str, response: Message, ctx: CtxItem):
         """
@@ -174,19 +190,56 @@ class Chat:
         :param ctx: CtxItem to update
         """
         ctx.output = self.extract_text(response)
-        reasoning = self.extract_reasoning(response)
-        if reasoning:
-            store_reasoning(
-                ctx, provider="anthropic", text=reasoning,
-                kind="thinking_summary", raw=False, visible=True,
-            )
-            signatures = self.extract_thinking_signatures(response)
-            if signatures:
-                ctx.extra["reasoning"]["signatures"] = signatures
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+        if show_reasoning:
+            reasoning = self.extract_reasoning(response)
+            if reasoning:
+                store_reasoning(
+                    ctx, provider="anthropic", text=reasoning,
+                    kind="thinking_summary", raw=False, visible=True,
+                )
+                signatures = self.extract_thinking_signatures(response)
+                if signatures:
+                    ctx.extra["reasoning"]["signatures"] = signatures
 
-        calls = self.extract_tool_calls(response)
+        calls = self.extract_tool_calls(response, ctx=ctx)
         if calls:
-            ctx.tool_calls = calls
+            # Keep the raw Anthropic computer tool_use block for the required
+            # tool_result continuation, then map its action to PyGPT plugin calls.
+            raw_computer_uses = []
+            try:
+                computer = self.window.core.api.anthropic.computer
+                for block in computer.get_field(response, "content", None) or []:
+                    if computer.get_field(block, "type", "") != "tool_use":
+                        continue
+                    name = str(computer.get_field(block, "name", "") or "")
+                    toolset_name = str(computer.get_field(block, "toolset_name", "") or "")
+                    if not computer.is_computer_tool_use(ctx, name, toolset_name):
+                        continue
+                    is_toolset = name in computer.TOOLSET_MEMBER_NAMES and name not in computer.COMPUTER_TOOL_NAMES
+                    if is_toolset and not toolset_name:
+                        toolset_name = "computer"
+                    block_input = computer.to_plain(computer.get_field(block, "input", {}) or {})
+                    record = {
+                        "id": str(computer.get_field(block, "id", "") or ""),
+                        "name": name,
+                        "input": block_input if isinstance(block_input, (dict, list)) else {},
+                    }
+                    if toolset_name:
+                        record["toolset_name"] = toolset_name
+                        if not isinstance(ctx.extra, dict):
+                            ctx.extra = {}
+                        ctx.extra["computer_stop_on_error"] = True
+                    raw_computer_uses.append(record)
+            except Exception:
+                raw_computer_uses = []
+            if raw_computer_uses:
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                ctx.extra["anthropic_tool_uses"] = raw_computer_uses
+                ctx.tool_calls = self.window.core.api.anthropic.computer.rewrite_tool_calls(calls, ctx=ctx)
+            else:
+                ctx.tool_calls = calls
 
         # Usage
         try:
@@ -213,7 +266,8 @@ class Chat:
                     "reasoning_tokens": thinking_tokens or 0,
                     "server_tool_use": server_tool_use,
                 }
-                ensure_reasoning_metadata(ctx, "anthropic", thinking_tokens)
+                if show_reasoning:
+                    ensure_reasoning_metadata(ctx, "anthropic", thinking_tokens)
         except Exception:
             pass
 
@@ -278,7 +332,7 @@ class Chat:
             pass
         return out
 
-    def extract_tool_calls(self, response: Message) -> List[dict]:
+    def extract_tool_calls(self, response: Message, ctx: Optional[CtxItem] = None) -> List[dict]:
         """
         Extract tool_use blocks as app tool calls.
 
@@ -304,79 +358,52 @@ class Chat:
             return obj
 
         try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "tool_use":
-                    out.append({
-                        "id": getattr(blk, "id", "") or "",
+            computer = self.window.core.api.anthropic.computer
+            for blk in computer.get_field(response, "content", []) or []:
+                if computer.get_field(blk, "type", "") == "tool_use":
+                    name = str(computer.get_field(blk, "name", "") or "")
+                    toolset_name = str(computer.get_field(blk, "toolset_name", "") or "")
+                    if (
+                            not toolset_name
+                            and name in computer.TOOLSET_MEMBER_NAMES
+                            and computer.is_computer_tool_use(ctx, name, toolset_name)
+                    ):
+                        toolset_name = "computer"
+                    call = {
+                        "id": computer.get_field(blk, "id", "") or "",
                         "type": "function",
                         "function": {
-                            "name": getattr(blk, "name", "") or "",
-                            "arguments": to_plain(getattr(blk, "input", {}) or {}),
+                            "name": name,
+                            "arguments": to_plain(computer.get_field(blk, "input", {}) or {}),
                         }
-                    })
+                    }
+                    if toolset_name:
+                        call["toolset_name"] = str(toolset_name)
+                    out.append(call)
         except Exception:
             pass
         return out
 
     def _collect_web_search_urls(self, response: Message, ctx: CtxItem):
         """
-        Collect URLs from web_search_tool_result blocks and attach to ctx.urls.
+        Collect Anthropic Web Search source URLs and attach them to ctx.urls.
+
+        URLs may arrive in typed `web_search_result` blocks and/or in
+        `web_search_result_location` citations attached to text blocks.
 
         :param response: Message response from API
         :param ctx: CtxItem to update
         """
-        urls: List[str] = []
-        try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "web_search_tool_result":
-                    content = getattr(blk, "content", None) or []
-                    for item in content:
-                        if isinstance(item, dict) and item.get("type") == "web_search_result":
-                            u = (item.get("url") or "").strip()
-                            if u.startswith("http://") or u.startswith("https://"):
-                                urls.append(u)
-        except Exception:
-            pass
-
-        if urls:
-            if ctx.urls is None:
-                ctx.urls = []
-            for u in urls:
-                if u not in ctx.urls:
-                    ctx.urls.append(u)
+        append_ctx_urls(ctx, extract_web_search_urls(response))
 
     def _collect_web_fetch_urls(self, response: Message, ctx: CtxItem):
         """
-        Collect URLs from web_fetch_tool_result blocks and attach to ctx.urls.
+        Collect Anthropic Web Fetch result URLs and attach them to ctx.urls.
 
         :param response: Message response from API
         :param ctx: CtxItem to update
         """
-        urls: List[str] = []
-        try:
-            for blk in getattr(response, "content", []) or []:
-                if getattr(blk, "type", "") == "web_fetch_tool_result":
-                    content = getattr(blk, "content", {}) or {}
-                    if isinstance(content, dict):
-                        if content.get("type") == "web_fetch_result":
-                            u = (content.get("url") or "").strip()
-                            if u.startswith("http://") or u.startswith("https://"):
-                                urls.append(u)
-                        # citations may embed multiple URLs
-                        if content.get("type") == "web_fetch_result" and isinstance(content.get("citations"), list):
-                            for cit in content["citations"]:
-                                u = (cit.get("url") or "").strip()
-                                if u.startswith("http://") or u.startswith("https://"):
-                                    urls.append(u)
-        except Exception:
-            pass
-
-        if urls:
-            if ctx.urls is None:
-                ctx.urls = []
-            for u in urls:
-                if u not in ctx.urls:
-                    ctx.urls.append(u)
+        append_ctx_urls(ctx, extract_web_fetch_urls(response))
 
     def build_input(
             self,
@@ -561,7 +588,9 @@ class Chat:
             elif ttype == "mcp_toolset":
                 is_mcp = True
                 betas.add("mcp-client-2025-11-20")
-            elif ttype.startswith("computer_"):
+            elif ttype == "computer_20251124":
+                betas.add("computer-use-2025-11-24")
+            elif ttype == "computer_20250124":
                 betas.add("computer-use-2025-01-24")
         if is_mcp and mcp_servers:
             betas.add("mcp-client-2025-11-20")
@@ -607,45 +636,72 @@ class Chat:
         prior_user_text = ""
         if len(items) >= 2 and getattr(items[-2], "final_input", None):
             prior_user_text = str(items[-2].final_input)
-        elif getattr(last, "input", None):
-            prior_user_text = str(last.input)
+        elif getattr(last, "final_input", None):
+            prior_user_text = str(last.final_input)
 
         user_msg_1 = None
         if prior_user_text:
             user_msg_1 = {"role": "user", "content": [{"type": "text", "text": prior_user_text}]}
 
-        # Recreate assistant tool_use block(s)
+        # Recreate every assistant tool_use exactly as Anthropic emitted it.
         assistant_parts: List[dict] = []
         for tu in tool_uses:
-            tid = str(tu.get("id", "") or "")
-            name = str(tu.get("name", "") or "computer")
-            inp = tu.get("input", {}) or {}
-            assistant_parts.append({
+            block = {
                 "type": "tool_use",
-                "id": tid,
-                "name": name,
-                "input": inp,
-            })
+                "id": str(tu.get("id", "") or ""),
+                "name": str(tu.get("name", "") or "computer"),
+                "input": tu.get("input", {}) or {},
+            }
+            if tu.get("toolset_name"):
+                block["toolset_name"] = str(tu.get("toolset_name"))
+            assistant_parts.append(block)
         assistant_msg = {"role": "assistant", "content": assistant_parts} if assistant_parts else None
 
-        # Build tool_result with last tool output; attach screenshot images (if any) as additional blocks
-        result_text = self._best_tool_result_text(tool_output)
-        last_tool_use_id = str(tool_uses[-1].get("id", "") or "")
-
-        tool_result_block = {
-            "type": "tool_result",
-            "tool_use_id": last_tool_use_id,
-            "content": [{"type": "text", "text": result_text}],
-        }
-
-        # Convert current attachments to image blocks and append after tool_result in the same user message
+        # Computer toolset requires exactly one tool_result for every member tool_use,
+        # in the same order. A screenshot image belongs inside the screenshot result.
         image_blocks: List[dict] = []
         if attachments:
-            img_parts = self.window.core.api.anthropic.vision.build_blocks("", attachments)
-            for part in img_parts:
-                if isinstance(part, dict) and part.get("type") in ("image", "input_image", "document"):
+            for part in self.window.core.api.anthropic.vision.build_blocks("", attachments):
+                if isinstance(part, dict) and part.get("type") in ("image", "input_image"):
                     image_blocks.append(part)
+        screenshot_block = image_blocks[0] if image_blocks else None
 
+        result_blocks: List[dict] = []
+        has_toolset_batch = any(str(tu.get("toolset_name", "") or "") == "computer" for tu in tool_uses)
+        for index, tu in enumerate(tool_uses):
+            # Toolset calls map 1:1 to local outputs. Legacy `computer` payloads may
+            # expand internally, so preserve the old behavior of using the final result.
+            if has_toolset_batch:
+                output = tool_output[index] if index < len(tool_output) else None
+            else:
+                output = tool_output[index] if len(tool_uses) > 1 and index < len(tool_output) else tool_output[-1]
+            name = str(tu.get("name", "") or "computer")
+            toolset_name = str(tu.get("toolset_name", "") or "")
+            text, is_error = self._tool_result_text(output)
+            if toolset_name == "computer" and name == "cursor_position" and not is_error:
+                try:
+                    value = output.get("result", {}) if isinstance(output, dict) else {}
+                    if isinstance(value, dict) and value.get("mouse_x") is not None and value.get("mouse_y") is not None:
+                        text = f"X={int(value['mouse_x'])}, Y={int(value['mouse_y'])}"
+                except Exception:
+                    pass
+            content: List[dict]
+            if toolset_name == "computer" and name in ("screenshot", "zoom") and screenshot_block and not is_error:
+                content = [screenshot_block]
+            else:
+                content = [{"type": "text", "text": text or "OK"}]
+            result = {
+                "type": "tool_result",
+                "tool_use_id": str(tu.get("id", "") or ""),
+                "content": content,
+            }
+            if toolset_name:
+                result["toolset_name"] = toolset_name
+            if is_error:
+                result["is_error"] = True
+            result_blocks.append(result)
+
+        # Native user attachments are unrelated to Computer Use transport screenshots.
         native_blocks: List[dict] = []
         for ref in self.window.core.attachments.native.get_refs(attachments, "anthropic"):
             native_blocks.append({
@@ -653,7 +709,8 @@ class Chat:
                 "source": {"type": "file", "file_id": ref["id"]},
             })
 
-        user_msg_2 = {"role": "user", "content": [tool_result_block] + image_blocks + native_blocks}
+        extra_legacy_images = [] if has_toolset_batch else image_blocks
+        user_msg_2 = {"role": "user", "content": result_blocks + extra_legacy_images + native_blocks}
 
         out: List[dict] = []
         if user_msg_1:
@@ -662,6 +719,30 @@ class Chat:
             out.append(assistant_msg)
         out.append(user_msg_2)
         return out
+
+    @staticmethod
+    def _tool_result_text(output) -> tuple[str, bool]:
+        if output is None:
+            return "Missing tool output", True
+        try:
+            if isinstance(output, dict):
+                value = output.get("result", output)
+                if isinstance(value, dict):
+                    error = value.get("error")
+                    if error:
+                        return str(error), True
+                    status = str(value.get("result", "") or "").lower()
+                    if status in {"error", "failed", "failure"}:
+                        return json.dumps(value, ensure_ascii=False), True
+                    # Toolset ordinary actions only need a short success result.
+                    if status == "success" or value.get("ok") is True:
+                        return "OK", False
+                    return json.dumps(value, ensure_ascii=False), False
+                text = str(value)
+                return text, text.lower().startswith("error")
+            return str(output), False
+        except Exception:
+            return "OK", False
 
     @staticmethod
     def _best_tool_result_text(tool_output: List[dict]) -> str:
@@ -737,14 +818,14 @@ class Chat:
         saved: List[str] = []
         for fid in file_ids:
             try:
-                path = self.window.core.api.anthropic.store.download_to_dir(fid)
+                path = self.window.core.api.anthropic.store.download_to_dir(fid, ctx=ctx)
                 if path:
                     saved.append(path)
             except Exception:
                 continue
 
         if saved:
-            saved = self.window.core.filesystem.make_local_list(saved)
+            saved = self.window.core.filesystem.make_local_list(saved, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []
             for p in saved:

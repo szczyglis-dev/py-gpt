@@ -32,7 +32,7 @@ class Explorer:
         index_data = {}  # file index status is resolved lazily per visible path
 
         # file explorer
-        path = self.window.core.config.get_user_dir('data')
+        path = self.window.core.filesystem.get_data_dir()
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
 
         # build tab body

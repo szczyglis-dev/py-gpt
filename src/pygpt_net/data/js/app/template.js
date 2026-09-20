@@ -93,8 +93,11 @@ class NodeTemplateEngine {
 
 		const personalize = !!(block && block.extra && block.extra.personalize === true);
 		const nameHeader = personalize ? this._nameHeader('user', inp.name || '', inp.avatar_img || null) : '';
+		const dateLabel = inp.date_label
+			? `<div class="msg-date-separator">${this._escapeHtml(inp.date_label)}</div>`
+			: '';
 
-		const content = this._escapeHtml(inp.text || '').replace(/\r?\n/g, '<br>');
+		const content = (typeof Utils !== 'undefined' && Utils.renderMentionText) ? Utils.renderMentionText(inp.text || '') : this._escapeHtml(inp.text || '').replace(/\r?\n/g, '<br>');
 
 		// Use existing copy icon and locale strings to keep public API stable.
 		const I = (this.cfg && this.cfg.ICONS) || {};
@@ -105,7 +108,7 @@ class NodeTemplateEngine {
 		// Single icon, no label; positioned via CSS; visible on hover.
 		const copyBtn = `<a href="empty:${this._esc(id)}" class="msg-copy-btn" data-id="${this._esc(id)}" data-tip="${this._escapeHtml(copyTitle)}" title="${this._escapeHtml(copyTitle)}" aria-label="${this._escapeHtml(copyTitle)}" role="button"><img src="${this._esc(copyIcon)}" class="copy-img" alt="${this._escapeHtml(copyTitle)}" data-id="${this._esc(id)}"></a>`;
 
-		return `<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg">${copyBtn}<p style="margin:0">${content}</p></div></div>`;
+		return `${dateLabel}<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg">${copyBtn}<p style="margin:0">${content}</p></div></div>`;
 	}
 
 	// Render a list of file/URL rows with an optional collapsed tail.
@@ -314,30 +317,100 @@ class NodeTemplateEngine {
 		let toolNamesAttr = '';
 		if (hasToolCalls) {
 			const rawNames = toolCalls.map((call) => String(call.name || 'tool'));
-			const names = rawNames.map((name) => this._escapeHtml(name));
+			const hasPerCallResponses = toolCalls.some((call) =>
+				call && Object.prototype.hasOwnProperty.call(call, 'response')
+			);
+			// A persisted Agents v2 workflow can contain several executed tools on one
+			// final message. Mirror the normal cross-message grouping UI: one outer
+			// "Tools" accordion, then one independently collapsible "Tool" row per call.
+			const groupedInMessage = hasPerCallResponses && rawNames.length > 1;
+			let displayNames = rawNames;
+			if (groupedInMessage) {
+				const shown = rawNames.slice().reverse().slice(0, 2);
+				const remaining = rawNames.length - shown.length;
+				let summary = shown.join(', ');
+				if (remaining > 0) {
+					const tpl = (typeof window !== 'undefined' && window.LOCALE_TOOL_MORE)
+						? String(window.LOCALE_TOOL_MORE)
+						: 'and {count} more';
+					const more = tpl.split('{count}').join(String(remaining));
+					summary += `${summary ? ' … ' : ''}${more}`;
+				}
+				displayNames = [summary];
+			}
+			const names = displayNames.map((name) => this._escapeHtml(name));
 			toolNamesAttr = this._escapeHtml(JSON.stringify(rawNames));
-			const requests = toolCalls
-				.map((call) => this._renderToolCode(call.request))
-				.join('');
 			const resultCode = this._renderToolCode(toolResult);
 
 			const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow' width='25' height='25' alt=''>`;
+			const titleLabel = groupedInMessage && typeof window !== 'undefined' && window.LOCALE_TOOLS
+				? String(window.LOCALE_TOOLS)
+				: toolLabel;
 			titleHtml =
 				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
 				`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-				`<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+				`<span class='tool-output-label'><b>${this._escapeHtml(titleLabel)}:</b>&nbsp;</span>` +
 				`<span class='tool-output-name'>${names.join(', ')}</span>${arrowHtml}` +
 				`</button>`;
-			const responseDisplay = resultCode ? '' : 'display:none';
-			contentHtml =
-				`<div class='tool-output-section'>` +
-				`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
-				`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
-				`</div>` +
-				`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
-				`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
-				`<div class='tool-output-data tool-output-result-data'>${resultCode}</div>` +
-				`</div>`;
+
+			if (hasPerCallResponses) {
+				const renderPair = (call) => {
+					const requestCode = this._renderToolCode(call && call.request);
+					const hasResponse = !!call && Object.prototype.hasOwnProperty.call(call, 'response');
+					const responseCode = hasResponse ? this._renderToolCode(call.response) : '';
+					const responseDisplay = hasResponse ? '' : 'display:none';
+					return (
+						`<div class='tool-output-pair'>` +
+						`<div class='tool-output-section'>` +
+						`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
+						`<div class='tool-output-data tool-output-request-data'>${requestCode}</div>` +
+						`</div>` +
+						`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
+						`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
+						`<div class='tool-output-data tool-output-result-data'>${responseCode}</div>` +
+						`</div>` +
+						`</div>`
+					);
+				};
+
+				if (groupedInMessage) {
+					contentHtml = toolCalls.map((call, index) => {
+						const callName = this._escapeHtml(String((call && call.name) || 'tool'));
+						const itemId = `tool-call-${this._esc(block.id)}-${index}`;
+						const itemArrow = `<img src='${this._esc(expIcon)}' class='tool-output-arrow tool-group-arrow' width='25' height='25' alt=''>`;
+						return (
+							`<div class='tool-output-group tool-output-item' id='${itemId}'>` +
+							`<button type='button' class='tool-output-toggle tool-group-toggle' ` +
+							`onclick="toggleToolGroup('${itemId}');" ` +
+							`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
+							`<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+							`<span class='tool-output-name'>${callName}</span>${itemArrow}` +
+							`</button>` +
+							`<div class='tool-group-content' style='display:none'>${renderPair(call)}</div>` +
+							`</div>`
+						);
+					}).join('');
+				} else {
+					contentHtml = renderPair(toolCalls[0]);
+				}
+			} else {
+				// Legacy/single-turn tool rendering keeps its existing common response
+				// section, including incremental ToolOutput.update() behavior.
+				const requests = toolCalls
+					.map((call) => this._renderToolCode(call.request))
+					.join('');
+				const responseDisplay = resultCode ? '' : 'display:none';
+				contentHtml =
+					`<div class='tool-output-section'>` +
+					`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
+					`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
+					`</div>` +
+					`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
+					`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
+					`<div class='tool-output-data tool-output-result-data'>${resultCode}</div>` +
+					`</div>`;
+			}
+
 		}
 
 		const legacyToggleHtml = hasToolCalls ? '' :
@@ -360,6 +433,105 @@ class NodeTemplateEngine {
 		);
 	}
 
+	// Render chronological sub-items inside one durable assistant turn.
+	_renderPartialTimeline(block) {
+		const extra = block.extra || {};
+		const timeline = Array.isArray(extra.partial_timeline) ? extra.partial_timeline.filter(Boolean) : [];
+		return this._renderTimelineSegments(block, timeline);
+	}
+
+	_renderTimelineSegments(block, timeline) {
+		if (!Array.isArray(timeline) || !timeline.length) return '';
+
+		const parts = [];
+		for (let i = 0; i < timeline.length; i++) {
+			const segment = timeline[i] || {};
+
+			// Runtime-only workflow/status rows are rendered in the same timeline
+			// as text and tools, before message extras/actions. They survive RELOAD
+			// through Python renderer state but are intentionally not persisted in DB.
+			const statusId = String(segment.status_id || '');
+			const statusKind = String(segment.status_kind || '');
+			if (statusId || statusKind) {
+				let label = String(segment.status_text || '');
+				const toolNames = Array.isArray(segment.status_tool_names)
+					? segment.status_tool_names.filter(Boolean).map(v => String(v))
+					: [];
+				if (!label && statusKind === 'tool' && toolNames.length) {
+					const prefix = toolNames.length > 1
+						? ((typeof window !== 'undefined' && window.LOCALE_TOOLS) ? String(window.LOCALE_TOOLS) : 'Tools')
+						: ((typeof window !== 'undefined' && window.LOCALE_TOOL) ? String(window.LOCALE_TOOL) : 'Tool');
+					label = `${prefix}: ${toolNames.join(', ')}...`;
+				}
+				if (label) {
+					const activeClass = segment.status_active ? ' agents-v2-status--active' : '';
+					const sid = this._escapeHtml(statusId);
+					const skind = this._escapeHtml(statusKind || 'agent');
+					parts.push(
+						`<div class='msg-part msg-part-status' data-status-part='1'>` +
+						`<div class='agents-v2-status workflow-status${activeClass}' ` +
+						`data-workflow-status-id='${sid}' data-status-kind='${skind}'>` +
+						`<span class='agents-v2-status__text'>${this._escapeHtml(label)}</span>` +
+						`</div></div>`
+					);
+				}
+				continue;
+			}
+
+			const mdText = this._escapeHtml(segment.text || '');
+			const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';
+			const calls = Array.isArray(segment.tool_calls) ? segment.tool_calls.filter(Boolean) : [];
+			let toolWrap = '';
+			if (calls.length) {
+				const toolBlock = {
+					id: segment.render_id,
+					extra: {
+						tool_calls: calls,
+						tool_output_visible: true,
+						tool_result: '',
+						tool_output: ''
+					}
+				};
+				toolWrap = this._renderToolOutputWrapper(toolBlock);
+			}
+			if (!mdBlock && !toolWrap) continue;
+			const partId = this._esc(segment.part_uuid || segment.part_id || i);
+			parts.push(`<div class='msg-part' data-part-id='${partId}'>${mdBlock}${toolWrap}</div>`);
+		}
+		return parts.join('');
+	}
+
+	// Render the completed Agents v2 workflow as a tool-style accordion while
+	// leaving the authoritative final response visible as the normal message body.
+	_renderCollapsedWorkflow(block) {
+		const extra = block.extra || {};
+		const workflow = extra.collapsed_workflow || null;
+		const timeline = workflow && Array.isArray(workflow.timeline)
+			? workflow.timeline.filter(Boolean)
+			: [];
+		if (!timeline.length) return '';
+
+		const contentHtml = this._renderTimelineSegments(block, timeline);
+		if (!contentHtml) return '';
+		const label = this._escapeHtml(String(workflow.label || ''));
+		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND) ? window.ICON_EXPAND : '';
+		const toggleTitle = (typeof window !== 'undefined' && window.LOCALE_EXPAND)
+			? String(window.LOCALE_EXPAND)
+			: 'Expand';
+		const id = this._esc(block.id);
+		const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow agent-workflow-arrow' width='25' height='25' alt=''>`;
+
+		return (
+			`<div class='tool-output agent-workflow-output' id='tool-output-${id}'>` +
+			`<button type='button' class='tool-output-toggle agent-workflow-toggle' ` +
+			`onclick='toggleToolOutput(${id});' title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
+			`<span class='tool-output-label agent-workflow-label'><b>${label}</b></span>${arrowHtml}` +
+			`</button>` +
+			`<div class='tool-output-content agent-workflow-content' style='display:none' data-trusted='1'>${contentHtml}</div>` +
+			`</div>`
+		);
+	}
+
 	// Render bot message block (md-block-markdown)
 	_renderBot(block) {
 		const id = block.id;
@@ -374,8 +546,11 @@ class NodeTemplateEngine {
 		const nameHeader = personalize ? this._nameHeader('bot', out.name || '', out.avatar_img || null) : '';
 
 		const mdText = this._escapeHtml(out.text || '');
-		const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';
-		const toolWrap = this._renderToolOutputWrapper(block);
+		const timelineHtml = this._renderPartialTimeline(block);
+		const mdBlock = timelineHtml ? '' : (mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '');
+		const collapsedWorkflowHtml = timelineHtml ? '' : this._renderCollapsedWorkflow(block);
+		const primaryHtml = timelineHtml || `${collapsedWorkflowHtml}${mdBlock}`;
+		const toolWrap = timelineHtml ? '' : this._renderToolOutputWrapper(block);
 		const extras = this._renderExtras(block);
 		const actions = (block.extra && block.extra.footer_icons) ? this._renderActions(block) : '';
 		const debug = (block.extra && block.extra.debug_html) ? String(block.extra.debug_html) : '';
@@ -398,9 +573,8 @@ class NodeTemplateEngine {
 			`<div class='msg-box msg-bot' id='${msgId}'${toolChainAttrs}>` +
 			`${nameHeader}` +
 			`<div class='msg'>` +
-			`${mdBlock}` +
+			`<div class='msg-timeline'>${primaryHtml}${toolWrap}</div>` +
 			`<div class='msg-tool-extra'></div>` +
-			`${toolWrap}` +
 			`<div class='msg-extra'>${extras}</div>` +
 			`${actions}${debug}` +
 			`</div>` +
@@ -415,7 +589,11 @@ class NodeTemplateEngine {
 		if (block && block.output) {
 			const extra = block.extra || {};
 			const hasToolCalls = Array.isArray(extra.tool_calls) && extra.tool_calls.length > 0;
-			if (block.output.text || hasToolCalls || extra.tool_output_visible === true) {
+			const hasTimeline = Array.isArray(extra.partial_timeline) && extra.partial_timeline.length > 0;
+			const hasCollapsedWorkflow = !!(extra.collapsed_workflow
+				&& Array.isArray(extra.collapsed_workflow.timeline)
+				&& extra.collapsed_workflow.timeline.length > 0);
+			if (block.output.text || hasToolCalls || hasTimeline || hasCollapsedWorkflow || extra.tool_output_visible === true) {
 				parts.push(this._renderBot(block));
 			}
 		}

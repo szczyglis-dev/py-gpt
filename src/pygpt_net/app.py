@@ -6,13 +6,43 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.09.10 15:50:00                  #
 # ================================================== #
 
 import os
 import builtins
 import io
 import platform
+import sys
+
+
+def _run_frozen_ipykernel() -> bool:
+    """
+    Dispatch a Jupyter kernel child process inside a PyInstaller bundle.
+
+    ``jupyter_client`` starts the native Python kernel using
+    ``sys.executable -m ipykernel_launcher -f <connection_file>``. In a
+    frozen application ``sys.executable`` points to the PyGPT executable,
+    not to a standalone Python interpreter, so handle that invocation before
+    importing the Qt application.
+    """
+    if not getattr(sys, "frozen", False):
+        return False
+    if len(sys.argv) < 3 or sys.argv[1:3] != ["-m", "ipykernel_launcher"]:
+        return False
+
+    # Match argv as seen by ipykernel_launcher when run by a real Python
+    # interpreter: program name followed by e.g. ``-f connection.json``.
+    del sys.argv[1:3]
+    from ipykernel import kernelapp
+
+    kernelapp.launch_new_instance()
+    return True
+
+
+if _run_frozen_ipykernel():
+    raise SystemExit(0)
+
 
 import pygpt_net.icons_rc
 
@@ -230,6 +260,7 @@ def run(**kwargs):
         from pygpt_net.plugin.openai_dalle import Plugin as ImageGenerationPlugin
         from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
         from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
+        from pygpt_net.plugin.memory import Plugin as MemoryPlugin
         from pygpt_net.plugin.agent import Plugin as AgentPlugin
         from pygpt_net.plugin.mailer import Plugin as MailerPlugin
         from pygpt_net.plugin.google import Plugin as GooglePlugin
@@ -252,7 +283,6 @@ def run(**kwargs):
         from pygpt_net.provider.agents.llama_index.planner_workflow import PlannerAgent as PlannerWorkflowAgent
         from pygpt_net.provider.agents.llama_index.openai_workflow import OpenAIAgent as OpenAIWorkflowAgent
         from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.codeact_workflow import CodeActAgent
         from pygpt_net.provider.agents.llama_index.supervisor_workflow import SupervisorAgent as LlamaSupervisorAgent
         from pygpt_net.provider.agents.llama_index.flow_from_schema import Agent as LlamaCustomAgent  # builder schema
 
@@ -358,6 +388,7 @@ def run(**kwargs):
         from pygpt_net.tools.translator import Translator as TranslatorTool
         from pygpt_net.tools.web_browser import WebBrowser as WebBrowserTool
         from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
+        from pygpt_net.tools.agent_workflow import AgentWorkflow as AgentWorkflowTool
 
         launcher.init()
 
@@ -440,6 +471,7 @@ def run(**kwargs):
         launcher.add_plugin(VoiceControlPlugin())
         launcher.add_plugin(AgentPlugin())
         launcher.add_plugin(RealTimePlugin())
+        launcher.add_plugin(MemoryPlugin())
         launcher.add_plugin(ExpertsPlugin())
         launcher.add_plugin(ExtraPromptPlugin())
         launcher.add_plugin(AudioInputPlugin())
@@ -529,7 +561,6 @@ def run(**kwargs):
         launcher.add_agent(PlannerWorkflowAgent())  # llama-index
         # launcher.add_agent(ReactAgent())  # llama-index
         launcher.add_agent(ReactWorkflowAgent())  # llama-index
-        launcher.add_agent(CodeActAgent())  # llama-index
         launcher.add_agent(LlamaSupervisorAgent())  # llama-index
         launcher.add_agent(LlamaCustomAgent())  # llama-index
         launcher.add_agent(OpenAIAgentsBase())  # openai-agents
@@ -560,6 +591,7 @@ def run(**kwargs):
         launcher.add_tool(TranslatorTool())
         launcher.add_tool(WebBrowserTool())
         launcher.add_tool(AgentBuilderTool())
+        launcher.add_tool(AgentWorkflowTool())
 
         # register custom tools
         tools = kwargs.get('tools', None)

@@ -441,177 +441,30 @@ class Importer:
             m.provider = self.provider
             m.input = ["text"]
             m.output = ["text"]
-            llama_id = id
-            if self.provider == "google":
-                llama_id = "models/" + id
-            m.llama_index['args'] = [
-                {
-                    'name': 'model',
-                    'value': llama_id,
-                    'type': 'str'
-                }
-            ]
             m.imported = True
-            m.ctx = 128000 # default context size
+            m.ctx = 128000  # default context size
             key = m.id
 
-            # prepare args and env config by provider
-            if self.window.core.llm.is_custom_provider(self.provider):
-                # Runtime custom providers carry API base/key themselves. Keep
-                # models.json free of duplicated credentials; CustomLLM injects
-                # them into LlamaIndex OpenAILike at runtime.
+            # LlamaIndex args/env are optional per-model overrides only.
+            # With an empty configuration the provider resolves model ID, API
+            # credentials and endpoint from the normal PyGPT model/provider
+            # configuration at runtime. Do not duplicate those values here.
+            if (self.window.core.llm.is_custom_provider(self.provider)
+                    or self.provider in {
+                        "anthropic",
+                        "deepseek_api",
+                        "google",
+                        "openai",
+                        "azure_openai",
+                        "perplexity",
+                        "mistral_ai",
+                        "local_ai",
+                        "open_router",
+                        "x_ai",
+                        "forge",
+                        "edenai",
+                    }):
                 m.tool_calls = True
-            elif self.provider == "anthropic":
-                m.tool_calls = True
-                m.llama_index['env'] = [
-                    {
-                        'name': 'ANTHROPIC_API_KEY',
-                        'value': '{api_key_anthropic}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider == "deepseek_api":
-                m.tool_calls = True
-                m.llama_index['args'].append(
-                    {
-                        'name': 'api_key',
-                        'value': '{api_key_deepseek}',
-                        'type': 'str'
-                    }
-                )
-                m.llama_index['env'] = [
-                    {
-                        'name': 'DEEPSEEK_API_KEY',
-                        'value': '{api_key_deepseek}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider == "google":
-                m.tool_calls = True
-                m.llama_index['env'] = [
-                    {
-                        'name': 'GOOGLE_API_KEY',
-                        'value': '{api_key_google}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider in ["openai", "azure_openai"]:
-                m.tool_calls = True
-                m.llama_index['env'] = [
-                    {
-                        'name': 'OPENAI_API_KEY',
-                        'value': '{api_key}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'OPENAI_API_BASE',
-                        'value': '{api_endpoint}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'AZURE_OPENAI_ENDPOINT',
-                        'value': '{api_azure_endpoint}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'OPENAI_API_VERSION',
-                        'value': '{api_azure_version}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider == "perplexity":
-                m.tool_calls = True
-                m.llama_index['env'] = [
-                    {
-                        'name': 'OPENAI_API_KEY',
-                        'value': '{api_key_perplexity}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'OPENAI_API_BASE',
-                        'value': '{api_endpoint_perplexity}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider == "mistral_ai":
-                m.tool_calls = True
-                m.llama_index['args'].append(
-                    {
-                        'name': 'api_key',
-                        'value': '{api_key_mistral}',
-                        'type': 'str'
-                    }
-                )
-            elif self.provider == "local_ai":
-                m.tool_calls = True
-                m.llama_index['env'] = [
-                    {
-                        'name': 'OPENAI_API_KEY',
-                        'value': '{api_key}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'OPENAI_API_BASE',
-                        'value': '{api_endpoint}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider == "open_router":
-                m.tool_calls = True
-                m.llama_index['env'] = [
-                    {
-                        'name': 'OPENAI_API_KEY',
-                        'value': '{api_key_open_router}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'OPENAI_API_BASE',
-                        'value': '{api_endpoint_open_router}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider == "x_ai":
-                m.tool_calls = True
-                m.llama_index['env'] = [
-                    {
-                        'name': 'OPENAI_API_KEY',
-                        'value': '{api_key_xai}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'OPENAI_API_BASE',
-                        'value': '{api_endpoint_xai}',
-                        'type': 'str'
-                    }
-                ]
-            elif self.provider == "forge":
-                m.tool_calls = True
-                m.llama_index['args'].extend([
-                    {
-                        'name': 'api_key',
-                        'value': '{api_key_forge}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'api_base',
-                        'value': '{api_endpoint_forge}',
-                        'type': 'str'
-                    }
-                ])
-            elif self.provider == "edenai":
-                m.tool_calls = True
-                m.llama_index['args'].extend([
-                    {
-                        'name': 'api_key',
-                        'value': '{api_key_edenai}',
-                        'type': 'str'
-                    },
-                    {
-                        'name': 'api_base',
-                        'value': '{api_endpoint_edenai}',
-                        'type': 'str'
-                    }
-                ])
             models[key] = m
         provider_name = self.window.core.llm.get_provider_name(self.provider)
         self.set_status(trans('models.importer.loaded').replace("{provider}", provider_name))
@@ -650,13 +503,6 @@ class Importer:
                     m.provider = 'ollama'
                     m.input = ["text"]
                     m.output = ["text"]
-                    m.llama_index['args'] = [
-                        {
-                            'name': 'model',
-                            'value': name,
-                            'type': 'str'
-                        }
-                    ]
                     m.imported = True
                     m.ctx = 32000  # default
                     key = m.id

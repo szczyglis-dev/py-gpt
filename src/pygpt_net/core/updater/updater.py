@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.15 15:37:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -24,6 +24,7 @@ from urllib.request import urlopen, Request
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from packaging.version import parse as parse_version, Version
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.utils import trans
 
 
@@ -184,31 +185,6 @@ class Updater(QObject):
                     print("Backup file: {}.".format(dst + '.backup'))
                 shutil.copyfile(src, dst)
                 print("Patched file: {}.".format(dst))
-        except Exception as e:
-            self.window.core.debug.log(e)
-
-    def patch_css(
-            self,
-            filename: str = "",
-            force: bool = False
-    ):
-        """
-        Patch css file
-
-        :param filename: file name
-        :param force: force update
-        """
-        try:
-            # file
-            dst = os.path.join(self.window.core.config.path, 'css', filename)
-            if not os.path.exists(dst) or force:
-                src = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', filename)
-                # make backup of old file
-                if os.path.exists(dst):
-                    shutil.copyfile(dst, dst + '.backup')
-                    print("Backup css file: {}.".format(dst + '.backup'))
-                shutil.copyfile(src, dst)
-                print("Patched css file: {}.".format(dst))
         except Exception as e:
             self.window.core.debug.log(e)
 
@@ -529,7 +505,7 @@ class UpdaterWorker(QRunnable):
             is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.checker(self.event)
             if is_new:
                 if self.force or (parsed_prev_checked is None or parsed_prev_checked < parse_version(version)):
-                    self.signals.version_changed.emit(
+                    safe_emit(self.signals, "version_changed", 
                         version,
                         build,
                         changelog,
@@ -547,7 +523,7 @@ class UpdaterWorker(QRunnable):
 
         finally:
             if self.signals is not None:
-                self.signals.finished.emit()
+                safe_emit(self.signals, "finished")
             self.cleanup()
 
     def cleanup(self):

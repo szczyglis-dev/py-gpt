@@ -51,6 +51,7 @@ class AgentFactory:
         friendly_map: Dict[str, str],
         handoffs_enabled: bool = True,
         context: Optional[BridgeContext] = None,
+        system_prompt_extra: str = "",
     ) -> BuiltAgent:
         # Agent name
         agent_name = (node.name or "").strip() or (preset.name if preset else f"Agent {node.id}")
@@ -89,6 +90,7 @@ class AgentFactory:
                 preset=preset,
                 verbose=False,
                 tools=function_tools or [],
+                system_prompt_extra=system_prompt_extra,
             )
             if experts:
                 kwargs["handoffs"] = experts

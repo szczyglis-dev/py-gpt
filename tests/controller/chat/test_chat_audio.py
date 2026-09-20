@@ -31,6 +31,7 @@ def dummy_window(tmp_path):
     window.controller.audio = audio_ctrl
     node_input = MagicMock()
     node_input.toPlainText.return_value = "Test prompt"
+    node_input.serialize_mentions.return_value = "Test prompt"
     ui = MagicMock()
     ui.nodes = {"input": node_input}
     window.ui = ui

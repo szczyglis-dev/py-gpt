@@ -13,6 +13,7 @@ from typing import Any
 
 from PySide6.QtCore import Signal, Slot, QObject
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.plugin.base.signals import BaseSignals
 from pygpt_net.plugin.base.worker import BaseWorker
@@ -25,11 +26,29 @@ class Builder(QObject):
         self.plugin = plugin
         self.docker = None
         self.worker = None
+        self._loader_active = False
+
+    def _start_loader(self):
+        """Show the shared heavy-operation loader for a Docker image build."""
+        dialog = self.plugin.window.ui.dialogs.show_loader(
+            message=trans('docker.build.start'),
+            show_cancel=False,
+            modal=True,
+        )
+        self._loader_active = dialog is not None
+
+    def _finish_loader(self):
+        """Close the shared Docker-build loader if this builder opened it."""
+        if not self._loader_active:
+            return
+        self._loader_active = False
+        self.plugin.window.ui.dialogs.finish_loader()
 
     def build_image(self, restart: bool = False):
         """Run image build"""
-        try:            
-            self.plugin.window.update_status("Please wait... building...")
+        try:
+            self.plugin.window.update_status(trans('docker.build.start'))
+            self._start_loader()
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.docker = self.docker
@@ -38,11 +57,13 @@ class Builder(QObject):
             self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
         except Exception as e:
+            self._finish_loader()
             self.plugin.window.ui.dialogs.alert(e)
 
     @Slot()
     def handle_build_finished(self):
         """Handle build finished"""
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(trans('docker.build.finish'))
         self.plugin.window.update_status(trans('docker.build.finish'))
         self.plugin.window.controller.kernel.stop()
@@ -57,6 +78,7 @@ class Builder(QObject):
 
         :param error: error
         """
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(str(error))
         self.plugin.window.update_status(str(error))
         self.plugin.window.controller.kernel.stop()
@@ -81,11 +103,11 @@ class Worker(BaseWorker):
     def run(self):
         try:
             self.docker.build_image()
-            self.signals.build_finished.emit()
+            safe_emit(self.signals, "build_finished")
             if self.restart:
                 self.docker.restart()
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self.cleanup()
 

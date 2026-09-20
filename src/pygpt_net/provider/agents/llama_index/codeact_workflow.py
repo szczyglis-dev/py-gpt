@@ -49,6 +49,7 @@ class CodeActAgent(BaseAgent):
         llm = kwargs.get("llm", None)
         preset = context.preset
         system_prompt = self.get_option(preset, "additional", "prompt")
+        runtime_system_prompt = self.get_system_prompt_extra(kwargs)
         code_prompt = self.get_option(preset, "base", "prompt")
         if not code_prompt:
             code_prompt = DEFAULT_CODE_ACT_PROMPT  # use default prompt if not set
@@ -60,6 +61,7 @@ class CodeActAgent(BaseAgent):
             "tool_retriever": retriever_tool,
             "llm": llm,
             "system_prompt": system_prompt,  # additional
+            "runtime_system_prompt": runtime_system_prompt,  # plugin/runtime additions
             "code_act_system_prompt": code_prompt.replace("{workdir}", workdir),
         }
         return Agent(**kwargs)

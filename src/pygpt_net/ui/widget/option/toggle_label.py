@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.07.22 15:00:00                  #
 # ================================================== #
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget, QLabel
 
@@ -32,6 +33,7 @@ class ToggleLabel(QWidget):
         super(ToggleLabel, self).__init__()
         self.title = title
         self.label = QLabel(self.title)
+        self.label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.box = AnimToggle('', parent)
 
         ico = None

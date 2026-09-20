@@ -41,18 +41,8 @@ class EdenAILLM(BaseLLM):
         :return: Embedding provider instance
         """
         from llama_index.embeddings.openai_like import OpenAILikeEmbedding
-        args = {}
-        if config is not None:
-            args = self.parse_args({
-                "args": config,
-            }, window)
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key_edenai", "")
-        if "api_base" not in args:
-            args["api_base"] = window.core.config.get("api_endpoint_edenai", "")
-        if "model" in args and "model_name" not in args:
-            args["model_name"] = args.pop("model")
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
         return OpenAILikeEmbedding(**args)
 
     def llama(
@@ -70,37 +60,11 @@ class EdenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         from llama_index.llms.openai_like import OpenAILike
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args:
-            args["api_key"] = window.core.config.get("api_key_edenai", "")
-        if "api_base" not in args:
-            args["api_base"] = window.core.config.get("api_endpoint_edenai", "")
+        args = self.prepare_openai_compatible_args(window, model)
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
-
-    def get_models(
-            self,
-            window,
-    ) -> List[Dict]:
-        """
-        Return list of models for the provider
-
-        :param window: window instance
-        :return: list of models
-        """
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items

@@ -10,7 +10,7 @@
 # ================================================== #
 
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 from pygpt_net.core.types import MODE_AGENT
 from pygpt_net.controller.agent.common import Common
 
@@ -36,7 +36,10 @@ def mock_window():
 def test_enable_auto_stop(mock_window):
     common = Common(window=mock_window)
     common.enable_auto_stop()
-    mock_window.core.config.set.assert_called_once_with('agent.auto_stop', True)
+    assert mock_window.core.config.set.call_args_list == [
+        call('agent.auto_stop', True),
+        call('agent.continue.always', False),
+    ]
     mock_window.core.config.save.assert_called_once()
 
 def test_disable_auto_stop(mock_window):
@@ -48,7 +51,10 @@ def test_disable_auto_stop(mock_window):
 def test_toggle_auto_stop_true(mock_window):
     common = Common(window=mock_window)
     common.toggle_auto_stop(True)
-    mock_window.core.config.set.assert_called_once_with('agent.auto_stop', True)
+    assert mock_window.core.config.set.call_args_list == [
+        call('agent.auto_stop', True),
+        call('agent.continue.always', False),
+    ]
     mock_window.core.config.save.assert_called_once()
 
 def test_toggle_auto_stop_false(mock_window):
@@ -60,7 +66,10 @@ def test_toggle_auto_stop_false(mock_window):
 def test_enable_continue(mock_window):
     common = Common(window=mock_window)
     common.enable_continue()
-    mock_window.core.config.set.assert_called_once_with('agent.continue.always', True)
+    assert mock_window.core.config.set.call_args_list == [
+        call('agent.continue.always', True),
+        call('agent.auto_stop', False),
+    ]
     mock_window.core.config.save.assert_called_once()
 
 def test_disable_continue(mock_window):
@@ -72,7 +81,10 @@ def test_disable_continue(mock_window):
 def test_toggle_continue_true(mock_window):
     common = Common(window=mock_window)
     common.toggle_continue(True)
-    mock_window.core.config.set.assert_called_once_with('agent.continue.always', True)
+    assert mock_window.core.config.set.call_args_list == [
+        call('agent.continue.always', True),
+        call('agent.auto_stop', False),
+    ]
     mock_window.core.config.save.assert_called_once()
 
 def test_toggle_continue_false(mock_window):
@@ -112,6 +124,7 @@ def test_display_infinity_loop_confirm(mock_window, monkeypatch):
         type="agent.infinity.run",
         id=0,
         msg=fake_trans,
+        dont_show_again=True,
     )
 
 def test_show_status(mock_window):

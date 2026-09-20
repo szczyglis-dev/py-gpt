@@ -56,6 +56,7 @@ class StreamEngine {
 		this.suppressPostFinalizePass = false;
 
 		this._promoteScheduled = false;
+		this._promoteTimer = 0;
 
 		// Ensure first fence-open is materialized immediately when stream starts with code.
 		this._firstCodeOpenSnapDone = false;
@@ -64,10 +65,10 @@ class StreamEngine {
 		this.isStreaming = false;
 
 		// Live provider reasoning visibility. Provider reasoning is streamed through
-		// <think>...</think>. Timing is injected by Python; the user-facing switch
-		// only controls rendering and never discards the stored reasoning metadata.
+		// <think>...</think> only when explicitly enabled by the user. Python uses
+		// the same setting to decide whether readable reasoning is requested/stored.
 		const reasoningCfg = (this.cfg && this.cfg.REASONING) ? this.cfg.REASONING : {};
-		this.reasoningEnabled = reasoningCfg.SHOW_REALTIME !== false;
+		this.reasoningEnabled = reasoningCfg.SHOW_REALTIME === true;
 		this.reasoningHideAfterResponse = reasoningCfg.HIDE_AFTER_RESPONSE !== false;
 		this.reasoningThinking = false;
 		this.reasoningVisible = false;
@@ -652,6 +653,10 @@ class StreamEngine {
 		this.activeCode = null;
 		this.suppressPostFinalizePass = false;
 		this._promoteScheduled = false;
+		if (this._promoteTimer) {
+			clearTimeout(this._promoteTimer);
+			this._promoteTimer = 0;
+		}
 		this._firstCodeOpenSnapDone = false;
 
 		this._lastInjectedEOL = false;
@@ -744,11 +749,13 @@ class StreamEngine {
 
 	// Start hiding the current reasoning block after the configured grace period.
 	// Repeated answer tokens do not restart the delay. If thinking resumes first,
-	// _updateReasoningVisibilityFromChunk() cancels both timers.
-	_scheduleReasoningHide(msg) {
+	// _updateReasoningVisibilityFromChunk() cancels both timers. rootOverride lets
+	// non-text events (for example a tool call) target the current workflow host.
+	_scheduleReasoningHide(msg, rootOverride = null) {
 		if (!this.reasoningEnabled || !this.reasoningHideAfterResponse || !this.reasoningVisible || this.reasoningThinking) return;
 		if (this.reasoningHideDelayTimer || this.reasoningFadeOutTimer || this.reasoningFadeOutStartedAt > 0) return;
 
+		const getRoot = () => rootOverride || this.getMsgSnapshotRoot(msg);
 		const startFade = () => {
 			this.reasoningHideDelayTimer = 0;
 			if (this.reasoningThinking || !this.reasoningVisible) return;
@@ -759,12 +766,11 @@ class StreamEngine {
 			this.reasoningFadeOutStartedAt = (typeof performance !== 'undefined' && typeof performance.now === 'function')
 				? performance.now() : Date.now();
 
-			const root = this.getMsgSnapshotRoot(msg);
-			this._syncReasoningVisibility(root);
+			this._syncReasoningVisibility(getRoot());
 
 			if (duration <= 0) {
 				this.reasoningFadeOutStartedAt = 0;
-				this._syncReasoningVisibility(this.getMsgSnapshotRoot(msg));
+				this._syncReasoningVisibility(getRoot());
 				return;
 			}
 
@@ -772,7 +778,7 @@ class StreamEngine {
 				this.reasoningFadeOutTimer = 0;
 				if (this.reasoningThinking) return;
 				this.reasoningFadeOutStartedAt = 0;
-				this._syncReasoningVisibility(this.getMsgSnapshotRoot(msg));
+				this._syncReasoningVisibility(getRoot());
 			}, duration + 24);
 		};
 
@@ -781,9 +787,25 @@ class StreamEngine {
 		else this.reasoningHideDelayTimer = setTimeout(startFade, delay);
 	}
 
+	// A tool call is also an output boundary. Providers may finish reasoning and
+	// immediately request a tool without emitting any normal assistant text, so
+	// treat the tool call like the first response token for reasoning auto-hide.
+	hideReasoningForToolCall(root = null) {
+		if (!this.reasoningEnabled || !this.reasoningHideAfterResponse || !this.reasoningVisible) return;
+
+		// A tool call ends the current reasoning phase even when the provider did
+		// not emit an explicit closing </think> token before the call. This also
+		// allows a later <think> block to become visible normally.
+		this.reasoningThinking = false;
+
+		const msg = this.getMsg(false, '');
+		if (!msg && !root) return;
+		this._scheduleReasoningHide(msg, root);
+	}
+
 	// Apply the current live-reasoning state to rendered <think> nodes. The newest
 	// block is the only one eligible for display. A disabled setting is a hard UI
-	// switch: all reasoning stays stored but every <think> node remains hidden.
+	// switch; Python also avoids requesting/persisting readable provider reasoning.
 	// Showing still uses a subtle fade-in, while hiding uses a real layout slide-up
 	// (height -> 0), so the answer below moves upward together with the reasoning.
 	_syncReasoningVisibility(root) {
@@ -1743,14 +1765,34 @@ class StreamEngine {
 	}
 
 	// Schedule a background task to promote tail (move some tail to frozen).
+	// The visible code still updates during streaming, but no more often than the
+	// configured live-highlight cadence (300 ms by default).
 	schedulePromoteTail(force = false) {
 		if (!this.activeCode || !this.activeCode.tailEl) return;
 		if (this.activeCode.plainStream === true) return;
+
+		const throttle = Math.max(0, Number((this.cfg.HL && this.cfg.HL.STREAM_THROTTLE_MS) || 300) || 0);
+		if (!force && throttle > 0) {
+			const last = Number(this.activeCode.lastPromoteTs || 0);
+			const wait = Math.max(0, throttle - (Utils.now() - last));
+			if (wait > 0) {
+				if (!this._promoteTimer) {
+					this._promoteTimer = setTimeout(() => {
+						this._promoteTimer = 0;
+						this.schedulePromoteTail(false);
+					}, wait);
+				}
+				return;
+			}
+		}
+
+		if (force && this._promoteTimer) {
+			clearTimeout(this._promoteTimer);
+			this._promoteTimer = 0;
+		}
 		if (this._promoteScheduled) return;
 		this._promoteScheduled = true;
-		this._d('code.promote.schedule', {
-			force
-		});
+		this._d('code.promote.schedule', { force, throttle });
 		this.raf.schedule('SE:promoteTail', () => {
 			this._promoteScheduled = false;
 			this._promoteTailWork(force);
@@ -2646,17 +2688,26 @@ class StreamEngine {
 		this._d('stream.begin', {
 			chunk
 		});
-		// Hide loading spinner if this call corresponds to first chunk.
+		const follow = this.scrollMgr.shouldFollowOnStreamStart();
+		// A visible final stream replaces the reserved request-loader slot. Hidden
+		// reasoning keeps the loader/placeholder alive until real response text.
 		if (chunk) {
-		    try {
-		        runtime.loading.hide();
-		    } catch (_) {}
+			try {
+				runtime.loading.hide(false);
+			} catch (_) {}
 		}
-		this.scrollMgr.userInteracted = false;
 		this.dom.clearOutput();
 		this.reset();
-		this.scrollMgr.forceScrollToBottomImmediate();
-		this.scrollMgr.scheduleScroll();
+
+		if (follow) {
+			// Establish FOLLOW once. Native bottom anchoring keeps the viewport pinned
+			// during subsequent DOM growth without per-token JS scroll corrections.
+			this.scrollMgr.resumeAutoFollow(true);
+		} else {
+			// Keep the user's current viewport stable while new content grows below.
+			this.scrollMgr.suspendAutoFollow();
+			this.scrollMgr.scheduleScrollFabUpdate();
+		}
 	}
 
 	// Finish the stream: render final snapshot, finalize code, flush highlighting, and clean up.
@@ -2690,6 +2741,10 @@ class StreamEngine {
 		try {
 			this.raf.cancelGroup('ScrollMgr');
 		} catch (_) {}
+		if (this._promoteTimer) {
+			clearTimeout(this._promoteTimer);
+			this._promoteTimer = 0;
+		}
 
 		this.snapshotRAF = 0;
 
@@ -2779,6 +2834,7 @@ class StreamEngine {
 		// Track think boundaries before rendering. The grace-period timer starts on
 		// the first real response text outside <think>, not on </think> itself.
 		const reasoningState = this._updateReasoningVisibilityFromChunk(s);
+		const reasoningOpened = reasoningState.changed && this.reasoningThinking;
 		if (reasoningState.hasResponseText && !this.reasoningThinking) {
 			this._scheduleReasoningHide(msg);
 		}
@@ -2795,6 +2851,17 @@ class StreamEngine {
 
 		// Buffer the chunk unless caller says it's already buffered (recursive tail call case).
 		if (!alreadyBuffered) this._appendChunk(s);
+
+		// Materialize the reasoning wrapper synchronously as soon as <think> is
+		// received. Waiting for the regular snapshot scheduler leaves the raw tag
+		// briefly visible, especially after a hidden tool result.
+		if (reasoningOpened && this.reasoningEnabled && !this.fenceOpen && !this.codeStream.open) {
+			try {
+				this.renderSnapshot(msg);
+				try { this.raf.cancel('SE:snapshot'); } catch (_) {}
+				this.snapshotScheduled = false;
+			} catch (_) {}
+		}
 
 		// Update fence state based on the new text.
 		const change = this.updateFenceHeuristic(s);

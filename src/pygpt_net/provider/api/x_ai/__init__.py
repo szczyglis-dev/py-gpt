@@ -102,6 +102,10 @@ class ApiXAI:
             return self.client
 
         self.last_client_args = kwargs
+        self.window.core.api.logger.log_input(
+            type="client.init", provider="xai", kwargs=kwargs,
+            model=getattr(model, "id", None), path="xai_sdk.Client",
+        )
         self.client = xai_sdk.Client(**kwargs)
         return self.client
 
@@ -285,13 +289,22 @@ class ApiXAI:
 
             # Create chat session
             include = []
-            chat = client.chat.create(
-                model=model.id,
-                tools=(client_tools if client_tools else None),
-                include=(include if include else None),
-                store_messages=store_messages,
-                previous_response_id=prev_id,
+            chat_kwargs = {
+                "model": model.id,
+                "tools": (client_tools if client_tools else None),
+                "include": (include if include else None),
+                "store_messages": store_messages,
+                "previous_response_id": prev_id,
+            }
+            reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+            if reasoning_effort:
+                chat_kwargs["reasoning_effort"] = reasoning_effort
+            self.window.core.api.logger.log_input(
+                type="chat.create", provider="xai", kwargs=chat_kwargs,
+                input=prompt, history=history, extra=extra, model=model.id,
+                path="client.chat.create",
             )
+            chat = client.chat.create(**chat_kwargs)
 
             # Append history if enabled and no previous_response_id is used
             self.responses.append_history_sdk(
@@ -310,6 +323,9 @@ class ApiXAI:
             )
 
             resp = chat.sample()
+            self.window.core.api.logger.log_output(
+                type="chat.sample", provider="xai", output=resp, model=model.id,
+            )
             # Extract client-side tool calls if any (leave server-side out)
             out = getattr(resp, "content", "") or ""
             if ctx:
@@ -348,7 +364,6 @@ class ApiXAI:
             ctx = context.ctx
             prompt = context.prompt
             system_prompt = context.system_prompt
-            temperature = context.temperature
             history = context.history
             functions = context.external_functions
             model = context.model or self.window.core.models.from_defaults()
@@ -366,9 +381,9 @@ class ApiXAI:
                     attachments=context.attachments,
                     multimodal_ctx=context.multimodal_ctx,
                     tools=tools,
-                    temperature=temperature,
                     max_tokens=context.max_tokens,
                     search_parameters=None,
+                    reasoning_effort=self.window.core.models.get_reasoning_effort(model),
                 )
                 if ctx:
                     if calls:
@@ -385,8 +400,20 @@ class ApiXAI:
                 attachments=context.attachments,
                 multimodal_ctx=context.multimodal_ctx,
             )
-            chat = client.chat.create(model=model.id, messages=messages)
+            chat_kwargs = {"model": model.id, "messages": messages}
+            reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+            if reasoning_effort:
+                chat_kwargs["reasoning_effort"] = reasoning_effort
+            self.window.core.api.logger.log_input(
+                type="chat.create", provider="xai", kwargs=chat_kwargs,
+                input=messages, history=history, extra=extra, model=model.id,
+                path="client.chat.create",
+            )
+            chat = client.chat.create(**chat_kwargs)
             resp = chat.sample()
+            self.window.core.api.logger.log_output(
+                type="chat.sample", provider="xai", output=resp, model=model.id,
+            )
             return getattr(resp, "content", "") or ""
         except Exception as e:
             self.window.core.debug.log(e)

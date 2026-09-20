@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,7 +17,6 @@ from typing import Optional, Dict, Any, List
 
 from PySide6.QtWidgets import QApplication
 
-from pygpt_net.core.events import RenderEvent
 from pygpt_net.utils import trans
 
 
@@ -125,11 +124,7 @@ class Settings:
         """Load defaults from file (app)"""
         file = self.window.ui.dialog['config.editor'].file
         basename = os.path.basename(file)
-        if basename.endswith(".css"):
-            path = str(os.path.join(self.window.core.config.get_app_path(), "data", "css", basename))
-            self.load_editor(file, path)
-            self.window.update_status(f"Restored from app defaults: {basename}")
-        elif basename.endswith(".json"):
+        if basename.endswith(".json"):
             path = str(os.path.join(self.window.core.config.get_app_path(), "data", "config", basename))
             self.load_editor(file, path)
             self.window.update_status(f"Restored from app defaults: {basename}")
@@ -142,15 +137,15 @@ class Settings:
         """
         Load file to editor
 
-        :param file: file name (JSON/CSS)
+        :param file: JSON file name
         :param path: file path (force load) or None
         """
         # load file
         if path is None:
-            if file.endswith('.json'):
-                path = os.path.join(self.window.core.config.get_user_path(), file)
-            elif file.endswith('.css'):
-                path = os.path.join(self.window.core.config.get_user_path(), 'css', file)
+            if not file or not file.endswith('.json'):
+                self.window.update_status("Error loading file: only JSON config files are editable")
+                return
+            path = os.path.join(self.window.core.config.get_user_path(), file)
             self.window.ui.paths['config'].setText(path)
 
         self.window.ui.dialog['config.editor'].file = file
@@ -170,7 +165,7 @@ class Settings:
         data = self.window.ui.editor['config'].toPlainText()
 
         # check if this is a valid JSON
-        if file.endswith('.json'):
+        if file and file.endswith('.json'):
             try:
                 json.loads(data)
             except Exception as e:
@@ -178,8 +173,6 @@ class Settings:
                 self.window.ui.dialogs.alert(f"This is not a valid JSON: {e}")
                 return
             path = os.path.join(self.window.core.config.get_user_path(), file)
-        elif file.endswith('.css'):
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', file)
 
         if path is None:
             self.window.update_status("Error saving file: invalid file name")
@@ -187,10 +180,7 @@ class Settings:
 
         # make backup of current file
         backup_file = file + '.backup'
-        if file.endswith('.css'):
-            backup_path = os.path.join(self.window.core.config.get_user_path(), "css", backup_file)
-        else:
-            backup_path = os.path.join(self.window.core.config.get_user_path(), backup_file)
+        backup_path = os.path.join(self.window.core.config.get_user_path(), backup_file)
         if os.path.isfile(path):
             shutil.copyfile(path, backup_path)
             self.window.update_status(f"Created backup file: {backup_file}")
@@ -218,7 +208,7 @@ class Settings:
             self.window.ui.dialogs.alert(f"Saved file: {path}")
             return  # no changes made, no need to reload
 
-        if file in ("config.json", "models.json") or file.endswith('.css'):
+        if file in ("config.json", "models.json"):
             self.window.update_status(trans("status.reloading"))
 
         QApplication.processEvents() # process events to update UI
@@ -229,9 +219,6 @@ class Settings:
                 self.window.core.llm.sync_custom(force=True)
             elif file == "models.json":
                 self.window.core.models.load()  # reload models
-            elif file.endswith('.css'):
-                self.window.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
-                self.window.controller.theme.reload(force=True)  # reload theme
             self.window.update_status(f"Saved file: {path}")
             self.window.ui.dialogs.alert(f"Saved file: {path}")
         except Exception as e:

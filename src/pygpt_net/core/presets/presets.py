@@ -19,6 +19,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -47,6 +48,7 @@ class Presets:
         MODE_AGENT: "agent",
         MODE_AGENT_LLAMA: "agent_llama",
         MODE_AGENT_OPENAI: "agent_openai",
+        MODE_AGENT_V2: "agent_v2",
         MODE_EXPERT: "expert",
         MODE_RESEARCH: "research",
         MODE_COMPUTER: "computer",
@@ -101,6 +103,7 @@ class Presets:
             ("current.agent", "agent"),
             ("current.agent_llama", "agent_llama"),
             ("current.agent_openai", "agent_openai"),
+            ("current.agent_v2", "agent_v2"),
             ("current.expert", "expert"),
             ("current.audio", "audio"),
             ("current.computer", "computer"),
@@ -178,6 +181,8 @@ class Presets:
             return MODE_AGENT_LLAMA
         if preset.agent_openai:
             return MODE_AGENT_OPENAI
+        if preset.agent_v2:
+            return MODE_AGENT_V2
         if preset.expert:
             return MODE_EXPERT
         if preset.audio:

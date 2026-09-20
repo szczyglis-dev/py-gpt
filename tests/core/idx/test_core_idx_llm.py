@@ -32,8 +32,13 @@ def patch_openai(monkeypatch):
     monkeypatch.setattr("pygpt_net.core.idx.llm.OpenAI", DummyOpenAI)
     return DummyOpenAI, instances
 
+@pytest.fixture
+def isolate_openai_env(monkeypatch):
+    """Track OpenAI env keys so direct writes by Llm are undone after the test."""
+    for key in ("OPENAI_API_KEY", "OPENAI_API_BASE", "OPENAI_ORGANIZATION"):
+        monkeypatch.setenv(key, "__PYGPT_TEST_SENTINEL__")
 
-def test_init_sets_all_envs(mock_window):
+def test_init_sets_all_envs(mock_window, isolate_openai_env):
     mock_window.core.config.set("api_key", "KEY")
     mock_window.core.config.set("api_endpoint", "https://api.example.com")
     mock_window.core.config.set("organization_key", "ORG")
@@ -79,7 +84,7 @@ def test_get_calls_init_and_llama_with_stream_and_sets_initialized(mock_window):
 
 
 
-def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, patch_openai):
+def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, patch_openai, isolate_openai_env):
     DummyOpenAI, instances = patch_openai
     mock_window.core.config.set("api_key", "KEYX")
     mock_window.core.config.set("api_endpoint", "https://api.test")
@@ -99,7 +104,7 @@ def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, pa
     assert os.environ["OPENAI_ORGANIZATION"] == "ORGX"
 
 
-def test_get_returns_default_openai_when_provider_missing(mock_window, patch_openai):
+def test_get_returns_default_openai_when_provider_missing(mock_window, patch_openai, isolate_openai_env):
     DummyOpenAI, instances = patch_openai
     model = ModelItem()
     model.provider = "not-registered"
@@ -215,7 +220,7 @@ def test_get_service_context_uses_global_embed_when_auto_embed_false(monkeypatch
 
     assert llm_obj == "LLM_OBJ"
     assert emb == "EMB_GLOBAL"
-    get_mock.assert_called_once_with(model=fake_model, stream=True)
+    get_mock.assert_called_once_with(model=fake_model, stream=True, computer_runtime=None)
     emb_mock.assert_called_once()
 
 
@@ -233,11 +238,11 @@ def test_get_service_context_uses_custom_embed_when_auto_embed_true(monkeypatch,
 
     assert llm_obj == "LLM_OBJ"
     assert emb == "EMB_CUSTOM"
-    get_mock.assert_called_once_with(model=fake_model, stream=False)
+    get_mock.assert_called_once_with(model=fake_model, stream=False, computer_runtime=None)
     cust_emb_mock.assert_called_once_with(model=fake_model)
 
 
-def test_get_custom_embed_provider_uses_matching_provider_and_includes_api_key(mock_window):
+def test_get_custom_embed_provider_uses_matching_provider_without_duplicating_credentials(mock_window):
     mock_window.core.idx.log = MagicMock()
 
     defaults = [
@@ -248,8 +253,6 @@ def test_get_custom_embed_provider_uses_matching_provider_and_includes_api_key(m
     emb_provider = MagicMock()
     emb_provider.get_embeddings_model = MagicMock(return_value="EMB_CUSTOM")
     mock_window.core.llm.get = MagicMock(side_effect=lambda provider_id: {"provEmb": emb_provider}.get(provider_id))
-
-    mock_window.core.models.prepare_client_args = MagicMock(return_value={"api_key": "KEY123"})
 
     model = ModelItem()
     model.provider = "provEmb"
@@ -262,7 +265,7 @@ def test_get_custom_embed_provider_uses_matching_provider_and_includes_api_key(m
     emb_provider.get_embeddings_model.assert_called_once()
     cfg = emb_provider.get_embeddings_model.call_args.kwargs["config"]
     assert {"name": "model_name", "type": "str", "value": "emb-model-1"} in cfg
-    assert {"name": "api_key", "type": "str", "value": "KEY123"} in cfg
+    assert not any(item.get("name") == "api_key" for item in cfg)
 
     mock_window.core.idx.log.assert_any_call("Embeddings: trying to use provEmb, model_name: emb-model-1")
 

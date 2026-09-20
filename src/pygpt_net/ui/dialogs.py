@@ -14,9 +14,11 @@ import threading
 from PySide6.QtCore import Qt
 
 from pygpt_net.ui.dialog.about import About
+from pygpt_net.ui.dialog.agents import Agents as AgentsV2Editor
 from pygpt_net.ui.dialog.applog import AppLog
 from pygpt_net.ui.dialog.assistant import Assistant
 from pygpt_net.ui.dialog.changelog import Changelog
+from pygpt_net.ui.dialog.connectors import Connectors
 from pygpt_net.ui.dialog.create import Create
 from pygpt_net.ui.dialog.db import Database
 from pygpt_net.ui.dialog.debug import Debug
@@ -35,13 +37,16 @@ from pygpt_net.ui.dialog.profile import Profile, ProfileEdit
 from pygpt_net.ui.dialog.remote_store import RemoteStore
 from pygpt_net.ui.dialog.rename import Rename
 from pygpt_net.ui.dialog.settings import Settings
+from pygpt_net.ui.dialog.skills import Skills
 from pygpt_net.ui.dialog.snap import Snap
 from pygpt_net.ui.dialog.start import Start
+from pygpt_net.ui.dialog.system_info import SystemInfo
 from pygpt_net.ui.dialog.update import Update
 from pygpt_net.ui.dialog.url import Url
 from pygpt_net.ui.dialog.workdir import Workdir
 from pygpt_net.ui.widget.dialog.alert import AlertDialog
 from pygpt_net.ui.widget.dialog.confirm import ConfirmDialog
+from pygpt_net.ui.widget.dialog.loader import LoaderDialog
 
 class Dialogs:
     def __init__(self, window=None):
@@ -55,6 +60,7 @@ class Dialogs:
         self.assistant = Assistant(self.window)
         self.app_log = AppLog(self.window)
         self.changelog = Changelog(self.window)
+        self.connectors = Connectors(self.window)
         self.create = Create(self.window)
         self.database = Database(self.window)
         self.debug = Debug(self.window)
@@ -68,7 +74,9 @@ class Dialogs:
         self.profile_item = ProfileEdit(self.window)
         self.rename = Rename(self.window)
         self.snap = Snap(self.window)
+        self.skills = Skills(self.window)
         self.start = Start(self.window)
+        self.system_info = SystemInfo(self.window)
         self.update = Update(self.window)
         self.url = Url(self.window)
         self.workdir = Workdir(self.window)
@@ -89,6 +97,7 @@ class Dialogs:
         self.rename.setup()
         self.snap.setup()
         self.start.setup()
+        self.system_info.setup()
         self.update.setup()
         self.url.setup()
 
@@ -104,11 +113,13 @@ class Dialogs:
         self.window.plugin_settings = Plugins(self.window)
         self.window.plugin_presets = PresetPlugins(self.window)
         self.window.model_settings = Models(self.window)
+        self.window.agents_v2_editor = AgentsV2Editor(self.window)
         self.window.model_importer = ModelsImporter(self.window)
         self.window.remote_store = RemoteStore(self.window)
 
         self.window.ui.dialog['alert'] = AlertDialog(self.window)
         self.window.ui.dialog['confirm'] = ConfirmDialog(self.window)
+        self.window.ui.dialog['loader'] = LoaderDialog(self.window)
 
     def post_setup(self):
         """Post setup dialogs (after plugins and rest of data is registered)"""
@@ -119,7 +130,9 @@ class Dialogs:
             type: str,
             id: any,
             msg: str,
-            parent_object=None
+            parent_object=None,
+            modal: bool = False,
+            dont_show_again: bool = False,
     ):
         """
         Show confirm dialog
@@ -128,12 +141,16 @@ class Dialogs:
         :param id: confirm object id
         :param msg: message to show
         :param parent_object: parent object
+        :param modal: True to block interaction with the parent window
+        :param dont_show_again: show the optional "Do not show again" checkbox
         """
         confirm = self.window.ui.dialog.get('confirm')
         confirm.type = type
         confirm.id = id
         confirm.message.setText(msg)
         confirm.parent_object = parent_object
+        confirm.setModal(bool(modal))
+        confirm.set_dont_show_again_visible(bool(dont_show_again))
         confirm.show()
 
     def alert(self, msg: any):
@@ -148,6 +165,51 @@ class Dialogs:
         msg = self.window.core.debug.parse_alert(msg)
         self.window.ui.dialog['alert'].message.setPlainText(msg)
         self.window.ui.dialog['alert'].show()
+
+    def show_loader(
+            self,
+            message: str = None,
+            show_cancel: bool = False,
+            on_cancel=None,
+            on_finished=None,
+            modal: bool = True,
+    ):
+        """
+        Show the shared progress loader.
+
+        :param message: message displayed above the progress bar
+        :param show_cancel: show the optional Cancel button
+        :param on_cancel: callback invoked when cancellation is requested
+        :param on_finished: callback invoked with QDialog result code on close
+        :param modal: block interaction with the parent window
+        :return: LoaderDialog instance or None
+        """
+        if threading.current_thread() is not threading.main_thread():
+            print("FAIL-SAFE: Attempt to open loader from not-main thread. Aborting...")
+            return None
+        dialog = self.window.ui.dialog.get('loader')
+        if dialog is None:
+            return None
+        return dialog.start(
+            message=message,
+            show_cancel=show_cancel,
+            on_cancel=on_cancel,
+            on_finished=on_finished,
+            modal=modal,
+        )
+
+    def finish_loader(self, result=None):
+        """Close the shared progress loader and run its finished callback."""
+        if threading.current_thread() is not threading.main_thread():
+            print("FAIL-SAFE: Attempt to close loader from not-main thread. Aborting...")
+            return
+        dialog = self.window.ui.dialog.get('loader')
+        if dialog is None:
+            return
+        if result is None:
+            dialog.finish()
+        else:
+            dialog.finish(result)
 
     def open_editor(self, id: str, data_id: str, width: int = 400, height: int = 400):
         """

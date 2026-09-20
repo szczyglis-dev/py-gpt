@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:25:00                  #
+# Updated Date: 2026.09.10 09:50:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -89,7 +89,7 @@ class Config(BaseConfig):
             type="combo",
             use="models",
             use_params={
-                "mode": ["vision"],
+                "input": ["image"],
             },
             value="gpt-4o",
             label="Image model",

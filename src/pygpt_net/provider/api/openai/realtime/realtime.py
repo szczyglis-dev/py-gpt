@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 23:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,11 @@ from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.core.realtime.options import RealtimeOptions
 from pygpt_net.core.realtime.shared.session import extract_last_session_id
+from pygpt_net.core.realtime.shared.computer import (
+    is_context_command as is_realtime_computer_command,
+    latest_transport_image,
+    prepare as prepare_realtime_computer,
+)
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import trans
 
@@ -67,8 +72,11 @@ class Realtime:
         self.window.controller.realtime.set_busy()
         self.handler.set_debug(is_debug)
 
-        # tools
-        tools = self.window.core.api.openai.tools.prepare(model, context.external_functions)
+        # tools + shared realtime Computer Use bridge
+        functions, realtime_system_prompt = prepare_realtime_computer(
+            self.window, context, context.external_functions, self.PROVIDER
+        )
+        tools = self.window.core.api.openai.tools.prepare(model, functions)
 
         # remote tools
         remote_tools = []
@@ -96,10 +104,30 @@ class Realtime:
                         tool_results = json.loads(tool_results)
                     except Exception:
                         pass
-                    self.handler.send_tool_results_sync({
-                        tool_call_id: tool_results
-                    })
+                    # The tool-result send can synchronously wait for the follow-up
+                    # model response. Bind the continuation context first, otherwise
+                    # that response is written/rendered against the previous tool-call
+                    # context and can replace the preceding message.
                     self.handler.update_ctx(context.ctx)
+                    self.window.controller.realtime.manager.update_ctx(context.ctx)
+                    prev_ctx = context.ctx.prev_ctx
+                    is_computer_call = any(
+                        is_realtime_computer_command(
+                            self.window,
+                            prev_ctx,
+                            str((call.get("function") or {}).get("name") or ""),
+                        )
+                        for call in tool_calls
+                        if isinstance(call, dict)
+                    )
+                    screenshot_path = (
+                        latest_transport_image(self.window, context.ctx)
+                        if is_computer_call else None
+                    )
+                    self.handler.send_tool_results_sync(
+                        {tool_call_id: tool_results},
+                        image_paths=[screenshot_path] if screenshot_path else None,
+                    )
                     return True  # do not start new session, just send tool results
 
         # Resolve last session ID from history only (do not fallback anywhere)
@@ -138,6 +166,7 @@ class Realtime:
         if auto_turn and self.handler.is_session_active() and (context.prompt.strip() == "" or context.prompt == "..."):
             self.handler.update_session_tools_sync(tools, remote_tools)
             self.handler.update_ctx(context.ctx)
+            self.window.controller.realtime.manager.update_ctx(context.ctx)
             self.window.update_status(trans("speech.listening"))
             return True # do not send new request if session is active
 
@@ -154,7 +183,7 @@ class Realtime:
         opts = RealtimeOptions(
             provider=self.PROVIDER,
             model=context.model.id,
-            system_prompt=context.system_prompt,
+            system_prompt=realtime_system_prompt,
             prompt=context.prompt,
             voice=voice,
             audio_data=audio_bytes,

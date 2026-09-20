@@ -83,9 +83,11 @@ def test_set_openai_env(monkeypatch):
     fake_config.get.side_effect = lambda key: config_values.get(key)
     window = MagicMock()
     window.core.config = fake_config
-    os.environ.pop("OPENAI_API_KEY", None)
-    os.environ.pop("OPENAI_API_BASE", None)
-    os.environ.pop("OPENAI_ORGANIZATION", None)
+    # Prime tracked values so monkeypatch restores the pre-test environment even
+    # though set_openai_env writes os.environ directly.
+    monkeypatch.setenv("OPENAI_API_KEY", "__PYGPT_TEST_SENTINEL__")
+    monkeypatch.setenv("OPENAI_API_BASE", "__PYGPT_TEST_SENTINEL__")
+    monkeypatch.setenv("OPENAI_ORGANIZATION", "__PYGPT_TEST_SENTINEL__")
     set_openai_env(window)
     assert os.environ["OPENAI_API_KEY"] == "key_value"
     assert os.environ["OPENAI_API_BASE"] == "endpoint_value"

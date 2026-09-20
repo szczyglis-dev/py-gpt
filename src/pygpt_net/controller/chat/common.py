@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.09.19 12:30:00                  #
 # ================================================== #
 
 import os
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.core.events import Event, AppEvent, RenderEvent, KernelEvent
 from pygpt_net.core.types import MODE_ASSISTANT, MODE_AUDIO
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import trans, short_num
@@ -44,12 +45,6 @@ class Common:
         nodes = self.window.ui.nodes
         config = self.window.core.config
 
-        # stream mode
-        if config.get('stream'):
-            nodes['input.stream'].setChecked(True)
-        else:
-            nodes['input.stream'].setChecked(False)
-
         # send with enter/shift
         mode = config.get('send_mode')
         if mode not in (1, 2):
@@ -57,12 +52,7 @@ class Common:
             mode = 1
             config.set('send_mode', mode)
 
-        if mode == 2:
-            nodes['input.send_shift_enter'].setChecked(True)
-            nodes['input.send_enter'].setChecked(False)
-        else:
-            nodes['input.send_enter'].setChecked(True)
-            nodes['input.send_shift_enter'].setChecked(False)
+        self._sync_send_mode_actions(mode)
 
         # cmd enabled
         if config.get('cmd'):
@@ -70,35 +60,14 @@ class Common:
         else:
             nodes['cmd.enabled'].setChecked(False)
 
-        # output timestamps
-        is_timestamp = config.get('output_timestamp')
-        nodes['output.timestamp'].setChecked(is_timestamp)
-        if is_timestamp:
-            data = {
-                "initialized": self.initialized,
-            }
-            event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
-            self.window.dispatch(event)
+        # Output timestamps are a plain-text renderer option. The setting now
+        # lives in Settings -> Chats -> Render rather than in the input footer.
+        if config.get('render.plain') and config.get('output_timestamp'):
+            self.apply_timestamp(True, initialized=self.initialized)
 
-        # raw (plain) output
-        plain = config.get('render.plain')
-        nodes['output.raw'].setChecked(plain)
-        if plain:
-            nodes['output.timestamp'].setVisible(True)
-            for pid in nodes['output']:
-                try:
-                    nodes['output'][pid].setVisible(False)
-                    nodes['output_plain'][pid].setVisible(True)
-                except Exception as e:
-                    pass
-        else:
-            nodes['output.timestamp'].setVisible(False)
-            for pid in nodes['output']:
-                try:
-                    nodes['output'][pid].setVisible(True)
-                    nodes['output_plain'][pid].setVisible(False)
-                except Exception as e:
-                    pass
+        # Plain/normal output selection is controlled by the text icon in the
+        # input tab header. Renderer visibility is synchronized by ON_SWITCH.
+        self.update_plain_view_tooltip()
 
         event = RenderEvent(RenderEvent.ON_SWITCH)
         self.window.dispatch(event)  # switch renderer if needed
@@ -119,6 +88,11 @@ class Common:
         :param separator: text separator
         """
         node = self.window.ui.nodes['input']
+        if hasattr(node, "append_mention_text"):
+            node.append_mention_text(text, separator=separator)
+            self.window.controller.ui.update_tokens()
+            return
+
         prev_text = node.toPlainText()
         cur = node.textCursor()
         cur.movePosition(QTextCursor.End)
@@ -172,35 +146,56 @@ class Common:
 
         :param value: send mode (1 = Enter, 2 = Shift+Enter)
         """
-        nodes = self.window.ui.nodes
         if value not in (1, 2):
             value = 1
 
-        if value == 2:
-            nodes['input.send_shift_enter'].setChecked(True)
-            nodes['input.send_enter'].setChecked(False)
-        else:
-            nodes['input.send_enter'].setChecked(True)
-            nodes['input.send_shift_enter'].setChecked(False)
-
+        self._sync_send_mode_actions(value)
         self.window.core.config.set('send_mode', value)
+
+    def _sync_send_mode_actions(self, value: int):
+        """Synchronize the checkmark in the Send button context menu."""
+        nodes = self.window.ui.nodes
+        enter = nodes.get('input.send_mode.enter')
+        shift_enter = nodes.get('input.send_mode.shift_enter')
+        if enter is not None:
+            enter.setChecked(value != 2)
+        if shift_enter is not None:
+            shift_enter.setChecked(value == 2)
 
     def focus_input(self):
         """Focus input"""
         self.window.ui.nodes['input'].setFocus()
 
+    def sync_send_stop_buttons(self):
+        """Show exactly one of Send/Stop according to the current request state."""
+        nodes = self.window.ui.nodes
+        input_node = nodes.get('input')
+        send_btn = nodes.get('input.send_btn')
+        if input_node is None or send_btn is None:
+            return
+
+        chat_input = self.window.controller.chat.input
+        busy = bool(chat_input.locked or chat_input.generating)
+        editing = self.window.controller.ctx.extra.is_editing()
+        is_chat_tab = self.window.controller.ui.tabs.get_current_type() == Tab.TAB_CHAT
+
+        # Send and Stop share the same compact slot semantically: while a
+        # request is active only Stop is visible; when idle, Send is restored
+        # only for a normal (non-editing) chat tab.
+        send_btn.setEnabled(not busy)
+        input_node.set_icon_visible('send', is_chat_tab and not editing and not busy)
+        input_node.set_icon_visible('stop', busy)
+
     def lock_input(self):
-        """Lock input"""
+        """Lock input."""
         self.window.controller.chat.input.locked = True
-        self.window.ui.nodes['input.send_btn'].setEnabled(False)
-        self.window.ui.nodes['input.stop_btn'].setVisible(True)
+        self.sync_send_stop_buttons()
 
     def unlock_input(self):
-        """Unlock input"""
+        """Unlock input."""
         self.window.controller.chat.input.locked = False
         self.window.controller.chat.input.generating = False  # unlock
-        self.window.ui.nodes['input.send_btn'].setEnabled(True)
-        self.window.ui.nodes['input.stop_btn'].setVisible(False)
+        self.sync_send_stop_buttons()
 
     def can_unlock(self, ctx: CtxItem) -> bool:
         """
@@ -215,10 +210,6 @@ class Common:
             finish = False
         if (self.window.controller.agent.legacy.enabled() and
                 (not self.window.controller.agent.legacy.finished or self.window.controller.agent.legacy.stop)):
-            unlock = False
-        if ((self.window.controller.agent.experts.enabled()
-             or self.window.controller.agent.legacy.enabled(check_inline=False)) and
-                self.window.core.experts.has_calls(ctx)):
             unlock = False
         if self.window.controller.kernel.stack.waiting():
             unlock = False
@@ -273,8 +264,12 @@ class Common:
             "value": True,
         })) # stop event
 
+        # Prevent a late preprocessing callback (history summary / attachment
+        # I/O) from resuming a request after STOP or leaking into the next turn.
+        cancel_preprocessing = getattr(controller.chat.input, "cancel_preprocessing", None)
+        if callable(cancel_preprocessing):
+            cancel_preprocessing()
         controller.kernel.stack.clear()  # pause reply stack
-        controller.agent.experts.stop()
         controller.agent.legacy.on_stop()
         controller.assistant.threads.stop = True
         controller.assistant.threads.reset()  # reset run and func calls
@@ -282,12 +277,67 @@ class Common:
             "value": False,
         }))  # stop audio input
         controller.kernel.halt = True
-        dispatch(RenderEvent(RenderEvent.TOOL_END))  # show waiting
+        # Drop any partial tool-result batch collected before STOP after the
+        # kernel is halted. Late REPLY_ADD events are rejected from this point,
+        # so stale results cannot survive until the next request resumes it.
+        controller.kernel.replies.clear()
+        # Wake provider-native Computer Use continuations waiting for user
+        # acknowledgement so they can observe the stopped kernel and exit.
+        try:
+            controller.chat.command.cancel_pending_safety_confirmation()
+        except Exception:
+            pass
+        # STOP/ESC must remove transient tool/agent waiting rows immediately.
+        # TOOL_END only hides the legacy loader and does not remove the status
+        # containers introduced by the partial-item flow.
+        current_ctx = core.ctx.get_last_item()
+        request_meta = core.ctx.output.get_request_meta()
+        current_meta = (
+            request_meta
+            or getattr(current_ctx, "meta", None)
+            or core.ctx.get_current_meta()
+        )
+
+        # A Responses API response that ended in a function_call cannot be used
+        # as previous_response_id until every call has a matching output. If the
+        # user aborts while a tool is executing (or while its continuation is
+        # streaming), the durable root still owns that response ID. Explicitly
+        # break the server-side chain here. This marker is independent of the
+        # configured tool-call DB storage mode, so it also protects "do not
+        # store" and truncated histories.
+        if (current_ctx is not None
+                and core.ctx.output.has_request()
+                and controller.chat.input.generating):
+            ctx_meta = getattr(current_ctx, "meta", None)
+            same_owner = (
+                request_meta is None
+                or ctx_meta is None
+                or getattr(request_meta, "id", None) is None
+                or getattr(ctx_meta, "id", None) == getattr(request_meta, "id", None)
+            )
+            ctx_extra = current_ctx.extra if isinstance(getattr(current_ctx, "extra", None), dict) else {}
+            if same_owner and not bool(ctx_extra.get("response_final")):
+                if not isinstance(getattr(current_ctx, "extra", None), dict):
+                    current_ctx.extra = {}
+                current_ctx.msg_id = None
+                current_ctx.stopped = True
+                current_ctx.extra["response_interrupted"] = True
+                current_ctx.extra.pop("response_final", None)
+                try:
+                    core.ctx.update_item(current_ctx)
+                except Exception as e:
+                    core.debug.log(e)
+
+        dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": current_meta, "immediate": True}))
+        dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": current_meta, "ctx": current_ctx}))
+        dispatch(RenderEvent(RenderEvent.TOOL_END))
         self.unlock_input()
 
         controller.chat.input.generating = False
         self.window.update_status(trans('status.stopped'))
-        dispatch(KernelEvent(KernelEvent.STATE_IDLE))  # state: idle
+        dispatch(KernelEvent(KernelEvent.STATE_IDLE, {"meta": current_meta}))  # state: idle
+        core.ctx.output.finish_request(meta=current_meta)
+        controller.ui.tabs.sync_focused_chat_context()
 
         # remotely stop assistant
         mode = core.config.get('mode')
@@ -362,22 +412,23 @@ class Common:
                     return False
         return True
 
-    def toggle_timestamp(self, value: bool):
-        """
-        Toggle timestamp display
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('output_timestamp', value)
-        self.window.core.config.save()
+    def apply_timestamp(self, value: bool, initialized: bool = True):
+        """Apply the plain-text timestamp setting to the active renderer."""
         data = {
-            "initialized": True
+            "initialized": initialized,
         }
         if value:
             event = RenderEvent(RenderEvent.ON_TS_ENABLE, data)
         else:
             event = RenderEvent(RenderEvent.ON_TS_DISABLE, data)
         self.window.dispatch(event)
+
+    def toggle_timestamp(self, value: bool):
+        """Persist and apply the plain-text timestamp setting."""
+        self.window.core.config.set('output_timestamp', value)
+        self.window.core.config.save()
+        if self.window.core.config.get('render.plain'):
+            self.apply_timestamp(value, initialized=True)
 
     def toggle_edit_icons(self, value: bool):
         """
@@ -396,25 +447,29 @@ class Common:
             event = RenderEvent(RenderEvent.ON_EDIT_DISABLE, data)
         self.window.dispatch(event)
 
-    def toggle_raw(self, value: bool):
-        """
-        Toggle raw (plain) output
+    def update_plain_view_tooltip(self):
+        """Update the text-view toggle tooltip for the current renderer mode."""
+        node = self.window.ui.nodes.get('icon.plain')
+        if node is None:
+            return
+        if self.window.core.config.get('render.plain'):
+            node.setToolTip(trans('icon.plain.switch_to_normal'))
+        else:
+            node.setToolTip(trans('icon.plain.switch_to_plain'))
 
-        :param value: value of the checkbox
-        """
+    def toggle_plain_view(self):
+        """Switch between normal Web/Markdown output and plain-text output."""
+        value = not bool(self.window.core.config.get('render.plain'))
+        self.toggle_raw(value)
+
+    def toggle_raw(self, value: bool):
+        """Toggle raw (plain-text) output."""
         self.window.core.config.set('render.plain', value)
         self.window.core.config.save()
 
-        # update checkbox in settings dialog
-        self.window.controller.config.checkbox.apply(
-            'config',
-            'render.plain',
-            {
-                'value': value
-            },
-        )
         event = RenderEvent(RenderEvent.ON_SWITCH)
         self.window.dispatch(event)
+        self.update_plain_view_tooltip()
 
         # restore previous font size
         self.window.controller.ui.update_font_size()

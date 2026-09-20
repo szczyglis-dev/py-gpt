@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.20 09:00:00                  #
+# Updated Date: 2026.09.16 14:35:00                  #
 # ================================================== #
 
 import copy
@@ -22,6 +22,17 @@ from pygpt_net.core.types import (
     MODE_AUDIO,
 )
 from pygpt_net.core.events import Event
+from pygpt_net.core.types.tools import (
+    PERSIST_HIDDEN_TOOL_CALLS,
+    CTX_TOOL_HISTORY_EXTRA_KEY,
+    TOOL_CALL_STORAGE_CONFIG_KEY,
+    TOOL_CALL_STORAGE_TRUNCATE_CHARS,
+    TOOL_CALL_STORAGE_TRUNCATE_SUFFIX,
+    ToolCallStorageMode,
+    is_hidden_tool as is_hidden_tool_name,
+    is_hidden_tool_realtime_only,
+    register_hidden_tool_definition,
+)
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
@@ -38,6 +49,342 @@ class Command:
         :param window: Window instance
         """
         self.window = window
+
+    @staticmethod
+    def _tool_name(value: Any) -> str:
+        """Extract a tool/command name from supported definition/call shapes."""
+        if isinstance(value, str):
+            return value.strip()
+        if not isinstance(value, dict):
+            return ""
+        name = value.get("cmd") or value.get("name")
+        function = value.get("function")
+        if not name and isinstance(function, dict):
+            name = function.get("name")
+        return str(name or "").strip()
+
+    def is_tool_hidden(self, name: str, definition: Optional[Dict[str, Any]] = None) -> bool:
+        """Return True when a tool must be omitted from the conversation UI."""
+        if isinstance(definition, dict) and definition.get("hidden") is True:
+            register_hidden_tool_definition(definition)
+            return True
+        value = str(name or "").strip()
+        if not value:
+            return False
+        if is_hidden_tool_name(value):
+            return True
+
+        # Current command syntax also covers dynamic tools supplied directly by
+        # plugins instead of BasePlugin.add_cmd().
+        for item in getattr(self.window.core.ctx, "current_cmd", None) or []:
+            if (isinstance(item, dict)
+                    and self._tool_name(item) == value
+                    and item.get("hidden") is True):
+                register_hidden_tool_definition(item)
+                return True
+
+        # BasePlugin.add_cmd(hidden=True) stores the marker on the command option.
+        # Inspect registered plugins as a history/reload fallback even when the
+        # command has not yet been advertised in the current model prompt.
+        try:
+            for plugin in self.window.core.plugins.all().values():
+                option = getattr(plugin, "options", {}).get(f"cmd.{value}")
+                if isinstance(option, dict) and option.get("hidden") is True:
+                    register_hidden_tool_definition({"cmd": value, "hidden": True})
+                    return True
+        except Exception:
+            pass
+        return False
+
+    def visible_tools(self, values: List[Any]) -> List[Any]:
+        """Filter hidden commands/tool calls while preserving input objects/order."""
+        result = []
+        for value in values or []:
+            name = self._tool_name(value)
+            if name and self.is_tool_hidden(name, value if isinstance(value, dict) else None):
+                continue
+            result.append(value)
+        return result
+
+    def visible_tool_names(self, names: List[str]) -> List[str]:
+        """Return only names allowed on normal persisted/replayed UI surfaces."""
+        return [
+            str(name)
+            for name in (names or [])
+            if str(name) and not self.is_tool_hidden(str(name))
+        ]
+
+    def is_tool_realtime_visible(
+            self,
+            name: str,
+            definition: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        """Return whether a tool name may be exposed by a transient live status.
+
+        Normal tools are visible as before. Hidden tools stay hidden unless their
+        name is explicitly listed in ``HIDDEN_TOOLS_REALTIME_ONLY``. The exception
+        applies only to callers using this realtime-specific predicate; all normal
+        persistence/history/render paths continue to use ``is_tool_hidden()``.
+        """
+        value = str(name or "").strip()
+        if not value:
+            return False
+        if not self.is_tool_hidden(value, definition):
+            return True
+        return is_hidden_tool_realtime_only(value)
+
+    def realtime_visible_tool_names(self, names: List[str]) -> List[str]:
+        """Return tool names allowed on the transient realtime status surface."""
+        return [
+            str(name)
+            for name in (names or [])
+            if str(name) and self.is_tool_realtime_visible(str(name))
+        ]
+
+    def get_tool_call_storage_mode(self) -> ToolCallStorageMode:
+        """Return the configured durable-storage policy for tool payloads."""
+        value = ToolCallStorageMode.STORE_FULL.value
+        try:
+            value = self.window.core.config.get(
+                TOOL_CALL_STORAGE_CONFIG_KEY,
+                ToolCallStorageMode.STORE_FULL.value,
+            )
+        except (AttributeError, RuntimeError):
+            pass
+        return ToolCallStorageMode.from_value(value)
+
+    @staticmethod
+    def _truncate_tool_storage_value(value: Any, limit: int = TOOL_CALL_STORAGE_TRUNCATE_CHARS) -> Any:
+        """Recursively truncate string values while preserving JSON structure.
+
+        Dictionary keys are intentionally left unchanged: they define the tool
+        payload schema and are required by the history renderer. Only values are
+        size-limited.
+        """
+        if isinstance(value, str):
+            if limit > 0 and len(value) > limit:
+                return value[:limit] + TOOL_CALL_STORAGE_TRUNCATE_SUFFIX
+            return value
+        if isinstance(value, dict):
+            return {
+                key: Command._truncate_tool_storage_value(child, limit)
+                for key, child in value.items()
+            }
+        if isinstance(value, list):
+            return [Command._truncate_tool_storage_value(child, limit) for child in value]
+        if isinstance(value, tuple):
+            return tuple(Command._truncate_tool_storage_value(child, limit) for child in value)
+        return copy.deepcopy(value)
+
+    def tool_payload_for_storage(self, value: Any) -> Any:
+        """Apply the configured DB policy to an already identified tool payload."""
+        mode = self.get_tool_call_storage_mode()
+        if mode == ToolCallStorageMode.DO_NOT_STORE:
+            return None
+        if mode == ToolCallStorageMode.STORE_TRUNCATED:
+            return self._truncate_tool_storage_value(value)
+        return copy.deepcopy(value)
+
+    @classmethod
+    def _truncate_tool_storage_text(cls, value: Any) -> Any:
+        """Truncate a text DB column while preserving JSON structure when possible."""
+        if not isinstance(value, str):
+            return cls._truncate_tool_storage_value(value)
+        try:
+            decoded = json.loads(value)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return cls._truncate_tool_storage_value(value)
+        if not isinstance(decoded, (dict, list)):
+            return cls._truncate_tool_storage_value(value)
+        decoded = cls._truncate_tool_storage_value(decoded)
+        return json.dumps(decoded, ensure_ascii=False, default=str)
+
+    @staticmethod
+    def is_tool_task(task: Any) -> bool:
+        """Return True when a partial task represents a tool invocation."""
+        if task is None:
+            return False
+        if getattr(task, "tool_call_id", None):
+            return True
+        extra = getattr(task, "extra", None)
+        return isinstance(extra, dict) and bool(extra.get("tool_name"))
+
+    def should_store_tool_task(self, task: Any) -> bool:
+        """Return False only for tool-task rows disabled by the DB policy."""
+        if not self.is_tool_task(task):
+            return True
+        return self.get_tool_call_storage_mode() != ToolCallStorageMode.DO_NOT_STORE
+
+    def tool_task_values_for_storage(self, task: Any) -> Dict[str, Any]:
+        """Build DB-safe values for a partial tool task without mutating runtime state."""
+        is_tool = self.is_tool_task(task)
+        if not is_tool:
+            return {
+                "input": getattr(task, "input", None),
+                "output": getattr(task, "output", None),
+                "tool_input": getattr(task, "tool_input", None),
+                "tool_output": getattr(task, "tool_output", None),
+                "extra": copy.deepcopy(getattr(task, "extra", None)),
+            }
+
+        mode = self.get_tool_call_storage_mode()
+        if mode == ToolCallStorageMode.STORE_TRUNCATED:
+            extra = copy.deepcopy(getattr(task, "extra", None))
+            if isinstance(extra, dict) and "response" in extra:
+                extra["response"] = self._truncate_tool_storage_value(extra["response"])
+            return {
+                "input": self._truncate_tool_storage_text(getattr(task, "input", None)),
+                "output": self._truncate_tool_storage_text(getattr(task, "output", None)),
+                "tool_input": self._truncate_tool_storage_value(getattr(task, "tool_input", None)),
+                "tool_output": self._truncate_tool_storage_value(getattr(task, "tool_output", None)),
+                "extra": extra,
+            }
+
+        return {
+            "input": getattr(task, "input", None),
+            "output": getattr(task, "output", None),
+            "tool_input": copy.deepcopy(getattr(task, "tool_input", None)),
+            "tool_output": copy.deepcopy(getattr(task, "tool_output", None)),
+            "extra": copy.deepcopy(getattr(task, "extra", None)),
+        }
+
+    def tool_calls_for_storage(self, tool_calls: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Apply the code-level hidden-tool persistence policy."""
+        if PERSIST_HIDDEN_TOOL_CALLS:
+            return list(tool_calls or [])
+        return self.visible_tools(tool_calls or [])
+
+    def commands_for_storage(self, commands: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Return command metadata that may be written to durable context storage."""
+        values = list(commands or []) if PERSIST_HIDDEN_TOOL_CALLS else self.visible_tools(commands or [])
+        stored = self.tool_payload_for_storage(values)
+        return stored if isinstance(stored, list) else []
+
+    def tool_results_for_storage(self, results: List[Any]) -> List[Any]:
+        """Remove model-facing results that belong to non-persisted hidden tools."""
+        if PERSIST_HIDDEN_TOOL_CALLS:
+            visible = list(results or [])
+        else:
+            visible = []
+            for result in results or []:
+                name = ""
+                if isinstance(result, dict):
+                    request = result.get("request")
+                    if isinstance(request, dict):
+                        name = str(request.get("cmd") or request.get("name") or "")
+                    if not name:
+                        name = str(result.get("cmd") or "")
+                if name and self.is_tool_hidden(name):
+                    continue
+                visible.append(result)
+        stored = self.tool_payload_for_storage(visible)
+        return stored if isinstance(stored, list) else []
+
+    def extra_for_storage(self, extra: Any) -> Any:
+        """Sanitize compatibility tool caches before writing context extras."""
+        if not isinstance(extra, dict):
+            return extra
+        stored = copy.deepcopy(extra)
+        mode = self.get_tool_call_storage_mode()
+
+        if mode == ToolCallStorageMode.DO_NOT_STORE:
+            for key in (
+                    "tool_calls",
+                    "prev_tool_calls",
+                    "tool_output",
+                    "tool_calls_outputs",
+                    CTX_TOOL_HISTORY_EXTRA_KEY,
+            ):
+                stored.pop(key, None)
+            return stored
+
+        history = stored.get(CTX_TOOL_HISTORY_EXTRA_KEY)
+        if isinstance(history, list):
+            filtered_history = []
+            for entry in history:
+                if not isinstance(entry, dict):
+                    continue
+                call = entry.get("call")
+                function = call.get("function") if isinstance(call, dict) else None
+                name = str(function.get("name") or "") if isinstance(function, dict) else ""
+                if (not PERSIST_HIDDEN_TOOL_CALLS
+                        and name
+                        and self.is_tool_hidden(name, call)):
+                    continue
+                filtered_history.append(copy.deepcopy(entry))
+            if mode == ToolCallStorageMode.STORE_TRUNCATED:
+                # Keep protocol metadata (tool name/type/call IDs) intact so the
+                # compact transcript remains structurally restorable. Only the
+                # potentially large tool arguments follow the truncation policy.
+                for entry in filtered_history:
+                    call = entry.get("call") if isinstance(entry, dict) else None
+                    function = call.get("function") if isinstance(call, dict) else None
+                    if isinstance(function, dict) and "arguments" in function:
+                        function["arguments"] = self._truncate_tool_storage_value(
+                            function["arguments"]
+                        )
+            if filtered_history:
+                stored[CTX_TOOL_HISTORY_EXTRA_KEY] = filtered_history
+            else:
+                stored.pop(CTX_TOOL_HISTORY_EXTRA_KEY, None)
+
+        for key in ("tool_calls", "prev_tool_calls"):
+            if isinstance(stored.get(key), list):
+                values = list(stored[key]) if PERSIST_HIDDEN_TOOL_CALLS else self.visible_tools(stored[key])
+                if mode == ToolCallStorageMode.STORE_TRUNCATED:
+                    values = self._truncate_tool_storage_value(values)
+                if values:
+                    stored[key] = values
+                else:
+                    stored.pop(key, None)
+        if isinstance(stored.get("tool_output"), list):
+            outputs = self.tool_results_for_storage(stored["tool_output"])
+            # Plugin output caches usually carry the command at top level rather
+            # than under request; apply the same rule explicitly.
+            if not PERSIST_HIDDEN_TOOL_CALLS:
+                outputs = [
+                    value for value in outputs
+                    if not (
+                        isinstance(value, dict)
+                        and str(value.get("cmd") or "")
+                        and self.is_tool_hidden(str(value.get("cmd") or ""))
+                    )
+                ]
+            if outputs:
+                stored["tool_output"] = outputs
+            else:
+                stored.pop("tool_output", None)
+        if "tool_calls_outputs" in stored:
+            value = self.tool_payload_for_storage(stored["tool_calls_outputs"])
+            if value:
+                stored["tool_calls_outputs"] = value
+            else:
+                stored.pop("tool_calls_outputs", None)
+        return stored
+
+    def output_for_storage(self, text: Optional[str]) -> Optional[str]:
+        """Apply hidden-tool and DB-size policy to legacy ``<tool>`` markup."""
+        if text is None:
+            return text
+
+        mode = self.get_tool_call_storage_mode()
+
+        def replace(match):
+            command = self.extract_cmd(match.group(1))
+            if isinstance(command, dict):
+                name = self._tool_name(command)
+                if (not PERSIST_HIDDEN_TOOL_CALLS
+                        and name
+                        and self.is_tool_hidden(name, command)):
+                    return ""
+                if mode == ToolCallStorageMode.DO_NOT_STORE:
+                    return ""
+                if mode == ToolCallStorageMode.STORE_TRUNCATED:
+                    command = self._truncate_tool_storage_value(command)
+                    return "<tool>" + json.dumps(command, separators=(",", ":"), ensure_ascii=False) + "</tool>"
+            return match.group(0)
+
+        return self._RE_TOOL_BLOCKS.sub(replace, str(text))
 
     def append_syntax(
             self,
@@ -82,6 +429,7 @@ class Command:
         self.window.core.ctx.current_cmd = copy.deepcopy(cmds)
 
         for cmd in cmds:
+            register_hidden_tool_definition(cmd)
             if "cmd" in cmd and "instruction" in cmd:
                 cmd_name = cmd["cmd"]
                 data_cmd = {"help": cmd["instruction"]}
@@ -140,6 +488,12 @@ class Command:
         except Exception:
             pass
         return cmds
+
+    def strip_cmds(self, text: Optional[str]) -> Optional[str]:
+        """Remove legacy <tool> request blocks from assistant-visible text."""
+        if text is None:
+            return None
+        return self._RE_TOOL_BLOCKS.sub("", str(text)).strip()
 
     def extract_cmd(self, chunk: str) -> Optional[Dict[str, Any]]:
         """
@@ -228,6 +582,7 @@ class Command:
                 parsed.append(
                     {
                         "id": tool_call.id,
+                        "call_id": getattr(tool_call, "call_id", None) or tool_call.id,
                         "type": "function",
                         "function": {
                             "name": tool_call.name,
@@ -272,7 +627,11 @@ class Command:
         ctx.tool_calls = tmp_calls
 
         if append_output:
-            ctx.extra["tool_calls"] = ctx.tool_calls
+            stored_tool_calls = self.tool_calls_for_storage(ctx.tool_calls)
+            if stored_tool_calls:
+                ctx.extra["tool_calls"] = stored_tool_calls
+            else:
+                ctx.extra.pop("tool_calls", None)
             ctx.extra["tool_output"] = []
 
     def unpack_tool_calls_from_llama(
@@ -441,7 +800,6 @@ class Command:
         """
         func_plugins = []
         func_agent = []
-        func_experts = []
         data = {
             'syntax': [],
             'cmd': [],
@@ -458,11 +816,7 @@ class Command:
         func_plugins = self.cmds_to_functions(cmds)
         if self.window.controller.agent.legacy.enabled():
             func_agent = self.cmds_to_functions(self.window.controller.agent.legacy.get_functions())
-        if (self.window.controller.agent.experts.enabled()
-                or self.window.controller.agent.legacy.enabled(check_inline=False)):
-            if parent_id is None:
-                func_experts = self.cmds_to_functions(self.window.core.experts.get_functions())
-        return func_plugins + func_agent + func_experts
+        return func_plugins + func_agent
 
     def cmds_to_functions(
             self,
@@ -477,6 +831,7 @@ class Command:
         functions = []
         limit = self.DESC_LIMIT
         for cmd in cmds:
+            register_hidden_tool_definition(cmd)
             if "cmd" in cmd and "instruction" in cmd:
                 cmd_name = cmd["cmd"]
                 desc = cmd["instruction"]
@@ -603,11 +958,6 @@ class Command:
                     if not self.window.core.models.is_tool_call_allowed(mode, model_data):
                         return False
 
-            if self.window.controller.agent.legacy.enabled():
-                return self.window.core.config.get('agent.func_call.native', False)
-            if self.window.controller.agent.experts.enabled():
-                return self.window.core.config.get('experts.func_call.native', False)
-
         return self.window.core.config.get('func_call.native', False)
 
     def is_cmd(self, inline: bool = True) -> bool:
@@ -629,6 +979,12 @@ class Command:
         :param cmd: command
         :return: True if command is enabled
         """
+        # Internal autonomous controls are advertised by the agent controller
+        # rather than by a user-toggleable plugin, but execution still goes
+        # through the same chat command/tool lifecycle.
+        if self.window.controller.agent.legacy.is_tool_enabled(cmd):
+            return True
+
         enabled_cmds = set()
 
         def collect(event_type):

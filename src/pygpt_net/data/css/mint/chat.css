@@ -1,0 +1,129 @@
+/* Mint theme: Light-compatible soft mint palette. */
+body {{ 
+    --copy-btn-bg-hover: rgb(225 225 225 / 76%);
+    color: #17382d;
+    background-color: #f5fbf8;
+}}
+::-webkit-scrollbar {{
+    background: transparent;
+}}
+::-webkit-scrollbar-thumb {{
+    background: #d8e9e0;
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: #5b7b6e;
+}}
+::-webkit-scrollbar-corner {{
+    background: transparent;
+}}
+p {{ 
+    color: #17382d;
+}}
+a {{
+    color: #27785a !important;
+}}
+a:hover {{
+    color: #34966f !important;
+}}
+.msg-user {{
+    color: #17382d;
+}}
+.msg-user p {{
+    color: #17382d;
+}}
+.msg-bot {{
+    color: #17382d;
+}}
+.msg-bot p {{
+    color: #17382d;
+}}
+.cmd {{
+    color: #6d887c !important;
+    text-decoration: none;
+}}
+.ts {{
+    color: #5f7b6f;
+}}
+code {{
+    color: #17382d;
+}}
+.code-wrapper {{
+    color: #fbfffd;
+    border: 1px solid #cadfd5;
+}}
+.code-header-wrapper {{
+    color: #fbfffd;
+    background: #e1efe8;
+}}
+.code-header-action {{
+    color: #36594c !important;
+}}
+.code-header-action:hover {{
+    color: #17382d !important;
+    cursor: pointer;
+}}
+.code-header-action:hover img {{
+    filter: brightness(60%);
+}}
+.code-header-lang {{
+    color: #58776a;
+}}
+.code-wrapper .code-header-action.code-header-copy:hover, 
+.code-wrapper .code-header-action.code-header-collapse:hover {{
+    transform: scale(1.06);
+    background: var(--copy-btn-bg-hover, rgb(225 225 225 / 76%));
+    border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
+}}
+.msg-user {{
+    background-color: #ddf4e7;
+    color: #17382d;
+}}
+.name-bot::before {{
+    background-color: #658276;
+}}
+.name-user::before {{
+    background-color: silver;
+}}
+.action-icons a:hover {{
+    filter: brightness(60%);
+}}
+.tool-output .content {{
+    color: #6d887c !important;
+}}
+.tool-output .tool-output-toggle:hover {{
+    background-color: rgba(0, 0, 0, 0.08);
+}}
+.tool-output .tool-output-label {{
+    color: #789287;
+}}
+.tool-output .tool-output-name {{
+    color: #17382d;
+}}
+
+/* loader */
+.lds-ring {{
+   color: #17382d;
+   opacity:0.5;
+}}
+.append_live {{
+  color: gray;
+}}
+
+.tips p {{
+ color: #658176;
+}}
+.msg-box .name-header.name-bot {{
+    color: #6b877b;
+}}
+code {{
+    background: #e5f2eb;
+    padding: 6px;
+}}
+/* Attachment/project mentions in user messages */
+.mention-anchor {{
+    color: #2f9b70 !important;
+    background: rgba(47, 155, 112, 0.10);
+    border-radius: 4px;
+    padding: 1px 3px;
+    font-weight: 600;
+}}

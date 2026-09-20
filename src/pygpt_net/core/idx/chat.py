@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 18:00:00                  #
+# Updated Date: 2026.09.19 22:25:00                  #
 # ================================================== #
 
 import json
@@ -19,13 +19,16 @@ from llama_index.core.tools import QueryEngineTool
 
 from pygpt_net.core.types import (
     MODE_CHAT,
+    MODE_LLAMA_INDEX,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.provider.llms.agent_computer import ComputerRuntime
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
@@ -33,6 +36,13 @@ from .context import Context
 from .response import Response
 
 class Chat:
+    # Retrieval scores are backend/model dependent and are not a portable
+    # confidence scale. Ask the retriever for a bounded set of its best-ranked
+    # candidates and keep that ordering instead of applying absolute score
+    # thresholds (e.g. 0.2/0.5), which can silently discard valid context.
+    RETRIEVAL_TOP_K = 5
+    METADATA_MAX_NODES = 3
+
     def __init__(self, window=None, storage=None):
         """
         Chat with index core
@@ -117,7 +127,7 @@ class Chat:
         system_prompt = context.system_prompt_raw  # get raw system prompt, without plugin addons
         stream = context.stream
         ctx = context.ctx
-        query = context.prompt if context.prompt else ctx.input  # final user input (incl. attachment context)
+        query = context.prompt if context.prompt else ctx.final_input  # final user input (incl. attachment context)
         verbose = self.window.core.config.get("log.llama", False)
 
         if model is None or not isinstance(model, ModelItem):
@@ -134,25 +144,40 @@ class Chat:
         )
         # query index
         tpl = self.get_custom_prompt(system_prompt)
+        query_engine_kwargs = {
+            "llm": llm,
+            "streaming": stream,
+            "verbose": verbose,
+        }
         if tpl is not None:
             self.log(f"Query index with custom prompt: {system_prompt}...")
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=stream,
-                text_qa_template=tpl,
-                verbose=verbose,
-            ).query(query)  # query with custom sys prompt
-        else:
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=stream,
-                verbose=verbose,
-            ).query(query)  # query with default prompt
+            query_engine_kwargs["text_qa_template"] = tpl
+        self.window.core.api.logger.log_input(
+            type="llama_index.query",
+            provider=model.provider,
+            kwargs=query_engine_kwargs,
+            input=query,
+            extra=extra,
+            model=model.id,
+            path="index.as_query_engine(...).query",
+        )
+        response = index.as_query_engine(**query_engine_kwargs).query(query)
 
         if response:
+            if not stream:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query",
+                    provider=model.provider,
+                    output=response,
+                    model=model.id,
+                )
             if stream:
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
-                ctx.stream = response.response_gen
+                ctx.stream = self.response.stream_with_llm_artifacts(
+                    ctx,
+                    llm,
+                    response.response_gen,
+                )
                 ctx.input_tokens = input_tokens
                 ctx.set_output("", "")
             else:
@@ -164,6 +189,7 @@ class Chat:
                     model.id,
                 )  # calc from response
                 ctx.set_output(str(response.response), "")
+                self.response.collect_llm_urls(ctx, llm)
             return True
         return False
 
@@ -183,21 +209,20 @@ class Chat:
         model = context.model
         stream = context.stream
         ctx = context.ctx
-        query = context.prompt if context.prompt else ctx.input  # final user input (incl. attachment context)
+        query = context.prompt if context.prompt else ctx.final_input  # final user input (incl. attachment context)
         verbose = self.window.core.config.get("log.llama", False)
 
         self.log("Retrieval...")
         self.log(f"Idx: {idx}, retrieve only: {query}")
 
         index, llm = self.get_index(idx, model, stream=stream)
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(query)
+        nodes = self._retrieve_nodes(index, query)
         outputs = []
         self.log(f"Retrieved {len(nodes)} nodes...")
         for node in nodes:
             outputs.append({
-                "text": node.text,
-                "score": node.score,
+                "text": self._get_node_text(node),
+                "score": self._get_node_score(node),
             })
         if outputs:
             response = ""
@@ -229,7 +254,7 @@ class Chat:
         system_prompt = context.system_prompt  # get final system prompt
         stream = context.stream
         ctx = context.ctx
-        query = context.prompt if context.prompt else ctx.input  # final user input (incl. attachment context)
+        query = context.prompt if context.prompt else ctx.final_input  # final user input (incl. attachment context)
         chat_mode = self.window.core.config.get("llama.idx.chat.mode")
         use_index = True
         verbose = self.window.core.config.get("log.llama", False)
@@ -237,11 +262,17 @@ class Chat:
         response = None
         attachments = context.attachments  # attachments
         cmd_enabled = self.window.core.config.get("cmd", False)  # use tools
-        use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
         if disable_cmd:
             cmd_enabled = False
+
+        # ReAct is an automatic fallback for models/providers that cannot use
+        # native tool calls in the current Chat with Files path. There is no
+        # user-facing switch: native tool calls are preferred whenever they are
+        # available, and ReAct is used only when tools are enabled and the
+        # native path is unavailable.
+        use_react = bool(cmd_enabled and not allow_native_tool_calls)
 
         if not self.window.core.idx.is_valid(idx):
             chat_mode = "simple"  # do not use query engine if no index
@@ -249,6 +280,11 @@ class Chat:
 
         if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
+
+        # Provider-native Computer Use is a client-side continuation protocol.
+        # Chat with Files is synchronous LlamaIndex code, so bind a tiny runtime
+        # adapter that reuses the same provider adapters/executor as Agents v2.
+        computer_runtime = ComputerRuntime(self.window, context)
 
         # retrieve additional context from index if tools enabled
         additional_ctx = None
@@ -283,9 +319,18 @@ class Chat:
         # use index only if idx is not empty, otherwise use only LLM
         index = None
         if use_index:
-            index, llm = self.get_index(idx, model, stream=stream)
+            index, llm = self.get_index(
+                idx,
+                model,
+                stream=stream,
+                computer_runtime=computer_runtime,
+            )
         else:
-            llm = self.window.core.idx.llm.get(model, stream=stream)
+            llm = self.window.core.idx.llm.get(
+                model,
+                stream=stream,
+                computer_runtime=computer_runtime,
+            )
 
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
@@ -300,6 +345,42 @@ class Chat:
             prev_message=self.prev_message,
             attachments=attachments,
         )
+
+        # Native tool-result continuations are already reconstructed by Context as
+        # ``assistant(tool_calls) -> tool(result)``.  The internal reply prompt is
+        # only a transport envelope for the plugin result and must not be appended
+        # again as a normal user message.  Doing so produces
+        # ``... -> tool(result) -> user(result)``; OpenAI-compatible Ollama/Gemma
+        # is especially sensitive to that invalid continuation shape and may return
+        # no final assistant content after a successfully executed tool.
+        last_role = getattr(history[-1], "role", None) if history else None
+        if hasattr(last_role, "value"):
+            last_role = last_role.value
+        native_tool_continuation = bool(
+            allow_native_tool_calls
+            and self.prev_message is not None
+            and last_role == MessageRole.TOOL.value
+        )
+        if native_tool_continuation:
+            self.log(
+                "Native tool continuation: tool result already present in history; "
+                "skipping synthetic user reply."
+            )
+
+            # ``attach_runtime_file`` returns the protocol-required textual tool
+            # result plus an ephemeral local attachment. Tool-result messages do
+            # not have a portable image payload across LlamaIndex providers, so
+            # promote runtime images to a normal user multimodal message for the
+            # immediate follow-up, just like the Agents v2 main FunctionAgent.
+            # The attachment stays transport-only and is not persisted in ctx.
+            if model.is_image_input() and context.attachments:
+                runtime_message = self.context.add_runtime_images(context.attachments)
+                if runtime_message is not None:
+                    history.append(runtime_message)
+                    self.log(
+                        "Native tool continuation: appended runtime image(s) as "
+                        "a multimodal user message."
+                    )
 
         self.prev_message = None  # reset previous message
         memory = self.get_memory_buffer(history, llm)
@@ -334,13 +415,24 @@ class Chat:
                     use_index = False # fallback to LLM if tools enabled but not using ReAct
             else:
                 # 2) if tools disabled, use index as chat engine
-                chat_engine = index.as_chat_engine(
-                    llm=llm,
-                    chat_mode=chat_mode,
-                    memory=memory,
-                    verbose=verbose,
-                    system_prompt=system_prompt,
+                chat_engine_kwargs = {
+                    "llm": llm,
+                    "chat_mode": chat_mode,
+                    "memory": memory,
+                    "verbose": verbose,
+                    "system_prompt": system_prompt,
+                }
+                self.window.core.api.logger.log_input(
+                    type="llama_index.index.chat",
+                    provider=model.provider,
+                    kwargs=chat_engine_kwargs,
+                    input=query,
+                    history=history,
+                    extra=extra,
+                    model=model.id,
+                    path="index.as_chat_engine(...).stream_chat" if stream else "index.as_chat_engine(...).chat",
                 )
+                chat_engine = index.as_chat_engine(**chat_engine_kwargs)
                 if stream:
                     response = chat_engine.stream_chat(query)
                 else:
@@ -371,35 +463,50 @@ class Chat:
                     )
                 else:
                     history.insert(0, self.context.add_system(system_prompt))
-                    history.append(self.context.add_user(
-                        query,
-                        attachments=context.attachments,
-                        allow_images=model.is_image_input(),
-                    ))
+                    if not native_tool_continuation:
+                        history.append(self.context.add_user(
+                            query,
+                            attachments=context.attachments,
+                            allow_images=model.is_image_input(),
+                        ))
                     if stream: # TOOLS + STREAM + NO INDEX
                         # IMPORTANT: stream chat with tools not supported by all providers
                         if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):
                             self.log("Using with tools...")
-                            response = llm.stream_chat_with_tools(
-                                tools=tools,
-                                messages=history,
+                            request_kwargs = {"tools": tools, "messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.stream_chat_with_tools", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.stream_chat_with_tools",
                             )
+                            response = llm.stream_chat_with_tools(**request_kwargs)
                         else:
-                            response = llm.stream_chat(
-                                messages=history,
+                            request_kwargs = {"messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.stream_chat", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.stream_chat",
                             )
+                            response = llm.stream_chat(**request_kwargs)
                     else: # TOOLS + NO INDEX
                         # IMPORTANT: stream chat with tools not supported by all providers
                         if allow_native_tool_calls and hasattr(llm, "chat_with_tools"):
                             self.log("Using with tools...")
-                            response = llm.chat_with_tools(
-                                tools=tools,
-                                messages=history,
+                            request_kwargs = {"tools": tools, "messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.chat_with_tools", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.chat_with_tools",
                             )
+                            response = llm.chat_with_tools(**request_kwargs)
                         else:
-                            response = llm.chat(
-                                messages=history,
+                            request_kwargs = {"messages": history}
+                            self.window.core.api.logger.log_input(
+                                type="llama_index.chat", provider=model.provider,
+                                kwargs=request_kwargs, input=query, history=history, extra=extra,
+                                model=model.id, path="llm.chat",
                             )
+                            response = llm.chat(**request_kwargs)
             else:
                 # NO TOOLS + NO INDEX
                 history.insert(0, self.context.add_system(system_prompt))
@@ -409,16 +516,31 @@ class Chat:
                     allow_images=model.is_image_input(),
                 ))
                 if stream:
-                    response = llm.stream_chat(
-                        messages=history,
+                    request_kwargs = {"messages": history}
+                    self.window.core.api.logger.log_input(
+                        type="llama_index.stream_chat", provider=model.provider,
+                        kwargs=request_kwargs, input=query, history=history, extra=extra,
+                        model=model.id, path="llm.stream_chat",
                     )
+                    response = llm.stream_chat(**request_kwargs)
                 else:
-                    response = llm.chat(
-                        messages=history,
+                    request_kwargs = {"messages": history}
+                    self.window.core.api.logger.log_input(
+                        type="llama_index.chat", provider=model.provider,
+                        kwargs=request_kwargs, input=query, history=history, extra=extra,
+                        model=model.id, path="llm.chat",
                     )
+                    response = llm.chat(**request_kwargs)
 
         # handle response, append output to ctx, etc.
         if response:
+            if not stream:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.chat",
+                    provider=model.provider,
+                    output=response,
+                    model=model.id,
+                )
             self.response.handle(
                 ctx=ctx,
                 model=model,
@@ -508,28 +630,46 @@ class Chat:
             "agent_provider": "react",  # use React workflow provider
             "agent_tools": tools,
         }
+        self.window.core.api.logger.log_input(
+            type="llama_index.react_agent",
+            provider=context.model.provider if context.model else "",
+            kwargs={"context": bridge_context, "extra": extra, "signals": None},
+            input=query,
+            history=history,
+            extra={"system_prompt": system_prompt, "tools": tools, "chat_mode": chat_mode},
+            model=context.model.id if context.model else None,
+            path="core.agents.runner.call_once",
+        )
         response_ctx = self.window.core.agents.runner.call_once(
             context=bridge_context,
             extra=extra,
             signals=None,
         )
-        if response_ctx:
-            return str(response_ctx.output)
-        else:
-            return "No response from agent."
+        output = str(response_ctx.output) if response_ctx else "No response from agent."
+        self.window.core.api.logger.log_output(
+            type="llama_index.react_agent",
+            provider=context.model.provider if context.model else "",
+            output=output,
+            model=context.model.id if context.model else None,
+        )
+        return output
 
-    def is_stream_allowed(self) -> bool:
+    def is_stream_allowed(self, model: Optional[ModelItem] = None) -> bool:
         """
-        Return if stream mode allowed
+        Return whether Chat with Files can use the normal streaming path.
 
-        :return: True if stream allowed
+        ReAct itself is non-streaming in this integration. It is selected
+        automatically only when tools are enabled and native tool calls are not
+        available for the current model/provider path.
+
+        :param model: Current model, if already resolved
+        :return: True if stream is allowed
         """
-        use_react = self.window.core.config.get("llama.idx.react", False)  # use ReAct agent for tool calls
-        is_cmd = self.window.core.config.get("cmd", False)
-        if is_cmd:
-            if use_react:
-                return False  # do not append twice response from agent
-        return True
+        if not self.window.core.config.get("cmd", False):
+            return True
+        if model is None:
+            return True
+        return self.window.core.models.is_tool_call_allowed(MODE_LLAMA_INDEX, model)
 
     def query_file(
             self,
@@ -568,13 +708,21 @@ class Chat:
         output = None
         if len(files) > 0:
             self.log(f"Querying temporary in-memory index: {idx}...")
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=False,
-            ).query(query)  # query with default prompt
+            query_kwargs = {"llm": llm, "streaming": False}
+            self.window.core.api.logger.log_input(
+                type="llama_index.query_file", provider=model.provider,
+                kwargs=query_kwargs, input=query, model=model.id,
+                path="index.as_query_engine(...).query", extra={"path": path},
+            )
+            response = index.as_query_engine(**query_kwargs).query(query)
             if response:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query_file", provider=model.provider,
+                    output=response, model=model.id,
+                )
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
+                self.response.collect_llm_urls(ctx, llm)
 
         # clean tmp index
         self.log(f"Removing temporary in-memory index: {idx} ({tmp_id})...")
@@ -630,13 +778,22 @@ class Chat:
         output = None
         if num > 0:
             self.log(f"Querying temporary in-memory index: {idx}...")
-            response = index.as_query_engine(
-                llm=llm,
-                streaming=False,
-            ).query(query)  # query with default prompt
+            query_kwargs = {"llm": llm, "streaming": False}
+            self.window.core.api.logger.log_input(
+                type="llama_index.query_web", provider=model.provider,
+                kwargs=query_kwargs, input=query, model=model.id,
+                path="index.as_query_engine(...).query",
+                extra={"url": url, "content_type": type, "args": args},
+            )
+            response = index.as_query_engine(**query_kwargs).query(query)
             if response:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query_web", provider=model.provider,
+                    output=response, model=model.id,
+                )
                 ctx.add_doc_meta(self.get_metadata(response.source_nodes))  # store metadata
                 output = response.response
+                self.response.collect_llm_urls(ctx, llm)
 
         # clean tmp index
         self.log(f"Removing temporary in-memory index: {idx} ({tmp_id})...")
@@ -667,21 +824,21 @@ class Chat:
         llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=False, auto_embed=True)
         index = self.storage.get_ctx_idx(path, llm, embed_model)
 
-        # 1. try to retrieve directly from index
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(query)
-        response = ""
-        score = 0
-        for node in nodes:
-            if node.score > 0.5:
-                score = node.score
-                response = node.text
-                break
+        # 1. try to retrieve directly from index. Similarity scores are not
+        # comparable across all embedding models/vector stores, so do not use
+        # a fixed confidence threshold here. The retriever already returns the
+        # best-ranked candidates; provide the bounded top-k context downstream.
+        nodes = self._retrieve_nodes(index, query)
+        response = self._format_retrieved_nodes(nodes)
         output = ""
         if response:
             output = str(response)
             if verbose:
-                print(f"Found using retrieval: {output} (score: {score})")
+                score = self._get_node_score(nodes[0]) if nodes else None
+                print(
+                    f"Found using retrieval: {output} "
+                    f"(nodes: {len(nodes)}, best score: {score})"
+                )
         else:
             if verbose:
                 print("Not found using retrieval, trying with query engine...")
@@ -691,12 +848,18 @@ class Chat:
                 history,
             )
             memory = self.get_memory_buffer(history, llm)
-            response = index.as_chat_engine(
-                llm=llm,
-                streaming=False,
-                memory=memory,
-            ).chat(query)
+            chat_kwargs = {"llm": llm, "streaming": False, "memory": memory}
+            self.window.core.api.logger.log_input(
+                type="llama_index.query_attachment", provider=model.provider,
+                kwargs=chat_kwargs, input=query, history=history, model=model.id,
+                path="index.as_chat_engine(...).chat", extra={"path": path},
+            )
+            response = index.as_chat_engine(**chat_kwargs).chat(query)
             if response:
+                self.window.core.api.logger.log_output(
+                    type="llama_index.query_attachment", provider=model.provider,
+                    output=response, model=model.id,
+                )
                 output = str(response.response)
         return output
 
@@ -717,17 +880,85 @@ class Chat:
         if model is None:
             model = self.window.core.models.from_defaults()
         index, llm = self.get_index(idx, model, stream=False)
-        retriever = index.as_retriever()
-        nodes = retriever.retrieve(query)
-        response = ""
-        for node in nodes:
-            if node.score > 0.5:
-                response = node.text
-                break
-        output = ""
-        if response:
-            output = str(response)
-        return output
+        nodes = self._retrieve_nodes(index, query)
+        return self._format_retrieved_nodes(nodes)
+
+    @staticmethod
+    def _get_node_text(node: Any) -> str:
+        """Return text from a retrieved node without depending on score."""
+        if node is None:
+            return ""
+        text = getattr(node, "text", None)
+        if text is None:
+            wrapped = getattr(node, "node", None)
+            text = getattr(wrapped, "text", None) if wrapped is not None else None
+        if text is None:
+            return ""
+        return str(text).strip()
+
+    @staticmethod
+    def _get_node_score(node: Any):
+        """Return a node score for diagnostics/metadata only, never filtering."""
+        if node is None:
+            return None
+        try:
+            return node.get_score()
+        except (AttributeError, TypeError, ValueError):
+            return getattr(node, "score", None)
+
+    def _retrieve_nodes(
+            self,
+            index,
+            query: str,
+            top_k: Optional[int] = None,
+    ) -> List[Any]:
+        """Retrieve a bounded set of best-ranked, non-empty unique nodes.
+
+        The retriever's ordering is authoritative. Raw similarity scores are
+        intentionally not thresholded or re-ranked because their scale and
+        interpretation can vary between embedding models and vector stores.
+        """
+        if index is None:
+            return []
+
+        if top_k is None:
+            top_k = self.RETRIEVAL_TOP_K
+
+        kwargs = {}
+        if top_k is not None and top_k > 0:
+            kwargs["similarity_top_k"] = top_k
+
+        retriever = index.as_retriever(**kwargs)
+        retrieved = retriever.retrieve(query) or []
+        nodes = []
+        seen = set()
+
+        for node in retrieved:
+            text = self._get_node_text(node)
+            if not text:
+                continue
+
+            node_id = getattr(node, "node_id", None) or getattr(node, "id_", None)
+            if node_id is not None:
+                key = ("id", str(node_id))
+            else:
+                key = ("text", text)
+            if key in seen:
+                continue
+
+            seen.add(key)
+            nodes.append(node)
+
+        return nodes
+
+    def _format_retrieved_nodes(self, nodes: List[Any]) -> str:
+        """Join retrieved chunks in retriever ranking order."""
+        parts = []
+        for node in nodes or []:
+            text = self._get_node_text(node)
+            if text:
+                parts.append(text)
+        return "\n\n---\n\n".join(parts)
 
     def get_memory_buffer(
             self,
@@ -783,6 +1014,7 @@ class Chat:
             idx: str,
             model: ModelItem,
             stream: bool = False,
+            computer_runtime=None,
     ):
         """
         Get index instance
@@ -790,22 +1022,35 @@ class Chat:
         :param idx: idx name (id)
         :param model: model instance
         :param stream: stream mode
+        :param computer_runtime: optional Chat with Files Computer Use runtime
         """
         requested_idx = idx
         idx = self.window.core.idx.resolve_idx(idx)
         # check if index exists
         if idx is None:
-            llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
+            llm, embed_model = self.window.core.idx.llm.get_service_context(
+                model=model,
+                stream=stream,
+                computer_runtime=computer_runtime,
+            )
             return self.storage.index_from_empty(embed_model), llm
         if not self.storage.exists(idx):
             if idx is None:
                 # create empty in memory idx
-                llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
+                llm, embed_model = self.window.core.idx.llm.get_service_context(
+                    model=model,
+                    stream=stream,
+                    computer_runtime=computer_runtime,
+                )
                 index = self.storage.index_from_empty(embed_model)
                 return index, llm
             # raise Exception("Index not prepared")
 
-        llm, embed_model = self.window.core.idx.llm.get_service_context(model=model, stream=stream)
+        llm, embed_model = self.window.core.idx.llm.get_service_context(
+            model=model,
+            stream=stream,
+            computer_runtime=computer_runtime,
+        )
         index = self.storage.get(idx, llm, embed_model)  # get index
         if self.window.core.idx.project.is_virtual(requested_idx):
             group_id = self.window.core.idx.project.get_group_id_from_idx(idx)
@@ -828,20 +1073,25 @@ class Chat:
                 or len(source_nodes) == 0):
             return {}
         metadata = {}
-        i = 1
-        max = 3
-        min_score = 0.3
         for node in source_nodes:
-            if hasattr(node, "id_"):
-                id = node.id_
-                if node.metadata is not None:
-                    score = node.get_score()
-                    if score > min_score:
-                        metadata[id] = node.metadata
-                        metadata[id]["score"] = score
-                        i += 1
-                        if i > max:
-                            break
+            if len(metadata) >= self.METADATA_MAX_NODES:
+                break
+            if not hasattr(node, "id_"):
+                continue
+
+            node_metadata = getattr(node, "metadata", None)
+            if node_metadata is None:
+                continue
+
+            # Keep the query engine/retriever ranking and do not hide sources
+            # behind a backend-specific absolute score threshold. Copy metadata
+            # before adding the diagnostic score so the source node is not
+            # mutated as a side effect of rendering citations.
+            item = dict(node_metadata)
+            score = self._get_node_score(node)
+            if score is not None:
+                item["score"] = score
+            metadata[node.id_] = item
         return metadata
 
     def log(self, msg: str):
@@ -851,7 +1101,7 @@ class Chat:
         :param msg: message
         """
         # disabled logging for thread safety
-        if self.window.core.config.get("mode") in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+        if self.window.core.config.get("mode") in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2):
             return
         is_log = False
         if self.window.core.config.has("log.llama") \

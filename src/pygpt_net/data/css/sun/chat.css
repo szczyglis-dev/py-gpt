@@ -1,0 +1,129 @@
+/* Sun theme: Dark-compatible palette with bright amber/yellow accents. */
+body {{ 
+    --copy-btn-bg-hover: rgb(0 0 0 / 82%);
+    color: #fff1bf;
+    background-color: #0d0903;
+}}
+::-webkit-scrollbar {{
+    background: transparent;
+}}
+::-webkit-scrollbar-thumb {{
+    background: #432b0f;
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: #ffad14;
+}}
+::-webkit-scrollbar-corner {{
+    background: transparent;
+}}
+p {{ 
+    color: #fff1bf;
+}}
+a {{
+    color: #ffc247 !important;
+}}
+a:hover {{
+    color: #ffe08a !important;
+    text-decoration: none;
+}}
+.msg-user {{
+    background: #261907;
+    color: #fff1bf;
+    border: 1px solid rgba(255, 173, 20, 0.08);
+}}
+.msg-user p {{
+    color: #fff1bf;
+}}
+.msg-bot {{
+    color: #fff1bf;
+}}
+.msg-bot p {{
+    color: #fff1bf;
+}}
+.cmd {{
+    color: #9b753d !important;
+}}
+.ts {{
+    color: #b28f52;
+}}
+.list {{
+}}
+code {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.code-wrapper ::-webkit-scrollbar {{
+    background: transparent;
+}}
+.code-header-wrapper {{
+    background-color: #211606;
+}}
+.code-header-action {{
+    color: #cfa760 !important;
+}}
+.code-header-action:hover {{
+    color: #ffe9a6;
+}}
+.code-header-action:hover img {{
+    filter: brightness(130%);
+}}
+.code-header-lang {{
+    color: #9b753d;
+}}
+.code-wrapper .code-header-action.code-header-copy:hover, 
+.code-wrapper .code-header-action.code-header-collapse:hover {{
+    transform: scale(1.06);
+    background: var(--copy-btn-bg-hover, rgb(0 0 0 / 82%));
+    border-color: rgba(255, 173, 20, 0.12);
+}}
+.action-icons a:hover {{
+    filter: brightness(140%);
+}}
+.name-bot::before {{
+    background-color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}
+.name-user::before {{
+    background-color: #ffad14;
+}}
+.tool-output .content {{
+    color: #9b753d !important;
+}}
+.tool-output .tool-output-toggle:hover {{
+    background-color: rgba(255, 173, 20, 0.08);
+}}
+.tool-output .tool-output-label {{
+    color: #b28f52;
+}}
+.tool-output .tool-output-name {{
+    color: #ffe9a6;
+}}
+
+/* loader */
+.lds-ring {{
+   color: #ffad14;
+}}
+.append_live {{
+  color: #b28f52;
+}}
+
+.tips p {{
+ color: #9b753d;
+}}
+.msg-box .name-header.name-bot {{
+    color: #e6bd69;
+}}
+code {{
+    background: #211606;
+    padding: 6px;
+}}
+/* Attachment/project mentions in user messages */
+.mention-anchor {{
+    color: #ffad14 !important;
+    background: rgba(255, 173, 20, 0.10);
+    border-radius: 4px;
+    padding: 1px 3px;
+    font-weight: 600;
+}}
+/* Align user bubbles to the same right edge as the input row. */
+.msg-box.msg-user {{
+    margin-right: 0px;
+}}

@@ -9,6 +9,7 @@
 # Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
+import copy
 import os
 import uuid
 from typing import List, Dict, Any, Union
@@ -64,6 +65,132 @@ class Attachment(QObject):
                 if file.type == AttachmentItem.TYPE_FILE and native.can_upload(file.path, mode, model):
                     return True
         return False
+
+    def begin_turn(self, meta: CtxMeta):
+        """Reset runtime attachment markers for a new user-visible turn.
+
+        ``additional_ctx_current`` is intentionally runtime-only.  It describes
+        attachments introduced by the current user turn, not all attachments
+        that remain active in the conversation/project.  Keeping it across
+        turns makes old attachments look as if they were sent with every new
+        message and also defeats append-once provider flows.
+        """
+        if meta is None:
+            return
+        meta.additional_ctx_current = []
+        if meta.group is not None:
+            meta.group.additional_ctx_current = []
+
+    @staticmethod
+    def _item_key(item: Dict[str, Any]):
+        """Return a stable runtime key for an additional-context item."""
+        if not isinstance(item, dict):
+            return None
+        if item.get("uuid"):
+            return "uuid", str(item["uuid"])
+        if item.get("archive_id") and item.get("archive_member"):
+            return "archive", str(item["archive_id"]), str(item["archive_member"])
+        return (
+            "path",
+            str(item.get("type") or ""),
+            str(item.get("real_path") or item.get("path") or ""),
+            str(item.get("name") or ""),
+        )
+
+    def _unique_active_items(self, items: list) -> list:
+        """Return active additional-context items without duplicates."""
+        result = []
+        seen = set()
+        for item in items or []:
+            if not isinstance(item, dict):
+                continue
+            if not self.window.core.attachments.context.is_active(item):
+                continue
+            key = self._item_key(item)
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(item)
+        return result
+
+    def is_initial_turn(self, ctx: CtxItem, history: List[CtxItem]) -> bool:
+        """Return True for the first user-visible turn in a conversation."""
+        if ctx is None or getattr(ctx, "internal", False):
+            return False
+
+        current_meta_id = getattr(getattr(ctx, "meta", None), "id", None)
+        for item in history or []:
+            if item is ctx or getattr(item, "internal", False):
+                continue
+            if getattr(item, "turn_continuation", False):
+                continue
+            if getattr(item, "input", None) is None:
+                continue
+
+            item_meta_id = getattr(item, "meta_id", None)
+            if item_meta_id is None:
+                item_meta_id = getattr(getattr(item, "meta", None), "id", None)
+            if current_meta_id is None or item_meta_id is None or item_meta_id == current_meta_id:
+                return False
+        return True
+
+    def include_project_attachments_in_current(self, meta: CtxMeta):
+        """Expose shared project attachments as current for the initial turn only."""
+        context = self.window.core.attachments.context
+        if meta is None or not context.is_project_share_enabled(meta) or meta.group is None:
+            return
+
+        merged = list(meta.group.additional_ctx or [])
+        merged.extend(meta.additional_ctx_current or [])
+        meta.additional_ctx_current = self._unique_active_items(merged)
+
+    def bind_current_to_ctx(self, ctx: CtxItem, include_project: bool = False):
+        """Persist/render only attachments that belong to this user-visible turn.
+
+        Model-facing attachment context is prepared independently by
+        :meth:`get_context`.  This method deliberately does not use the files
+        reported as *used* while building that model context, because in full
+        context mode those are all active files and would therefore be rendered
+        below every message.
+        """
+        if ctx is None or ctx.meta is None or getattr(ctx, "internal", False):
+            return
+
+        meta = ctx.meta
+        items = list(meta.additional_ctx_current or [])
+        context = self.window.core.attachments.context
+        if include_project and context.is_project_share_enabled(meta) and meta.group is not None:
+            items = list(meta.group.additional_ctx or []) + items
+        items = self._unique_active_items(items)
+
+        # Keep exact per-turn metadata in the ctx row as well.  This makes the
+        # association durable and independent of the project/conversation list.
+        ctx.additional_ctx = copy.deepcopy(items)
+
+        files = []
+        urls = []
+        for item in items:
+            item_type = item.get("type")
+            path = item.get("real_path") or item.get("path")
+            if not path:
+                continue
+            if item_type == "url":
+                if path not in urls:
+                    urls.append(path)
+            elif item_type in ("local_file", "native_file"):
+                if path not in files:
+                    files.append(path)
+
+        if not isinstance(ctx.files, list):
+            ctx.files = []
+        if not isinstance(ctx.urls, list):
+            ctx.urls = []
+        for path in files:
+            if path not in ctx.files:
+                ctx.files.append(path)
+        for url in urls:
+            if url not in ctx.urls:
+                ctx.urls.append(url)
 
     def setup(self):
         """Setup attachments"""
@@ -327,7 +454,7 @@ class Attachment(QObject):
         :param meta: CtxMeta instance
         :param item: Attachment item
         """
-        if meta.group:
+        if self.window.core.attachments.context.is_project_share_enabled(meta):
             if meta.group.additional_ctx is None:
                 meta.group.additional_ctx = []
             if meta.group.additional_ctx_current is None:
@@ -374,7 +501,7 @@ class Attachment(QObject):
         """
         if meta is None:
             return False
-        return meta.has_additional_ctx()
+        return bool(self.window.core.attachments.context.get_all(meta))
 
     def current_has_context(self) -> bool:
         """
@@ -418,14 +545,6 @@ class Attachment(QObject):
         # get additional context from attachments
         content = self.window.core.attachments.context.get_context(self.mode, ctx, history, only_current=only_current)
 
-        # append used files and urls to context
-        files = self.window.core.attachments.context.get_used_files()
-        urls = self.window.core.attachments.context.get_used_urls()
-        if files:
-            ctx.files = files
-        if urls:
-            ctx.urls = urls
-
         if content:
             if self.is_verbose():
                 print(f"\n--- Using additional context ---\n\n{content}")
@@ -448,7 +567,7 @@ class Attachment(QObject):
         :param meta: CtxMeta instance
         """
         # update list of attachments
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             items = []
         else:
             items = self.window.core.attachments.context.get_display_all(meta)
@@ -461,17 +580,11 @@ class Attachment(QObject):
 
         :param meta: CtxMeta instance
         """
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             num_files = 0
         else:
             num_files = self.window.core.attachments.context.count(meta)
-        suffix = ''
-        if num_files > 0:
-            suffix = f' ({num_files})'
-        self.window.ui.tabs['input'].setTabText(
-            3,
-            f"{trans('attachments_uploaded.tab')}{suffix}",
-        )
+        self.window.ui.tabs['input'].set_compact_tab_count(3, num_files)
         """
         if num_files > 0:
            self.show_uploaded()
@@ -520,7 +633,7 @@ class Attachment(QObject):
             )
             return
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return
         items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
@@ -556,7 +669,7 @@ class Attachment(QObject):
             return
 
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return
         self.window.core.attachments.context.clear(meta, delete_files=remove_local)
         self.update_list(meta)
@@ -565,7 +678,7 @@ class Attachment(QObject):
     def set_active_by_idx(self, idx: int, active: bool):
         """Set active state for an uploaded context attachment."""
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return
         items = self.window.core.attachments.context.get_display_all(meta)
         if idx < 0 or idx >= len(items):
@@ -590,7 +703,7 @@ class Attachment(QObject):
         :param idx: Index on list or list of indices
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return
         items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
@@ -611,7 +724,7 @@ class Attachment(QObject):
         :param idx: Index on list or list of indices
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return
         items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
@@ -633,7 +746,7 @@ class Attachment(QObject):
         :param idx: Index on list or list of indices
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return
         items = self.window.core.attachments.context.get_display_all(meta)
         ids = idx if isinstance(idx, list) else [idx]
@@ -657,7 +770,7 @@ class Attachment(QObject):
         :return: True if has file
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return False
         items = self.window.core.attachments.context.get_display_all(meta)
         if idx < len(items):
@@ -676,7 +789,7 @@ class Attachment(QObject):
         :return: True if has source directory
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return False
         items = self.window.core.attachments.context.get_display_all(meta)
         if idx < len(items):
@@ -696,7 +809,7 @@ class Attachment(QObject):
         :return: True if has destination directory
         """
         meta = self.window.core.ctx.get_current_meta()
-        if meta is None or not meta.has_additional_ctx():
+        if meta is None or not self.has_context(meta):
             return False
         items = self.window.core.attachments.context.get_display_all(meta)
         if idx < len(items):
@@ -720,10 +833,10 @@ class Attachment(QObject):
         meta = self.window.core.ctx.get_current_meta()
         if meta is None:
             return 0
-        if not meta.has_additional_ctx():
+        if not self.has_context(meta):
             return 0
         tokens = 0
-        for item in meta.get_additional_ctx():
+        for item in self.window.core.attachments.context.get_all(meta):
             if item.get("active", True) is False:
                 continue
             if "tokens" in item:
@@ -740,10 +853,14 @@ class Attachment(QObject):
 
         :param error: Exception
         """
+        request_meta = self.window.core.ctx.output.get_request_meta()
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",
-            "msg": f"Error processing attachments: {str(error)}"
+            "msg": f"Error processing attachments: {str(error)}",
+            "meta": request_meta,
         }))
+        self.window.core.ctx.output.finish_request(meta=request_meta)
+        self.window.controller.ui.tabs.sync_focused_chat_context()
 
     @Slot(str)
     def handle_upload_success(self, text: str):

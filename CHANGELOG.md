@@ -1,5 +1,196 @@
 # CHANGELOG
 
+## 2.8.26 (2026-09-20)
+
+- Refactored, improved, and simplified QSS/QML handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
+- Fixed and optimized RAG retrieval for improved reliability and performance.
+- Fixed the splitter resize policy and improved layout resizing behavior.
+
+## 2.8.25 (2026-09-19)
+
+- Added support for **Agent Skills**, including importing from GitHub, local files, and formats compatible with Claude, Codex, OpenClaw, and other supported ecosystems. Added a dedicated **Skills** management interface for browsing, installing, enabling, disabling, and removing skills.
+- Added support for **Claude/Codex-style Connectors**, integrated with the MCP plugin. Connectors can be imported from GitHub, local files, Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible JSON, TOML, and YAML definitions. Connector management is available under **Config → MCP → Connectors**.
+- Added new application themes: **Matrix, Gray, Mint, Flare, Ocean, Sun, and Retro**.
+- Added **Full Screen mode (F11)** and support for a frameless window layout.
+- Optimized message sending from the chat input by moving pre-send preparation tasks to asynchronous workers, reducing UI blocking before requests are sent.
+- Various **UI fixes, layout improvements, workflow fixes, and usability refinements** across the application.
+
+## 2.8.24 (2026-09-18)
+
+- Added **Import profile...** and **Export profile...** options to the **File** menu, allowing complete profiles to be exported and imported, including the database, configuration, files, and application data.
+- Added an automatic prompt-injection guard in **Settings -> Security -> Auto-prevent prompt injections**.
+- Moved the model selector to the input field.
+- Added a clock to the Calendar.
+- Added subdirectory lookup support for `@mentions`.
+- Added runtime switching to the Agent Workflows editor.
+- Removed the **Edit JSON configs** option.
+- Improved the chat input field.
+- Added a loader to the Docker builder.
+- Integrated system notifications with **Chat with Agents**.
+- The input field is now hidden in non-chat tabs.
+- Added date and time headers above chat input blocks.
+- Added support for referencing other conversations from the database using `@mentions` with conversation IDs, e.g. `What were we talking about in chat @123?`
+- Added various CSS, layout, and UI improvements.
+
+## 2.8.23 (2026-09-17)
+
+- Improved and extended Agents workflows.
+- Extended and condensed Agents instructions.
+- Added the Agent Workflow tool with real-time workflow preview, available as a dialog or tab.
+- Fixed auto-scroll and scroll-follow issues.
+- Optimized memory usage in the Python interpreter.
+- Improved CSS and UI layout.
+
+## 2.8.22 (2026-09-16)
+
+- Reorganized Context settings into **General**, **Tools**, and **Advanced handling**.
+- Added **Agent Workflows** for Chat with Agents with editable built-in workflows, custom UUID-based profiles, independent prompts, toolbox/Config access, migration support, documentation, and translations.
+- Moved Chat with Agents prompt editing from Settings to Agent Workflows.
+- Added direct `Config -> MCP...` access to MCP settings.
+- Added **Restore tool calls in runtime**, independent from database storage and history restore.
+- Added **Display tool calls JSON** in Chats -> Render, with aggregated Tool/Tools status when disabled.
+- Improved attachment handling.
+
+## 2.8.21 (2026-09-16)
+
+- Fixed restoring hidden chats from collapsed columns.
+- Added tool call storage settings in Settings -> Context, with Disable, Truncate, and Full modes.
+- Added history restore mode settings in Settings -> Agents -> Chat with Agents.
+- Added a distinct background highlight for the current day of the week in Calendar.
+- Added Undo support to the Clear Image button in Painter.
+- Added a System Info dialog to the About menu.
+- Added support for custom instructions and system prompts in Chat with Agents under Settings -> Agents -> Chat with Agents -> Advanced.
+- Optimized database storage.
+- Simplified the token counter display.
+- Moved the Stream checkbox to Settings -> Context -> Render.
+- Moved the Plain Text mode switch to the icon bar above the input field.
+- Various UI fixes and improvements.
+
+## 2.8.20 (2026-09-15)
+
+- Added an integration layer between Chat with Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.
+- Optimized Agents memory storage.
+
+## 2.8.19 (2026-09-15)
+
+- Split the Plugins list into Popular and Other sections.
+- Optimized and simplified the Plugin Settings dialog.
+- Fixed status visibility on non-chat tabs.
+- Fixed footer state restoration after changing profiles.
+- Fixed a Google `show_reasoning` error when used as a background vision model.
+- Fixed @mention restoration after application startup.
+- Fixed runtime WebView restoration when returning from plain text view on another tab.
+- Fixed RAG engine LLM selection in Chat with Agents.
+- Added support for runtime attachment and image appending from the workdir.
+- Added token counters and usage tracking to Chat with Agents.
+- Improved image attachment @mentions.
+- Added loaders for heavy operations such as indexing and embedding.
+- Updated CSS styles and translations.
+
+## 2.8.18 (2026-09-15)
+
+- Extended the **Chat with Agents** workflow and added step-by-step execution mode.
+- Fixed context token count display.
+- Simplified themes to two built-in options: **Dark** and **Light**.
+- Added `@` mentions in the input field for referencing attachments, files, and directories.
+- Added **Advanced Context Handling** (experimental). Enable it in `Settings -> Context`. It extends the effective conversation context in real time using a memory cache and automatic context trimming.
+- Added support for `AGENTS.md` in the workdir root. See the documentation for more details.
+- Other fixes and improvements.
+
+## 2.8.17 (2026-09-13)
+
+- Fixed Ollama native tool calls.
+- Fixed runtime language switching.
+- Fixed tab tooltips.
+- Fixed chat reload race conditions.
+- Fixed streaming of final responses in Chat with Agents.
+- Moved max worker limits to Settings.
+- Simplified model configuration.
+- Added Text tool to Painter.
+- Moved Reasoning Effort to a global switch in the input field.
+- Refactored Agents and autonomous mode.
+- Updated translations and documentation.
+- Removed deprecated options.
+- Various UI fixes.
+
+## 2.8.16 (2026-09-12)
+
+- Experts are now full-featured agents, using the same agent runtime and capabilities as agents in Chat with Agents.
+- Experts are now available as tools across all supported modes, allowing them to be invoked directly from anywhere in the application.
+
+## 2.8.15 (2026-09-11)
+
+- Renamed **Agents v2 (beta)** mode to **Chat with Agents**.
+- Added 3 separate submodes to **Chat with Agents**:
+  - **Chat** - allows natural conversation with the primary agent, with delegated agents used when needed.
+  - **Orchestrator** - the previous Agents v2 behavior, where the primary agent acts only as an orchestrator for other agents.
+  - **Swarm** - allows creating and running a dynamically defined group of specialized agents/workers in parallel in the background. Swarm mode can run continuously with a defined number of parallel agents.
+- Added the ability to configure a custom working directory per project. Right-click a project in the project list and select a custom workdir.
+- Added LLM provider fallbacks to **OpenAILike** when a model is not yet supported by the native LlamaIndex integrations for OpenAI, Google, Anthropic, or xAI.
+- Added keyed memory storage to the **Memory** plugin.
+- Fixed collection of used URLs and attachments in **Chat with Files**.
+
+## 2.8.14 (2026-09-10)
+
+- Security, stability, and provider fixes - PR [#208](https://github.com/szczyglis-dev/py-gpt/pull/208) by [@atharvaHJoshi](https://github.com/atharvaHJoshi).
+- Fixed list selectors for vision models by removing checks for the deprecated vision mode.
+- Fixed the halt and acknowledgement flow in Computer Use.
+- Moved the native Perplexity LlamaIndex provider to the shared OpenAI-compatible wrapper.
+- Fixed legacy beta headers for Anthropic in Chat with Files mode.
+- Fixed support for remote tools and Computer Use in Chat with Files mode.
+- Fixed race conditions and restart loops in the IPython plugin.
+- Added splitter anchors to the CSS in the light theme.
+- Added a new model: `gpt-image-2.5`.
+- Added an **Insert date/time** option to the Notepad right-click menu.
+- Added support for Completion-only mode with models and providers other than OpenAI `gpt-3.5-instruct`.
+- Added support for local Jupyter/IPython in compiled builds.
+- Set IPython’s default stdin to `DEVNULL` when running code with interactive input to prevent freezes.
+- Added support for Computer Use in Realtime + Audio, Legacy Agents, and Autonomous modes.
+- Various UI and CSS fixes.
+
+## 2.8.13 (2026-09-09)
+
+- Fixed issue with empty parameters in the Anthropic API remote tool for computer use.
+- Added support for the use of computer use remote tool in Agents v2 for Anthropic and Google.
+- Added **OSINT v2** preset to Agents v2.
+- Added a new plugin: **Memory (inline)**.
+- Updated IPython Dockerfile: included default installation of pandas, matplotlib, scikit-learn, and other useful libraries.
+- Integrated Google remote tool - MCP.
+- Added validation for pasting large directory attachments.
+- Enhanced CSS in chat view for better aesthetics.
+- Improved handling of multiple tabs.
+- Fixed issue with hiding date separators in context list view.
+- Corrected profile switch components restoration.
+- Other fixes.
+
+## 2.8.12 (2026-09-08)
+
+- Improved, extended, and fixed several bugs in the following modes: Chat, Realtime + Audio, Computer Use, Autonomous Agent, and Agents v2.
+- Added new models: **GPT-6 Astra** and **Claude Fable 5.1**.
+- Added a new remote tool in **Settings**: **Computer Use**, which allows you to control the computer in standard Chat mode.
+- Added item limits, a **Show more** option, and collapsible items to the project list.
+- Model responses are now split into partials and stored in the database.
+- Fixed multi-column context handling.
+- Fixed sandbox image URLs.
+- Removed redundant tool input/output from message footers.
+- Removed old and deprecated models.
+
+## 2.8.11 (2026-09-06)
+
+- Added 4 predefined presets to Agents v2: Coder, Researcher, Scientist, and Brainstorm.
+- Added auto-scroll and a configurable maximum entries limit to the Code Interpreter window.
+- Added support for passing `sys_exec` inputs to the Code Interpreter window.
+- Added verbose mode to Agents v2.
+- Added tool execution results in the main context for Agents v2 (disabled by default, can be enabled in Settings -> Agents).
+
+## 2.8.10 (2026-09-06)
+
+- Added **Agents v2 (beta)**, a new advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically created specialist worker agents.
+- Added asynchronous worker lifecycle management in Agents v2, including create, update, run/reuse, status, wait, stop and remove operations, with concurrent execution for independent workers and runtime-local worker memory.
+- Added local plugin tools, provider-side remote tools, RAG index access, shared attachment context, supported native image input, artifact propagation, persistent Orchestrator memory and live workflow status rendering to Agents v2.
+- Added native function-calling support with a ReAct compatibility fallback for Agents v2 models where appropriate.
+- **Agents v2 is currently in beta; its behavior, workflow rules, preset options and provider compatibility may change in future releases.**
+
 ## 2.8.9 (2026-09-05)
 
 - Added a new **Custom Providers** tab to Settings, allowing users to create and use custom API providers at runtime without modifying the source code.

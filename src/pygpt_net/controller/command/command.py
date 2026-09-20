@@ -53,6 +53,13 @@ class Command:
         if event.name in self.flush_events:
             self.window.controller.kernel.replies.clear()
 
+            # Built-in autonomous run-control functions have no plugin owner,
+            # but otherwise use the exact same task/result/reply lifecycle as
+            # normal tools. In particular this produces the function_call_output
+            # required by provider APIs such as OpenAI Responses.
+            commands = event.data.get("commands", []) if isinstance(event.data, dict) else []
+            self.window.controller.agent.legacy.execute_tools(event.ctx, commands)
+
         for id in self.window.core.plugins.get_ids():
             force = False
             if all:
@@ -74,9 +81,13 @@ class Command:
                 self.window.stateChanged.emit(self.window.STATE_BUSY)
                 self.window.core.dispatcher.apply(id, event)
 
-        # flush reply stack
+        # Synchronous execution is flushed here. In async-capable modes each
+        # REPLY_ADD flushes itself only after every task in the current partial
+        # has completed; forcing a flush here would race parallel tool calls.
         if event.name in self.flush_events:
-            self.window.controller.kernel.replies.flush()
+            ctx = event.ctx
+            if ctx is None or not self.window.controller.kernel.async_allowed(ctx):
+                self.window.controller.kernel.replies.flush()
 
     def dispatch_only(self, event: Event):
         """

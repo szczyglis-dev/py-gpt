@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from pygpt_net.core.qt import safe_emit
 
 
 class IndexWorkerSignals(QObject):
@@ -106,6 +107,18 @@ class IndexWorker(QRunnable):
                 result, errors = self.window.core.idx.duplicate_project_index(
                     int(source_group_id), int(target_group_id)
                 )
+            elif self.type == "file_remove":
+                result = []
+                errors = []
+                paths = self.content if isinstance(self.content, list) else [self.content]
+                for path in paths:
+                    if self.window.controller.idx.is_stopped():
+                        break
+                    try:
+                        self.window.core.idx.remove_file(self.idx, path)
+                        result.append(path)
+                    except Exception as e:
+                        errors.append(f"{path}: {e}")
             elif self.type == "web":
                 result, errors = self.window.core.idx.index_web(
                     idx=self.idx,
@@ -116,7 +129,7 @@ class IndexWorker(QRunnable):
                 )
 
             self.log("Finished indexing.")
-            self.signals.finished.emit(
+            safe_emit(self.signals, "finished", 
                 self.idx,
                 result,
                 errors,
@@ -125,7 +138,7 @@ class IndexWorker(QRunnable):
 
         except Exception as e:
             self.window.core.debug.error(e)
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
 
         finally:
             self.cleanup()
@@ -153,4 +166,4 @@ class IndexWorker(QRunnable):
         self.window.core.debug.info(msg, not is_log)
         if is_log:
             print(f"[LlamaIndex] {msg}")
-        self.window.idx_logger_message.emit(msg)
+        safe_emit(self.window, "idx_logger_message", msg)

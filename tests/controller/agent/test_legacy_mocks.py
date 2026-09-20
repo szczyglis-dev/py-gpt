@@ -26,6 +26,12 @@ class DummyCtx:
         self.input_name = "input"
         self.output_name = "output"
         self.first = False
+        self.extra = {}
+        self.turn_parent = None
+        self.prev_ctx = None
+        self.internal = False
+        self.stopped = False
+        self.output = ""
 
 
 @pytest.fixture
@@ -82,6 +88,20 @@ def legacy_instance(dummy_window):
     return Legacy(window=dummy_window)
 
 
+def _activate_run(legacy, window, *, auto_stop=True, always_continue=False, extra=None):
+    conf = {
+        "mode": MODE_AGENT,
+        "agent.auto_stop": auto_stop,
+        "agent.continue.always": always_continue,
+        "agent.iterations": 3,
+    }
+    if extra:
+        conf.update(extra)
+    window.core.config.get.side_effect = lambda key, default=None: conf.get(key, default)
+    legacy.on_user_send("test")
+    return conf
+
+
 def test_setup(legacy_instance, dummy_window, monkeypatch):
     # Replace reload to test hook registration
     called = False
@@ -104,8 +124,8 @@ def test_reload(legacy_instance, dummy_window):
     }
     dummy_window.core.config.get.side_effect = lambda key: conf.get(key, None)
     legacy_instance.reload()
-    dummy_window.ui.config["global"]["agent.auto_stop"].setChecked.assert_called_with(True)
-    dummy_window.ui.config["global"]["agent.continue"].setChecked.assert_called_with(False)
+    dummy_window.controller.agent.common.normalize_stop_continue.assert_called_once_with()
+    dummy_window.controller.agent.common.sync_stop_continue_ui.assert_called_once_with()
     dummy_window.controller.config.apply_value.assert_called_with(
         parent_id="global",
         key="agent.iterations",
@@ -125,7 +145,12 @@ def test_update_agent_mode(legacy_instance, dummy_window):
     dummy_window.controller.agent.common.toggle_status.assert_called()
 
 
-def test_get_functions(legacy_instance):
+def test_get_functions(legacy_instance, dummy_window):
+    dummy_window.core.config.get.side_effect = lambda key, default=None: {
+        "mode": MODE_AGENT,
+        "agent.auto_stop": True,
+        "agent.continue.always": False,
+    }.get(key, default)
     funcs = legacy_instance.get_functions()
     assert isinstance(funcs, list)
     assert len(funcs) == 1
@@ -133,23 +158,28 @@ def test_get_functions(legacy_instance):
 
 
 def test_on_system_prompt_non_native(legacy_instance, dummy_window):
-    # Simulate non-native command mode
+    # Simulate non-native command mode with Always continue disabled.
+    dummy_window.core.config.get.side_effect = lambda key, default=None: {
+        "mode": MODE_AGENT,
+        "agent.auto_stop": True,
+        "agent.continue.always": False,
+    }.get(key, default)
     dummy_window.core.command.is_native_enabled.return_value = False
     dummy_window.core.prompt.get.side_effect = lambda key: "native_goal_text" if key == "agent.goal" else ""
     res = legacy_instance.on_system_prompt("base prompt", "append", auto_stop=True)
-    assert res == "base prompt\nappend\n\nnative_goal_text"
+    assert res == "base prompt\n\nappend\n\nnative_goal_text"
 
     # auto_stop false: no stop command appended
     res2 = legacy_instance.on_system_prompt("base prompt", "append", auto_stop=False)
-    assert res2 == "base prompt\nappend"
+    assert res2 == "base prompt\n\nappend"
 
 
 def test_on_input_before(legacy_instance):
-    # When is_user True, adds prefix
+    # API roles already preserve the user role; no textual prefix is injected.
     legacy_instance.is_user = True
     res = legacy_instance.on_input_before("hello")
-    assert res == "user: hello"
-    # When is_user False, returns prompt unchanged
+    assert res == "hello"
+    # When is_user False, the prompt is likewise unchanged.
     legacy_instance.is_user = False
     res2 = legacy_instance.on_input_before("hello")
     assert res2 == "hello"
@@ -176,9 +206,9 @@ def test_on_ctx_end_stop_branch(legacy_instance):
     legacy_instance.iteration = 5
     legacy_instance.prev_output = "prev"
     legacy_instance.on_ctx_end(dummy_ctx)
-    assert legacy_instance.stop is False
-    assert legacy_instance.iteration == 0
-    assert legacy_instance.prev_output is None
+    assert legacy_instance.stop is True
+    assert legacy_instance.iteration == 5
+    assert legacy_instance.prev_output == "prev"
 
 
 def test_on_ctx_end_sub_reply(legacy_instance, dummy_window):
@@ -191,6 +221,8 @@ def test_on_ctx_end_sub_reply(legacy_instance, dummy_window):
 def test_on_ctx_end_dispatch(legacy_instance, dummy_window):
     # Setup branch: no stop, no sub_reply, no cmds --> reply dispatch
     dummy_ctx = DummyCtx()
+    _activate_run(legacy_instance, dummy_window)
+    legacy_instance.bind_ctx_to_run(dummy_ctx)
     legacy_instance.stop = False
     legacy_instance.prev_output = "continue text"
     legacy_instance.iteration = 0
@@ -210,18 +242,19 @@ def test_on_ctx_end_dispatch(legacy_instance, dummy_window):
 
 def test_on_ctx_end_over_iterations(legacy_instance, dummy_window):
     dummy_ctx = DummyCtx()
+    _activate_run(legacy_instance, dummy_window, extra={"agent.goal.notify": True})
+    legacy_instance.bind_ctx_to_run(dummy_ctx)
     legacy_instance.iteration = 1
-    # Simulate notify enabled
-    dummy_window.core.config.get.side_effect = lambda key: True if key == "agent.goal.notify" else None
     legacy_instance.on_stop = MagicMock()
     legacy_instance.on_ctx_end(dummy_ctx, iterations=1)
     legacy_instance.on_stop.assert_called_with(auto=True)
     dummy_window.ui.tray.show_msg.assert_called()
 
 
-def test_on_ctx_before(legacy_instance):
+def test_on_ctx_before(legacy_instance, dummy_window):
     # For iteration 0
     dummy_ctx = DummyCtx()
+    _activate_run(legacy_instance, dummy_window)
     legacy_instance.iteration = 0
     legacy_instance.is_user = True
     legacy_instance.on_ctx_before(dummy_ctx, reverse_roles=False)
@@ -240,33 +273,32 @@ def test_on_ctx_before(legacy_instance):
 
 def test_on_ctx_after(legacy_instance, dummy_window):
     # Default mode branch
-    conf = {"mode": MODE_AGENT, "agent.continue.always": False}
-    dummy_window.core.config.get.side_effect = lambda key: conf.get(key, None)
+    _activate_run(legacy_instance, dummy_window, auto_stop=True, always_continue=False)
     dummy_window.core.prompt.get.side_effect = lambda key: "always cont" if key == "agent.continue.always" else "cont"
     # ctx.extra_ctx empty
     dummy_ctx = DummyCtx(extra_ctx="")
+    legacy_instance.bind_ctx_to_run(dummy_ctx)
     legacy_instance.on_ctx_after(dummy_ctx)
     assert legacy_instance.prev_output == "cont"
 
-    # When always continue is enabled
-    conf["agent.continue.always"] = True
+    # The run snapshots this option, so update the active-run snapshot explicitly.
+    legacy_instance.run_always_continue = True
     legacy_instance.on_ctx_after(dummy_ctx)
     assert legacy_instance.prev_output == "always cont"
 
-    # Inline branch override via extra_ctx
+    # Tool/plugin extra_ctx is already represented in structured history and is not fed back again.
     dummy_ctx.extra_ctx = "extra"
     legacy_instance.on_ctx_after(dummy_ctx)
-    assert legacy_instance.prev_output == "extra"
+    assert legacy_instance.prev_output == "always cont"
 
 
-def test_on_cmd(legacy_instance, dummy_window):
-    # If auto_stop is enabled, cmd() should be called.
-    conf = {"agent.auto_stop": True}
-    dummy_window.core.config.get.side_effect = lambda key: conf.get(key, None)
-    legacy_instance.cmd = MagicMock()
+def test_cmd_ignores_context_outside_active_run(legacy_instance, dummy_window):
+    dummy_window.core.config.get.side_effect = lambda key, default=None: {
+        "mode": MODE_AGENT,
+        "agent.auto_stop": True,
+    }.get(key, default)
     dummy_ctx = DummyCtx()
-    legacy_instance.on_cmd(dummy_ctx, cmds=[])
-    legacy_instance.cmd.assert_called_with(dummy_ctx, [], None)
+    assert legacy_instance.cmd(dummy_ctx, cmds=[]) is False
 
 
 def test_cmd_finished(legacy_instance, dummy_window):
@@ -276,14 +308,18 @@ def test_cmd_finished(legacy_instance, dummy_window):
         "cmd": "goal_update",
         "params": {"status": "finished"}
     }
-    conf = {"agent.goal.notify": True}
-    dummy_window.core.config.get.side_effect = lambda key: conf.get(key, False)
+    _activate_run(legacy_instance, dummy_window, auto_stop=True, always_continue=False, extra={
+        "agent.goal.notify": True,
+    })
+    legacy_instance.bind_ctx_to_run(dummy_ctx)
     legacy_instance.on_stop = MagicMock()
     legacy_instance.finished = False
-    legacy_instance.cmd(dummy_ctx, [cmd_item])
-    legacy_instance.on_stop.assert_called_with(auto=True)
+    result = legacy_instance.cmd(dummy_ctx, [cmd_item])
+    assert result is True
+    legacy_instance.on_stop.assert_not_called()
     dummy_window.update_status.assert_called()
     assert legacy_instance.finished is True
+    assert legacy_instance.terminal_status == "finished"
     dummy_window.ui.tray.show_msg.assert_called()
 
 
@@ -294,14 +330,18 @@ def test_cmd_pause(legacy_instance, dummy_window):
         "cmd": "goal_update",
         "params": {"status": "pause"}
     }
-    conf = {"agent.goal.notify": False}
-    dummy_window.core.config.get.side_effect = lambda key: conf.get(key, False)
+    _activate_run(legacy_instance, dummy_window, auto_stop=True, always_continue=False, extra={
+        "agent.goal.notify": False,
+    })
+    legacy_instance.bind_ctx_to_run(dummy_ctx)
     legacy_instance.on_stop = MagicMock()
     legacy_instance.finished = False
-    legacy_instance.cmd(dummy_ctx, [cmd_item])
-    legacy_instance.on_stop.assert_called_with(auto=True)
+    result = legacy_instance.cmd(dummy_ctx, [cmd_item])
+    assert result is True
+    legacy_instance.on_stop.assert_not_called()
     dummy_window.update_status.assert_called()
     assert legacy_instance.finished is True
+    assert legacy_instance.terminal_status == "pause"
 
 
 def test_is_inline(legacy_instance, dummy_window):
@@ -326,8 +366,10 @@ def test_enabled(legacy_instance, dummy_window):
 
 def test_add_run(legacy_instance):
     legacy_instance.iteration = 5
+    legacy_instance.update = MagicMock()
     legacy_instance.add_run()
-    assert legacy_instance.iteration == 6
+    assert legacy_instance.iteration == 5
+    legacy_instance.update.assert_called_once_with()
 
 
 def test_on_stop(legacy_instance, dummy_window):
@@ -338,7 +380,7 @@ def test_on_stop(legacy_instance, dummy_window):
     legacy_instance.on_stop(auto=True)
     dummy_window.controller.kernel.stack.lock.assert_called()
     dummy_window.controller.chat.common.unlock_input.assert_called()
-    assert legacy_instance.iteration == 0
+    assert legacy_instance.iteration == 7
     assert legacy_instance.prev_output is None
     assert legacy_instance.stop is True
     assert legacy_instance.finished is False

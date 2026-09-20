@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 20:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import copy
@@ -30,7 +30,6 @@ class Patch:
         data = self.window.core.config.all()
         cfg_get_base = self.window.core.config.get_base
         remove_plugin_config = self.window.core.config.remove_plugin_config
-        patch_css = self.window.core.updater.patch_css
         current = "0.0.0"
         updated = False
         is_old = False
@@ -406,7 +405,6 @@ class Patch:
             # < 2.0.81
             if old < parse_version("2.0.81"):
                 print("Migrating config from < 2.0.81...")
-                patch_css('markdown.light.css', True)  # force replace file
                 updated = True
 
             # < 2.0.85
@@ -497,7 +495,6 @@ class Patch:
             # < 2.0.91
             if old < parse_version("2.0.91"):
                 print("Migrating config from < 2.0.91...")
-                patch_css('style.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.0.96
@@ -511,9 +508,6 @@ class Patch:
             if old < parse_version("2.0.98"):
                 print("Migrating config from < 2.0.98...")
                 data['img_resolution'] = "1792x1024"  # char fix
-                patch_css('style.css', True)  # force replace file
-                patch_css('style.light.css', True)  # force replace file
-                patch_css('style.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.0.99
@@ -694,8 +688,6 @@ class Patch:
             # < 2.0.135
             if old < parse_version("2.0.135"):
                 print("Migrating config from < 2.0.135...")
-                if 'agent.mode' not in data:
-                    data['agent.mode'] = "chat"
                 if 'agent.idx' not in data:
                     data['agent.idx'] = "base"
                 updated = True
@@ -1309,48 +1301,36 @@ class Patch:
                     # data["render.engine"] = "legacy"
 
                 # css upgrade
-                patch_css('web.css', True)  # NEW
-                patch_css('web.light.css', True)  # NEW
-                patch_css('web.dark.css', True)  #  NEW
                 updated = True
 
             # < 2.1.60
             if old < parse_version("2.1.60"):
                 print("Migrating config from < 2.1.60...")
                 # css upgrade
-                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.1.61
             if old < parse_version("2.1.61"):
                 print("Migrating config from < 2.1.61...")
                 # css upgrade
-                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.1.63
             if old < parse_version("2.1.63"):
                 print("Migrating config from < 2.1.63...")
                 # css upgrade
-                patch_css('web.css', True)  # force update
-                patch_css('web.light.css', True)  # force update
-                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.70
             if old < parse_version("2.1.70"):
                 print("Migrating config from < 2.1.70...")
                 # css upgrade
-                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.1.72
             if old < parse_version("2.1.72"):
                 print("Migrating config from < 2.1.72...")
                 # css upgrade
-                patch_css('web.css', True)  # force update
-                patch_css('web.light.css', True)  # force update
-                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.73
@@ -1367,18 +1347,12 @@ class Patch:
             if old < parse_version("2.1.74"):
                 print("Migrating config from < 2.1.74...")
                 # css upgrade
-                patch_css('web.css', True)  # force update
-                patch_css('web.light.css', True)  # force update
-                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.75
             if old < parse_version("2.1.75"):
                 print("Migrating config from < 2.1.75...")
                 # css upgrade
-                patch_css('web.css', True)  # force update
-                patch_css('web.light.css', True)  # force update
-                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.76
@@ -1387,18 +1361,12 @@ class Patch:
                 if 'render.blocks' not in data:
                     data["render.blocks"] = True
                 # css upgrade
-                patch_css('web.css', True)  # force update
-                patch_css('web.light.css', True)  # force update
-                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.78
             if old < parse_version("2.1.78"):
                 print("Migrating config from < 2.1.78...")
                 # css upgrade, scroll bg
-                patch_css('web.css', True)  # force update
-                patch_css('web.light.css', True)  # force update
-                patch_css('web.dark.css', True)  # force update
                 updated = True
 
             # < 2.1.79
@@ -1506,7 +1474,6 @@ class Patch:
                 print("Migrating config from < 2.2.20...")
                 if 'func_call.native' not in data:
                     data["func_call.native"] = True
-                patch_css('web.css', True)  # force update
                 updated = True
 
             # < 2.2.22
@@ -1743,7 +1710,6 @@ class Patch:
                     data["audio.input.channels"] = 1
                 if 'audio.input.rate' not in data:
                     data["audio.input.rate"] = 44100
-                patch_css('style.light.css', True)  # force update
                 updated = True
 
             # < 2.4.39
@@ -1768,10 +1734,6 @@ class Patch:
                 if 'cmd_web' in data['plugins'] \
                         and 'cmd.web_url_raw' in data['plugins']['cmd_web']:
                     del data['plugins']['cmd_web']['cmd.web_url_raw']
-                patch_css('web-blocks.css', True)  # force update
-                patch_css('web-blocks.light.css', True)  # force update
-                patch_css('web-chatgpt.css', True)  # force update
-                patch_css('web-chatgpt_wide.css', True)  # force update
                 updated = True
 
             # < 2.4.44
@@ -1783,7 +1745,6 @@ class Patch:
             # < 2.4.45
             if old < parse_version("2.4.45"):
                 print("Migrating config from < 2.4.45...")
-                patch_css('style.css', True)  # force update
                 updated = True
 
             # < 2.4.46
@@ -1839,9 +1800,6 @@ class Patch:
             # < 2.5.7
             if old < parse_version("2.5.7"):
                 print("Migrating config from < 2.5.7...")
-                patch_css('web-blocks.css', True)  # force update
-                patch_css('web-chatgpt.css', True)  # force update
-                patch_css('web-chatgpt_wide.css', True)  # force update
                 updated = True
 
             # < 2.5.8
@@ -1892,13 +1850,11 @@ class Patch:
             # < 2.5.21
             if old < parse_version("2.5.21"):
                 print("Migrating config from < 2.5.21...")
-                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.24
             if old < parse_version("2.5.24"):
                 print("Migrating config from < 2.5.24...")
-                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.25
@@ -1913,8 +1869,6 @@ class Patch:
                 print("Migrating config from < 2.5.27...")
                 if 'remote_tools.code_interpreter' not in data:
                     data["remote_tools.code_interpreter"] = False
-                if 'llama.idx.react' not in data:
-                    data["llama.idx.react"] = True
                 updated = True
 
             # < 2.5.29
@@ -1944,29 +1898,11 @@ class Patch:
             # < 2.5.36
             if old < parse_version("2.5.36"):
                 print("Migrating config from < 2.5.36...")
-                patch_css('style.css', True)  # force replace file
-                patch_css('style.dark.css', True)  # force replace file
-                patch_css('style.light.css', True)  # force replace file
-                patch_css('web-chatgpt.css', True)  # force replace file
-                patch_css('web-chatgpt.light.css', True)  # force replace file
-                patch_css('web-chatgpt.dark.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.37
             if old < parse_version("2.5.37"):
                 print("Migrating config from < 2.5.37...")
-                patch_css('style.css', True)  # force replace file
-                patch_css('style.dark.css', True)  # force replace file
-                patch_css('style.light.css', True)  # force replace file
-                patch_css('web-chatgpt.css', True)  # force replace file
-                patch_css('web-chatgpt.light.css', True)  # force replace file
-                patch_css('web-chatgpt.dark.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.40 - update tool prompts
@@ -2000,8 +1936,6 @@ class Patch:
             # < 2.5.42 - action img padding
             if old < parse_version("2.5.42"):
                 print("Migrating config from < 2.5.42...")
-                patch_css('web-chatgpt.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.css', True)  # force replace file
                 updated = True
 
             # < 2.5.43 - remove cmd_code_interpreter fresh_kernel option
@@ -2015,35 +1949,21 @@ class Patch:
             # < 2.5.51
             if old < parse_version("2.5.51"):
                 print("Migrating config from < 2.5.51...")
-                patch_css('style.css', True)  # force replace file
-                patch_css('style.dark.css', True)  # force replace file
-                patch_css('style.light.css', True)  # force replace file
                 updated = True
 
             # < 2.5.54
             if old < parse_version("2.5.54"):
                 print("Migrating config from < 2.5.54...")
-                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.55
             if old < parse_version("2.5.55"):
                 print("Migrating config from < 2.5.55...")
-                patch_css('web-chatgpt.css', True)  # force replace file
                 updated = True
 
             # < 2.5.60
             if old < parse_version("2.5.60"):
                 print("Migrating config from < 2.5.60...")
-                patch_css('style.css', True)  # force replace file
-                patch_css('style.dark.css', True)  # force replace file
-                patch_css('style.light.css', True)  # force replace file
-                patch_css('web-chatgpt.css', True)  # force replace file
-                patch_css('web-chatgpt.light.css', True)  # force replace file
-                patch_css('web-chatgpt.dark.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.61
@@ -2087,8 +2007,6 @@ class Patch:
             # < 2.5.68
             if old < parse_version("2.5.68"):
                 print("Migrating config from < 2.5.68..")
-                if "agent.func_call.native" not in data:
-                    data["agent.func_call.native"] = False
                 if "experts.func_call.native" not in data:
                     data["experts.func_call.native"] = False
                 updated = True
@@ -2102,8 +2020,6 @@ class Patch:
                     'prompt.agent.goal')
                 data["prompt.expert"] = cfg_get_base(
                     'prompt.expert')
-                if "agent.api_use_responses" not in data:
-                    data["agent.api_use_responses"] = False
                 if "experts.api_use_responses" not in data:
                     data["experts.api_use_responses"] = False
                 if "experts.internal.api_use_responses" not in data:
@@ -2141,11 +2057,6 @@ class Patch:
             # < 2.5.73
             if old < parse_version("2.5.73"):
                 print("Migrating config from < 2.5.73...")
-                patch_css('web-chatgpt.css', True)  # force replace file
-                patch_css('web-chatgpt.light.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.76
@@ -2175,11 +2086,6 @@ class Patch:
             # < 2.5.90
             if old < parse_version("2.5.90"):
                 print("Migrating config from < 2.5.90...")
-                patch_css('style.dark.css', True)  # force replace file
-                patch_css('style.light.css', True)  # force replace file
-                patch_css('web-blocks.css', True)  # force replace file
-                patch_css('web-blocks.dark.css', True)  # force replace file
-                patch_css('web-blocks.light.css', True)  # force replace file
                 updated = True
 
             # < 2.5.91
@@ -2203,15 +2109,6 @@ class Patch:
                     data["api_endpoint_hugging_face"] = "https://router.huggingface.co/v1"
 
                 # tips
-                patch_css('web-chatgpt.css', True)  # force replace file
-                patch_css('web-chatgpt.light.css', True)  # force replace file
-                patch_css('web-chatgpt.dark.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
-                patch_css('web-blocks.css', True)  # force replace file
-                patch_css('web-blocks.light.css', True)  # force replace file
-                patch_css('web-blocks.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.95
@@ -2223,15 +2120,6 @@ class Patch:
                     data["personalize.modes"] = "chat"
 
                 # avatars css
-                patch_css('web-chatgpt.css', True)  # force replace file
-                patch_css('web-chatgpt.light.css', True)  # force replace file
-                patch_css('web-chatgpt.dark.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.light.css', True)  # force replace file
-                patch_css('web-chatgpt_wide.dark.css', True)  # force replace file
-                patch_css('web-blocks.css', True)  # force replace file
-                patch_css('web-blocks.light.css', True)  # force replace file
-                patch_css('web-blocks.dark.css', True)  # force replace file
                 updated = True
 
             # < 2.5.98
@@ -2244,19 +2132,11 @@ class Patch:
             # < 2.6.0
             if old < parse_version("2.6.0"):
                 print("Migrating config from < 2.6.0...")
-                patch_css('style.light.css', True)  # scrollbar, calendar fix
-                patch_css('style.dark.css', True)  # calendar fix
                 updated = True
 
             # < 2.6.8
             if old < parse_version("2.6.8"):
                 print("Migrating config from < 2.6.8...")
-                patch_css('web-chatgpt.light.css', True)  # p color
-                patch_css('web-chatgpt.dark.css', True)  # p color
-                patch_css('web-chatgpt_wide.light.css', True)  # p color
-                patch_css('web-chatgpt_wide.dark.css', True)  # p color
-                patch_css('style.light.css', True)  # tree
-                patch_css('style.dark.css', True)  # tree
                 updated = True
 
             # < 2.6.10
@@ -2281,12 +2161,6 @@ class Patch:
             # < 2.6.23  -- fix: restore <p> color
             if old < parse_version("2.6.23"):
                 print("Migrating config from < 2.6.23...")
-                patch_css('web-chatgpt.dark.css', True)
-                patch_css('web-chatgpt_wide.dark.css', True)
-                patch_css('web-chatgpt.light.css', True)
-                patch_css('web-chatgpt_wide.light.css', True)
-                patch_css('web-blocks.dark.css', True)
-                patch_css('web-blocks.light.css', True)
                 updated = True
 
             # < 2.6.24
@@ -2345,12 +2219,6 @@ class Patch:
             # < 2.6.28  -- fix: cmd color
             if old < parse_version("2.6.28"):
                 print("Migrating config from < 2.6.28...")
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-chatgpt.dark.css', True)
-                patch_css('web-chatgpt_wide.dark.css', True)
-                patch_css('web-chatgpt.light.css', True)
-                patch_css('web-chatgpt_wide.light.css', True)
                 updated = True
 
             # < 2.6.30
@@ -2420,27 +2288,18 @@ class Patch:
                     data["audio.input.loop"] = False
 
                 # add video player CSS
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.6.35
             if old < parse_version("2.6.35"):
                 print("Migrating config from < 2.6.35...")
                 # remove will-change
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.6.36
             if old < parse_version("2.6.36"):
                 print("Migrating config from < 2.6.36...")
                 # perf css
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.6.37
@@ -2448,8 +2307,6 @@ class Patch:
                 print("Migrating config from < 2.6.37...")
 
                 # add: label-desc CSS
-                patch_css('style.dark.css', True)
-                patch_css('style.light.css', True)
 
                 # add: Anthropic SDK
                 if "api_native_anthropic" not in data:
@@ -2475,9 +2332,6 @@ class Patch:
             if old < parse_version("2.6.40"):
                 print("Migrating config from < 2.6.40...")
                 # perf css
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.6.41
@@ -2486,9 +2340,6 @@ class Patch:
                 if "render.memory.limit" not in data:
                     data["render.memory.limit"] = "2.5GB"
                 # ul p
-                patch_css('web-chatgpt.css', True)
-                patch_css('web-chatgpt_wide.css', True)
-                patch_css('web-blocks.css', True)
                 updated = True
 
             # < 2.6.42

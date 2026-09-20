@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 17:30:00                  #
+# Updated Date: 2026.09.12 17:55:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -30,7 +30,6 @@ class Placeholder:
         self.window = window
         self._apply_handlers = {
             "access_actions": lambda p: self.get_access_actions(),
-            "agent_modes": lambda p: self.get_agent_modes(),
             "agent_provider": lambda p: self.get_agent_providers(),
             "agent_provider_llama": lambda p: self.get_agent_providers_llama(),
             "agent_provider_openai": lambda p: self.get_agent_providers_openai(),
@@ -98,8 +97,6 @@ class Placeholder:
         t = option["type"]
         if t == "dict" and "keys" in option:
             self._apply_suboptions(option["keys"])
-        elif t == "cmd" and "params_keys" in option:
-            self._apply_suboptions(option["params_keys"])
         elif t in ("combo", "bool_list"):
             use = option.get("use")
             if use is not None:
@@ -371,21 +368,34 @@ class Placeholder:
                 data.append({mid: name})
             return data
 
-        for provider, provider_label in providers.items():
+        # The provider registry can be temporarily incomplete while the UI is
+        # being built (runtime custom providers may already be synchronized
+        # before the built-in providers are registered). Never treat a
+        # non-empty registry as the authoritative list of providers for model
+        # choices, otherwise models belonging to providers not registered yet
+        # disappear from combo boxes (notably the Preset model selector).
+        provider_choices = dict(providers)
+        missing_providers = {
+            models[mid].provider
+            for mid in items
+            if models[mid].provider not in provider_choices
+        }
+        for provider in sorted(
+                (p for p in missing_providers if p),
+                key=lambda value: str(value).lower(),
+        ):
+            # get_provider_name() returns the ID unchanged when the provider is
+            # not registered yet. Once the registry is fully initialized the
+            # preset editor refreshes the choices and the proper display name
+            # is used.
+            provider_choices[provider] = self.window.core.llm.get_provider_name(provider)
+
+        for provider, provider_label in provider_choices.items():
             provider_items = [(k, v) for k, v in items.items() if models[k].provider == provider]
             if provider_items:
                 data.append({f"separator::{provider}": provider_label})
                 data.extend([{k: v} for k, v in provider_items])
         return data
-
-    def get_agent_modes(self) -> List[Dict[str, str]]:
-        """
-        Get agent/expert modes list
-
-        :return: Filled placeholder list
-        """
-        modes = self.window.core.agents.legacy.get_allowed_modes()
-        return [{mid: trans(f"mode.{mid}")} for mid in modes]
 
     def get_languages(self) -> List[Dict[str, str]]:
         """
@@ -436,13 +446,13 @@ class Placeholder:
 
     def get_styles(self) -> List[Dict[str, str]]:
         """
-        Get styles list (blocks, chatgpt, etc.)
+        Get chat view styles list
 
         :return: Filled placeholder list
         """
         styles = self.window.controller.theme.common.get_styles_list()
         styles.sort()
-        return [{sid: sid} for sid in styles]
+        return [{sid: sid.replace("_", " ").title()} for sid in styles]
 
     def get_keys(self) -> List[Dict[str, str]]:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.01 03:00:00                  #
+# Updated Date: 2026.09.08 13:40:00                  #
 # ================================================== #
 
 import base64
@@ -80,7 +80,10 @@ class LocalComputer(Computer):
         print("Taking screenshot of the viewport...")
         self.window.controller.attachment.clear_silent()
         path = self.window.controller.painter.capture.screenshot(attach_cursor=True,
-                                                                 silent=True)  # attach screenshot
+                                                                 silent=True,
+                                                                 append_to_ctx=False)  # transport-only screenshot
+        if not path:
+            raise RuntimeError("Unable to capture Computer Use screenshot")
         with open(path, "rb") as image_file:
             data = base64.b64encode(image_file.read()).decode('utf-8')
         self.window.controller.attachment.clear_silent()
@@ -101,6 +104,7 @@ class LocalComputer(Computer):
                 "y": y,
                 "click": str(button),
                 "num_clicks": 1,
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -119,6 +123,7 @@ class LocalComputer(Computer):
                 "y": y,
                 "click": "left",
                 "num_clicks": 2,
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -138,8 +143,10 @@ class LocalComputer(Computer):
                 "x": x,
                 "y": y,
                 "dx": scroll_x,
-                "dy": -scroll_y,  # invert scroll direction
+                "dy": scroll_y,
                 "unit": "px",
+                "scroll_mode": "viewport",
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -178,6 +185,7 @@ class LocalComputer(Computer):
             "params": {
                 "x": x,
                 "y": y,
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -201,19 +209,13 @@ class LocalComputer(Computer):
 
         :param path: A list of tuples where each tuple contains the x and y coordinates.
         """
-        if not path:
+        if not path or len(path) < 2:
             return
-        x = path[0][0]
-        y = path[0][1]
-        dx = path[1][0]
-        dy = path[1][1]
         item = {
             "cmd": "mouse_drag",
             "params": {
-                "x": x,
-                "y": y,
-                "dx": dx,
-                "dy": dy,
+                "path": [{"x": int(x), "y": int(y)} for x, y in path],
+                "coordinate_space": "screen",
             }
         }
         self.call_cmd(item)
@@ -230,7 +232,7 @@ class Agent:
 
     def __init__(
         self,
-        model="computer-use-preview",
+        model="gpt-5.6-sol",
         computer: LocalComputer = None,
         tools: list[dict] = [],
         acknowledge_safety_check_callback: Callable = lambda: False,
@@ -249,13 +251,9 @@ class Agent:
         self.begin = True
 
         if computer:
-            dimensions = computer.dimensions
             self.tools += [
                 {
-                    "type": "computer-preview",
-                    "display_width": dimensions[0],
-                    "display_height": dimensions[1],
-                    "environment": computer.environment,
+                    "type": "computer",
                 },
             ]
 
@@ -308,24 +306,29 @@ class Agent:
             ]
 
         if item["type"] == "computer_call":
-            action = item["action"]
-            action_type = action["type"]
-            action_args = {k: v for k, v in action.items() if k != "type"}
-            if self.debug:
-                print(f"{action_type}({action_args})")
+            # GA Computer Use may batch several actions in one call. Execute
+            # them in the order returned, then send one screenshot for the call.
+            actions = item.get("actions") or []
+            if not actions and item.get("action"):
+                actions = [item["action"]]  # legacy compatibility
 
-            method = getattr(self.computer, action_type)
-            method(**action_args)
+            for action in actions:
+                action_type = action["type"]
+                action_args = {k: v for k, v in action.items() if k != "type"}
+                if self.debug:
+                    print(f"{action_type}({action_args})")
+
+                method = getattr(self.computer, action_type)
+                method(**action_args)
 
             screenshot_base64 = self.computer.screenshot()
-            pending_checks = item.get("pending_safety_checks", [])
             call_output = {
                 "type": "computer_call_output",
                 "call_id": item["call_id"],
-                "acknowledged_safety_checks": pending_checks,
                 "output": {
-                    "type": "input_image",
+                    "type": "computer_screenshot",
                     "image_url": f"data:image/png;base64,{screenshot_base64}",
+                    "detail": "original",
                 },
             }
 
@@ -363,7 +366,6 @@ class Agent:
                 model=self.model,
                 input=input + new_items,
                 tools=self.tools,
-                truncation="auto",
             )
             self.debug_print(response)
 

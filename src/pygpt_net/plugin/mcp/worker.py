@@ -19,6 +19,7 @@ from urllib.parse import urlparse
 from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
+from .runtime import build_env, build_headers, float_option, parse_stdio
 
 
 class WorkerSignals(BaseSignals):
@@ -87,10 +88,10 @@ class Worker(BaseWorker):
             server_cfg = meta0["server"]
             address = (server_cfg.get("server_address") or "").strip()
             transport = meta0["transport"]
-            headers = self._build_headers(server_cfg)
+            headers = build_headers(server_cfg)
 
             try:
-                async with self._open_session(address, transport, headers=headers) as session:
+                async with self._open_session(address, transport, server_cfg, headers=headers) as session:
                     for item in items:
                         if self.is_stopped():
                             break
@@ -104,7 +105,11 @@ class Worker(BaseWorker):
                         arguments = self._coerce_arguments(item.get("params", {}), schema)
 
                         try:
-                            result = await session.call_tool(tool_name, arguments=arguments)
+                            timeout = float_option(server_cfg, "tool_timeout_sec", 60.0)
+                            result = await asyncio.wait_for(
+                                session.call_tool(tool_name, arguments=arguments),
+                                timeout=timeout,
+                            )
                             text = self._extract_text_result(result)
                             responses.append(self.make_response(item, text))
                         except Exception as e:
@@ -124,7 +129,7 @@ class Worker(BaseWorker):
     # ---------------------------
 
     @asynccontextmanager
-    async def _open_session(self, address: str, transport: str, headers: Optional[dict] = None):
+    async def _open_session(self, address: str, transport: str, server: dict, headers: Optional[dict] = None):
         """
         Open and initialize MCP session for given server address and transport.
         Yields a ready-to-use ClientSession.
@@ -135,24 +140,40 @@ class Worker(BaseWorker):
             from mcp.client.stdio import stdio_client  # type: ignore
             from mcp import StdioServerParameters  # type: ignore
             cmd, args = self._parse_stdio_command(address)
-            params = StdioServerParameters(command=cmd, args=args)
+            kwargs = {"command": cmd, "args": args}
+            env = build_env(server)
+            cwd = (server.get("cwd") or "").strip()
+            if env is not None:
+                kwargs["env"] = env
+            if cwd:
+                kwargs["cwd"] = cwd
+            params = StdioServerParameters(**kwargs)
             async with stdio_client(params) as (read, write):
                 async with ClientSession(read, write) as session:
-                    await session.initialize()
+                    await asyncio.wait_for(
+                        session.initialize(),
+                        timeout=float_option(server, "startup_timeout_sec", 15.0),
+                    )
                     yield session
 
         elif transport == "http":
             from mcp.client.streamable_http import streamablehttp_client  # type: ignore
             async with streamablehttp_client(address, headers=headers or None) as (read, write, _):
                 async with ClientSession(read, write) as session:
-                    await session.initialize()
+                    await asyncio.wait_for(
+                        session.initialize(),
+                        timeout=float_option(server, "startup_timeout_sec", 15.0),
+                    )
                     yield session
 
         elif transport == "sse":
             from mcp.client.sse import sse_client  # type: ignore
             async with sse_client(address, headers=headers or None) as (read, write):
                 async with ClientSession(read, write) as session:
-                    await session.initialize()
+                    await asyncio.wait_for(
+                        session.initialize(),
+                        timeout=float_option(server, "startup_timeout_sec", 15.0),
+                    )
                     yield session
 
         else:
@@ -160,11 +181,7 @@ class Worker(BaseWorker):
 
     def _parse_stdio_command(self, address: str) -> Tuple[str, List[str]]:
         """Parse 'stdio: <command line>' into (command, args)."""
-        cmdline = address[len("stdio:"):].strip()
-        tokens = shlex.split(cmdline)
-        if not tokens:
-            raise ValueError("Invalid stdio address: empty command")
-        return tokens[0], tokens[1:]
+        return parse_stdio(address)
 
     # ---------------------------
     # Result & argument handling
@@ -254,10 +271,3 @@ class Worker(BaseWorker):
             return f"stdio::{addr[len('stdio:'):].strip()}"
         return addr
 
-    def _build_headers(self, server: dict) -> Optional[dict]:
-        """Build optional headers for HTTP/SSE transports (Authorization only)."""
-        auth = (server.get("authorization") or "").strip()
-        headers = {}
-        if auth:
-            headers["Authorization"] = auth
-        return headers or None

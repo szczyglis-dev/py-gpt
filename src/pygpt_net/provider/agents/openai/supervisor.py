@@ -32,6 +32,7 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
+from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 from pygpt_net.provider.api.openai.agents.response import StreamHandler
 from pygpt_net.provider.api.openai.agents.experts import get_experts
@@ -292,13 +293,18 @@ class Agent(BaseAgent):
         agent_name = "Supervisor"  # hard-coded UI name
 
         worker_tool = kwargs.get("worker_tool", None)
+        instructions = self.append_system_prompt_extra(
+            self.get_option(preset, "supervisor", "prompt"),
+            kwargs,
+        )
         kwargs = {
             "name": agent_name,
-            "instructions": self.get_option(preset, "supervisor", "prompt"),
+            "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model)
         }
         if worker_tool:
             kwargs["tools"] = [worker_tool]
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def get_worker(self, window, kwargs: Dict[str, Any]):
@@ -317,9 +323,13 @@ class Agent(BaseAgent):
             self.get_option(preset, "worker", "model")
         )
         handoffs = kwargs.get("handoffs", [])
+        instructions = self.append_system_prompt_extra(
+            self.get_option(preset, "worker", "prompt"),
+            kwargs,
+        )
         kwargs = {
             "name": agent_name,
-            "instructions": self.get_option(preset, "worker", "prompt"),
+            "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model)
         }
         if handoffs:
@@ -334,6 +344,7 @@ class Agent(BaseAgent):
             allow_remote_tools= self.get_option(preset, "worker", "allow_remote_tools"),
         )
         kwargs.update(tool_kwargs) # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     async def run(
@@ -374,6 +385,7 @@ class Agent(BaseAgent):
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
         if experts:
             agent_kwargs["handoffs"] = experts

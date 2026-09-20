@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:05:00                  #
+# Updated Date: 2026.09.11 13:25:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -14,12 +14,20 @@ from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from datetime import datetime, timedelta
 
-from pygpt_net.item.ctx import CtxMeta
+from pygpt_net.item.ctx import CtxMeta, get_additional_ctx_display_names
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
 from pygpt_net.ui.widget.element.button import NewCtxButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
-from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem
+from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem, ShowMoreItem
 from pygpt_net.utils import trans
+
+
+# Context-list presentation limits. Pinned/project contexts are still loaded
+# from the provider in full; these constants only cap how many rows are rendered
+# until the user explicitly expands the corresponding list.
+MAX_PINNED_DISPLAY = 6
+MAX_PROJECTS_DISPLAY = 10
+MAX_PROJECT_CONTEXTS_DISPLAY = 10
 
 
 class CtxList:
@@ -31,6 +39,7 @@ class CtxList:
         """
         self.window = window
         self.search_input = SearchInput(window)
+        self._separators = False
         self._group_separators = False
         self._pinned_separators = False
         self._list_section_top_spacing = 12
@@ -60,6 +69,7 @@ class CtxList:
         nodes['ctx.new'] = new_btn
 
         ctx_list = ContextList(self.window, ctx_id)
+        ctx_list.setProperty('class', 'ctx-list')
         ctx_list.selection_locked = self.window.controller.ctx.context_change_locked
         nodes[ctx_id] = ctx_list
 
@@ -95,6 +105,7 @@ class CtxList:
             # View might not expose expanded/collapsed; ignore if not supported
             pass
 
+        self._separators = self.window.core.config.get("ctx.records.separators")
         self._group_separators = self.window.core.config.get("ctx.records.groups.separators")
         self._pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
 
@@ -120,6 +131,7 @@ class CtxList:
         node = self.window.ui.nodes[id]
         node.backup_selection()
 
+        self._separators = self.window.core.config.get("ctx.records.separators")
         self._group_separators = self.window.core.config.get("ctx.records.groups.separators")
         self._pinned_separators = self.window.core.config.get("ctx.records.pinned.separators")
 
@@ -200,7 +212,7 @@ class CtxList:
                 item = self.build_item(mid, meta, is_group=False)
 
                 # Optional date sections (same logic as in update_items)
-                if self._group_separators and (not item.isPinned or self._pinned_separators):
+                if self._separators and (not item.isPinned or self._pinned_separators):
                     if last_dt_str is None or last_dt_str != item.dt:
                         section = self.build_date_section(item.dt, group=False)
                         if section:
@@ -235,7 +247,7 @@ class CtxList:
                 inline_first_date = (
                     i == 0
                     and self._recent_section_inline_date
-                    and self._group_separators
+                    and self._separators
                     and (not item.isPinned or self._pinned_separators)
                 )
                 if i == 0:
@@ -247,7 +259,7 @@ class CtxList:
                         action='new_context',
                         section_count=recent_total,
                     )
-                if self._group_separators and (not item.isPinned or self._pinned_separators):
+                if self._separators and (not item.isPinned or self._pinned_separators):
                     if not inline_first_date and (i == 0 or last_dt_str != item.dt):
                         section = self.build_date_section(item.dt, group=False)
                         if section:
@@ -263,33 +275,73 @@ class CtxList:
         :param id: ID of the list
         :param data: Data to update
         """
-        i = 0
         last_dt_str = None
         model = self.window.ui.models[id]
-        pinned_total = sum(
-            1
-            for meta in data.values()
+        node = self.window.ui.nodes[id]
+
+        pinned_rows = [
+            (meta_id, meta)
+            for meta_id, meta in data.items()
             if (meta.group_id is None or meta.group_id == 0) and meta.important
+        ]
+        pinned_total = len(pinned_rows)
+        if pinned_total == 0:
+            return
+
+        max_pinned = max(0, int(MAX_PINNED_DISPLAY or 0))
+
+        # Keep the active pinned context visible even when it falls outside the
+        # collapsed presentation window. An explicit user collapse remains
+        # authoritative, matching project/project-context limit behavior.
+        try:
+            current_id = int(self.window.core.ctx.get_current())
+        except Exception:
+            current_id = None
+
+        pinned_ids = [entry[0] for entry in pinned_rows]
+        if (
+                max_pinned > 0
+                and not node.show_all_pinned
+                and not node.pinned_limit_collapsed_by_user
+                and current_id is not None
+                and current_id not in pinned_ids[:max_pinned]
+                and current_id in pinned_ids
+        ):
+            node.show_all_pinned = True
+
+        visible_rows = pinned_rows
+        if max_pinned > 0 and not node.show_all_pinned:
+            visible_rows = pinned_rows[:max_pinned]
+
+        self.append_list_section(
+            model,
+            'ctx.list.section.pinned',
+            section_count=pinned_total,
         )
 
-        for meta_id, meta in data.items():
-            gid = meta.group_id
-            if (gid is None or gid == 0) and meta.important:
-                item = self.build_item(meta_id, meta, is_group=False)
-                if i == 0:
-                    self.append_list_section(
-                        model,
-                        'ctx.list.section.pinned',
-                        section_count=pinned_total,
-                    )
-                if self._group_separators and self._pinned_separators:
-                    if i == 0 or last_dt_str != item.dt:
-                        section = self.build_date_section(item.dt, group=False)
-                        if section:
-                            model.appendRow(section)
-                    last_dt_str = item.dt
-                model.appendRow(item)
-                i += 1
+        for i, (meta_id, meta) in enumerate(visible_rows):
+            item = self.build_item(meta_id, meta, is_group=False)
+            if self._separators and self._pinned_separators:
+                if i == 0 or last_dt_str != item.dt:
+                    section = self.build_date_section(item.dt, group=False)
+                    if section:
+                        model.appendRow(section)
+                last_dt_str = item.dt
+            model.appendRow(item)
+
+        hidden_pinned = pinned_total - len(visible_rows)
+        if hidden_pinned > 0:
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.show_more').format(count=hidden_pinned),
+                scope=ShowMoreItem.PINNED,
+                remaining_count=hidden_pinned,
+            ))
+        elif max_pinned > 0 and pinned_total > max_pinned and node.show_all_pinned:
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.less'),
+                scope=ShowMoreItem.PINNED,
+                collapse=True,
+            ))
 
     def update_groups(self, id, data, expand: bool = True):
         """
@@ -308,13 +360,42 @@ class CtxList:
             if gid is not None and gid != 0:
                 grouped.setdefault(gid, []).append((meta_id, meta))
 
-        project_total = 0
+        # Keep contexts inside every project newest-first. ``load_meta()``
+        # intentionally loads grouped contexts without pagination, but pinned
+        # and grouped result sets are merged before reaching the UI, so sort
+        # explicitly here instead of depending on dict insertion order.
+        for group_id in grouped:
+            grouped[group_id].sort(
+                key=lambda entry: (
+                    int(getattr(entry[1], 'updated', 0) or 0),
+                    int(entry[0] or 0),
+                ),
+                reverse=True,
+            )
+
+        # Projects are ordered by the newest updated context they contain.
+        # Empty projects have no context activity and therefore stay at the end;
+        # name/id provide a deterministic order for ties.
+        project_rows = []
         for group_id in groups:
             group = groups[group_id]
-            c = len(grouped.get(group.id, []))
-            if c == 0 and search_string:
+            items_in_group = grouped.get(group.id, [])
+            if not items_in_group and search_string:
                 continue
-            project_total += 1
+            latest_ctx_updated = max(
+                (int(getattr(meta, 'updated', 0) or 0) for _, meta in items_in_group),
+                default=0,
+            )
+            project_rows.append((group, items_in_group, latest_ctx_updated))
+
+        project_rows.sort(
+            key=lambda row: (
+                -row[2],
+                str(row[0].name or '').casefold(),
+                int(row[0].id or 0),
+            )
+        )
+        project_total = len(project_rows)
 
         # Ensure icons for closed/open folder states are loaded once
         if getattr(self, "_folder_icon", None) is None:
@@ -325,13 +406,34 @@ class CtxList:
         node = self.window.ui.nodes[id]
         section_added = False
 
-        for group_id in groups:
+        # If the active context belongs to a project which would otherwise be
+        # outside the visual project limit, reveal all projects so the current
+        # row never disappears from the left-hand navigation.
+        current_group_id = None
+        try:
+            current_meta = self.window.core.ctx.get_current_meta()
+            if current_meta is not None and current_meta.group_id:
+                current_group_id = int(current_meta.group_id)
+        except Exception:
+            current_group_id = None
+
+        max_projects = max(0, int(MAX_PROJECTS_DISPLAY or 0))
+        if (
+                max_projects > 0
+                and not node.show_all_projects
+                and not node.projects_limit_collapsed_by_user
+                and current_group_id is not None
+                and current_group_id not in [row[0].id for row in project_rows[:max_projects]]
+        ):
+            node.show_all_projects = True
+
+        visible_project_rows = project_rows
+        if max_projects > 0 and not node.show_all_projects:
+            visible_project_rows = project_rows[:max_projects]
+
+        for group, items_in_group, _latest_ctx_updated in visible_project_rows:
             last_dt_str = None
-            group = groups[group_id]
-            items_in_group = grouped.get(group.id, [])
             c = len(items_in_group)
-            if c == 0 and search_string:
-                continue
 
             if not section_added:
                 self.append_list_section(
@@ -342,11 +444,31 @@ class CtxList:
                 )
                 section_added = True
 
-            # Display only the group name; the counter is drawn by delegate on the right
-            is_attachment = group.has_additional_ctx()
+            # Project attachment marker is meaningful only when project-wide
+            # sharing is enabled. With per-chat attachments, the project row
+            # must stay clean even if old shared metadata still exists.
+            project_share = bool(
+                self.window.core.config.get("ctx.attachment.project_share", False)
+            )
+            is_attachment = project_share and group.has_additional_ctx()
             group_name = group.name
             group_item = GroupItem(self._folder_icon, group_name, group.id)
             group_item.hasAttachments = is_attachment
+
+            # Show the exact logical data workdir used by this project.  Resolve
+            # by group id rather than by the currently selected context so the
+            # tooltip is correct for every project row at the same time.
+            try:
+                project_workdir = self.window.core.filesystem.get_data_dir(
+                    group_id=group.id,
+                    create=False,
+                )
+            except Exception:
+                project_workdir = self.window.core.filesystem.get_shared_data_dir()
+
+            tooltip_parts = [
+                f"{trans('dialog.project.workdir')}: {project_workdir}"
+            ]
 
             # Provide all metadata required by the delegate
             custom_data = {
@@ -360,13 +482,37 @@ class CtxList:
                 files_str = ", ".join(files)
                 if len(files_str) > 40:
                     files_str = files_str[:40] + '...'
-                tooltip_str = f"{trans('attachments.ctx.tooltip.list').format(num=len(files))}: {files_str}"
-                group_item.setToolTip(tooltip_str)
+                tooltip_parts.append(
+                    f"{trans('attachments.ctx.tooltip.list').format(num=len(files))}: {files_str}"
+                )
 
+            group_item.setToolTip("\n".join(tooltip_parts))
             group_item.setData(custom_data, QtCore.Qt.ItemDataRole.UserRole)
 
+            max_contexts = max(0, int(MAX_PROJECT_CONTEXTS_DISPLAY or 0))
+
+            # As with projects, never hide the active context behind the visual
+            # limiter. This matters after restoring an older context directly
+            # from config/history.
+            if (
+                    max_contexts > 0
+                    and group.id not in node.show_all_project_contexts
+                    and group.id not in node.project_contexts_limit_collapsed_by_user
+                    and current_group_id == int(group.id)
+            ):
+                try:
+                    current_id = int(self.window.core.ctx.get_current())
+                except Exception:
+                    current_id = None
+                if current_id is not None and current_id not in [entry[0] for entry in items_in_group[:max_contexts]]:
+                    node.show_all_project_contexts.add(group.id)
+
+            visible_items = items_in_group
+            if max_contexts > 0 and group.id not in node.show_all_project_contexts:
+                visible_items = items_in_group[:max_contexts]
+
             i = 0
-            for meta_id, meta in items_in_group:
+            for meta_id, meta in visible_items:
                 item = self.build_item(meta_id, meta, is_group=True)
                 if self._group_separators and (not item.isPinned or self._pinned_separators):
                     if i == 0 or last_dt_str != item.dt:
@@ -377,6 +523,22 @@ class CtxList:
                 group_item.appendRow(item)
                 i += 1
 
+            hidden_contexts = c - len(visible_items)
+            if hidden_contexts > 0:
+                group_item.appendRow(ShowMoreItem(
+                    trans('ctx.list.show_more').format(count=hidden_contexts),
+                    scope=ShowMoreItem.PROJECT_CONTEXTS,
+                    group_id=group.id,
+                    remaining_count=hidden_contexts,
+                ))
+            elif max_contexts > 0 and c > max_contexts and group.id in node.show_all_project_contexts:
+                group_item.appendRow(ShowMoreItem(
+                    trans('ctx.list.less'),
+                    scope=ShowMoreItem.PROJECT_CONTEXTS,
+                    group_id=group.id,
+                    collapse=True,
+                ))
+
             model.appendRow(group_item)
 
             # Always reflect persisted expansion state so groups stay open after actions
@@ -385,6 +547,28 @@ class CtxList:
             if node.isExpanded(idx) != desired:
                 node.setExpanded(idx, desired)
             self._set_group_icon_for_index(idx, desired)
+
+        hidden_projects = project_total - len(visible_project_rows)
+        if hidden_projects > 0:
+            if not section_added:
+                self.append_list_section(
+                    model,
+                    'ctx.list.section.projects',
+                    action='new_project',
+                    section_count=project_total,
+                )
+                section_added = True
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.show_more').format(count=hidden_projects),
+                scope=ShowMoreItem.PROJECTS,
+                remaining_count=hidden_projects,
+            ))
+        elif max_projects > 0 and project_total > max_projects and node.show_all_projects:
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.less'),
+                scope=ShowMoreItem.PROJECTS,
+                collapse=True,
+            ))
 
     def count_in_group(self, group_id: int, data: dict) -> int:
         """
@@ -445,13 +629,16 @@ class CtxList:
         :param is_group: is group
         :return: Item
         """
-        append_dt = True
         label = data.label
         is_important = data.important
-        is_attachment = data.has_additional_ctx()
         in_group = bool(data.group)
-        append_dt = False if (is_group and self._group_separators) or ((not is_group) and self._group_separators) else append_dt
-
+        project_share = bool(
+            self.window.core.config.get("ctx.attachment.project_share", False)
+        )
+        if in_group and not project_share:
+            is_attachment = bool(data.additional_ctx)
+        else:
+            is_attachment = data.has_additional_ctx()
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
         title = data.name
@@ -459,12 +646,15 @@ class CtxList:
             title = title[:80] + '...'
         clean_title = title.replace("\n", "")
 
-        name = f"{clean_title} ({dt})" if append_dt else clean_title
+        name = clean_title
         mode_str = f" ({trans('mode.' + data.last_mode)})" if data.last_mode is not None else ""
         tooltip_text = f"{date_time_str}: {data.name}{mode_str} #{id}"
 
         if is_attachment:
-            files = data.get_attachment_names()
+            if in_group and not project_share:
+                files = get_additional_ctx_display_names(data.additional_ctx or [])
+            else:
+                files = data.get_attachment_names()
             files_str = ", ".join(files)
             if len(files_str) > 40:
                 files_str = files_str[:40] + '...'
@@ -574,8 +764,14 @@ class CtxList:
         yesterday = today - timedelta(days=1)
         date = datetime.fromtimestamp(timestamp).date()
 
-        days_ago = (today - date).days
+        days_ago = max(0, (today - date).days)
         weeks_ago = days_ago // 7
+
+        def relative(key: str, count: int) -> str:
+            label = trans(key)
+            if "{n}" in label:
+                return label.format(n=count)
+            return f"{count} {label}"
 
         if date == today:
             return trans('dt.today')
@@ -583,14 +779,29 @@ class CtxList:
             return trans('dt.yesterday')
         elif weeks_ago == 1:
             return trans('dt.week')
-        elif 1 < weeks_ago < 4:
-            return f"{weeks_ago} " + trans('dt.weeks')
+        elif 1 < weeks_ago and days_ago < 30:
+            return relative('dt.weeks', weeks_ago)
         elif days_ago < 30:
-            return f"{days_ago} " + trans('dt.days_ago')
-        elif 30 <= days_ago < 32:
-            return trans('dt.month')
-        else:
-            return date.strftime("%Y-%m-%d")
+            return relative('dt.days_ago', days_ago)
+
+        # Keep older context headers relative as well. The grouping becomes
+        # intentionally wider with age: individual days/weeks above, then
+        # months, and finally whole years. This avoids falling back to one
+        # section per calendar date for old conversations.
+        months_ago = (today.year - date.year) * 12 + today.month - date.month
+        if date.day > today.day:
+            months_ago -= 1
+        months_ago = max(1, months_ago)
+
+        if months_ago < 12:
+            if months_ago == 1:
+                return trans('dt.month')
+            return relative('dt.months', months_ago)
+
+        years_ago = max(1, months_ago // 12)
+        if years_ago == 1:
+            return trans('dt.year')
+        return relative('dt.years', years_ago)
 
     # ===========================
     # Helpers for group icons

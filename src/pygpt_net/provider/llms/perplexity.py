@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2026.09.10 10:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -69,83 +69,59 @@ class PerplexityLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama (Perplexity)
+        Return LlamaIndex OpenAI-compatible provider instance for Perplexity.
+
+        Perplexity Sonar exposes an OpenAI-compatible Chat Completions API, so
+        use LlamaIndex OpenAILike instead of the dedicated Perplexity
+        integration. This keeps Perplexity decoupled from
+        llama-index-llms-perplexity and its LlamaIndex version constraints.
 
         :param window: window instance
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
         """
-        from llama_index.llms.perplexity import Perplexity as LlamaPerplexity
-        from .utils import ProxyEnv
+        from llama_index.llms.openai_like import OpenAILike
 
         cfg = window.core.config
-        args = self.parse_args(model.llama_index, window)
+        args = self.prepare_openai_compatible_args(window, model)
 
-        if "api_key" not in args or not args["api_key"]:
-            args["api_key"] = cfg.get("api_key_perplexity", "")
-        if "model" not in args:
-            args["model"] = model.id
+        # Sonar uses the OpenAI-compatible Chat Completions endpoint.
+        if "is_chat_model" not in args:
+            args["is_chat_model"] = True
+        if "is_function_calling_model" not in args:
+            args["is_function_calling_model"] = model.tool_calls
+        if model.ctx and "context_window" not in args:
+            args["context_window"] = model.ctx
 
-        custom_base = cfg.get("api_endpoint_perplexity", "").strip()
-        if custom_base and "api_base" not in args:
-            args["api_base"] = custom_base
+        # Compatibility with the old dedicated Perplexity integration.
+        # OpenAILike forwards provider-specific request fields through
+        # additional_kwargs rather than accepting them as constructor fields.
+        if "enable_search_classifier" in args:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs.setdefault(
+                "enable_search_classifier",
+                args.pop("enable_search_classifier"),
+            )
+            args["additional_kwargs"] = additional_kwargs
 
-        # httpx.Client/AsyncClient (proxy, timeout, socks etc.)
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
+
+        # OpenAILike accepts custom httpx clients, so the existing global
+        # proxy/timeout handling can be reused without provider-specific code.
+        args_injected = self.inject_llamaindex_http_clients(dict(args), cfg)
         try:
-            args_injected = self.inject_llamaindex_http_clients(dict(args), cfg)
-            return LlamaPerplexity(**args_injected)
+            self.log_llama_create(window, model, args_injected, "OpenAILike")
+            return OpenAILike(**args_injected)
         except TypeError:
-            return LlamaPerplexity(**args)
-
-        # -----------------------------------
-        # TODO: fallback
-        proxy = cfg.get("api_proxy") or cfg.get("api_native_perplexity.proxy")
-        if not cfg.get("api_proxy.enabled", False):
-            proxy = ""
-
-        class PerplexityWithProxy(LlamaPerplexity):
-            def __init__(self, *a, **kw):
-                super().__init__(*a, **kw)
-                self._proxy = proxy
-
-            # sync
-            def complete(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    return super().complete(*a, **kw)
-
-            def chat(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    return super().chat(*a, **kw)
-
-            def stream_complete(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    return super().stream_complete(*a, **kw)
-
-            def stream_chat(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    return super().stream_chat(*a, **kw)
-
-            # async
-            async def acomplete(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    return await super().acomplete(*a, **kw)
-
-            async def achat(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    return await super().achat(*a, **kw)
-
-            async def astream_complete(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    async for chunk in super().astream_complete(*a, **kw):
-                        yield chunk
-
-            async def astream_chat(self, *a, **kw):
-                with ProxyEnv(self._proxy):
-                    async for chunk in super().astream_chat(*a, **kw):
-                        yield chunk
-
-        return PerplexityWithProxy(**args)
+            # Compatibility with older OpenAILike releases that may not accept
+            # injected httpx clients.
+            self.log_llama_create(window, model, args, "OpenAILike")
+            return OpenAILike(**args)
 
     def llama_multimodal(
             self,
@@ -176,24 +152,3 @@ class PerplexityLLM(BaseLLM):
         :return: Embedding provider instance
         """
         pass
-
-    def get_models(
-            self,
-            window,
-    ) -> List[Dict]:
-        """
-        Return list of models for the provider
-
-        :param window: window instance
-        :return: list of models
-        """
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items

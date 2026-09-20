@@ -29,6 +29,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
+from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
 from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
 from pygpt_net.provider.api.openai.agents.response import StreamHandler
 from pygpt_net.provider.api.openai.agents.experts import get_experts
@@ -73,9 +74,13 @@ class Agent(BaseAgent):
         handoffs = kwargs.get("handoffs", [])
         id = kwargs.get("bot_id", 1)
         option_key = f"bot_{id}"
+        instructions = self.append_system_prompt_extra(
+            self.get_option(preset, option_key, "prompt"),
+            kwargs,
+        )
         kwargs = {
             "name": self.get_option(preset, option_key, "name"),
-            "instructions": self.get_option(preset, option_key, "prompt"),
+            "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model),
         }
         if handoffs:
@@ -90,6 +95,7 @@ class Agent(BaseAgent):
             allow_remote_tools= self.get_option(preset, option_key, "allow_remote_tools"),
         )
         kwargs.update(tool_kwargs) # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def reverse_history(
@@ -225,6 +231,7 @@ class Agent(BaseAgent):
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
 
         bot_1_name = self.get_option(preset, "bot_1", "name")

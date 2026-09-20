@@ -23,7 +23,7 @@ class Info:
         self.window = window
 
         # prepare info ids
-        self.ids = ['about', 'changelog', 'license']
+        self.ids = ['about', 'changelog', 'license', 'system_info']
         self.active = {}
 
         # prepare active
@@ -52,6 +52,8 @@ class Info:
         else:
             if id == 'about':
                 self.window.ui.dialogs.about.prepare()
+            elif id == 'system_info':
+                self.window.ui.dialogs.system_info.prepare()
             self.window.ui.dialogs.open(
                 'info.' + id,
                 width=width,

@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
     MODE_COMPUTER,
     MODE_EXPERT
 )
+from pygpt_net.provider.core.model.compat import is_openai_o_series
 
 
 class Patch:
@@ -336,7 +337,7 @@ class Patch:
                 for id in data:
                     model = data[id]
                     # OpenAI
-                    if model.id.startswith("gpt-") or model.id.startswith("o1-"):
+                    if model.id.startswith("gpt-") or is_openai_o_series(model.id):
                         # langchain
                         is_endpoint = False
                         is_version = False
@@ -593,10 +594,7 @@ class Patch:
                         model.provider = "ollama"
                     if (model.id.startswith("gpt-")
                       or model.id.startswith("chatgpt")
-                      or model.id.startswith("o1")
-                      or model.id.startswith("o3")
-                      or model.id.startswith("o4")
-                      or model.id.startswith("o5")
+                      or is_openai_o_series(model.id)
                       or model.id.startswith("dall-e")):
                         model.provider = "openai"
                     if model.id.startswith("claude-"):
@@ -619,8 +617,8 @@ class Patch:
                         if 'provider' in model.llama_index:
                             del model.llama_index['provider']
 
-                    # add llama_index mode to o1, o3
-                    if model.id.startswith("o1") or model.id.startswith("o3"):
+                    # add llama_index mode to OpenAI o-series models
+                    if is_openai_o_series(model.id):
                         if "llama_index" not in model.mode:
                             model.mode.append("llama_index")
 
@@ -719,32 +717,16 @@ class Patch:
                             model.mode.remove("agent_openai")
                 updated = True
 
-            # <  2.5.91  <--- GPT-5
+            # <  2.5.91  <--- GPT-5 (legacy catalog entry; no longer added)
             if old < parse_version("2.5.91"):
                 print("Migrating models from < 2.5.91...")
-                if "gpt-5" not in data:
-                    data["gpt-5"] = from_base("gpt-5")
-                if "gpt-5-mini" not in data:
-                    data["gpt-5-mini"] = from_base("gpt-5-mini")
-                if "gpt-5-nano" not in data:
-                    data["gpt-5-nano"] = from_base("gpt-5-nano")
+                # Keep an existing user model, but do not add removed GPT-5 defaults.
                 updated = True
 
-            # <  2.5.93  <--- GPT-5 low and high
+            # <  2.5.93  <--- GPT-5 low and high (legacy catalog entries; no longer added)
             if old < parse_version("2.5.93"):
                 print("Migrating models from < 2.5.93...")
-                if "gpt-5-low" not in data:
-                    data["gpt-5-low"] = from_base("gpt-5-low")
-                if "gpt-5-mini-low" not in data:
-                    data["gpt-5-mini-low"] = from_base("gpt-5-mini-low")
-                if "gpt-5-nano-low" not in data:
-                    data["gpt-5-nano-low"] = from_base("gpt-5-nano-low")
-                if "gpt-5-high" not in data:
-                    data["gpt-5-high"] = from_base("gpt-5-high")
-                if "gpt-5-mini-high" not in data:
-                    data["gpt-5-mini-high"] = from_base("gpt-5-mini-high")
-                if "gpt-5-nano-high" not in data:
-                    data["gpt-5-nano-high"] = from_base("gpt-5-nano-high")
+                # Keep existing user variants, but do not add removed GPT-5 defaults.
                 updated = True
 
             # <  2.5.94  <--- gpt-oss
@@ -758,8 +740,8 @@ class Patch:
                     data["gpt-oss-20b-huggingface-router"] = from_base("gpt-oss-20b-huggingface-router")
                 if "gpt-oss-120b-huggingface-router" not in data:
                     data["gpt-oss-120b-huggingface-router"] = from_base("gpt-oss-120b-huggingface-router")
-                if "gpt-4.1-nano" not in data:
-                    data["gpt-4.1-nano"] = from_base("gpt-4.1-nano")
+                # gpt-4.1-nano is no longer part of the default catalog;
+                # preserve it only when already present in the user's models.
                 updated = True
 
             # < 2.6.21 <-- add OpenAI Agents to Ollama

@@ -19,6 +19,7 @@ from google.genai import types as gtypes
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
@@ -88,10 +89,8 @@ class Video:
         # optional params
         worker.aspect_ratio = str(extra.get("aspect_ratio") or self.window.core.config.get('video.aspect_ratio') or "16:9")
         worker.duration_seconds = int(extra.get("duration") or self.window.core.config.get('video.duration') or 8)
-        worker.fps = int(extra.get("fps") or self.window.core.config.get('video.fps') or 24)
         worker.seed = extra.get("seed") or self.window.core.config.get('video.seed') or None
         worker.negative_prompt = extra.get("negative_prompt") or self.window.core.config.get('video.negative_prompt') or None
-        worker.generate_audio = bool(extra.get("generate_audio", self.window.core.config.get('video.generate_audio') or False))
         worker.resolution = (extra.get("resolution") or self.window.core.config.get('video.resolution') or "720p")
 
         self.worker = worker
@@ -153,9 +152,7 @@ class VideoWorker(QRunnable):
         # video generation params
         self.aspect_ratio = "16:9"
         self.duration_seconds = 8
-        self.fps = 24
         self.seed: Optional[int] = None
-        self.generate_audio: bool = False  # generation includes audio by default on Veo 3.x
         self.resolution: str = "720p"      # Veo supports 720p/1080p depending on variant
 
         # limits / capabilities
@@ -171,13 +168,12 @@ class VideoWorker(QRunnable):
             # optional prompt enhancement
             if not self.raw and not self.inline and self.input_prompt:
                 try:
-                    self.signals.status.emit(trans('vid.status.prompt.wait'))
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
                         model=self.model_prompt,
                         max_tokens=200,
-                        temperature=1.0,
                     )
                     ev = KernelEvent(KernelEvent.CALL, {'context': bridge_context, 'extra': {}})
                     self.window.dispatch(ev)
@@ -185,8 +181,8 @@ class VideoWorker(QRunnable):
                     if resp:
                         self.input_prompt = resp
                 except Exception as e:
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('vid.status.prompt.error') + ": " + str(e))
+                    safe_emit(self.signals, "error", e)
+                    safe_emit(self.signals, "status", trans('vid.status.prompt.error') + ": " + str(e))
 
             # prepare config
             num = min(self.num, self.veo_max_num)
@@ -220,7 +216,7 @@ class VideoWorker(QRunnable):
                 # Veo extension support varies by API and model; choose a compatible model if needed
                 model_for_ext = self._select_extension_model(self.model)
                 if model_for_ext != self.model:
-                    self.signals.status.emit(f"Please switch model for extension: {self.model} -> {model_for_ext}")
+                    safe_emit(self.signals, "status", f"Please switch model for extension: {self.model} -> {model_for_ext}")
                     # self.model = model_for_ext # <-- do not override user selection, just inform
 
                 # Build video input from identifier (URI, files/<id>, http(s), gs://, or local path)
@@ -235,7 +231,7 @@ class VideoWorker(QRunnable):
                     ext_config.negative_prompt = self.extra_prompt  # supported in python-genai
 
                 label = trans('vid.status.generating') + " (remix)"
-                self.signals.status.emit(label + f": {self.input_prompt or ''}...")
+                safe_emit(self.signals, "status", label + f": {self.input_prompt or ''}...")
 
                 # Start operation: video extension, prompt optional
                 operation = self.client.models.generate_videos(
@@ -275,13 +271,13 @@ class VideoWorker(QRunnable):
                         paths.append(p)
 
                 if self.inline:
-                    self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                    safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
                 else:
-                    self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                    safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
                 return  # remix path completed
 
             # normal generation path (text-to-video or image-to-video)
-            self.signals.status.emit(trans('vid.status.generating') + f": {self.input_prompt}...")
+            safe_emit(self.signals, "status", trans('vid.status.generating') + f": {self.input_prompt}...")
 
             try:
                 config = gtypes.GenerateVideosConfig(**cfg_try)
@@ -336,12 +332,12 @@ class VideoWorker(QRunnable):
                     paths.append(p)
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self._cleanup()
 
@@ -480,7 +476,7 @@ class VideoWorker(QRunnable):
 
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
-            self.ctx.extra["video_id"] = self.window.core.filesystem.make_local(ref)
+            self.ctx.extra["video_id"] = self.window.core.filesystem.make_local(ref, ctx=self.ctx)
             self.window.core.ctx.update_item(self.ctx)
         except Exception:
             pass
@@ -533,7 +529,7 @@ class VideoWorker(QRunnable):
             str(idx + 1) + ".mp4"
         )
         path = os.path.join(self.window.core.config.get_user_dir("video"), name)
-        self.signals.status.emit(trans('vid.status.downloading') + f" ({idx + 1} / {self.num}) -> {path}")
+        safe_emit(self.signals, "status", trans('vid.status.downloading') + f" ({idx + 1} / {self.num}) -> {path}")
 
         if self.window.core.video.save_video(path, data):
             return str(path)

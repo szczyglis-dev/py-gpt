@@ -184,14 +184,14 @@ def test_clear_attachments(mock_window):
     files.update.assert_called_once()
 
 
-def test_upload(mock_window):
+def test_upload(mock_window, monkeypatch):
     """Test upload attachments"""
     files = Files(mock_window)
     item = AssistantItem()
     item.id = "assistant_id"
 
-    os.path.exists = MagicMock(return_value=True)
-    os.path.getsize = MagicMock(return_value=100)
+    monkeypatch.setattr(os.path, "exists", MagicMock(return_value=True))
+    monkeypatch.setattr(os.path, "getsize", MagicMock(return_value=100))
 
     att = AttachmentItem()
     att.id = "attachment_id1"

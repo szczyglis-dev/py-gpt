@@ -25,6 +25,14 @@ THINK_OPEN = "<think>"
 THINK_CLOSE = "</think>\n\n"
 
 
+def is_realtime_reasoning_enabled(window) -> bool:
+    """Return whether readable reasoning should be requested and rendered live."""
+    try:
+        return bool(window.core.config.get("ctx.reasoning.show_realtime", False))
+    except Exception:
+        return False
+
+
 def is_tagged_reasoning_model(model) -> bool:
     """Return True for local model backends that expose reasoning via <think> tags."""
     if model is None:
@@ -132,6 +140,12 @@ def strip_and_store_tagged_reasoning(
     return cleaned
 
 
+def strip_tagged_reasoning(output: Any) -> str:
+    """Remove model-authored ``<think>`` blocks without persisting their text."""
+    cleaned, _reasoning = extract_tagged_reasoning(output)
+    return cleaned
+
+
 def _ensure_buffer(state) -> io.StringIO:
     buf = getattr(state, "reasoning_buffer", None)
     if buf is None:
@@ -156,6 +170,8 @@ def stream_reasoning_delta(
         raw: bool = False,
 ) -> Optional[str]:
     """Wrap a streamed reasoning delta in the existing ``<think>`` UI flow."""
+    if not bool(getattr(state, "reasoning_enabled", True)):
+        return None
     if text is None:
         return None
     text = str(text)
@@ -300,6 +316,8 @@ def ensure_reasoning_metadata(ctx, provider: str, reasoning_tokens: Any):
 
 def persist_stream_reasoning(ctx, state):
     """Persist the readable reasoning accumulated by the streaming pipeline."""
+    if not bool(getattr(state, "reasoning_enabled", True)):
+        return
     buf = getattr(state, "reasoning_buffer", None)
     if buf is None:
         return

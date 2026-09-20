@@ -16,6 +16,7 @@ from random import shuffle as _shuffle
 from typing import Optional, List, Dict, Tuple
 
 from pygpt_net.core.events import Event
+from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -29,7 +30,11 @@ import pygpt_net.fonts_rc
 class Body:
 
     NUM_TIPS = 13
-    EXTRA_ITEMS_VISIBLE_LIMIT = 10
+    EXTRA_ITEMS_VISIBLE_LIMIT = 5
+
+    # User input auto-collapse threshold and collapsed max height (pixels).
+    # Set to 0 to disable automatic collapsing.
+    USER_MSG_COLLAPSE_HEIGHT_PX = 230
 
     # Live provider reasoning UI timing (milliseconds).
     # Delay starts on the first normal response token after a thinking block.
@@ -230,12 +235,28 @@ class Body:
         }
         .msg-bot {
             contain: layout paint style;
-            contain-intrinsic-size: 1px 600px;
             box-shadow: none !important;
             filter: none !important;
         }
-        .msg-bot:not(:last-child) {
+        /* Hybrid history virtualization.
+
+           Only finalized/older message boxes receive .msg-virtualized from JS.
+           Before that happens JS stores the *measured content-box height* in
+           --pygpt-msg-virtual-height. This keeps scrollHeight stable while
+           content-visibility skips expensive off-screen Markdown/code DOM.
+
+           Current/recent messages never receive the class, so the live stream
+           always uses real layout and remains compatible with exact-bottom
+           auto-follow. */
+        .msg-bot.msg-virtualized {
             content-visibility: auto;
+            contain-intrinsic-block-size: auto var(--pygpt-msg-virtual-height, 600px);
+        }
+        #_append_output_ .msg-bot,
+        #_append_output_before_ .msg-bot,
+        .msg-bot.msg-live {
+            content-visibility: visible !important;
+            contain-intrinsic-block-size: none !important;
         }
         .msg {
             text-rendering: optimizeSpeed;
@@ -244,9 +265,7 @@ class Body:
         .hl-tail,
         .hl-frozen {
             contain: layout paint;
-            content-visibility: auto;
             backface-visibility: hidden;
-            contain-intrinsic-size: 1px 600px;
             transform: translateZ(0);
             filter: none !important;
         }
@@ -273,7 +292,8 @@ class Body:
 
         :return: True if enabled, False otherwise.
         """
-        return self.window.core.config.get('output_timestamp')
+        config = self.window.core.config
+        return bool(config.get('render.plain') and config.get('output_timestamp'))
 
     def prepare_styles(self) -> str:
         """
@@ -316,6 +336,8 @@ class Body:
         :return: List of HTML strings for icons.
         """
         icons: List[str] = []
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return icons
         if ctx.output:
             cid = ctx.id
             t = trans
@@ -359,6 +381,8 @@ class Body:
         :return: List of action dicts
         """
         items: List[Dict] = []
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return items
         if ctx.output:
             cid = ctx.id
             target_id = edit_replay_id if edit_replay_id is not None else cid
@@ -404,7 +428,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx: Optional[CtxItem] = None
     ) -> str:
         """
         Get HTML for an image or video link with optional numbering.
@@ -414,7 +439,7 @@ class Body:
         :param num_all: Optional total number of images/videos
         :return: HTML string
         """
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         basename = os.path.basename(path)
         ext = os.path.splitext(basename)[1].lower()
         video_exts = (".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv")
@@ -423,7 +448,7 @@ class Body:
             if ext != ".webm":
                 webm_path = os.path.splitext(path)[0] + ".webm"
                 if os.path.exists(webm_path):
-                    source_url = self.window.core.filesystem.get_local_url(webm_path)
+                    source_url = self.window.core.filesystem.get_local_url(webm_path, ctx=ctx)
                     ext = ".webm"
             return f'''
             <div class="extra-src-video-box" title="{url}">
@@ -495,7 +520,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx: Optional[CtxItem] = None
     ) -> str:
         """
         Get HTML for a file link with icon and optional numbering.
@@ -509,7 +535,7 @@ class Body:
         icon_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
         icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
         num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         name = os.path.basename(path) or path
         return f'{icon} <a href="{url}">{name}</a> <b>{num_str}</b>'
 
@@ -524,9 +550,12 @@ class Body:
         if not extra:
             return ""
 
-        parts: List[str] = ['<div class="msg-extra">']
+        parts: List[str] = []
 
         if "plugin" in extra:
+            tool_name = str(extra.get("cmd") or "")
+            if tool_name and self.window.core.command.is_tool_hidden(tool_name):
+                return ""
             event = Event(Event.TOOL_OUTPUT_RENDER, {
                 'tool': extra["plugin"],
                 'html': '',
@@ -540,6 +569,9 @@ class Body:
 
         elif "tool_output" in extra and isinstance(extra["tool_output"], list):
             for tool in extra["tool_output"]:
+                tool_name = str(tool.get("cmd") or "") if isinstance(tool, dict) else ""
+                if tool_name and self.window.core.command.is_tool_hidden(tool_name):
+                    continue
                 if "plugin" not in tool:
                     continue
                 event = Event(Event.TOOL_OUTPUT_RENDER, {
@@ -553,8 +585,9 @@ class Body:
                 if event.data['html']:
                     parts.append(f'<div class="tool-output-block">{event.data["html"]}</div>')
 
-        parts.append("</div>")
-        return "".join(parts)
+        if not parts:
+            return ""
+        return '<div class="msg-extra">{}</div>'.format("".join(parts))
 
     def get_all_tips(self) -> str:
         """
@@ -574,7 +607,7 @@ class Body:
         _shuffle(tips)
         return _json_dumps(tips)
 
-    def _extract_local_url(self, url: str) -> Tuple[str, str]:
+    def _extract_local_url(self, url: str, ctx: Optional[CtxItem] = None) -> Tuple[str, str]:
         """
         Extract local URL and path using filesystem helper.
 
@@ -584,7 +617,7 @@ class Body:
         :return: Tuple of (url, path).
         """
         try:
-            return self.window.core.filesystem.extract_local_url(url)
+            return self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         except Exception:
             return url, url
 
@@ -662,6 +695,12 @@ class Body:
         files = {}
         urls = {}
 
+        # Agents v2 exposes response artifacts only after the authoritative final
+        # response has finished streaming. FINAL_BEGIN rebuilds the current turn,
+        # so suppress both artifact extras and footer actions while it is active.
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return images, files, urls, {"actions": []}
+
         # images
         if ctx.images:
             video_exts = (".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv")
@@ -669,8 +708,13 @@ class Body:
             for img in ctx.images:
                 if img is None:
                     continue
+                attachments = getattr(self.window.core, "attachments", None)
+                if (attachments is not None
+                        and hasattr(attachments, "is_ctx_excluded_path")
+                        and attachments.is_ctx_excluded_path(img)):
+                    continue
                 try:
-                    url, path = self._extract_local_url(img)
+                    url, path = self._extract_local_url(img, ctx=ctx)
                     basename = os.path.basename(path)
                     ext = os.path.splitext(basename)[1].lower()
                     is_video = ext in video_exts
@@ -678,7 +722,7 @@ class Body:
                     if is_video and ext != ".webm":
                         wp = os.path.splitext(path)[0] + ".webm"
                         if os.path.exists(wp):
-                            webm_path = self.window.core.filesystem.get_local_url(wp)
+                            webm_path = self.window.core.filesystem.get_local_url(wp, ctx=ctx)
                     images[str(n)] = {
                         "url": url,
                         # Browser-facing media sources must be file:// URLs, not
@@ -699,7 +743,7 @@ class Body:
             n = 1
             for f in ctx.files:
                 try:
-                    url, path = self._extract_local_url(f)
+                    url, path = self._extract_local_url(f, ctx=ctx)
                     files[str(n)] = {
                         "url": url,
                         "path": path,
@@ -780,7 +824,7 @@ class Body:
         :return: Full HTML string.
         """
         cfg_get = self.window.core.config.get
-        style = cfg_get("theme.style", "blocks")
+        style = cfg_get("theme.style", "standard")
         classes = ["theme-" + style]
         if cfg_get('render.blocks'):
             classes.append("display-blocks")
@@ -850,6 +894,13 @@ class Body:
         )
 
         syntax_style = cfg_get("render.code_syntax") or "default"
+        try:
+            user_msg_collapse_height = max(0, int(cfg_get(
+                "render.msg.user.collapse.px",
+                self.USER_MSG_COLLAPSE_HEIGHT_PX,
+            )))
+        except (TypeError, ValueError):
+            user_msg_collapse_height = self.USER_MSG_COLLAPSE_HEIGHT_PX
         style_js = (
             f'window.CODE_SYNTAX_STYLE={_json_dumps(syntax_style)};'
             f'window.PROFILE_CODE_HL_N_LINE={int(cfg_get("render.code_syntax.stream_n_line", 25))};'
@@ -858,9 +909,10 @@ class Body:
             f'window.PROFILE_CODE_FINAL_HL_MAX_LINES={int(cfg_get("render.code_syntax.final_max_lines", 1500))};'
             f'window.PROFILE_CODE_FINAL_HL_MAX_CHARS={int(cfg_get("render.code_syntax.final_max_chars", 350000))};'
             f'window.DISABLE_SYNTAX_HIGHLIGHT={int(cfg_get("render.code_syntax.disabled", 0))};'
-            f'window.USER_MSG_COLLAPSE_HEIGHT_PX={int(cfg_get("render.msg.user.collapse.px", 1500))};'
+            f'window.USER_MSG_COLLAPSE_HEIGHT_PX={user_msg_collapse_height};'
+            f'document.documentElement.style.setProperty("--user-msg-collapse-max-h", "{user_msg_collapse_height}px");'
             f'window.EXTRA_ITEMS_VISIBLE_LIMIT={int(self.EXTRA_ITEMS_VISIBLE_LIMIT)};'
-            f'window.REASONING_SHOW_REALTIME={_json_dumps(bool(cfg_get("ctx.reasoning.show_realtime", True)))};'
+            f'window.REASONING_SHOW_REALTIME={_json_dumps(bool(cfg_get("ctx.reasoning.show_realtime", False)))};'
             f'window.REASONING_HIDE_AFTER_RESPONSE={_json_dumps(bool(cfg_get("ctx.reasoning.hide_after_response", True)))};'
             f'window.REASONING_FADE_OUT_DELAY_MS={int(self.REASONING_FADE_OUT_DELAY_MS)};'
             f'window.REASONING_FADE_DURATION_MS={int(self.REASONING_FADE_DURATION_MS)};'

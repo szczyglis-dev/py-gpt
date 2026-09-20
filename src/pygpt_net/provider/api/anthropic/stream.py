@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.09 16:40:00
 # ================================================== #
 
 import io
 from typing import Optional
 
-from .utils import as_int
+from .utils import append_ctx_urls, as_int, extract_web_fetch_urls, extract_web_search_urls
 from pygpt_net.provider.api.reasoning import stream_reasoning_delta, stream_text_delta
 
 
@@ -33,9 +33,9 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
 
     # Computer Use: translate Anthropic 'computer' tool_use stream into plugin calls
     try:
-        tool_calls, has_calls = core.api.anthropic.computer.handle_stream_chunk(ctx, chunk, state.tool_calls)
+        tool_calls, is_computer_event = core.api.anthropic.computer.handle_stream_chunk(ctx, chunk, state.tool_calls)
         state.tool_calls = tool_calls
-        if has_calls:
+        if is_computer_event:
             is_computer_call = True
             state.force_func_call = True
     except Exception:
@@ -78,7 +78,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
             if fid in state.anthropic_downloaded_ids:
                 continue
             try:
-                path = core.api.anthropic.store.download_to_dir(fid)
+                path = core.api.anthropic.store.download_to_dir(fid, ctx=ctx)
             except Exception:
                 path = None
             if path:
@@ -86,7 +86,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                 state.anthropic_downloaded_ids.add(fid)
         if saved:
             try:
-                loc = core.filesystem.make_local_list(saved)
+                loc = core.filesystem.make_local_list(saved, ctx=ctx)
             except Exception:
                 loc = saved
             if not isinstance(ctx.files, list):
@@ -107,7 +107,7 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                         ctx.images.append(p)
 
     def _store_thinking_signature(signature):
-        if not signature:
+        if not signature or not bool(getattr(state, "reasoning_enabled", True)):
             return
         if not isinstance(getattr(ctx, "extra", None), dict):
             ctx.extra = {}
@@ -151,6 +151,10 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
 
     if etype == "signature_delta":
         _store_thinking_signature(getattr(chunk, "signature", None))
+        return None
+
+    if etype == "citations_delta":
+        append_ctx_urls(ctx, extract_web_search_urls(getattr(chunk, "citation", None)))
         return None
 
     # --- Standard event flow ---
@@ -198,15 +202,9 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
 
         try:
             cb = getattr(chunk, "content_block", None)
-            if cb and getattr(cb, "type", "") == "web_search_tool_result":
-                results = getattr(cb, "content", None) or []
-                for r in results:
-                    url = r.get("url") if isinstance(r, dict) else None
-                    if url:
-                        if ctx.urls is None:
-                            ctx.urls = []
-                        if url not in ctx.urls:
-                            ctx.urls.append(url)
+            if cb:
+                append_ctx_urls(ctx, extract_web_search_urls(cb))
+                append_ctx_urls(ctx, extract_web_fetch_urls(cb))
         except Exception:
             pass
 
@@ -228,6 +226,8 @@ def process_anthropic_chunk(ctx, core, state, chunk) -> Optional[str]:
                 )
             elif getattr(delta, "type", "") == "signature_delta":
                 _store_thinking_signature(getattr(delta, "signature", None))
+            elif getattr(delta, "type", "") == "citations_delta":
+                append_ctx_urls(ctx, extract_web_search_urls(getattr(delta, "citation", None)))
             elif getattr(delta, "type", "") == "input_json_delta":
                 idx = str(getattr(chunk, "index", 0) or 0)
                 buf = state.fn_args_buffers.get(idx)

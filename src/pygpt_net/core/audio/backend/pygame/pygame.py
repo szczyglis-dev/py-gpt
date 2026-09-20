@@ -17,6 +17,7 @@ from collections import deque
 from threading import Lock
 
 from PySide6.QtCore import QTimer
+from pygpt_net.core.qt import safe_emit
 
 from ..shared import f32_to_s16le, build_rt_input_delta_event
 
@@ -429,7 +430,7 @@ class PygameBackend:
 
         # Emit a playback signal.
         if signals is not None:
-            signals.playback.emit(event_name)
+            safe_emit(signals, "playback", event_name)
 
         # Load audio and force its format to match mixer pre_init.
         audio = AudioSegment.from_file(audio_file)
@@ -500,14 +501,14 @@ class PygameBackend:
                 volume_percentage = 0
 
             if signals is not None:
-                signals.volume_changed.emit(volume_percentage)
+                safe_emit(signals, "volume_changed", volume_percentage)
 
             pygame.time.delay(delay_ms)
             data = wf.readframes(chunk_size)
 
         wf.close()
         if signals is not None:
-            signals.volume_changed.emit(0)
+            safe_emit(signals, "volume_changed", 0)
 
     def stop_playback(self, signals=None):
         """
@@ -585,7 +586,7 @@ class PygameBackend:
                 final=bool(final),
             )
             # Ensure emission on the Qt thread
-            QTimer.singleShot(0, lambda: self._rt_signals.response.emit(event))
+            QTimer.singleShot(0, lambda: safe_emit(self._rt_signals, "response", event))
         except Exception:
             pass
 

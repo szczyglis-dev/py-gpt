@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 19:00:00                  #
+# Updated Date: 2026.09.12 12:20:00                  #
 # ================================================== #
 
 import json
@@ -31,6 +31,7 @@ from pygpt_net.core.types import (
     MODE_RESEARCH,
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
 )
 from pygpt_net.provider.core.preset.base import BaseProvider
 from pygpt_net.item.preset import PresetItem
@@ -205,11 +206,11 @@ class JsonFileProvider(BaseProvider):
             MODE_AGENT: item.agent,
             MODE_AGENT_LLAMA: item.agent_llama,
             MODE_AGENT_OPENAI: item.agent_openai,
+            MODE_AGENT_V2: item.agent_v2,
             MODE_EXPERT: item.expert,
             MODE_AUDIO: item.audio,
             MODE_RESEARCH: item.research,
             MODE_COMPUTER: item.computer,
-            'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
             'tools': item.tools,
@@ -217,6 +218,8 @@ class JsonFileProvider(BaseProvider):
             'idx': item.idx,
             'agent_provider': item.agent_provider,
             'agent_provider_openai': item.agent_provider_openai,
+            'agent_v2_allow_local_tools': item.agent_v2_allow_local_tools,
+            'agent_v2_allow_remote_tools': item.agent_v2_allow_remote_tools,
             'assistant_id': item.assistant_id,
             'enabled': item.enabled,
             'description': item.description,
@@ -238,6 +241,8 @@ class JsonFileProvider(BaseProvider):
             item.agent_llama = data[MODE_AGENT_LLAMA]
         if MODE_AGENT_OPENAI in data:
             item.agent_openai = data[MODE_AGENT_OPENAI]
+        if MODE_AGENT_V2 in data:
+            item.agent_v2 = data[MODE_AGENT_V2]
         if MODE_ASSISTANT in data:
             item.assistant = data[MODE_ASSISTANT]
         if MODE_AUDIO in data:
@@ -261,6 +266,10 @@ class JsonFileProvider(BaseProvider):
             item.agent_provider = data['agent_provider']
         if 'agent_provider_openai' in data:
             item.agent_provider_openai = data['agent_provider_openai']
+        # Older Agent/Expert presets may not contain these fields. Tool access
+        # defaults to enabled and must not inherit stale values from a reused item.
+        item.agent_v2_allow_local_tools = bool(data.get('agent_v2_allow_local_tools', True))
+        item.agent_v2_allow_remote_tools = bool(data.get('agent_v2_allow_remote_tools', True))
         if 'ai_avatar' in data:
             item.ai_avatar = data['ai_avatar']
         if 'ai_name' in data:
@@ -289,8 +298,6 @@ class JsonFileProvider(BaseProvider):
             item.prompt = data['prompt']
         if 'remote_tools' in data:
             item.remote_tools = data['remote_tools']
-        if 'temperature' in data:
-            item.temperature = data['temperature']
         if 'tools' in data:
             item.tools = data['tools']
         if 'user_name' in data:

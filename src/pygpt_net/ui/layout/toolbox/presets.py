@@ -14,10 +14,7 @@ from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, QStandardItem, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QSizePolicy
 
-from pygpt_net.core.types import (
-    MODE_AGENT,
-    MODE_EXPERT,
-)
+from pygpt_net.core.types import MODE_EXPERT
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
 
@@ -150,8 +147,6 @@ class Presets:
 
             if data:
                 is_expert_mode = (mode == MODE_EXPERT)
-                is_agent_mode = (mode == MODE_AGENT)
-                count_experts = self.window.core.experts.count_experts if is_agent_mode else None
                 startswith_current = "current."
 
                 role_uuid = QtCore.Qt.UserRole + 1
@@ -164,10 +159,6 @@ class Presets:
                     name = item.name
                     if is_expert_mode and item.enabled and not key.startswith(startswith_current):
                         name = f"[x] {name}"
-                    elif is_agent_mode:
-                        num_experts = count_experts(key)
-                        if num_experts > 0:
-                            name = f"{name} ({num_experts} experts)"
 
                     prompt = str(item.prompt)
                     tooltip = prompt if len(prompt) <= 80 else f"{prompt[:80]}..."

@@ -20,13 +20,14 @@ from tests.mocks import mock_window
 from pygpt_net.controller import Files
 
 
-def test_delete(mock_window):
+def test_delete(mock_window, monkeypatch):
     """Test delete"""
     files = Files(mock_window)
-    os.remove = MagicMock()
+    remove_mock = MagicMock()
+    monkeypatch.setattr(os, 'remove', remove_mock)
 
     files.delete('test', force=True)
-    os.remove.assert_called_once_with('test')
+    remove_mock.assert_called_once_with('test')
 
 
 def test_rename(mock_window):
@@ -38,14 +39,15 @@ def test_rename(mock_window):
     assert mock_window.ui.dialog['rename'].current == 'test'
 
 
-def test_update_name(mock_window):
+def test_update_name(mock_window, monkeypatch):
     """Test update name"""
     files = Files(mock_window)
-    os.rename = MagicMock()
-    os.path.exists = MagicMock(return_value=False)
+    rename_mock = MagicMock()
+    monkeypatch.setattr(os, 'rename', rename_mock)
+    monkeypatch.setattr(os.path, 'exists', MagicMock(return_value=False))
     mock_window.update_status = MagicMock()
     files.update_name('test', 'test2')
-    os.rename.assert_called_once_with('test', os.path.join(os.path.dirname('test'), 'test2'))
+    rename_mock.assert_called_once_with('test', os.path.join(os.path.dirname('test'), 'test2'))
     mock_window.ui.dialog['rename'].close.assert_called_once_with()
 
 
@@ -57,13 +59,14 @@ def test_open_dir(mock_window):
     files.open_in_file_manager.assert_called_once_with('test', False)
 
 
-def test_open(mock_window):
+def test_open(mock_window, monkeypatch):
     """Test open"""
     files = Files(mock_window)
     mock_window.core.platforms.is_snap = MagicMock(return_value=False)
-    PySide6.QtGui.QDesktopServices.openUrl = MagicMock()
+    open_url_mock = MagicMock()
+    monkeypatch.setattr(PySide6.QtGui.QDesktopServices, "openUrl", open_url_mock)
     files.open('test')
-    PySide6.QtGui.QDesktopServices.openUrl.assert_called_once()
+    open_url_mock.assert_called_once()
 
 
 def test_open_in_file_manager(mock_window):

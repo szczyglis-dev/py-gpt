@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.09.15 16:45:00                  #
 # ================================================== #
 
 from typing import Tuple, List
@@ -30,6 +30,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_COMPUTER,
 )
 from pygpt_net.item.ctx import CtxItem
@@ -43,6 +44,7 @@ CHAT_MODES = [
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_EXPERT,
     MODE_AUDIO,
     MODE_RESEARCH,
@@ -277,15 +279,42 @@ class Tokens:
         if mode in CHAT_MODES:
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)
+            current_ctx = self.window.core.ctx.get_last_item()
+            system_prompt = self.window.core.context_manager.prepare_system_prompt(
+                system_prompt, current_ctx, mode, model_data, internal=False
+            )
+
+            # Agents v2 must show the real main-agent system footprint before
+            # the first request of the turn is sent. Compose a temporary prompt
+            # from the current state using the same RuntimePromptBuilder as the
+            # real runtime. Nothing is cached on CtxItem and no agent/LLM is
+            # started here.
+            extra = 0
+            if mode == MODE_AGENT_V2:
+                try:
+                    system_prompt = self.window.core.agents_v2.build_main_system_prompt_preview(
+                        system_prompt=system_prompt,
+                        model=model_data,
+                        current_ctx=current_ctx,
+                    )
+                    extra += 400  # extra input context from agentic tools
+                except Exception as exc:
+                    self.window.core.debug.log(exc)
+
             if system_prompt:
                 system_tokens = self.from_prompt(system_prompt, "", model_id)
                 system_tokens += Tokens._const_tokens("system", model_id)
+                system_tokens += extra
             if input_prompt:
                 input_tokens = self.from_prompt(input_prompt, "", model_id)
                 input_tokens += Tokens._const_tokens("user", model_id)
         elif mode == MODE_COMPLETION:
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt, mode, model_data)
+            current_ctx = self.window.core.ctx.get_last_item()
+            system_prompt = self.window.core.context_manager.prepare_system_prompt(
+                system_prompt, current_ctx, mode, model_data, internal=False
+            )
             system_tokens = self.from_text(system_prompt, model_id)
             if input_prompt:
                 if user_name and ai_name:
@@ -299,16 +328,44 @@ class Tokens:
 
         used_tokens = system_tokens + input_tokens
 
-        max_current = max_total_tokens
-        model_ctx = self.window.core.models.get_num_ctx(model)
-        if max_current > model_ctx:
+        max_current = int(max_total_tokens or 0)
+        model_ctx = int(self.window.core.models.get_num_ctx(model) or 0)
+        # A configured value of 0 means "use the model limit" throughout the
+        # request path. Mirror that here so the live counter shows the same
+        # effective ceiling instead of treating an automatic limit as zero.
+        if max_current <= 0:
             max_current = model_ctx
+        elif model_ctx > 0:
+            max_current = min(max_current, model_ctx)
 
         threshold = self.window.core.config.get('context_threshold')
         max_to_check = max_current - threshold
 
         ctx_len_all = self.window.core.ctx.count_items()
-        ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model_id, mode, used_tokens, max_to_check)
+        if mode == MODE_AGENT_V2:
+            # Agents v2 keeps a dedicated hidden Primary Agent memory. Durable
+            # conversation partials/tasks retain the complete workflow trace for
+            # UI reload/debugging, including tool inputs/results, but Runner does
+            # not replay those payloads on the next turn. Using generic
+            # count_prompt_items() here therefore makes the live counter explode
+            # after file/tool-heavy runs (often to hundreds of thousands of
+            # tokens) even though the real next request is much smaller.
+            try:
+                ctx_len, ctx_tokens = self.window.core.agents_v2.count_current_history_tokens(
+                    model=model_data,
+                    used_tokens=used_tokens,
+                    max_tokens=max_to_check,
+                )
+            except Exception as exc:
+                self.window.core.debug.log(exc)
+                ctx_len, ctx_tokens = 0, 0
+        else:
+            ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(
+                model_id,
+                mode,
+                used_tokens,
+                max_to_check,
+            )
 
         if not self.window.core.config.get('use_context'):
             ctx_tokens = 0

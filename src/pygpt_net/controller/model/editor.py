@@ -67,6 +67,11 @@ class Editor:
                 "label": "model.is_hidden",
                 "description": "model.is_hidden.desc",
             },
+            "reasoning_effort": {
+                "type": "bool",
+                "label": "model.reasoning_effort",
+                "description": "model.reasoning_effort.desc",
+            },
             "input": {
                 "type": "bool_list",  # list of comma separated values
                 "label": "model.input",

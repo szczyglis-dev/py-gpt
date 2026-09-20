@@ -90,6 +90,148 @@ def capture_google_usage(state, um_obj: Any):
     state.usage_payload = {"in": prompt, "out": out_total, "reasoning": reasoning or 0, "total": total}
 
 
+def extract_google_urls(payload: Any) -> list[str]:
+    """
+    Extract grounding/citation URLs from Google GenAI response data.
+
+    Supports both ``google.genai`` response objects and the plain ``raw`` dict
+    produced by LlamaIndex ``GoogleGenAI``. Modern Google Search grounding
+    primarily exposes sources in ``grounding_metadata.grounding_chunks``.
+
+    :param payload: Google response/candidate/raw dict
+    :return: Unique http(s) URLs
+    """
+    urls: list[str] = []
+    seen = set()
+
+    def add(value):
+        if not isinstance(value, str):
+            return
+        value = value.strip()
+        if not (value.startswith("http://") or value.startswith("https://")):
+            return
+        if value in seen:
+            return
+        seen.add(value)
+        urls.append(value)
+
+    def scan_grounding(gm):
+        if not gm:
+            return
+
+        # Current Gemini grounding format.
+        chunks = safe_get(gm, "grounding_chunks") or safe_get(gm, "groundingChunks") or []
+        try:
+            for chunk in chunks or []:
+                for path in (
+                    "web.uri", "web.url",
+                    "image.source_uri", "image.sourceUri",
+                    "retrieved_context.uri", "retrieved_context.url",
+                    "retrievedContext.uri", "retrievedContext.url",
+                    "source.web.uri", "source.web.url",
+                    "source.uri", "source.url",
+                    "uri", "url",
+                ):
+                    add(safe_get(chunk, path))
+        except Exception:
+            pass
+
+        # Older/alternate grounding attribution shapes.
+        atts = safe_get(gm, "grounding_attributions") or safe_get(gm, "groundingAttributions") or []
+        try:
+            for att in atts or []:
+                for path in (
+                    "web.uri", "web.url",
+                    "source.web.uri", "source.web.url",
+                    "source.uri", "source.url",
+                    "uri", "url",
+                ):
+                    add(safe_get(att, path))
+        except Exception:
+            pass
+
+        for path in (
+            "search_entry_point.uri",
+            "search_entry_point.url",
+            "searchEntryPoint.uri",
+            "searchEntryPoint.url",
+            "search_entry_point.rendered_content_uri",
+            "searchEntryPoint.rendered_content_uri",
+        ):
+            add(safe_get(gm, path))
+
+    def scan_candidate(cand):
+        if cand is None:
+            return
+        scan_grounding(safe_get(cand, "grounding_metadata") or safe_get(cand, "groundingMetadata"))
+
+        cm = safe_get(cand, "citation_metadata") or safe_get(cand, "citationMetadata")
+        if cm:
+            arr = (
+                safe_get(cm, "citation_sources") or
+                safe_get(cm, "citationSources") or
+                safe_get(cm, "citations") or []
+            )
+            try:
+                for cit in arr or []:
+                    for path in ("uri", "url", "source.uri", "source.url", "web.uri", "web.url"):
+                        add(safe_get(cit, path))
+            except Exception:
+                pass
+
+        try:
+            parts = safe_get(cand, "content.parts") or []
+            for part in parts:
+                scan_grounding(safe_get(part, "grounding_metadata") or safe_get(part, "groundingMetadata"))
+                pcm = safe_get(part, "citation_metadata") or safe_get(part, "citationMetadata")
+                if pcm:
+                    arr = (
+                        safe_get(pcm, "citation_sources") or
+                        safe_get(pcm, "citationSources") or
+                        safe_get(pcm, "citations") or []
+                    )
+                    for cit in arr or []:
+                        for path in ("uri", "url", "source.uri", "source.url", "web.uri", "web.url"):
+                            add(safe_get(cit, path))
+        except Exception:
+            pass
+
+    # Newer Gemini Interactions-style text annotations expose direct URL
+    # citations instead of legacy groundingChunks. Keep this generic so the
+    # same extractor works when the Google backend evolves.
+    def scan_annotations(node):
+        annotations = safe_get(node, "annotations") or []
+        try:
+            for annotation in annotations or []:
+                if str(safe_get(annotation, "type") or "") in ("url_citation", "urlCitation", "url"):
+                    add(safe_get(annotation, "url") or safe_get(annotation, "uri"))
+        except Exception:
+            pass
+
+    output = safe_get(payload, "output") or []
+    try:
+        for item in output or []:
+            scan_annotations(item)
+            content = safe_get(item, "content") or []
+            for part in content or []:
+                scan_annotations(part)
+    except Exception:
+        pass
+    scan_annotations(payload)
+
+    # Full GenerateContentResponse.
+    candidates = safe_get(payload, "candidates") or []
+    if candidates:
+        for cand in candidates:
+            scan_candidate(cand)
+    else:
+        # LlamaIndex raw is usually top_candidate.model_dump(), not a full
+        # GenerateContentResponse, so treat the payload itself as a candidate.
+        scan_candidate(payload)
+
+    return urls
+
+
 def collect_google_citations(ctx, state, chunk: Any):
     """
     Collect web citations (URLs) from Google GenAI stream.
@@ -118,6 +260,14 @@ def collect_google_citations(ctx, state, chunk: Any):
             state.citations.append(url)
         if url not in ctx.urls:
             ctx.urls.append(url)
+
+    # Central extractor handles current groundingChunks plus newer annotation
+    # formats. Keep the legacy scans below as compatibility fallback.
+    try:
+        for url in extract_google_urls(chunk):
+            _add_url(url)
+    except Exception:
+        pass
 
     for cand in cands:
         gm = safe_get(cand, "grounding_metadata") or safe_get(cand, "groundingMetadata")
@@ -181,6 +331,11 @@ def collect_google_citations(ctx, state, chunk: Any):
                         _add_url(safe_get(att, path))
         except Exception:
             pass
+
+    # Cover modern grounding_chunks and keep this helper aligned with the
+    # Agents v2 Google adapter.
+    for url in extract_google_urls(chunk):
+        _add_url(url)
 
     if state.citations and (ctx.urls is None or not ctx.urls):
         ctx.urls = list(state.citations)

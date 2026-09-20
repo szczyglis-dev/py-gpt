@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.28 04:00:00                  #
+# Updated Date: 2026.09.14 10:15:00                  #
 # ================================================== #
 
 import os
@@ -35,6 +35,7 @@ class Profile:
         self.dialog_initialized = False
         self.before_theme = None
         self.before_language = None
+        self.switching = False
 
     def setup(self):
         """Setup profile"""
@@ -77,23 +78,47 @@ class Profile:
         if profile is None:
             self.window.ui.dialogs.alert("Profile not found!")
             return
-        self.window.update_status("Please wait...")
 
-        if save_current:
-            print("Saving all settings in current profile...")
-            self.window.controller.settings.save_all(force=True)
-        self.window.core.config.profile.set_current(uuid)
+        # Validate the target profile before saving/changing any current state.
+        # A stale profile may point to a workdir which was moved or deleted
+        # outside PyGPT; switching to it would otherwise leave the app on a
+        # partially loaded profile.
+        raw_path = profile.get('workdir', '') or ''
+        path = raw_path.replace("%HOME%", str(Path.home()))
+        path = os.path.expanduser(path)
+        if not path or not os.path.isdir(path):
+            self.window.ui.dialogs.alert(
+                trans("dialog.profile.alert.switch.workdir.not_exists").format(
+                    path=path or raw_path,
+                )
+            )
+            return
 
-        path = self.window.core.config.profile.get_current_workdir()
-        if path and os.path.exists(path):
+        # Keep the global status pinned for the whole switch. During reload
+        # several controllers emit/clear STATUS events; MainWindow.dispatch()
+        # replaces those transient messages while this flag is active.
+        self.switching = True
+        self.window.update_status(trans("dialog.profile.status.reloading"))
+
+        try:
+            if save_current:
+                print("Saving all settings in current profile...")
+                self.window.controller.settings.save_all(force=True)
+            self.window.core.config.profile.set_current(uuid)
+
             self.window.controller.settings.workdir.update(
                 path,
                 force=True,
                 profile_name=profile['name'],
                 is_create=is_create,
             )
-        else:
-            self.after_update(profile['name'])
+        finally:
+            # after_update() normally releases the status after the complete
+            # reload. This is only a safety net for an unexpected exception
+            # before that callback is reached.
+            if self.switching:
+                self.switching = False
+                self.window.update_status("")
 
     def after_update(
             self,
@@ -107,6 +132,7 @@ class Profile:
         self.update_menu()
         self.update_list()
         self.window.ui.update_title()
+        self.switching = False
         self.window.update_status(trans("dialog.profile.status.changed") + ": " + name)
         self.window.ui.dialogs.close('profile.item')
         self.select_current_on_list()

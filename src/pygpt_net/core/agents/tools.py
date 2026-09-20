@@ -20,7 +20,7 @@ from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.events import Event
+from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
 from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
@@ -40,10 +40,9 @@ class Tools:
         self.window = window
         self.cmd_blacklist = []
         self.verbose = False
-        self.code_execute_fn = CodeExecutor(window)
-        self.last_tool_output = None
         self.agent_idx = None  # agent index, used for query engine tool
         self.context = None  # BridgeContext instance, used for tool execution
+        self.computer_runtime = None  # shared provider-native Computer Use runtime
 
     def prepare(
             self,
@@ -107,7 +106,10 @@ class Tools:
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
             index = self.window.core.idx.storage.get(storage_idx, llm, embed_model)
             if index is not None:
-                query_engine = index.as_query_engine(similarity_top_k=3)
+                query_engine = index.as_query_engine(
+                    llm=llm,
+                    similarity_top_k=3,
+                )
                 tool = [
                     QueryEngineTool(
                         query_engine=query_engine,
@@ -179,12 +181,33 @@ class Tools:
                 description = item['desc']
                 schema = json.loads(item['params'])  # from JSON to dict
 
-                def make_func(name, description):
+                def make_func(name, description, tool_schema):
                     def func(**kwargs):
                         self.log(f"[Plugin] Tool call: {name} {kwargs}")
+                        call_args = dict(kwargs or {})
+                        for wrapper in ("params", "arguments"):
+                            wrapped = call_args.get(wrapper)
+                            if isinstance(wrapped, dict) and len(call_args) == 1:
+                                call_args = dict(wrapped)
+                                break
+
+                        required = list((tool_schema or {}).get("required") or [])
+                        missing = [
+                            key for key in required
+                            if key not in call_args or call_args.get(key) is None
+                        ]
+                        if missing:
+                            return json.dumps({
+                                "error": "Missing required tool parameter(s).",
+                                "tool": name,
+                                "missing": missing,
+                                "required": required,
+                                "received": sorted(call_args.keys()),
+                            }, ensure_ascii=False)
+
                         cmd = {
                             "cmd": name,
-                            "params": kwargs,
+                            "params": call_args,
                         }
                         response = self.window.controller.plugins.apply_cmds_all(
                             ctx,  # current ctx
@@ -196,12 +219,12 @@ class Tools:
                     func.__doc__ = description
                     return func
 
-                func = make_func(name, description)
+                func = make_func(name, description, schema)
                 metadata = PluginToolMetadata(
                     name=name,
                     description=description,
+                    schema=schema,
                 )
-                metadata.schema = schema
                 tool = FunctionTool(
                     fn=func,
                     metadata=metadata,
@@ -408,7 +431,10 @@ class Tools:
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=self.context.model)
             index = self.window.core.idx.storage.get(storage_idx, llm, embed_model)
             if index is not None:
-                query_engine = index.as_query_engine(similarity_top_k=3)
+                query_engine = index.as_query_engine(
+                    llm=llm,
+                    similarity_top_k=3,
+                )
                 response = query_engine.query(params["query"])
                 print(f"[Plugin] Query engine response: {response}")
                 self.log(f"[Plugin] Query engine response: {response}")
@@ -453,67 +479,6 @@ class Tools:
             data.append(item)
         return data
 
-    def get_last_tool_output(self) -> dict:
-        """
-        Get last tool output
-
-        :return: last tool output
-        """
-        if self.last_tool_output is None:
-            return {}
-        return self.last_tool_output
-
-    def has_last_tool_output(self) -> bool:
-        """
-        Check if there is a last tool output
-
-        :return: True if last tool output exists, False otherwise
-        """
-        return self.last_tool_output is not None
-
-    def clear_last_tool_output(self):
-        """Clear last tool output"""
-        self.last_tool_output = None
-
-    def append_tool_outputs(self, ctx: CtxItem, clear: bool = True):
-        """
-        Append tool outputs to context
-
-        :param ctx: CtxItem
-        :param clear: clear last tool output after appending
-        """
-        if self.has_last_tool_output():
-            outputs = [self.get_last_tool_output()]
-            ctx.extra["tool_output"] = outputs
-            if outputs is not None:
-                response = ""
-                for output in outputs:
-                    if ("code" in output and "output" in output["code"] and
-                            "content" in output["code"]["output"]):
-                        response += str(output["code"]["output"]["content"])
-                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
-            if clear:
-                self.clear_last_tool_output()  # clear after use
-
-    def extract_tool_outputs(self, ctx: CtxItem, clear: bool = True):
-        """
-        Append tool outputs to context
-
-        :param ctx: CtxItem
-        :param clear: clear last tool output after appending
-        """
-        if self.has_last_tool_output():
-            outputs = [self.get_last_tool_output()]
-            if outputs is not None:
-                response = ""
-                for output in outputs:
-                    if ("code" in output and "output" in output["code"] and
-                            "content" in output["code"]["output"]):
-                        response += str(output["code"]["output"]["content"])
-                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
-            if clear:
-                self.clear_last_tool_output()  # clear after use
-
     def set_idx(self, agent_idx: str):
         """
         Set agent index for query engine tool
@@ -530,6 +495,10 @@ class Tools:
         """
         self.context = context
 
+    def set_computer_runtime(self, runtime):
+        """Set shared provider-native Computer Use runtime for legacy agents."""
+        self.computer_runtime = runtime
+
     def log(self, msg: str):
         """
         Log message
@@ -540,131 +509,7 @@ class Tools:
             print(msg)
             self.window.core.debug.add(msg)
 
-class PluginToolMetadata(ToolMetadata):
-    def __init__(self, name: str, description: str):
-        super().__init__(name=name, description=description)
-        self.schema = None
+class PluginToolMetadata(JsonSchemaToolMetadata):
+    """Legacy/Chat-with-Files plugin metadata using the real plugin JSON schema."""
 
-    def get_parameters_dict(self) -> Dict[str, Any]:
-        """
-        Get parameters dictionary
-
-        :return: parameters
-        """
-        parameters = {
-            k: v
-            for k, v in self.schema.items()
-            if k in ["type", "properties", "required", "definitions"]
-        }
-        return parameters
-
-class CodeExecutor:
-    """Code executor for codeAct agent"""
-
-    def __init__(self, window = None):
-        """
-        Initialize the code executor.
-
-        :param window: Window instance
-        """
-        self.window = window
-
-    def execute(self, code: str) -> str:
-        """
-        Execute Python code and capture output and return values.
-
-        :param code: Python code to execute
-        :return: Output from the code execution
-        """
-        if not self.window.core.command.is_cmd():
-            return "Tool execution is not enabled. Abort execution and ask user for tool enable."
-
-        self.window.core.agents.tools.last_tool_output = None
-        if code == "/restart":
-            commands = [
-                {
-                    "cmd": "ipython_kernel_restart",
-                    "params": {},
-                    "silent": True,
-                    "force": True,
-                }
-            ]
-        else:
-            commands = [
-                {
-                    "cmd": "ipython_execute",
-                    "params": {
-                        "code": code,
-                        "path": ".interpreter.current.py",
-                    },
-                    "silent": True,
-                    "force": True,
-                }
-            ]
-        event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
-            'silent': True,
-        })
-        event.ctx = CtxItem()  # tmp
-        event.ctx.async_disabled = True  # disable async for this event
-        self.window.controller.command.dispatch_only(event)
-
-        # if restart command was executed, return success message
-        if code == "/restart":
-            return "IPython kernel restarted successfully."
-
-        response = event.ctx.bag  # tmp response
-        output = ""
-        has_code_output = False
-
-        # Store rich interpreter output when the command returned the normal
-        # response shape.  Empty content is valid (successful code with no
-        # stdout), so keep it empty and let CodeAct treat it as such.
-        if isinstance(response, dict) and "code" in response:
-            code_data = response.get("code") or {}
-            output_data = code_data.get("output") or {}
-            if "content" in output_data:
-                has_code_output = True
-                output = output_data.get("content")
-                if output is None:
-                    output = ""
-                else:
-                    output = str(output)
-
-                input_data = code_data.get("input") or {}
-                tool_output = {
-                    "cmd": "ipython_execute",
-                    "code": {
-                        "input": {
-                            "content": str(input_data.get("content", code)),
-                            "lang": "python"
-                        },
-                        "output": {
-                            "content": output,
-                            "lang": "python"
-                        }
-                    },
-                    "plugin": response.get("plugin", "cmd_code_interpreter"),
-                    "result": response.get("result")
-                }
-                self.window.core.agents.tools.last_tool_output = tool_output
-
-        if has_code_output:
-            return output
-
-        # The old implementation silently returned an empty string whenever the
-        # plugin used an error/non-standard response shape.  Propagate the actual
-        # result so the agent can reason about the failure and the UI can show it.
-        if isinstance(response, dict):
-            result = response.get("result")
-            if isinstance(result, dict):
-                result = result.get("result", result.get("context"))
-            if result is not None and str(result).strip():
-                return str(result)
-            context = response.get("context")
-            if context is not None and str(context).strip():
-                return str(context)
-        elif response is not None and str(response).strip():
-            return str(response)
-
-        return "Code execution failed: no result was returned by the interpreter."
+    pass

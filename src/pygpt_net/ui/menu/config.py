@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
-
-import os
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
@@ -41,7 +39,6 @@ class Config:
         icon_access = QIcon(":/icons/accessibility.svg")
         icon_reload = QIcon(":/icons/reload.svg")
         icon_edit = QIcon(":/icons/edit.svg")
-        icon_undo = QIcon(":/icons/undo.svg")
         icon_add = QIcon(":/icons/add.svg")
         icon_folder = QIcon(":/icons/folder_filled.svg")
         icon_save = QIcon(":/icons/save.svg")
@@ -50,6 +47,32 @@ class Config:
         m['config.settings'].setMenuRole(QAction.MenuRole.NoRole)
 
         m['config.models'] = QMenu(tr("menu.config.models"), w)
+        m['config.agents'] = QAction(icon_settings, tr("menu.config.agents"), w)
+        m['config.agents'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.agents'].triggered.connect(
+            lambda: w.controller.agents_v2.editor.toggle_editor()
+        )
+
+        m['config.mcp'] = QMenu(tr("menu.config.mcp"), w)
+        m['config.mcp.connectors'] = QAction(icon_settings, tr("menu.config.mcp.connectors"), w)
+        m['config.mcp.connectors'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.mcp.connectors'].triggered.connect(
+            lambda: w.controller.connectors.open(False)
+        )
+        m['config.mcp.enabled'] = QAction(tr("menu.config.mcp.enabled"), w, checkable=True)
+        m['config.mcp.enabled'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.mcp.enabled'].triggered.connect(
+            lambda _checked=False: w.controller.plugins.toggle('mcp')
+        )
+        m['config.mcp.settings'] = QAction(icon_settings, tr("menu.config.mcp.settings"), w)
+        m['config.mcp.settings'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.mcp.settings'].triggered.connect(
+            lambda: w.controller.plugins.settings.open_plugin('mcp')
+        )
+        m['config.mcp'].addAction(m['config.mcp.connectors'])
+        m['config.mcp'].addAction(m['config.mcp.settings'])
+        m['config.mcp'].addSeparator()
+        m['config.mcp'].addAction(m['config.mcp.enabled'])
 
         m['config.access'] = QAction(icon_access, tr("menu.config.access"), w)
         m['config.access'].setMenuRole(QAction.MenuRole.NoRole)
@@ -65,48 +88,6 @@ class Config:
 
         m['config.models'].addAction(m['config.models.edit'])
         m['config.models'].addAction(m['config.models.import.provider'])
-
-        css_dir = os.path.join(w.core.config.path, 'css')
-        css_files = sorted(f for f in os.listdir(css_dir) if not f.endswith('.backup'))
-
-        json_files = (
-            "attachments.json",
-            "assistants.json",
-            "config.json",
-            "models.json",
-            "plugin_presets.json",
-        )
-
-        m['config.edit.css'] = QMenu(tr("menu.config.edit.css"), w)
-        css_menu = m['config.edit.css']
-
-        for css_file in css_files:
-            name = os.path.basename(css_file)
-            key = 'config.edit.css.' + name
-            m[key] = QAction(icon_edit, name, w)
-            m[key].triggered.connect(
-                lambda checked=True, file=css_file: w.controller.settings.toggle_file_editor(file)
-            )
-            css_menu.addAction(m[key])
-
-        css_menu.addSeparator()
-        m['config.edit.css.restore'] = QAction(icon_undo, tr('menu.config.edit.css.restore'), w)
-        m['config.edit.css.restore'].triggered.connect(
-            lambda checked=True: w.controller.layout.restore_default_css(force=False)
-        )
-        css_menu.addAction(m['config.edit.css.restore'])
-
-        m['config.edit.json'] = QMenu(tr("menu.config.edit.json"), w)
-        json_menu = m['config.edit.json']
-
-        for json_file in json_files:
-            name = json_file
-            key = 'config.edit.json.' + name
-            m[key] = QAction(icon_edit, name, w)
-            m[key].triggered.connect(
-                lambda checked=True, file=json_file: w.controller.settings.toggle_file_editor(file)
-            )
-            json_menu.addAction(m[key])
 
         m['config.profiles'] = {}
         m['config.profile'] = QMenu(tr("menu.config.profile"), w)
@@ -153,11 +134,11 @@ class Config:
         menu = m['menu.config']
         menu.addAction(m['config.settings'])
         menu.addMenu(m['config.models'])
+        menu.addAction(m['config.agents'])
+        menu.addMenu(m['config.mcp'])
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])
-        menu.addMenu(m['config.edit.css'])
-        menu.addMenu(m['config.edit.json'])
         menu.addMenu(m['config.profile'])
         menu.addAction(m['config.open_dir'])
         menu.addAction(m['config.change_dir'])

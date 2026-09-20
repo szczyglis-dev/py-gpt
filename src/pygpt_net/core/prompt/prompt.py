@@ -78,7 +78,7 @@ class Prompt:
 
             # abort if native func call enabled
             if self.window.core.command.is_native_enabled():
-                return prompt
+                return self.window.core.security.append_prompt_injection_guard(prompt, ensure_last=True)
 
             # abort if model not supported
             # if not self.window.core.command.is_model_supports_tools(mode, model):
@@ -116,7 +116,7 @@ class Prompt:
                         model=model,
                     )
 
-        return prompt
+        return self.window.core.security.append_prompt_injection_guard(prompt, ensure_last=True)
 
     def prepare_sys_prompt(
             self,
@@ -170,19 +170,30 @@ class Prompt:
         self.window.dispatch(event)
         sys_prompt = event.data['value']
 
+        # Advanced context handling is a core continuity layer, independent of
+        # whether the optional Memory plugin is enabled. It attaches compact
+        # per-conversation notes produced by older checkpointed turns.
+        sys_prompt = self.window.core.context_manager.prepare_system_prompt(
+            sys_prompt,
+            ctx=ctx,
+            mode=mode,
+            model=model,
+            internal=internal,
+        )
+
+        # Experts are executed by LlamaIndex FunctionAgent/ReActAgent through the
+        # Agents v2 runtime. Their tool schemas are owned by that runtime, so never
+        # append the legacy PyGPT <tool> command syntax to an Expert system prompt.
+        if is_expert:
+            return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True)
+
         force_native_tools = False
         force_syntax_tools = False
-
-        # always enable native tool calls from experts if agent used
-        if is_expert:
-            if self.window.core.config.get('experts.use_agent', False):
-                force_syntax_tools = False
-                force_native_tools = True
 
         # event: tools syntax apply (if tools enabled or inline plugin then append tools prompt)
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
             if self.window.core.command.is_native_enabled(force=force_native_tools) and not force_syntax_tools:
-                return sys_prompt  # abort syntax if native func calls enabled
+                return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True)  # abort syntax if native func calls enabled
 
             data = {
                 'mode': mode,
@@ -214,4 +225,4 @@ class Prompt:
                         model=model,
                     )
 
-        return sys_prompt
+        return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True)

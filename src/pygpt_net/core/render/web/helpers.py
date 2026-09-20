@@ -16,6 +16,7 @@ import html
 class Helpers:
 
     _RE_HTML_ANGLE_OR_MATH = re.compile(r'(\\\[.*?\\\])|(<)|(>)', flags=re.DOTALL)
+    _RE_SANDBOX_TOKEN = re.compile(r'\(sandbox:([^)]+)\)', flags=re.IGNORECASE)
     _RE_WORKDIR_TOKEN = re.compile(r'\(%workdir%([^)]+)\)')
     _RE_APPDIR_TOKEN = re.compile(r'\(%appdir%([^)]+)\)')
 
@@ -35,6 +36,15 @@ class Helpers:
         :param window: Window instance
         """
         self.window = window
+
+    def is_tool_hidden(self, name: str) -> bool:
+        """Return True when a tool is excluded from the conversation surface."""
+        if not name:
+            return False
+        try:
+            return bool(self.window.core.command.is_tool_hidden(str(name)))
+        except Exception:
+            return False
 
     def _html_escape_keep_math(self, m: re.Match) -> str:
         """
@@ -94,10 +104,65 @@ class Helpers:
                     request = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
             except Exception:
                 pass
+            if self.is_tool_hidden(name):
+                continue
             calls.append({
                 "name": name or "tool",
                 "request": request,
             })
+        return calls
+
+    def extract_extra_tool_calls(self, tool_calls) -> list:
+        """Normalize persisted API-shaped tool calls for the WebView renderer.
+
+        Agents v2 stores these calls in ``ctx.extra["tool_calls"]`` without
+        injecting <tool> tags into the assistant answer, so they remain display
+        metadata and can never be mistaken for commands to execute again.
+        """
+        if not isinstance(tool_calls, list):
+            return []
+
+        calls = []
+        for tool_call in tool_calls:
+            if not isinstance(tool_call, dict):
+                continue
+            function = tool_call.get("function")
+            if not isinstance(function, dict):
+                continue
+            name = str(function.get("name") or "").strip()
+            if not name:
+                continue
+            if self.is_tool_hidden(name):
+                continue
+            arguments = function.get("arguments", {})
+            if isinstance(arguments, str):
+                try:
+                    arguments = json.loads(arguments)
+                except Exception:
+                    pass
+            request = {
+                "cmd": name,
+                "params": arguments,
+            }
+            item = {
+                "name": name,
+                "request": json.dumps(request, ensure_ascii=False, separators=(",", ":"), default=str),
+            }
+            # Agents v2 stores each executed response next to its originating call.
+            # Keep the key absent for unfinished/cancelled calls so the frontend can
+            # distinguish "no response yet" from a valid empty response.
+            if "agents_v2_response" in tool_call:
+                response = tool_call.get("agents_v2_response")
+                if isinstance(response, str):
+                    item["response"] = response
+                else:
+                    item["response"] = json.dumps(
+                        response,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                        default=str,
+                    )
+            calls.append(item)
         return calls
 
     def strip_tool_calls(self, text: str) -> str:
@@ -194,7 +259,7 @@ class Helpers:
 
         return s
 
-    def pre_format_text(self, text: str) -> str:
+    def pre_format_text(self, text: str, ctx=None) -> str:
         """
         Pre-format text
 
@@ -221,10 +286,17 @@ class Helpers:
         s = self.replace_execute_tags(s)
 
         # replace local path tokens with valid, encoded file URLs
+        if "sandbox:" in s.lower():
+            fs = self.window.core.filesystem
+            s = self._RE_SANDBOX_TOKEN.sub(
+                lambda m: f'({fs.get_local_url("sandbox:" + m.group(1), ctx=ctx)})',
+                s,
+            )
+
         if "%workdir%" in s:
             fs = self.window.core.filesystem
             s = self._RE_WORKDIR_TOKEN.sub(
-                lambda m: f'({fs.get_local_url("%workdir%" + m.group(1))})',
+                lambda m: f'({fs.get_local_url("%workdir%" + m.group(1), ctx=ctx)})',
                 s,
             )
 

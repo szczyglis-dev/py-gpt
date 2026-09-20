@@ -430,14 +430,12 @@ class Presets:
             cfg.set('user_name', preset.user_name)
             cfg.set('ai_name', preset.ai_name)
             cfg.set('prompt', preset.prompt)
-            cfg.set('temperature', preset.temperature)
             cfg.set('agent.llama.provider', preset.agent_provider)
             cfg.set('agent.openai.provider', preset.agent_provider_openai)
             cfg.set('agent.llama.idx', preset.idx)
             return
         cfg.set('user_name', None)
         cfg.set('ai_name', None)
-        cfg.set('temperature', 1.0)
         if mode == MODE_CHAT:
             cfg.set('prompt', w.core.prompt.get('default'))
         else:
@@ -476,16 +474,19 @@ class Presets:
         preset_id = cfg.get('preset')
         if not preset_id or preset_id not in w.core.presets.items:
             return
+        if not bool(cfg.get('model.restore_from_ctx', False)):
+            return
         preset = w.core.presets.items[preset_id]
         model = preset.model
         if not model or model == "_":
             return
         models = w.core.models
-        if models.has(model) and models.is_allowed(model, mode):
-            if cfg.get('model') == model:
+        resolved = models.resolve_model_key(mode, model)
+        if resolved is not None:
+            if cfg.get('model') == resolved:
                 return
-            cfg.set('model', model)
-            w.controller.model.set(mode, model)
+            cfg.set('model', resolved)
+            w.controller.model.set(mode, resolved)
             w.controller.model.init_list()
             w.controller.model.select_current()
 
@@ -505,7 +506,6 @@ class Presets:
         self.select_default()
         self.update_current()
         self.update_data()
-        w.controller.mode.update_temperature()
         self.update_list()
         self.select_current()
         if no_scroll:
@@ -614,16 +614,14 @@ class Presets:
         w.core.config.set('prompt', "")
         w.core.config.set('ai_name', "")
         w.core.config.set('user_name', "")
-        w.core.config.set('temperature', 1.0)
+        mode = w.core.config.get('mode')
         if preset and preset in w.core.presets.items:
             p = w.core.presets.items[preset]
             p.ai_name = ""
             p.user_name = ""
             p.prompt = ""
-            p.temperature = 1.0
             self.refresh()
         w.update_status(trans('status.preset.cleared'))
-        mode = w.core.config.get('mode')
         if mode == MODE_ASSISTANT:
             w.core.assistants.load()
             w.core.remote_store.openai.load_all()

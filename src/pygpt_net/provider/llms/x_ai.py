@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 20:00:00                  #
+# Updated Date: 2026.09.10 12:48:00
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -62,54 +62,159 @@ class xAILLM(BaseLLM):
         """
         pass
 
-    def llama(
+    def llama_completion(
             self,
             window,
             model: ModelItem,
             stream: bool = False
     ) -> LlamaBaseLLM:
+        """Return LlamaIndex completion provider without server-side chat tools."""
+        return self.llama(
+            window=window,
+            model=model,
+            stream=stream,
+            remote_tools=False,
+        )
+
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            remote_tools: bool = True
+    ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return xAI LLM for the regular LlamaIndex / Chat with files path.
+
+        xAI deprecated Live Search ``search_parameters`` on Chat Completions.
+        When provider-native remote tools are enabled, use the
+        OpenAI-compatible Responses API and xAI Agent Tools instead.
 
         :param window: window instance
         :param model: model instance
         :param stream: stream mode
+        :param remote_tools: allow provider-native remote tools
         :return: LLM provider instance
         """
+        if remote_tools:
+            try:
+                remote_cfg = window.core.api.xai.remote.build_for_responses(model=model) or {}
+            except Exception as e:
+                window.core.debug.log(e)
+                remote_cfg = {}
+
+            if remote_cfg.get("tools"):
+                return self._llama_responses(
+                    window=window,
+                    model=model,
+                    remote_cfg=remote_cfg,
+                )
+
         from llama_index.llms.openai_like import OpenAILike
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = window.core.config.get("api_key_xai", "")
-        if "api_base" not in args or args["api_base"] == "":
-            args["api_base"] = window.core.config.get("api_endpoint_xai", "https://api.x.ai/v1")
+
+        args = self.prepare_openai_compatible_args(window, model)
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
+        return OpenAILike(**args)
+
+    def _llama_responses(
+            self,
+            window,
+            model: ModelItem,
+            remote_cfg: Dict,
+    ) -> LlamaBaseLLM:
+        """Build an xAI Responses/Agent Tools LlamaIndex adapter."""
+        from pygpt_net.provider.llms.x_ai_responses_agent import AgentXAIResponses
+
+        args = self.prepare_openai_compatible_args(window, model)
+
+        # Grok 3 does not support the current server-side Agent Tools. Mirror
+        # normal xAI Chat and Agents v2 by switching to the configured fallback.
+        if str(args["model"] or "").lower().startswith("grok-3"):
+            args["model"] = window.core.config.get("xai_tools_fallback_model") or "grok-4.5-latest"
+
+        # OpenAILike/Chat Completions and OpenAIResponses use different names
+        # for the output-token limit and different capability-only arguments.
+        if "max_tokens" in args and "max_output_tokens" not in args:
+            args["max_output_tokens"] = args.pop("max_tokens")
+        args.pop("is_chat_model", None)
+        args.pop("is_function_calling_model", None)
         args = self.inject_llamaindex_http_clients(args, window.core.config)
 
-        # -----------------------------------------------------------
-        # xAI Live Search via search_parameters (Chat Completions)
-        # LlamaIndex OpenAILike supports 'additional_kwargs' passed to request body.
-        # -----------------------------------------------------------
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning"] = {"effort": reasoning_effort}
+            args["additional_kwargs"] = additional_kwargs
+
+        args["built_in_tools"] = list(remote_cfg.get("tools") or [])
+        include = list(remote_cfg.get("include") or [])
+        if include:
+            current = args.get("include")
+            if isinstance(current, list):
+                include = [*current, *include]
+            elif current:
+                include = [current, *include]
+            args["include"] = list(dict.fromkeys(include))
+
+        ctx_size = int(getattr(model, "ctx", 0) or 0)
+        if ctx_size > 0 and "context_window" not in args:
+            args["context_window"] = ctx_size
+
+        self.log_llama_create(window, model, args, "AgentXAIResponses")
+        return AgentXAIResponses(**args)
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """Return xAI LLM for Agents v2.
+
+        xAI removed Live Search ``search_parameters`` from Chat Completions.
+        When provider-native Agent Tools are enabled, use xAI's
+        OpenAI-compatible Responses API instead. Local FunctionAgent tools are
+        merged by LlamaIndex with the server-side xAI tool descriptors.
+        """
+        if not allow_remote_tools:
+            return self.llama(
+                window=window,
+                model=model,
+                stream=stream,
+                remote_tools=False,
+            )
+
         try:
-            xai_remote = window.core.api.xai.remote.build(model=model) or {}
+            remote_cfg = window.core.api.xai.remote.build_for_responses(model=model) or {}
         except Exception as e:
             window.core.debug.log(e)
-            xai_remote = {}
+            remote_cfg = {}
 
-        search_http = xai_remote.get("http")
-        if search_http:
-            add_kwargs = dict(args.get("additional_kwargs") or {})
-            extra_body = dict(add_kwargs.get("extra_body") or {})
-            # Do not overwrite if user already set search_parameters manually
-            extra_body.setdefault("search_parameters", search_http)
-            add_kwargs["extra_body"] = extra_body
-            args["additional_kwargs"] = add_kwargs
+        built_tools = remote_cfg.get("tools") or []
+        if not built_tools:
+            return self.llama(
+                window=window,
+                model=model,
+                stream=stream,
+                remote_tools=False,
+            )
 
-        return OpenAILike(**args)
+        return self._llama_responses(
+            window=window,
+            model=model,
+            remote_cfg=remote_cfg,
+        )
 
     def llama_multimodal(
             self,
@@ -143,29 +248,17 @@ class xAILLM(BaseLLM):
 
         cfg = window.core.config
 
-        args: Dict = {}
-        if config is not None:
-            args = self.parse_args({"args": config}, window)
-
-        if "api_key" not in args or not args["api_key"]:
-            args["api_key"] = cfg.get("api_key_xai", "")
-
-        if "model" in args and "model_name" not in args:
-            args["model_name"] = args.pop("model")
-
-        # if OpenAI-compatible
-        if "api_base" not in args or not args["api_base"]:
-            args["api_base"] = cfg.get("api_endpoint_xai", "https://api.x.ai/v1")
+        args = self.prepare_openai_compatible_embedding_args(window, config)
 
         proxy = cfg.get("api_proxy") or cfg.get("api_native_xai.proxy")
         if not cfg.get("api_proxy.enabled", False):
             proxy = ""
-        timeout = cfg.get("api_native_xai.timeout")
+        timeout = self.get_embeddings_timeout(cfg)
 
         # 1) REST (OpenAI-compatible)
         try_args = dict(args)
         try:
-            try_args = self.inject_llamaindex_http_clients(try_args, cfg)
+            try_args = self.inject_llamaindex_embedding_http_clients(try_args, cfg)
             return BaseXAIEmbedding(**try_args)
         except TypeError:
             # goto gRPC
@@ -207,24 +300,3 @@ class xAILLM(BaseLLM):
                             break
 
         return XAIEmbeddingWithProxy(**args, injected_client=xai_client)
-
-    def get_models(
-            self,
-            window,
-    ) -> List[Dict]:
-        """
-        Return list of models for the provider
-
-        :param window: window instance
-        :return: list of models
-        """
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items

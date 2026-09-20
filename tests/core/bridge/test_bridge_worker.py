@@ -43,6 +43,12 @@ class ContextObj:
         self.history = []
 
 
+def _security():
+    return SimpleNamespace(
+        append_prompt_injection_guard=Mock(side_effect=lambda prompt, ensure_last=True: prompt),
+    )
+
+
 class AttachmentStub:
     def __init__(self, has_context=True, context_value="", mode_value="query"):
         self._has = has_context
@@ -55,6 +61,12 @@ class AttachmentStub:
         return self._context
     def get_mode(self):
         return self._mode
+    def is_initial_turn(self, ctx, history):
+        return False
+    def include_project_attachments_in_current(self, meta):
+        pass
+    def bind_current_to_ctx(self, ctx, include_project=False):
+        pass
 
 
 def test_init_defaults():
@@ -92,7 +104,7 @@ def test_handle_post_prompt_async_and_end():
 
 def test_handle_additional_context_no_ctx():
     worker = BridgeWorker()
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=AttachmentStub())))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=AttachmentStub())))
     ctx = ContextObj()
     ctx.ctx = None
     ctx.prompt = "p"
@@ -104,7 +116,7 @@ def test_handle_additional_context_no_ctx():
 def test_handle_additional_context_meta_none():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="CTX", mode_value="query")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = None
     ctx.prompt = "p"
@@ -117,7 +129,7 @@ def test_handle_additional_context_meta_none():
 def test_handle_additional_context_has_no_context():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=False)
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -130,7 +142,7 @@ def test_handle_additional_context_has_no_context():
 def test_handle_additional_context_empty_ad_context():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="", mode_value="query")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -143,7 +155,7 @@ def test_handle_additional_context_empty_ad_context():
 def test_handle_additional_context_query_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="query")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -156,7 +168,7 @@ def test_handle_additional_context_query_mode_sets_hidden_input():
 def test_handle_additional_context_agent_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -170,7 +182,7 @@ def test_handle_additional_context_agent_mode_sets_hidden_input():
 def test_handle_additional_context_full_mode_no_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock()), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -197,7 +209,10 @@ def test_cleanup_disconnect_and_reset():
 def test_run_langchain_emits_failed():
     worker = BridgeWorker()
     worker.mode = MODE_LANGCHAIN
-    worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock())))
+    worker.window = SimpleNamespace(core=SimpleNamespace(
+        debug=SimpleNamespace(info=Mock()),
+        security=_security(),
+    ))
     worker.context = ContextObj()
     worker.extra = {}
     mock_response = Mock()
@@ -217,6 +232,7 @@ def test_run_llama_index_emits_ok():
     worker = BridgeWorker()
     worker.mode = MODE_LLAMA_INDEX
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                       idx=SimpleNamespace(chat=SimpleNamespace(call=Mock(return_value=True)))))
     worker.context = ContextObj()
     worker.extra = {}
@@ -238,6 +254,7 @@ def test_run_agent_runner_true_no_emit():
     worker.mode = MODE_AGENT_LLAMA
     runner = SimpleNamespace(call=Mock(return_value=True), get_error=Mock(return_value="err"))
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                         agents=SimpleNamespace(runner=runner)))
     worker.context = ContextObj()
     worker.extra = {}
@@ -257,6 +274,7 @@ def test_run_agent_runner_false_emits_error():
     worker.mode = MODE_AGENT_OPENAI
     runner = SimpleNamespace(call=Mock(return_value=False), get_error=Mock(return_value="agent error"))
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                         agents=SimpleNamespace(runner=runner)))
     worker.context = ContextObj()
     worker.extra = {}
@@ -280,6 +298,7 @@ def test_run_loop_next_true_no_emit():
     loop = SimpleNamespace(run_next=Mock(return_value=True))
     runner = SimpleNamespace(loop=loop, get_error=Mock(return_value="err"))
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                         agents=SimpleNamespace(runner=runner)))
     worker.context = ContextObj()
     worker.extra = {}
@@ -299,6 +318,7 @@ def test_run_gpt_call_exception_emits_failed():
     def raise_err(context, extra):
         raise ValueError("boom")
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                       api=SimpleNamespace(openai=SimpleNamespace(call=raise_err))))
     worker.context = ContextObj()
     worker.extra = {}
@@ -319,6 +339,7 @@ def test_run_gpt_call_result_emits_ok_or_error():
     worker = BridgeWorker()
     worker.mode = "other"
     worker.window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(info=Mock()),
+                                                      security=_security(),
                                                       api=SimpleNamespace(openai=SimpleNamespace(call=Mock(return_value=False)))))
     worker.context = ContextObj()
     worker.extra = {}

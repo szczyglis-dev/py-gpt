@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.09.08 11:45:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -38,6 +38,7 @@ class Tab:
     data_id: Optional[str] = None
     new_idx: Optional[int] = None
     custom_name: Optional[bool] = False
+    title_source: Optional[str] = None
     child: Optional[Any] = None
     parent: Optional[Any] = None
     column_idx: Optional[int] = 0
@@ -61,6 +62,7 @@ class Tab:
             data_id: Optional[str] = None,
             new_idx: Optional[int] = None,
             custom_name: Optional[bool] = False,
+            title_source: Optional[str] = None,
             child: Optional[Any] = None,
             parent: Optional[Any] = None,
             column_idx: Optional[int] = 0,
@@ -80,6 +82,7 @@ class Tab:
         :param data_id: Data identifier for the tab content (meta_id, notepad_id, etc.)
         :param new_idx: New index for the tab, used when reordering
         :param custom_name: True if tab has custom name, False otherwise
+        :param title_source: Title origin: default, context, custom, or None for legacy data
         :param child: Child widget (TabBody)
         :param parent: Parent output column (OutputColumn)
         :param column_idx: Index of the column this tab belongs to
@@ -96,6 +99,7 @@ class Tab:
         self.data_id = data_id
         self.new_idx = new_idx
         self.custom_name = custom_name
+        self.title_source = title_source
         self.child = child  # TabBody
         self.parent = parent # OutputColumn
         self.column_idx = column_idx  # index of the column this tab belongs to
@@ -198,6 +202,7 @@ class Tab:
             "data_id": self.data_id,
             "parent": str(self.parent),  # parent column
             "custom_name": self.custom_name,
+            "title_source": self.title_source,
             "custom_idx": self.new_idx,
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at),

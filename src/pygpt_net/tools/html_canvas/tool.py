@@ -16,6 +16,7 @@ from PySide6.QtCore import QTimer, Slot
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog, QWidget
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
 from pygpt_net.tools.base import BaseTool, TabWidget
@@ -127,8 +128,8 @@ class HtmlCanvas(BaseTool):
         with open(path, "w", encoding="utf-8") as f:
             f.write(output)
         if os.path.exists(path):
-            self.signals.reload.emit(path)
-        self.signals.update.emit(output)
+            safe_emit(self.signals, "reload", path)
+        safe_emit(self.signals, "update", output)
 
     def set_url(self, url: str):
         """
@@ -136,7 +137,7 @@ class HtmlCanvas(BaseTool):
 
         :param url: URL to load
         """
-        self.signals.url.emit(url)
+        safe_emit(self.signals, "url", url)
 
     def reload_output(self):
         """Reload output data"""

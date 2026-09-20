@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:55:00                  #
+# Updated Date: 2026.09.06 14:15:00                  #
 # ================================================== #
 
 import platform
+
+from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
@@ -29,6 +31,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_system"
+        self.is_common_plugin = True
         self.name = "System"
         self.description = "Provides integration with OS"
         self.prefix = "OS"
@@ -110,7 +113,7 @@ class Plugin(BasePlugin):
         silent = data.get("silent", False)
 
         if name == Event.CMD_SYNTAX:
-            self.cmd_syntax(data)
+            self.cmd_syntax(data, ctx=ctx)
 
         elif name == Event.CMD_EXECUTE:
             self.cmd(
@@ -121,9 +124,12 @@ class Plugin(BasePlugin):
 
         elif name == Event.TOOL_OUTPUT_RENDER:
             if data['tool'] == self.id:
-                data['html'] = self.output.handle(ctx, data['content'])
+                # Input/output is already represented by the tool-chain and,
+                # when enabled, forwarded to the interpreter view. Do not
+                # duplicate the same payload in the message footer.
+                data['html'] = ''
 
-    def cmd_syntax(self, data: dict):
+    def cmd_syntax(self, data: dict, ctx: CtxItem = None):
         """
         Event: CMD_SYNTAX
 
@@ -131,7 +137,7 @@ class Plugin(BasePlugin):
         """
         # get current working directory
         os_name = self.window.core.platforms.get_as_string(env_suffix=False)
-        cwd = self.window.core.config.get_user_dir('data')
+        cwd = self.window.core.filesystem.get_data_dir(ctx=ctx)
         is_windows = (platform.system() == "Windows")
         winapi_enabled = self.get_option_value("winapi_enabled")
 
@@ -219,6 +225,9 @@ class Plugin(BasePlugin):
             worker.ctx = ctx
 
             # connect signals
+            worker.signals.output.connect(self.handle_interpreter_output)
+            worker.signals.output_begin.connect(self.handle_interpreter_output_begin)
+            worker.signals.output_end.connect(self.handle_interpreter_output_end)
             self.runner.attach_signals(worker.signals)
 
             if not self.is_async(ctx) and not force:
@@ -228,3 +237,25 @@ class Plugin(BasePlugin):
 
         except Exception as e:
             self.error(e)
+
+    @Slot(object, str)
+    def handle_interpreter_output(self, data, type: str):
+        """Forward sys_exec output to the Python interpreter window when enabled."""
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").append_output(data, type)
+
+    @Slot(str)
+    def handle_interpreter_output_begin(self, type: str):
+        """Begin a forwarded sys_exec output block when enabled."""
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").output_begin(type)
+
+    @Slot(str)
+    def handle_interpreter_output_end(self, type: str):
+        """End a forwarded sys_exec output block when enabled."""
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").output_end(type)
+

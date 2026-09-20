@@ -1,0 +1,555 @@
+{
+  "version": 1,
+  "connectors": [
+    {
+      "name": "context7",
+      "display_name": "Context7",
+      "description": "Up-to-date library documentation and code examples through MCP.",
+      "publisher": "Upstash",
+      "homepage": "https://context7.com/",
+      "config": {
+        "mcpServers": {
+          "context7": {
+            "url": "https://mcp.context7.com/mcp"
+          }
+        }
+      }
+    },
+    {
+      "name": "deepwiki",
+      "display_name": "DeepWiki",
+      "description": "Ask questions about public GitHub repositories through DeepWiki MCP.",
+      "publisher": "Cognition",
+      "homepage": "https://mcp.deepwiki.com/",
+      "config": {
+        "mcpServers": {
+          "deepwiki": {
+            "url": "https://mcp.deepwiki.com/mcp"
+          }
+        }
+      }
+    },
+    {
+      "name": "github",
+      "display_name": "GitHub",
+      "description": "Official GitHub MCP server for repositories, code, issues, pull requests and Actions. Requires Docker; authenticates with GitHub OAuth on first use.",
+      "publisher": "GitHub",
+      "homepage": "https://github.com/github/github-mcp-server",
+      "config": {
+        "mcpServers": {
+          "github": {
+            "command": "docker",
+            "args": [
+              "run",
+              "-i",
+              "--rm",
+              "-p",
+              "127.0.0.1:8085:8085",
+              "-e",
+              "GITHUB_OAUTH_CALLBACK_PORT",
+              "ghcr.io/github/github-mcp-server"
+            ],
+            "env": {
+              "GITHUB_OAUTH_CALLBACK_PORT": "8085"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "playwright",
+      "display_name": "Playwright",
+      "description": "Official Microsoft browser automation MCP using structured accessibility snapshots for reliable web navigation and testing.",
+      "publisher": "Microsoft",
+      "homepage": "https://github.com/microsoft/playwright-mcp",
+      "config": {
+        "mcpServers": {
+          "playwright": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "@playwright/mcp@latest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "chrome-devtools",
+      "display_name": "Chrome DevTools",
+      "description": "Official Chrome DevTools MCP for debugging pages, inspecting console/network activity and analyzing browser performance.",
+      "publisher": "Google Chrome",
+      "homepage": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+      "config": {
+        "mcpServers": {
+          "chrome-devtools": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "chrome-devtools-mcp@latest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "microsoft-learn",
+      "display_name": "Microsoft Learn",
+      "description": "Official, no-auth MCP access to current Microsoft Learn documentation and code samples for .NET, Azure and Microsoft technologies.",
+      "publisher": "Microsoft",
+      "homepage": "https://github.com/MicrosoftDocs/mcp",
+      "config": {
+        "mcpServers": {
+          "microsoft-learn": {
+            "url": "https://learn.microsoft.com/api/mcp",
+            "type": "http"
+          }
+        }
+      }
+    },
+    {
+      "name": "markitdown",
+      "display_name": "MarkItDown",
+      "description": "Microsoft MCP server for converting PDFs, Office documents, HTML, images and other supported resources to Markdown for LLM use.",
+      "publisher": "Microsoft",
+      "homepage": "https://github.com/microsoft/markitdown",
+      "config": {
+        "mcpServers": {
+          "markitdown": {
+            "command": "uvx",
+            "args": [
+              "markitdown-mcp"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "blender",
+      "display_name": "Blender",
+      "description": "Community MCP for AI-assisted Blender scene creation, inspection, materials, rendering and asset workflows. Requires the Blender addon.",
+      "publisher": "MCP for Blender",
+      "homepage": "https://github.com/ahujasid/mcp-for-blender",
+      "config": {
+        "mcpServers": {
+          "blender": {
+            "command": "uvx",
+            "args": [
+              "mcp-for-blender"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "memory",
+      "display_name": "MCP Memory",
+      "description": "Local knowledge-graph memory server from the MCP reference servers.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+      "config": {
+        "mcpServers": {
+          "memory": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "@modelcontextprotocol/server-memory"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "fetch",
+      "display_name": "MCP Fetch",
+      "description": "Reference MCP server for retrieving and converting web content.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+      "config": {
+        "mcpServers": {
+          "fetch": {
+            "command": "uvx",
+            "args": [
+              "mcp-server-fetch"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "sequential-thinking",
+      "display_name": "Sequential Thinking",
+      "description": "Reference MCP server for structured multi-step problem solving with revision and branching during complex analysis.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+      "config": {
+        "mcpServers": {
+          "sequential-thinking": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "@modelcontextprotocol/server-sequential-thinking"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "openclaw",
+      "display_name": "OpenClaw Gateway",
+      "description": "Connect to a local OpenClaw MCP gateway using its CLI stdio transport.",
+      "publisher": "OpenClaw",
+      "config": {
+        "mcpServers": {
+          "openclaw": {
+            "command": "openclaw",
+            "args": [
+              "mcp",
+              "serve"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "filesystem",
+      "display_name": "Filesystem",
+      "description": "Official MCP reference server for local file and directory operations. By default exposes the process working directory; edit the allowed path argument before enabling when needed.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
+      "config": {
+        "mcpServers": {
+          "filesystem": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "@modelcontextprotocol/server-filesystem",
+              "."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "time",
+      "display_name": "MCP Time",
+      "description": "Official MCP reference server for current time, timezone lookup and timezone conversion.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+      "config": {
+        "mcpServers": {
+          "time": {
+            "command": "uvx",
+            "args": [
+              "mcp-server-time"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "mcp-docs",
+      "display_name": "MCP Documentation",
+      "description": "Official remote MCP server for current Model Context Protocol documentation and specification guidance.",
+      "publisher": "Model Context Protocol",
+      "homepage": "https://modelcontextprotocol.io/",
+      "config": {
+        "mcpServers": {
+          "mcp-docs": {
+            "url": "https://modelcontextprotocol.io/mcp",
+            "type": "http"
+          }
+        }
+      }
+    },
+    {
+      "name": "docker-mcp-gateway",
+      "display_name": "Docker MCP Gateway",
+      "description": "Official Docker MCP Gateway over stdio for routing a configured Docker MCP Toolkit catalog/profile through one MCP connection.",
+      "publisher": "Docker",
+      "homepage": "https://docs.docker.com/ai/mcp-catalog-and-toolkit/",
+      "config": {
+        "mcpServers": {
+          "docker-mcp-gateway": {
+            "command": "docker",
+            "args": [
+              "mcp",
+              "gateway",
+              "run"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "redis",
+      "display_name": "Redis",
+      "description": "Official Redis MCP server for inspecting, querying and managing Redis data. Defaults to a local Redis instance on 127.0.0.1:6379 database 0.",
+      "publisher": "Redis",
+      "homepage": "https://github.com/redis/mcp-redis",
+      "config": {
+        "mcpServers": {
+          "redis": {
+            "command": "uvx",
+            "args": [
+              "--from",
+              "redis-mcp-server@latest",
+              "redis-mcp-server",
+              "--url",
+              "redis://127.0.0.1:6379/0"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "mongodb",
+      "display_name": "MongoDB",
+      "description": "Official MongoDB MCP server for MongoDB databases and Atlas. Set MDB_MCP_CONNECTION_STRING in the environment or connect through the server tools.",
+      "publisher": "MongoDB",
+      "homepage": "https://www.mongodb.com/docs/mcp-server/",
+      "config": {
+        "mcpServers": {
+          "mongodb": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "mongodb-mcp-server@latest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "elasticsearch",
+      "display_name": "Elasticsearch",
+      "description": "Official Elasticsearch MCP server via Docker. Set ES_URL and ES_API_KEY in the PyGPT environment before enabling.",
+      "publisher": "Elastic",
+      "homepage": "https://www.elastic.co/docs/solutions/search/mcp",
+      "config": {
+        "mcpServers": {
+          "elasticsearch": {
+            "command": "docker",
+            "args": [
+              "run",
+              "-i",
+              "--rm",
+              "-e",
+              "ES_URL",
+              "-e",
+              "ES_API_KEY",
+              "docker.elastic.co/mcp/elasticsearch",
+              "stdio"
+            ],
+            "env": {
+              "ES_URL": "${ES_URL}",
+              "ES_API_KEY": "${ES_API_KEY}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "brave-search",
+      "display_name": "Brave Search",
+      "description": "Official Brave Search MCP server for web, image, video and rich search results. Requires BRAVE_API_KEY.",
+      "publisher": "Brave",
+      "homepage": "https://github.com/brave/brave-search-mcp-server",
+      "config": {
+        "mcpServers": {
+          "brave-search": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "@brave/brave-search-mcp-server@latest"
+            ],
+            "env": {
+              "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "supabase",
+      "display_name": "Supabase",
+      "description": "Official hosted Supabase MCP server for projects, databases, SQL, logs and generated types. Supports SUPABASE_ACCESS_TOKEN for non-interactive authentication.",
+      "publisher": "Supabase",
+      "homepage": "https://supabase.com/docs/guides/ai-tools/mcp",
+      "config": {
+        "mcpServers": {
+          "supabase": {
+            "url": "https://mcp.supabase.com/mcp",
+            "type": "http",
+            "bearer_token_env_var": "SUPABASE_ACCESS_TOKEN"
+          }
+        }
+      }
+    },
+    {
+      "name": "supabase-local",
+      "display_name": "Supabase Local",
+      "description": "Official MCP endpoint exposed by a local Supabase CLI development stack.",
+      "publisher": "Supabase",
+      "homepage": "https://supabase.com/docs/guides/ai-tools/mcp",
+      "config": {
+        "mcpServers": {
+          "supabase-local": {
+            "url": "http://127.0.0.1:54321/mcp",
+            "type": "http"
+          }
+        }
+      }
+    },
+    {
+      "name": "neon",
+      "display_name": "Neon",
+      "description": "Official hosted Neon MCP server for projects, branches, schema, querying and database diagnostics. Set NEON_API_KEY for direct bearer-token authentication.",
+      "publisher": "Neon",
+      "homepage": "https://neon.com/docs/ai/neon-mcp-server",
+      "config": {
+        "mcpServers": {
+          "neon": {
+            "url": "https://mcp.neon.tech/mcp",
+            "type": "http",
+            "bearer_token_env_var": "NEON_API_KEY"
+          }
+        }
+      }
+    },
+    {
+      "name": "linear",
+      "display_name": "Linear",
+      "description": "Official Linear remote MCP server for issues, projects and comments. Set LINEAR_API_KEY for direct bearer-token authentication.",
+      "publisher": "Linear",
+      "homepage": "https://linear.app/docs/mcp",
+      "config": {
+        "mcpServers": {
+          "linear": {
+            "url": "https://mcp.linear.app/mcp",
+            "type": "http",
+            "bearer_token_env_var": "LINEAR_API_KEY"
+          }
+        }
+      }
+    },
+    {
+      "name": "sentry",
+      "display_name": "Sentry",
+      "description": "Official Sentry remote MCP server for errors, issues, traces and project diagnostics. Set SENTRY_ACCESS_TOKEN; the server accepts it using the Sentry-Bearer authorization scheme.",
+      "publisher": "Sentry",
+      "homepage": "https://mcp.sentry.dev/",
+      "config": {
+        "mcpServers": {
+          "sentry": {
+            "url": "https://mcp.sentry.dev/mcp",
+            "type": "http",
+            "headers": {
+              "Authorization": "Sentry-Bearer ${SENTRY_ACCESS_TOKEN}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "cloudflare-docs",
+      "display_name": "Cloudflare Docs",
+      "description": "Official Cloudflare documentation MCP server for current Workers and Cloudflare platform reference information.",
+      "publisher": "Cloudflare",
+      "homepage": "https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/",
+      "config": {
+        "mcpServers": {
+          "cloudflare-docs": {
+            "url": "https://docs.mcp.cloudflare.com/mcp",
+            "type": "http"
+          }
+        }
+      }
+    },
+    {
+      "name": "qdrant",
+      "display_name": "Qdrant",
+      "description": "Official Qdrant MCP server for semantic memory/vector search. Defaults to local Qdrant on 127.0.0.1:6333 and collection 'pygpt'; edit environment values for Qdrant Cloud.",
+      "publisher": "Qdrant",
+      "homepage": "https://github.com/qdrant/mcp-server-qdrant",
+      "config": {
+        "mcpServers": {
+          "qdrant": {
+            "command": "uvx",
+            "args": [
+              "mcp-server-qdrant"
+            ],
+            "env": {
+              "QDRANT_URL": "http://127.0.0.1:6333",
+              "COLLECTION_NAME": "pygpt"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "grafana",
+      "display_name": "Grafana",
+      "description": "Official Grafana MCP server for dashboards, metrics, alerts, logs and observability workflows. Configure GRAFANA_URL and GRAFANA_SERVICE_ACCOUNT_TOKEN before enabling.",
+      "publisher": "Grafana Labs",
+      "homepage": "https://grafana.com/docs/grafana/latest/developer-resources/mcp/",
+      "config": {
+        "mcpServers": {
+          "grafana": {
+            "command": "docker",
+            "args": [
+              "run",
+              "--rm",
+              "-i",
+              "-e",
+              "GRAFANA_URL",
+              "-e",
+              "GRAFANA_SERVICE_ACCOUNT_TOKEN",
+              "grafana/mcp-grafana",
+              "-t",
+              "stdio"
+            ],
+            "env": {
+              "GRAFANA_URL": "${GRAFANA_URL}",
+              "GRAFANA_SERVICE_ACCOUNT_TOKEN": "${GRAFANA_SERVICE_ACCOUNT_TOKEN}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "kubernetes",
+      "display_name": "Kubernetes / OpenShift",
+      "description": "Popular native Kubernetes/OpenShift MCP server with kubeconfig auto-detection, resource management, pod diagnostics and multi-cluster support.",
+      "publisher": "containers",
+      "homepage": "https://github.com/containers/kubernetes-mcp-server",
+      "config": {
+        "mcpServers": {
+          "kubernetes": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "kubernetes-mcp-server@latest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "atlassian",
+      "display_name": "Atlassian (Jira / Confluence)",
+      "description": "Official Atlassian MCP v2 for Jira, Confluence and related Atlassian apps. Set ATLASSIAN_MCP_API_KEY to a service-account API key when API-token authentication is enabled by your organization.",
+      "publisher": "Atlassian",
+      "homepage": "https://developer.atlassian.com/cloud/rovo-mcp/",
+      "config": {
+        "mcpServers": {
+          "atlassian": {
+            "url": "https://mcp.atlassian.com/v2/mcp",
+            "type": "http",
+            "bearer_token_env_var": "ATLASSIAN_MCP_API_KEY"
+          }
+        }
+      }
+    }
+  ]
+}

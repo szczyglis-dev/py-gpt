@@ -85,6 +85,7 @@ def test_ipython_sys_exec_host_uses_host_security_and_shell(mock_window):
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,
     )
     assert result["request"] == request
     assert result["result"] == "hello\n"
@@ -99,9 +100,10 @@ def test_ipython_sys_exec_sandbox_uses_ipython_container(mock_window):
     item = {"cmd": "ipython_sys_exec", "params": {"command": "pwd"}}
     request = {"cmd": "ipython_sys_exec", "command": "pwd"}
 
-    result = runner.ipython_sys_exec_sandbox(CtxItem(), item, request)
+    ctx = CtxItem()
+    result = runner.ipython_sys_exec_sandbox(ctx, item, request)
 
-    plugin.ipython_docker.execute_system.assert_called_once_with("pwd")
+    plugin.ipython_docker.execute_system.assert_called_once_with("pwd", ctx=ctx)
     assert result["request"] == request
     assert result["result"] == "sandbox\n"
     assert "SYS OUTPUT" in result["context"]
@@ -154,10 +156,11 @@ def test_docker_kernel_execute_system_execs_in_existing_ipython_container():
 
     result = kernel.execute_system("printf ok")
 
-    kernel.start_container.assert_called_once_with("ipy-container")
+    kernel.start_container.assert_called_once_with("ipy-container", ctx=None)
     client.containers.get.assert_called_once_with("ipy-container")
     container.exec_run.assert_called_once_with(
         ["/bin/sh", "-c", "printf ok"],
+        stdin=False,
         stdout=True,
         stderr=True,
         workdir="/data",

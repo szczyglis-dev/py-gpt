@@ -13,15 +13,30 @@ Filesystem access
 Two independent restrictions are available:
 
 * ``Restrict plugin file reads to working directory`` - enabled by default.
-* ``Restrict plugin file writes to working directory`` - disabled by default.
+* ``Restrict plugin file writes to working directory`` - enabled by default.
 
-When a restriction is enabled, plugin-mediated host filesystem access is limited to the user-facing
-``%workdir%/data`` directory. PyGPT also allows its own internal ``%workdir%/tmp`` directory so
+When a restriction is enabled, plugin-mediated host filesystem access is limited to the active
+conversation's user-facing ``data`` workdir. Normally this is ``%workdir%/data``. If the conversation
+belongs to a project with a custom data workdir, that project directory becomes the allowed data root
+for the operation. PyGPT also allows its own internal base-profile ``%workdir%/tmp`` directory so
 application-managed temporary workflows can function without disabling filesystem protection. Examples
-include audio input, HTML Canvas, Code Interpreter/IPython and Transcript working files.
+include audio input, HTML Canvas, Python interpreter/IPython and Transcript working files.
 
-The ``tmp`` exception is internal to PyGPT; it does not make arbitrary directories outside the workdir
-available to plugins.
+The project override affects only the logical ``data`` root. The ``tmp`` exception remains tied to the
+base profile and does not make arbitrary directories outside the effective data workdir available to
+plugins.
+
+Prompt injection protection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The **General** tab in ``Config -> Settings -> Security`` also provides an optional system-prompt guard:
+
+* ``Auto-prevent prompt injections`` - disabled by default. When enabled, PyGPT appends the configured security annotation to system prompts before they are sent to models. The annotation tells the model to treat RAG/retrieval results, tool output, files, web/API content, and other external content as untrusted data rather than instructions.
+* ``Prompt injection security annotation`` - editable text containing the instruction appended when the option above is enabled.
+
+The default annotation instructs the model to ignore instructions embedded in external content, especially attempts to override system or user instructions, and to inform the user when a likely prompt-injection attempt is detected. The guard is applied globally to normal work modes and auxiliary model calls, and is also propagated into Chat with Agents/worker system prompts.
+
+This is a defense-in-depth prompt-level measure, not a guarantee that every prompt-injection technique will be detected or blocked. Keep tool permissions, filesystem/command restrictions, sandboxing, and provider-side security controls appropriately configured for sensitive workflows.
 
 System commands
 ~~~~~~~~~~~~~~~
@@ -40,7 +55,7 @@ Sandbox behavior
 
 Configured sandbox execution is isolated separately and bypasses the host-side Security filters described
 above. For process-level isolation, use a supported sandbox such as the Docker mode provided by the
-Code Interpreter plugin.
+Python interpreter plugin.
 
 Computer Use confirmations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

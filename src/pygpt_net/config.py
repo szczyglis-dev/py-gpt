@@ -13,6 +13,7 @@ import copy
 import datetime
 import os
 import re
+import sys
 
 from pathlib import Path
 from packaging.version import Version
@@ -100,7 +101,7 @@ class Config:
 
         :return: True if compiled version
         """
-        return __file__.endswith('.pyc')
+        return bool(getattr(sys, 'frozen', False))
 
     def install(self):
         """Install database and provider data"""
@@ -211,13 +212,13 @@ class Config:
 
         return path
 
-    def get_workdir_prefix(self) -> str:
+    def get_workdir_prefix(self, ctx=None) -> str:
         """
         Return workdir path (sandboxed or user dir)
 
         :return: workdir path
         """
-        workdir = self.get_user_dir('data')
+        workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
         if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
             workdir = "/data"
         return workdir
@@ -272,12 +273,16 @@ class Config:
 
         :return: app root path
         """
-        if hasattr(self, '_app_path') and self._app_path is not None:
+        if hasattr(self, "_app_path") and self._app_path is not None:
             return self._app_path
-        if self.is_compiled():
-            self._app_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+        if self.is_compiled() and hasattr(sys, "_MEIPASS"):
+            path = sys._MEIPASS
         else:
-            self._app_path = os.path.abspath(os.path.dirname(__file__))
+            path = os.path.dirname(__file__)
+
+        self._app_path = os.path.abspath(path)
+
         return self._app_path
 
     def get_user_path(self) -> str:
@@ -317,26 +322,35 @@ class Config:
             self.load(all)
             self.initialized = True
 
+    def _load_app_meta(self) -> None:
+        """Read __init__.py once and cache version and build strings."""
+        try:
+            path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
+            with open(path, 'r', encoding="utf-8") as f:
+                data = f.read()
+            ver = _RE_VERSION.search(data)
+            build = _RE_BUILD.search(data)
+            self._version_cache = ver.group(1) if ver is not None else "0.0.0"
+            self._build_cache = build.group(1) if build is not None else "0.0.0"
+        except Exception as e:
+            if self.window is not None:
+                self.window.core.debug.log(e)
+            else:
+                print(f"Error loading app metadata file: {e}")
+            if not hasattr(self, '_version_cache') or self._version_cache is None:
+                self._version_cache = "0.0.0"
+            if not hasattr(self, '_build_cache') or self._build_cache is None:
+                self._build_cache = "0.0.0"
+
     def get_version(self) -> str:
         """
         Return version
 
         :return: version string
         """
-        if hasattr(self, '_version_cache') and self._version_cache is not None:
-            return self._version_cache
-        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                data = f.read()
-                result = _RE_VERSION.search(data)
-                self._version_cache = result.group(1)
-                return self._version_cache
-        except Exception as e:
-            if self.window is not None:
-                self.window.core.debug.log(e)
-            else:
-                print(f"Error loading version file: {e}")
+        if not hasattr(self, '_version_cache') or self._version_cache is None:
+            self._load_app_meta()
+        return self._version_cache
 
     def get_build(self) -> str:
         """
@@ -344,20 +358,9 @@ class Config:
 
         :return: build string
         """
-        if self._build_cache is not None:
-            return self._build_cache
-        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                data = f.read()
-                result = _RE_BUILD.search(data)
-                self._build_cache = result.group(1)
-                return self._build_cache
-        except Exception as e:
-            if self.window is not None:
-                self.window.core.debug.log(e)
-            else:
-                print(f"Error loading version file: {e}")
+        if not hasattr(self, '_build_cache') or self._build_cache is None:
+            self._load_app_meta()
+        return self._build_cache
 
     def get_options(self) -> dict:
         """
@@ -543,7 +546,13 @@ class Config:
 
         :return: last used directory
         """
-        last_dir = self.get_user_dir("data")
+        # The default file-dialog directory follows the active conversation's
+        # data workdir. Only the semantic ``data`` directory is project-aware;
+        # all other profile directories remain rooted in the global workdir.
+        try:
+            last_dir = self.window.core.filesystem.get_data_dir()
+        except (AttributeError, RuntimeError):
+            last_dir = self.get_user_dir("data")
         if self.has("dialog.last_dir"):
             tmp_dir = self.get("dialog.last_dir")
             if os.path.isdir(tmp_dir):

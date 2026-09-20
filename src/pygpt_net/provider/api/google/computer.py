@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.09.09 00:30:00                  #
 # ================================================== #
 
 import json
@@ -37,20 +37,28 @@ class Computer:
         return self.window.ui.nodes["computer_env"].itemData(idx)
 
     def _map_env(self) -> gtypes.Environment:
-        return gtypes.Environment.ENVIRONMENT_BROWSER
+        """Map PyGPT's selected environment to the best enum supported by the installed SDK."""
         env = self.get_current_env()
-        val = ""
+        value = ""
         if isinstance(env, str):
-            val = env.lower()
+            value = env.lower()
         elif isinstance(env, dict):
-            val = str(env.get("value") or env.get("name") or env).lower()
-        if "mac" in val:
-            return gtypes.Environment.ENVIRONMENT_MAC
-        if "windows" in val or "win" in val:
-            return gtypes.Environment.ENVIRONMENT_WINDOWS
-        if "linux" in val:
-            return gtypes.Environment.ENVIRONMENT_LINUX
-        return gtypes.Environment.ENVIRONMENT_BROWSER
+            value = str(env.get("value") or env.get("name") or env).lower()
+
+        enum = gtypes.Environment
+        # Newer Gemini Computer Use exposes a generic desktop environment. Prefer it
+        # for host OS control; retain older OS-specific enum fallbacks for SDK compatibility.
+        if any(token in value for token in ("desktop", "linux", "windows", "win", "mac")):
+            desktop = getattr(enum, "ENVIRONMENT_DESKTOP", None)
+            if desktop is not None:
+                return desktop
+        if "mac" in value and hasattr(enum, "ENVIRONMENT_MAC"):
+            return enum.ENVIRONMENT_MAC
+        if ("windows" in value or "win" in value) and hasattr(enum, "ENVIRONMENT_WINDOWS"):
+            return enum.ENVIRONMENT_WINDOWS
+        if "linux" in value and hasattr(enum, "ENVIRONMENT_LINUX"):
+            return enum.ENVIRONMENT_LINUX
+        return enum.ENVIRONMENT_BROWSER
 
     def get_tool(self) -> gtypes.Tool:
         return gtypes.Tool(
@@ -143,6 +151,129 @@ class Computer:
         if item not in decisions:
             decisions.append(item)
 
+    @staticmethod
+    def _normalize_key_list(value) -> list:
+        if isinstance(value, str):
+            return [part.strip() for part in value.replace("+", " ").split() if part.strip()]
+        return list(value or [])
+
+    @staticmethod
+    def _safe_int(value, default: int = 0, minimum: int = -100000, maximum: int = 100000) -> int:
+        """Convert provider numeric input to a bounded integer."""
+        try:
+            number = int(float(value))
+        except (TypeError, ValueError, OverflowError):
+            number = int(default)
+        return max(minimum, min(maximum, number))
+
+    @staticmethod
+    def _looks_like_computer_function(name: str) -> bool:
+        """Identify future Computer Use members without swallowing unrelated custom tools.
+
+        Gemini exposes Computer Use as ordinary function_call parts, so an unknown
+        function name has no provider-side discriminator that says whether it came
+        from Computer Use or from a user-defined function. Keep custom tools on the
+        normal path, while treating obvious desktop/browser-action names as future
+        Computer Use members that PyGPT does not implement yet.
+        """
+        value = str(name or "").strip().lower()
+        if not value:
+            return False
+        prefixes = (
+            "mouse_", "keyboard_", "key_", "click_", "drag_", "scroll_",
+            "hover_", "type_text_", "press_key", "hotkey", "screenshot",
+            "take_screenshot", "swipe_", "touch_", "cursor_", "browser_",
+        )
+        return value.startswith(prefixes)
+
+    def _map_function(
+            self,
+            name: str,
+            args: dict,
+            assume_computer: bool = False,
+    ) -> Tuple[Optional[str], dict]:
+        """Map a Gemini Computer Use function to PyGPT's canonical executor contract."""
+        name = str(name or "")
+        p = dict(args or {})
+        coord = {"coordinate_space": "normalized"}
+
+        if name in {"click", "double_click", "triple_click", "middle_click", "right_click"}:
+            count = 1
+            button = "left"
+            if name == "double_click": count = 2
+            elif name == "triple_click": count = 3
+            elif name == "middle_click": button = "middle"
+            elif name == "right_click": button = "right"
+            return "mouse_click", {**coord, "x": p.get("x"), "y": p.get("y"),
+                                   "button": button, "num_clicks": count}
+        if name in {"move", "hover_at"}:
+            return "mouse_move", {**coord, "x": p.get("x"), "y": p.get("y")}
+        if name == "mouse_down":
+            return "mouse_down", {**coord, "x": p.get("x"), "y": p.get("y"),
+                                  "button": p.get("button", "left")}
+        if name == "mouse_up":
+            return "mouse_up", {**coord, "x": p.get("x"), "y": p.get("y"),
+                                "button": p.get("button", "left")}
+        if name in {"type", "keyboard_type"}:
+            return "keyboard_type", {"text": p.get("text", ""),
+                                     "press_enter": bool(p.get("press_enter", False))}
+        if name in {"press_key", "keyboard_key"}:
+            return "keyboard_key", {"key": p.get("key", p.get("text", ""))}
+        if name == "key_down":
+            return "key_down", {"key": p.get("key", p.get("text", ""))}
+        if name == "key_up":
+            return "key_up", {"key": p.get("key", p.get("text", ""))}
+        if name in {"hotkey", "key_combination", "keypress"}:
+            return "keyboard_keys", {"keys": self._normalize_key_list(p.get("keys", p.get("key", [])))}
+        if name in {"take_screenshot", "screenshot"}:
+            return "get_screenshot", {}
+        if name in {"wait", "wait_5_seconds"}:
+            return "wait", {"seconds": p.get("seconds", 5 if name == "wait_5_seconds" else 1)}
+        if name == "long_press":
+            return "long_press", {**coord, "x": p.get("x"), "y": p.get("y"),
+                                  "duration": p.get("duration", p.get("duration_seconds", 0.5)),
+                                  "button": p.get("button", "left")}
+        if name in {"drag_and_drop", "drag"}:
+            if p.get("path"):
+                path = p.get("path")
+            else:
+                sx = p.get("start_x", p.get("x")); sy = p.get("start_y", p.get("y"))
+                ex = p.get("end_x", p.get("destination_x", p.get("dx")))
+                ey = p.get("end_y", p.get("destination_y", p.get("dy")))
+                path = [{"x": sx, "y": sy}, {"x": ex, "y": ey}]
+            return "mouse_drag", {**coord, "path": path}
+        if name in {"scroll", "scroll_at", "scroll_document"}:
+            direction = str(p.get("direction", "") or "").lower()
+            magnitude = self._safe_int(p.get("magnitude_in_pixels", p.get("magnitude", 0)), minimum=0)
+            dx = self._safe_int(p.get("scroll_x", p.get("dx", 0)))
+            dy = self._safe_int(p.get("scroll_y", p.get("dy", 0)))
+            if direction and magnitude:
+                if direction == "down": dy = magnitude
+                elif direction == "up": dy = -magnitude
+                elif direction == "right": dx = magnitude
+                elif direction == "left": dx = -magnitude
+            out = {**coord, "dx": dx, "dy": dy, "unit": "px", "scroll_mode": "viewport"}
+            if p.get("x") is not None and p.get("y") is not None:
+                out.update({"x": p.get("x"), "y": p.get("y")})
+            return "mouse_scroll", out
+        if name == "open_web_browser":
+            return "open_web_browser", {"url": p.get("url", "")}
+        if name in {"navigate", "go_back", "go_forward", "search"}:
+            return name, {k: v for k, v in p.items() if k in {"url", "query"}}
+        if name == "click_at":
+            return "mouse_click", {**coord, "x": p.get("x"), "y": p.get("y"), "button": "left", "num_clicks": 1}
+        if name == "type_text_at":
+            # Keep this compound browser action for compatibility with Gemini 2.x schemas.
+            return "type_text_at", {**coord, **p}
+        if (assume_computer
+                or p.get("safety_decision") is not None
+                or self._looks_like_computer_function(name)):
+            return "computer_unimplemented", {
+                "provider": "google",
+                "action": name or "unknown",
+            }
+        return None, {}
+
     def handle_stream_chunk(self, ctx: CtxItem, chunk, tool_calls: list) -> Tuple[List, bool]:
         """
         Handle function_call parts (Gemini) and older action-shaped events.
@@ -153,15 +284,28 @@ class Computer:
         has_calls = False
 
         # Case A: Google SDK function_call parts (recommended)
-        for fname, fargs in self._iter_function_calls(chunk):
+        for fname, fargs, provider_call_id in self._iter_function_calls(chunk):
             if not fname:
                 continue
             self._record_safety_decision(ctx, fname, fargs or {})
-            id_ = self._next_id()
+            # Keep Gemini's protocol id when the SDK supplies one. It is persisted
+            # with the local task and echoed by Chat in the following FunctionResponse.
+            id_ = str(provider_call_id or self._next_id())
             call_id = id_
             try:
-                self._append_call(tool_calls, id_, call_id, fname, fargs or {})
-                has_calls = True
+                # This handler is called only when Computer Use is active, so an
+                # unknown provider function is a Computer Use compatibility error,
+                # not a custom function that should be silently dropped.
+                local_name, local_args = self._map_function(
+                    fname,
+                    fargs or {},
+                    assume_computer=True,
+                )
+                if local_name:
+                    self._append_call(tool_calls, id_, call_id, local_name, local_args)
+                    has_calls = True
+                else:
+                    print(f"Gemini: unsupported Computer Use function '{fname}'")
             except Exception as e:
                 print(f"Gemini pass-through error for function '{fname}': {e}")
 
@@ -188,6 +332,7 @@ class Computer:
     # --------------- Parsers --------------- #
 
     def _iter_function_calls(self, resp) -> List[tuple]:
+        """Return (name, args, provider_call_id) tuples from Gemini responses/chunks."""
         calls = []
         try:
             candidates = getattr(resp, "candidates", None)
@@ -202,7 +347,8 @@ class Computer:
                                 if fc:
                                     name = getattr(fc, "name", None)
                                     args = getattr(fc, "args", {}) or {}
-                                    calls.append((name, args))
+                                    call_id = getattr(fc, "id", None) or ""
+                                    calls.append((name, args, call_id))
             else:
                 if isinstance(resp, dict):
                     content = resp.get("content", {})
@@ -210,32 +356,26 @@ class Computer:
                     for part in parts:
                         if "function_call" in part:
                             fc = part["function_call"]
-                            calls.append((fc.get("name"), fc.get("args", {})))
+                            calls.append((fc.get("name"), fc.get("args", {}), fc.get("id", "")))
         except Exception as e:
             print(f"Gemini: failed to parse function_call: {e}")
         return calls
 
     def _pass_action(self, action) -> Tuple[Optional[str], dict]:
-        """
-        Convert old-style action object into a direct function call name + args,
-        without changing the semantic names (workers handle details).
-        """
+        """Convert an older action-shaped event through the same canonical mapper."""
         try:
             atype = getattr(action, "type", None)
             if not atype:
                 return None, {}
-            atype = str(atype)
-
-            # Build args by introspection; workers know how to interpret them
             args = {}
-            for attr in ("x", "y", "button", "scroll_x", "scroll_y", "keys", "text", "path"):
+            for attr in (
+                    "x", "y", "button", "scroll_x", "scroll_y", "keys", "key",
+                    "text", "path", "start_x", "start_y", "end_x", "end_y",
+                    "direction", "magnitude", "magnitude_in_pixels", "seconds"):
                 if hasattr(action, attr):
                     args[attr] = getattr(action, attr)
-
-            if atype == "double_click":
-                args["num_clicks"] = 2
-
-            return atype, args
+            return self._map_function(str(atype), args)
         except Exception as e:
             print(f"Gemini: pass_action error: {e}")
             return None, {}
+

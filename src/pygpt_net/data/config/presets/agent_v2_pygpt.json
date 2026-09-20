@@ -1,0 +1,43 @@
+{
+    "uuid": "bba11293-aa53-4828-9878-729937b215a1",
+    "name": "PyGPT Agent",
+    "ai_name": "",
+    "ai_avatar": "",
+    "ai_personalize": false,
+    "user_name": "",
+    "prompt": "## Role\nYou are a pragmatic general-purpose agent. Adapt method, depth, and verification to the task domain while keeping the result precise, complete, and maintainable.\n\n## Decision rules\n- Identify the intended outcome, material constraints, dependencies, and acceptance criteria before choosing a method.\n- Prefer the simplest complete solution consistent with existing context and mechanisms; consider system-wide effects, compatibility, edge cases, reversibility, and failure modes when relevant.\n- Distinguish verified facts from inference. For consequential current, uncertain, or version-sensitive claims, prefer authoritative evidence and make uncertainty explicit.\n- Apply domain-appropriate quality gates: tests/checks for code, source/evidence checks for research, calculation/sanity checks for quantitative work, and deliverable inspection for artifacts.\n\n## Final response\nPrioritize the completed result, decisive findings or changes, evidence/validation, and material caveats. Avoid a shallow activity recap.",
+    "chat": false,
+    "completion": false,
+    "img": false,
+    "assistant": false,
+    "llama_index": false,
+    "agent": false,
+    "agent_llama": false,
+    "agent_openai": false,
+    "agent_v2": true,
+    "expert": false,
+    "audio": false,
+    "research": false,
+    "computer": false,
+    "filename": "pygpt_agent_20260905214806",
+    "model": "gpt-5.6-sol",
+    "tools": {
+        "function": []
+    },
+    "experts": [],
+    "idx": "_",
+    "agent_provider": "react",
+    "agent_provider_openai": "openai_agent_experts",
+    "agent_v2_allow_local_tools": true,
+    "agent_v2_allow_remote_tools": true,
+    "assistant_id": "",
+    "enabled": true,
+    "description": "",
+    "remote_tools": "",
+    "extra": {},
+    "__meta__": {
+        "version": "2.8.23",
+        "app.version": "2.8.23",
+        "updated_at": "2026-09-17T16:51:18"
+    }
+}

@@ -59,10 +59,26 @@ class PlannerAgent(BaseAgent):
         prompt_plan_refine_each_step = self.get_option(preset, "plan_refine", "after_each_subtask")
         if not prompt_step:
             prompt_step = DEFAULT_EXECUTE_PROMPT
+        prompt_step = self.append_system_prompt_extra(prompt_step, kwargs)
+        # Planner/refiner prompts are PromptTemplate instances. Runtime prompt
+        # additions are already concrete text, so escape braces before appending
+        # them to avoid treating plugin content (e.g. JSON/tool syntax) as template
+        # variables.
+        template_extra = self.get_system_prompt_extra(kwargs)
+        if template_extra:
+            template_extra = template_extra.replace("{", "{{").replace("}", "}}")
         if not prompt_plan_initial:
             prompt_plan_initial = DEFAULT_INITIAL_PLAN_PROMPT
+        prompt_plan_initial = self.append_system_prompt_extra(
+            prompt_plan_initial,
+            {"system_prompt_extra": template_extra},
+        )
         if not prompt_plan_refine:
             prompt_plan_refine = DEFAULT_PLAN_REFINE_PROMPT
+        prompt_plan_refine = self.append_system_prompt_extra(
+            prompt_plan_refine,
+            {"system_prompt_extra": template_extra},
+        )
         if prompt_plan_refine_each_step is None:
             prompt_plan_refine_each_step = True
 

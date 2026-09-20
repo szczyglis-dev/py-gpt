@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.18 18:00:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -62,10 +62,16 @@ class Settings(BaseConfigDialog):
         bottom.addWidget(self.window.ui.nodes['settings.btn.save'])
 
         self.window.ui.paths[id] = QLabel(str(path))
+        self.window.ui.paths[id].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.paths[id].setStyleSheet("font-weight: bold;")
 
         # settings section tabs
         self.window.ui.tabs['settings.section'] = QTabWidget()
+        # Keep references to nested section tabs together with their locale keys.
+        # They are required by the runtime language switcher because these tabs
+        # are created only once, during dialog setup.
+        self.window.ui.tabs['settings.section.tabs'] = {}
+        self.window.ui.tabs['settings.section.tab_keys'] = {}
         options_get = self.window.controller.settings.editor.get_options
 
         # build settings tabs
@@ -128,6 +134,18 @@ class Settings(BaseConfigDialog):
                     options[key] = add_option(widget, f)
                 elif t in ('textarea', 'dict'):
                     options[key] = add_row_option(widget, f)
+                    if t == 'textarea' and f.get('from_defaults'):
+                        node_id = f"settings.{key}.from_defaults"
+                        self.window.ui.nodes[node_id] = QPushButton(
+                            trans('settings.agent.v2.prompt.from_defaults')
+                        )
+                        self.window.ui.nodes[node_id].setAutoDefault(False)
+                        self.window.ui.nodes[node_id].clicked.connect(
+                            lambda _checked=False, config_key=key:
+                            self.window.controller.settings.editor.load_agent_prompt_default(config_key)
+                        )
+                        # label, textarea, button, description
+                        options[key].insertWidget(2, self.window.ui.nodes[node_id])
                     if t == 'dict':
                         # register dict to editor:
                         register_dictionary(
@@ -200,11 +218,26 @@ class Settings(BaseConfigDialog):
                 tab_order = (["general"] + [tid for tid in content_tabs if
                                             tid != "general"]) if "general" in content_tabs else list(content_tabs)
 
+                # keep Chat tabs in their intended order
+                if section_id == "ctx":
+                    preferred = ["list", "render", "options"]
+                    tab_order = ([tid for tid in preferred if tid in tab_order]
+                                 + [tid for tid in tab_order if tid not in preferred])
+
+                # keep legacy agent options separated at the end
+                if section_id == "agent" and "legacy" in tab_order:
+                    tab_order = [tid for tid in tab_order if tid != "legacy"] + ["legacy"]
+
+                tab_keys = []
                 for tab_id in tab_order:
                     if tab_id == "general":
-                        name_key = trans("settings.section.tab.general")
+                        if section_id == "agent":
+                            locale_key = "settings.section.agent.general"
+                        else:
+                            locale_key = "settings.section.tab.general"
                     else:
-                        name_key = trans("settings.section." + section_id + "." + tab_id)
+                        locale_key = "settings.section." + section_id + "." + tab_id
+                    name_key = trans(locale_key)
                     tab_name = name_key
                     trans_key = name_key.replace(" ", "_").lower()
                     translated = trans(trans_key)
@@ -214,6 +247,10 @@ class Settings(BaseConfigDialog):
                     scroll_widget.setLayout(content_tabs[tab_id])
                     scroll_tabs[tab_id].setWidget(scroll_widget)
                     tab_widget.addTab(scroll_tabs[tab_id], tab_name)
+                    tab_keys.append(locale_key)
+
+                self.window.ui.tabs['settings.section.tabs'][section_id] = tab_widget
+                self.window.ui.tabs['settings.section.tab_keys'][section_id] = tab_keys
 
                 area = QVBoxLayout()
                 area.addWidget(self.add_line())

@@ -16,10 +16,12 @@ from tests.mocks import mock_window
 from pygpt_net.core.camera import Camera
 
 
-def test_install(mock_window):
+def test_install(mock_window, monkeypatch):
     """Test install"""
     camera = Camera(mock_window)
-    os.path.exists = MagicMock(return_value=False)
-    os.makedirs = MagicMock()
+    exists_mock = MagicMock(return_value=False)
+    makedirs_mock = MagicMock()
+    monkeypatch.setattr(os.path, "exists", exists_mock)
+    monkeypatch.setattr(os, "makedirs", makedirs_mock)
     camera.install()
-    os.makedirs.assert_called()
+    makedirs_mock.assert_called()

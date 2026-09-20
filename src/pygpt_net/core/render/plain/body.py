@@ -28,7 +28,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx=None
     ) -> str:
         """
         Get image HTML
@@ -41,7 +42,7 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = f" [{num}]"
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         return f"\n{trans('chat.prefix.img')}{num_str}: {path}\n"
 
     def get_url_html(
@@ -104,7 +105,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx=None
     ) -> str:
         """
         Get file HTML
@@ -117,5 +119,5 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = f" [{num}]"
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         return f"\n{trans('chat.prefix.file')}{num_str}: {path}\n"

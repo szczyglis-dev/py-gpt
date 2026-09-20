@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:20:00
+# Updated Date: 2026.09.10 14:10:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -36,7 +37,15 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        signals = self.signals
         try:
+            # Runner and kernel objects are shared by plugin workers. Bind Qt
+            # signals in the worker thread so overlapping tool calls cannot
+            # replace another worker's signal source while it is restarting.
+            if self.plugin is not None and signals is not None:
+                self.plugin.runner.attach_signals(signals)
+                self.plugin.get_interpreter().attach_signals(signals)
+
             responses = []
             for item in self.cmds:
                 if self.is_stopped():
@@ -115,6 +124,15 @@ class Worker(BaseWorker):
         except Exception as e:
             self.error(e)
         finally:
+            if self.plugin is not None:
+                try:
+                    self.plugin.runner.detach_signals(signals)
+                except Exception:
+                    pass
+                try:
+                    self.plugin.get_interpreter().detach_signals(signals)
+                except Exception:
+                    pass
             self.cleanup()
 
     def cmd_ipython_execute_new(self, item: dict) -> dict:
@@ -352,7 +370,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            self.signals.clear.emit()
+            safe_emit(self.signals, "clear")
             result = "OK"
         except Exception as e:
             result = self.throw_error(e)
@@ -388,7 +406,7 @@ class Worker(BaseWorker):
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def prepare_extra(self, item: dict, result: dict) -> dict:
+    def prepare_extra(self, item: dict, result) -> dict:
         """
         Prepare extra data for response
 
@@ -415,11 +433,11 @@ class Worker(BaseWorker):
             extra["code"]["input"] = {}
             extra["code"]["input"]["lang"] = "bash"
             extra["code"]["input"]["content"] = str(item["params"]["command"])
-        if "result" in result:
+        if isinstance(result, dict) and "result" in result:
             extra["code"]["output"] = {}
             extra["code"]["output"]["lang"] = lang
             extra["code"]["output"]["content"] = str(result["result"])
-        if "context" in result:
+        if isinstance(result, dict) and "context" in result:
             extra["context"] = str(result["context"])
         return extra
 

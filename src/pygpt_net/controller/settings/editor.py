@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 12:00:00                  #
+# Updated Date: 2026.09.16 20:15:00                  #
 # ================================================== #
 
 import copy
 from typing import Optional, Any, Dict
-
-from PySide6.QtCore import QTimer
 
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
@@ -53,7 +51,6 @@ class Editor:
         self.window.ui.add_hook("update.config.zoom", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.enabled", self.hook_update)
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
-        self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.groups.separators", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.pinned.separators", self.hook_update)
@@ -118,15 +115,6 @@ class Editor:
             )
             self.window.core.config.set(key, value)
 
-            # update preset temperature
-            if key == "temperature":
-                preset_id = self.window.core.config.get('preset')
-                if preset_id is not None and preset_id != "":
-                    if preset_id in self.window.core.presets.items:
-                        preset = self.window.core.presets.items[preset_id]
-                        preset.temperature = value
-                        self.window.core.presets.save(preset_id)
-                        self.window.controller.mode.update_temperature(value)  # update current temperature
 
         if not self.window.core.config.get('layout.tray'):
             self.window.core.config.set('layout.tray.minimize', False)
@@ -169,6 +157,7 @@ class Editor:
 
         # update search result or ctx layout if needed
         if (self.config_changed('ctx.search_content') or
+                self.config_changed('ctx.records.limit') or
                 self.config_changed('ctx.records.folders.top') or
                 self.config_changed('ctx.records.groups.separators') or
                 self.config_changed('ctx.records.pinned.separators') or
@@ -212,37 +201,25 @@ class Editor:
             self.window.controller.ctx.refresh()
 
         if (self.config_changed('agent.output.render.all') or
+                self.config_changed('ctx.tool_calls.show_json') or
                 self.config_changed('ctx.reasoning.show_realtime') or
                 self.config_changed('ctx.reasoning.hide_after_response')):
             self.window.controller.chat.render.reload()
 
+        # Response timestamps are now configured in Chats -> Render and apply
+        # only to the plain-text renderer. Refresh them immediately when that
+        # renderer is active; normal Web/Markdown output intentionally ignores
+        # this setting.
+        if (self.config_changed('output_timestamp')
+                and self.window.core.config.get('render.plain')):
+            self.window.controller.chat.common.apply_timestamp(
+                bool(self.window.core.config.get('output_timestamp')),
+                initialized=True,
+            )
+
         # update global shortcuts
         if self.config_changed('access.shortcuts'):
             self.window.setup_global_shortcuts()
-
-        # video: resolution
-        if self.config_changed('video.resolution'):
-            value = self.window.core.config.get('video.resolution')
-            self.window.core.config.set('video.resolution', value)
-            option = self.window.core.video.get_resolution_option()
-            self.window.controller.config.apply_value(
-                parent_id='global',
-                key='video.resolution',
-                option=option,
-                value=str(value),
-            )
-
-        # video: duration
-        if self.config_changed('video.duration'):
-            value = self.window.core.config.get('video.duration')
-            self.window.core.config.set('video.duration', value)
-            option = self.window.core.video.get_duration_option()
-            self.window.controller.config.apply_value(
-                parent_id='global',
-                key='video.duration',
-                option=option,
-                value=int(value) or 8,
-            )
 
         # update ENV
         self.window.core.config.setup_env()
@@ -274,6 +251,14 @@ class Editor:
         if widget is not None and hasattr(widget, 'set_keys'):
             option = self.window.controller.model.importer.get_providers_option()
             widget.set_keys(option.get('keys', []))
+
+        # Preset editor model list. The widget is created before all built-in
+        # LLM providers are registered, and custom providers can also change at
+        # runtime, so always rebuild its grouped model choices here.
+        presets = getattr(self.window.controller, 'presets', None)
+        preset_editor = getattr(presets, 'editor', None) if presets is not None else None
+        if preset_editor is not None and hasattr(preset_editor, 'update_models_list'):
+            preset_editor.update_models_list()
 
     def config_changed(self, key: str) -> bool:
         """
@@ -343,7 +328,11 @@ class Editor:
             self.window.core.config.set(key, value)
             self.window.controller.chat.render.reload()
 
-        elif key in ("ctx.reasoning.show_realtime", "ctx.reasoning.hide_after_response"):
+        elif key in (
+                "ctx.tool_calls.show_json",
+                "ctx.reasoning.show_realtime",
+                "ctx.reasoning.hide_after_response",
+        ):
             self.window.core.config.set(key, value)
             self.window.controller.chat.render.reload()
 
@@ -365,12 +354,6 @@ class Editor:
         elif key == "vision.capture.auto":
             self.window.core.config.set(key, value)
             self.window.ui.nodes['vision.capture.auto'].setChecked(value)
-
-        # update ctx limit
-        elif key.startswith('ctx.records.limit') and caller == "slider":
-            self.window.core.config.set(key, value)
-            self.window.controller.ctx.reset_loaded_total()  # reset paging
-            QTimer.singleShot(1000, lambda: self.window.controller.ctx.update(True, False))
 
         # update layout density
         elif key == "layout.density" and caller == "slider":
@@ -504,6 +487,27 @@ class Editor:
             )
             return
         self.window.core.settings.load_default_editor_app()
+
+    def load_agent_prompt_default(self, key: str, force: bool = False):
+        """Load a built-in Chat with Agents prompt into its custom textarea."""
+        widget = self.window.ui.config.get('config', {}).get(key)
+        if widget is None or not hasattr(widget, 'setPlainText'):
+            return
+
+        current = str(widget.toPlainText() or "").strip()
+        if current and not force:
+            self.window.ui.dialogs.confirm(
+                type='settings.agent.v2.prompt.defaults',
+                id=key,
+                msg=trans('settings.agent.v2.prompt.from_defaults.confirm'),
+            )
+            return
+
+        from pygpt_net.core.agents_v2.prompts import get_default_custom_prompt
+        default_prompt = get_default_custom_prompt(key)
+        if default_prompt:
+            widget.setPlainText(default_prompt)
+            widget.setFocus()
 
     def get_sections(self) -> Dict[str, dict]:
         """

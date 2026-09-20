@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.15 13:40:00                  #
 # ================================================== #
 
+import base64
 import os
 from typing import Optional, Dict, Any, List, Tuple
 
 from google.genai import types as gtypes
+from pygpt_net.core.types.reasoning import get_google_thinking_kwargs
 from google.genai.types import Content, Part
 
 from pygpt_net.core.types import MODE_CHAT, MODE_AUDIO, MODE_COMPUTER, MODE_RESEARCH
@@ -20,7 +22,9 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 
 
 class Chat:
@@ -30,6 +34,14 @@ class Chat:
         """
         self.window = window
         self.input_tokens = 0
+
+    def _is_computer_use_active(self, mode: str, model: ModelItem = None) -> bool:
+        if mode == MODE_COMPUTER:
+            return True
+        model_id = str(getattr(model, "id", "") or "").lower()
+        if "computer-use" in model_id:
+            return True
+        return self.window.core.api.google.remote_tools.is_computer_use_enabled(model)
 
     def send(
             self,
@@ -52,6 +64,11 @@ class Chat:
         multimodal_ctx = context.multimodal_ctx
         mode = context.mode
         ctx = context.ctx or CtxItem()
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+        computer_use_active = self._is_computer_use_active(mode, model)
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra["google_computer_use_active"] = computer_use_active
 
         client = self.window.core.api.google.get_client(context.mode, model)
 
@@ -74,14 +91,22 @@ class Chat:
                 ])
             ]
             trans_cfg = gtypes.GenerateContentConfig(
-                temperature=self.window.core.config.get('temperature'),
-                top_p=self.window.core.config.get('top_p'),
                 max_output_tokens=context.max_tokens if context.max_tokens else None,
             )
-            trans_resp = client.models.generate_content(
-                model=transcribe_model,
-                contents=trans_inputs,
-                config=trans_cfg,
+            transcribe_kwargs = {
+                "model": transcribe_model,
+                "contents": trans_inputs,
+                "config": trans_cfg,
+            }
+            self.window.core.api.logger.log_input(
+                type="models.generate_content", provider="google",
+                kwargs=transcribe_kwargs, input=trans_inputs, history=context.history,
+                extra=extra, model=transcribe_model, path="client.models.generate_content",
+            )
+            trans_resp = client.models.generate_content(**transcribe_kwargs)
+            self.window.core.api.logger.log_output(
+                type="models.generate_content", provider="google",
+                output=trans_resp, model=transcribe_model,
             )
             transcribed_text = self.extract_text(trans_resp).strip()
             if transcribed_text:
@@ -120,24 +145,21 @@ class Chat:
             remote_tools = []
         tools = (base_tools or []) + (remote_tools or [])
 
-        # Enable Computer Use tool in computer mode (use the official Tool/ComputerUse object)
-        if mode == MODE_COMPUTER or (model and isinstance(model.id, str) and "computer-use" in model.id.lower()):
+        # Computer Use uses the existing dedicated execution loop. It is also
+        # available as a Remote Tool in regular Chat for supported Gemini models.
+        if computer_use_active:
             tool = self.window.core.api.google.computer.get_tool()
-            tools = [tool]  # reset tools to only Computer Use (multiple tools not supported together)
+            tools = [tool]  # keep Computer Use exclusive in this adapter
 
         # Some models cannot use tools; keep behavior for image-only models
         if model and isinstance(model.id, str) and "-image" in model.id:
             tools = None
 
-        # Sampling
-        temperature = self.window.core.config.get('temperature')
-        top_p = self.window.core.config.get('top_p')
+        # Output limit
         max_tokens = context.max_tokens if context.max_tokens else None
 
         # Base config
         cfg_kwargs: Dict[str, Any] = dict(
-            temperature=temperature,
-            top_p=top_p,
             max_output_tokens=max_tokens,
             system_instruction=system_prompt if system_prompt else None,
             tools=tools if tools else None,
@@ -151,7 +173,7 @@ class Chat:
             inputs = [Content(role="user", parts=[Part.from_text(text=str(prompt or ""))])]
 
             # Remove params not used by TTS flow
-            for key in ("temperature", "top_p", "max_output_tokens", "system_instruction", "tools"):
+            for key in ("max_output_tokens", "system_instruction", "tools"):
                 if key in cfg_kwargs:
                     del cfg_kwargs[key]
 
@@ -173,16 +195,29 @@ class Chat:
                         prebuilt_voice_config=gtypes.PrebuiltVoiceConfig(voice_name=voice_name)
                     )
                 )
-        # Gemini exposes summarized thoughts when include_thoughts is enabled.
-        # This does not expose raw private chain-of-thought. Keep it off for the
-        # audio/TTS path where thinking config is not part of the response flow.
+        # Gemini can return readable summarized thoughts via include_thoughts.
+        # Keep that request strictly opt-in; reasoning effort remains independent.
         if mode != MODE_AUDIO and model and str(model.id or "").lower().startswith("gemini"):
             try:
-                cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(include_thoughts=True)
+                thinking_kwargs = {}
+                if show_reasoning:
+                    thinking_kwargs["include_thoughts"] = True
+                reasoning_effort = self.window.core.models.get_reasoning_effort(model)
+                if reasoning_effort:
+                    thinking_kwargs.update(
+                        get_google_thinking_kwargs(model.id, reasoning_effort)
+                    )
+                if thinking_kwargs:
+                    cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(**thinking_kwargs)
             except Exception:
-                # Older google-genai releases may not expose ThinkingConfig yet;
-                # retain the existing request rather than breaking compatibility.
-                pass
+                # Older google-genai releases may not expose ThinkingConfig (or
+                # thinking_level) yet. Never fall back to requesting summaries
+                # when the live-reasoning setting is disabled.
+                if show_reasoning:
+                    try:
+                        cfg_kwargs["thinking_config"] = gtypes.ThinkingConfig(include_thoughts=True)
+                    except Exception:
+                        pass
 
         cfg = gtypes.GenerateContentConfig(**cfg_kwargs)
         params = dict(model=model.id, contents=inputs, config=cfg)
@@ -202,14 +237,22 @@ class Chat:
                         ])
                     ]
                     trans_cfg = gtypes.GenerateContentConfig(
-                        temperature=self.window.core.config.get('temperature'),
-                        top_p=self.window.core.config.get('top_p'),
                         max_output_tokens=context.max_tokens if context.max_tokens else None,
                     )
-                    trans_resp = client.models.generate_content(
-                        model=transcribe_model,
-                        contents=trans_inputs,
-                        config=trans_cfg,
+                    transcribe_kwargs = {
+                        "model": transcribe_model,
+                        "contents": trans_inputs,
+                        "config": trans_cfg,
+                    }
+                    self.window.core.api.logger.log_input(
+                        type="models.generate_content", provider="google",
+                        kwargs=transcribe_kwargs, input=trans_inputs, history=context.history,
+                        extra=extra, model=transcribe_model, path="client.models.generate_content",
+                    )
+                    trans_resp = client.models.generate_content(**transcribe_kwargs)
+                    self.window.core.api.logger.log_output(
+                        type="models.generate_content", provider="google",
+                        output=trans_resp, model=transcribe_model,
                     )
                     transcribed_text = self.extract_text(trans_resp).strip()
                     if transcribed_text:
@@ -252,28 +295,60 @@ class Chat:
                 pass
 
             # Deep Research agent must use background=True; stream=True enables live progress updates.
+            agent_config: Dict[str, Any] = {"type": "deep-research"}
+            if show_reasoning:
+                agent_config["thinking_summaries"] = "auto"
             create_kwargs: Dict[str, Any] = {
                 "agent": model.id,
                 "input": interactions_input if interactions_input else (str(prompt or "") or " "),
                 "background": True,
                 "stream": stream,
-                "agent_config": {
-                    "type": "deep-research",
-                    "thinking_summaries": "auto"
-                }
+                "agent_config": agent_config,
             }
 
             # Continue conversation on server using previous_interaction_id if available
             if prev_interaction_id:
                 create_kwargs["previous_interaction_id"] = prev_interaction_id
 
-            # Do not pass custom tools here; Deep Research manages its own built-in tools.
-            return client.interactions.create(**create_kwargs)
+            # Google Remote MCP is exposed through the Interactions API. Keep
+            # app-defined function declarations out of this Deep Research path,
+            # but allow server-side MCP connectors configured for Google.
+            mcp_tools = self.window.core.api.google.remote_tools.build_interactions_mcp_tools(model)
+            if mcp_tools:
+                create_kwargs["tools"] = mcp_tools
+
+            self.window.core.api.logger.log_input(
+                type="interactions.create", provider="google", kwargs=create_kwargs,
+                input=create_kwargs.get("input"), history=context.history, extra=extra,
+                model=model.id, path="client.interactions.create",
+            )
+            response = client.interactions.create(**create_kwargs)
+            if not stream:
+                self.window.core.api.logger.log_output(
+                    type="interactions.create", provider="google",
+                    output=response, model=model.id,
+                )
+            return response
 
         if stream and mode != MODE_AUDIO:
+            self.window.core.api.logger.log_input(
+                type="models.generate_content_stream", provider="google", kwargs=params,
+                input=inputs, history=context.history, extra=extra,
+                model=model.id, path="client.models.generate_content_stream",
+            )
             return client.models.generate_content_stream(**params)
         else:
-            return client.models.generate_content(**params)
+            self.window.core.api.logger.log_input(
+                type="models.generate_content", provider="google", kwargs=params,
+                input=inputs, history=context.history, extra=extra,
+                model=model.id, path="client.models.generate_content",
+            )
+            response = client.models.generate_content(**params)
+            self.window.core.api.logger.log_output(
+                type="models.generate_content", provider="google",
+                output=response, model=model.id,
+            )
+            return response
 
     def unpack_response(
             self,
@@ -309,22 +384,32 @@ class Chat:
             return
 
         # ---- chat / computer ----
+        # `show_reasoning` is intentionally resolved in this method as well.
+        # `unpack_response()` is called independently from `send()` (e.g. via
+        # provider redirect/quick calls used by inline tools), so it must not
+        # depend on a local variable created in `send()`.
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+
         ctx.output = self.extract_text(response) or ""
-        reasoning = self.extract_reasoning(response)
-        if reasoning:
-            store_reasoning(
-                ctx, provider="google", text=reasoning,
-                kind="thought_summary", raw=False, visible=True,
-            )
+        if show_reasoning:
+            reasoning = self.extract_reasoning(response)
+            if reasoning:
+                store_reasoning(
+                    ctx, provider="google", text=reasoning,
+                    kind="thought_summary", raw=False, visible=True,
+                )
 
         # 1) Extract tool calls and store in ctx.tool_calls (backward-compatible shape)
         calls = self.extract_tool_calls(response)
         if calls:
             ctx.tool_calls = calls
 
-        # 2) In MODE_COMPUTER: capture raw model parts (with thought_signature) for next FunctionResponse turn
-        #    and translate Computer Use calls into plugin commands now.
-        if mode == MODE_COMPUTER:
+        # 2) For Computer Use (dedicated mode or Remote Tool): capture raw model
+        #    parts for the next FunctionResponse turn and translate actions now.
+        computer_use_active = mode == MODE_COMPUTER or bool(
+            isinstance(ctx.extra, dict) and ctx.extra.get("google_computer_use_active")
+        )
+        if computer_use_active:
             candidate = None
             try:
                 cands = getattr(response, "candidates", None) or []
@@ -377,7 +462,8 @@ class Chat:
                     or getattr(usage, "reasoning_tokens", 0)
                     or 0
                 )
-                ensure_reasoning_metadata(ctx, "google", reasoning_tokens)
+                if show_reasoning:
+                    ensure_reasoning_metadata(ctx, "google", reasoning_tokens)
         except Exception:
             pass
 
@@ -540,8 +626,10 @@ class Chat:
         :param mode: MODE_CHAT / MODE_AUDIO / MODE_COMPUTER
         :return: List of Content
         """
+        computer_use_active = self._is_computer_use_active(mode, model)
+
         # FunctionResponse turn for Computer Use (strictly immediate after functionCall)
-        if mode == MODE_COMPUTER and self.window.core.config.get('use_context'):
+        if computer_use_active and self.window.core.config.get('use_context'):
             hist = self.window.core.ctx.get_history(
                 history,
                 model.id,
@@ -576,13 +664,17 @@ class Chat:
             if item.final_output:
                 contents.append(Content(role="model", parts=[Part.from_text(text=str(item.final_output))]))
 
-        # Current user message:
-        # - In MODE_COMPUTER attach initial screenshot only on the very first turn
-        if mode == MODE_COMPUTER:
+        # Current user message: for Computer Use attach an initial screenshot only
+        # on the first turn (also when enabled as a Remote Tool in Chat).
+        if computer_use_active:
             initial_attachments = {}
             if is_first_turn and not attachments and not is_sandbox:
                 self.window.controller.attachment.clear_silent()
-                self.window.controller.painter.capture.screenshot(attach_cursor=True, silent=True)
+                self.window.controller.painter.capture.screenshot(
+                    attach_cursor=True,
+                    silent=True,
+                    append_to_ctx=False,
+                )
                 initial_attachments = self.window.core.attachments.get_all(mode)
             send_attachments = initial_attachments if initial_attachments else attachments
             parts = self._build_user_parts(
@@ -608,7 +700,12 @@ class Chat:
         """
         Build FunctionResponse contents for the immediate next turn after executing
         Computer Use function calls. It reconstructs the last user -> model(functionCall) turn
-        and returns [user_content, model_function_call_content, tool_function_response_content].
+        and returns [user_content, model_function_call_content, user_function_response_content].
+
+        Gemini generate_content accepts only user/model conversation roles here. Computer Use
+        FunctionResponse parts therefore have to be sent in a ``role=user`` Content, not in a
+        synthetic ``role=tool`` Content. The provider function-call id and thought signature are
+        also echoed when available; Gemini 3 validates both during multi-step tool use.
         """
         if not self.window.core.config.get('use_context') or not history:
             return None
@@ -626,8 +723,8 @@ class Chat:
             if getattr(prev, "final_input", None):
                 prior_user_text = str(prev.final_input)
 
-        if not prior_user_text and getattr(last_item, "input", None):
-            prior_user_text = str(last_item.input)
+        if not prior_user_text and getattr(last_item, "final_input", None):
+            prior_user_text = str(last_item.final_input)
 
         if not prior_user_text:
             prior_user_text = "..."
@@ -639,10 +736,13 @@ class Chat:
         model_parts = self._rehydrate_model_parts(raw_parts)
         if not model_parts:
             model_parts = self._rehydrate_from_tool_calls(getattr(last_item, "tool_calls", []))
-        # append also text part if not empty
+        # When the raw provider parts came from a non-stream response they already contain any
+        # visible text. Streaming captures those parts too, but retain this fallback for contexts
+        # created by older builds where only the functionCall was stored.
         if getattr(last_item, "final_output", None):
             output_text = str(last_item.final_output).strip()
-            if output_text:
+            has_text_part = any(bool(getattr(p, "text", None)) for p in model_parts)
+            if output_text and not has_text_part:
                 model_parts.append(Part.from_text(text=output_text))
 
         model_fc_content = Content(role="model", parts=model_parts)
@@ -650,20 +750,24 @@ class Chat:
         # 3) Build a single tool content with N FunctionResponse parts (one per functionCall)
         screenshot_part = self._screenshot_function_response_part(attachments)
         fr_parts: List[Part] = []
+        response_index = 0
         for p in model_parts:
             if getattr(p, "function_call", None):
                 fn = p.function_call
-                fr = Part.from_function_response(
-                    name=fn.name,
-                    response=self._minimal_tool_response(last_item),
-                    parts=[screenshot_part] if screenshot_part else None
+                fr = self._build_function_response_part(
+                    fn=fn,
+                    response=self._minimal_tool_response(last_item, response_index),
+                    screenshot_part=screenshot_part,
                 )
                 fr_parts.append(fr)
+                response_index += 1
 
         if not fr_parts:
             return None
 
-        tool_content = Content(role="tool", parts=fr_parts)
+        # Computer Use continuation is a user turn containing function_response parts.
+        # ``role=tool`` is rejected by Gemini generate_content with INVALID_ARGUMENT.
+        tool_content = Content(role="user", parts=fr_parts)
 
         return [user_content, model_fc_content, tool_content]
 
@@ -685,25 +789,84 @@ class Chat:
             parts.append(Part.from_function_call(name=name, args=args))
         return parts
 
+    @staticmethod
+    def _serialize_thought_signature(value: Any) -> Any:
+        """Make the opaque SDK thought signature safe for ctx.extra JSON persistence."""
+        if value is None:
+            return None
+        if isinstance(value, (bytes, bytearray)):
+            return {
+                "__pygpt_type__": "bytes",
+                "encoding": "base64",
+                "data": base64.b64encode(bytes(value)).decode("ascii"),
+            }
+        # Older google-genai builds may expose a JSON-safe scalar already.
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        return str(value)
+
+    @classmethod
+    def _json_safe_value(cls, value: Any) -> Any:
+        """Convert SDK mapping/model values used in ctx.extra to plain JSON-safe values."""
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, (bytes, bytearray)):
+            return base64.b64encode(bytes(value)).decode("ascii")
+        try:
+            if hasattr(value, "to_json_dict"):
+                return cls._json_safe_value(value.to_json_dict())
+            if hasattr(value, "model_dump"):
+                return cls._json_safe_value(value.model_dump())
+            if hasattr(value, "to_dict"):
+                return cls._json_safe_value(value.to_dict())
+        except Exception:
+            pass
+        if isinstance(value, dict) or hasattr(value, "items"):
+            try:
+                return {str(k): cls._json_safe_value(v) for k, v in value.items()}
+            except Exception:
+                pass
+        if isinstance(value, (list, tuple, set)):
+            return [cls._json_safe_value(v) for v in value]
+        return str(value)
+
+    @staticmethod
+    def _deserialize_thought_signature(value: Any) -> Any:
+        """Restore a thought signature serialized by _serialize_thought_signature()."""
+        if isinstance(value, dict) and value.get("__pygpt_type__") == "bytes":
+            try:
+                return base64.b64decode(value.get("data", ""))
+            except Exception:
+                return None
+        return value
+
     def _dump_model_parts(self, parts: List[Part]) -> List[dict]:
         """
         Dump model parts into a JSON-serializable structure, preserving thought_signature.
         """
         out: List[dict] = []
         for p in parts or []:
-            ts = getattr(p, "thought_signature", None)
+            ts = self._serialize_thought_signature(getattr(p, "thought_signature", None))
             if getattr(p, "function_call", None):
                 fn = p.function_call
                 name = getattr(fn, "name", "") or ""
-                args = getattr(fn, "args", {}) or {}
+                args = self._json_safe_value(getattr(fn, "args", {}) or {})
                 out.append({
                     "type": "function_call",
+                    "id": getattr(fn, "id", None) or "",
                     "name": name,
                     "args": args,
                     "thought_signature": ts,
                 })
             elif getattr(p, "text", None):
-                out.append({"type": "text", "text": str(p.text)})
+                item = {
+                    "type": "text",
+                    "text": str(p.text),
+                    "thought": bool(getattr(p, "thought", False)),
+                }
+                if ts is not None:
+                    item["thought_signature"] = ts
+                out.append(item)
         return out
 
     def _rehydrate_model_parts(self, raw_parts: List[dict]) -> List[Part]:
@@ -716,13 +879,60 @@ class Chat:
             if t == "function_call":
                 name = it.get("name")
                 args = it.get("args") or {}
-                ts = it.get("thought_signature")
+                call_id = it.get("id") or None
+                ts = self._deserialize_thought_signature(it.get("thought_signature"))
                 if name:
-                    parts.append(Part(function_call=gtypes.FunctionCall(name=name, args=args),
-                                      thought_signature=ts))
+                    try:
+                        fn = gtypes.FunctionCall(id=call_id, name=name, args=args) if call_id \
+                            else gtypes.FunctionCall(name=name, args=args)
+                    except Exception:
+                        # Compatibility with older google-genai releases without FunctionCall.id.
+                        fn = gtypes.FunctionCall(name=name, args=args)
+                    parts.append(Part(function_call=fn, thought_signature=ts))
             elif t == "text":
-                parts.append(Part.from_text(text=str(it.get("text", ""))))
+                text = str(it.get("text", ""))
+                thought = bool(it.get("thought", False))
+                ts = self._deserialize_thought_signature(it.get("thought_signature"))
+                if thought or ts is not None:
+                    try:
+                        parts.append(Part(text=text, thought=thought, thought_signature=ts))
+                    except Exception:
+                        parts.append(Part.from_text(text=text))
+                else:
+                    parts.append(Part.from_text(text=text))
         return parts
+
+    def _build_function_response_part(
+            self,
+            fn: gtypes.FunctionCall,
+            response: Dict[str, Any],
+            screenshot_part: Optional[gtypes.FunctionResponsePart] = None,
+    ) -> Part:
+        """
+        Build a Computer Use FunctionResponse and echo FunctionCall.id when supported.
+
+        Part.from_function_response() does not expose the response id in all SDK versions,
+        therefore the FunctionResponse object is created explicitly first.
+        """
+        kwargs: Dict[str, Any] = {
+            "name": getattr(fn, "name", "") or "",
+            "response": response,
+        }
+        if screenshot_part is not None:
+            kwargs["parts"] = [screenshot_part]
+
+        call_id = getattr(fn, "id", None) or None
+        try:
+            fr = gtypes.FunctionResponse(id=call_id, **kwargs) if call_id \
+                else gtypes.FunctionResponse(**kwargs)
+            return Part(function_response=fr)
+        except Exception:
+            # Compatibility fallback for older google-genai releases.
+            return Part.from_function_response(
+                name=kwargs["name"],
+                response=response,
+                parts=kwargs.get("parts"),
+            )
 
     def _screenshot_function_response_part(
             self,
@@ -760,7 +970,7 @@ class Chat:
         except Exception:
             return None
 
-    def _minimal_tool_response(self, item: CtxItem) -> Dict[str, Any]:
+    def _minimal_tool_response(self, item: CtxItem, index: int = 0) -> Dict[str, Any]:
         """
         Construct a minimal structured payload for FunctionResponse.response.
         """
@@ -769,12 +979,16 @@ class Chat:
             if item and item.extra and isinstance(item.extra, dict):
                 outputs = item.extra.get("tool_output")
                 if isinstance(outputs, list) and len(outputs) > 0:
-                    last = outputs[-1]
-                    if isinstance(last, dict):
-                        if "result" in last and isinstance(last["result"], dict):
-                            resp = last["result"]
-                        if "error" in last:
-                            resp["error"] = last["error"]
+                    selected = outputs[index] if 0 <= index < len(outputs) else outputs[-1]
+                    if isinstance(selected, dict):
+                        value = selected.get("result")
+                        if isinstance(value, dict):
+                            resp = dict(value)
+                        elif value is not None:
+                            resp = {"ok": not str(value).lower().startswith("error"), "result": value}
+                        if selected.get("error"):
+                            resp["error"] = selected["error"]
+                            resp["ok"] = False
         except Exception:
             pass
 
@@ -1094,14 +1308,14 @@ class Chat:
                 if not uri or not isinstance(uri, str):
                     continue
                 # Only Gemini Files API refs are supported for direct download
-                save_path = self.window.core.api.google.store.download_to_dir(uri, prefer_name=prefer)
+                save_path = self.window.core.api.google.store.download_to_dir(uri, prefer_name=prefer, ctx=ctx)
                 if save_path:
                     downloaded.append(save_path)
             except Exception:
                 continue
 
         if downloaded:
-            downloaded = self.window.core.filesystem.make_local_list(downloaded)
+            downloaded = self.window.core.filesystem.make_local_list(downloaded, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []
             for path in downloaded:

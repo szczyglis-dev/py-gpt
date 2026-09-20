@@ -6,16 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 18:10:00                  #
+# Updated Date: 2026.09.11 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
+    MODE_AGENT,
+    MODE_AGENT_V2,
     MODE_CHAT, MODE_AUDIO,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+
+
+AGENTS2_IS_BETA = False
 
 
 class Mode:
@@ -136,9 +141,22 @@ class Mode:
         self.window.ui.nodes["prompt.mode"].set_value(mode)
 
     def init_list(self):
-        """Init modes list"""
+        """Init modes list."""
         data = self.window.core.modes.get_all()
-        items = {k: trans(v.label) for k, v in data.items()}
+        regular = {}
+        legacy = {}
+        for mode_id, item in data.items():
+            target = legacy if item.legacy else regular
+            label = trans(item.label)
+            if mode_id == MODE_AGENT_V2 and AGENTS2_IS_BETA:
+                label += " (beta)"
+            target[mode_id] = label
+
+        items = dict(regular)
+        if legacy:
+            items["separator::legacy"] = trans("mode.section.legacy")
+            items.update(legacy)
+
         self.window.ui.nodes["prompt.mode"].set_keys(items)
 
     def select_current(self):
@@ -161,50 +179,6 @@ class Mode:
         c.model.select_default()
         c.presets.select_default()
         c.assistant.select_default()
-
-    def update_temperature(self, temperature: float = None):
-        """
-        Update current temperature field
-
-        :param temperature: current temperature
-        :type temperature: float or None
-        """
-        if temperature is None:
-            cfg = self.window.core.config
-            preset_id = cfg.get('preset')
-            if preset_id is None or preset_id == "":
-                temperature = 1.0  # default temperature
-            else:
-                items = self.window.core.presets.items
-                if preset_id in items:
-                    temperature = float(items[preset_id].temperature or 1.0)
-        '''
-        self.window.controller.config.slider.on_update("global", "current_temperature", option, temperature,
-                                                       hooks=False)  # disable hooks to prevent circular update
-        '''
-
-    def hook_global_temperature(
-            self,
-            key: str,
-            value,
-            caller,
-            *args,
-            **kwargs
-    ):
-        """Hook: on update current temperature global field"""
-        if caller != "slider":
-            return  # accept call only from slider (has already validated min/max)
-
-        temperature = value / 100
-        cfg = self.window.core.config
-        cfg.set("temperature", temperature)
-        preset_id = cfg.get('preset')
-        if preset_id is not None and preset_id != "":
-            items = self.window.core.presets.items
-            if preset_id in items:
-                preset = items[preset_id]
-                preset.temperature = temperature
-                self.window.core.presets.save(preset_id)
 
     def switch_inline(
             self,

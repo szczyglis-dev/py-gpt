@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 20:31:00
+# Updated Date: 2026.09.12 14:45:00
 # ================================================== #
 
 from PySide6.QtGui import QPixmap, QIcon
@@ -176,6 +176,7 @@ class Painter:
         """
         self.init()
         body = self.window.core.tabs.from_layout(self.setup_painter())
+        self.window.ui.painter.bind_clipboard_shortcuts(body, self.window.ui.painter_scroll)
         body.append(self.window.ui.painter)
         return body
 
@@ -214,7 +215,8 @@ class Painter:
 
         if nodes.get('painter.btn.clear') is None:
             btn = QPushButton(QIcon(":/icons/close.svg"), trans('painter.btn.clear'))
-            btn.clicked.connect(ui.painter.clear_image)
+            # Use the same undo-aware path as the Painter context-menu Clear action.
+            btn.clicked.connect(ui.painter.action_clear)
             nodes['painter.btn.clear'] = btn
         top.addWidget(nodes['painter.btn.clear'])
 

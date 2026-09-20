@@ -1,0 +1,29 @@
+* {{ 
+  font-family: 'Lato' !important; 
+}}
+
+QPushButton {{
+  text-transform: none;
+}}
+
+QLineEdit {{
+  color: #ffffff; 
+  border: 1px solid #5c5c5c;
+}}
+QTextEdit {{
+  color: #ffffff; 
+  border: 1px solid #5c5c5c;
+  padding: 10px !important;
+}}
+
+QTableView::item,
+QTreeView::item,
+QListView::item {{
+  padding: 4px;
+  min-height: 28px;
+}}
+/* Main application menu: add a little vertical breathing room globally. */
+QMenuBar::item {{
+  padding-top: 14px;
+  padding-bottom: 14px;
+}}

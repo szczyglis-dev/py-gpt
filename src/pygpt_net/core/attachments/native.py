@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 19:20:00                  #
+# Updated Date: 2026.09.10 09:55:00                  #
 # ================================================== #
 
 import mimetypes
@@ -16,6 +16,7 @@ from typing import Optional, Dict, Any, Iterable
 from pygpt_net.core.types import MODE_CHAT, MODE_COMPUTER, MODE_RESEARCH
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.core.model.compat import supports_xai_native_files
 
 
 class Native:
@@ -96,8 +97,7 @@ class Native:
         if provider == "anthropic" and cfg.get("api_native_anthropic", False):
             return provider
         if provider == "x_ai" and cfg.get("api_native_xai", False):
-            model_id = str(model.id or "").lower()
-            if model_id.startswith("grok-4") and "imagine" not in model_id:
+            if supports_xai_native_files(model.id):
                 return provider
         return None
 
@@ -249,9 +249,7 @@ class Native:
         """Return whether model metadata declares vision/image input support."""
         if model is None:
             return False
-        inputs = getattr(model, "input", None) or []
-        modes = getattr(model, "mode", None) or []
-        return "image" in inputs or "vision" in modes
+        return model.is_image_input()
 
     @staticmethod
     def _google_mime(path: str) -> str:
@@ -326,7 +324,7 @@ class Native:
             except Exception:
                 meta = None
             if meta is not None:
-                for item in meta.get_additional_ctx():
+                for item in self.window.core.attachments.context.get_all(meta):
                     if not isinstance(item, dict):
                         continue
                     if item.get("active", True) is False:

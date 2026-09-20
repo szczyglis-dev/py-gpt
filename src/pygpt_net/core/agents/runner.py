@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 import asyncio
@@ -25,6 +25,8 @@ from pygpt_net.core.types import (
 )
 
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.llms.agent_computer import ComputerRuntime
+from pygpt_net.provider.agents.base import BaseAgent
 
 from .runners.llama_assistant import LlamaAssistant
 from .runners.llama_plan import LlamaPlan
@@ -93,14 +95,23 @@ class Runner:
             # prepare agent
             model = context.model
             vector_store_idx = extra.get("agent_idx", None)
-            system_prompt = context.system_prompt
+            system_prompt = BaseAgent.append_security_rule(context.system_prompt)
             preset = context.preset
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_stream = self.window.core.config.get("stream", False)
             is_cmd = self.window.core.command.is_cmd(inline=False)
             history = self.window.core.agents.memory.prepare(context)
-            llm = self.window.core.idx.llm.get(model, stream=False)
-            workdir = self.window.core.config.get_workdir_prefix()
+            computer_runtime = ComputerRuntime(self.window, context)
+            # Legacy LlamaIndex agents are agent workflows, so use the same
+            # provider adapter path as Agents v2. This preserves provider-native
+            # remote tools and lets the adapter own Computer Use continuations.
+            llm = self.window.core.idx.llm.get_agent(
+                model,
+                stream=False,
+                allow_remote_tools=True,
+                computer_runtime=computer_runtime,
+            )
+            workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
 
             # vector store idx from preset
             if preset:
@@ -110,6 +121,7 @@ class Runner:
             # tools
             agent_tools = self.window.core.agents.tools
             agent_tools.set_context(context)
+            agent_tools.set_computer_runtime(computer_runtime)
             agent_tools.set_idx(vector_store_idx)
 
             tools = agent_tools.prepare(context, extra, force=True)
@@ -174,8 +186,12 @@ class Runner:
                 "workdir": workdir,
                 "preset": context.preset if context else None,
                 "schema": schema,
+                "computer_runtime": computer_runtime,
             }
             provider = self.window.core.agents.provider.get(agent_id, context.mode)
+            # Preserve late/plugin system-prompt additions for providers that use
+            # their own per-agent instructions instead of context.system_prompt.
+            agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
             agent = provider.get_agent(self.window, agent_kwargs)
             agent_run = provider.run
             if verbose:
@@ -249,16 +265,26 @@ class Runner:
             # prepare agent
             model = context.model
             vector_store_idx = extra.get("agent_idx", None)
-            system_prompt = context.system_prompt
+            system_prompt = BaseAgent.append_security_rule(context.system_prompt)
             is_expert_call = context.is_expert_call
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_cmd = self.window.core.command.is_cmd(inline=False)
-            llm = self.window.core.idx.llm.get(model, stream=False)
-            workdir = self.window.core.config.get_workdir_prefix()
+            computer_runtime = ComputerRuntime(self.window, context)
+            # Legacy LlamaIndex agents are agent workflows, so use the same
+            # provider adapter path as Agents v2. This preserves provider-native
+            # remote tools and lets the adapter own Computer Use continuations.
+            llm = self.window.core.idx.llm.get_agent(
+                model,
+                stream=False,
+                allow_remote_tools=True,
+                computer_runtime=computer_runtime,
+            )
+            workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
 
             # tools
             agent_tools = self.window.core.agents.tools
             agent_tools.set_context(context)
+            agent_tools.set_computer_runtime(computer_runtime)
             agent_tools.set_idx(vector_store_idx)
 
             if "agent_tools" in extra:
@@ -294,8 +320,10 @@ class Runner:
                 "are_commands": is_cmd,
                 "workdir": workdir,
                 "preset": context.preset if context else None,
+                "computer_runtime": computer_runtime,
             }
             provider = self.window.core.agents.provider.get(agent_id)
+            agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
             agent = provider.get_agent(self.window, agent_kwargs)
             if verbose:
                 print(f"Using Agent: {agent_id}, model: {model.id}")

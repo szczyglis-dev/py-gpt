@@ -347,15 +347,19 @@ class Idx:
         """Reload indexer"""
         self.setup()
 
-    def on_idx_start(self):
+    def on_idx_start(self, show_global_stop: bool = True):
         """
-        Called on indexing started
+        Called on indexing started.
 
-        :param idx: index name
+        :param show_global_stop: show the global bottom STOP button
         """
         self.stop = False
-        self.window.controller.ui.stop_action = "idx"
-        self.window.controller.ui.show_global_stop()
+        if show_global_stop:
+            self.window.controller.ui.stop_action = "idx"
+            self.window.controller.ui.show_global_stop()
+        else:
+            self.window.controller.ui.stop_action = None
+            self.window.controller.ui.hide_global_stop()
 
     def on_idx_end(self):
         """

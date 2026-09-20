@@ -4,45 +4,48 @@ Plugins
 Overview
 -------------------------
 
-**PyGPT** can be enhanced with plugins to add new features.
+**PyGPT** can be enhanced with plugins that add tools, integrations, automation, multimodal features, and additional context directly to conversations.
 
-The following plugins are currently available, and model can use them instantly:
+The following plugins are currently available:
 
-* ``API calls`` - plugin lets you connect the model to the external services using custom defined API calls.
-* ``Audio Input`` - provides speech recognition.
-* ``Audio Output`` - provides voice synthesis.
-* ``Autonomous Agent (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
-* ``Bitbucket`` - Access Bitbucket API to manage repositories, issues, and pull requests.
-* ``Chat with files (LlamaIndex, inline)`` - plugin integrates LlamaIndex storage in any chat and provides additional knowledge into context (from indexed files).
-* ``Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means model can interface with any script, application, or code. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to model.
-* ``Context history (calendar, inline)`` - provides access to context history database.
-* ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
-* ``Custom Commands`` - allows you to create and execute custom commands on your system.
-* ``Experts (inline)`` - allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
-* ``Facebook`` - Manage user info, pages, posts, and photos on Facebook pages.
-* ``Files I/O`` - grants access to the local filesystem, enabling model to read and write files, as well as list and create directories.
-* ``GitHub`` - Access GitHub API to manage repositories, issues, and pull requests.
-* ``Google`` - Access Gmail, Drive, Docs, Maps, Calendar, Contacts, Colab, YouTube, Keep - for managing emails, files, events, notes, video info, and contacts.
-* ``Image Generation (inline)`` - integrates image generation with any chat and mode. Select an image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The plugin does not require the ``+ Tools`` option to be enabled.
-* ``Mailer`` - Provides the ability to send, receive and read emails.
-* ``MCP`` - Provides access to remote tools via the Model Context Protocol (MCP), including stdio, SSE, and Streamable HTTP transports, with per-server allow/deny filtering, Authorization header support, and a tools cache.
-* ``Mouse and Keyboard`` - provides the ability to control the mouse and keyboard by the model.
-* ``OpenStreetMap`` -  Search, geocode, plan routes, and generate static maps using OpenStreetMap services (Nominatim, OSRM, staticmap).
-* ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
-* ``Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
-* ``Server (SSH/FTP)`` - Connect to remote servers using FTP, SFTP, and SSH. Execute remote commands, upload, download, and more.
-* ``Slack`` - Handle users, conversations, messages, and files on Slack.
-* ``System (OS)`` - provides access to the operating system and executes system commands.
-* ``System Prompt Extra`` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
-* ``Telegram`` - Send messages, photos, and documents; manage chats and contacts.
-* ``Tuya (IoT)`` - Handle Tuya Smart Home devices via Tuya Cloud API.
-* ``TwelveLabs`` - Analyze and understand videos with TwelveLabs Pegasus, and create multimodal embeddings with Marengo.
-* ``Vision (inline)`` - adds image analysis to supported chat modes. When image content is detected, PyGPT temporarily routes that turn through Chat with the image-capable model configured in the plugin. The plugin model can use any supported provider.
-* ``Voice Control (inline)`` - provides voice control command execution within a conversation.
-* ``Web Search`` - provides the ability to connect to the Web, search web pages for current data, and index external content using LlamaIndex data loaders.
-* ``Wikipedia`` - Search Wikipedia for information.
-* ``Wolfram Alpha`` - Compute and solve with Wolfram Alpha: short answers, full JSON pods, math (solve, derivatives, integrals), unit conversions, matrix operations, and plots.
-* ``X/Twitter`` - Interact with tweets and users, manage bookmarks and media, perform likes, retweets, and more.
+* ``API calls`` - connects models to external services through user-defined API endpoints, request methods, parameters, and payloads.
+* ``Audio input`` - adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
+* ``Audio output`` - enables speech synthesis for every received response using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
+* ``Autonomous mode`` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
+* ``Bitbucket`` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
+* ``Chat history (inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
+* ``Crontab / Task scheduler`` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
+* ``Custom commands`` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
+* ``Experts (inline)`` - exposes enabled Expert presets through the regular ``expert_call`` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Chat with Agents.
+* ``Extra system prompt`` - automatically appends reusable custom instructions or additional context to the active system prompt.
+* ``Facebook`` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
+* ``Files I/O`` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
+* ``GitHub`` - connects to GitHub for repository, file, issue, pull request, code search, and account operations.
+* ``Google`` - integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
+* ``Image generation (inline)`` - adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
+* ``Mailer`` - provides email access through configured mail services, including sending and reading messages where supported.
+* ``MCP`` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
+* ``Memory (inline)`` - maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
+* ``Mouse and keyboard`` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
+* ``OpenStreetMap`` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
+* ``Python interpreter`` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+* ``RAG (inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
+* ``Real time`` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
+* ``Serial port / USB`` - gives models access to configured serial and USB devices for reading data and sending commands.
+* ``Server (SSH/FTP)`` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
+* ``Slack`` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
+* ``System (OS)`` - provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
+* ``Telegram`` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
+* ``Tuya (IoT)`` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
+* ``TwelveLabs`` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
+* ``Vision (inline)`` - adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
+* ``Voice control (inline)`` - lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
+* ``Web search`` - adds real-time web search, webpage retrieval, crawling, and external-content indexing using supported search providers and LlamaIndex loaders.
+* ``Wikipedia`` - provides Wikipedia search, article lookup, summaries, geographic discovery, and random-page access.
+* ``Wolfram Alpha`` - adds computational knowledge, symbolic and numeric mathematics, unit conversions, matrix operations, and generated plots through Wolfram Alpha.
+* ``X/Twitter`` - connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
+
+**Tip:** Inline plugins work independently of the ``Tools`` switch in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
 
 
 Creating Your Own Plugins
@@ -121,10 +124,10 @@ Connection timeout (seconds). *Default:* `5`
 User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mozilla/5.0`
 
 
-Audio Input
+Audio input
 ------------
 
-The plugin facilitates speech recognition (by default using the ``Whisper`` model from OpenAI, ``Google`` and ``Bing`` are also available). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new ``Speak`` option will appear at the bottom near the ``Send`` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+The plugin facilitates speech recognition. The default provider is ``OpenAI Whisper``; ``local Whisper``, ``Google``, ``Google Cloud``, ``Google GenAI``, ``Microsoft Bing``, and xAI Grok Voice providers are also available. It allows voice input and voice commands to be captured through your microphone and transcribed into text. Once the plugin is enabled, use the ``Microphone`` icon on the right side of the input field to start voice input.
 
 The plugin can be extended with other speech recognition providers.
 
@@ -141,6 +144,8 @@ Available providers:
 * Google (via ``SpeechRecognition`` library)
 * Google Cloud (via ``SpeechRecognition`` library)
 * Microsoft Bing (via ``SpeechRecognition`` library)
+* Google GenAI
+* xAI Grok Voice
 
 **Whisper (API)**
 
@@ -156,6 +161,14 @@ Choose the local model. *Default:* `base`
 
 Available models: https://github.com/openai/whisper
 
+- ``Custom model name override`` *whisper_local_model_custom*
+
+Optional custom model name or local checkpoint path. When set, it overrides the model selected above. *Default:* empty
+
+- ``Keep model in RAM`` *whisper_local_keep_in_memory*
+
+Keep the local Whisper model loaded between transcriptions. Disable this to reduce RAM usage at the cost of reloading it from the local cache for each transcription. *Default:* `True`
+
 **Google**
 
 - ``Additional keywords arguments`` *google_args*
@@ -164,9 +177,26 @@ Additional keywords arguments for r.recognize_google(audio, **kwargs)
 
 **Google Cloud**
 
-- ``Additional keywords arguments`` *google_args*
+- ``Additional keywords arguments`` *google_cloud_args*
 
-Additional keywords arguments for r.recognize_google_cloud(audio, **kwargs)
+Additional keyword arguments passed to ``recognize_google_cloud(audio, **kwargs)``. The default list contains ``language=en-US``.
+
+**Google GenAI**
+
+- ``Model`` *google_genai_audio_model*
+
+Gemini model used for audio transcription. *Default:* ``gemini-2.5-flash``
+
+- ``System Prompt`` *google_genai_audio_prompt*
+
+System instruction used to guide transcription output.
+
+**xAI Grok Voice**
+
+- ``Sample rate (Hz)`` *xai_voice_audio_sample_rate* - PCM input sample rate. *Default:* ``16000``
+- ``System Prompt`` *xai_voice_system_prompt* - system instruction used to guide transcription output.
+- ``Region (optional)`` *xai_voice_region* - optional regional endpoint such as ``us-east-1``; empty uses the global endpoint.
+- ``Chunk size (ms)`` *xai_voice_chunk_ms* - WebSocket audio chunk size. *Default:* ``200``
 
 **Bing**
 
@@ -204,7 +234,7 @@ Enables adjustment to ambient noise levels. *Default:* `True`
 
 - ``Continuous listen`` *continuous_listen*
 
-Experimental: continuous listening - do not stop listening after a single input. Warning: This feature may lead to unexpected results and requires fine-tuning with the rest of the options! If disabled, listening must be started manually by enabling the ``Speak`` option. *Default:* `False`
+Experimental: continuous listening - do not stop listening after a single input. Warning: This feature may lead to unexpected results and requires fine-tuning with the rest of the options! If disabled, listening must be started manually using the ``Microphone`` icon on the right side of the input field. *Default:* `False`
 
 - ``Wait for response`` *wait_response*
 
@@ -262,15 +292,15 @@ The duration parameter is the maximum number of seconds that it will dynamically
 
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
-Audio Output
+Audio output
 -------------------------
 
-The plugin lets you turn text into speech using the TTS model from OpenAI or other services like ``Microsoft Azure``, ``Google``, and ``Eleven Labs``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
-Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via ``Microsoft Azure``, ``Google`` or ``Eleven Labs``, you must configure the audio plugin with your API keys, regions and voices if required.
+When enabled, the plugin synthesizes every received response as speech using OpenAI TTS or providers such as ``Microsoft Azure``, ``Google Cloud TTS``, ``Google GenAI TTS``, ``Eleven Labs``, and ``xAI TTS``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
 
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
-To enable voice synthesis, activate the ``Audio Output`` plugin in the ``Plugins`` menu or turn on the ``Audio Output`` option in the ``Audio / Voice`` menu (both options in the menu achieve the same outcome).
+To enable voice synthesis, activate the ``Audio output`` plugin in the ``Plugins`` menu or enable ``Output: Speech synthesis`` in the **Audio** section of the ``Audio / Video`` menu (both options enable the same plugin).
 
 **Options**
 
@@ -283,7 +313,9 @@ Available providers:
 * OpenAI TTS
 * Microsoft Azure TTS
 * Google TTS
+* Google GenAI TTS
 * Eleven Labs TTS
+* xAI TTS
 
 **OpenAI Text-To-Speech**
 
@@ -337,9 +369,19 @@ You can obtain your own API key at: https://console.cloud.google.com/apis/librar
 
 Specify voice. Voices: https://cloud.google.com/text-to-speech/docs/voices
 
-- ``Language code`` *google_api_key*
+- ``Language code`` *google_lang*
 
-Language code. Language codes: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
+Language code used for synthesis. *Default:* ``en-US``. Language codes: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
+
+**Google GenAI Text-To-Speech**
+
+- ``Model`` *google_genai_tts_model*
+
+Gemini TTS model. *Default:* ``gemini-2.5-flash-preview-tts``
+
+- ``Voice`` *google_genai_tts_voice*
+
+Gemini TTS voice name; values are case-sensitive. *Default:* ``Kore``
 
 **Eleven Labs Text-To-Speech**
 
@@ -355,35 +397,40 @@ Voice ID. Voices: https://elevenlabs.io/voice-library
 
 Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
 
+**xAI Text-To-Speech**
+
+- ``Voice`` *xai_tts_voice* - Grok Voice name (Ara, Rex, Sal, Eve, Leo). *Default:* ``Ara``
+- ``Sample rate (Hz)`` *xai_tts_sample_rate* - PCM output sample rate. *Default:* ``24000``
+- ``System Prompt`` *xai_tts_instructions* - instruction controlling speaking style. *Default:* neutral, clear, verbatim TTS instruction.
+- ``File container`` *xai_tts_file_container* - ``wav`` or ``raw``. *Default:* ``wav``
+- ``Region (optional)`` *xai_tts_region* - optional regional endpoint; empty uses the global endpoint.
+
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via model.
 
-Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided for the OpenAI API, with no additional keys required.
 
 
-Autonomous Agent (inline)
+Autonomous mode
 -------------------------
 
 
 .. warning::
    **Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
-The plugin activates autonomous mode in standard chat modes, where AI begins a conversation with itself. 
-You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
-in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
+The plugin activates the iterative Autonomous loop inside supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes. It can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the configured run-control rules stop it.
 
-This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation.
+The plugin uses the normal PyGPT tool flow, so it can cooperate with other enabled plugins such as Web search, Files I/O, Python interpreter, image generation, and other integrations. Provider-native function/tool calls are used according to the normal global/model configuration rather than a separate Autonomous setting.
 
 **Options**
 
-You can adjust the number of iterations for the self-conversation in the ``Plugins / Settings...`` menu under the following option:
+You can adjust the number of Autonomous loop iterations in the ``Plugins / Settings...`` menu under the following option:
 
 - ``Iterations`` *iterations*
 
 *Default:* `3`
 
 .. warning::
-   Setting this option to ``0`` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
+   Setting this option to ``0`` activates an **infinite loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
 - ``Prompts`` *prompts*
 
@@ -392,7 +439,11 @@ First active prompt on list will be used to handle autonomous mode.
 
 - ``Auto-stop after goal is reached`` *auto_stop*
 
-If enabled, plugin will stop after goal is reached. *Default:* `True`
+If enabled, the model can terminate the autonomous run early when the original goal is complete. If disabled, the internal completion-control tool is not exposed and the run continues until the iteration limit or an external/manual stop. *Default:* `True`
+
+- ``Always continue`` *always_continue*
+
+Keeps the loop open-ended and asks the model to continue with additional useful in-scope work instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the normal iteration limit until the run is stopped externally. Enabling Auto-stop disables Always continue. *Default:* `False`
 
 - ``Reverse roles between iterations`` *reverse_roles*
 
@@ -574,242 +625,19 @@ The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud AP
   Search repositories using Bitbucket Query Language (BBQL).
 
 
-Chat with files (LlamaIndex, inline)
--------------------------------------
-
-Plugin integrates ``LlamaIndex`` storage in any chat and provides additional knowledge into context.
-
-**Options**
-
-- ``Ask LlamaIndex first`` *ask_llama_first*
-
-When enabled, then `LlamaIndex` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `LlamaIndex` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
-
-- ``Auto-prepare question before asking LlamaIndex first`` *prepare_question*
-
-When enabled, then question will be prepared before asking LlamaIndex first to create best query.
-
-- ``Model for question preparation`` *model_prepare_question*
-
-Model used to prepare question before asking LlamaIndex. *Default:* `gpt-4o-mini`
-
-- ``Max output tokens for question preparation`` *prepare_question_max_tokens*
-
-Max tokens in output when preparing question before asking LlamaIndex. *Default:* `500`
-
-- ``Prompt for question preparation`` *syntax_prepare_question*
-
-System prompt for question preparation.
-
-- ``Max characters in question`` *max_question_chars*
-
-Max characters in question when querying LlamaIndex, 0 = no limit, default: `1000`
-
-- ``Append metadata to context`` *append_meta*
-
-If enabled, then metadata from LlamaIndex will be appended to additional context. *Default:* `False`
-
-- ``Model`` *model_query*
-
-Model used for querying ``LlamaIndex``. *Default:* ``gpt-4o-mini``
-
-- ``Image model`` *model_image*
-
-Vision model used by the Image (vision) data loader when API mode is active. *Default:* ``gpt-4o``
-
-Audio/video transcription is configured separately in the ``Audio Input`` plugin and uses the provider selected there.
-
-- ``Use project index if in use`` *use_project_index*
-
-When enabled and the current conversation belongs to a project, the plugin queries that project's isolated ``Current project`` index instead of the configured global indexes. Outside a project, the configured indexes are used normally. *Default:* `True`
-
-- ``Index name`` *idx*
-
-Indexes to use outside an active project, or when project-index usage is disabled. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
-
-
-Code Interpreter
--------------------------
-
-**Executing Code**
-
-From version ``2.4.13`` with built-in ``IPython``.
-
-The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the ``data`` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
-
-**IPython:** Starting from version ``2.4.13``, it is highly recommended to adopt the new option: ``IPython``, which offers significant improvements over previous workflows. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
-
-To use IPython in sandbox mode, Docker must be installed on your system. 
-
-You can find the installation instructions here: https://docs.docker.com/engine/install/
-
-**Connecting IPython in Docker in Snap version**:
-
-To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
-
-.. code-block:: console
-
-    $ sudo snap connect pygpt:docker-executables docker:docker-executables
-
-.. code-block:: console
-
-    $ sudo snap connect pygpt:docker docker:docker-daemon
-
-**Code interpreter:** a real-time Python code interpreter is built-in. Click the ``<>`` icon to open the interpreter window. Both the input and output of the interpreter are connected to the plugin. Any output generated by the executed code will be displayed in the interpreter. Additionally, you can request the model to retrieve contents from the interpreter window output.
-
-.. image:: images/v2_python.png
-   :width: 600
-
-.. important::
-   Executing Python code using IPython in compiled versions requires an enabled sandbox (Docker container). You can connect the Docker container via ``Plugins -> Settings``.
-
-.. tip::
-   always remember to enable the ``+ Tools`` option to allow execute commands from the plugins.
-
-**Options:**
-
-**General**
-
-- ``Connect to the Python code interpreter window`` *attach_output*
-
-Automatically attach code input/output to the Python code interpreter window. *Default:* ``True``
-
-- ``Tool: get_python_output`` *cmd.get_python_output*
-
-Allows ``get_python_output`` command execution. If enabled, it allows retrieval of the output from the Python code interpreter window. *Default:* ``True``
-
-- ``Tool: get_python_input`` *cmd.get_python_input*
-
-Allows ``get_python_input`` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python code interpreter window. *Default:* ``True``
-
-- ``Tool: clear_python_output`` *cmd.clear_python_output*
-
-Allows ``clear_python_output`` command execution. If enabled, it allows clear the output of the Python code interpreter window. *Default:* ``True``
-
-
-**IPython**
-
-- ``Sandbox (docker container)`` *sandbox_ipython*
-
-Executes IPython in sandbox (docker container). Docker must be installed and running.
-
-- ``Dockerfile`` *ipython_dockerfile*
-
-You can customize the Dockerfile for the image used by IPython by editing the configuration above and rebuilding the image via Tools -> Rebuild IPython Docker Image.
-
-- ``Session Key`` *ipython_session_key*
-
-It must match the key provided in the Dockerfile.
-
-- ``Docker image name`` *ipython_image_name*
-
-Custom Docker image name
-
-- ``Docker container name`` *ipython_container_name*
-
-Custom Docker container name
-
-- ``Connection address`` *ipython_conn_addr*
-
-Default: 127.0.0.1
-
-- ``Port: shell`` *ipython_port_shell*
-
-Default: 5555
-
-- ``Port: iopub`` *ipython_port_iopub*
-
-Default: 5556
-
-- ``Port: stdin`` *ipython_port_stdin*
-
-Default: 5557
-
-- ``Port: control`` *ipython_port_control*
-
-Default: 5558
-
-- ``Port: hb`` *ipython_port_hb*
-
-Default: 5559
-
-- ``Tool: ipython_execute`` *cmd.ipython_execute*
-
-Allows Python code execution in IPython interpreter (in current kernel). *Default:* ``True``
-
-- ``Tool: python_kernel_restart`` *cmd.ipython_kernel_restart*
-
-Allows to restart IPython kernel. *Default:* ``True``
-
-
-**Python (legacy)**
-
-- ``Sandbox (docker container)`` *sandbox_docker*
-
-Executes commands in sandbox (docker container). Docker must be installed and running.
-
-- ``Python command template`` *python_cmd_tpl*
-
-Python command template (use {filename} as path to file placeholder). *Default:* ``python3 {filename}``
-
-- ``Dockerfile`` *dockerfile*
-
-You can customize the Dockerfile for the image used by legacy Python by editing the configuration above and rebuilding the image via Tools -> Rebuild Python (Legacy) Docker Image.
-
-- ``Docker image name`` *image_name*
-
-Custom Docker image name
-
-- ``Docker container name`` *container_name*
-
-Custom Docker container name
-
-- ``Tool: code_execute`` *cmd.code_execute*
-
-Allows ``code_execute`` command execution. If enabled, provides Python code execution (generate and execute from file). *Default:* ``True``
-
-- ``Tool: code_execute_all`` *cmd.code_execute_all*
-
-Allows ``code_execute_all`` command execution. If enabled, provides execution of all the Python code in interpreter window. *Default:* ``True``
-
-- ``Tool: code_execute_file`` *cmd.code_execute_file*
-
-Allows ``code_execute_file`` command execution. If enabled, provides Python code execution from existing .py file. *Default:* ``True``
-
-
-**HTML Canvas**
-
-- ``Tool: render_html_output`` *cmd.render_html_output*
-
-Allows ``render_html_output`` command execution. If enabled, it allows to render HTML/JS code in built-in HTML/JS browser (HTML Canvas). *Default:* ``True``
-
-- ``Tool: get_html_output`` *cmd.get_html_output*
-
-Allows ``get_html_output`` command execution. If enabled, it allows retrieval current output from HTML Canvas. *Default:* ``True``
-
-- ``Sandbox (docker container)`` *sandbox_docker*
-
-Execute commands in sandbox (docker container). Docker must be installed and running. *Default:* ``False``
-
-- ``Docker image`` *sandbox_docker_image*
-
-Docker image to use for sandbox *Default:* ``python:3.8-alpine``
-
-Context history (calendar, inline)
+Chat history (inline)
 ----------------------------------
 
 Provides access to context history database.
 Plugin also provides access to reading and creating day notes.
 
-Examples of use, you can ask e.g. for the following:
+Example prompts:
 
-* Give me today day note
-* Save a new note for today
-* Update my today note with...
-* Get the list of yesterday conversations
-* Get contents of conversation ID 123
-
-etc.
+* Show me today's note.
+* Save a new note for today.
+* Update today's note with...
+* Show me yesterday's conversations.
+* Show me the contents of conversation ID 123.
 
 You can also use ``@`` ID tags to automatically use summary of previous contexts in current discussion.
 To use context from previous discussion with specified ID use following syntax in your query:
@@ -912,10 +740,10 @@ If enabled, then a new context will be created on every run of the job." *Defaul
 If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
 
 
-Custom Commands
+Custom commands
 ------------------------
 
-With the ``Custom Commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+With the ``Custom commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -977,9 +805,24 @@ With the setup above, every time you ask model to generate a song for you and sa
 Experts (inline)
 -----------------
 
-The plugin allows calling experts in any chat mode. This is the inline Experts (co-op) mode.
+The plugin makes enabled Expert presets available in supported chat modes through the regular ``expert_call`` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Chat with Agents**, and its final response is returned directly as the tool result.
+
+Use **Experts** mode to define, configure, enable, or disable Expert presets. Once an Expert is enabled, you can simply ask for it by name in the conversation, for example: ``Ask the Python programmer expert to review this code.`` The model can then call ``expert_call`` automatically.
 
 See the ``Work modes -> Experts`` section for more details.
+
+Extra system prompt
+-----------------------------
+
+The plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+
+**Options**
+
+- ``Prompts`` *prompts*
+
+List of extra prompts - prompts that will be appended to system prompt. 
+All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
+
 
 Facebook
 --------
@@ -1033,6 +876,10 @@ Matches one of the valid OAuth Redirect URIs in your Meta App.
 - ``Scopes`` *oauth2_scopes*
 
 Space-separated authorized permissions. 
+
+- ``(auto) nonce`` *oauth2_nonce*
+
+Generated automatically by ``fb_oauth_begin`` for the OIDC flow. This is an internal cached value and normally should not be edited manually. *Secret*
 
 - ``User Access Token`` *oauth2_access_token*
 
@@ -1140,7 +987,7 @@ Uploads a photo to a page from a local path or URL.
 Files I/O
 ------------------
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the ``data`` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the active ``data`` workdir. Normally this is ``<profile workdir>/data``. If the current conversation belongs to a project with ``Use shared workdir`` disabled, the project's configured directory is used instead. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system. The ``cwd`` tool reports the same runtime-resolved data workdir.
 
 Plugin capabilities include:
 
@@ -1335,6 +1182,10 @@ The plugin provides seamless integration with GitHub, allowing various operation
 - ``Auto-start auth when required`` *oauth_auto_begin*
 
   Start Device Flow automatically when a command requires a token. *Default:* `True`
+
+- ``(auto) Granted scopes`` *oauth_scope_granted*
+
+  Scopes returned after successful authorization. This value is maintained automatically.
 
 **Tokens**
 
@@ -1615,16 +1466,16 @@ The plugin integrates with various Google services, enabling features such as em
   * ``colab_duplicate`` - Duplicate notebook.
 
 
-Image Generation (inline)
+Image generation (inline)
 -------------------------
 
-The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The current model can call the plugin's ``image`` tool with a dedicated image prompt. The plugin does not require the ``+ Tools`` option to be enabled.
+The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The current model can call the plugin's ``image`` tool with a dedicated image prompt. The plugin does not require the ``Tools`` switch to be enabled.
 
 **Options**
 
 - ``Model`` *model*
 
-Image-generation model used by the plugin. *Default:* ``gpt-image-1``
+Image-generation model used by the plugin. *Default:* ``gpt-image-2.5-flare``
 
 - ``Prompt`` *prompt*
 
@@ -1682,6 +1533,8 @@ MCP
 ---
 
 With the ``MCP`` plugin, you can connect **PyGPT** to remote tools exposed by Model Context Protocol servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server and optionally cache discovery results for speed.
+
+To configure MCP connections, use the direct shortcut ``Config -> MCP...``. It opens the same MCP configuration available through ``Plugins -> Settings -> MCP``. Use either entry point when you want to connect PyGPT to an external service or tool server through MCP.
 
 How it works
 ^^^^^^^^^^^^
@@ -1793,8 +1646,8 @@ The model will see commands like:
 Caching (Tools Cache)
 ^^^^^^^^^^^^^^^^^^^^^
 
-- Enable “Cache tools list” to avoid discovering tools on every prompt.
-- TTL defines how long (in seconds) the cache stays valid per server (default: 300).
+- ``Cache tools list`` *tools_cache_enabled* - cache discovered tools so they do not have to be rediscovered for every prompt. *Default:* ``True``
+- ``Cache TTL (seconds)`` *tools_cache_ttl* - how long the tool list remains valid per server. *Default:* ``300``
 - The plugin automatically invalidates the cache if you change server configuration (label, address, authorization, allow/deny lists).
 - To force refresh immediately, toggle a server off/on or modify any of its fields and save.
 
@@ -1814,10 +1667,81 @@ Security notes
 - Keep labels short and non-sensitive (labels are visible in tool names and logs).
 
 
-Mouse And Keyboard
--------------------
+Memory (inline)
+---------------
 
-Introduced in version: ``2.4.4`` (2024-11-09)
+The ``Memory (inline)`` plugin provides three related memory mechanisms:
+
+* **Compact long-term memory** - one global memory outside projects and one isolated memory row for each project. This memory is intended for durable, reusable facts/state and can be updated automatically with a configured model.
+* **Keyed memory** - raw database-backed key/value records in ``memory_keys``. Values are stored exactly as supplied and are never summarized or rewritten by the memory-update model. Keys are isolated between global and per-project scopes.
+* **Conversation continuation notes** - compact notes in ``memory_ctx`` scoped to exactly one conversation (one ``ctx_meta``). These notes are used to preserve goals, decisions, completed work, constraints, findings and pending work across context-window rollover. They are separate from both global memory and project memory.
+
+Because Memory is an inline plugin, it works independently of the ``Tools`` switch in the toolbox. Once enabled, its active commands can be exposed to the model regardless of the global ``Tools`` switch.
+
+After a completed conversation turn, the plugin can asynchronously update the active global/project compact memory with the configured model. The updater treats memory as a canonical compact state rather than an append-only log: related facts are merged contextually, duplicates are consolidated, newer information can supersede obsolete entries, and routine or transient details are discarded. Outside projects, the update prompt focuses on durable information about the user. Inside a project, it keeps project-oriented durable state.
+
+Conversation continuation notes are different: they belong only to the current conversation and are not automatically shared with other chats. When the experimental ``Advanced context handling`` feature is enabled, PyGPT core can update these notes automatically as older turns are checkpointed. Chat with Agents also uses them as the persistent continuation block for the main agent's rolling context. The core Chat with Agents context tools remain available in advanced-context mode even when the Memory plugin itself is disabled; enabling Memory exposes the same ``memory_ctx_*`` operations through the plugin's inline command set as well.
+
+**Options**
+
+- ``Memory update model`` *model_update*
+
+Model used for automatic end-of-context global/project memory updates and, when enabled, for refining manual ``memory_add`` calls. It is not the model that selects ordinary conversation history.
+
+- ``Maximum memory characters`` *max_chars*
+
+Target maximum size of the global/project compact memory in characters. The model is asked to stay within this limit. *Default:* ``15000``. Storage allows an additional ``300``-character safety margin before hard truncation, so the default hard safety limit is ``15300`` characters. This setting does not control ``memory_ctx`` continuation-note size; that is configured under ``Settings -> Context -> Maximum continuation note characters``.
+
+- ``Refine memory before adding`` *refine_add*
+
+Applies only to manual ``memory_add`` calls. When enabled, the configured memory update model merges and rewrites the added information into the existing global/project memory instead of blindly appending raw text. Automatic end-of-context memory updates are always refined by the model regardless of this setting. *Default:* ``True``.
+
+- ``Auto attach memory to every conversation`` *auto_attach*
+
+Automatically appends the active global or project compact memory to the system prompt in a ``<context_memory>...</context_memory>`` block. It does not auto-attach keyed records or ``memory_ctx`` notes. *Default:* ``False``.
+
+- ``Auto attach memory only in projects`` *auto_attach_project*
+
+Automatically appends the project compact memory to the system prompt when the current conversation belongs to a project. It does not expose global memory as a fallback inside a project. *Default:* ``True``.
+
+- ``Search memory key content`` *key_search_content*
+
+Controls ``memory_key_search``. Key names are always searched with ``LIKE '%query%'``. When this option is enabled, stored key content is searched with the same ``LIKE`` expression as well. *Default:* ``False`` to avoid scanning stored content unless explicitly requested.
+
+**Compact global/project memory tools**
+
+- ``memory_get`` - Reads the complete compact memory for the current global/project scope. Enabled by default.
+- ``memory_add`` - Selectively adds highly important, durable information. When refinement is enabled, the update model merges it contextually with existing memory instead of appending duplicate facts. Disabled by default.
+- ``memory_update`` - Replaces the complete compact memory content for the current scope. Disabled by default.
+- ``memory_clear`` - Clears the current compact memory. The model must first ask the user for explicit confirmation and may call the command only after confirmation. Enabled by default.
+
+**Keyed memory tools**
+
+- ``memory_key_get(key|keys)`` - Reads raw keyed-memory records by one key or a list of keys. Enabled by default.
+- ``memory_key_add(key, content)`` - Creates a new keyed record. It never overwrites an existing key and stores ``content`` exactly as provided, without LLM processing. Enabled by default.
+- ``memory_key_append(key, content)`` - Appends ``content`` exactly as provided to an existing keyed record; no separator is inserted automatically. Enabled by default.
+- ``memory_key_update(key, content)`` - Replaces the raw content of an existing keyed record. Enabled by default.
+- ``memory_key_list()`` - Returns only the key names for the current scope; it does not return content. Enabled by default.
+- ``memory_key_search(query)`` - Returns matching keyed records. It always searches key names and also searches content only when ``Search memory key content`` is enabled. Enabled by default.
+- ``memory_key_remove(key|keys)`` - Removes one key or a list of keys from the current scope. Enabled by default.
+
+The keyed operations never fall back from project memory to global memory. A conversation inside a project sees only that project's keyed records, while a conversation outside projects sees only global keyed records.
+
+**Conversation continuation-note tools**
+
+- ``memory_ctx_get()`` - Reads compact continuation notes for the current conversation only. Enabled by default.
+- ``memory_ctx_add(text)`` - Appends one concise continuation note to the current conversation. Each addition is stored on a new line. Use it for important state that should survive history compaction, not for routine chatter. Enabled by default.
+- ``memory_ctx_replace(text)`` - Replaces the complete continuation-note state for the current conversation. Use it to consolidate stale or duplicated notes. It does not modify global/project memory. Enabled by default.
+
+``memory_ctx`` stores one row per conversation metadata record and tracks the compacted-history checkpoint/generation used by advanced context handling. Deleting or rewinding conversation history also invalidates the corresponding continuation state where required so stale compacted state is not replayed as newer history.
+
+.. note::
+
+   ``Advanced context handling`` is experimental and is configured in ``Config -> Settings -> Context``. The Memory plugin can access conversation continuation notes, but the core checkpoint/rolling-context mechanism is not dependent on the plugin being enabled.
+
+
+Mouse and keyboard
+-------------------
 
 .. warning::
    **Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
@@ -1833,7 +1757,7 @@ Plugin capabilities include:
 * Control the keyboard (pressing keys, typing text)
 * Making screenshots
 
-The ``+ Tools`` option must be enabled to use this plugin.
+The ``Tools`` switch must be enabled to use this plugin.
 
 **Options:**
 
@@ -1862,6 +1786,10 @@ Allows keyboard typing. *Default:* `True`
 - ``Enable: Allow making screenshots`` *allow_screenshot*
 
 Allows making screenshots. *Default:* `True`
+
+- ``Auto-focus on the window`` *auto_focus*
+
+Clicks/focuses the target window before keyboard typing. *Default:* ``False``
 
 - ``Tool: mouse_get_pos`` *cmd.mouse_get_pos*
 
@@ -1897,24 +1825,30 @@ Allows ``keyboard_type`` command execution. *Default:* `True`
 
 **Sandbox (Playwright)**
 
-- ``Browsers directory`` - Path to Playwright browsers installation - leave empty to use default
-- ``Engine`` - Playwright browser engine to use (chromium, firefox, webkit) - must be installed
-- ``Headles mode`` - Run Playwright browser in headless mode (default: False)
-- ``Browser args`` - Additional Playwright browser arguments (comma-separated)
-- ``Home URL`` - Playwright browser home URL
-- ``Viewport width`` - Playwright viewport width in pixels
-- ``Viewport height`` - Playwright viewport height in pixels
+- ``Browsers directory`` *sandbox_path* - path to the Playwright browser installation; leave empty to use the default.
+- ``Engine`` *sandbox_engine* - Playwright browser engine: ``chromium``, ``firefox``, or ``webkit``. *Default:* ``chromium``
+- ``Headless mode`` *sandbox_headless* - run the Playwright browser without a visible window. *Default:* ``False``
+- ``Browser args`` *sandbox_args* - additional comma-separated browser arguments. *Default:* ``--disable-extensions, --disable-file-system``
+- ``Home URL`` *sandbox_home* - browser home page. *Default:* ``https://duckduckgo.com``
+- ``Viewport width`` *sandbox_viewport_w* - viewport width in pixels. *Default:* ``1440``
+- ``Viewport height`` *sandbox_viewport_h* - viewport height in pixels. *Default:* ``900``
 
-You can run this mode in Sandbox (using ``Playwright`` - https://playwright.dev/) - to do it, just enable the ``Sandbox`` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
+The sandbox uses ``Playwright`` (https://playwright.dev/). The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
 
 .. code-block:: ini
 
    pip install playwright
-   playwright install <chromium|firefox|webkit>
+   playwright install chromium
 
-After that, set the path to directory with installed browsers in ``Mouse and Keyborad`` plugin settings option: ``Sandbox (Playwright) / Browsers directory``.
+You can install another supported engine instead with ``playwright install firefox`` or ``playwright install webkit``.
 
-Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
+Configure the sandbox in ``Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)``:
+
+* set ``Engine`` to the installed browser engine, for example ``chromium``;
+* leave ``Browsers directory`` empty to use Playwright's default browser location, or set it when the browsers are installed in a custom directory;
+* configure ``Headless mode``, browser arguments, home URL and viewport size as needed.
+
+When using Computer use, enable the ``Sandbox`` switch in the Computer use toolbox to run browser interaction through this configured Playwright sandbox.
 
 OpenStreetMap
 -------------
@@ -2065,7 +1999,259 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
   - ``z`` (int), ``x`` (int), ``y`` (int), ``out`` (str, optional)
 
 
-Real Time
+Python interpreter
+-------------------------
+
+**Executing Code**
+
+The plugin operates similarly to the ``Code Interpreter`` feature in ``ChatGPT``, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the ``Files I/O`` plugin, it facilitates running code from files saved in the active ``data`` directory. For conversations in a project with a custom workdir, that project directory becomes the runtime data root; otherwise the shared ``<profile workdir>/data`` directory is used. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in a Docker container.
+
+**IPython:** IPython is the recommended execution mode and offers significant improvements over the legacy Python workflow. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as ``!pip install <package_name>``, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
+
+To use IPython in sandbox mode, Docker must be installed on your system. When the sandbox is started, the active conversation's runtime ``data`` workdir is mounted as ``/data``. Switching to a project with a custom data workdir changes this mapping at runtime; the base profile workdir itself is not remapped.
+
+**IPython system commands:** The ``ipython_sys_exec`` tool is available for executing operating-system commands inside the active IPython environment. It is similar to ``sys_exec`` from the ``System (OS)`` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, ``ipython_sys_exec`` executes the command inside that Docker container.
+
+**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless ``sudo`` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the ``Python interpreter`` plugin settings.
+
+
+You can find the installation instructions here: https://docs.docker.com/engine/install/
+
+**Connecting IPython in Docker in Snap version**:
+
+To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
+
+.. code-block:: console
+
+    $ sudo snap connect pygpt:docker-executables docker:docker-executables
+
+.. code-block:: console
+
+    $ sudo snap connect pygpt:docker docker:docker-daemon
+
+**Python interpreter:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon above the input field to open the Python/OS window. You can also open it from the main menu: ``Tools -> Python / OS``. Alternatively, enable split-screen mode and open ``Python/OS`` in the second view column, or add it as a tool to a tab. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set ``Max interpreter window entries`` to ``0`` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+
+.. image:: images/v2_interpreter_icon.png
+   :width: 600
+
+.. image:: images/v2_python.png
+   :width: 600
+
+.. important::
+   Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the ``Python interpreter`` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+
+   Docker installation: https://docs.docker.com/engine/install/
+
+   Docker Desktop: https://docs.docker.com/desktop/
+
+.. tip::
+   Remember to enable the ``Tools`` switch to allow tools from plugins to be executed.
+
+**Options:**
+
+**General**
+
+- ``Connect to the Python/OS window`` *attach_output*
+
+Automatically attach code input/output to the Python/OS window. *Default:* ``True``
+
+- ``Max interpreter window entries`` *output_max_entries*
+
+Maximum number of input/output blocks kept in the interpreter window. Set to ``0`` for no limit. *Default:* ``30``
+
+- ``Always run code in a fresh kernel`` *fresh_kernel*
+
+If enabled, each code execution uses the same path as the interpreter's **Run in a fresh kernel** action instead of reusing the current kernel state. *Default:* ``False``
+
+- ``Tool: get_python_output`` *cmd.get_python_output*
+
+Allows ``get_python_output`` command execution. If enabled, it allows retrieval of the output from the Python/OS window. *Default:* ``True``
+
+- ``Tool: get_python_input`` *cmd.get_python_input*
+
+Allows ``get_python_input`` command execution. If enabled, it allows retrieval all input code (from edit section) from the Python/OS window. *Default:* ``True``
+
+- ``Tool: clear_python_output`` *cmd.clear_python_output*
+
+Allows ``clear_python_output`` command execution. If enabled, it allows clear the output of the Python/OS window. *Default:* ``True``
+
+
+**IPython**
+
+- ``Sandbox (docker container)`` *sandbox_ipython*
+
+Executes IPython in a Docker sandbox. Docker must be installed and running. *Default:* ``False``
+
+- ``Run as root`` *ipython_run_as_root*
+
+Run the IPython sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. *Default:* ``False``
+
+- ``Dockerfile for IPython kernel`` *ipython_dockerfile*
+
+You can customize the Dockerfile for the image used by IPython by editing the configuration above and rebuilding the image via Tools -> Rebuild IPython Docker Image.
+
+- ``Session Key`` *ipython_session_key*
+
+It must match the key provided in the Dockerfile.
+
+- ``Docker image name`` *ipython_image_name*
+
+Custom Docker image name
+
+- ``Docker container name`` *ipython_container_name*
+
+Custom Docker container name
+
+- ``Connection address`` *ipython_conn_addr*
+
+Default: 127.0.0.1
+
+- ``Port: shell`` *ipython_port_shell*
+
+Default: 5555
+
+- ``Port: iopub`` *ipython_port_iopub*
+
+Default: 5556
+
+- ``Port: stdin`` *ipython_port_stdin*
+
+Default: 5557
+
+- ``Port: control`` *ipython_port_control*
+
+Default: 5558
+
+- ``Port: hb`` *ipython_port_hb*
+
+Default: 5559
+
+- ``Tool: ipython_execute`` *cmd.ipython_execute*
+
+Allows Python code execution in IPython interpreter (in current kernel). *Default:* ``True``
+
+- ``Tool: python_kernel_restart`` *cmd.ipython_kernel_restart*
+
+Allows to restart IPython kernel. *Default:* ``True``
+
+
+**Python (legacy)**
+
+- ``Sandbox (docker container)`` *sandbox_docker*
+
+Executes legacy Python commands in a Docker sandbox. Docker must be installed and running. *Default:* ``False``
+
+- ``Run as root`` *docker_run_as_root*
+
+Run the legacy Python sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. *Default:* ``False``
+
+- ``Python command template`` *python_cmd_tpl*
+
+Python command template (use {filename} as path to file placeholder). *Default:* ``python3 {filename}``
+
+- ``Dockerfile`` *dockerfile*
+
+You can customize the Dockerfile for the image used by legacy Python by editing the configuration above and rebuilding the image via Tools -> Rebuild Python (Legacy) Docker Image.
+
+- ``Docker image name`` *image_name*
+
+Custom Docker image name
+
+- ``Docker container name`` *container_name*
+
+Custom Docker container name. *Default:* ``pygpt_python_legacy_container``
+
+- ``Docker run command`` *docker_entrypoint*
+
+Command used to keep the legacy Python container alive. *Default:* ``tail -f /dev/null``
+
+- ``Docker volumes`` *docker_volumes*
+
+Host-to-container volume mappings. The stock configuration maps the active conversation's runtime ``data`` workdir to ``/data``. If a project uses a custom data workdir, the Docker mapping is updated at runtime for that project. The application's base workdir and its non-data directories are not remapped.
+
+- ``Docker ports`` *docker_ports*
+
+Optional host-to-container port mappings. The default list is empty.
+
+- ``Tool: code_execute`` *cmd.code_execute*
+
+Allows ``code_execute`` command execution. If enabled, provides Python code execution (generate and execute from file). *Default:* ``True``
+
+- ``Tool: code_execute_all`` *cmd.code_execute_all*
+
+Allows ``code_execute_all`` command execution. If enabled, provides execution of all the Python code in interpreter window. *Default:* ``True``
+
+- ``Tool: code_execute_file`` *cmd.code_execute_file*
+
+Allows ``code_execute_file`` command execution. If enabled, provides Python code execution from existing .py file. *Default:* ``True``
+
+
+**HTML Canvas**
+
+- ``Tool: render_html_output`` *cmd.render_html_output*
+
+Allows ``render_html_output`` command execution. If enabled, it allows to render HTML/JS code in built-in HTML/JS browser (HTML Canvas). *Default:* ``True``
+
+- ``Tool: get_html_output`` *cmd.get_html_output*
+
+Allows ``get_html_output`` command execution. If enabled, it allows retrieval current output from HTML Canvas. *Default:* ``True``
+
+
+RAG (inline)
+------------
+
+Plugin integrates ``LlamaIndex`` storage in any chat and provides additional knowledge into context.
+
+**Options**
+
+- ``Ask LlamaIndex first`` *ask_llama_first*
+
+When enabled, then `LlamaIndex` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `LlamaIndex` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
+
+- ``Auto-prepare question before asking LlamaIndex first`` *prepare_question*
+
+When enabled, then question will be prepared before asking LlamaIndex first to create best query.
+
+- ``Model for question preparation`` *model_prepare_question*
+
+Model used to prepare question before asking LlamaIndex. *Default:* `gpt-4o-mini`
+
+- ``Max output tokens for question preparation`` *prepare_question_max_tokens*
+
+Max tokens in output when preparing question before asking LlamaIndex. *Default:* `500`
+
+- ``Prompt for question preparation`` *syntax_prepare_question*
+
+System prompt for question preparation.
+
+- ``Max characters in question`` *max_question_chars*
+
+Max characters in question when querying LlamaIndex, 0 = no limit, default: `1000`
+
+- ``Append metadata to context`` *append_meta*
+
+If enabled, then metadata from LlamaIndex will be appended to additional context. *Default:* `False`
+
+- ``Model`` *model_query*
+
+Model used for querying ``LlamaIndex``. *Default:* ``gpt-4o-mini``
+
+- ``Image model`` *model_image*
+
+Vision model used by the Image (vision) data loader when API mode is active. *Default:* ``gpt-4o``
+
+Audio/video transcription is configured separately in the ``Audio input`` plugin and uses the provider selected there.
+
+- ``Use project index if in use`` *use_project_index*
+
+When enabled and the current conversation belongs to a project, the plugin queries that project's isolated ``Current project`` index instead of the configured global indexes. Outside a project, the configured indexes are used normally. *Default:* `True`
+
+- ``Index name`` *idx*
+
+Indexes to use outside an active project, or when project-index usage is disabled. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
+
+
+Real time
 ----------
 
 This plugin automatically adds the current date and time to each system prompt you send. 
@@ -2436,19 +2622,6 @@ Delete a message from a channel or DM.
 Upload a file via external flow and share in Slack.
 
 
-System Prompt Extra (append)
------------------------------
-
-The plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
-
-**Options**
-
-- ``Prompts`` *prompts*
-
-List of extra prompts - prompts that will be appended to system prompt. 
-All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
-
-
 System (OS)
 -----------
 
@@ -2460,7 +2633,11 @@ The plugin provides access to the operating system and executes system commands.
 
 - ``Auto-append CWD to sys_exec`` *auto_cwd*
 
-Automatically append current working directory to ``sys_exec`` command. *Default:* ``True``
+Automatically append the current runtime data working directory to ``sys_exec`` commands. In a project with a custom data workdir this resolves to the project directory; otherwise it resolves to the shared profile ``data`` directory. *Default:* ``True``
+
+- ``Connect to the Python/OS window`` *attach_output*
+
+Mirror ``sys_exec`` command input and output to the Python/OS window. *Default:* ``True``
 
 - ``Tool: sys_exec`` *cmd.sys_exec*
 
@@ -2472,9 +2649,13 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
 
   Executes all ``sys_exec`` shell commands inside an isolated Docker container. Requires Docker to be installed and running. Default: ``False``
 
+- ``Run as root`` *docker_run_as_root*
+
+  Run the System sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` can be used for commands that require root privileges. Default: ``False``
+
 - ``Dockerfile`` *dockerfile*
 
-  The Dockerfile used to build the sandbox image. You can customize it and rebuild via Tools → “Rebuild Docker sandbox Images”. Default: a minimal Python image with ``/data`` workdir.
+  The Dockerfile used to build the sandbox image. The stock image is based on Python 3.12 Alpine, includes commonly used shell/network utilities, uses ``/data`` as the workdir, and runs as the unprivileged ``pygpt`` user by default. You can customize it and rebuild via Tools → “Rebuild Docker sandbox Images”.
 
 - ``Docker image name`` *image_name*
 
@@ -2490,7 +2671,7 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
 
 - ``Docker volumes`` *docker_volumes*
 
-  Host ↔ container volume mappings. By default, user data directory on host (``{workdir}``) is mapped read/write to ``/data`` in the container.
+  Host ↔ container volume mappings. By default, the active runtime ``data`` workdir on the host is mapped read/write to ``/data`` in the container. A custom project data workdir is therefore mounted automatically when a conversation from that project runs the tool.
   
   Structure of each item:
   
@@ -2498,7 +2679,7 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
   - ``docker`` (text) – container path (e.g. ``/data``)
   - ``host`` (text) – host path (e.g. ``{workdir}``)
   
-  Default: one mapping of ``{workdir}`` → ``/data``
+  Default: one runtime mapping of the active data workdir → ``/data``
 
 - ``Docker ports`` *docker_ports*
 
@@ -2514,7 +2695,7 @@ Allows ``sys_exec`` command execution. If enabled, provides system commands exec
 
 Notes:
 
-- When sandboxing is enabled, relative paths passed in commands are resolved against the user data directory and mounted into the container at ``/data``.
+- When sandboxing is enabled, relative paths passed in commands are resolved against the active conversation's data workdir and mounted into the container at ``/data``.
 - The plugin checks for Docker availability and will prompt to build the image if it does not exist.
 
 **WinAPI (Windows)**
@@ -2724,6 +2905,30 @@ The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless in
 
   Language setting for API interactions. *Default:* `en`
 
+**Credentials**
+
+- ``Tuya Client ID`` *tuya_client_id*
+
+  Client ID from the Tuya IoT Platform Cloud project. *Secret*
+
+- ``Tuya Client Secret`` *tuya_client_secret*
+
+  Client secret from the Tuya IoT Platform Cloud project. *Secret*
+
+- ``Tuya UID (App Account)`` *tuya_uid*
+
+  UID of the linked Tuya App account; required for listing devices.
+
+**Automatically managed state**
+
+The following plugin fields are maintained by the Tuya integration and normally should not be edited manually:
+
+- ``(auto) Access token`` *tuya_access_token* - stored access token. *Secret*
+- ``(auto) Refresh token`` *tuya_refresh_token* - stored refresh token when provided. *Secret*
+- ``(auto) Expires in (s)`` *tuya_token_expires_in* - token lifetime in seconds.
+- ``(auto) Expire at (epoch s)`` *tuya_token_expire_at* - expiration timestamp. *Default:* ``0``
+- ``(auto) Cached devices`` *tuya_cached_devices* - cached device list used by name search. *Default:* ``[]``
+
 **Commands**
 
 **Auth**
@@ -2798,6 +3003,15 @@ The TwelveLabs plugin brings native video understanding to PyGPT through the `Tw
 
 Provide your API key in the plugin settings, or set the ``TWELVELABS_API_KEY`` environment variable. You can grab a free API key at https://twelvelabs.io — there is a generous free tier.
 
+**Options**
+
+- ``API Key`` *api_key* - TwelveLabs API key; if empty, ``TWELVELABS_API_KEY`` is used.
+- ``Pegasus model`` *pegasus_model* - model used for video analysis. *Default:* ``pegasus1.5``
+- ``Marengo model`` *marengo_model* - model used for multimodal embeddings. *Default:* ``marengo3.0``
+- ``Max tokens`` *max_tokens* - default maximum output tokens for Pegasus analysis. *Default:* ``2048``
+- ``Temperature`` *temperature* - default Pegasus sampling temperature. *Default:* ``0.2``
+- ``Request timeout (s)`` *timeout* - TwelveLabs API request timeout. *Default:* ``300``
+
 **Commands**
 
 - ``tl_analyze_video``
@@ -2813,6 +3027,8 @@ Vision (inline)
 ----------------
 
 The plugin adds image analysis to supported chat modes without relying on the deprecated standalone Vision mode. When an image attachment, screenshot, or camera capture is detected, the request is handled through Chat with the image-capable model configured in the plugin. This preserves the plugin's dedicated-model behavior while removing the dependency on the legacy Vision mode.
+
+Camera capture is controlled from the main ``Audio / Video`` menu, under the **Video** section. ``Enable camera`` starts/stops the preview and ``Auto capture`` captures the current frame automatically for compatible vision turns. With auto capture disabled, click the live camera preview to take a snapshot manually.
 
 The plugin model list is filtered by capabilities (``Chat`` + image input), not by provider. Models from any supported provider can therefore be selected, including OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible endpoints, and other configured providers. Native Google, Anthropic, and xAI SDK routing is respected when enabled; otherwise the configured OpenAI-compatible Chat endpoint is used where applicable.
 
@@ -2835,27 +3051,31 @@ Replace the whole system prompt with the image-analysis prompt instead of append
 
 - ``Tool: capturing images from camera`` *cmd.camera_capture*
 
-Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `+ Tools` option must be enabled. *Default:* `False`
+Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The ``Tools`` switch must be enabled. *Default:* `False`
 
 - ``Tool: making screenshots`` *cmd.make_screenshot*
 
-Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `+ Tools` option must be enabled. *Default:* `False`
+Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The ``Tools`` switch must be enabled. *Default:* `False`
 
 
-Voice Control (inline)
+Voice control (inline)
 ----------------------
 
 The plugin provides voice control command execution within a conversation.
 
+**Options**
+
+- ``Magic prefix for voice commands`` *cmd_prefix* - optional phrase required before an inline voice command is accepted. *Default:* ``Execute voice command``
+
 See the ``Accessibility`` section for more details.
 
 
-Web Search
+Web search
 -----------
 
 **PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
 
-To activate this feature, turn on the ``Web Search`` plugin found in the ``Plugins`` menu.
+To activate this feature, turn on the ``Web search`` plugin found in the ``Plugins`` menu.
 
 Web searches are provided by ``DuckDuckGo``, ``Google Custom Search Engine``, ``Microsoft Bing`` and ``You.com`` APIs and can be extended with other search engine providers. 
 
@@ -2867,9 +3087,19 @@ Choose the provider. *Default:* `Google`
 
 Available providers:
 
+- DuckDuckGo
 - Google
 - Microsoft Bing
 - You.com
+
+**DuckDuckGo**
+
+DuckDuckGo does not require an API key. In source/PyPI installations it requires the ``duckduckgo-search`` or ``ddgs`` package.
+
+- ``Region (kl)`` *ddg_region* - regional search setting, e.g. ``us-en``, ``pl-pl``, or ``wt-wt``. *Default:* ``us-en``
+- ``SafeSearch`` *ddg_safesearch* - ``on``, ``moderate``, or ``off``. *Default:* ``off``
+- ``Time limit (df)`` *ddg_timelimit* - ``d``, ``w``, ``m``, ``y``, or empty for any time. *Default:* empty
+- ``Backend`` *ddg_backend* - ``auto``, ``html``, or ``lite``. *Default:* ``html``
 
 **Google**
 
@@ -2923,7 +3153,11 @@ You.com MCP endpoint, default: https://api.you.com/mcp?profile=free (keyless); u
 
 - ``Number of pages to search`` *num_pages*
 
-Number of max pages to search per query. *Default:* `10`
+Maximum number of search results/pages requested per query. *Default:* `10`
+
+- ``Number of max URLs to open at once`` *max_open_urls*
+
+Maximum number of URLs that the plugin opens in one batch. *Default:* ``3``
 
 - ``Max content characters`` *max_page_content_length*
 
@@ -2935,11 +3169,15 @@ Per-page content chunk size (max characters per chunk). *Default:* `20000`
 
 - ``Disable SSL verify`` *disable_ssl*
 
-Disables SSL verification when crawling web pages. *Default:* `False`
+Disables SSL certificate verification when crawling web pages. *Default:* `True`
 
 - ``Use raw content (without summarization)`` *raw*
 
 Return raw content from web search instead of summarized content. Provides more data but consumes more tokens. *Default:* `True`
+
+- ``Show thumbnail images`` *img_thumbnail*
+
+Fetch thumbnail images from opened websites when available. *Default:* ``True``
 
 - ``Timeout`` *timeout*
 

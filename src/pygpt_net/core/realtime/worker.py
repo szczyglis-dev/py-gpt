@@ -14,6 +14,7 @@ from typing import Optional
 
 from PySide6.QtCore import Slot, QRunnable, QObject, Signal
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.item.ctx import CtxItem
 
@@ -77,7 +78,7 @@ class RealtimeWorker(QRunnable):
             event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_READY, {
                 "ctx": self.ctx,
             })
-            self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
+            safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
         except Exception:
             pass
 
@@ -94,7 +95,7 @@ class RealtimeWorker(QRunnable):
                         "ctx": self.ctx,
                         "chunk": delta,
                     })
-                    self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
+                    safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
 
                 # Audio -> enqueue to main-thread
                 async def on_audio(
@@ -116,7 +117,7 @@ class RealtimeWorker(QRunnable):
                             "model": self.opts.model,
                         }
                     })
-                    self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
+                    safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
 
                 def _should_stop() -> bool:
                     try:
@@ -134,7 +135,7 @@ class RealtimeWorker(QRunnable):
         except Exception as e:
             try:
                 event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"error": e})
-                self.opts.rt_signals.response.emit(event) if self.opts.rt_signals else None
+                safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
             finally:
                 pass
         finally:

@@ -24,12 +24,18 @@ class UIManager {
 		style = document.createElement('style');
 		style.id = 'code-sticky-style';
 		style.textContent = [
+			// ScrollManager remains the only owner of viewport position. Native browser
+			// anchoring is disabled; measured message virtualization is allowed because
+			// it preserves each old row's exact intrinsic block size.
+			'html, body { scroll-behavior: auto !important; overflow-anchor: none !important; }',
+			'#container, #container * { overflow-anchor: none !important; }',
 			'.code-wrapper { position: relative; }',
 			'.code-wrapper .code-header-wrapper { position: sticky; top: var(--code-header-sticky-top, -2px); z-index: 2; box-shadow: 0 1px 0 rgba(0,0,0,.06); }',
 			'.code-wrapper pre { overflow: visible; margin-top: 0; }',
 			'.code-wrapper pre code { display: block; white-space: pre; max-height: 100dvh; overflow: auto;',
 			'  overscroll-behavior: contain; -webkit-overflow-scrolling: touch; overflow-anchor: none; scrollbar-gutter: stable both-edges; scroll-behavior: auto; }',
 			'#_loader_.hidden { display: none !important; visibility: hidden !important; }',
+			'#_loader_.reserved { display: block !important; visibility: hidden !important; pointer-events: none !important; }',
 			'#_loader_.visible { display: block; visibility: visible; }',
 
 			/* User message collapse (uc-*)
@@ -38,7 +44,7 @@ class UIManager {
 			'.msg-box.msg-user .msg { position: relative; }',
 			'.msg-box.msg-user .msg > .uc-content { display: block; overflow: visible; }',
 			'.msg-box.msg-user .msg > .uc-content.uc-collapsed {',
-			'  max-height: var(--user-msg-collapse-max-h, 1000px);',
+			'  max-height: var(--user-msg-collapse-max-h, 350px);',
 			'  overflow: hidden;',
 			'  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) calc(100% - var(--uc-fade-height, 64px)), rgba(0,0,0,0) 100%);',
 			'  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) calc(100% - var(--uc-fade-height, 64px)), rgba(0,0,0,0) 100%);',
@@ -63,7 +69,7 @@ class UIManager {
 			'.msg-box.msg-user .msg .msg-copy-btn { position: absolute; top: 2px; right: 0px; z-index: 3;',
 			'  opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease, background-color .15s ease, border-color .15s ease;',
 			'  border-radius: 6px; padding: 4px; line-height: 0; border: 1px solid transparent; background: transparent; }',
-			'.msg-box.msg-user .msg:hover .msg-copy-btn, .msg-box.msg-user .msg:focus-within .msg-copy-btn { opacity: 1; pointer-events: auto; }',
+			'.msg-box.msg-user:hover .msg-copy-btn, .msg-box.msg-user:focus-within .msg-copy-btn, .msg-box.msg-user .msg:hover .msg-copy-btn, .msg-box.msg-user .msg:focus-within .msg-copy-btn { opacity: 1; pointer-events: auto; }',
 			'.msg-box.msg-user .msg .msg-copy-btn:hover { transform: scale(1.06); background: var(--copy-btn-bg-hover, rgba(0,0,0,.86)); border-color: var(--copy-btn-border, rgba(0,0,0,.08)); }',
 			'.msg-box.msg-user .msg .msg-copy-btn.copied { background: var(--copy-btn-bg-copied, rgba(150,150,150,.12)); border-color: var(--copy-btn-border-copied, rgba(150,150,150,.35)); animation: msg-copy-pop .25s ease; }',
 			'.msg-box.msg-user .msg .msg-copy-btn img { display: block; width: 18px; height: 18px; }',

@@ -31,6 +31,12 @@ def mock_window():
     window.core.config.load = MagicMock()  # mock load method to prevent loading
     window.core.config.save = MagicMock()  # mock save method to prevent saving
     window.core.config.get_lang = MagicMock(return_value='en')
+    window.core.filesystem.get_data_dir.side_effect = (
+        lambda ctx=None, meta_id=None, group_id=None, create=True: window.core.config.get_user_dir('data')
+    )
+    window.core.filesystem.get_runtime_dir.side_effect = (
+        lambda name, ctx=None, meta_id=None, group_id=None, create=True: window.core.config.get_user_dir(name)
+    )
     window.core.debug = MagicMock()
     window.controller = MagicMock()
     window.tools = MagicMock()

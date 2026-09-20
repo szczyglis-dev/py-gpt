@@ -18,6 +18,7 @@ import websockets
 from typing import Optional, Callable, Awaitable
 from urllib.parse import urlencode
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.text.utils import has_unclosed_code_tag
@@ -128,7 +129,19 @@ class xAIIRealtimeClient:
         :param should_stop: Sync callback to signal barge-in (cancel active response)
         """
         self._ensure_background_loop()
+
+        # A persistent realtime session keeps one receiver loop alive across
+        # multiple user turns. Refresh the per-turn binding on *every* run, not
+        # only when the socket/session is first opened. Otherwise the receiver
+        # keeps calling the callbacks captured by the first RealtimeWorker: live
+        # deltas are then rendered into that old CtxItem while response.done is
+        # persisted into the current one. The mismatch becomes visible as text
+        # streaming inside an earlier message until the WebView is reloaded.
         self._ctx = ctx
+        self._on_text = on_text
+        self._on_audio = on_audio
+        self._should_stop = should_stop or (lambda: False)
+        self._last_opts = opts
 
         # If a different resumable handle is provided, reset to attempt best-effort resume.
         try:
@@ -1157,7 +1170,7 @@ class xAIIRealtimeClient:
                     if self.debug:
                         print("[_recv_loop] audio_buffer committed")
                     if self._last_opts:
-                        self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {
+                        safe_emit(self._last_opts.rt_signals, "response", RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {
                             "ctx": self._ctx,
                         }))
 
@@ -1519,7 +1532,7 @@ class xAIIRealtimeClient:
                         self._response_done.set()
 
                     if self._last_opts:
-                        self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
+                        safe_emit(self._last_opts.rt_signals, "response", RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
                             "ctx": self._ctx,
                         }))
 

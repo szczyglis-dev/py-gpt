@@ -16,7 +16,11 @@ from time import strftime
 
 from PySide6.QtCore import Slot, QObject
 
-from pygpt_net.core.types import IMAGE_AVAILABLE_RESOLUTIONS
+from pygpt_net.core.types import (
+    IMAGE_AVAILABLE_RESOLUTIONS,
+    IMAGE_XAI_AVAILABLE_ASPECT_RATIOS,
+)
+from pygpt_net.core.types.image import get_future_image_resolutions
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -140,7 +144,7 @@ class Image(QObject):
         """
         img_id = uuid.uuid4()
         dt_prefix = strftime("%Y%m%d_%H%M%S")
-        img_dir = self.window.core.config.get_user_dir("img")
+        img_dir = self.window.core.filesystem.get_runtime_dir("img", ctx=ctx)
         filename = f"{dt_prefix}_{img_id}.png"
         return os.path.join(img_dir, filename)
 
@@ -156,6 +160,23 @@ class Image(QObject):
             "label": "img_resolution",
             "value": "1024x1024",
             "keys": self.get_available_resolutions(),
+        }
+
+    def get_xai_aspect_ratio_option(self) -> dict:
+        """
+        Get xAI image aspect ratio option for UI.
+
+        xAI controls image shape independently from its 1K/2K resolution tier.
+        This option is only made visible by the UI for xAI image models.
+
+        :return: dict
+        """
+        return {
+            "type": "combo",
+            "search": False,
+            "label": "settings.video.aspect_ratio",
+            "value": "auto",
+            "keys": IMAGE_XAI_AVAILABLE_ASPECT_RATIOS,
         }
 
     def get_mode_option(self) -> dict:
@@ -200,10 +221,15 @@ class Image(QObject):
         """
         available = IMAGE_AVAILABLE_RESOLUTIONS
         model_keys = available.keys()
-        # find by model if specified
+        # Find by model if specified. Forward-looking family rules are evaluated
+        # before broad legacy prefixes so e.g. gpt-image-2.6 never falls back to
+        # the gpt-image-1 size set.
         if model:
             model = self._normalize_model_name(model)
-            for key in model_keys:
+            future = get_future_image_resolutions(model)
+            if future:
+                return future
+            for key in sorted(model_keys, key=len, reverse=True):
                 if model.startswith(key):
                     return available[key]
 

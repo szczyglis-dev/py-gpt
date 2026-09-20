@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.30 06:00:00                  #
+# Updated Date: 2026.09.15 14:00:00
 # ================================================== #
 
 from typing import Optional
@@ -15,6 +15,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_AUDIO,
     MODE_ASSISTANT,
     MODE_LLAMA_INDEX,
@@ -22,6 +23,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
+from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -43,6 +45,10 @@ class Text:
             internal: bool = False,
             prev_ctx: Optional[CtxItem] = None,
             multimodal_ctx: Optional[MultimodalContext] = None,
+            mode_override: Optional[str] = None,
+            model_override: Optional[str] = None,
+            agent_continue: bool = False,
+            runtime_attachments: Optional[dict] = None,
     ) -> CtxItem:
         """
         Send text message
@@ -52,6 +58,10 @@ class Text:
         :param internal: internal call
         :param prev_ctx: previous context item (if reply)
         :param multimodal_ctx: multimodal context
+        :param mode_override: originating mode for an internal tool reply/agent continuation
+        :param model_override: originating model key for an internal tool reply/agent continuation
+        :param agent_continue: autonomous Agent continuation within the current durable turn
+        :param runtime_attachments: ephemeral tool-produced attachments for this provider call only
         :return: CtxItem instance
         """
         self.window.update_status(trans("status.sending"))
@@ -76,24 +86,45 @@ class Text:
         dispatch(event)
         ai_name = event.data["value"]
 
+        # Internal tool feedback and explicit autonomous Agent iterations are
+        # continuations of the same durable turn.  Tool replies arrive through an
+        # ephemeral ``as_previous`` object whose turn_parent points at the root.
+        # Agent continuations are queued directly against the durable root itself.
+        continuation_parent = None
+        if internal and prev_ctx is not None:
+            if reply:
+                continuation_parent = getattr(prev_ctx, "turn_parent", None)
+            elif agent_continue:
+                continuation_parent = getattr(prev_ctx, "turn_parent", None) or prev_ctx
+
         # prepare mode, model, etc.
-        mode = config.get("mode")
-        model = config.get("model")
+        mode = mode_override or (getattr(continuation_parent, "mode", None) if continuation_parent else None) or config.get("mode")
+        model = model_override or (getattr(continuation_parent, "model", None) if continuation_parent else None) or config.get("model")
         model_data = core.models.get(model)
         sys_prompt = config.get("prompt")
         sys_prompt_raw = sys_prompt  # store raw prompt (without addons)
         max_tokens = config.get("max_output_tokens")  # max output tokens
         idx_mode = config.get("llama.idx.mode")
         base_mode = mode  # store base parent mode
-        stream = self.is_stream(mode)  # check if stream is enabled for given mode
+        # Tool-result continuations stay in the same durable CtxItem, but they
+        # should use the mode's normal streaming policy just like the initial
+        # response. The ephemeral continuation is merged into the durable parent
+        # only after its stream finishes (see controller.chat.stream).
+        stream = self.is_stream(mode, model_data)
 
         functions = []  # functions to call
         tools_outputs = []  # tools outputs (assistant only)
 
         # create ctx item
-        meta = core.ctx.get_current_meta()
-        if meta:
+        meta = continuation_parent.meta if continuation_parent is not None else core.ctx.get_current_meta()
+        if meta and continuation_parent is None:
             meta.preset = config.get("preset")  # current preset
+
+        # Capture the owning chat before rendering starts.  The shared input can
+        # be used while keyboard focus is inside Code Interpreter/another tool
+        # in the second column; that focus must not redirect or orphan the send.
+        if meta is not None:
+            core.ctx.output.pin_render_pid(meta)
 
         ctx = CtxItem()
         ctx.meta = meta  # CtxMeta (owner object)
@@ -103,9 +134,43 @@ class Text:
         ctx.model = model  # store model list key, not real model id
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
-        ctx.prev_ctx = prev_ctx  # store previous context item if exists
+        ctx.prev_ctx = prev_ctx  # provider-facing previous reply lineage
         ctx.live = True
         ctx.pid = self.ctx_pid  # store PID
+        if continuation_parent is not None:
+            ctx.turn_parent = continuation_parent
+            previous_part = (
+                getattr(prev_ctx, "turn_previous_part", None)
+                or continuation_parent.get_active_part()
+            )
+            ctx.turn_previous_part = previous_part
+            ctx.turn_continuation = True
+            if agent_continue:
+                ctx.extra["agent_continue"] = True
+                if not isinstance(continuation_parent.extra, dict):
+                    continuation_parent.extra = {}
+                continuation_parent.extra.pop("response_final", None)
+                continuation_parent.extra.pop("response_interrupted", None)
+                core.ctx.update_item(continuation_parent)
+                # Each autonomous provider turn gets its own durable partial up
+                # front. The internal continuation prompt is metadata only: it is
+                # never rendered as another user message/CtxItem, but history
+                # expansion can restore the exact provider role sequence.
+                ctx.turn_part = core.ctx.begin_part(
+                    continuation_parent,
+                    name=ai_name,
+                    output=None,
+                    extra={
+                        "agent_continue": True,
+                        "input_before": text,
+                    },
+                    joiner="\n\n" if (continuation_parent.compose_output() or "").strip() else "",
+                )
+            else:
+                # Do not allocate a new partial for every tool round. A partial is
+                # a textual assistant fragment; tool-only continuations keep
+                # appending CtxItemPartTask rows to the current partial.
+                ctx.turn_part = continuation_parent.get_active_part()
 
         self.ctx_pid += 1  # increment PID
 
@@ -117,7 +182,6 @@ class Text:
             ctx.extra["sub_reply"] = True  # mark as sub reply in extra data
 
         controller.files.reset()  # clear uploaded files IDs
-        controller.ctx.store_history(ctx, "input")  # store to history
         controller.chat.log_ctx(ctx, "input")  # log
 
         # assistant: create thread, upload attachments
@@ -149,23 +213,33 @@ class Text:
 
         log("Appending input to chat window...")
 
-        # render: begin
-        dispatch(RenderEvent(RenderEvent.BEGIN, {
-            "meta": ctx.meta,
-            "ctx": ctx,
-            "stream": stream,
-        }))
-        # render: append input text
-        dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
-            "meta": ctx.meta,
-            "ctx": ctx,
-        }))
-
-        # add ctx to DB here and only update it after response,
-        # MUST BE REMOVED AFTER AS FIRST MSG (LAST ON LIST)
-        core.ctx.add(ctx)
-        core.ctx.set_last_item(ctx)  # mark as last item
-        controller.ctx.update(reload=True, all=False)
+        if continuation_parent is None:
+            # One BEGIN/input pair per user-visible turn. Tool feedback never
+            # creates another chat row.
+            dispatch(RenderEvent(RenderEvent.BEGIN, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "stream": stream,
+            }))
+            dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+            }))
+            core.ctx.add(ctx)
+            core.ctx.set_last_item(ctx)
+            controller.ctx.update(reload=True, all=False)
+            if mode == MODE_AGENT_V2:
+                # STATE_BUSY is emitted before INPUT_ACCEPT creates/resolves the
+                # final owning context. Reassert the renderer-only busy state
+                # after the user row exists so the spinner is visible from the
+                # send until the first model/status/tool activity arrives.
+                dispatch(RenderEvent(RenderEvent.STATE_BUSY, {
+                    "meta": ctx.meta,
+                }))
+        else:
+            # Keep the durable parent as the active/last turn. ctx exists only
+            # long enough to preserve the provider's tool-result protocol shape.
+            core.ctx.set_last_item(continuation_parent)
 
         # prepare user and plugin tools (native mode only)
         functions.extend(core.command.get_functions())
@@ -179,7 +253,11 @@ class Text:
         # --------------------- BRIDGE CALL ---------------------
 
         try:
-            files = core.attachments.get_all(mode)  # get attachments
+            # Work on a copy: runtime tool attachments must exist only for this
+            # provider call and must never appear in the global attachment UI/state.
+            files = dict(core.attachments.get_all(mode))
+            if runtime_attachments:
+                files.update(runtime_attachments)
             num_files = len(files)
             if num_files > 0:
                 log(f"Attachments ({mode}): {num_files}")
@@ -190,7 +268,7 @@ class Text:
                 ctx=ctx, # CtxItem instance
                 external_functions=functions,  # external functions
                 file_ids=controller.files.get_ids(),  # uploaded files IDs
-                history=core.ctx.all(),  # get all ctx items
+                history=(core.ctx.all() + [ctx]) if continuation_parent is not None else core.ctx.all(),
                 idx=controller.idx.get_current(),  # current idx
                 idx_mode=idx_mode,  # llama index mode (chat or query)
                 max_tokens=max_tokens,  # max output tokens
@@ -199,7 +277,8 @@ class Text:
                 multimodal_ctx=multimodal_ctx,  # multimodal context
                 parent_mode=base_mode,
                 preset=controller.presets.get_current(),  # current preset
-                prompt=text,  # input text
+                prompt=mentions_to_model_text(text),  # provider-facing default text
+                prompt_mentions=text,  # durable mention form for late multimodal mapping
                 stream=stream,  # is stream enabled
                 system_prompt=sys_prompt,
                 system_prompt_raw=sys_prompt_raw,  # for llama-index (query mode only)
@@ -231,20 +310,23 @@ class Text:
 
         return ctx
 
-    def is_stream(self, mode: str) -> bool:
+    def is_stream(self, mode: str, model=None) -> bool:
         """
-        Check if stream is enabled for given mode
+        Check if stream is enabled for given mode and model.
 
         :param mode: mode
+        :param model: resolved model configuration
         :return: True if stream is enabled, False otherwise
         """
         core = self.window.core
         stream = core.config.get("stream")
-        if mode in (MODE_AGENT_LLAMA):
-            return False  # TODO: check if this is correct in agent
+        if mode == MODE_AGENT_V2:
+            return True  # Agents v2 always renders one continuous orchestrator response
+        if mode == MODE_AGENT_LLAMA:
+            return False  # LlamaIndex agent workflow uses its own streaming lifecycle
         elif mode == MODE_LLAMA_INDEX:
             if core.config.get("llama.idx.mode") == "retrieval":
                 return False
-            if not core.idx.chat.is_stream_allowed():
+            if not core.idx.chat.is_stream_allowed(model):
                 return False
         return stream

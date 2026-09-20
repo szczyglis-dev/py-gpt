@@ -1,13 +1,28 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 import sys
 
 from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
     collect_dynamic_libs,
+    copy_metadata,
 )
 
 block_cipher = None
+
+
+def add_data_tree(datas, src_root, dest_root):
+    """
+    Add all files below src_root recursively while preserving directory layout
+    below dest_root in the PyInstaller bundle.
+    """
+    for root, _, files in os.walk(src_root):
+        rel = os.path.relpath(root, src_root)
+        dest = dest_root if rel == "." else os.path.join(dest_root, rel)
+        for filename in files:
+            datas.append((os.path.join(root, filename), dest))
+
 
 hiddenimports = [
     'chromadb.api.segment',
@@ -45,26 +60,75 @@ hiddenimports = [
     'pywin32_ctypes',
     'tweepy',
     'ipykernel',
+    'ipykernel_launcher',
+    'ipykernel.kernelapp',
     'IPython.core.display',
     'IPython.core.interactiveshell',
     'jupyter_client',
+    'aiosqlite',
+    'sqlalchemy.dialects.sqlite.aiosqlite',
 ]
 for pkg in [
-    'chromadb', 'chromadb.migrations', 'chromadb.telemetry',
+    'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert',
-    'onnxruntime', 'win32com',
+    'win32com', 'aiosqlite',
+    # Kernel modules are partly imported lazily/dynamically at runtime.
+    'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
+    'debugpy', 'zmq.backend.cython',
 ]:
     try:
         hiddenimports += collect_submodules(pkg)
     except Exception:
         pass
 
+debugpy_bins = []
+try:
+    # debugpy's vendored pydevd runtime ships native extensions (.pyd/.dll
+    # on Windows; .so/.dylib for cross-platform completeness). Their names
+    # do not necessarily match collect_dynamic_libs()' default patterns.
+    debugpy_bins += collect_dynamic_libs(
+        'debugpy',
+        search_patterns=['*.pyd', '*.dll', '*.so', '*.dylib'],
+    )
+except Exception:
+    pass
+
 datas = []
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')
 datas += collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql'])
+# Local IPython kernel runtime for PyInstaller builds.  In particular,
+# ipykernel/resources is used by jupyter_client's native python3 kernelspec.
+# jupyter_client discovers the built-in local provisioner through package
+# entry-point metadata, so its dist-info must be present in the bundle.
+datas += copy_metadata('jupyter_client')
+for pkg in ('ipykernel', 'IPython', 'jupyter_client', 'jupyter_core'):
+    try:
+        datas += collect_data_files(pkg)
+    except Exception:
+        pass
+
+# debugpy._vendored uses os.listdir() and temporarily prepends the physical
+# ``debugpy/_vendored/pydevd`` directory to sys.path. The vendored Python
+# sources therefore must exist as real files in the frozen distribution;
+# keeping them only in PyInstaller's PYZ archive is not sufficient.
+try:
+    datas += collect_data_files(
+        'debugpy',
+        include_py_files=True,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
+
+add_data_tree(
+    datas,
+    r'src\pygpt_net\data\css',
+    r'data\css',
+)
+
 datas += [
     (r'src\pygpt_net\data\config\presets\*', r'data\config\presets'),
     (r'src\pygpt_net\data\config\config.json', r'data\config'),
@@ -77,9 +141,9 @@ datas += [
     (r'src\pygpt_net\data\icons\chat\*', r'data\icons\chat'),
     (r'src\pygpt_net\data\locale\*', r'data\locale'),
     (r'src\pygpt_net\data\audio\*', r'data\audio'),
-    (r'src\pygpt_net\data\css\*', r'data\css'),
     (r'src\pygpt_net\data\fixtures\*', r'data\fixtures'),
-    (r'src\pygpt_net\data\themes\*', r'data\themes'),
+    (r'src\pygpt_net\data\skills\*', r'data\skills'),
+    (r'src\pygpt_net\data\connectors\*', r'data\connectors'),
     (r'src\pygpt_net\data\fonts\Lato\*', r'data\fonts\Lato'),
     (r'src\pygpt_net\data\fonts\SpaceMono\*', r'data\fonts\SpaceMono'),
     (r'src\pygpt_net\data\fonts\MonaspaceArgon\*', r'data\fonts\MonaspaceArgon'),
@@ -92,6 +156,7 @@ datas += [
     (r'src\pygpt_net\data\languages.csv', r'data'),
     (r'src\pygpt_net\data\banners.json', r'data'),
     (r'src\pygpt_net\data\logo.png', r'data'),
+    (r'src\pygpt_net\data\logo_splash.png', r'data'),
     (r'src\pygpt_net\data\icon.ico', r'data'),
     (r'src\pygpt_net\data\icon_tray_idle.ico', r'data'),
     (r'src\pygpt_net\data\icon_tray_busy.ico', r'data'),
@@ -115,7 +180,7 @@ datas += [
 a = Analysis(
     [r'src\pygpt_net\app.py'],
     pathex=[r'src', r'src\pygpt_net'],
-    binaries=[],
+    binaries=debugpy_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

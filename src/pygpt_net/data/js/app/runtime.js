@@ -43,6 +43,11 @@ class Runtime {
 
 		this.tips = null;
 		this._lastHeavyResetMs = 0;
+		this._turnSession = 0;
+		this._agentsV2FinalActive = false;
+		// Live post-tool prose is rendered as a nested partial of an existing
+		// durable bot message, never as a second msg-box / CtxItem row.
+		this._partialStreams = new Map();
 
 		this.renderer.hooks.observeNewCode = (root, opts) => this.highlighter.observeNewCode(root, opts, this.stream.activeCode);
 		this.renderer.hooks.observeMsgBoxes = (root) => this.highlighter.observeMsgBoxes(root, (box) => {
@@ -129,6 +134,17 @@ class Runtime {
 			this.api_appendStream(name, chunk);
 			return;
 		}
+		if (t === 'final_reset') {
+			try { this.loading.hide(false); } catch (_) {}
+			// Keep the already materialized durable CtxItem and clear only the
+			// transient global stream/status area. Final prose will be appended via
+			// appendPartialStream() into the same msg-bot element.
+			this.api_clearAgentStatus();
+			this.api_clearStream();
+			// A late queued tool/status event must not reappear during final prose.
+			this._agentsV2FinalActive = true;
+			return;
+		}
 		// Future-proof: add other chunk types here (attachments, status, etc.)
 		// No-op for unknown types to keep current behavior.
 		this.logger.debug('STREAM', 'IGNORED_NON_TEXT_CHUNK', {
@@ -139,6 +155,8 @@ class Runtime {
 
 	// API: begin stream.
 	api_beginStream = (chunk = false) => {
+		this._agentsV2FinalActive = false;
+		this._turnSession += 1;
 		this.tips && this.tips.hide();
 		this.resetStreamState('beginStream', {
 			clearMsg: true,
@@ -178,7 +196,7 @@ class Runtime {
 			finalizeActive: false,
 			forceHeavy: true
 		});
-		this.scrollMgr.scheduleScroll();
+		this.scrollMgr.scheduleScroll(true);
 	};
 
 	// API: clear streaming output area entirely.
@@ -193,6 +211,400 @@ class Runtime {
 		el.replaceChildren();
 	};
 
+	_partialStreamKey = (parentId, partId) => `${String(parentId)}::${String(partId)}`;
+
+	_clearPartialStreamState = () => {
+		this._partialStreams.clear();
+	};
+
+	_workflowMessageHost = (parentId, create = false, nameHeader = '') => {
+		const value = String(parentId || '');
+		if (!value) return null;
+
+		let box = document.getElementById(`msg-bot-${value}`);
+		let msg = null;
+		if (box) {
+			try { msg = box.querySelector(':scope > .msg') || box.querySelector('.msg'); }
+			catch (_) { msg = box.querySelector('.msg'); }
+		}
+
+		// Before the durable item is materialized, statuses/text live in the
+		// stream area. Create an id-bound provisional message there so every live
+		// event still has one chronological parent instead of becoming a sibling
+		// after the footer of the previous message.
+		if ((!box || !msg) && create) {
+			const container = this.dom.getStreamContainer();
+			if (!container) return null;
+			try {
+				box = container.querySelector(`.msg-box.msg-bot[data-workflow-parent-id="${value.replace(/"/g, '\\"')}"]`);
+			} catch (_) { box = null; }
+			if (!box) {
+				msg = this.dom.getStreamMsg(true, nameHeader || '');
+				box = msg && msg.closest ? msg.closest('.msg-box.msg-bot') : null;
+			} else {
+				try { msg = box.querySelector(':scope > .msg') || box.querySelector('.msg'); }
+				catch (_) { msg = box.querySelector('.msg'); }
+			}
+			if (box) {
+				box.dataset.workflowParentId = value;
+				// Stream boxes have no durable id by default. Giving the live box the
+				// final id lets subsequent status/partial events resolve the same host.
+				if (!box.id || box.id === `msg-bot-${value}`) box.id = `msg-bot-${value}`;
+			}
+		}
+
+		if (!box || !msg) return null;
+		const timeline = (this.dom && typeof this.dom.getMsgTimeline === 'function')
+			? this.dom.getMsgTimeline(msg, true)
+			: msg;
+		return { box, msg, timeline };
+	};
+
+	_findPartialStreamHost = (parentId, partId, create = false) => {
+		const host = this._workflowMessageHost(parentId, create);
+		if (!host || !host.timeline) return null;
+
+		const pid = String(partId);
+		let part = null;
+		for (const node of host.timeline.querySelectorAll('.msg-part[data-live-part="1"]')) {
+			if (String(node.dataset.partId || '') === pid) { part = node; break; }
+		}
+		if (!part && !create) return null;
+		if (!part) {
+			part = document.createElement('div');
+			part.className = 'msg-part msg-part-live';
+			part.dataset.livePart = '1';
+			part.dataset.partId = pid;
+			const root = document.createElement('div');
+			root.className = 'md-snapshot-root';
+			part.appendChild(root);
+
+			// getStreamMsg() creates one direct md-snapshot-root as a placeholder for
+			// the initial generic stream. Once the workflow switches to explicit
+			// inline partials that placeholder is no longer a chronological segment.
+			// Leaving it behind made later status rows think that no text had been
+			// rendered yet and insert themselves *before* prose that already lived in
+			// a msg-part. Remove only a truly empty direct placeholder; never touch a
+			// root that already contains streamed text.
+			let placeholder = null;
+			try { placeholder = host.timeline.querySelector(':scope > .md-snapshot-root'); }
+			catch (_) { placeholder = null; }
+			if (placeholder) {
+				const hasText = !!String(placeholder.textContent || '').trim();
+				const hasElements = placeholder.children && placeholder.children.length > 0;
+				if (!hasText && !hasElements) {
+					try { placeholder.remove(); } catch (_) {}
+				}
+			}
+
+			// Timeline children are append-only. Every new prose/tool/status segment
+			// lands after what was already shown.
+			host.timeline.appendChild(part);
+		}
+		let root = part.querySelector('.md-snapshot-root');
+		if (!root) {
+			root = document.createElement('div');
+			root.className = 'md-snapshot-root';
+			part.appendChild(root);
+		}
+		return { ...host, part, root };
+	};
+
+	_renderPartialStream = (state) => {
+		if (!state || !state.root || !state.root.isConnected) return false;
+		let frag = null;
+		try {
+			frag = this.renderer.renderStreamingSnapshotFragment(state.text || '');
+		} catch (_) {
+			frag = document.createDocumentFragment();
+			frag.appendChild(document.createTextNode(state.text || ''));
+		}
+		state.root.replaceChildren(frag);
+
+		try {
+			// Streaming custom markup must also materialize an opener that has no
+			// closer yet. This makes <think> become a CSS reasoning block from the
+			// very first tag, including post-tool inline partials.
+			this.customMarkup.applyStream(state.root, this.renderer.MD_STREAM || this.renderer.MD);
+		} catch (_) {}
+		try { this.stream._syncReasoningVisibility(state.root); } catch (_) {}
+		try {
+			this.highlighter.observeNewCode(state.root, {
+				deferLastIfStreaming: true,
+				minLinesForLast: this.cfg.PROFILE_CODE.minLinesForHL,
+				minCharsForLast: this.cfg.PROFILE_CODE.minCharsForHL
+			}, this.stream.activeCode);
+			this.highlighter.scanVisibleCodesInRoot(state.root, this.stream.activeCode || null);
+		} catch (_) {}
+		try { this.codeScroll.initScrollableBlocks(state.root); } catch (_) {}
+		try {
+			const mm = getMathMode();
+			if (mm === 'idle') this.math.schedule(state.root);
+			else if (mm === 'always') this.math.schedule(state.root, 0, true);
+		} catch (_) {}
+		this.scrollMgr.scheduleScroll(true);
+		return true;
+	};
+
+	// Append streamed Markdown into a nested partial of an existing assistant
+	// turn. A missing durable node gets a provisional id-bound stream host; it is
+	// never rendered as an unrelated second message.
+	api_appendPartialStream = (parentId, partId, chunk, begin = false) => {
+		const key = this._partialStreamKey(parentId, partId);
+		let state = this._partialStreams.get(key) || null;
+		if (begin || !state || (state.root && !state.root.isConnected)) {
+			const host = this._findPartialStreamHost(parentId, partId, true);
+			if (!host) {
+				const finalLatch = this._agentsV2FinalActive;
+				// Python owns loader visibility and knows whether this is hidden
+				// reasoning or actual response text. Do not hide the loader here.
+				if (!state || !state.fallback) this.api_beginStream(false);
+				this._agentsV2FinalActive = finalLatch;
+				state = { fallback: true, text: '' };
+				this._partialStreams.set(key, state);
+			} else {
+				state = { ...host, text: '' };
+				this._partialStreams.set(key, state);
+			}
+		}
+
+		const value = String(chunk || '');
+		if (!value) return;
+		if (state.fallback) {
+			this.api_appendStream('', value);
+			return;
+		}
+		let reasoningState = null;
+		try { reasoningState = this.stream._updateReasoningVisibilityFromChunk(value); } catch (_) {}
+		state.text += value;
+		this._renderPartialStream(state);
+		try {
+			if (reasoningState && reasoningState.hasResponseText && !this.stream.reasoningThinking) {
+				this.stream._scheduleReasoningHide(state.msg || null, state.root || null);
+			}
+		} catch (_) {}
+	};
+
+	_statusMessageHost = (parentId, create = false) => this._workflowMessageHost(parentId, create);
+
+	_findWorkflowStatus = (statusId) => {
+		const sid = String(statusId || '');
+		if (!sid) return null;
+		for (const node of document.querySelectorAll('[data-workflow-status-id]')) {
+			if (String(node.dataset.workflowStatusId || '') === sid) return node;
+		}
+		return null;
+	};
+
+	_createWorkflowStatus = (parentId, statusId, kind) => {
+		const host = this._statusMessageHost(parentId, true);
+		if (!host || !host.timeline) return null;
+
+		const part = document.createElement('div');
+		part.className = 'msg-part msg-part-status';
+		part.dataset.statusPart = '1';
+
+		const status = document.createElement('div');
+		status.className = 'agents-v2-status workflow-status';
+		status.dataset.statusKind = String(kind || 'agent');
+		if (statusId) status.dataset.workflowStatusId = String(statusId);
+
+		const label = document.createElement('span');
+		label.className = 'agents-v2-status__text';
+		status.appendChild(label);
+		part.appendChild(status);
+		this._placeWorkflowStatus(host, status);
+		return status;
+	};
+
+	_placeWorkflowStatus = (host, status) => {
+		if (!host || !host.timeline || !status) return;
+		const part = status.closest ? status.closest('.msg-part-status') : null;
+		if (!part) return;
+
+		// A status that arrives before the very first text token must stay before
+		// the empty generic-stream placeholder, because that placeholder will later
+		// be filled with prose. But an empty placeholder is NOT proof that the whole
+		// timeline is empty: after a tool boundary, prose may already live in a
+		// nested msg-part while the obsolete direct root is still present. In that
+		// case the new status must append after the existing prose.
+		let streamRoot = null;
+		try { streamRoot = host.timeline.querySelector(':scope > .md-snapshot-root'); }
+		catch (_) { streamRoot = null; }
+		const nodeHasPayload = (node) => {
+			if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+			const el = node;
+			if (el.classList && el.classList.contains('msg-part-status')) return false;
+			if (el === streamRoot || (el.classList && el.classList.contains('md-snapshot-root'))) {
+				return !!(String(el.textContent || '').trim() || (el.children && el.children.length > 0));
+			}
+			if (el.matches && el.matches('.md-block, .tool-output')) return true;
+			if (el.querySelector && el.querySelector('.md-block, .tool-output')) return true;
+			const nestedRoot = el.querySelector ? el.querySelector('.md-snapshot-root') : null;
+			if (nestedRoot && (String(nestedRoot.textContent || '').trim() || nestedRoot.children.length > 0)) return true;
+			return !!String(el.textContent || '').trim();
+		};
+		let hasEarlierPayload = false;
+		for (const child of Array.from(host.timeline.children || [])) {
+			if (child === part) continue;
+			if (nodeHasPayload(child)) { hasEarlierPayload = true; break; }
+		}
+		const rootHasContent = !!(streamRoot && nodeHasPayload(streamRoot));
+		if (streamRoot && !rootHasContent && !hasEarlierPayload) {
+			host.timeline.insertBefore(part, streamRoot);
+		} else {
+			host.timeline.appendChild(part);
+		}
+	};
+
+	_setWorkflowStatus = (parentId, statusId, kind, labelText, active = true) => {
+		let status = this._findWorkflowStatus(statusId);
+		if (!status) status = this._createWorkflowStatus(parentId, statusId, kind);
+		if (!status) return null;
+		else {
+			// In single-status-per-part mode Python deliberately reuses the same
+			// status id as the current part advances from "before text" to "after
+			// text/tool". Move that one row to the newest chronological position
+			// instead of leaving the updated label at its original location.
+			const host = this._statusMessageHost(parentId, false);
+			if (host) this._placeWorkflowStatus(host, status);
+		}
+		status.dataset.statusKind = String(kind || 'agent');
+		if (statusId) status.dataset.workflowStatusId = String(statusId);
+		if (active) status.classList.add('agents-v2-status--active');
+		else status.classList.remove('agents-v2-status--active');
+		let label = status.querySelector('.agents-v2-status__text');
+		if (!label) {
+			label = document.createElement('span');
+			label.className = 'agents-v2-status__text';
+			status.appendChild(label);
+		}
+		label.textContent = String(labelText || '');
+		return status;
+	};
+
+	_toolStatusLabel = (values) => {
+		const names = Array.isArray(values) ? values.filter(Boolean).map(v => String(v)) : [];
+		if (!names.length) return '';
+		const prefix = names.length > 1
+			? ((typeof window !== 'undefined' && window.LOCALE_TOOLS) ? String(window.LOCALE_TOOLS) : 'Tools')
+			: ((typeof window !== 'undefined' && window.LOCALE_TOOL) ? String(window.LOCALE_TOOL) : 'Tool');
+		return `${prefix}: ${names.join(', ')}...`;
+	};
+
+	api_freezeWorkflowStatus = (parentId = null, kind = null) => {
+		const wantedParent = String(parentId || '');
+		const host = wantedParent ? this._statusMessageHost(wantedParent, false) : null;
+		if (wantedParent && !host) return;
+		const root = host ? host.timeline : document;
+		for (const node of root.querySelectorAll('.agents-v2-status--active')) {
+			if (kind && String(node.dataset.statusKind || '') !== String(kind)) continue;
+			node.classList.remove('agents-v2-status--active');
+		}
+	};
+
+	api_setAgentStatus = (text, parentId = null, statusId = null) => {
+		const value = String(text || '').trim();
+		if (this._agentsV2FinalActive) {
+			this.api_freezeWorkflowStatus(parentId);
+			return;
+		}
+		if (!value) {
+			this.api_freezeWorkflowStatus(parentId);
+			return;
+		}
+
+		// One global chronological sequence: a new event freezes whatever was
+		// active and is appended after the previous text/tool/status segment.
+		this.api_freezeWorkflowStatus(parentId);
+		this._setWorkflowStatus(parentId, statusId, 'agent', value, true);
+		this.scrollMgr.scheduleScroll(true);
+	};
+
+	api_clearAgentStatus = (parentId = null) => {
+		this.api_freezeWorkflowStatus(parentId);
+	};
+
+	_hideReasoningForToolCall = (parentId = null) => {
+		if (!this.stream || typeof this.stream.hideReasoningForToolCall !== 'function') return;
+		let root = null;
+		if (parentId != null && String(parentId || '') !== '') {
+			const host = this._statusMessageHost(parentId, false);
+			if (host && host.timeline) root = host.timeline;
+		}
+		this.stream.hideReasoningForToolCall(root);
+	};
+
+	api_setToolStatus = (names, parentId = null, statusId = null) => {
+		const values = Array.isArray(names) ? names.filter(Boolean).map(v => String(v)) : [];
+		if (values.length) this._hideReasoningForToolCall(parentId);
+		if (this._agentsV2FinalActive) {
+			this.api_freezeWorkflowStatus(parentId, 'tool');
+			return;
+		}
+		if (!values.length) {
+			this.api_freezeWorkflowStatus(parentId, 'tool');
+			return;
+		}
+
+		this.api_freezeWorkflowStatus(parentId);
+		this._setWorkflowStatus(parentId, statusId, 'tool', this._toolStatusLabel(values), true);
+		this.scrollMgr.scheduleScroll(true);
+	};
+
+	api_clearToolStatus = (parentId = null, immediate = true) => {
+		// Normal tool completion clears the Python-side workflow record immediately,
+		// but keeps the already-painted waiting row in the DOM until the durable
+		// Tool/Tools block is rebuilt. That rebuild replaces the DOM synchronously,
+		// so the user never sees an empty gap between "Tool: ..." and the button.
+		// STOP/error paths pass immediate=true and remove the row right away.
+		if (!immediate) {
+			this.api_freezeWorkflowStatus(parentId, 'tool');
+			return;
+		}
+		const wantedParent = String(parentId || '');
+		const host = wantedParent ? this._statusMessageHost(wantedParent, false) : null;
+		if (wantedParent && !host) return;
+		const root = host ? host.timeline : document;
+		for (const node of Array.from(root.querySelectorAll('.workflow-status'))) {
+			if (String(node.dataset.statusKind || '') !== 'tool') continue;
+			const part = node.closest ? node.closest('.msg-part-status') : null;
+			if (part) part.remove();
+			else node.remove();
+		}
+	};
+
+	// After beginStream() clears the transient output area, recreate the id-bound
+	// stream shell and restore UI-only status history before the first text chunk.
+	// This prevents "Planning/Using tool" rows from disappearing at stream start.
+	api_bindWorkflowStream = (parentId, nameHeader = '', records = []) => {
+		const value = String(parentId || '');
+		if (!value) return;
+		const msg = this.dom.getStreamMsg(true, String(nameHeader || ''));
+		if (!msg) return;
+		const box = msg.closest ? msg.closest('.msg-box.msg-bot') : null;
+		if (box) {
+			box.id = `msg-bot-${value}`;
+			box.dataset.workflowParentId = value;
+		}
+		const timeline = (this.dom && typeof this.dom.getMsgTimeline === 'function')
+			? this.dom.getMsgTimeline(msg, true)
+			: msg;
+		if (!timeline) return;
+
+		const rows = Array.isArray(records) ? records.slice() : [];
+		rows.sort((a, b) => Number((a && a.seq) || 0) - Number((b && b.seq) || 0));
+		for (const record of rows) {
+			if (!record) continue;
+			const kind = String(record.kind || 'agent');
+			const sid = String(record.id || '');
+			let label = String(record.text || '');
+			if (!label && kind === 'tool') label = this._toolStatusLabel(record.tool_names || []);
+			if (!label) continue;
+			this._setWorkflowStatus(value, sid, kind, label, !!record.active);
+		}
+	};
+
 	// API: append/replace messages (non-streaming).
 	api_appendNode = (payload) => {
 		this.resetStreamState('appendNode');
@@ -201,10 +613,16 @@ class Runtime {
 	};
 
 	api_replaceNodes = (payload) => {
+		this._clearPartialStreamState();
 		this.resetStreamState('replaceNodes', {
 			clearMsg: true,
 			forceHeavy: true
 		});
+		// A full context rebuild makes the durable nodes authoritative. Leaving
+		// _append_output_ alive here produced a second copy of the just-finished
+		// workflow below the message footer (exactly the duplicated status rows
+		// seen after RELOAD). Drop the transient stream DOM before replacing nodes.
+		this.dom.clearOutput();
 		this.dom.clearNodes();
 		this.data.replace(payload);
 	};
@@ -213,11 +631,9 @@ class Runtime {
 	api_appendToInput = (payload) => {
 		this.nodes.appendToInput(payload);
 
-		// Ensure initial auto-follow is ON for the next stream that will start right after user input.
-		// Rationale: previously, if the user had scrolled up, autoFollow could remain false and the
-		// live stream would not follow even though we just sent a new input.
-		this.scrollMgr.autoFollow = true; // explicitly re-enable page auto-follow
-		this.scrollMgr.userInteracted = false; // Reset interaction so live scroll is allowed
+		// A newly sent turn explicitly returns ownership to FOLLOW. Enable the
+		// permanent bottom anchor now; the forced non-live snap below establishes it.
+		this.scrollMgr.resumeAutoFollow(false);
 
 		// Keep lastScrollTop in sync to avoid misclassification in the next onscroll handler.
 		try {
@@ -225,12 +641,13 @@ class Runtime {
 		} catch (_) {}
 
 		// Non-live scroll to bottom right away, independent of autoFollow state.
-		this.scrollMgr.scheduleScroll();
+		this.scrollMgr.scheduleScroll(false, true);
 		// NOTE: No resetStreamState() here to avoid flicker/reflow issues while previewing user input.
 	};
 
 	// API: clear messages list.
 	api_clearNodes = () => {
+		this._clearPartialStreamState();
 		this.dom.clearNodes();
 		this.resetStreamState('clearNodes', {
 			clearMsg: true,
@@ -267,7 +684,10 @@ class Runtime {
 	api_appendToolOutput = (c) => this.toolOutput.append(c);
 	api_updateToolOutput = (c) => this.toolOutput.update(c);
 	api_clearToolOutput = () => this.toolOutput.clear();
-	api_beginToolOutput = () => this.toolOutput.begin();
+	api_beginToolOutput = () => {
+		this._hideReasoningForToolCall();
+		this.toolOutput.begin();
+	};
 	api_endToolOutput = () => this.toolOutput.end();
 	api_enableToolOutput = () => this.toolOutput.enable();
 	api_disableToolOutput = () => this.toolOutput.disable();
@@ -359,14 +779,17 @@ class Runtime {
 	};
 	api_setScrollPosition = (pos) => {
 		try {
-			window.scrollTo(0, pos);
-			this.scrollMgr.prevScroll = parseInt(pos);
+			const top = Math.max(0, Number(pos) || 0);
+			this.scrollMgr.markProgrammaticScroll(top);
+			window.scrollTo(0, top);
+			this.scrollMgr.prevScroll = top;
+			this.scrollMgr.lastScrollTop = Utils.SE.scrollTop;
 		} catch (_) {}
 	};
 
 	// API: show/hide loading overlay.
 	api_showLoading = () => this.loading.show();
-	api_hideLoading = () => this.loading.hide();
+	api_hideLoading = (reserveSpace = false) => this.loading.hide(reserveSpace);
 
 	// API: restore collapsed state of codes in a given root.
 	api_restoreCollapsedCode = (root) => this.renderer.restoreCollapsedCode(root);
@@ -379,8 +802,9 @@ class Runtime {
 	api_showTips = () => this.tips.show();
 	api_hideTips = () => this.tips.hide();
 
-	// API: begin/end.
-	api_begin = () => {};
+	// API: begin/end. A new visible turn gets a fresh status session so
+	// transient Tool/Agents-v2 rows can never attach to the previous turn.
+	api_begin = () => { this._turnSession += 1; };
 	api_end = () => {
 	    this.scrollMgr.forceScrollToBottomImmediateAtEnd();
 	}
@@ -417,8 +841,15 @@ class Runtime {
 
 		this.renderer.init();
 		try {
-			this.renderer.renderPendingMarkdown(document);
-		} catch (_) {}
+			const pendingMarkdown = this.renderer.renderPendingMarkdown(document);
+			const virtualize = () => {
+				try { this.scrollMgr.scheduleMessageVirtualizationRefresh(); } catch (_) {}
+			};
+			if (pendingMarkdown && typeof pendingMarkdown.then === 'function') pendingMarkdown.then(virtualize);
+			else virtualize();
+		} catch (_) {
+			try { this.scrollMgr.scheduleMessageVirtualizationRefresh(); } catch (__) {}
+		}
 
 		this.highlighter.observeMsgBoxes(document, (box) => {
 			this.highlighter.observeNewCode(box, {
@@ -488,6 +919,13 @@ window.appendStream = (name, chunk) => runtime.api_appendStream(name, chunk);
 window.appendStreamTyped = (type, name, chunk) => runtime.api_onChunk(name, chunk, type);
 window.nextStream = () => runtime.api_nextStream();
 window.clearStream = () => runtime.api_clearStream();
+window.appendPartialStream = (parentId, partId, chunk, begin) => runtime.api_appendPartialStream(parentId, partId, chunk, begin);
+window.bindWorkflowStream = (parentId, nameHeader, records) => runtime.api_bindWorkflowStream(parentId, nameHeader, records);
+window.setAgentStatus = (text, parentId, statusId) => runtime.api_setAgentStatus(text, parentId, statusId);
+window.clearAgentStatus = (parentId) => runtime.api_clearAgentStatus(parentId);
+window.setToolStatus = (names, parentId, statusId) => runtime.api_setToolStatus(names, parentId, statusId);
+window.clearToolStatus = (parentId, immediate = true) => runtime.api_clearToolStatus(parentId, immediate);
+window.freezeWorkflowStatus = (parentId, kind) => runtime.api_freezeWorkflowStatus(parentId, kind);
 
 window.begin = () => runtime.api_begin();
 window.end = () => runtime.api_end();
@@ -531,7 +969,7 @@ window.getScrollPosition = () => runtime.api_getScrollPosition();
 window.setScrollPosition = (pos) => runtime.api_setScrollPosition(pos);
 
 window.showLoading = () => runtime.api_showLoading();
-window.hideLoading = () => runtime.api_hideLoading();
+window.hideLoading = (reserveSpace = false) => runtime.api_hideLoading(reserveSpace);
 
 window.restoreCollapsedCode = (root) => runtime.api_restoreCollapsedCode(root);
 window.scrollToTopUser = () => runtime.api_scrollToTopUser();

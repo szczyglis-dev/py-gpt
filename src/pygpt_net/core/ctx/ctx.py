@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 22:00:00                  #
+# Updated Date: 2026.09.16 14:35:00                  #
 # ================================================== #
 
 import copy
 import datetime
 import uuid
+import json
 from typing import Optional, Tuple, List, Dict
 
 from packaging.version import Version
@@ -31,8 +32,18 @@ from pygpt_net.core.types import (
     MODE_RESEARCH,
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
+    PERSIST_HIDDEN_TOOL_CALLS,
+    CTX_TOOL_HISTORY_EXTRA_KEY,
+    TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY,
+    TOOL_CALL_RUNTIME_RESTORE_CONFIG_KEY,
+    TOOL_CALL_STORAGE_CONFIG_KEY,
+    ToolCallStorageMode,
+    should_persist_ctx_partials,
 )
 from pygpt_net.item.ctx import CtxItem, CtxMeta, CtxGroup
+from pygpt_net.item.ctx_part import CtxItemPart
+from pygpt_net.item.ctx_part_task import CtxItemPartTask
 from pygpt_net.provider.core.ctx.base import BaseProvider
 from pygpt_net.provider.core.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
@@ -84,6 +95,7 @@ class Ctx:
             MODE_AGENT,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
             MODE_EXPERT,
             MODE_AUDIO,
             MODE_RESEARCH,
@@ -102,6 +114,7 @@ class Ctx:
             MODE_AGENT: self.all_modes,
             MODE_AGENT_LLAMA: self.all_modes,
             MODE_AGENT_OPENAI: self.all_modes,
+            MODE_AGENT_V2: self.all_modes,
             MODE_RESEARCH: self.all_modes,
             MODE_COMPUTER: self.all_modes,
         }
@@ -402,13 +415,24 @@ class Ctx:
             self.assistant = ctx.assistant
             self.preset = ctx.preset
 
-            if restore_model:
-                if ctx.last_model is not None \
-                        and self.window.core.models.has_model(self.mode, ctx.last_model):
-                    self.model = ctx.last_model
-                elif ctx.model is not None \
-                        and self.window.core.models.has_model(self.mode, ctx.model):
-                    self.model = ctx.model
+            # Model restore is opt-in. Reasoning effort is intentionally not
+            # part of context state and is never restored from a conversation.
+            # Leave the context model unset when restore is disabled so changing
+            # to a conversation in another mode keeps that mode's global model
+            # selection instead of reusing the model from the previously active
+            # mode.
+            self.model = None
+            should_restore_model = (
+                restore_model
+                and bool(self.window.core.config.get('model.restore_from_ctx', False))
+            )
+            if should_restore_model:
+                models = self.window.core.models
+                resolved = models.resolve_model_key(self.mode, ctx.last_model)
+                if resolved is None:
+                    resolved = models.resolve_model_key(self.mode, ctx.model)
+                if resolved is not None:
+                    self.model = resolved
 
             self.set_items(self.load(id))
 
@@ -520,13 +544,753 @@ class Ctx:
         if meta is not None:
             self.provider.append_item(meta, item)
 
-    def update_item(self, item: CtxItem):
-        """
-        Update CtxItem in context
+    def _filter_transport_images(self, item: Optional[CtxItem]):
+        """Strip transport-only screenshots from all durable ctx image fields.
 
-        :param item: CtxItem to update
+        Computer Use screenshots are ordinary attachments only for provider
+        transport. They must never become user-visible/persistent ctx images.
+        The attachment registry is the authoritative runtime source because a
+        screenshot attachment may already have been cleared before a later tool
+        round persists the same durable turn. ``transport_images`` remains as a
+        per-CtxItem fallback for compatibility with an in-flight tool chain.
         """
+        if item is None:
+            return
+
+        filesystem = self.window.core.filesystem
+
+        def image_key(value):
+            if value is None:
+                return None
+            value = str(value)
+            if value.startswith(("http://", "https://", "data:")):
+                return value
+            try:
+                return filesystem.make_local(value, ctx=item)
+            except Exception:
+                return value
+
+        hidden = []
+        # Item-local markers. Also include markers from runtime lineage because
+        # plugin replies may execute against an ephemeral continuation object.
+        seen_ctx = set()
+        candidate = item
+        for _ in range(4):
+            if candidate is None or id(candidate) in seen_ctx:
+                break
+            seen_ctx.add(id(candidate))
+            hidden.extend(list(getattr(candidate, "transport_images", None) or []))
+            candidate = getattr(candidate, "turn_parent", None) or getattr(candidate, "prev_ctx", None)
+
+        # Global runtime registry survives attachment.clear_silent(), so an old
+        # screenshot from an earlier Computer Use round is still excluded when
+        # the durable item is written several rounds later.
+        attachments = getattr(self.window.core, "attachments", None)
+        if attachments is not None and hasattr(attachments, "get_ctx_excluded_paths"):
+            try:
+                hidden.extend(list(attachments.get_ctx_excluded_paths()))
+            except Exception:
+                pass
+
+        hidden_keys = {image_key(value) for value in hidden if value is not None}
+        hidden_keys.discard(None)
+        if not hidden_keys:
+            return
+
+        for attr in ("images", "images_before"):
+            values = getattr(item, attr, None)
+            if not isinstance(values, list) or not values:
+                continue
+            setattr(item, attr, [
+                value for value in values
+                if image_key(value) not in hidden_keys
+            ])
+
+    def update_item(self, item: CtxItem):
+        """Update a turn and keep its compatibility output cache in sync."""
+        if item is None:
+            return
+        self._filter_transport_images(item)
+        if item.parts:
+            # Partial rows are durable only in workflow modes. Outside those
+            # modes they are runtime helpers (or legacy rows loaded from an older
+            # build), so never write them back to ctx_item_partial.
+            if self.should_persist_parts(item):
+                # Legacy/simple paths still write directly to CtxItem.output.
+                # Mirror that into the sole durable part automatically; multi-
+                # part paths update the active part explicitly and are folded.
+                if len(item.parts) == 1:
+                    part = item.get_active_part()
+                    if part is not None and part.output != item.output:
+                        part.set_output(item.output)
+                        self.provider.update_part(part)
+                else:
+                    item.sync_output_from_parts()
+            elif len(item.parts) > 1:
+                # Runtime tool continuations can still use multiple in-memory
+                # parts; keep ctx_item.output as their compatibility cache.
+                item.sync_output_from_parts()
         self.provider.update_item(item)
+
+    def should_persist_parts(self, item: Optional[CtxItem]) -> bool:
+        """Return True when partial/task rows are part of the durable format.
+
+        Non-workflow modes still use CtxItemPart/CtxItemPartTask during the live
+        turn. This preserves tool-loop ordering and continuation behaviour without
+        duplicating every ordinary chat response in ctx_item_partial tables.
+
+        Existing rows from older versions remain fully readable; this policy only
+        controls creation of new durable partial rows.
+        """
+        if item is None:
+            return False
+        return should_persist_ctx_partials(getattr(item, "mode", None))
+
+    def ensure_part(
+            self,
+            item: CtxItem,
+            agent_id: Optional[str] = None,
+            name: Optional[str] = None,
+    ) -> CtxItemPart:
+        """Return the active partial item, creating it if necessary."""
+        part = item.get_active_part()
+        if part is not None:
+            return part
+        return self.begin_part(item, agent_id=agent_id, name=name, output=item.output)
+
+    def begin_part(
+            self,
+            item: CtxItem,
+            agent_id: Optional[str] = None,
+            name: Optional[str] = None,
+            output: Optional[str] = None,
+            extra: Optional[dict] = None,
+            joiner: str = "",
+    ) -> CtxItemPart:
+        """Create a logical fragment inside one context turn.
+
+        Chat, Chat with Files and the other non-workflow modes use the fragment
+        only at runtime. Chat with Agents (Agents v2) persists it so its complete
+        orchestrator/tool workflow can be restored after reload.
+        """
+        if item is None or item.id is None:
+            part = CtxItemPart(parent_item_id=getattr(item, 'id', None))
+        else:
+            part = CtxItemPart(parent_item_id=item.id)
+        part.agent_id = agent_id
+        part.name = name
+        part.output = output
+        part.extra = dict(extra or {})
+        if joiner:
+            part.extra["joiner"] = joiner
+        if item is not None and item.id is not None and self.should_persist_parts(item):
+            self.provider.append_part(part)
+        item.set_active_part(part)
+        return part
+
+    def update_part(self, item: CtxItem, part: Optional[CtxItemPart] = None, sync_item: bool = True):
+        """Persist a partial item and optionally refresh the parent output cache."""
+        part = part or item.get_active_part()
+        if part is None:
+            return
+        if part.id is not None and self.should_persist_parts(item):
+            self.provider.update_part(part)
+        if sync_item:
+            item.sync_output_from_parts()
+            self._filter_transport_images(item)
+            if item.id is not None:
+                self.provider.update_item(item)
+
+    def add_part_task(
+            self,
+            item: CtxItem,
+            part: Optional[CtxItemPart] = None,
+            *,
+            agent_id: Optional[str] = None,
+            name: Optional[str] = None,
+            task_name: Optional[str] = None,
+            task_summary: Optional[str] = None,
+            input: Optional[str] = None,
+            output: Optional[str] = None,
+            tool_call_id: Optional[str] = None,
+            tool_input=None,
+            tool_output=None,
+            extra: Optional[dict] = None,
+            persist: bool = True,
+    ) -> CtxItemPartTask:
+        """Create one task under a partial item, optionally without DB persistence."""
+        part = part or self.ensure_part(item, agent_id=agent_id, name=name)
+        task = CtxItemPartTask(
+            parent_item_part_id=part.id, agent_id=agent_id, name=name, task_name=task_name,
+            task_summary=task_summary, input=input, output=output, tool_call_id=tool_call_id,
+            tool_input=tool_input if tool_input is not None else {}, tool_output=tool_output,
+            extra=dict(extra or {}),
+        )
+        part.add_task(task)
+        if persist and part.id is not None and self.should_persist_parts(item):
+            self.provider.append_part_task(task)
+        return task
+
+    def update_part_task(self, task: CtxItemPartTask):
+        if task is not None and task.id is not None:
+            self.provider.update_part_task(task)
+
+    @staticmethod
+    def _part_has_text(part: Optional[CtxItemPart]) -> bool:
+        """Return True only when a partial already owns assistant-visible text."""
+        if part is None:
+            return False
+        return bool(str(getattr(part, "output", None) or "").strip())
+
+    @staticmethod
+    def _task_tool_round(task: CtxItemPartTask) -> int:
+        """Return persisted tool round; pre-v8 rows belong to round 1."""
+        extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+        try:
+            value = int(extra.get("tool_round") or 1)
+        except (TypeError, ValueError):
+            value = 1
+        return max(1, value)
+
+    @staticmethod
+    def _task_in_provider_history(task: CtxItemPartTask) -> bool:
+        extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+        return extra.get("provider_history") is not False
+
+    def _part_max_tool_round(self, part: Optional[CtxItemPart]) -> int:
+        if part is None:
+            return 0
+        rounds = [
+            self._task_tool_round(task)
+            for task in (getattr(part, "tasks", None) or [])
+            if self._task_in_provider_history(task)
+            and (task.tool_call_id or (isinstance(task.extra, dict) and task.extra.get("tool_name")))
+        ]
+        return max(rounds) if rounds else 0
+
+    def _part_tool_round_ids(self, part: Optional[CtxItemPart]) -> list:
+        if part is None:
+            return []
+        return sorted({
+            self._task_tool_round(task)
+            for task in (getattr(part, "tasks", None) or [])
+            if self._task_in_provider_history(task)
+            and (task.tool_call_id or (isinstance(task.extra, dict) and task.extra.get("tool_name")))
+        })
+
+    def _ctx_tool_history(self, item: Optional[CtxItem], create: bool = False) -> list:
+        """Return the compact ctx_item-level tool transcript for non-workflow modes.
+
+        Ordinary modes do not persist ctx_item_partial/task rows. They still need
+        a durable representation of tool requests/results when tool-call storage
+        is enabled, both for UI reload and the optional provider-history replay.
+        The transcript lives inside ctx_item.extra and is intentionally compact:
+        one JSON record per tool call, not extra database rows.
+        """
+        if item is None:
+            return []
+        if not isinstance(item.extra, dict):
+            if not create:
+                return []
+            item.extra = {}
+        value = item.extra.get(CTX_TOOL_HISTORY_EXTRA_KEY)
+        if isinstance(value, list):
+            return value
+        if not create:
+            return []
+        value = []
+        item.extra[CTX_TOOL_HISTORY_EXTRA_KEY] = value
+        return value
+
+    def _record_ctx_tool_history_call(
+            self,
+            item: CtxItem,
+            call: dict,
+            *,
+            call_id: str,
+            provider_item_id: str,
+            name: str,
+            args,
+            tool_type: str,
+            tool_round: int,
+            ui_visible: bool,
+            provider_history: bool,
+    ) -> None:
+        """Append/update one tool call in the compact ctx_item transcript."""
+        if self.should_persist_parts(item):
+            return
+        history = self._ctx_tool_history(item, create=True)
+        canonical_call = copy.deepcopy(call) if isinstance(call, dict) else {}
+        canonical_call["id"] = provider_item_id or call_id
+        canonical_call["call_id"] = call_id
+        canonical_call["type"] = tool_type or "function"
+        canonical_call["function"] = {
+            "name": name,
+            "arguments": copy.deepcopy(args),
+        }
+
+        existing = None
+        for entry in history:
+            if not isinstance(entry, dict):
+                continue
+            entry_call = entry.get("call")
+            if not isinstance(entry_call, dict):
+                continue
+            entry_call_id = str(entry_call.get("call_id") or entry_call.get("id") or "")
+            entry_item_id = str(entry_call.get("id") or "")
+            if call_id and entry_call_id == call_id:
+                existing = entry
+                break
+            if provider_item_id and entry_item_id == provider_item_id:
+                existing = entry
+                break
+
+        values = {
+            "call": canonical_call,
+            "tool_round": max(1, int(tool_round or 1)),
+            "ui_visible": bool(ui_visible),
+            "ui_ready": False,
+            "provider_history": bool(provider_history),
+            "completed": False,
+        }
+        if existing is None:
+            history.append(values)
+        else:
+            # Keep completion/visibility state when a provider repeats the same
+            # tool-call metadata during a continuation/rebuild.
+            completed = bool(existing.get("completed"))
+            ready = bool(existing.get("ui_ready"))
+            existing.update(values)
+            existing["completed"] = completed
+            existing["ui_ready"] = ready
+
+    def _complete_ctx_tool_history(
+            self,
+            item: CtxItem,
+            task: CtxItemPartTask,
+            response,
+    ) -> None:
+        """Attach one tool response to its compact ctx_item transcript entry."""
+        if self.should_persist_parts(item):
+            return
+        history = self._ctx_tool_history(item, create=False)
+        if not history:
+            return
+        task_extra = task.extra if isinstance(task.extra, dict) else {}
+        task_item_id = str(task_extra.get("tool_item_id") or "")
+        task_call_id = str(task.tool_call_id or "")
+        task_name = str(task_extra.get("tool_name") or task.task_name or task.name or "")
+
+        candidate = None
+        for entry in history:
+            if not isinstance(entry, dict) or entry.get("completed"):
+                continue
+            call = entry.get("call")
+            if not isinstance(call, dict):
+                continue
+            call_id = str(call.get("call_id") or call.get("id") or "")
+            item_id = str(call.get("id") or "")
+            fn = call.get("function") if isinstance(call.get("function"), dict) else {}
+            name = str(fn.get("name") or "")
+            if task_call_id and call_id == task_call_id:
+                candidate = entry
+                break
+            if task_item_id and item_id == task_item_id:
+                candidate = entry
+                break
+            if candidate is None and task_name and name == task_name:
+                candidate = entry
+        if candidate is None:
+            return
+        candidate["completed"] = True
+
+        # ctx.extra["tool_output"] is already the durable result store. Tag its
+        # matching entry with the protocol call ID instead of duplicating the
+        # potentially large response inside tool_history. This keeps the compact
+        # transcript small and makes parallel/repeated tool names unambiguous on
+        # reload.
+        extra = item.extra if isinstance(item.extra, dict) else {}
+        outputs = extra.get("tool_output") if isinstance(extra.get("tool_output"), list) else []
+        for output in reversed(outputs):
+            if not isinstance(output, dict):
+                continue
+            output_call_id = str(output.get("call_id") or output.get("tool_call_id") or "")
+            if output_call_id:
+                if task_call_id and output_call_id == task_call_id:
+                    break
+                continue
+            output_name = str(output.get("cmd") or "")
+            request = output.get("request") if isinstance(output.get("request"), dict) else {}
+            if not output_name:
+                output_name = str(request.get("cmd") or "")
+            if not task_name or output_name == task_name:
+                output["call_id"] = task_call_id or task_item_id
+                break
+
+    def _set_ctx_tool_history_ui_ready(
+            self,
+            item: Optional[CtxItem],
+            task: CtxItemPartTask,
+            ready: bool,
+    ) -> None:
+        """Mirror runtime task visibility into the compact ctx_item transcript."""
+        if item is None or self.should_persist_parts(item):
+            return
+        history = self._ctx_tool_history(item, create=False)
+        if not history:
+            return
+        task_extra = task.extra if isinstance(task.extra, dict) else {}
+        task_item_id = str(task_extra.get("tool_item_id") or "")
+        task_call_id = str(task.tool_call_id or "")
+        for entry in history:
+            if not isinstance(entry, dict):
+                continue
+            call = entry.get("call")
+            if not isinstance(call, dict):
+                continue
+            call_id = str(call.get("call_id") or call.get("id") or "")
+            item_id = str(call.get("id") or "")
+            if ((task_call_id and call_id == task_call_id)
+                    or (task_item_id and item_id == task_item_id)):
+                entry["ui_ready"] = bool(ready)
+                return
+
+    def record_tool_calls(
+            self,
+            item: CtxItem,
+            tool_calls: list,
+            part: Optional[CtxItemPart] = None,
+            agent_id: Optional[str] = None,
+            agent_name: Optional[str] = None,
+            task_name: Optional[str] = None,
+            update_legacy_cache: bool = True,
+            ui_visible: bool = True,
+            provider_history: bool = True,
+    ) -> list:
+        """Persist native/legacy tool requests as tasks without ending the turn."""
+        part = part or self.ensure_part(item, agent_id=agent_id, name=agent_name)
+        existing = {}
+        for task in part.tasks:
+            if task.tool_call_id:
+                existing[str(task.tool_call_id)] = task
+            task_extra = task.extra if isinstance(task.extra, dict) else {}
+            item_id = task_extra.get("tool_item_id")
+            if item_id:
+                existing[str(item_id)] = task
+
+        # One call to record_tool_calls() represents one model tool-response
+        # round. All sibling calls from that response share the same round, while
+        # later tool-only continuations stay in this same CtxItemPart and receive
+        # the next round number.
+        next_tool_round = self._part_max_tool_round(part) + 1
+        new_round_used = False
+        tasks = []
+        for index, call in enumerate(tool_calls or []):
+            if not isinstance(call, dict):
+                continue
+            fn = call.get("function") if isinstance(call.get("function"), dict) else {}
+            name = str(fn.get("name") or call.get("name") or "tool")
+            args = fn.get("arguments", call.get("arguments", {}))
+            hidden = self.window.core.command.is_tool_hidden(name, call)
+            # Hidden tools still need a runtime task while the current provider
+            # tool chain is active. Stateless/native APIs require every emitted
+            # function call to have a matching function result, even when the
+            # call is intentionally omitted from durable history and the UI.
+            # Keep such tasks in memory only; DB persistence remains governed by
+            # PERSIST_HIDDEN_TOOL_CALLS.
+            persist_task = bool(PERSIST_HIDDEN_TOOL_CALLS or not hidden)
+            task_ui_visible = bool(ui_visible and not hidden)
+
+            # OpenAI Responses exposes two different identifiers for a function
+            # call: ``id`` (e.g. fc_...) identifies the output item, whereas
+            # ``call_id`` (e.g. call_...) is the protocol identifier that MUST
+            # be echoed by function_call_output. Persist the protocol call_id as
+            # the task's canonical ID and keep the provider item ID separately.
+            provider_item_id = str(call.get("id") or "")
+            call_id = str(call.get("call_id") or provider_item_id or f"{part.uuid}:{index}")
+            provider = ""
+            try:
+                model_item = self.window.core.models.get(item.model) if getattr(item, "model", None) else None
+                provider = str(getattr(model_item, "provider", "") or "")
+            except Exception:
+                pass
+            self.window.core.api.tool_logger.log_call(
+                name=name,
+                params=args,
+                call_id=call_id,
+                provider=provider,
+                actor=agent_id or agent_name or "",
+                raw=call,
+                extra={
+                    "provider_item_id": provider_item_id or None,
+                    "hidden": hidden,
+                    "tool_type": str(call.get("type") or "function"),
+                },
+            )
+            lookup_ids = [value for value in (call_id, provider_item_id) if value]
+            existing_task = next((existing[value] for value in lookup_ids if value in existing), None)
+            if existing_task is not None:
+                # Repair tasks created by older partial-flow builds which stored
+                # Responses' fc_* item ID in tool_call_id and lost call_id.
+                changed = False
+                if existing_task.tool_call_id != call_id:
+                    existing_task.tool_call_id = call_id
+                    changed = True
+                if not isinstance(existing_task.extra, dict):
+                    existing_task.extra = {}
+                if provider_item_id and existing_task.extra.get("tool_item_id") != provider_item_id:
+                    existing_task.extra["tool_item_id"] = provider_item_id
+                    changed = True
+                tool_type = str(call.get("type") or "function")
+                if existing_task.extra.get("tool_type") != tool_type:
+                    existing_task.extra["tool_type"] = tool_type
+                    changed = True
+                if not existing_task.extra.get("tool_round"):
+                    existing_task.extra["tool_round"] = 1
+                    changed = True
+                if existing_task.extra.get("provider_history") != bool(provider_history):
+                    existing_task.extra["provider_history"] = bool(provider_history)
+                    changed = True
+                if changed:
+                    self.update_part_task(existing_task)
+                if persist_task:
+                    self._record_ctx_tool_history_call(
+                        item,
+                        call,
+                        call_id=call_id,
+                        provider_item_id=provider_item_id,
+                        name=name,
+                        args=args,
+                        tool_type=tool_type,
+                        tool_round=self._task_tool_round(existing_task),
+                        ui_visible=task_ui_visible,
+                        provider_history=provider_history,
+                    )
+                tasks.append(existing_task)
+                continue
+
+            request = {"cmd": name, "params": args}
+            tool_type = str(call.get("type") or "function")
+            if not new_round_used:
+                # If this partial already contains its one text response, remember
+                # how many tool rounds happened before that text. This lets the
+                # provider-history projection place text and tool calls in their
+                # original protocol order without creating more DB partials.
+                if (provider_history
+                        and self._part_has_text(part)
+                        and isinstance(part.extra, dict)):
+                    part.extra.setdefault("text_after_tool_round", next_tool_round - 1)
+                    self.update_part(item, part, sync_item=False)
+                new_round_used = True
+            task = self.add_part_task(
+                item, part, agent_id=agent_id, name=agent_name,
+                task_name=task_name or name, input=json.dumps(request, ensure_ascii=False, default=str),
+                tool_call_id=call_id, tool_input=args,
+                extra={
+                    "status": "pending", "ui_ready": False,
+                    "agent_name": agent_name, "tool_name": name,
+                    "tool_item_id": provider_item_id or call_id,
+                    "tool_type": tool_type,
+                    "tool_round": next_tool_round,
+                    "ui_visible": task_ui_visible,
+                    "provider_history": bool(provider_history),
+                    "runtime_only": bool(hidden and not PERSIST_HIDDEN_TOOL_CALLS),
+                },
+                persist=persist_task,
+            )
+            if persist_task:
+                self._record_ctx_tool_history_call(
+                    item,
+                    call,
+                    call_id=call_id,
+                    provider_item_id=provider_item_id,
+                    name=name,
+                    args=args,
+                    tool_type=tool_type,
+                    tool_round=next_tool_round,
+                    ui_visible=task_ui_visible,
+                    provider_history=provider_history,
+                )
+            tasks.append(task)
+        if tasks and update_legacy_cache and isinstance(item.extra, dict):
+            stored_calls = self.window.core.command.tool_calls_for_storage(tool_calls or [])
+            if stored_calls:
+                item.extra["tool_calls"] = stored_calls
+            else:
+                item.extra.pop("tool_calls", None)
+        return tasks
+
+    def complete_part_tasks(self, item: CtxItem, results: list, part: Optional[CtxItemPart] = None) -> list:
+        """Attach plugin results to pending tasks while preserving request order."""
+        part = part or item.get_active_part()
+        if part is None:
+            return []
+        pending = [t for t in part.tasks if not (isinstance(t.extra, dict) and t.extra.get("status") == "completed")]
+        completed = []
+        by_name = {}
+        for task in pending:
+            tool_name = (task.extra or {}).get("tool_name") if isinstance(task.extra, dict) else None
+            by_name.setdefault(str(tool_name or task.task_name or task.name or ""), []).append(task)
+        fallback = list(pending)
+        for response in results or []:
+            req = response.get("request") if isinstance(response, dict) else None
+            name = str(req.get("cmd") or "") if isinstance(req, dict) else ""
+            # Hidden runtime-only tasks must be completed too. Their output is
+            # required for the immediate provider continuation, but update_part_task()
+            # remains a no-op because these tasks intentionally have no DB id.
+            task = None
+            if name and by_name.get(name):
+                task = by_name[name].pop(0)
+                if task in fallback:
+                    fallback.remove(task)
+            elif fallback:
+                task = fallback.pop(0)
+            if task is None:
+                continue
+            result = response.get("result") if isinstance(response, dict) and "result" in response else response
+            provider = ""
+            try:
+                model_item = self.window.core.models.get(item.model) if getattr(item, "model", None) else None
+                provider = str(getattr(model_item, "provider", "") or "")
+            except Exception:
+                pass
+            tool_name = (task.extra or {}).get("tool_name") if isinstance(task.extra, dict) else None
+            self.window.core.api.tool_logger.log_result(
+                name=str(tool_name or task.task_name or task.name or name or "tool"),
+                response=response,
+                call_id=task.tool_call_id,
+                provider=provider,
+                actor=task.agent_id or "",
+            )
+            # Persist the full structured plugin/tool response exactly as it is
+            # forwarded through the tool-result loop. The plain-text output column
+            # keeps a compact human-readable summary for quick inspection/UI.
+            stored_response = copy.deepcopy(response)
+            if isinstance(stored_response, dict):
+                # Runtime attachment paths are transport-only metadata consumed
+                # by controller.kernel.reply before the next model request. Keep
+                # the durable tool transcript identical to the model-visible JSON.
+                stored_response.pop("agent_runtime_attachments", None)
+            task.tool_output = stored_response
+            task.output = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, default=str)
+            if not isinstance(task.extra, dict):
+                task.extra = {}
+            task.extra["status"] = "completed"
+            task.extra["response"] = stored_response
+            task.touch()
+            self.update_part_task(task)
+            self._complete_ctx_tool_history(item, task, stored_response)
+            completed.append(task)
+        return completed
+
+    def mark_part_tasks_ui_ready(
+            self,
+            part: Optional[CtxItemPart],
+            ready: bool = True,
+            item: Optional[CtxItem] = None,
+    ):
+        """Promote completed tool tasks from waiting status into renderable buttons."""
+        if part is None:
+            return
+        for task in part.tasks or []:
+            if isinstance(task.extra, dict) and task.extra.get("status") == "completed":
+                task.mark_ui_ready(ready)
+                self.update_part_task(task)
+                self._set_ctx_tool_history_ui_ready(item, task, ready)
+
+    def merge_continuation(self, continuation: CtxItem) -> CtxItem:
+        """Merge a post-tool model response into the same durable user turn.
+
+        Tool-only responses reuse the active part so consecutive tool rounds stay
+        compact. As soon as provider output contains visible assistant text after
+        one or more tools, that text gets a new partial. This keeps the durable UI
+        timeline chronological: text -> tool(s) -> later text.
+        """
+        parent = continuation.turn_parent
+        if parent is None:
+            return continuation
+
+        current_part = parent.get_active_part()
+        if current_part is None:
+            current_part = self.ensure_part(parent)
+
+        raw_output = str(continuation.output or "")
+        legacy_cmds = self.window.core.command.extract_cmds(raw_output)
+        visible_output = self.window.core.command.strip_cmds(raw_output) or ""
+        has_text = bool(visible_output.strip())
+
+        part = current_part
+        if has_text:
+            if (self._part_has_text(current_part)
+                    or self._part_max_tool_round(current_part) > 0):
+                part = self.begin_part(
+                    parent,
+                    name=continuation.output_name,
+                    output=None,
+                    joiner="\n\n" if (parent.compose_output() or "").strip() else "",
+                )
+            elif part is None:
+                part = self.begin_part(parent, name=continuation.output_name, output=None)
+
+            if not isinstance(part.extra, dict):
+                part.extra = {}
+            # A newly allocated text partial has no preceding tool rounds. For
+            # legacy/reused empty parts retain ordering metadata so old contexts
+            # can still be projected correctly after reload.
+            part.extra.setdefault("text_after_tool_round", self._part_max_tool_round(part))
+            part.output = visible_output
+            if continuation.output_name:
+                part.name = continuation.output_name
+            self.update_part(parent, part, sync_item=False)
+        else:
+            # Tool-only continuation: do not clear prior text and do not create a
+            # new partial. Legacy <tool> markup is represented solely by tasks.
+            part = current_part
+
+        continuation.turn_part = part
+
+        # Runtime-only transport images belong to the durable parent for the
+        # lifetime of the current tool chain. Carry markers forward before
+        # merging continuation fields so a provider cannot accidentally persist
+        # a Computer Use screenshot in images_json.
+        if not isinstance(getattr(parent, "transport_images", None), list):
+            parent.transport_images = []
+        for value in list(getattr(continuation, "transport_images", None) or []):
+            if value not in parent.transport_images:
+                parent.transport_images.append(value)
+
+        # Promote only tasks that existed before this provider call. New calls
+        # from the response are recorded afterwards, so they remain pending.
+        self.mark_part_tasks_ui_ready(continuation.turn_previous_part, True, item=parent)
+
+        for attr in ("urls", "images", "files", "attachments", "results", "doc_ids"):
+            target = getattr(parent, attr, None)
+            source = getattr(continuation, attr, None)
+            if isinstance(target, list) and source:
+                for value in source:
+                    if value not in target:
+                        target.append(value)
+        parent.input_tokens += int(continuation.input_tokens or 0)
+        parent.output_tokens += int(continuation.output_tokens or 0)
+        parent.total_tokens += int(continuation.total_tokens or 0)
+        parent.output_timestamp = continuation.output_timestamp or parent.output_timestamp
+        parent.msg_id = continuation.msg_id or parent.msg_id
+        parent.response = continuation.response
+        parent.tool_calls = list(continuation.tool_calls or [])
+        parent.cmds = list(continuation.cmds or [])
+        parent.cmds_before = list(continuation.cmds_before or legacy_cmds or [])
+        if isinstance(continuation.extra, dict):
+            if not isinstance(parent.extra, dict):
+                parent.extra = {}
+            for key, value in continuation.extra.items():
+                if key not in ("sub_reply",):
+                    parent.extra[key] = copy.deepcopy(value)
+        if not parent.tool_calls and isinstance(parent.extra, dict):
+            parent.extra.pop("tool_calls", None)
+        parent.sync_output_from_parts()
+        self._filter_transport_images(parent)
+        self.provider.update_item(parent)
+        return parent
 
     def update_indexed_ts_by_id(self, id: int, ts: int):
         """
@@ -720,17 +1484,26 @@ class Ctx:
         for id in self.get_meta():
             return id
 
-    def get_meta_by_id(self, id: int) -> CtxMeta:
+    def get_meta_by_id(self, id: int) -> Optional[CtxMeta]:
         """
         Return ctx meta by id
 
         :param id: ctx id
         :return: ctx meta object
         """
+        if id is None:
+            return None
         if id in self.meta:
             return self.meta[id]
-        else:
-            self.load_tmp_meta(id)
+
+        # Context lists can be paginated. A tab may legitimately point to a
+        # context that is not in the currently loaded page, so resolve it from
+        # the provider and return it in this same call. Previously load_tmp_meta
+        # populated ``self.meta`` but get_meta_by_id() still returned None on
+        # the first lookup, which made tab restore intermittently fall back to
+        # "New" until another lookup happened.
+        self.load_tmp_meta(id)
+        return self.meta.get(id)
 
     def get_last(self) -> Optional[CtxItem]:
         """
@@ -979,6 +1752,514 @@ class Ctx:
         """
         return self.provider.get_last_meta_id()
 
+    @staticmethod
+    def _part_tool_calls(
+            part: CtxItemPart,
+            legacy_calls: Optional[list] = None,
+            tool_round: Optional[int] = None,
+    ) -> list:
+        """Normalize persisted part tasks to provider-compatible tool calls.
+
+        ``tool_call_id`` is the protocol call ID. Provider-specific output-item
+        IDs (notably OpenAI Responses' ``fc_*`` IDs) live in ``extra.tool_item_id``.
+        ``legacy_calls`` is used only to repair rows written by early versions of
+        the partial-item migration which stored ``id`` instead of ``call_id``.
+        """
+        calls = []
+        legacy_calls = legacy_calls if isinstance(legacy_calls, list) else []
+        for task in getattr(part, "tasks", None) or []:
+            extra = task.extra if isinstance(task.extra, dict) else {}
+            if extra.get("provider_history") is False:
+                continue
+            if not task.tool_call_id and not extra.get("tool_name"):
+                continue
+            if tool_round is not None and Ctx._task_tool_round(task) != int(tool_round):
+                continue
+            name = str(extra.get("tool_name") or task.task_name or task.name or "tool")
+            args = task.tool_input if task.tool_input not in (None, "") else task.input
+            protocol_call_id = str(task.tool_call_id or task.uuid)
+            item_id = str(extra.get("tool_item_id") or protocol_call_id)
+            tool_type = str(extra.get("tool_type") or "function")
+
+            # Compatibility repair for rows created before call_id and id were
+            # separated. The current durable item's legacy tool_calls cache still
+            # contains both identifiers for the active/latest tool round.
+            if protocol_call_id.startswith("fc_"):
+                for legacy in legacy_calls:
+                    if not isinstance(legacy, dict):
+                        continue
+                    legacy_id = str(legacy.get("id") or "")
+                    legacy_call_id = str(legacy.get("call_id") or "")
+                    legacy_fn = legacy.get("function") if isinstance(legacy.get("function"), dict) else {}
+                    if legacy_id == protocol_call_id and legacy_call_id:
+                        protocol_call_id = legacy_call_id
+                        item_id = legacy_id
+                        tool_type = str(legacy.get("type") or tool_type)
+                        if not name and legacy_fn.get("name"):
+                            name = str(legacy_fn.get("name"))
+                        break
+
+            calls.append({
+                "id": item_id,
+                "call_id": protocol_call_id,
+                "type": tool_type,
+                "function": {
+                    "name": name,
+                    "arguments": args if args is not None else {},
+                },
+            })
+        return calls
+
+    @staticmethod
+    def _part_tool_outputs(part: CtxItemPart, tool_round: Optional[int] = None) -> list:
+        """Return persisted structured tool responses for one partial item.
+
+        New partial-task rows store the full JSON response produced by the
+        plugin/tool loop. Rebuild a provider-friendly payload from that stored
+        structure, preserving request/result metadata and backfilling the legacy
+        top-level ``cmd`` key for older provider adapters.
+        """
+        outputs = []
+        for task in getattr(part, "tasks", None) or []:
+            extra = task.extra if isinstance(task.extra, dict) else {}
+            if extra.get("provider_history") is False:
+                continue
+            if not task.tool_call_id and not extra.get("tool_name"):
+                continue
+            if tool_round is not None and Ctx._task_tool_round(task) != int(tool_round):
+                continue
+            completed = (
+                task.tool_output is not None
+                or (isinstance(task.extra, dict) and task.extra.get("status") == "completed")
+            )
+            if not completed:
+                continue
+
+            tool_name = str((task.extra or {}).get("tool_name") or task.task_name or task.name or "tool")
+            stored = copy.deepcopy(task.tool_output)
+            if isinstance(stored, dict):
+                if "request" not in stored or not isinstance(stored.get("request"), dict):
+                    stored["request"] = {"cmd": tool_name, "params": copy.deepcopy(task.tool_input or {})}
+                else:
+                    stored["request"].setdefault("cmd", tool_name)
+                    stored["request"].setdefault("params", copy.deepcopy(task.tool_input or {}))
+                if "cmd" not in stored:
+                    stored["cmd"] = str(stored.get("request", {}).get("cmd") or tool_name)
+                if "result" not in stored:
+                    stored["result"] = task.output
+                outputs.append(stored)
+                continue
+
+            result = stored if stored is not None else task.output
+            outputs.append({
+                "cmd": tool_name,
+                "request": {
+                    "cmd": tool_name,
+                    "params": copy.deepcopy(task.tool_input or {}),
+                },
+                "result": result,
+            })
+        return outputs
+
+    def _compact_agents_v2_history_item(self, item: CtxItem) -> CtxItem:
+        """Return a mode-neutral history row for a durable Agents v2 turn.
+
+        Agents v2 stores a rich workflow trace in ``ctx_item_partial`` / task
+        rows so the UI can reconstruct tool calls, worker activity and interim
+        Primary Agent text after reload.  That trace is *not* ordinary chat
+        history and must not leak into another mode when the user switches the
+        same conversation to Chat/Audio/Research/etc.  Replaying it there can
+        inject huge tool inputs/results (for example entire files) and make both
+        the real request and the context-token counter grow by hundreds of
+        thousands of tokens.
+
+        Cross-mode history therefore exposes only the user-visible turn: the
+        original user input plus the authoritative final Agents v2 answer.  For
+        an interrupted turn without a final answer we keep textual partials as a
+        best-effort fallback, but never the hidden RAG input or tool protocol.
+        """
+        clone = copy.copy(item)
+        clone.parts = []
+        clone.active_part = None
+        clone.turn_parent = None
+        clone.turn_part = None
+        clone.turn_previous_part = None
+        clone.turn_continuation = False
+        clone.prev_ctx = None
+        clone.cmds = []
+        clone.cmds_before = []
+        clone.tool_calls = []
+        # Provider-side continuation IDs belong to the Agents v2 execution
+        # path and must never make another mode resume that protocol implicitly.
+        clone.msg_id = None
+        clone.response = None
+        clone.thread = None
+        clone.hidden_input = None
+        clone.hidden_output = None
+        clone.input = item.input
+
+        output = item.get_agents_v2_response_output()
+        if output is None:
+            output = item.get_agents_v2_final_output()
+        if output is None:
+            output = item.compose_output() if item.parts else item.output
+        clone.output = output
+
+        clone.extra = copy.deepcopy(item.extra) if isinstance(item.extra, dict) else {}
+        clone.extra.pop("tool_calls", None)
+        clone.extra.pop("tool_output", None)
+        clone.extra.pop("prev_tool_calls", None)
+        return clone
+
+    @staticmethod
+    def is_response_interrupted(item: Optional[CtxItem]) -> bool:
+        """Return True when a turn was explicitly interrupted by the user/runtime."""
+        if item is None:
+            return False
+        extra = getattr(item, "extra", None)
+        return bool(
+            getattr(item, "stopped", False)
+            or (isinstance(extra, dict) and extra.get("response_interrupted"))
+        )
+
+    @staticmethod
+    def has_pending_provider_tool_calls(item: Optional[CtxItem]) -> bool:
+        """Return True when persisted/live tool protocol has a call without output."""
+        if item is None:
+            return False
+        for part in getattr(item, "parts", None) or []:
+            for task in getattr(part, "tasks", None) or []:
+                extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
+                if extra.get("provider_history") is False:
+                    continue
+                if not getattr(task, "tool_call_id", None) and not extra.get("tool_name"):
+                    continue
+                completed = bool(
+                    getattr(task, "tool_output", None) is not None
+                    or extra.get("status") == "completed"
+                )
+                if not completed:
+                    return True
+        return False
+
+    def _expand_live_history_item(
+            self,
+            item: CtxItem,
+            target_mode: Optional[str] = None,
+    ) -> List[CtxItem]:
+        """Rebuild provider protocol only for the currently active continuation.
+
+        This is intentionally runtime-only. Historical completed turns are flattened
+        by ``expand_history_item`` and never replay persisted tool calls/results.
+
+
+        A DB partial is a text fragment and may contain many sequential tool
+        rounds. Those rounds are expanded only in memory so providers still see
+        assistant-call -> tool-result ordering without extra ctx_item_partial rows.
+
+        Agents v2 is special: its durable partial/task rows describe an internal
+        multi-agent workflow, not portable provider history.  When another mode
+        consumes the same conversation, collapse those turns to user input +
+        final answer instead of replaying the internal trace.
+        """
+        if self.is_response_interrupted(item):
+            return self.expand_history_item(item, target_mode=target_mode)
+
+        if (str(getattr(item, "mode", "") or "") == MODE_AGENT_V2
+                and target_mode not in (None, MODE_AGENT_V2)):
+            return [self._compact_agents_v2_history_item(item)]
+
+        parts = list(getattr(item, "parts", None) or [])
+        if not parts:
+            return [item]
+
+        usable = []
+        for part in parts:
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("provider_history") is False or extra.get("agents_v2_worker") is True:
+                continue
+            if (getattr(part, "output", None) not in (None, "")
+                    or bool(getattr(part, "tasks", None))):
+                usable.append(part)
+        if not usable:
+            return [item]
+
+        expanded: List[CtxItem] = []
+        previous_clone = None
+        previous_calls = []
+        previous_outputs = []
+        first_segment = True
+        pack_cmds = self.window.core.command.pack_cmds
+        to_cmds = self.window.core.command.tool_calls_to_cmds
+        legacy_calls = item.extra.get("tool_calls") if isinstance(item.extra, dict) else None
+
+        def build_tool_input(calls, outputs):
+            if not outputs:
+                return None
+            values = []
+            for call, value in zip(calls or [], outputs or []):
+                if not isinstance(value, dict):
+                    value = {"result": value}
+                request = value.get("request") if isinstance(value.get("request"), dict) else {}
+                values.append({
+                    "request": {
+                        "cmd": value.get("cmd") or request.get("cmd") or call.get("function", {}).get("name"),
+                        "params": request.get("params", call.get("function", {}).get("arguments", {})),
+                    },
+                    "result": value.get("result", value),
+                })
+            return json.dumps(values, ensure_ascii=False, default=str)
+
+        for part in usable:
+            round_ids = self._part_tool_round_ids(part)
+            raw_text = str(getattr(part, "output", None) or "")
+            part_extra = part.extra if isinstance(part.extra, dict) else {}
+            try:
+                text_after_round = int(part_extra.get("text_after_tool_round", 0) or 0)
+            except (TypeError, ValueError):
+                text_after_round = 0
+            text_emitted = False
+
+            segments = []
+            if round_ids:
+                for round_id in round_ids:
+                    calls = self._part_tool_calls(part, legacy_calls, tool_round=round_id)
+                    outputs = self._part_tool_outputs(part, tool_round=round_id)
+                    segment_text = ""
+                    if raw_text and not text_emitted and round_id > text_after_round:
+                        segment_text = raw_text
+                        text_emitted = True
+                    segments.append((segment_text, calls, outputs))
+                if raw_text and not text_emitted:
+                    segments.append((raw_text, [], []))
+                    text_emitted = True
+            else:
+                segments.append((raw_text, [], []))
+                text_emitted = bool(raw_text)
+
+            for segment_index, (segment_text, calls, outputs) in enumerate(segments):
+                if not segment_text and not calls:
+                    continue
+                clone = copy.copy(item)
+                clone.parts = []
+                clone.active_part = None
+                clone.turn_parent = None
+                clone.turn_part = None
+                clone.turn_previous_part = None
+                clone.turn_continuation = False
+                clone.prev_ctx = previous_clone
+                clone.extra = copy.deepcopy(item.extra) if isinstance(item.extra, dict) else {}
+                clone.cmds = []
+                clone.cmds_before = []
+                clone.tool_calls = []
+                clone.hidden_output = None
+
+                if first_segment:
+                    clone.input = item.input
+                    clone.hidden_input = item.hidden_input
+                    first_segment = False
+                else:
+                    # Autonomous Agent continuation prompts are stored as partial
+                    # metadata rather than extra CtxItems. Rehydrate that hidden
+                    # provider-facing input only for the first protocol segment of
+                    # the corresponding partial. Tool-result segments keep using
+                    # their structured previous call/output pair below.
+                    input_before = part_extra.get("input_before") if segment_index == 0 else None
+                    clone.input = (
+                        str(input_before)
+                        if input_before not in (None, "")
+                        else build_tool_input(previous_calls, previous_outputs)
+                    )
+                    clone.hidden_input = None
+                    clone.internal = True
+
+                clone.output = segment_text or ""
+                if calls:
+                    clone.output += pack_cmds(to_cmds(calls))
+                    clone.tool_calls = copy.deepcopy(calls)
+                    clone.extra["tool_calls"] = copy.deepcopy(calls)
+                    clone.extra["prev_tool_calls"] = copy.deepcopy(calls)
+                    if outputs:
+                        clone.extra["tool_output"] = copy.deepcopy(outputs)
+                    else:
+                        clone.extra.pop("tool_output", None)
+                else:
+                    clone.extra.pop("tool_calls", None)
+                    clone.extra.pop("tool_output", None)
+                    clone.extra.pop("prev_tool_calls", None)
+
+                expanded.append(clone)
+                previous_clone = clone
+                previous_calls = calls
+                previous_outputs = outputs
+
+        if expanded:
+            expanded[-1].hidden_output = item.hidden_output
+        return expanded or [item]
+
+    def expand_history_item(
+            self,
+            item: CtxItem,
+            target_mode: Optional[str] = None,
+    ) -> List[CtxItem]:
+        """Project one durable turn to plain model-facing chat history.
+
+        Tool calls/results are execution protocol, not conversational memory.
+        They are required only while the active tool loop is running and must
+        not be replayed from durable history on later requests. Historical
+        turns are therefore collapsed to their user-visible user/assistant text
+        and all persisted tool protocol/cache fields are removed from the
+        disposable provider-facing clone.
+
+        This also makes DB storage policies such as truncated or omitted tool
+        payloads safe: no provider can mistake those display-only records for a
+        real function-call continuation after a reload.
+        """
+        if (str(getattr(item, "mode", "") or "") == MODE_AGENT_V2
+                and target_mode not in (None, MODE_AGENT_V2)):
+            clone = self._compact_agents_v2_history_item(item)
+        else:
+            clone = copy.copy(item)
+            clone.parts = []
+            clone.active_part = None
+            clone.turn_parent = None
+            clone.turn_part = None
+            clone.turn_previous_part = None
+            clone.turn_continuation = False
+            clone.prev_ctx = None
+            # Keep provider-side continuation metadata (most importantly
+            # ``msg_id`` used by OpenAI Responses as ``previous_response_id``).
+            # Historical local tool payloads are stripped below, but a stateful
+            # provider may still continue its own server-side response chain.
+            # The Agents v2 cross-mode projection intentionally remains an
+            # exception in ``_compact_agents_v2_history_item`` because resuming
+            # that internal workflow from another mode would leak its protocol.
+
+            output = item.get_agents_v2_response_output()
+            if output is None:
+                output = item.compose_output() if getattr(item, "parts", None) else item.output
+            # Legacy command syntax may still exist in old DB rows. Keep the
+            # assistant prose but never replay the embedded <tool> protocol.
+            if output not in (None, ""):
+                output = self.window.core.command.strip_cmds(str(output))
+            clone.output = output
+
+        # Never expose historical execution state to provider adapters. They may
+        # otherwise synthesize assistant(tool_calls) / tool(result) messages from
+        # these compatibility fields even when the current request is unrelated.
+        clone.cmds = []
+        clone.cmds_before = []
+        clone.results = []
+        clone.tool_calls = []
+        clone.extra = copy.deepcopy(clone.extra) if isinstance(clone.extra, dict) else {}
+        if self.is_response_interrupted(item) or self.has_pending_provider_tool_calls(item):
+            # Never continue a stateful provider chain from an aborted/incomplete
+            # response. OpenAI Responses rejects a previous_response_id whose
+            # final output contains a function_call without function_call_output.
+            clone.msg_id = None
+        for key in (
+                "tool_calls",
+                "tool_output",
+                "prev_tool_calls",
+                "tool_calls_outputs",
+                "mcp_approval_request",
+                "pending_safety_checks",
+        ):
+            clone.extra.pop(key, None)
+        return [clone]
+
+    def should_restore_tool_calls_from_history(self) -> bool:
+        """Return whether persisted tool protocol may be replayed.
+
+        Replay is intentionally opt-in and requires full tool input/output
+        storage. Truncated or omitted payloads cannot form a faithful provider
+        tool-call/result sequence and are therefore never replayed.
+        """
+        try:
+            enabled = bool(self.window.core.config.get(
+                TOOL_CALL_HISTORY_RESTORE_CONFIG_KEY,
+                False,
+            ))
+            if not enabled:
+                return False
+            storage_mode = ToolCallStorageMode.from_value(
+                self.window.core.config.get(
+                    TOOL_CALL_STORAGE_CONFIG_KEY,
+                    ToolCallStorageMode.STORE_FULL.value,
+                )
+            )
+            return storage_mode == ToolCallStorageMode.STORE_FULL
+        except (AttributeError, RuntimeError):
+            return False
+
+    def should_restore_tool_calls_in_runtime(self) -> bool:
+        """Return whether completed live turns may replay tool protocol.
+
+        This setting applies only to turns that still belong to the active
+        in-memory conversation. It is intentionally independent from durable
+        database storage and restore policies.
+        """
+        try:
+            return bool(self.window.core.config.get(
+                TOOL_CALL_RUNTIME_RESTORE_CONFIG_KEY,
+                True,
+            ))
+        except (AttributeError, RuntimeError):
+            return True
+
+    def expand_history(
+            self,
+            history_items: List[CtxItem],
+            target_mode: Optional[str] = None,
+            active_continuation_parent: Optional[CtxItem] = None,
+    ) -> List[CtxItem]:
+        """Project conversation turns to provider-facing history.
+
+        Runtime items (``CtxItem.live``) may keep their complete tool-call/result
+        protocol across subsequent turns for as long as the conversation remains
+        in memory. This is controlled independently by ``Restore tool calls in
+        runtime`` and is not affected by the database storage policy.
+
+        Items restored from durable history have ``live == False``. For those
+        items, persisted tool protocol is replayed only when ``Restore tool calls
+        from history`` is enabled and full tool input/output was stored. The
+        durable parent of the *current* ephemeral continuation is always expanded
+        because it owns the complete runtime protocol required to finish the
+        in-flight tool loop.
+        """
+        result: List[CtxItem] = []
+        restore_persisted_tools = self.should_restore_tool_calls_from_history()
+        restore_runtime_tools = self.should_restore_tool_calls_in_runtime()
+        for item in history_items:
+            is_active_continuation = (
+                active_continuation_parent is not None
+                and item is active_continuation_parent
+            )
+            is_live_runtime_item = bool(getattr(item, "live", False))
+            interrupted = self.is_response_interrupted(item)
+            incomplete_tool_protocol = self.has_pending_provider_tool_calls(item)
+            if is_active_continuation:
+                replay_config_allows = True
+            elif is_live_runtime_item:
+                replay_config_allows = restore_runtime_tools
+            else:
+                replay_config_allows = restore_persisted_tools
+
+            replay_allowed = (
+                replay_config_allows
+                and not interrupted
+                and (is_active_continuation or not incomplete_tool_protocol)
+            )
+            if replay_allowed:
+                result.extend(self._expand_live_history_item(item, target_mode=target_mode))
+            else:
+                # Interrupted/incomplete historical tool rounds are always flattened.
+                # The active continuation is exempt because it owns the runtime
+                # protocol currently being completed. Loaded DB items are also
+                # flattened unless explicit persisted-tool replay is enabled.
+                result.extend(self.expand_history_item(item, target_mode=target_mode))
+        return result
+
     def count_history(
             self,
             history_items: List[CtxItem],
@@ -1000,8 +2281,11 @@ class Ctx:
         i = 0
         tokens = used_tokens
         context_tokens = 0
+        max_tokens = self.window.core.context_manager.fit_history_limit(model, max_tokens)
         from_ctx = self.window.core.tokens.from_ctx
-        for item in reversed(history_items):
+        source_items = self.window.core.context_manager.filter_history(history_items)
+        expanded_items = self.expand_history(source_items, target_mode=mode)
+        for item in reversed(expanded_items):
             num = from_ctx(item, mode, model)
             new_total = tokens + num
             if 0 < max_tokens < new_total:
@@ -1034,12 +2318,24 @@ class Ctx:
         """
         items = []
         tokens = used_tokens
-        is_first = True
+        max_tokens = self.window.core.context_manager.fit_history_limit(model, max_tokens)
+        # Ignore the current durable turn before expansion. Otherwise a single
+        # turn containing multiple partials would accidentally skip only its last
+        # protocol fragment instead of the whole current item.
+        current_item = history_items[-1] if ignore_first and history_items else None
+        active_continuation_parent = (
+            getattr(current_item, "turn_parent", None)
+            if current_item is not None else None
+        )
+        source_items = history_items[:-1] if ignore_first and history_items else history_items
+        source_items = self.window.core.context_manager.filter_history(source_items)
+        expanded_items = self.expand_history(
+            source_items,
+            target_mode=mode,
+            active_continuation_parent=active_continuation_parent,
+        )
         from_ctx = self.window.core.tokens.from_ctx
-        for item in reversed(history_items):
-            if is_first and ignore_first:
-                is_first = False
-                continue
+        for item in reversed(expanded_items):
             cost = from_ctx(item, mode, model)
             new_total = tokens + cost
             if 0 < max_tokens < new_total:
@@ -1592,9 +2888,13 @@ class Ctx:
         :param ctx: CtxItem instance (current)
         :return: CtxItem instance (previous)
         """
+        # Do this before copying fields into the provider-facing ephemeral ctx.
+        # Otherwise a transport screenshot can be resurrected by from_previous()
+        # even if update_item() strips it from the durable row moments later.
+        self._filter_transport_images(ctx)
         prev_ctx = CtxItem()
         for name in (
-            "urls", "urls_before", "images", "images_before", "files", "files_before",
+            "urls", "urls_before", "images", "images_before", "transport_images", "files", "files_before",
             "attachments", "attachments_before", "results", "index_meta", "doc_ids",
             "input_name", "output_name"
         ):

@@ -16,5 +16,10 @@ from pygpt_net.controller.idx.common import Common
 
 
 def test_setup(mock_window):
-    """Test setup"""
-    pass
+    """Setup is intentionally a no-op and keeps the controller usable."""
+    common = Common(mock_window)
+
+    result = common.setup()
+
+    assert result is None
+    assert common.window is mock_window

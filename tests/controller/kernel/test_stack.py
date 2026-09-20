@@ -17,18 +17,6 @@ from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 
-# Set dummy constant values if not already defined
-if not hasattr(ReplyContext, "EXPERT_CALL"):
-    ReplyContext.EXPERT_CALL = "EXPERT_CALL"
-if not hasattr(ReplyContext, "CMD_EXECUTE"):
-    ReplyContext.CMD_EXECUTE = "CMD_EXECUTE"
-if not hasattr(ReplyContext, "CMD_EXECUTE_FORCE"):
-    ReplyContext.CMD_EXECUTE_FORCE = "CMD_EXECUTE_FORCE"
-if not hasattr(ReplyContext, "CMD_EXECUTE_INLINE"):
-    ReplyContext.CMD_EXECUTE_INLINE = "CMD_EXECUTE_INLINE"
-if not hasattr(ReplyContext, "AGENT_CONTINUE"):
-    ReplyContext.AGENT_CONTINUE = "AGENT_CONTINUE"
-
 
 class DummyReplyContext:
     def __init__(self, type, ctx="ctx", input="input", parent_id="pid", cmds=None):
@@ -85,11 +73,14 @@ def test_lock_unlock(dummy_window):
     assert not stack.is_locked()
 
 
-def test_execute_expert_call(dummy_window):
+def test_execute_legacy_expert_call_is_ignored(dummy_window):
     stack = Stack(dummy_window)
     dummy_ctx = DummyReplyContext(ReplyContext.EXPERT_CALL, ctx="ctx_val", input="query", parent_id="exp_id")
     stack.execute(dummy_ctx)
-    dummy_window.core.experts.call.assert_called_once_with("ctx_val", "exp_id", "query")
+    dummy_window.core.experts.call.assert_not_called()
+    dummy_window.controller.plugins.apply_cmds.assert_not_called()
+    dummy_window.controller.plugins.apply_cmds_inline.assert_not_called()
+    dummy_window.dispatch.assert_not_called()
 
 
 def test_execute_cmd_execute(dummy_window):
@@ -122,7 +113,7 @@ def test_execute_agent_continue(dummy_window):
     event = args[0]
     assert isinstance(event, KernelEvent)
     assert event.name == KernelEvent.INPUT_SYSTEM
-    expected_extra = {"force": True, "internal": True}
+    expected_extra = {"force": True, "internal": True, "agent_continue": True}
     assert event.data.get("extra") == expected_extra
     bridge_context = event.data.get("context")
     assert isinstance(bridge_context, BridgeContext)

@@ -62,15 +62,8 @@ class Stack:
         if context is None:
             return
 
-        # expert call
-        if context.type == ReplyContext.EXPERT_CALL:
-            self.window.core.experts.call(
-                context.ctx,  # master ctx
-                context.parent_id,  # expert id
-                context.input,  # query
-            )
         # cmd execute
-        elif context.type == ReplyContext.CMD_EXECUTE:
+        if context.type == ReplyContext.CMD_EXECUTE:
             self.window.controller.plugins.apply_cmds(
                 context.ctx,  # current ctx
                 context.cmds,  # commands
@@ -98,6 +91,11 @@ class Stack:
                 'extra': {
                     "force": True,
                     "internal": True,
+                    # Explicitly keep autonomous Agent continuations inside the
+                    # same durable CtxItem.  This marker is intentionally
+                    # separate from tool replies (reply=True), so other internal
+                    # INPUT_SYSTEM callers keep their existing behaviour.
+                    "agent_continue": True,
                 },
             }))
 

@@ -38,7 +38,7 @@ class Metadata:
         """
         metas = self.window.core.config.get("llama.idx.custom_meta")
         ext = str(os.path.splitext(path)[1][1:]).lower()
-        data_dir = self.window.core.config.get_user_dir("data")
+        data_dir = self.window.core.filesystem.get_data_dir()
         if (len(docs) > 0
                 and metas is not None
                 and isinstance(metas, list)

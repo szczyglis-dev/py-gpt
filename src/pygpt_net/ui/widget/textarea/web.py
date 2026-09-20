@@ -9,13 +9,14 @@
 # Updated Date: 2026.01.03 00:00:00                  #
 # ================================================== #
 from PySide6 import QtCore
-from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl, QCoreApplication, QEventLoop
+from PySide6.QtCore import Qt, QObject, Signal, Slot, QEvent, QUrl
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout
+from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout, QWidget
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
@@ -57,6 +58,7 @@ class ChatWebOutput(QWebEngineView):
 
         # self._profile = self._make_profile(self)
         self.setPage(CustomWebEnginePage(self.window, self, profile=None))
+        self._install_web_content_filters()
 
     def _make_profile(self, parent=None) -> QWebEngineProfile:
         """Make profile"""
@@ -78,6 +80,33 @@ class ChatWebOutput(QWebEngineView):
                 self._on_delete_failed(e)
         self._glwidget = None
         self._glwidget_filter_installed = False
+
+    def _install_web_content_filters(self, root=None):
+        """Observe Chromium child widgets so clicks inside loaded HTML activate the column."""
+        if root is None:
+            root = self
+        try:
+            children = root.children()
+        except Exception:
+            return
+        for child in children:
+            if not isinstance(child, QWidget):
+                continue
+            try:
+                if not child.property("_pygpt_chat_web_focus_filter"):
+                    child.installEventFilter(self)
+                    child.setProperty("_pygpt_chat_web_focus_filter", True)
+            except Exception:
+                continue
+            self._install_web_content_filters(child)
+
+    def _activate_tab_column(self):
+        """Mark the owning output column as active without stealing WebEngine focus."""
+        try:
+            if self.tab is not None:
+                self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        except Exception:
+            pass
 
     def _on_delete_failed(self, e):
         """
@@ -130,9 +159,16 @@ class ChatWebOutput(QWebEngineView):
             self._unloaded = True
 
     def on_delete(self):
-        """Clean up on delete"""
+        """Clean up on delete without entering a nested Qt event loop."""
         if self._destroyed:
             return
+
+        # Mark cleanup as started before scheduling deletion.  ``deleteLater`` is
+        # intentionally asynchronous: forcing DeferredDelete processing here can
+        # re-enter renderer/timer code while registries still reference this
+        # Python wrapper, producing "Internal C++ object ... already deleted".
+        self._destroyed = True
+
         if not self._unloaded:
             self.unload()
 
@@ -216,14 +252,6 @@ class ChatWebOutput(QWebEngineView):
         except Exception as e:
             self._on_delete_failed(e)
 
-        try:
-            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
-            QCoreApplication.processEvents(QEventLoop.AllEvents, 50)
-        except Exception as e:
-            self._on_delete_failed(e)
-
-        self._destroyed = True
-
     def eventFilter(self, source, event):
         """
         Event filter to handle child added events and mouse button presses
@@ -231,22 +259,24 @@ class ChatWebOutput(QWebEngineView):
         :param source: QWidget - source of the event
         :param event: QEvent - event to filter
         """
-        if event.type() == QEvent.ChildAdded and source is self and event.child().isWidgetType():
-            self._detach_gl_event_filter()
-            self._glwidget = event.child()
+        if event.type() == QEvent.ChildAdded:
             try:
-                self._glwidget.installEventFilter(self)
-                self._glwidget_filter_installed = True
-            except Exception:
-                self._glwidget = None
-                self._glwidget_filter_installed = False
-
-        elif event.type() == QEvent.Type.MouseButtonPress:
-            try:
-                col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                child = event.child()
+                if child is not None and child.isWidgetType():
+                    if source is self:
+                        self._glwidget = child
+                    if isinstance(child, QWidget):
+                        if not child.property("_pygpt_chat_web_focus_filter"):
+                            child.installEventFilter(self)
+                            child.setProperty("_pygpt_chat_web_focus_filter", True)
+                        if source is self:
+                            self._glwidget_filter_installed = True
+                        self._install_web_content_filters(child)
             except Exception:
                 pass
+
+        elif event.type() == QEvent.Type.MouseButtonPress:
+            self._activate_tab_column()
 
         return super().eventFilter(source, event)
 
@@ -256,8 +286,7 @@ class ChatWebOutput(QWebEngineView):
 
         :param widget: QWidget - widget that received focus
         """
-        if self.tab is not None:
-            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        self._activate_tab_column()
         self.setFocus()
 
     def set_tab(self, tab):
@@ -369,7 +398,7 @@ class ChatWebOutput(QWebEngineView):
     @Slot()
     def _save_selected_txt(self):
         """Save selected content as text file"""
-        self.signals.save_as.emit(self.get_selected_text(), 'txt')
+        safe_emit(self.signals, "save_as", self.get_selected_text(), 'txt')
 
     @Slot()
     def _read_selected_text(self):
@@ -378,7 +407,7 @@ class ChatWebOutput(QWebEngineView):
         """
         selected_text = self.get_selected_text()
         if selected_text:
-            self.signals.audio_read.emit(selected_text)
+            safe_emit(self.signals, "audio_read", selected_text)
 
     @Slot()
     def _save_as_text(self):
@@ -386,14 +415,14 @@ class ChatWebOutput(QWebEngineView):
         Save current content as text file
         """
         # TODO: normalize text (remove extra spaces, newlines, etc.)
-        self.page().toPlainText(lambda txt: self.signals.save_as.emit(txt, 'txt'))
+        self.page().toPlainText(lambda txt: safe_emit(self.signals, "save_as", txt, 'txt'))
 
     @Slot()
     def _save_as_html(self):
         """
         Save current content as HTML file
         """
-        self.page().toHtml(lambda html: self.signals.save_as.emit(html, 'html'))
+        self.page().toHtml(lambda html: safe_emit(self.signals, "save_as", html, 'html'))
 
     def update_zoom(self):
         """Update zoom from config"""
@@ -407,8 +436,7 @@ class ChatWebOutput(QWebEngineView):
 
     def on_focus_js(self):
         """Focus JavaScript"""
-        if self.tab is not None:
-            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+        self._activate_tab_column()
 
     def get_zoom_value(self) -> float:
         """
@@ -538,6 +566,9 @@ class CustomWebEnginePage(QWebEnginePage):
             key='zoom',
             option=option,
         )
+        input_container = self.window.ui.nodes.get('input.container')
+        if input_container is not None and hasattr(input_container, 'sync_width'):
+            input_container.sync_width()
 
     def acceptNavigationRequest(self, url, _type, isMainFrame):
         if _type == QWebEnginePage.NavigationTypeLinkClicked:
@@ -547,7 +578,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
         print("[JS CONSOLE] Line", line_number, ":", message)
-        self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
+        safe_emit(self.signals, "js_message", line_number, message, source_id)  # handled in debug controller
 
     def cleanup(self):
         """Cleanup method to release resources"""

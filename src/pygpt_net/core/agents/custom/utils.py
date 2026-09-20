@@ -128,6 +128,7 @@ def resolve_node_runtime(
     option_get: OptionGetter,
     default_model: ModelItem,
     base_prompt: Optional[str],
+    system_prompt_extra: Optional[str] = None,
     schema_allow_local: Optional[bool],
     schema_allow_remote: Optional[bool],
     default_allow_local: bool,
@@ -158,6 +159,9 @@ def resolve_node_runtime(
     # Instructions resolve
     prompt_opt = option_get(node.id, "prompt", None)
     instructions = (prompt_opt or getattr(node, "instruction", None) or base_prompt or "").strip()
+    extra = str(system_prompt_extra or "").strip()
+    if extra and extra not in instructions:
+        instructions = f"{instructions}\n\n{extra}" if instructions else extra
 
     # Role resolve (optional)
     role_opt = option_get(node.id, "role", None)

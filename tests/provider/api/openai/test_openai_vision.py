@@ -23,6 +23,7 @@ def dummy_window():
     client = MagicMock()
     client.chat.completions.create.return_value = "response"
     mw.core.api.openai.get_client.return_value = client
+    mw.core.api.logger = MagicMock()
     tokens = MagicMock()
     tokens.from_user.return_value = 10
     tokens.from_messages.return_value = 50
@@ -52,7 +53,7 @@ def test_init(dummy_window):
     assert v.input_tokens == 0
 
 def test_send(vision):
-    model = SimpleNamespace(id="test-model", ctx=80)
+    model = SimpleNamespace(id="test-model", ctx=80, provider="openai")
     context = SimpleNamespace(prompt="test prompt", stream=False, max_tokens=20, system_prompt="sys prompt", attachments={}, model=model, history=[])
     response = vision.send(context)
     assert response == "response"
@@ -88,7 +89,7 @@ def test_build_content_with_url(vision):
     assert vision.urls == ["http://example.com/image.jpg"]
 
 def test_build_content_with_attachment(vision, monkeypatch):
-    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False)
+    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False, extra={})
     monkeypatch.setattr(os.path, "exists", lambda path: True)
     monkeypatch.setattr(Vision, "encode_image", lambda self, p: "dummy_encoded")
     content = vision.build_content("test", {"att1": dummy})
@@ -98,7 +99,7 @@ def test_build_content_with_attachment(vision, monkeypatch):
     assert dummy.consumed is True
 
 def test_build_agent_input(vision, monkeypatch):
-    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False)
+    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False, extra={})
     monkeypatch.setattr(os.path, "exists", lambda path: True)
     monkeypatch.setattr(Vision, "encode_image", lambda self, p: "dummy_encoded")
     items = vision.build_agent_input("http://example.com/image.jpg prompt", {"att1": dummy})
@@ -112,7 +113,7 @@ def test_build_agent_input(vision, monkeypatch):
     assert dummy.consumed is True
 
 def test_get_attachment(vision, monkeypatch):
-    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False)
+    dummy = SimpleNamespace(path="/fake/path/image.jpg", consumed=False, extra={})
     attachments = {"att1": dummy}
     monkeypatch.setattr(os.path, "exists", lambda path: True)
     monkeypatch.setattr(Vision, "encode_image", lambda self, p: "dummy_encoded")
@@ -165,7 +166,7 @@ def test_append_images(vision):
     ctx = SimpleNamespace()
     vision.attachments = {"a": "path1"}
     vision.urls = ["url1"]
-    vision.window.core.filesystem.make_local_list = lambda lst: lst
+    vision.window.core.filesystem.make_local_list = lambda lst, ctx=None: lst
     vision.append_images(ctx)
     assert ctx.images == ["url1"]
     assert ctx.urls == ["url1"]

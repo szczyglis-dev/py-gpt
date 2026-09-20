@@ -146,10 +146,10 @@ class Worker(BaseWorker):
 
     def prepare_path(self, path: str) -> str:
         if path in [".", "./"]:
-            return self.plugin.window.core.config.get_user_dir("data")
+            return self.get_workdir()
         if self.is_absolute_path(path):
             return path
-        return os.path.join(self.plugin.window.core.config.get_user_dir("data"), path)
+        return os.path.join(self.get_workdir(), path)
 
     def is_absolute_path(self, path: str) -> bool:
         return os.path.isabs(path)
@@ -167,7 +167,7 @@ class Worker(BaseWorker):
             if self.ctx is None:
                 return
             if path:
-                path = self.plugin.window.core.filesystem.to_workdir(path)
+                path = self.plugin.window.core.filesystem.to_workdir(path, ctx=self.ctx)
             if not hasattr(self.ctx, "images_before") or self.ctx.images_before is None:
                 self.ctx.images_before = []
             if path and path not in self.ctx.images_before:

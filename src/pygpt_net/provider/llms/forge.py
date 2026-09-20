@@ -37,36 +37,17 @@ class ForgeLLM(BaseLLM):
 
     def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
         from llama_index.llms.openai_like import OpenAILike
-        args = self.parse_args(model.llama_index, window)
-        if "model" not in args:
-            args["model"] = model.id
-        args = self._apply_auth(args, window)
+        args = self.prepare_openai_compatible_args(window, model)
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
         if "is_function_calling_model" not in args:
             args["is_function_calling_model"] = model.tool_calls
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
     def get_embeddings_model(self, window, config: Optional[List[Dict]] = None) -> BaseEmbedding:
         from llama_index.embeddings.openai_like import OpenAILikeEmbedding
-        args = {}
-        if config is not None:
-            args = self.parse_args({"args": config}, window)
-        args = self._apply_auth(args, window)
-        if "model" in args and "model_name" not in args:
-            args["model_name"] = args.pop("model")
-        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
         return OpenAILikeEmbedding(**args)
-
-    def get_models(self, window) -> List[Dict]:
-        items = []
-        client = self.get_client(window)
-        models_list = client.models.list()
-        if models_list.data:
-            for item in models_list.data:
-                items.append({
-                    "id": item.id,
-                    "name": item.id,
-                })
-        return items

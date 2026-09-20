@@ -55,17 +55,17 @@ class Store:
         else:
             print(msg)
 
-    def _download_dir(self) -> str:
+    def _download_dir(self, ctx=None) -> str:
         """
         Resolve target download directory (uses download.dir if set).
         """
         if self.window.core.config.has("download.dir") and self.window.core.config.get("download.dir") != "":
             dir_path = os.path.join(
-                self.window.core.config.get_user_dir('data'),
+                self.window.core.filesystem.get_data_dir(ctx=ctx),
                 self.window.core.config.get("download.dir"),
             )
         else:
-            dir_path = self.window.core.config.get_user_dir('data')
+            dir_path = self.window.core.filesystem.get_data_dir(ctx=ctx)
         os.makedirs(dir_path, exist_ok=True)
         return dir_path
 
@@ -164,7 +164,7 @@ class Store:
         except Exception:
             return False
 
-    def download_to_dir(self, file_id: str, prefer_name: Optional[str] = None) -> Optional[str]:
+    def download_to_dir(self, file_id: str, prefer_name: Optional[str] = None, ctx=None) -> Optional[str]:
         """
         Download a file by ID into configured download directory.
 
@@ -172,7 +172,7 @@ class Store:
         :param prefer_name: optional filename preference
         :return: saved file path or None
         """
-        dir_path = self._download_dir()
+        dir_path = self._download_dir(ctx=ctx)
         filename = None
 
         if prefer_name:

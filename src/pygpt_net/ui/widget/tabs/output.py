@@ -9,9 +9,9 @@
 # Updated Date: 2026.01.03 17:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar
-from PySide6.QtCore import Qt, Slot, QTimer, QEvent
-from PySide6.QtGui import QAction, QIcon, QGuiApplication
+from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar, QApplication
+from PySide6.QtCore import Qt, Slot, QTimer, QEvent, QMimeData
+from PySide6.QtGui import QAction, QIcon, QGuiApplication, QDrag
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
@@ -35,6 +35,7 @@ ICON_PATH_CLOSE = ':/icons/close.svg'
 ICON_PATH_RELOAD = ':/icons/reload.svg'
 ICON_PATH_FORWARD = ':/icons/forward'
 ICON_PATH_BACK = ':/icons/back'
+TAB_DRAG_MIME = 'application/x-pygpt-output-tab'
 
 
 class OutputTabBar(QTabBar):
@@ -51,6 +52,9 @@ class OutputTabBar(QTabBar):
         self.column = column
         self.tabs = tabs
         self.corner_button = corner_button
+        self._external_drag_pid = None
+        self._external_drag_start_pos = None
+        self.setAcceptDrops(True)
 
         # inline [+] just after the last tab (only when there is real free space)
         self.add_btn_inline = AddButton(window, column, tabs)
@@ -93,6 +97,101 @@ class OutputTabBar(QTabBar):
 
         # initial placement
         QTimer.singleShot(0, self.updateAddButtonPlacement)
+
+    def mousePressEvent(self, event):
+        """Remember the pressed tab so it can be dragged to another column."""
+        if event.button() == Qt.LeftButton:
+            idx = self.tabAt(event.position().toPoint())
+            tab = self.window.core.tabs.get_tab_by_index(idx, self._column_index()) if idx >= 0 else None
+            self._external_drag_pid = tab.pid if tab is not None else None
+            self._external_drag_start_pos = event.position().toPoint()
+        else:
+            self._external_drag_pid = None
+            self._external_drag_start_pos = None
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Clear cross-column drag state after a normal click/reorder."""
+        super().mouseReleaseEvent(event)
+        self._external_drag_pid = None
+        self._external_drag_start_pos = None
+
+    def mouseMoveEvent(self, event):
+        """Start an external Qt drag after leaving the source tab bar.
+
+        Native QTabBar reordering remains active while the pointer stays inside
+        the source bar. Crossing into another split-screen column switches to a
+        MIME drag that the destination OutputTabBar can accept.
+        """
+        pid = self._external_drag_pid
+        start = self._external_drag_start_pos
+        pos = event.position().toPoint()
+        if pid is not None and start is not None and (event.buttons() & Qt.LeftButton):
+            distance = (pos - start).manhattanLength()
+            if distance >= QApplication.startDragDistance() and not self.rect().contains(pos):
+                tab = self.window.core.tabs.get_tab_by_pid(pid)
+                if tab is not None:
+                    mime = QMimeData()
+                    mime.setData(TAB_DRAG_MIME, str(tab.pid).encode('utf-8'))
+                    drag = QDrag(self)
+                    drag.setMimeData(mime)
+                    drag.exec(Qt.MoveAction)
+                    self._external_drag_pid = None
+                    self._external_drag_start_pos = None
+                    event.accept()
+                    return
+        super().mouseMoveEvent(event)
+
+    def _dragged_tab(self, event):
+        mime = event.mimeData()
+        if mime is None or not mime.hasFormat(TAB_DRAG_MIME):
+            return None
+        try:
+            pid = int(bytes(mime.data(TAB_DRAG_MIME)).decode('utf-8'))
+        except (TypeError, ValueError, UnicodeDecodeError):
+            return None
+        return self.window.core.tabs.get_tab_by_pid(pid)
+
+    def dragEnterEvent(self, event):
+        tab = self._dragged_tab(event)
+        if tab is not None and tab.column_idx != self._column_index():
+            event.setDropAction(Qt.MoveAction)
+            event.accept()
+            return
+        super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        tab = self._dragged_tab(event)
+        if tab is not None and tab.column_idx != self._column_index():
+            event.setDropAction(Qt.MoveAction)
+            event.accept()
+            return
+        super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        tab = self._dragged_tab(event)
+        target_column = self._column_index()
+        if tab is None or tab.column_idx == target_column:
+            super().dropEvent(event)
+            return
+
+        pos = event.position().toPoint()
+        target_idx = self.tabAt(pos)
+        if target_idx < 0:
+            target_idx = self.count()
+        else:
+            rect = self.tabRect(target_idx)
+            if pos.x() > rect.center().x():
+                target_idx += 1
+
+        self.window.controller.ui.tabs.move_tab(
+            tab.idx,
+            tab.column_idx,
+            target_column,
+            new_idx=target_idx,
+        )
+        event.setDropAction(Qt.MoveAction)
+        event.accept()
 
     def sizeHint(self):
         """

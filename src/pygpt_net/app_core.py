@@ -12,6 +12,8 @@
 from .config import Config
 from .core.access import Access
 from .core.agents import Agents
+from .core.agents_v2 import AgentsV2
+from .core.agent_workflow import AgentWorkflow
 from .core.assistants import Assistants
 from .core.attachments import Attachments
 from .core.audio import Audio
@@ -22,6 +24,8 @@ from .core.camera import Camera
 # from .core.chain import Chain
 from .core.command import Command
 from .core.ctx import Ctx
+from .core.context_manager import ContextManager
+from .core.connectors import Connectors
 from .core.db import Database
 from .core.debug import Debug
 from .core.dispatcher import Dispatcher
@@ -29,7 +33,6 @@ from .core.experts import Experts
 from .core.idx import Idx
 from .core.installer import Installer
 from .core.filesystem import Filesystem
-from .core.history import History
 from .core.image import Image
 from .core.llm import LLM
 from .core.models import Models
@@ -39,9 +42,11 @@ from .core.platforms import Platforms
 from .core.plugins import Plugins
 from .core.presets import Presets
 from .core.prompt import Prompt
+from .core.profile_exporter import ProfileExporter
 from .core.remote_store import RemoteStore
 from .core.security import Security
 from .core.settings import Settings
+from .core.skills import Skills
 from .core.tabs import Tabs
 from .core.text import Text
 from .core.tokens import Tokens
@@ -63,6 +68,8 @@ class Core:
 
         self.access = Access(window)
         self.agents = Agents(window)
+        self.agents_v2 = AgentsV2(window)
+        self.agent_workflow = AgentWorkflow(window)
         self.api = Api(window)
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)
@@ -75,12 +82,13 @@ class Core:
         self.config = Config(window)
         self.banners = Banners(window)
         self.ctx = Ctx(window)
+        self.context_manager = ContextManager(window)
+        self.connectors = Connectors(window)
         self.db = Database(window)
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)
         self.experts = Experts(window)
         self.filesystem = Filesystem(window)
-        self.history = History(window)
         self.idx = Idx(window)
         self.image = Image(window)
         self.llm = LLM(window)
@@ -92,9 +100,11 @@ class Core:
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.prompt = Prompt(window)        
+        self.profile_exporter = ProfileExporter(window)
         self.remote_store = RemoteStore(window)
         self.security = Security(window)
         self.settings = Settings(window)
+        self.skills = Skills(window)
         self.tabs = Tabs(window)
         self.text = Text(window)
         self.tokens = Tokens(window)

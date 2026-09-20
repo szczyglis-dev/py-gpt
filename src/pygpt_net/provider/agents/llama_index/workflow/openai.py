@@ -27,6 +27,8 @@ from llama_index.core.workflow import (
 from llama_index.core.llms.llm import LLM
 from llama_index.core.tools.types import BaseTool
 
+from ...base import BaseAgent
+
 # v12/v13 agent workflow events + agent
 from llama_index.core.agent.workflow import (
     FunctionAgent,
@@ -424,7 +426,7 @@ class OpenAIWorkflowAgent(Workflow):
         mem_text = self._memory_to_text(memory)
         if mem_text:
             out += ["", "Relevant past memory/context:", mem_text]
-        return "\n".join(out).strip()
+        return BaseAgent.append_security_rule("\n".join(out).strip())
 
     async def _select_tools_for_query(self, query: str) -> Tuple[List[BaseTool], str]:
         """

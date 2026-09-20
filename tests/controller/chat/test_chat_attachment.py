@@ -48,6 +48,10 @@ class DummyCore:
         self.attachments.native.get_provider = MagicMock(return_value=None)
         self.attachments.native.get_refs = MagicMock(return_value=[])
         self.attachments.context = MagicMock()
+        self.attachments.context.is_project_share_enabled = MagicMock(return_value=False)
+        self.attachments.context.get_all = MagicMock(
+            side_effect=lambda meta: meta.get_additional_ctx() if meta is not None and hasattr(meta, "get_additional_ctx") else []
+        )
         self.attachments.context.upload = MagicMock(return_value={'uuid': 'dummy', 'path': 'dummy.txt'})
         self.attachments.context.get_context = MagicMock(return_value="content")
         self.attachments.context.get_used_files = MagicMock(return_value=["file1"])
@@ -77,6 +81,8 @@ class DummyController:
         self.ui = MagicMock()
         self.ui.update_tokens = MagicMock()
         self.files = MagicMock()
+        self.chat = MagicMock()
+        self.chat.input = MagicMock()
 
 class DummyWindow:
     def __init__(self):
@@ -154,6 +160,8 @@ class TestAttachment:
 
     def test_handle(self, dummy_window):
         att = Attachment(dummy_window)
+        att.handle_upload_error = MagicMock()
+        att.handle_upload_success = MagicMock()
         with patch('pygpt_net.controller.chat.attachment.AttachmentWorker') as MockWorker:
             worker = MagicMock()
             worker.signals = MagicMock()
@@ -166,8 +174,22 @@ class TestAttachment:
             att.handle("m", "t")
             assert worker.mode == "m"
             assert worker.prompt == "t"
-            worker.signals.error.connect.assert_called_with(att.handle_upload_error)
-            worker.signals.success.connect.assert_called_with(att.handle_upload_success)
+
+            # The callbacks may be wrapped to retain the request/preflight token.
+            # Verify their observable contract instead of their implementation identity.
+            error_cb = worker.signals.error.connect.call_args.args[0]
+            success_cb = worker.signals.success.connect.call_args.args[0]
+            error = Exception("error")
+            error_cb(error)
+            success_cb("ok")
+            error_args = att.handle_upload_error.call_args.args
+            success_args = att.handle_upload_success.call_args.args
+            assert error_args[0] is error
+            assert success_args[0] == "ok"
+            if len(error_args) > 1:
+                assert error_args[1] is None
+            if len(success_args) > 1:
+                assert success_args[1] is None
             dummy_window.threadpool.start.assert_called_with(worker)
 
     def test_is_allowed(self, dummy_window):
@@ -305,12 +327,14 @@ class TestAttachment:
         item = {"k": "v"}
         dummy_meta.additional_ctx = None
         att.append_to_meta(dummy_meta, item)
-        assert dummy_meta.additional_ctx is not None
+        assert dummy_meta.additional_ctx == [item]
         dummy_meta.additional_ctx = []
         group = DummyGroup()
         dummy_meta.group = group
+        dummy_window.core.attachments.context.is_project_share_enabled.return_value = True
         att.append_to_meta(dummy_meta, item)
-        assert group.additional_ctx is not None
+        assert group.additional_ctx == [item]
+        assert dummy_meta.additional_ctx_current[-1] == item
 
     def test_upload_web(self, dummy_window, dummy_meta):
         att = Attachment(dummy_window)
@@ -322,7 +346,7 @@ class TestAttachment:
 
     def test_has_context(self, dummy_window, dummy_meta):
         att = Attachment(dummy_window)
-        dummy_meta.has_additional_ctx = MagicMock(return_value=True)
+        dummy_meta.additional_ctx = [{"type": "text"}]
         assert att.has_context(dummy_meta) is True
         assert att.has_context(None) is False
 
@@ -367,12 +391,12 @@ class TestAttachment:
         dummy_window.ui.chat.input.attachments_ctx.update.assert_called()
 
     def test_update_tab(self, dummy_window, dummy_meta):
-        dummy_meta.has_additional_ctx = MagicMock(return_value=True)
-        dummy_window.core.attachments.context.get_display_all.return_value = []
+        dummy_meta.additional_ctx = ["ctx-file"]
         dummy_window.core.attachments.context.count.return_value = 2
         att = Attachment(dummy_window)
         att.update_tab(dummy_meta)
-        dummy_window.ui.tabs['input'].setTabText.assert_called()
+        dummy_window.core.attachments.context.count.assert_called_once_with(dummy_meta)
+        dummy_window.ui.tabs['input'].set_compact_tab_count.assert_called_once_with(3, 2)
 
     def test_is_verbose(self, dummy_window):
         dummy_window.core.config.get = MagicMock(return_value=True)
@@ -485,6 +509,7 @@ class TestAttachment:
     def test_get_current_tokens(self, dummy_window, dummy_meta):
         dummy_meta.additional_ctx = [{"tokens": "5"}, {"tokens": "notanumber"}]
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
+        dummy_window.core.attachments.context.get_all.return_value = dummy_meta.additional_ctx
         att = Attachment(dummy_window)
         att.mode = Attachment.MODE_FULL_CONTEXT
         tokens = att.get_current_tokens()

@@ -18,9 +18,11 @@ import mimetypes
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.types import IMAGE_XAI_AVAILABLE_ASPECT_RATIOS
 from pygpt_net.utils import trans
 
 DEFAULT_GROK_IMAGE_MODEL="grok-imagine-image-quality-latest"
@@ -72,6 +74,19 @@ class Image:
         worker.extra_prompt = extra_prompt
         worker.attachments = context.attachments or {}
         worker.image_id = extra.get("image_id")
+        resolution = str(extra.get("resolution") or "").strip().lower()
+        if not resolution and self.window.core.config.has('img_resolution'):
+            resolution = str(self.window.core.config.get('img_resolution') or "").strip().lower()
+        worker.resolution = resolution if resolution in {"1k", "2k"} else None
+
+        aspect_ratio = str(
+            extra.get("aspect_ratio")
+            or self.window.core.config.get('img.aspect_ratio', 'auto')
+            or "auto"
+        ).strip().lower()
+        worker.aspect_ratio = (
+            aspect_ratio if aspect_ratio in IMAGE_XAI_AVAILABLE_ASPECT_RATIOS else "auto"
+        )
 
         self.worker = worker
         self.worker.signals.finished.connect(self.window.core.image.handle_finished)
@@ -113,6 +128,8 @@ class ImageWorker(QRunnable):
         self.num = 1
         self.attachments: Dict[str, Any] = {}
         self.image_id: Optional[str] = None
+        self.resolution: Optional[str] = None
+        self.aspect_ratio: str = "auto"
 
         # SDK image_format:
         # - "base64": returns raw image bytes in SDK response (preferred for local saving)
@@ -125,13 +142,12 @@ class ImageWorker(QRunnable):
             # optional prompt enhancement
             if not self.raw and not self.inline and self.input_prompt:
                 try:
-                    self.signals.status.emit(trans('img.status.prompt.wait'))
+                    safe_emit(self.signals, "status", trans('img.status.prompt.wait'))
                     bridge_context = BridgeContext(
                         prompt=self.input_prompt,
                         system_prompt=self.system_prompt,
                         model=self.model_prompt,
                         max_tokens=200,
-                        temperature=1.0,
                     )
                     ev = KernelEvent(KernelEvent.CALL, {'context': bridge_context, 'extra': {}})
                     self.window.dispatch(ev)
@@ -139,8 +155,8 @@ class ImageWorker(QRunnable):
                     if resp:
                         self.input_prompt = resp
                 except Exception as e:
-                    self.signals.error.emit(e)
-                    self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
+                    safe_emit(self.signals, "error", e)
+                    safe_emit(self.signals, "status", trans('img.status.prompt.error') + ": " + str(e))
 
             # Negative prompt fallback: append as textual instruction (xAI has no native field for it)
             if self.extra_prompt and str(self.extra_prompt).strip():
@@ -149,7 +165,7 @@ class ImageWorker(QRunnable):
                 except Exception:
                     pass
 
-            self.signals.status.emit(trans('img.status.generating') + f": {self.input_prompt}...")
+            safe_emit(self.signals, "status", trans('img.status.generating') + f": {self.input_prompt}...")
 
             # use xAI SDK client
             client = self.window.core.api.xai.get_client()
@@ -164,6 +180,10 @@ class ImageWorker(QRunnable):
             }
             if reference_image_url:
                 gen_kwargs["image_url"] = reference_image_url
+            if self.resolution in {"1k", "2k"}:
+                gen_kwargs["resolution"] = self.resolution
+            if self.aspect_ratio in IMAGE_XAI_AVAILABLE_ASPECT_RATIOS:
+                gen_kwargs["aspect_ratio"] = self.aspect_ratio
 
             images_bytes: List[bytes] = []
             if n == 1:
@@ -193,8 +213,8 @@ class ImageWorker(QRunnable):
                     self.window.core.image.make_safe_filename(self.input_prompt) + "-" +
                     str(i + 1) + ".jpg"
                 )
-                path = os.path.join(self.window.core.config.get_user_dir("img"), name)
-                self.signals.status.emit(trans('img.status.downloading') + f" ({i + 1} / {len(images_bytes)}) -> {path}")
+                path = os.path.join(self.window.core.filesystem.get_runtime_dir("img", ctx=self.ctx), name)
+                safe_emit(self.signals, "status", trans('img.status.downloading') + f" ({i + 1} / {len(images_bytes)}) -> {path}")
 
                 if self.window.core.image.save_image(path, content):
                     paths.append(path)
@@ -205,12 +225,12 @@ class ImageWorker(QRunnable):
             self._store_image_reference(paths[0])
 
             if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished_inline", self.ctx, paths, self.input_prompt)
             else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+                safe_emit(self.signals, "finished", self.ctx, paths, self.input_prompt)
 
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
         finally:
             self._cleanup()
 
@@ -413,7 +433,7 @@ class ImageWorker(QRunnable):
         try:
             if not isinstance(self.ctx.extra, dict):
                 self.ctx.extra = {}
-            self.ctx.extra["image_id"] = self.window.core.filesystem.make_local(str(value))
+            self.ctx.extra["image_id"] = self.window.core.filesystem.make_local(str(value), ctx=self.ctx)
             self.window.core.ctx.update_item(self.ctx)
         except Exception:
             pass

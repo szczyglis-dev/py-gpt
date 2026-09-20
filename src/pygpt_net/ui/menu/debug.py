@@ -39,6 +39,7 @@ class Debug:
             'attachments',
             'assistants',
             'agent',
+            'agents_v2',
             # 'agent_builder',
             'events',
             'indexes',
@@ -52,7 +53,8 @@ class Debug:
             'render'
         )
         for k in keys:
-            m[f'debug.{k}'] = QAction(trans(f"menu.debug.{k}"), win, checkable=True)
+            label_key = "mode.agent_v2" if k == "agents_v2" else f"menu.debug.{k}"
+            m[f'debug.{k}'] = QAction(trans(label_key), win, checkable=True)
 
         for k in ('config',
                   'context',
@@ -62,6 +64,7 @@ class Debug:
                   'attachments',
                   'assistants',
                   'agent',
+                  'agents_v2',
                   # 'agent_builder',
                   'events',
                   'indexes',
@@ -100,6 +103,7 @@ class Debug:
         menu.addActions(
             [
                 m['debug.agent'],
+                m['debug.agents_v2'],
                 # m['debug.agent_builder'],
                 m['debug.assistants'],
                 m['debug.attachments'],

@@ -28,7 +28,14 @@ def get_dummy_window(config_data):
     dummy_config = DummyConfig(config_data)
     dummy_computer = SimpleNamespace(get_tool=lambda: {"type": "computer_tool"})
     core = SimpleNamespace(config=dummy_config, api=SimpleNamespace(openai=SimpleNamespace(computer=dummy_computer)))
-    controller = SimpleNamespace(chat=SimpleNamespace(remote_tools=SimpleNamespace(enabled=MagicMock(return_value=True))))
+    controller = SimpleNamespace(
+        chat=SimpleNamespace(
+            remote_tools=SimpleNamespace(
+                enabled=MagicMock(return_value=True),
+                supported=MagicMock(return_value=True),
+            )
+        )
+    )
     return SimpleNamespace(core=core, controller=controller)
 
 def set_disable(monkeypatch):
@@ -79,7 +86,7 @@ def test_append_to_tools_non_expert_computer(monkeypatch):
     set_disable(monkeypatch)
     dummy_window = get_dummy_window({})
     rt = RemoteTools(window=dummy_window)
-    model = SimpleNamespace(id="test_model_normal_computer")
+    model = SimpleNamespace(id="test_model_normal_computer", has_mode=lambda mode: mode == MODE_COMPUTER)
     result = rt.append_to_tools(mode=MODE_COMPUTER, model=model, stream=False, is_expert_call=False, tools=[])
     expected = [{"type": "computer_tool"}]
     assert result == expected

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:20:00
+# Updated Date: 2026.09.10 14:10:00                  #
 # ================================================== #
 
 import os
@@ -23,8 +23,11 @@ from .config import (
     Config,
     IPYTHON_DOCKERFILE,
     IPYTHON_DOCKERFILE_LEGACY,
+    IPYTHON_DOCKERFILE_PRE_BUNDLED,
+    IPYTHON_DOCKERFILE_PRE_NODEJS,
     PYTHON_LEGACY_DOCKERFILE,
     PYTHON_LEGACY_DOCKERFILE_39,
+    PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
 )
 from .docker import Docker
 from .builder import Builder
@@ -42,7 +45,8 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_code_interpreter"
-        self.name = "Code Interpreter (v2)"
+        self.is_common_plugin = True
+        self.name = "Python interpreter"
         self.description = "Provides Python/HTML/JS code execution"
         self.prefix = "Code"
         self.type = [
@@ -80,20 +84,43 @@ class Plugin(BasePlugin):
         self.config.from_defaults(self)
 
     def migrate_docker_defaults(self) -> bool:
-        """Upgrade unchanged stock Dockerfiles from the old Python 3.9 images."""
-        migrated = migrate_default_dockerfile(
+        """Upgrade unchanged stock Dockerfiles without overwriting user customizations."""
+        migrated_ipython = migrate_default_dockerfile(
             self,
             "ipython_dockerfile",
             IPYTHON_DOCKERFILE_LEGACY,
             IPYTHON_DOCKERFILE,
         )
-        migrated_legacy = migrate_default_dockerfile(
+        if not migrated_ipython:
+            migrated_ipython = migrate_default_dockerfile(
+                self,
+                "ipython_dockerfile",
+                IPYTHON_DOCKERFILE_PRE_BUNDLED,
+                IPYTHON_DOCKERFILE,
+            )
+        if not migrated_ipython:
+            migrated_ipython = migrate_default_dockerfile(
+                self,
+                "ipython_dockerfile",
+                IPYTHON_DOCKERFILE_PRE_NODEJS,
+                IPYTHON_DOCKERFILE,
+            )
+
+        migrated_python = migrate_default_dockerfile(
             self,
             "dockerfile",
             PYTHON_LEGACY_DOCKERFILE_39,
             PYTHON_LEGACY_DOCKERFILE,
         )
-        return migrated or migrated_legacy
+        if not migrated_python:
+            migrated_python = migrate_default_dockerfile(
+                self,
+                "dockerfile",
+                PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
+                PYTHON_LEGACY_DOCKERFILE,
+            )
+
+        return migrated_ipython or migrated_python
 
     def make_temp_file_path(self, extension: str = "png"):
         """
@@ -120,7 +147,7 @@ class Plugin(BasePlugin):
         silent = data.get("silent", False)
 
         if name == Event.CMD_SYNTAX:
-            self.cmd_syntax(data)
+            self.cmd_syntax(data, ctx=ctx)
 
         elif name == Event.CMD_EXECUTE:
             self.cmd(
@@ -131,16 +158,19 @@ class Plugin(BasePlugin):
 
         elif name == Event.TOOL_OUTPUT_RENDER:
             if data['tool'] == self.id:
-                data['html'] = self.output.handle(ctx, data['content'])
+                # Input/output is already available in the dedicated Code
+                # Interpreter view and in the tool chain. Do not duplicate it
+                # in the message footer.
+                data['html'] = ''
 
-    def cmd_syntax(self, data: dict):
+    def cmd_syntax(self, data: dict, ctx: CtxItem = None):
         """
         Event: CMD_SYNTAX
 
         :param data: event data dict
         """
         # get current working directory
-        legacy_data = self.window.core.config.get_user_dir('data')
+        legacy_data = self.window.core.filesystem.get_data_dir(ctx=ctx)
         ipython_data = legacy_data
 
         ipython_enabled = any(
@@ -189,7 +219,7 @@ class Plugin(BasePlugin):
                         if item == "ipython_sys_exec":
                             cmd["instruction"] += (
                                 "\nThe command runs on the host system, in the same host environment used by the "
-                                "local Code Interpreter. The application data directory is: {}"
+                                "local Python interpreter. The application data directory is: {}"
                             ).format(legacy_data)
                         else:
                             cmd["instruction"] += (
@@ -223,7 +253,7 @@ class Plugin(BasePlugin):
                         if item == "python_sys_exec":
                             cmd["instruction"] += (
                                 "\nThe command runs on the host system, in the same host environment used by the "
-                                "legacy Python Code Interpreter. The application data directory is: {}"
+                                "legacy Python Interpreter. The application data directory is: {}"
                             ).format(legacy_data)
                         else:
                             cmd["instruction"] += (
@@ -326,8 +356,9 @@ class Plugin(BasePlugin):
             worker.signals.clear.connect(self.handle_interpreter_clear)
             worker.signals.html_output.connect(self.handle_html_output)
             worker.signals.ipython_output.connect(self.handle_ipython_output)
-            self.get_interpreter().attach_signals(worker.signals)
-            self.runner.attach_signals(worker.signals)
+            # Runner/kernel signals are bound inside Worker.run() on the actual
+            # worker thread. Keeping a single shared signal pointer here causes
+            # races between overlapping tool calls and kernel restarts.
 
             if (not self.is_async(ctx) and not force) or ctx.async_disabled:
                 worker.run()
@@ -373,6 +404,8 @@ class Plugin(BasePlugin):
 
         :param type: output type
         """
+        if not self.get_option_value("attach_output"):
+            return
         self.window.tools.get("interpreter").output_begin(type)
 
     @Slot(str)
@@ -382,11 +415,15 @@ class Plugin(BasePlugin):
 
         :param type: output type
         """
+        if not self.get_option_value("attach_output"):
+            return
         self.window.tools.get("interpreter").output_end(type)
 
     @Slot()
     def handle_interpreter_clear(self):
         """Handle interpreter clear"""
+        if not self.get_option_value("attach_output"):
+            return
         self.window.tools.get("interpreter").clear_output()
 
     @Slot(object)

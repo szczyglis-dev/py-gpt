@@ -34,6 +34,8 @@ class File:
         icon_add = QIcon(":/icons/add.svg")
         icon_folder = QIcon(":/icons/folder_filled.svg")
         icon_fullscreen = QIcon(":/icons/fullscreen.svg")
+        icon_import = QIcon(":/icons/upload.svg")
+        icon_export = QIcon(":/icons/download.svg")
 
         m['app.exit'] = QAction(icon_logout, trans("menu.file.exit"), w, shortcut="Ctrl+Q", triggered=w.close)
         m['app.exit'].setMenuRole(QAction.MenuRole.NoRole)
@@ -44,6 +46,8 @@ class File:
         m['app.ctx.new'] = QAction(icon_add, trans("menu.file.new"), w)
         m['app.ctx.group.new'] = QAction(icon_folder, trans("menu.file.group.new"), w)
         m['app.ctx.current'] = QAction(icon_fullscreen, trans("menu.file.current"), w)
+        m['app.profile.import'] = QAction(icon_import, trans("menu.file.profile.import"), w)
+        m['app.profile.export'] = QAction(icon_export, trans("menu.file.profile.export"), w)
 
         m['app.clear_history'].triggered.connect(ctx.delete_history)
         m['app.clear_history_groups'].triggered.connect(ctx.delete_history_groups)
@@ -52,6 +56,8 @@ class File:
         m['app.ctx.current'].triggered.connect(
             lambda checked=False: ctx.select_by_current(True)
         )  # new context without group
+        m['app.profile.import'].triggered.connect(w.controller.profile_exporter.open_import)
+        m['app.profile.export'].triggered.connect(w.controller.profile_exporter.open_export)
 
         m['menu.app'] = w.menuBar().addMenu(trans("menu.file"))
         m_app = m['menu.app']
@@ -61,5 +67,11 @@ class File:
             m['app.ctx.current'],
             m['app.clear_history'],
             m['app.clear_history_groups'],
-            m['app.exit'],
         ])
+        m_app.addSeparator()
+        m_app.addActions([
+            m['app.profile.import'],
+            m['app.profile.export'],
+        ])
+        m_app.addSeparator()
+        m_app.addAction(m['app.exit'])

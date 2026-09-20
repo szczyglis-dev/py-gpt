@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 20:55:00                  #
+# Updated Date: 2026.09.13 19:42:00                  #
 # ================================================== #
 
 import os
@@ -70,6 +70,52 @@ class OllamaLLM(BaseLLM):
         """
         pass
 
+    def llama_completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
+        """Return native Ollama text completion through ``/api/generate``."""
+        from pygpt_net.provider.llms.ollama_completion import OllamaCompletion
+
+        args = self.parse_args(model.llama_index, window)
+        model_id = (model.get_ollama_model() or model.id or "").strip()
+        if not model_id:
+            raise ValueError("Ollama model name is required")
+
+        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
+        base_url = str(
+            client_args.get("base_url") or window.core.models.ollama.get_base_url()
+        ).rstrip("/")
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3].rstrip("/")
+
+        # LlamaIndex OpenAILike-only options are invalid for the native Ollama client.
+        args.pop("api_key", None)
+        args.pop("api_base", None)
+        args.pop("base_url", None)
+        args.pop("is_chat_model", None)
+        if "timeout" in args and "request_timeout" not in args:
+            args["request_timeout"] = args.pop("timeout")
+        args.setdefault("request_timeout", 300.0)
+        args["model"] = model_id
+        args["base_url"] = base_url
+        args["is_function_calling_model"] = False
+
+        ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
+        if ctx_size <= 0:
+            ctx_size = window.core.config.get("max_total_tokens") or 0
+        if ctx_size > 0 and "context_window" not in args:
+            args["context_window"] = int(ctx_size)
+
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            args["think"] = reasoning_effort
+
+        self.log_llama_create(window, model, args, "OllamaCompletion")
+        return OllamaCompletion(**args)
+
     def llama(
             self,
             window,
@@ -77,13 +123,26 @@ class OllamaLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return LLM provider instance for LlamaIndex.
+
+        When PyGPT tools are enabled, tool-capable Ollama models must use the
+        native ``/api/chat`` protocol. The OpenAI-compatible
+        ``/v1/chat/completions`` bridge can return the first tool call correctly,
+        but it does not preserve Ollama/Gemma tool state reliably on the follow-up
+        request containing the tool result. In Chat with Files this manifested as
+        a successfully executed plugin tool followed by an empty model response.
+
+        Plain chat/index calls keep the OpenAILike transport to avoid changing the
+        established no-tools path unnecessarily.
 
         :param window: window instance
         :param model: model instance
         :param stream: stream mode
         :return: LLM provider instance
         """
+        if bool(model.tool_calls) and bool(window.core.config.get("cmd", False)):
+            return self._llama_native(window, model)
+
         from llama_index.llms.openai_like import OpenAILike
 
         nest_asyncio.apply()
@@ -107,8 +166,12 @@ class OllamaLLM(BaseLLM):
             args["api_base"] = api_base
         if "is_chat_model" not in args:
             args["is_chat_model"] = True
-        if "is_function_calling_model" not in args:
-            args["is_function_calling_model"] = bool(model.tool_calls)
+        args["is_function_calling_model"] = False
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            additional_kwargs = dict(args.get("additional_kwargs") or {})
+            additional_kwargs["reasoning_effort"] = reasoning_effort
+            args["additional_kwargs"] = additional_kwargs
 
         # Keep PyGPT model limits in LlamaIndex metadata/request settings.
         ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
@@ -118,7 +181,66 @@ class OllamaLLM(BaseLLM):
             args["context_window"] = int(ctx_size)
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
+
+    def _llama_native(
+            self,
+            window,
+            model: ModelItem,
+    ) -> LlamaBaseLLM:
+        """Build the native Ollama LlamaIndex adapter used by tool loops."""
+        from pygpt_net.provider.llms.ollama_custom import Ollama
+
+        args = self.parse_args(model.llama_index, window)
+        model_id = (model.get_ollama_model() or model.id or "").strip()
+        if not model_id:
+            raise ValueError("Ollama model name is required")
+
+        # Resolve the same configured endpoint as normal Chat, then convert the
+        # OpenAI-compatible /v1 base back to Ollama's native server root.
+        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
+        base_url = str(
+            client_args.get("base_url") or window.core.models.ollama.get_base_url()
+        ).rstrip("/")
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3].rstrip("/")
+
+        # model.llama_index args may contain OpenAI/OpenAILike-only options.
+        # Keep native Ollama options and normalize common aliases.
+        args.pop("api_key", None)
+        args.pop("api_base", None)
+        args.pop("base_url", None)
+        args.pop("is_chat_model", None)
+        if "timeout" in args and "request_timeout" not in args:
+            args["request_timeout"] = args.pop("timeout")
+        args.setdefault("request_timeout", 300.0)
+        args["model"] = model_id
+        args["base_url"] = base_url
+        args["is_function_calling_model"] = bool(model.tool_calls)
+
+        ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
+        if ctx_size <= 0:
+            ctx_size = window.core.config.get("max_total_tokens") or 0
+        if ctx_size > 0 and "context_window" not in args:
+            args["context_window"] = int(ctx_size)
+
+        reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if reasoning_effort:
+            args["think"] = reasoning_effort
+
+        self.log_llama_create(window, model, args, "llama_index.llms.ollama.Ollama")
+        return Ollama(**args)
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """Return native Ollama LLM for agent workflows."""
+        return self._llama_native(window, model)
 
     def get_embeddings_model(
             self,
@@ -138,11 +260,30 @@ class OllamaLLM(BaseLLM):
             args = self.parse_args({
                 "args": config,
             }, window)
-        if 'OLLAMA_API_BASE' in os.environ:
-            if "base_url" not in args:
-                args["base_url"] = os.environ['OLLAMA_API_BASE']
-        if "model" in args and "model_name" not in args:
+        if not args.get("base_url"):
+            # Advanced embedding ENV is an override; otherwise resolve the
+            # normal app-level OLLAMA_API_BASE setting. Reading the configured
+            # rows directly avoids a stale process ENV value after an override
+            # has been cleared in the UI.
+            base_url = (
+                self.get_env_override(
+                    window,
+                    window.core.config.get("llama.idx.embeddings.env", []) or [],
+                    ["OLLAMA_API_BASE"],
+                )
+                or self.get_env_override(
+                    window,
+                    window.core.config.get("app.env", []) or [],
+                    ["OLLAMA_API_BASE"],
+                )
+                or "http://localhost:11434"
+            )
+            args["base_url"] = base_url
+        if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
+        client_kwargs = dict(args.get("client_kwargs") or {})
+        client_kwargs.setdefault("timeout", self.get_embeddings_timeout(window.core.config))
+        args["client_kwargs"] = client_kwargs
         return OllamaEmbedding(**args)
 
     def init_embeddings(
@@ -158,8 +299,7 @@ class OllamaLLM(BaseLLM):
         """
         super(OllamaLLM, self).init_embeddings(window, env)
 
-        # === FIX FOR LOCAL EMBEDDINGS ===
-        # if there is no OpenAI api key then set fake key to prevent empty key Llama-index error
-        if ('OPENAI_API_KEY' not in os.environ
-                and (window.core.config.get('api_key') is None or window.core.config.get('api_key') == "")):
-            os.environ['OPENAI_API_KEY'] = "_"
+        # Local embeddings must not write a fake OPENAI_API_KEY into the global
+        # environment, as that would leak into subsequent OpenAI API calls.
+        # The Ollama embedding provider (get_embeddings_model) does not require
+        # an OpenAI key, so no injection is needed here.

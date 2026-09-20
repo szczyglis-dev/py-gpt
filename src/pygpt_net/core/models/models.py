@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2026.09.05 21:40:00
 # ================================================== #
 
 import copy
@@ -32,6 +32,12 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.json_file import JsonFileProvider
 
 from .ollama import Ollama
+from pygpt_net.core.types.reasoning import (
+    choose_effort,
+    get_model_efforts,
+    legacy_base_key,
+    normalize_effort,
+)
 
 class Models:
     def __init__(self, window=None):
@@ -129,6 +135,74 @@ class Models:
         """
         return self.items.get(key)
 
+    def resolve_model_key(
+            self,
+            mode: Optional[str],
+            model: Optional[str]
+    ) -> Optional[str]:
+        """Resolve a stored model key, including pre-2.8.17 effort suffixes.
+
+        Exact keys always win.  For backward compatibility an unavailable key
+        ending in ``-low``, ``-medium``, ``-high`` or ``-xhigh`` is retried
+        after trimming that suffix.
+        """
+        if not model:
+            return None
+        key = str(model)
+        item = self.items.get(key)
+        if item is not None and (mode is None or mode in item.mode):
+            return key
+
+        base_key = legacy_base_key(key)
+        if base_key:
+            item = self.items.get(base_key)
+            if item is not None and (mode is None or mode in item.mode):
+                return base_key
+        return None
+
+    def get_reasoning_efforts(
+            self,
+            model: Optional[ModelItem] = None
+    ) -> List[str]:
+        """Return runtime reasoning-effort values available for a model."""
+        if isinstance(model, str):
+            model = self.get(model)
+        if model is None:
+            model = self.get(self.window.core.config.get("model"))
+        return get_model_efforts(model)
+
+    def get_reasoning_effort(
+            self,
+            model: Optional[ModelItem] = None,
+    ) -> Optional[str]:
+        """Return the effective runtime effort for the selected model.
+
+        The persisted value is one global user preference.  When a model does
+        not support that exact level we choose the nearest supported value for
+        this request/UI only; model changes never rewrite the global preference.
+        """
+        efforts = self.get_reasoning_efforts(model)
+        if not efforts:
+            return None
+        cfg = self.window.core.config
+        return choose_effort(cfg.get("model.reasoning_effort", "high"), efforts)
+
+    def set_reasoning_effort(
+            self,
+            effort: str,
+            model: Optional[ModelItem] = None,
+            persist: bool = True,
+    ) -> bool:
+        """Set the single global reasoning-effort state if valid for the model."""
+        effort = normalize_effort(effort)
+        if not effort or effort not in self.get_reasoning_efforts(model):
+            return False
+        cfg = self.window.core.config
+        cfg.set("model.reasoning_effort", effort)
+        if persist:
+            cfg.save()
+        return True
+
     def get_ids(self) -> List[str]:
         """
         Return models ids
@@ -167,7 +241,9 @@ class Models:
         :param mode: mode name
         :return: True if model is allowed for mode
         """
-        return model in self.items and mode in self.items[model].mode
+        if model not in self.items:
+            return False
+        return mode in self.items[model].mode
 
     def get_id(
             self,
@@ -591,15 +667,7 @@ class Models:
         :param model: ModelItem
         :return: True if tool call is allowed, False otherwise
         """
-        if mode == MODE_LLAMA_INDEX:
-            if model.provider == "google":
-                stream = self.window.core.config.get('stream', False)
-                use_react = self.window.core.config.get("llama.idx.react", False)
-                if stream:
-                    return bool(use_react)
-        if model.tool_calls:
-            return True
-        return False
+        return model.tool_calls
 
     def get_version(self) -> str:
         """

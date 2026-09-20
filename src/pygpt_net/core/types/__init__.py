@@ -18,3 +18,4 @@ from .model import *
 from .openai import *
 from .multimodal import *
 from .tools import *
+from .theme import *

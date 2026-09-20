@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 12:00:00                  #
+# Updated Date: 2026.09.11 19:55:00                  #
 # ================================================== #
 
 import json
@@ -48,6 +48,18 @@ def trans_reload():
     if locale is None:
         locale = Locale()
     locale.reload_config()
+
+
+def get_locale_lang() -> str:
+    """
+    Return the currently active locale language.
+
+    :return: active language code
+    """
+    global locale
+    if locale is None:
+        locale = Locale()
+    return locale.lang
 
 
 def trans(key: str, reload: bool = False, domain: str = None) -> str:

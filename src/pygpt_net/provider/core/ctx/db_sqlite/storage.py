@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 22:00:00                  #
+# Updated Date: 2026.09.16 14:35:00                  #
 # ================================================== #
 
 from datetime import datetime
+import copy
+import json
 import re
 import time
 from typing import Dict, Optional, Tuple, List
@@ -17,12 +19,17 @@ from typing import Dict, Optional, Tuple, List
 from sqlalchemy import text
 
 from pygpt_net.utils import get_tz_offset
+from pygpt_net.core.types import CTX_TOOL_HISTORY_EXTRA_KEY, should_persist_ctx_partials
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
+from pygpt_net.item.ctx_part import CtxItemPart
+from pygpt_net.item.ctx_part_task import CtxItemPartTask
 from .utils import \
     search_by_date_string, \
     pack_item_value, \
     unpack_meta, \
     unpack_item, \
+    unpack_part, \
+    unpack_part_task, \
     get_month_start_end_timestamps, \
     get_year_start_end_timestamps, \
     unpack_group
@@ -44,6 +51,153 @@ class Storage:
         :param window: Window instance
         """
         self.window = window
+
+    def _pack_ctx_images(self, item: CtxItem) -> str:
+        """Pack ctx images while defensively excluding transport-only attachments."""
+        images = list(item.images or []) if isinstance(item.images, list) else item.images
+        attachments = getattr(getattr(self.window, "core", None), "attachments", None)
+        if isinstance(images, list) and attachments is not None and hasattr(attachments, "is_ctx_excluded_path"):
+            images = [value for value in images if not attachments.is_ctx_excluded_path(value)]
+        return pack_item_value(images)
+
+    @staticmethod
+    def _match_ctx_tool_history_response(call: dict, outputs: list, used: set):
+        """Return the best legacy ctx.extra tool output for one stored call."""
+        if not isinstance(call, dict):
+            return None, None
+        function = call.get("function") if isinstance(call.get("function"), dict) else {}
+        name = str(function.get("name") or "")
+        call_id = str(call.get("call_id") or call.get("id") or "")
+
+        for index, output in enumerate(outputs or []):
+            if index in used or not isinstance(output, dict):
+                continue
+            output_call_id = str(output.get("call_id") or output.get("tool_call_id") or "")
+            if call_id and output_call_id and output_call_id == call_id:
+                return index, output
+        for index, output in enumerate(outputs or []):
+            if index in used or not isinstance(output, dict):
+                continue
+            output_name = str(output.get("cmd") or "")
+            request = output.get("request") if isinstance(output.get("request"), dict) else {}
+            if not output_name:
+                output_name = str(request.get("cmd") or "")
+            if name and output_name == name:
+                return index, output
+        for index, output in enumerate(outputs or []):
+            if index not in used:
+                return index, output
+        return None, None
+
+    def _restore_transient_tool_part(self, item: CtxItem) -> None:
+        """Rehydrate runtime partial/tasks from compact ctx_item tool metadata.
+
+        Non-workflow modes intentionally do not have durable partial rows. When a
+        conversation is loaded, reconstruct the same in-memory task graph from the
+        compact ctx_item.extra transcript so existing render/history code keeps
+        working without writing anything back to ctx_item_partial tables.
+        """
+        if item is None or item.parts or should_persist_ctx_partials(item.mode):
+            return
+        extra = item.extra if isinstance(item.extra, dict) else {}
+        history = extra.get(CTX_TOOL_HISTORY_EXTRA_KEY)
+
+        # Backward compatibility for ctx_item rows created before the compact
+        # transcript was introduced. Such rows can still carry the last stored
+        # call/result pair in the old compatibility keys.
+        if not isinstance(history, list) or not history:
+            calls = extra.get("tool_calls") if isinstance(extra.get("tool_calls"), list) else []
+            outputs = extra.get("tool_output") if isinstance(extra.get("tool_output"), list) else []
+            if not calls:
+                return
+            history = []
+            used_outputs = set()
+            for call in calls:
+                if not isinstance(call, dict):
+                    continue
+                index, response = self._match_ctx_tool_history_response(call, outputs, used_outputs)
+                if index is not None:
+                    used_outputs.add(index)
+                history.append({
+                    "call": copy.deepcopy(call),
+                    "response": copy.deepcopy(response),
+                    "completed": response is not None,
+                    "tool_round": 1,
+                    "ui_visible": True,
+                    "ui_ready": response is not None,
+                    "provider_history": True,
+                })
+
+        outputs = extra.get("tool_output") if isinstance(extra.get("tool_output"), list) else []
+        used_outputs = set()
+        part = CtxItemPart(parent_item_id=item.id, output=item.output)
+        part.extra = {"runtime_restored": True}
+        max_round = 0
+        for entry in history:
+            if not isinstance(entry, dict):
+                continue
+            call = entry.get("call")
+            if not isinstance(call, dict):
+                continue
+            function = call.get("function") if isinstance(call.get("function"), dict) else {}
+            name = str(function.get("name") or "").strip()
+            if not name:
+                continue
+            args = copy.deepcopy(function.get("arguments", {}))
+            call_id = str(call.get("call_id") or call.get("id") or "")
+            item_id = str(call.get("id") or call_id)
+            try:
+                tool_round = max(1, int(entry.get("tool_round") or 1))
+            except (TypeError, ValueError):
+                tool_round = 1
+            max_round = max(max_round, tool_round)
+            response = copy.deepcopy(entry.get("response")) if entry.get("response") is not None else None
+            if response is None:
+                response_index, matched = self._match_ctx_tool_history_response(call, outputs, used_outputs)
+                if response_index is not None:
+                    used_outputs.add(response_index)
+                    response = copy.deepcopy(matched)
+            completed = bool(entry.get("completed") or response is not None)
+            if isinstance(response, dict) and "result" in response:
+                output = response.get("result")
+            else:
+                output = response
+            if output is not None and not isinstance(output, str):
+                output = json.dumps(output, ensure_ascii=False, default=str)
+
+            task = CtxItemPartTask(
+                parent_item_part_id=None,
+                task_name=name,
+                input=json.dumps(
+                    {"cmd": name, "params": args},
+                    ensure_ascii=False,
+                    default=str,
+                ),
+                output=output,
+                tool_call_id=call_id or item_id,
+                tool_input=args,
+                tool_output=response,
+                extra={
+                    "status": "completed" if completed else "pending",
+                    "ui_ready": bool(entry.get("ui_ready", completed)),
+                    "tool_name": name,
+                    "tool_item_id": item_id,
+                    "tool_type": str(call.get("type") or "function"),
+                    "tool_round": tool_round,
+                    "ui_visible": bool(entry.get("ui_visible", True)),
+                    "provider_history": bool(entry.get("provider_history", True)),
+                    "runtime_restored": True,
+                },
+            )
+            part.tasks.append(task)
+
+        if not part.tasks:
+            return
+        # The compact ctx_item representation stores the final visible assistant
+        # text, so on reconstruction place it after all restored tool rounds.
+        part.extra["text_after_tool_round"] = max_round
+        item.parts = [part]
+        item.active_part = part
 
     def prepare_query(
             self,
@@ -174,7 +328,8 @@ class Storage:
                 m.*,
                 g.name as group_name,
                 g.uuid as group_uuid,
-                g.additional_ctx_json as group_additional_ctx_json
+                g.additional_ctx_json as group_additional_ctx_json,
+                g.extra_json as group_extra_json
             FROM 
                 ctx_meta m 
                 {join_statement} 
@@ -247,7 +402,8 @@ class Storage:
                 m.*, 
                 g.name as group_name,
                 g.uuid as group_uuid,
-                g.additional_ctx_json as group_additional_ctx_json 
+                g.additional_ctx_json as group_additional_ctx_json,
+                g.extra_json as group_extra_json 
             FROM 
                 ctx_meta m 
             LEFT JOIN 
@@ -267,26 +423,74 @@ class Storage:
                 items[meta.id] = meta
         return items
 
-    def get_item_by_id(self, id: int) -> Optional[CtxItem]:
-        """
-        Return ctx item by ID
-
-        :return: CtxItem
-        """
-        stmt = text("""
-            SELECT * FROM ctx_item WHERE id = :id
-        """).bindparams(id=id)
+    def _get_items_with_parts(self, where: str, params: dict) -> List[CtxItem]:
+        """Load items, partial items and tasks in one JOIN and compose outputs."""
+        stmt = text(f"""
+            SELECT
+                i.*,
+                p.id AS p_id, p.uuid AS p_uuid, p.parent_item_id AS p_parent_item_id,
+                p.agent_id AS p_agent_id, p.name AS p_name, p.output AS p_output,
+                p.extra_json AS p_extra_json, p.created_at AS p_created_at, p.updated_at AS p_updated_at,
+                t.id AS t_id, t.uuid AS t_uuid, t.parent_item_part_id AS t_parent_item_part_id,
+                t.agent_id AS t_agent_id, t.name AS t_name, t.task_name AS t_task_name,
+                t.task_summary AS t_task_summary, t.input AS t_input, t.output AS t_output,
+                t.tool_call_id AS t_tool_call_id, t.tool_input_json AS t_tool_input_json,
+                t.tool_output_json AS t_tool_output_json, t.extra_json AS t_extra_json,
+                t.created_at AS t_created_at, t.updated_at AS t_updated_at
+            FROM ctx_item i
+            LEFT JOIN ctx_item_partial p ON p.parent_item_id = i.id
+            LEFT JOIN ctx_item_partial_task t ON t.parent_item_part_id = p.id
+            WHERE {where}
+            ORDER BY i.id ASC, p.id ASC, t.id ASC
+        """).bindparams(**params)
         db = self.window.core.db.get_db()
+        items = {}
+        parts = {}
         with db.connect() as conn:
-            result = conn.execute(stmt)
-            row = result.fetchone()
-            if row:
-                item = CtxItem()
-                unpack_item(item, row._asdict())
-                meta = self.get_meta_by_id(item.meta_id)  # append meta
-                item.meta = meta
-                return item
-        return None
+            for row in conn.execute(stmt):
+                data = row._asdict()
+                item_id = int(data['id'])
+                item = items.get(item_id)
+                if item is None:
+                    item = CtxItem()
+                    unpack_item(item, data)
+                    item.parts = []
+                    item.active_part = None
+                    items[item_id] = item
+
+                part_id = data.get('p_id')
+                if part_id is None:
+                    continue
+                part_id = int(part_id)
+                part = parts.get(part_id)
+                if part is None:
+                    part = CtxItemPart()
+                    unpack_part(part, data, prefix='p_')
+                    parts[part_id] = part
+                    item.parts.append(part)
+                    item.active_part = part
+
+                task_id = data.get('t_id')
+                if task_id is not None and not any(t.id == int(task_id) for t in part.tasks):
+                    task = CtxItemPartTask()
+                    unpack_part_task(task, data, prefix='t_')
+                    part.tasks.append(task)
+
+        result = list(items.values())
+        for item in result:
+            self._restore_transient_tool_part(item)
+            if item.parts:
+                item.sync_output_from_parts()
+        return result
+
+    def get_item_by_id(self, id: int) -> Optional[CtxItem]:
+        """Return ctx item by ID with partial items/tasks eagerly loaded."""
+        items = self._get_items_with_parts("i.id = :id", {"id": id})
+        if not items:
+            return None
+        item = items[0]
+        item.meta = self.get_meta_by_id(item.meta_id)
+        return item
 
     def get_meta_by_root_id_and_preset_id(
             self,
@@ -352,23 +556,8 @@ class Storage:
         return 0
 
     def get_items(self, id: int) -> List[CtxItem]:
-        """
-        Return ctx items list by ctx meta ID
-
-        :return: list of CtxItem
-        """
-        stmt = text("""
-            SELECT * FROM ctx_item WHERE meta_id = :id ORDER BY id ASC
-        """).bindparams(id=id)
-        items = []
-        db = self.window.core.db.get_db()
-        with db.connect() as conn:
-            result = conn.execute(stmt)
-            for row in result:
-                item = CtxItem()
-                unpack_item(item, row._asdict())
-                items.append(item)
-        return items
+        """Return ctx items with partial items/tasks eagerly loaded."""
+        return self._get_items_with_parts("i.meta_id = :id", {"id": id})
 
     def truncate_all(self, reset: bool = True) -> bool:
         """
@@ -379,11 +568,15 @@ class Storage:
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task"))
+            conn.execute(text("DELETE FROM ctx_item_partial"))
             conn.execute(text("DELETE FROM ctx_item"))
+            # SQLite foreign-key enforcement is not guaranteed in legacy user
+            # databases, so clean per-conversation continuation memory explicitly.
+            conn.execute(text("DELETE FROM memory_ctx"))
             conn.execute(text("DELETE FROM ctx_meta"))
             if reset:  # reset table sequence (autoincrement)
-                conn.execute(text(f"DELETE FROM sqlite_sequence WHERE name='ctx_item'"))
-                conn.execute(text(f"DELETE FROM sqlite_sequence WHERE name='ctx_meta'"))
+                conn.execute(text("DELETE FROM sqlite_sequence WHERE name IN ('ctx_item_partial_task','ctx_item_partial','ctx_item','memory_ctx','ctx_meta')"))
         return True
 
     def delete_meta_by_id(self, id: int) -> bool:
@@ -395,7 +588,10 @@ class Storage:
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.meta_id=:id)").bindparams(id=id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE meta_id=:id)").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_item WHERE meta_id = :id").bindparams(id=id))
+            conn.execute(text("DELETE FROM memory_ctx WHERE meta_id = :id").bindparams(id=id))
             conn.execute(text("DELETE FROM ctx_meta WHERE id = :id").bindparams(id=id))
         return True
 
@@ -406,12 +602,22 @@ class Storage:
         :param id: ctx item ID
         :return: True if deleted
         """
-        stmt = text("""
-            DELETE FROM ctx_item WHERE id = :id
-        """).bindparams(id=id)
+        stmt = text("DELETE FROM ctx_item WHERE id = :id").bindparams(id=id)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            meta_row = conn.execute(
+                text("SELECT meta_id FROM ctx_item WHERE id = :id LIMIT 1").bindparams(id=id)
+            ).fetchone()
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT id FROM ctx_item_partial WHERE parent_item_id=:id)").bindparams(id=id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id=:id").bindparams(id=id))
             conn.execute(stmt)
+            if meta_row and meta_row[0] is not None:
+                # If the removed turn had already been rolled into continuation
+                # notes, those notes are no longer a faithful projection. Drop
+                # the checkpoint so the next request rebuilds from raw history.
+                conn.execute(text(
+                    "DELETE FROM memory_ctx WHERE meta_id = :meta_id AND last_item_id >= :item_id"
+                ).bindparams(meta_id=int(meta_row[0]), item_id=id))
         return True
 
     def delete_items_from(self, meta_id: int, item_id: int) -> bool:
@@ -430,7 +636,12 @@ class Storage:
         )
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.id>=:item_id AND i.meta_id=:meta_id)").bindparams(item_id=item_id, meta_id=meta_id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE id>=:item_id AND meta_id=:meta_id)").bindparams(item_id=item_id, meta_id=meta_id))
             conn.execute(stmt)
+            conn.execute(text(
+                "DELETE FROM memory_ctx WHERE meta_id = :meta_id AND last_item_id >= :item_id"
+            ).bindparams(meta_id=meta_id, item_id=item_id))
         return True
 
     def delete_items_by_meta_id(self, id: int) -> bool:
@@ -445,7 +656,10 @@ class Storage:
         """).bindparams(id=id)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
+            conn.execute(text("DELETE FROM ctx_item_partial_task WHERE parent_item_part_id IN (SELECT p.id FROM ctx_item_partial p JOIN ctx_item i ON i.id=p.parent_item_id WHERE i.meta_id=:id)").bindparams(id=id))
+            conn.execute(text("DELETE FROM ctx_item_partial WHERE parent_item_id IN (SELECT id FROM ctx_item WHERE meta_id=:id)").bindparams(id=id))
             conn.execute(stmt)
+            conn.execute(text("DELETE FROM memory_ctx WHERE meta_id = :id").bindparams(id=id))
         return True
 
     def update_meta(self, meta: CtxMeta) -> bool:
@@ -513,12 +727,14 @@ class Storage:
                 SET
                     name = :name,
                     additional_ctx_json = :additional_ctx_json,
+                    extra_json = :extra_json,
                     updated_ts = :updated_ts
                 WHERE id = :id
             """).bindparams(
                 id=meta.group.id,
                 name=meta.group.name,
                 additional_ctx_json=pack_item_value(meta.group.additional_ctx),
+                extra_json=pack_item_value(meta.group.extra),
                 updated_ts=int(time.time()),
             )
             with db.begin() as conn:
@@ -802,6 +1018,111 @@ class Storage:
             meta.id = result.lastrowid
             return meta.id
 
+    def insert_part(self, part: CtxItemPart) -> int:
+        db = self.window.core.db.get_db()
+        now = int(time.time())
+        if not part.created_at:
+            part.created_at = now
+        part.updated_at = now
+        stmt = text("""
+            INSERT INTO ctx_item_partial
+            (uuid, parent_item_id, agent_id, name, output, extra_json, created_at, updated_at)
+            VALUES (:uuid, :parent_item_id, :agent_id, :name, :output, :extra_json, :created_at, :updated_at)
+        """).bindparams(
+            uuid=part.uuid, parent_item_id=part.parent_item_id, agent_id=part.agent_id,
+            name=part.name, output=self.window.core.command.output_for_storage(part.output),
+            extra_json=pack_item_value(self.window.core.command.extra_for_storage(part.extra)),
+            created_at=int(part.created_at or now), updated_at=int(part.updated_at or now),
+        )
+        with db.begin() as conn:
+            result = conn.execute(stmt)
+            part.id = result.lastrowid
+        return part.id
+
+    def update_part(self, part: CtxItemPart) -> bool:
+        if part.id is None:
+            return False
+        part.updated_at = int(time.time())
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_item_partial SET agent_id=:agent_id, name=:name, output=:output,
+                extra_json=:extra_json, updated_at=:updated_at WHERE id=:id
+        """).bindparams(
+            id=part.id, agent_id=part.agent_id, name=part.name,
+            output=self.window.core.command.output_for_storage(part.output),
+            extra_json=pack_item_value(self.window.core.command.extra_for_storage(part.extra)),
+            updated_at=part.updated_at,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+        return True
+
+    def insert_part_task(self, task: CtxItemPartTask) -> Optional[int]:
+        # Tool calls are runtime objects first. The user may choose not to keep
+        # them in durable history at all; in that mode leave the task in memory
+        # with ``id=None`` so the active provider/tool loop can still complete.
+        command = self.window.core.command
+        if not command.should_store_tool_task(task):
+            return None
+
+        db = self.window.core.db.get_db()
+        now = int(time.time())
+        if not task.created_at:
+            task.created_at = now
+        task.updated_at = now
+        stored = command.tool_task_values_for_storage(task)
+        stmt = text("""
+            INSERT INTO ctx_item_partial_task
+            (uuid, parent_item_part_id, agent_id, name, task_name, task_summary, input, output,
+             tool_call_id, tool_input_json, tool_output_json, extra_json, created_at, updated_at)
+            VALUES (:uuid, :parent, :agent_id, :name, :task_name, :task_summary, :input, :output,
+                    :tool_call_id, :tool_input, :tool_output, :extra, :created_at, :updated_at)
+        """).bindparams(
+            uuid=task.uuid, parent=task.parent_item_part_id, agent_id=task.agent_id, name=task.name,
+            task_name=task.task_name, task_summary=task.task_summary,
+            input=stored["input"], output=stored["output"],
+            tool_call_id=task.tool_call_id, tool_input=pack_item_value(stored["tool_input"]),
+            tool_output=pack_item_value(stored["tool_output"]), extra=pack_item_value(stored["extra"]),
+            created_at=int(task.created_at or now), updated_at=int(task.updated_at or now),
+        )
+        with db.begin() as conn:
+            result = conn.execute(stmt)
+            task.id = result.lastrowid
+        return task.id
+
+    def update_part_task(self, task: CtxItemPartTask) -> bool:
+        if task.id is None:
+            return False
+        task.updated_at = int(time.time())
+        db = self.window.core.db.get_db()
+        command = self.window.core.command
+        if not command.should_store_tool_task(task):
+            # The policy can be changed while a tool is still running. If a row
+            # was created before switching to "Do not store", remove it on the
+            # next write rather than leaving a half-persisted call in history.
+            stmt = text("DELETE FROM ctx_item_partial_task WHERE id=:id").bindparams(id=task.id)
+            with db.begin() as conn:
+                conn.execute(stmt)
+            task.id = None
+            return True
+
+        stored = command.tool_task_values_for_storage(task)
+        stmt = text("""
+            UPDATE ctx_item_partial_task SET agent_id=:agent_id, name=:name, task_name=:task_name,
+                task_summary=:task_summary, input=:input, output=:output, tool_call_id=:tool_call_id,
+                tool_input_json=:tool_input, tool_output_json=:tool_output, extra_json=:extra,
+                updated_at=:updated_at WHERE id=:id
+        """).bindparams(
+            id=task.id, agent_id=task.agent_id, name=task.name, task_name=task.task_name,
+            task_summary=task.task_summary, input=stored["input"], output=stored["output"],
+            tool_call_id=task.tool_call_id,
+            tool_input=pack_item_value(stored["tool_input"]), tool_output=pack_item_value(stored["tool_output"]),
+            extra=pack_item_value(stored["extra"]), updated_at=task.updated_at,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+        return True
+
     def insert_item(self, meta: CtxMeta, item: CtxItem) -> int:
         """
         Insert ctx item
@@ -882,7 +1203,7 @@ class Storage:
             meta_id=int(meta.id),
             external_id=item.external_id,
             input=item.input,
-            output=item.output,
+            output=self.window.core.command.output_for_storage(item.output),
             input_name=item.input_name,
             output_name=item.output_name,
             input_ts=int(item.input_timestamp or 0),
@@ -894,14 +1215,14 @@ class Storage:
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
-            cmds_json=pack_item_value(item.cmds),
-            results_json=pack_item_value(item.results),
+            cmds_json=pack_item_value(self.window.core.command.commands_for_storage(item.cmds)),
+            results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
-            images_json=pack_item_value(item.images),
+            images_json=self._pack_ctx_images(item),
             files_json=pack_item_value(item.files),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
-            extra=pack_item_value(item.extra),
+            extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
@@ -914,6 +1235,40 @@ class Storage:
             result = conn.execute(stmt)
             item.id = result.lastrowid
 
+        # Persist the rich partial/task graph only for workflow modes. Ordinary
+        # Chat/Chat with Files/etc. keep ctx_item as the durable format and may
+        # allocate CtxItemPart objects later purely for the live tool loop.
+        if should_persist_ctx_partials(item.mode):
+            if not item.parts:
+                part = CtxItemPart(parent_item_id=item.id, output=item.output)
+                self.insert_part(part)
+                item.parts.append(part)
+                item.active_part = part
+            else:
+                for part in item.parts:
+                    tasks = list(part.tasks or [])
+                    part.id = None
+                    part.parent_item_id = item.id
+                    self.insert_part(part)
+                    for task in tasks:
+                        task.id = None
+                        task.parent_item_part_id = part.id
+                        self.insert_part_task(task)
+                item.active_part = item.parts[-1]
+                item.sync_output_from_parts()
+                self.update_item(item)
+        else:
+            # A duplicated/imported legacy Chat item can still arrive with old
+            # persisted part IDs. Keep its in-memory graph usable, but detach it
+            # from those DB rows so later runtime updates cannot modify the source
+            # conversation or create new partial/task records.
+            for part in item.parts or []:
+                part.id = None
+                part.parent_item_id = item.id
+                for task in part.tasks or []:
+                    task.id = None
+                    task.parent_item_part_id = None
+            item.active_part = item.parts[-1] if item.parts else None
         return item.id
 
     def update_item(self, item: CtxItem) -> bool:
@@ -958,7 +1313,7 @@ class Storage:
         """).bindparams(
             id=item.id,
             input=item.input,
-            output=item.output,
+            output=self.window.core.command.output_for_storage(item.output),
             input_name=item.input_name,
             output_name=item.output_name,
             input_ts=int(item.input_timestamp or 0),
@@ -970,14 +1325,14 @@ class Storage:
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
-            cmds_json=pack_item_value(item.cmds),
-            results_json=pack_item_value(item.results),
+            cmds_json=pack_item_value(self.window.core.command.commands_for_storage(item.cmds)),
+            results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
-            images_json=pack_item_value(item.images),
+            images_json=self._pack_ctx_images(item),
             files_json=pack_item_value(item.files),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
-            extra=pack_item_value(item.extra),
+            extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
@@ -1257,6 +1612,12 @@ class Storage:
                         SELECT id FROM ctx_meta WHERE group_id = :id
                     )
                 """).bindparams(id=id))
+                conn.execute(text("""
+                    DELETE FROM memory_ctx
+                    WHERE meta_id IN (
+                        SELECT id FROM ctx_meta WHERE group_id = :id
+                    )
+                """).bindparams(id=id))
                 conn.execute(text("DELETE FROM ctx_meta WHERE group_id = :id").bindparams(id=id))
             else:
                 conn.execute(text("""
@@ -1288,7 +1649,11 @@ class Storage:
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
-            conn.execute(text(f"DELETE FROM ctx_item WHERE meta_id = {meta_id}"))
+            conn.execute(text("DELETE FROM ctx_item WHERE meta_id = :meta_id").bindparams(meta_id=meta_id))
+            # Clearing a conversation must also clear its compact continuation
+            # state; otherwise the next message in the empty chat would inherit
+            # facts from content the user explicitly removed.
+            conn.execute(text("DELETE FROM memory_ctx WHERE meta_id = :meta_id").bindparams(meta_id=meta_id))
         return True
 
     def update_group(self, group: CtxGroup) -> bool:
@@ -1304,11 +1669,13 @@ class Storage:
             UPDATE ctx_group
             SET
                 name = :name,
+                extra_json = :extra_json,
                 updated_ts = :updated_ts
             WHERE id = :id
         """).bindparams(
             id=id,
             name=group.name,
+            extra_json=pack_item_value(group.extra),
             updated_ts=int(group.updated),
         )
         with db.begin() as conn:
@@ -1329,20 +1696,23 @@ class Storage:
                 uuid,
                 created_ts,
                 updated_ts,
-                name
+                name,
+                extra_json
             )
             VALUES 
             (
                 :uuid,
                 :created_ts,
                 :updated_ts,
-                :name
+                :name,
+                :extra_json
             )
         """).bindparams(
             uuid=group.uuid,
             created_ts=int(group.created or 0),
             updated_ts=int(group.updated or 0),
             name=group.name,
+            extra_json=pack_item_value(group.extra),
         )
         with db.begin() as conn:
             result = conn.execute(stmt)

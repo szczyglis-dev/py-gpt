@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from pygpt_net.utils import trans
-from pygpt_net.core.attachments.clipboard import AttachmentDropHandler
+from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, DirectoryPasteHandler
 
 
 class ExtraInput(QTextEdit):
@@ -71,6 +71,7 @@ class ExtraInput(QTextEdit):
 
         # Drag & Drop: add as attachments; do not insert file paths into text
         self._dnd_handler = AttachmentDropHandler(self.window, self, policy=AttachmentDropHandler.INPUT_MIX)
+        self._directory_paste_handler = DirectoryPasteHandler(self.window, self)
 
     def _on_text_changed_tokens(self):
         """Schedule token count update with debounce."""
@@ -270,14 +271,7 @@ class ExtraInput(QTextEdit):
                             if not local_path:
                                 continue
                             if os.path.isdir(local_path):
-                                # Recursively add all files from the dropped directory
-                                for root, _, files in os.walk(local_path):
-                                    for name in files:
-                                        fpath = os.path.join(root, name)
-                                        try:
-                                            self.window.controller.attachment.from_clipboard_url(fpath, all=True)
-                                        except Exception:
-                                            continue
+                                self._directory_paste_handler.add_directory(local_path)
                             else:
                                 self.window.controller.attachment.from_clipboard_url(local_path, all=True)
                         else:

@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 13:00:00                  #
+# Updated Date: 2026.09.10 11:36:00                  #
 # ================================================== #
 
-from pygpt_net.core.image_state import (
+from pygpt_net.core.agents_v2.tool_bridge import mark_pending
+from pygpt_net.core.image.state import (
     get_current_user_image_path,
     get_last_generated_image_path,
     get_last_user_reference_image_path,
@@ -20,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -41,6 +43,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_dalle"
+        self.is_common_plugin = True
         self.name = "Image generation"
         self.description = "Integrates image generation with any chat"
         self.prefix = "Image"
@@ -157,7 +160,7 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         core = self.window.core
-        current_image = get_current_user_image_path(core, mode)
+        current_image = get_current_user_image_path(core, mode, ctx=ctx)
         if current_image:
             remember_user_reference_image_path(core, ctx, current_image)
         referenced_image = current_image or get_last_user_reference_image_path(core, ctx)
@@ -216,6 +219,7 @@ class Plugin(BasePlugin):
                         resolved_reference = resolve_local_image_path(
                             self.window.core,
                             reference_image,
+                            ctx=ctx,
                         )
                         if resolved_reference is None:
                             raise ValueError(
@@ -226,7 +230,7 @@ class Plugin(BasePlugin):
 
                     # if internal call (ctx.internal = True), then re-send OK response
                     # if not internal call, then append image to chat only
-                    model_id = self.get_option_value("model") or "gpt-image-1"
+                    model_id = self.get_option_value("model") or "gpt-image-2.5-flare"
                     model = self.window.core.models.get(model_id)
                     if model is None:
                         model = ModelItem(model_id)
@@ -248,6 +252,10 @@ class Plugin(BasePlugin):
                         # to enter their native edit/remix path.
                         extra["image_id"] = reference_image
                     sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]
+                    if (self.window.core.config.get("mode") == MODE_AGENT_V2
+                            and isinstance(ctx.extra, dict)
+                            and ctx.extra.get("agents_v2_async_tool")):
+                        mark_pending(ctx, True)
 
                     # Use the native image provider selected by the configured image model.
                     if model.provider == "google" and self.window.core.config.get("api_native_google", False):

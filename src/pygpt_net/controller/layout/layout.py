@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.31 16:00:00                  #
+# Updated Date: 2026.09.18 19:05:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QRect
-
-from pygpt_net.utils import trans
 
 
 class Layout:
@@ -30,8 +28,6 @@ class Layout:
             "toolbox",
             "toolbox.mode",
             "calendar",
-            "interpreter",
-            "interpreter.columns",
             "columns",
         ]
         self.text_nodes = ["input", "input_extra"]
@@ -76,7 +72,12 @@ class Layout:
             if widget is None:
                 continue
             try:
-                widget.setText(value)
+                if hasattr(widget, "set_mention_text"):
+                    widget.set_mention_text(value)
+                elif hasattr(widget, "setText"):
+                    widget.setText(value)
+                else:
+                    widget.setPlainText(value)
             except Exception as e:
                 print("Error while restoring field state: " + str(e))
                 self.window.core.debug.log(e)
@@ -89,7 +90,10 @@ class Layout:
             widget = ui_nodes.get(node_id)
             if widget is None:
                 continue
-            data[node_id] = widget.toPlainText()
+            if hasattr(widget, "serialize_mentions"):
+                data[node_id] = widget.serialize_mentions()
+            else:
+                data[node_id] = widget.toPlainText()
         self.window.core.config.set('layout.text_nodes', data)
 
     def tabs_save(self):
@@ -131,7 +135,16 @@ class Layout:
                 self.window.core.debug.log(e)
 
     def splitters_save(self):
-        """Save splitters state"""
+        """Save splitters state.
+
+        ``main.output`` has a transient footer-only geometry while a non-chat
+        tab hides the Chat composer. Persist the last real Chat geometry instead
+        so restarting on Notepad/Files/etc. cannot permanently collapse input.
+        """
+        config = self.window.core.config
+        previous = config.get('layout.splitters', {}) if config.has('layout.splitters') else {}
+        if not isinstance(previous, dict):
+            previous = {}
         data = {}
         ui_splitters = self.window.ui.splitters
         for splitter in self.splitters:
@@ -141,10 +154,20 @@ class Layout:
             if splitter_widget is None:
                 continue
             try:
+                if splitter == "main.output":
+                    tabs = getattr(self.window.controller.ui, 'tabs', None)
+                    if tabs is not None and getattr(tabs, '_chat_input_suppressed', False):
+                        remembered = tabs.get_chat_input_splitter_sizes_for_save()
+                        if remembered is not None:
+                            data[splitter] = remembered
+                            continue
+                        if splitter in previous:
+                            data[splitter] = previous[splitter]
+                            continue
                 data[splitter] = splitter_widget.sizes()
             except Exception:
                 pass
-        self.window.core.config.set('layout.splitters', data)
+        config.set('layout.splitters', data)
 
     def splitters_restore(self):
         """Restore splitters state"""
@@ -161,6 +184,10 @@ class Layout:
                 current = splitter_widget.sizes()
                 if current != sizes:
                     splitter_widget.setSizes(sizes)
+                if splitter == "main.output":
+                    tabs = getattr(self.window.controller.ui, 'tabs', None)
+                    if tabs is not None:
+                        tabs.remember_restored_chat_input_splitter_sizes(list(splitter_widget.sizes()))
             except Exception as e:
                 print("Error while restoring splitter state: " + str(e))
                 self.window.core.debug.log(e)
@@ -269,14 +296,19 @@ class Layout:
     def state_save(self):
         """Save window state"""
         data = {}
-        geometry = self.window.geometry()
+        fullscreen = self.window.isFullScreen()
+        geometry = self.window.normalGeometry() if fullscreen else self.window.geometry()
         data['geometry'] = {
             'x': geometry.x(),
             'y': geometry.y(),
             'width': geometry.width(),
             'height': geometry.height(),
         }
-        data['maximized'] = self.window.isMaximized()
+        data['maximized'] = (
+            self.window._fullscreen_restore_maximized
+            if fullscreen
+            else self.window.isMaximized()
+        )
         self.window.core.config.set('layout.window', data)
 
         # ------------------
@@ -325,38 +357,6 @@ class Layout:
             except Exception as e:
                 print("Error while restoring group state: " + str(e))
                 self.window.core.debug.log(e)
-
-    def restore_default_css(self, force: bool = False):
-        """
-        Restore app CSS to default
-
-        :param force: Force restore
-        """
-        if not force:
-            self.window.ui.dialogs.confirm(
-                type='restore.css',
-                id=0,
-                msg=trans('dialog.css.restore.confirm'),
-            )
-            return
-
-        # restore css
-        self.window.core.debug.info("Restoring CSS...")
-        self.window.core.filesystem.backup_custom_css()
-        self.window.core.filesystem.install_css(force=True)
-        self.window.core.debug.info("CSS restored.")
-
-        # update editor if opened
-        current_file = self.window.ui.dialog['config.editor'].file
-        if current_file is not None:
-            if current_file.endswith('.css') and self.window.core.settings.active['editor']:
-                self.window.core.settings.load_editor(current_file)
-
-        # show success message
-        self.window.ui.dialogs.alert(trans('dialog.css.restore.confirm.success'))
-        self.window.core.debug.info("Reloading theme...")
-        self.window.controller.theme.reload(force=True)  # reload theme
-        self.window.core.debug.info("Theme reloaded.")
 
     def reload(self):
         """Reload layout"""

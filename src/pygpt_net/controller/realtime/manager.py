@@ -48,6 +48,12 @@ class Manager:
         self.window.core.debug.info(f"[realtime] Begin: provider={opts.provider}, model={opts.model}")
         self.window.threadpool.start(worker)
 
+    def update_ctx(self, ctx: CtxItem):
+        """Update the context used by callbacks of the active realtime worker."""
+        self.ctx = ctx
+        if self.worker is not None:
+            self.worker.ctx = ctx
+
     def shutdown(self):
         """Shutdown realtime worker"""
         self.worker = None

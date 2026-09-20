@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2026.09.14 13:55:00                  #
 # ================================================== #
 
 import os
@@ -16,7 +16,6 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePolicy, QHBoxLayout
 
 from pygpt_net.ui.widget.textarea.name import NameInput
-from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.audio.input_button import VoiceControlButton
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
@@ -51,6 +50,9 @@ class Footer:
         self.video = Video(window)
         self.raw = Raw(window)
         self.split = Split(window)
+        # Logical hover sections exposed to ToolboxMain. Every direct footer
+        # block, including Split screen, is independent.
+        self.hover_sections = []
 
     def setup(self) -> QWidget:
         """
@@ -58,32 +60,32 @@ class Footer:
 
         :return: QHBoxLayout
         """
-        # bottom
-        option = dict(self.window.controller.settings.editor.get_options()["temperature"])
-        self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"), self.window)
-        self.window.ui.config['global']['current_temperature'] = \
-            OptionSlider(self.window, 'global', 'current_temperature', option)
-        self.window.ui.add_hook("update.global.current_temperature", self.window.controller.mode.hook_global_temperature)
-
         # voice control btn
         self.window.ui.nodes['voice.control.btn'] = VoiceControlButton(self.window)
         self.window.ui.nodes['voice.control.btn'].setVisible(False)
 
-        # per mode options
+        # Per-mode options. Each direct block is an independent hover section
+        # instead of treating the complete footer as one large section.
+        sections = [
+            self.agent.setup(),
+            self.agent_llama.setup(),
+            self.raw.setup(),
+            self.image.setup(),
+            self.video.setup(),
+            self.indexes.setup_options(),
+            self.env.setup(),
+            self.window.ui.nodes['voice.control.btn'],
+            self.audio.setup(),
+            self.split.setup(),
+        ]
+
         widget = QWidget(self.window)
         rows = QVBoxLayout(widget)
-        rows.addWidget(self.agent.setup())
-        rows.addWidget(self.agent_llama.setup())
-        rows.addWidget(self.raw.setup())
-        rows.addWidget(self.image.setup())
-        rows.addWidget(self.video.setup())
-        rows.addWidget(self.indexes.setup_options())
-        rows.addWidget(self.env.setup())
-        rows.addWidget(self.window.ui.nodes['voice.control.btn'])
-        rows.addWidget(self.audio.setup())
-        rows.addWidget(self.split.setup())
+        for section in sections:
+            rows.addWidget(section)
 
         rows.setContentsMargins(2, 0, 0, 0)
+        self.hover_sections = sections
 
         return widget
 

@@ -10,6 +10,7 @@
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
 
 from tests.mocks import mock_window_conf
 from pygpt_net.core.ctx import Ctx
@@ -77,14 +78,17 @@ def test_select(mock_window_conf):
         2: item1,
         18: item2,
     }
-    ctx.window.core.models.has_model = MagicMock()
-    ctx.window.core.models.has_model.return_value = True
+    ctx.window.core.config.get = MagicMock(side_effect=lambda key, default=None: (
+        True if key == "model.restore_from_ctx" else default
+    ))
+    ctx.window.core.models.resolve_model_key = MagicMock(return_value="id_last_model")
 
     ctx.load = MagicMock()
     ctx.select(2)
     assert ctx.current == 2
     assert ctx.mode == 'test_mode'
     assert ctx.model == 'id_last_model'
+    ctx.window.core.models.resolve_model_key.assert_called_once_with('test_mode', 'id_last_model')
     assert ctx.thread == 'id_thread'
     assert ctx.assistant == 'id_assistant'
     assert ctx.preset == 'id_preset'
@@ -193,6 +197,10 @@ def test_update_item():
     Test update item
     """
     ctx = Ctx()
+    ctx.window = SimpleNamespace(core=SimpleNamespace(
+        filesystem=MagicMock(), attachments=MagicMock()
+    ))
+    ctx.window.core.attachments.get_ctx_excluded_paths.return_value = []
     ctx.provider = MagicMock()
     ctx.provider.update_item = MagicMock()
     item = CtxItem()
@@ -656,6 +664,8 @@ def test_count_prompt_items():
     ctx.window.core = MagicMock()
     ctx.window.core.tokens = MagicMock()
     ctx.window.core.tokens.from_ctx = MagicMock()
+    ctx.window.core.context_manager.fit_history_limit.side_effect = lambda model, limit: limit
+    ctx.window.core.context_manager.filter_history.side_effect = lambda values: values
 
     items = [
         CtxItem(),
@@ -696,6 +706,8 @@ def test_get_prompt_items():
     ctx.window.core = MagicMock()
     ctx.window.core.tokens = MagicMock()
     ctx.window.core.tokens.from_ctx = MagicMock()
+    ctx.window.core.context_manager.fit_history_limit.side_effect = lambda model, limit: limit
+    ctx.window.core.context_manager.filter_history.side_effect = lambda values: values
 
     item1 = CtxItem()
     item2 = CtxItem()

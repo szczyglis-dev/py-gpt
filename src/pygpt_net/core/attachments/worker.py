@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Signal, QObject, QRunnable, Slot
+from pygpt_net.core.qt import safe_emit
 
 
 class WorkerSignals(QObject):
@@ -33,11 +34,11 @@ class AttachmentWorker(QRunnable):
         """Index attachments"""
         try:
             self.window.controller.chat.attachment.upload(self.meta, self.mode, self.prompt)
-            self.signals.success.emit(self.prompt)
+            safe_emit(self.signals, "success", self.prompt)
 
         except Exception as e:
             if self.signals is not None:
-                self.signals.error.emit(e)
+                safe_emit(self.signals, "error", e)
             self.window.core.debug.error(e)
             print("Attachment processing error", e)
 

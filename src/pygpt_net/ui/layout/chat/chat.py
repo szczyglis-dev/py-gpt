@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.19 22:50:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot
@@ -41,8 +41,15 @@ class ChatMain:
         self.window.ui.splitters['main.output'] = splitter
         splitter.addWidget(output_widget)
         splitter.addWidget(input_widget)
-        splitter.setStretchFactor(0, 9)  # Output widget stretch factor
-        splitter.setStretchFactor(1, 1)  # Input widget stretch factor
+        # Allow the composer pane to be fully collapsed with the vertical
+        # splitter. QSplitter may then resize this child to 0 even though its
+        # normal Input tab keeps a non-zero minimum height.
+        splitter.setCollapsible(1, True)
+        # The message composer should keep the height selected by the user
+        # when the window is resized/maximized.  Let the output pane absorb
+        # the vertical size delta instead of scaling both panes proportionally.
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 0)
         splitter.splitterMoved.connect(self.on_splitter_moved)
         self.window.controller.ui.splitter_output_size_input = splitter.sizes()
 

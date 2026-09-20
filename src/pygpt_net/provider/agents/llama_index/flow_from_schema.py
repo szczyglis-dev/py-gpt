@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 14:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -59,6 +59,7 @@ class Agent(BaseAgent):
         default_model: ModelItem = kwargs.get("model", ModelItem())
 
         base_prompt = self.get_option(preset, "base", "prompt")
+        system_prompt_extra = self.get_system_prompt_extra(kwargs)
         allow_local_tools_default = bool(self.get_option(preset, "base", "allow_local_tools"))
         allow_remote_tools_default = bool(self.get_option(preset, "base", "allow_remote_tools"))
         max_iterations = int(self.get_option(preset, "base", "max_iterations") or kwargs.get("max_iterations", 20))
@@ -81,9 +82,11 @@ class Agent(BaseAgent):
             allow_remote_tools_default=allow_remote_tools_default,
             max_iterations=max_iterations,
             llm=llm,
+            computer_runtime=kwargs.get("computer_runtime"),
             tools=tools,
             stream=stream,
             base_prompt=base_prompt,
+            system_prompt_extra=system_prompt_extra,
             timeout=120,
             verbose=verbose,
         )

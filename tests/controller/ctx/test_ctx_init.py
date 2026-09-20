@@ -91,11 +91,14 @@ def test_select(mock_window):
     ctx.load = MagicMock()
     ctx.common = MagicMock()
     ctx.common.focus_chat = MagicMock()
+    mock_window.core.ctx.get_current.return_value = None
+    mock_window.core.ctx.get_meta_by_id.return_value = None
+    mock_window.controller.ui.tabs.focus_chat_by_data_id.return_value = False
 
     ctx.select(3)
 
     ctx.load.assert_called_once_with(3)
-    ctx.common.focus_chat.assert_called_once()
+    ctx.common.focus_chat.assert_called_once_with(None)
 
 
 def test_select_by_idx(mock_window):
@@ -207,6 +210,8 @@ def test_load(mock_window):
     ctx.common.update_label = MagicMock()
     mock_window.controller.chat.render.reset = MagicMock()
     mock_window.core.ctx.select = MagicMock()
+    mock_window.core.ctx.output.has_request = MagicMock(return_value=False)
+    mock_window.controller.chat.input.generating = False
 
     mock_window.core.models.has_model = MagicMock(return_value=True)
 
@@ -377,4 +382,5 @@ def test_context_change_locked(mock_window):
     mock_window.controller.chat.input.generating = True
     assert ctx.context_change_locked() is True
     mock_window.controller.chat.input.generating = False
+    mock_window.core.ctx.output.has_request = MagicMock(return_value=False)
     assert ctx.context_change_locked() is False

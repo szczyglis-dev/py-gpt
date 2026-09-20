@@ -14,6 +14,8 @@ import os
 import re
 from typing import Union, Optional, Tuple, List
 
+from bs4 import BeautifulSoup
+
 from pygpt_net.provider.audio_input.base import BaseProvider as InputBaseProvider
 from pygpt_net.provider.audio_output.base import BaseProvider as OutputBaseProvider
 
@@ -195,7 +197,67 @@ class Audio:
         :param text: text
         :return: cleaned text
         """
-        return re.sub(r'<tool>.*?</tool>', '', str(text))
+        if text is None:
+            return ""
+
+        value = str(text)
+
+        # Internal blocks are not user-facing prose and must never be spoken.
+        for tag in ("tool", "think", "execute"):
+            value = re.sub(
+                rf'<{tag}\b[^>]*>.*?</{tag}>',
+                '',
+                value,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+
+        # Keep only the visible label of Markdown links and drop image markup.
+        value = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', value)
+        value = re.sub(r'\[([^\]]+)\]\([^)]*\)', r'\1', value)
+
+        # Preserve code contents but remove Markdown delimiters and formatting.
+        value = re.sub(r'^\s{0,3}```[^\n]*$', '', value, flags=re.MULTILINE)
+        value = re.sub(r'^\s{0,3}~~~[^\n]*$', '', value, flags=re.MULTILINE)
+        value = re.sub(r'`([^`]+)`', r'\1', value)
+        value = re.sub(r'~~(.*?)~~', r'\1', value, flags=re.DOTALL)
+        value = re.sub(r'\*\*(.*?)\*\*', r'\1', value, flags=re.DOTALL)
+        value = re.sub(r'__(.*?)__', r'\1', value, flags=re.DOTALL)
+        value = re.sub(r'(?<!\*)\*([^*]+)\*(?!\*)', r'\1', value)
+        value = re.sub(r'(?<!_)_([^_]+)_(?!_)', r'\1', value)
+
+        # Strip block-level Markdown syntax while retaining its textual content.
+        value = re.sub(r'^\s{0,3}#{1,6}\s*', '', value, flags=re.MULTILINE)
+        value = re.sub(r'^\s*>+\s?', '', value, flags=re.MULTILINE)
+        value = re.sub(r'^\s*[-+*]\s+', '', value, flags=re.MULTILINE)
+        value = re.sub(r'^\s*\d+[.)]\s+', '', value, flags=re.MULTILINE)
+        value = re.sub(r'^\s*(?:[-*_]\s*){3,}$', '', value, flags=re.MULTILINE)
+        value = re.sub(
+            r'^\s*\|?(?:\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?\s*$',
+            '',
+            value,
+            flags=re.MULTILINE,
+        )
+        value = value.replace('|', ' ')
+
+        # Remove HTML/XML tags while preserving their visible text.
+        try:
+            soup = BeautifulSoup(value, 'html.parser')
+            for node in soup.find_all(['img', 'script', 'style']):
+                node.decompose()
+            value = soup.get_text(separator='\n')
+            soup.decompose()
+        except Exception:
+            value = re.sub(r'<[^>]+>', '', value)
+
+        # Unescape common Markdown escapes after markup has been removed.
+        value = re.sub(r'\\([\\`*_{}\[\]()#+\-.!>])', r'\1', value)
+
+        lines = []
+        for line in value.splitlines():
+            line = re.sub(r'\s+', ' ', line).strip()
+            if line:
+                lines.append(line)
+        return '\n'.join(lines)
 
     def get_last_error(self) -> str:
         """

@@ -14,6 +14,7 @@ import re
 import time
 from typing import Optional, Tuple
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.events import Event, KernelEvent, RenderEvent
@@ -108,7 +109,7 @@ class Helpers:
             "begin": begin,
         }
         event = RenderEvent(RenderEvent.STREAM_APPEND, data)
-        signals.response.emit(event)
+        safe_emit(signals, "response", event)
 
     def end_stream(self, ctx: CtxItem, signals: BridgeSignals):
         """
@@ -124,7 +125,7 @@ class Helpers:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.STREAM_END, data)
-        signals.response.emit(event)
+        safe_emit(signals, "response", event)
 
     def next_stream(self, ctx: CtxItem, signals: BridgeSignals):
         """
@@ -140,7 +141,7 @@ class Helpers:
             "ctx": ctx,
         }
         event = RenderEvent(RenderEvent.STREAM_NEXT, data)
-        signals.response.emit(event)
+        safe_emit(signals, "response", event)
 
     def send_response(
             self,
@@ -165,7 +166,7 @@ class Helpers:
             'context': context,
             'extra': kwargs,
         })
-        signals.response.emit(event)
+        safe_emit(signals, "response", event)
 
     def set_busy(
             self,
@@ -186,7 +187,7 @@ class Helpers:
         }
         event = KernelEvent(KernelEvent.STATE_BUSY, data)
         data.update(kwargs)
-        signals.response.emit(event)
+        safe_emit(signals, "response", event)
 
     def set_idle(
             self,
@@ -206,7 +207,7 @@ class Helpers:
         }
         event = KernelEvent(KernelEvent.STATE_IDLE, data)
         data.update(kwargs)
-        signals.response.emit(event)
+        safe_emit(signals, "response", event)
 
     def set_status(
             self,
@@ -225,7 +226,7 @@ class Helpers:
             "status": msg,
         }
         event = KernelEvent(KernelEvent.STATUS, data)
-        signals.response.emit(event)
+        safe_emit(signals, "response", event)
 
     def prepare_input(self, prompt: str) -> str:
         """

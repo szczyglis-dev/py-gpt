@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 19:00:00                  #
+# Updated Date: 2026.09.19 11:40:00                  #
 # ================================================== #
 
 import re
@@ -16,6 +16,8 @@ from typing import Optional, List
 from PySide6.QtGui import QTextCursor, QTextBlockFormat, QTextCharFormat
 
 from pygpt_net.core.render.base import BaseRenderer
+from pygpt_net.core.text.mentions import to_display_text as mentions_to_display_text
+from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
@@ -116,7 +118,7 @@ class Renderer(BaseRenderer):
         :param stream: True if it is a stream
         """
         if stream:
-            self.reload()  # reload ctx items only if stream
+            self.reload(meta)  # reload owning ctx items only if stream
 
     def end_extra(
             self,
@@ -201,15 +203,17 @@ class Renderer(BaseRenderer):
         if ctx.input is None or ctx.input == "":
             return
 
+        display_input = mentions_to_display_text(ctx.input)
+
         if self.is_timestamp_enabled() \
                 and ctx.input_timestamp is not None:
             name = ""
             if ctx.input_name is not None \
                     and ctx.input_name != "":
                 name = ctx.input_name + " "
-            text = '{} > {}'.format(name, ctx.input)
+            text = '{} > {}'.format(name, display_input)
         else:
-            text = "> {}".format(ctx.input)
+            text = "> {}".format(display_input)
 
         # check if it is a command response
         is_cmd = False
@@ -227,7 +231,7 @@ class Renderer(BaseRenderer):
         else:
             # don't show user prefix if provided in internal call goal update
             if ctx.internal and ctx.input.startswith("user: "):
-                text = re.sub(r'^user: ', '> ', ctx.input)
+                text = re.sub(r'^user: ', '> ', display_input)
 
         self.append_raw(meta, ctx, text.strip(), "msg-user")
 
@@ -269,6 +273,11 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         :param footer: True if it is a footer
         """
+        # Do not expose Agents v2 artifacts/footer actions during the final stream.
+        # They are attached and rendered after AGENT_V2_END commits the response.
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return
+
         pid = self.get_or_create_pid(meta)
         node = self.get_output_node(meta)
         appended = []
@@ -278,6 +287,11 @@ class Renderer(BaseRenderer):
         if c > 0:
             n = 1
             for image in ctx.images:
+                attachments = getattr(self.window.core, "attachments", None)
+                if (attachments is not None
+                        and hasattr(attachments, "is_ctx_excluded_path")
+                        and attachments.is_ctx_excluded_path(image)):
+                    continue
                 # don't append if it is an external url
                 if image.startswith("http"):
                     continue
@@ -285,7 +299,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(image)
-                    node.append(self.body.get_image_html(image, n, c))
+                    node.append(self.body.get_image_html(image, n, c, ctx=ctx))
                     self.pids[pid].images_appended.append(image)
                     n += 1
                 except Exception as e:
@@ -300,7 +314,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.append(file)
-                    node.append(self.body.get_file_html(file, n, c))
+                    node.append(self.body.get_file_html(file, n, c, ctx=ctx))
                     n += 1
                 except Exception as e:
                     pass
@@ -394,6 +408,9 @@ class Renderer(BaseRenderer):
         to_append = self.pids[pid].buffer
         if re.search(r'```(?!.*```)', self.pids[pid].buffer):
             to_append += "\n```"  # fix for code block without closing ```
+        # Resolve runtime workdir/sandbox placeholders against the context
+        # that owns this streamed message, not whichever tab is active now.
+        to_append = self.helpers.pre_format_text(to_append, ctx=ctx)
         html = self.parser.parse(to_append)
         self.append_html_chunk(meta, ctx, self.helpers.format_chunk(html))
 
@@ -458,7 +475,7 @@ class Renderer(BaseRenderer):
         :param type: type of message
         """
         if type != "msg-user":  # markdown for bot messages
-            text = self.helpers.pre_format_text(text)
+            text = self.helpers.pre_format_text(text, ctx=ctx)
             text = self.parser.parse(text)
             text = self.append_timestamp(ctx, text)
         else:
@@ -571,11 +588,11 @@ class Renderer(BaseRenderer):
             self.pids[pid].images_appended = []
             self.pids[pid].urls_appended = []
 
-    def reload(self):
+    def reload(self, meta: Optional[CtxMeta] = None):
         """
         Reload output, called externally only on theme change to redraw content
         """
-        self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
+        self.window.controller.ctx.refresh_output(meta)  # rebuild the requested chat only
 
     def clear_output(
             self,
@@ -610,7 +627,8 @@ class Renderer(BaseRenderer):
 
         :return: True if timestamp is enabled
         """
-        return self.window.core.config.get('output_timestamp')
+        config = self.window.core.config
+        return bool(config.get('render.plain') and config.get('output_timestamp'))
 
     def get_output_node(self, meta: CtxMeta) -> ChatOutput:
         """
@@ -649,7 +667,7 @@ class Renderer(BaseRenderer):
 
     def on_theme_change(self):
         """On theme change"""
-        stylesheet = self.window.controller.theme.markdown.css['markdown']
+        stylesheet = self.window.controller.theme.markdown.get_legacy_css()
         for node in self.get_all_nodes():
             # self.window.ui.nodes['output_plain'].setStyleSheet(stylesheet)
             node.setStyleSheet(stylesheet)

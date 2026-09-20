@@ -12,6 +12,7 @@
 import os
 from typing import Optional, List, Dict
 
+from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -31,7 +32,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx=None
     ) -> str:
         """
         Get image HTML
@@ -44,7 +46,7 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         return """<a href="{url}"><img src="{path}" width="{img_width}" class="image"></a>
         <p><b>{prefix}{num}:</b> <a href="{url}">{path}</a></p>""". \
             format(prefix=trans('chat.prefix.img'),
@@ -115,7 +117,8 @@ class Body:
             self,
             url: str,
             num: Optional[int] = None,
-            num_all: Optional[int] = None
+            num_all: Optional[int] = None,
+            ctx=None
     ) -> str:
         """
         Get file HTML
@@ -128,7 +131,7 @@ class Body:
         num_str = ""
         if num is not None and num_all is not None and num_all > 1:
             num_str = " [{}]".format(num)
-        url, path = self.window.core.filesystem.extract_local_url(url)
+        url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         return """<div><b>{prefix}{num}:</b> <a href="{url}">{path}</a></div>""". \
             format(prefix=trans('chat.prefix.file'),
                    url=url,
@@ -148,6 +151,8 @@ class Body:
         :return: list of icons
         """
         icons = []
+        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+            return icons
 
         # audio read
         if ctx.output is not None and ctx.output != "":

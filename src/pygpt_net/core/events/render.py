@@ -73,3 +73,6 @@ class RenderEvent(BaseEvent):
 
     LIVE_APPEND = "render.live.append"
     LIVE_CLEAR = "render.live.clear"
+
+    AGENT_STATUS = "render.agent.status"
+    AGENT_STATUS_CLEAR = "render.agent.status.clear"

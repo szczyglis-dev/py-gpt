@@ -368,7 +368,7 @@ class AgentBuilder(BaseTool):
         actions = {}
         actions["agent.builder"] = QAction(
             QIcon(":/icons/robot.svg"),
-            trans("menu.tools.agent.builder"),
+            trans("menu.tools.agent.builder.legacy"),
             self.window,
             checkable=False,
         )
@@ -474,6 +474,6 @@ class AgentBuilder(BaseTool):
         """
         return {
             'menu.text': {
-                'tools.agent.builder': 'menu.tools.agent.builder',
+                'tools.agent.builder': 'menu.tools.agent.builder.legacy',
             }
         }

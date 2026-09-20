@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2026.09.14 22:30:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel
@@ -37,7 +37,7 @@ class SearchInput:
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['ctx.search'])
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 2, 0, 0)
 
         widget = QWidget()
         widget.setLayout(layout)

@@ -21,7 +21,9 @@ from pygpt_net.core.bridge.context import BridgeContext, MultimodalContext
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.api.reasoning import ensure_reasoning_metadata, store_reasoning
+from pygpt_net.provider.api.reasoning import (
+    ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
+)
 
 from xai_sdk.chat import system as xsystem, user as xuser, assistant as xassistant, image as ximage
 
@@ -95,6 +97,13 @@ class Chat:
             self.window.core.debug.info(f"[xai] Switching to vision model: {fb} (was: {model_id}) due to image input")
             model_id = fb
 
+        reasoning_effort = self.window.core.models.get_reasoning_effort(model_item)
+        if model_id != model_item.id:
+            # A vision fallback is a different API model and may not expose the
+            # selected model's reasoning control. Do not forward the parameter
+            # unless the actually selected catalog model is being called.
+            reasoning_effort = None
+
         # Server-side Agent Tools availability (web_search/x_search/code_execution/MCP/collections)
         # If any server-side tool is enabled, delegate to the Responses API which implements the Agent Tools flow.
         srv_cfg = self.window.core.api.xai.remote.build_for_chat(model_item, stream=context.stream)
@@ -109,27 +118,48 @@ class Chat:
                 messages=sdk_messages,
                 tools=tools_prepared or None,
                 search_parameters=None,  # Live Search removed from Chat Completions; handled via Agent Tools in Responses API
-                temperature=context.temperature,
                 max_tokens=context.max_tokens,
                 system_prompt=system_prompt,
                 history=context.history,
                 attachments=attachments,
                 prompt=prompt,
+                reasoning_effort=reasoning_effort,
             )
 
         # NON-STREAM: prefer SDK only for plain chat (no function tools/tool-turns/images)
         prefer_sdk_plain = (not tools_prepared) and (not has_tool_turns) and (not has_images)
         if prefer_sdk_plain:
-            chat = client.chat.create(model=model_id, messages=sdk_messages)
+            chat_kwargs = {"model": model_id, "messages": sdk_messages}
+            if reasoning_effort:
+                chat_kwargs["reasoning_effort"] = reasoning_effort
+            self.window.core.api.logger.log_input(
+                type="chat.create", provider="xai", kwargs=chat_kwargs,
+                input=sdk_messages, history=context.history, extra=extra,
+                model=model_id, path="client.chat.create",
+            )
+            chat = client.chat.create(**chat_kwargs)
             try:
                 if hasattr(chat, "sample"):
-                    return chat.sample()
+                    response = chat.sample()
+                    self.window.core.api.logger.log_output(
+                        type="chat.sample", provider="xai", output=response, model=model_id,
+                    )
+                    return response
                 if hasattr(chat, "output_text"):
+                    self.window.core.api.logger.log_output(
+                        type="chat.create", provider="xai", output=chat, model=model_id,
+                    )
                     return chat
                 if hasattr(chat, "message"):
+                    self.window.core.api.logger.log_output(
+                        type="chat.create", provider="xai", output=chat, model=model_id,
+                    )
                     return chat
             except Exception:
                 pass
+            self.window.core.api.logger.log_output(
+                type="chat.create", provider="xai", output=chat, model=model_id,
+            )
             return chat
 
         # Otherwise HTTP non-stream for legacy function-calling/vision/tool-turns (without Live Search)
@@ -142,8 +172,8 @@ class Chat:
             multimodal_ctx=multimodal_ctx,
             tools=tools_prepared or [],
             search_parameters=None,  # Live Search removed from Chat Completions; handled via Agent Tools in Responses API
-            temperature=context.temperature,
             max_tokens=context.max_tokens,
+            reasoning_effort=reasoning_effort,
         )
         return {
             "output_text": text or "",
@@ -163,6 +193,8 @@ class Chat:
         :param response: Response object from SDK or HTTP (dict)
         :param ctx: CtxItem to fill
         """
+        show_reasoning = is_realtime_reasoning_enabled(self.window)
+
         # Text
         txt = getattr(response, "content", None)
         if not txt and isinstance(response, dict):
@@ -200,19 +232,20 @@ class Chat:
 
         ctx.output = (str(txt or "")).strip()
 
-        try:
-            reasoning = self._extract_reasoning_content(response)
-            if reasoning:
-                store_reasoning(
-                    ctx=ctx,
-                    provider="xai",
-                    text=reasoning,
-                    kind="reasoning_summary",
-                    raw=False,
-                    visible=True,
-                )
-        except Exception:
-            pass
+        if show_reasoning:
+            try:
+                reasoning = self._extract_reasoning_content(response)
+                if reasoning:
+                    store_reasoning(
+                        ctx=ctx,
+                        provider="xai",
+                        text=reasoning,
+                        kind="reasoning_summary",
+                        raw=False,
+                        visible=True,
+                    )
+            except Exception:
+                pass
 
         # Tool calls
         calls = []
@@ -360,7 +393,8 @@ class Chat:
                         "reasoning_tokens": u.get("reasoning", 0),
                         "total_reported": u.get("total"),
                     }
-                    ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
+                    if show_reasoning:
+                        ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
                     return
 
             uattr = getattr(response, "usage", None)
@@ -377,7 +411,8 @@ class Chat:
                         "reasoning_tokens": u.get("reasoning", 0),
                         "total_reported": u.get("total"),
                     }
-                    ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
+                    if show_reasoning:
+                        ensure_reasoning_metadata(ctx, "xai", u.get("reasoning", 0))
                     return
 
             proto = getattr(response, "proto", None)
@@ -398,7 +433,8 @@ class Chat:
                     "reasoning_tokens": r,
                     "total_reported": t,
                 }
-                ensure_reasoning_metadata(ctx, "xai", r)
+                if show_reasoning:
+                    ensure_reasoning_metadata(ctx, "xai", r)
         except Exception:
             pass
 
@@ -458,8 +494,8 @@ class Chat:
         multimodal_ctx: Optional[MultimodalContext],
         tools: List[dict],
         search_parameters: Optional[Dict[str, Any]],
-        temperature: Optional[float],
         max_tokens: Optional[int],
+        reasoning_effort: Optional[str] = None,
     ) -> Tuple[str, List[dict], List[str], Optional[dict], str]:
         """
         Non-streaming HTTP Chat Completions call to xAI with optional tools, Live Search, and vision.
@@ -482,10 +518,11 @@ class Chat:
         payload: Dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "temperature": temperature if temperature is not None else self.window.core.config.get('temperature'),
         }
         if max_tokens:
             payload["max_tokens"] = int(max_tokens)
+        if reasoning_effort:
+            payload["reasoning_effort"] = reasoning_effort
 
         tools_payload = self._make_tools_payload(tools)
         if tools_payload:
@@ -502,6 +539,12 @@ class Chat:
 
         data = {}
         try:
+            self.window.core.api.logger.log_input(
+                type="http.chat.completions", provider="xai",
+                kwargs={"headers": headers, "json": payload, "timeout": 180},
+                input=messages, history=history, model=model,
+                path=f"{base_url}/chat/completions",
+            )
             resp = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=180)
             if not resp.encoding:
                 resp.encoding = "utf-8"
@@ -509,19 +552,24 @@ class Chat:
                 self.window.core.debug.error(f"[xai.http] {resp.status_code} {resp.reason}: {resp.text}")
             resp.raise_for_status()
             data = resp.json() if resp.content else {}
+            self.window.core.api.logger.log_output(
+                type="http.chat.completions", provider="xai", output=data, model=model,
+                extra={"status_code": resp.status_code},
+            )
         except Exception as e:
             self.window.core.debug.error(f"[xai.http] error: {e}")
             return "", [], [], None, ""
 
         text = ""
         reasoning = ""
+        collect_reasoning = is_realtime_reasoning_enabled(self.window)
         calls: List[dict] = []
         try:
             choices = data.get("choices") or []
             if choices:
                 msg = (choices[0].get("message") or {})
                 rc = msg.get("reasoning_content")
-                if isinstance(rc, str):
+                if collect_reasoning and isinstance(rc, str):
                     reasoning = rc.strip()
                 mc = msg.get("content")
                 if isinstance(mc, str):
@@ -577,12 +625,12 @@ class Chat:
         messages: Optional[list] = None,
         tools: Optional[List[dict]] = None,
         search_parameters: Optional[Dict[str, Any]] = None,
-        temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         system_prompt: Optional[str] = None,
         history: Optional[List[CtxItem]] = None,
         attachments: Optional[Dict[str, AttachmentItem]] = None,
         prompt: Optional[str] = None,
+        reasoning_effort: Optional[str] = None,
     ):
         """
         Streaming HTTP Chat Completions (SSE) for xAI.
@@ -610,11 +658,13 @@ class Chat:
         payload: Dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "temperature": temperature if temperature is not None else self.window.core.config.get('temperature'),
             "stream": True,
         }
         if max_tokens:
             payload["max_tokens"] = int(max_tokens)
+        if reasoning_effort:
+            payload["reasoning_effort"] = reasoning_effort
+        collect_reasoning = is_realtime_reasoning_enabled(self.window)
 
         tools_payload = self._make_tools_payload(tools or [])
         if tools_payload:
@@ -684,7 +734,7 @@ class Chat:
                                 rc = delta.get("reasoning_content")
                                 if rc is None:
                                     rc = message.get("reasoning_content")
-                                if rc is not None:
+                                if collect_reasoning and rc is not None:
                                     yield _mk_chunk(reasoning_content=str(rc))
                                 if "content" in delta and delta["content"] is not None:
                                     yield _mk_chunk(delta_text=str(delta["content"]))
@@ -716,7 +766,7 @@ class Chat:
                         try:
                             if isinstance(obj.get("delta"), dict):
                                 d = obj["delta"]
-                                if d.get("reasoning_content") is not None:
+                                if collect_reasoning and d.get("reasoning_content") is not None:
                                     yield _mk_chunk(reasoning_content=str(d["reasoning_content"]))
                                 if "content" in d and d["content"] is not None:
                                     yield _mk_chunk(delta_text=str(d["content"]))
@@ -724,7 +774,7 @@ class Chat:
                                 if tc:
                                     yield _mk_chunk(tool_calls=tc)
                             if isinstance(obj.get("message"), dict):
-                                if obj["message"].get("reasoning_content") is not None:
+                                if collect_reasoning and obj["message"].get("reasoning_content") is not None:
                                     yield _mk_chunk(reasoning_content=str(obj["message"]["reasoning_content"]))
                                 mc = obj["message"].get("content")
                                 if isinstance(mc, str):
@@ -762,6 +812,12 @@ class Chat:
         self_outer = self
 
         try:
+            self.window.core.api.logger.log_input(
+                type="http.chat.completions.stream", provider="xai",
+                kwargs={"headers": headers, "json": payload, "stream": True, "timeout": 300},
+                input=messages, history=history, model=model,
+                path=f"{base_url}/chat/completions",
+            )
             resp = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, stream=True, timeout=300)
             if not resp.encoding:
                 resp.encoding = "utf-8"
@@ -1036,6 +1092,11 @@ class Chat:
         last = items[-1]
         if not (last.extra and isinstance(last.extra, dict)):
             return
+        # Agents v2 may persist executed tool calls on the final user-visible
+        # message strictly for inspection. They are not an unfinished native
+        # tool turn and must never be replayed into xAI chat history.
+        if last.extra.get("agents_v2_tool_calls_display") is True:
+            return
         tool_calls = last.extra.get("tool_calls")
         tool_output = last.extra.get("tool_output")
         if not (tool_calls and isinstance(tool_calls, list)):
@@ -1112,16 +1173,8 @@ class Chat:
         return False
 
     def _is_vision_model(self, model: ModelItem) -> bool:
-        """
-        Heuristic check for vision-capable model IDs.
-        """
-        model_id = (model.id if model and model.id else "").strip()
-        if not model or not model_id:
-            return False
-        if model.is_image_input():
-            return True
-        mid = model_id.lower()
-        return ("vision" in mid) or ("-v" in mid and "grok" in mid)
+        """Return whether model metadata declares Image input support."""
+        return bool(model and model.is_image_input())
 
     def _make_tools_payload(self, tools: Optional[List[dict]]) -> List[dict]:
         """
@@ -1159,7 +1212,7 @@ class Chat:
                     file_id = p.get("id") or p.get("file_id")
                     if isinstance(file_id, str):
                         try:
-                            save = self.window.core.api.xai.store.download_to_dir(file_id)
+                            save = self.window.core.api.xai.store.download_to_dir(file_id, ctx=ctx)
                             if save:
                                 if not isinstance(ctx.files, list):
                                     ctx.files = []
@@ -1253,13 +1306,13 @@ class Chat:
         saved = []
         for fid in ids:
             try:
-                p = self.window.core.api.xai.store.download_to_dir(fid)
+                p = self.window.core.api.xai.store.download_to_dir(fid, ctx=ctx)
                 if p:
                     saved.append(p)
             except Exception:
                 continue
         if saved:
-            saved = self.window.core.filesystem.make_local_list(saved)
+            saved = self.window.core.filesystem.make_local_list(saved, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []
             for p in saved:

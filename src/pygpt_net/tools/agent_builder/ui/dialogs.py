@@ -131,7 +131,7 @@ class Builder:
         u.nodes["agent.builder.list.help"] = left_help_label
 
         dlg.setLayout(layout)
-        dlg.setWindowTitle(trans("agent.builder.title"))
+        dlg.setWindowTitle(trans("agent.builder.title.legacy"))
 
     def clear(self):
         """Clear dialog"""

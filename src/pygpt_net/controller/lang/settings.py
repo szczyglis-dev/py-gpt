@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -61,10 +61,32 @@ class Settings:
                 if node2 is not None:
                     node2.setText(t_desc)
 
+            if option.get('from_defaults'):
+                button = ui_nodes.get(f"settings.{opt_id}.from_defaults")
+                if button is not None:
+                    button.setText(tr('settings.agent.v2.prompt.from_defaults'))
+
         sections = w.core.settings.get_sections()
         tabs = ui_tabs['settings.section']
         for i, section_id in enumerate(sections.keys()):
             tabs.setTabText(i, tr(f'settings.section.{section_id}'))
+
+        # Nested tabs inside a settings section are persistent widgets too, so
+        # their captions must be explicitly refreshed when language changes.
+        section_tabs = ui_tabs.get('settings.section.tabs', {})
+        section_tab_keys = ui_tabs.get('settings.section.tab_keys', {})
+        for section_id, section_tabs_widget in section_tabs.items():
+            locale_keys = section_tab_keys.get(section_id, [])
+            for i, locale_key in enumerate(locale_keys):
+                if i >= section_tabs_widget.count():
+                    break
+                name_key = tr(locale_key)
+                tab_name = name_key
+                trans_key = name_key.replace(" ", "_").lower()
+                translated = tr(trans_key)
+                if translated != trans_key:
+                    tab_name = translated
+                section_tabs_widget.setTabText(i, tab_name)
 
         idx = tabs.currentIndex()
         w.settings.refresh_list()

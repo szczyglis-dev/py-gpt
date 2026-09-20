@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 17:40:00                  #
+# Updated Date: 2026.09.12 16:20:00
 # ================================================== #
 
 import io
@@ -18,13 +18,15 @@ from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from openai.types.chat import ChatCompletionChunk
 
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.types import MODE_AGENT
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.google.utils import capture_google_usage
 from pygpt_net.provider.api.reasoning import (
     close_stream_reasoning, cleanup_stream_reasoning, ensure_reasoning_metadata,
-    is_tagged_reasoning_model, persist_stream_reasoning,
-    strip_and_store_tagged_reasoning, strip_stream_reasoning,
+    is_realtime_reasoning_enabled, is_tagged_reasoning_model,
+    persist_stream_reasoning, strip_and_store_tagged_reasoning,
+    strip_stream_reasoning, strip_tagged_reasoning,
 )
 
 # Import provider-specific stream processors
@@ -72,6 +74,8 @@ class WorkerState:
     usage_payload: dict = field(default_factory=dict)
     google_stream_ref: Any = None
     tool_calls: list[dict] = field(default_factory=list)
+    chunk_count: int = 0
+    chunk_types: dict[str, int] = field(default_factory=dict)
 
     # --- Provider reasoning/thinking trace ---
     reasoning_buffer: Optional[io.StringIO] = None
@@ -81,6 +85,7 @@ class WorkerState:
     reasoning_kind: Optional[str] = None
     reasoning_raw: bool = False
     reasoning_open: bool = False
+    reasoning_enabled: bool = True
 
     # --- XAI SDK only ---
     xai_last_response: Any = None  # holds final response from xai_sdk.chat.stream()
@@ -109,6 +114,7 @@ class StreamWorker(QRunnable):
         emit_chunk = self.signals.chunk.emit
 
         state = WorkerState()
+        state.reasoning_enabled = is_realtime_reasoning_enabled(win)
         state.generator = self.stream
         state.img_path = core.image.gen_unique_path(ctx)
 
@@ -140,6 +146,10 @@ class StreamWorker(QRunnable):
                             etype = chunk.event_type
                     else:
                         state.chunk_type = self._detect_chunk_type(chunk)
+
+                    state.chunk_count += 1
+                    chunk_label = str(etype or type(chunk).__name__)
+                    state.chunk_types[chunk_label] = state.chunk_types.get(chunk_label, 0) + 1
 
                     # process chunk according to type
                     response = self._process_chunk(ctx, core, state, chunk, etype)
@@ -188,7 +198,16 @@ class StreamWorker(QRunnable):
         :param ctx: Current context item
         :return: True if should stop
         """
-        if not ctrl.kernel.stopped():
+        parent = getattr(ctx, "turn_parent", None)
+        context_stopped = bool(
+            getattr(ctx, "stopped", False)
+            or (parent is not None and getattr(parent, "stopped", False))
+        )
+        stale_autonomous = bool(
+            getattr(ctx, "mode", None) == MODE_AGENT
+            and not ctrl.agent.legacy.is_ctx_current_run(ctx)
+        )
+        if not ctrl.kernel.stopped() and not context_stopped and not stale_autonomous:
             return False
 
         gen = state.generator
@@ -202,6 +221,11 @@ class StreamWorker(QRunnable):
                         pass
 
         ctx.msg_id = None
+        ctx.stopped = True
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra["response_interrupted"] = True
+        ctx.extra.pop("response_final", None)
         state.stopped = True
         return True
 
@@ -374,11 +398,14 @@ class StreamWorker(QRunnable):
         model = core.models.get(ctx.model) if getattr(ctx, "model", None) else None
         if is_tagged_reasoning_model(model):
             provider = str(getattr(model, "provider", "") or "local")
-            output = strip_and_store_tagged_reasoning(
-                ctx,
-                output,
-                provider=provider,
-            )
+            if state.reasoning_enabled:
+                output = strip_and_store_tagged_reasoning(
+                    ctx,
+                    output,
+                    provider=provider,
+                )
+            else:
+                output = strip_tagged_reasoning(output)
         if state.out is not None:
             try:
                 state.out.close()
@@ -454,13 +481,43 @@ class StreamWorker(QRunnable):
         # Store provider-supplied readable reasoning separately from the actual
         # assistant output so it can be rendered after reload without polluting
         # subsequent model context.
-        persist_stream_reasoning(ctx, state)
-        if state.usage_payload:
-            ensure_reasoning_metadata(
-                ctx,
-                state.reasoning_provider or state.usage_vendor or "",
-                state.usage_payload.get("reasoning", 0),
+        if state.reasoning_enabled:
+            persist_stream_reasoning(ctx, state)
+            if state.usage_payload:
+                ensure_reasoning_metadata(
+                    ctx,
+                    state.reasoning_provider or state.usage_vendor or "",
+                    state.usage_payload.get("reasoning", 0),
+                )
+
+        # Emit one aggregate API output log for the whole stream. Individual
+        # deltas are intentionally never printed by the debug logger.
+        try:
+            provider = str(getattr(model, "provider", "") or "") if model is not None else ""
+            chunk_type = getattr(state.chunk_type, "value", str(state.chunk_type))
+            core.api.logger.log_output(
+                type=f"stream.{chunk_type}",
+                provider=provider,
+                output=ctx.output,
+                chunks=state.chunk_count,
+                chunk_types=state.chunk_types,
+                tool_calls=state.tool_calls,
+                usage=state.usage_payload or None,
+                error=state.error,
+                model=getattr(model, "id", getattr(ctx, "model", None)),
+                extra={"stopped": state.stopped},
             )
+        except Exception as e:
+            core.debug.log(e)
+
+        # Provider/stream errors are unfinished responses as well. Preserve that
+        # fact in the durable extra metadata so a later WebView/history rebuild
+        # may retain the last runtime statuses only for this newest broken turn.
+        if state.error:
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            ctx.extra["response_interrupted"] = True
+            ctx.extra.pop("response_final", None)
 
         core.ctx.update_item(ctx)
 

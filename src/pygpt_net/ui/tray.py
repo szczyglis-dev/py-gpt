@@ -114,14 +114,14 @@ class Tray:
         tray_menu['screenshot_menu'] = screenshot_menu
         tray_menu['screenshot'] = screenshot_menu.menuAction()
 
-        action = QAction(QIcon(":/icons/fullscreen.svg"), trans("menu.tray.screenshot.full_screen"), w)
-        tray_menu['screenshot_full_screen'] = action
-        tray_menu['screenshot_full_screen'].triggered.connect(self.make_screenshot)
-        screenshot_menu.addAction(action)
-
         action = QAction(QIcon(":/icons/crop.svg"), trans("menu.tray.screenshot.select_region"), w)
         tray_menu['screenshot_select_region'] = action
         tray_menu['screenshot_select_region'].triggered.connect(self.select_screenshot_region)
+        screenshot_menu.addAction(action)
+
+        action = QAction(QIcon(":/icons/fullscreen.svg"), trans("menu.tray.screenshot.full_screen"), w)
+        tray_menu['screenshot_full_screen'] = action
+        tray_menu['screenshot_full_screen'].triggered.connect(self.make_screenshot)
         screenshot_menu.addAction(action)
 
         action = QAction(trans("menu.file.exit"), w)

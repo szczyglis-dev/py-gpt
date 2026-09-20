@@ -1200,7 +1200,7 @@ class FileExplorer(QWidget):
         :param path: path to open (str or list of str)
         :param idx: index ID to use (name)
         """
-        self.window.controller.idx.indexer.index_file(path, idx)
+        self.window.controller.idx.indexer.index_file(path, idx, show_loader=True)
 
     def action_idx_remove(self, path: Union[str, list], idx: str):
         """
@@ -1209,7 +1209,7 @@ class FileExplorer(QWidget):
         :param path: path to open (str or list of str)
         :param idx: index ID to use (name)
         """
-        self.window.controller.idx.indexer.index_file_remove(path, idx)
+        self.window.controller.idx.indexer.index_file_remove(path, idx, show_loader=True)
 
     def action_open_dir(self, path: Union[str, list]):
         """

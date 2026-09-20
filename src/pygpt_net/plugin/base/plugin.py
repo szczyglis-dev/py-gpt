@@ -16,6 +16,7 @@ from PySide6.QtCore import QObject, Slot
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent
+from pygpt_net.core.types.tools import PERSIST_HIDDEN_TOOL_CALLS, register_hidden_tool
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
@@ -57,6 +58,7 @@ class BasePlugin(QObject):
         self.parent = None
         self.enabled = False
         self.use_locale = False
+        self.is_common_plugin = False
         self.order = 0
 
     def setup(self) -> Dict[str, Any]:
@@ -106,6 +108,8 @@ class BasePlugin(QObject):
             "params": {},
             "enabled": True,
         }
+        if kwargs.get("hidden") is True:
+            register_hidden_tool(cmd)
         if "instruction" in kwargs and isinstance(kwargs.get("instruction"), str):
             cmd_syntax["instruction"] = kwargs.get("instruction")
             kwargs.pop("instruction")
@@ -119,17 +123,6 @@ class BasePlugin(QObject):
         name = f"cmd.{cmd}"
         kwargs["cmd"] = cmd
         kwargs["value"] = cmd_syntax
-
-        kwargs["params_keys"] = {
-            "name": "text",
-            "type": {
-                "type": "combo",
-                "use": "var_types",
-                "keys": {},
-            },
-            "description": "text",
-            "required": "bool",
-        }
 
         return self.add_option(name, "cmd", **kwargs)
 
@@ -180,6 +173,8 @@ class BasePlugin(QObject):
         if opt:
             data = copy.deepcopy(opt["value"])
             data = {"cmd": cmd, **data}
+            if opt.get("hidden") is True:
+                data["hidden"] = True
             return data
         return None
 
@@ -478,12 +473,28 @@ class BasePlugin(QObject):
         ctx.reply = True
 
         extras = {k: v for k, v in response.items() if k not in self._IGNORE_EXTRA_KEYS}
+        # Runtime attachments are transport metadata for the immediate next model
+        # request. Do not persist local paths inside the durable tool transcript.
+        extras.pop("agent_runtime_attachments", None)
+        request = response.get("request") if isinstance(response, dict) else None
+        tool_name = ""
+        if isinstance(request, dict) and request.get("cmd"):
+            # Keep the originating command name next to the result so native
+            # providers can map parallel function outputs to the correct call_id.
+            tool_name = str(request["cmd"])
+            extras.setdefault("cmd", tool_name)
 
-        if not isinstance(ctx.extra, dict):
-            ctx.extra = {}
-        if "tool_output" not in ctx.extra:
-            ctx.extra["tool_output"] = []
-        ctx.extra["tool_output"].append(extras)
+        persist_tool_output = bool(
+            PERSIST_HIDDEN_TOOL_CALLS
+            or not tool_name
+            or not self.window.core.command.is_tool_hidden(tool_name)
+        )
+        if persist_tool_output:
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            if "tool_output" not in ctx.extra:
+                ctx.extra["tool_output"] = []
+            ctx.extra["tool_output"].append(extras)
 
         if "context" in response:
             cfg = self.window.core.config

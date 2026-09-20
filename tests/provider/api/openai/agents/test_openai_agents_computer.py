@@ -78,7 +78,7 @@ def test_click(dummy_window):
     comp.click(100, 200, "left")
     comp.call_cmd.assert_called_once_with({
         "cmd": "mouse_move",
-        "params": {"x": 100, "y": 200, "click": "left", "num_clicks": 1},
+        "params": {"x": 100, "y": 200, "click": "left", "num_clicks": 1, "coordinate_space": "screen"},
     })
 
 def test_double_click(dummy_window):
@@ -87,7 +87,7 @@ def test_double_click(dummy_window):
     comp.double_click(150, 250)
     comp.call_cmd.assert_called_once_with({
         "cmd": "mouse_move",
-        "params": {"x": 150, "y": 250, "click": "left", "num_clicks": 2},
+        "params": {"x": 150, "y": 250, "click": "left", "num_clicks": 2, "coordinate_space": "screen"},
     })
 
 def test_scroll(dummy_window):
@@ -96,7 +96,7 @@ def test_scroll(dummy_window):
     comp.scroll(10, 20, 5, 15)
     comp.call_cmd.assert_called_once_with({
         "cmd": "mouse_scroll",
-        "params": {"x": 10, "y": 20, "dx": 5, "dy": -15, "unit": "px"},
+        "params": {"x": 10, "y": 20, "dx": 5, "dy": 15, "unit": "px", "scroll_mode": "viewport", "coordinate_space": "screen"},
     })
 
 def test_type(dummy_window):
@@ -123,7 +123,7 @@ def test_move(dummy_window):
     comp.move(300, 400)
     comp.call_cmd.assert_called_once_with({
         "cmd": "mouse_move",
-        "params": {"x": 300, "y": 400},
+        "params": {"x": 300, "y": 400, "coordinate_space": "screen"},
     })
 
 def test_keypress(dummy_window):
@@ -141,7 +141,7 @@ def test_drag_with_path(dummy_window):
     comp.drag([(10, 20), (5, 5)])
     comp.call_cmd.assert_called_once_with({
         "cmd": "mouse_drag",
-        "params": {"x": 10, "y": 20, "dx": 5, "dy": 5},
+        "params": {"path": [{"x": 10, "y": 20}, {"x": 5, "y": 5}], "coordinate_space": "screen"},
     })
 
 def test_drag_empty(dummy_window):
@@ -205,12 +205,15 @@ def test_handle_item_computer_call(dummy_window, dummy_bridge, dummy_ctx):
     expected = [{
         "type": "computer_call_output",
         "call_id": "cid",
-        "acknowledged_safety_checks": ["check1"],
-        "output": {"type": "input_image", "image_url": "data:image/png;base64,base64img"},
+        "output": {
+            "type": "computer_screenshot",
+            "image_url": "data:image/png;base64,base64img",
+            "detail": "original",
+        },
     }]
     assert result == expected
 
-def fake_create_response(model, input, tools, truncation):
+def fake_create_response(model, input, tools):
     return {"id": "rid", "output": [{"role": "assistant", "content": "done", "type": "text"}]}
 
 def test_run(monkeypatch, dummy_window, dummy_bridge, dummy_ctx):

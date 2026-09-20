@@ -80,6 +80,10 @@ class ApiAnthropic:
             # filtered["base_url"] = base_url
 
         # Keep a fresh client per call; Anthropic client is lightweight
+        self.window.core.api.logger.log_input(
+            type="client.init", provider="anthropic", kwargs=filtered,
+            model=getattr(model, "id", None), path="anthropic.Anthropic",
+        )
         return anthropic.Anthropic(**filtered)
 
     def call(
@@ -194,7 +198,6 @@ class ApiAnthropic:
             ctx = context.ctx
             prompt = context.prompt
             system_prompt = context.system_prompt
-            temperature = context.temperature
             history = context.history
             functions = context.external_functions
             model = context.model or self.window.core.models.from_defaults()
@@ -219,12 +222,19 @@ class ApiAnthropic:
             }
             if system_prompt:
                 params["system"] = system_prompt
-            if temperature is not None:
-                params["temperature"] = temperature
             if tools:  # only include when non-empty list
                 params["tools"] = tools
 
+            self.window.core.api.logger.log_input(
+                type="messages.create", provider="anthropic", kwargs=params,
+                input=inputs, history=history, extra=extra, model=model.id,
+                path="client.messages.create",
+            )
             resp = client.messages.create(**params)
+            self.window.core.api.logger.log_output(
+                type="messages.create", provider="anthropic",
+                output=resp, model=model.id,
+            )
 
             if ctx:
                 calls = self.chat.extract_tool_calls(resp)

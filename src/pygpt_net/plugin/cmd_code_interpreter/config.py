@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 13:20:00
+# Updated Date: 2026.09.17 13:45:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -34,7 +34,7 @@ WORKDIR /data
 CMD ["ipython", "kernel",         "--ip=0.0.0.0",         "--transport=tcp",         "--shell=5555",         "--iopub=5556",         "--stdin=5557",         "--control=5558",         "--hb=5559",         "--Session.key=19749810-8febfa748186a01da2f7b28c",         "--Session.signature_scheme=hmac-sha256"]
 """.strip()
 
-IPYTHON_DOCKERFILE = r"""
+IPYTHON_DOCKERFILE_PRE_BUNDLED = r"""
 # Tip: After making changes to this Dockerfile, you must rebuild the image to apply the changes (Tools -> Docker -> Rebuild IPython Docker Image).
 
 FROM python:3.12-slim
@@ -48,9 +48,20 @@ ARG PYGPT_GID=1000
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
+    wget \
+    tree \
     ca-certificates \
     passwd \
     sudo \
+    zip \
+    unzip \
+    tar \
+    gzip \
+    bzip2 \
+    xz-utils \
+    jq \
+    file \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
@@ -91,6 +102,203 @@ CMD ["ipython", "kernel", \
 "--Session.signature_scheme=hmac-sha256"]
 """.strip()
 
+IPYTHON_DOCKERFILE_PRE_NODEJS = r"""
+# Tip: After making changes to this Dockerfile, you must rebuild the image to apply the changes (Tools -> Docker -> Rebuild IPython Docker Image).
+
+FROM python:3.12-slim
+
+# IDs are supplied by PyGPT while building the stock image. On Linux they
+# match the desktop user so bind-mounted files keep the correct ownership.
+ARG PYGPT_UID=1000
+ARG PYGPT_GID=1000
+
+# Common command-line tools used by the sandbox, including PDF text extraction
+# utilities and fonts required for reliable chart rendering.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    wget \
+    tree \
+    ca-certificates \
+    passwd \
+    sudo \
+    zip \
+    unzip \
+    tar \
+    gzip \
+    bzip2 \
+    xz-utils \
+    jq \
+    file \
+    procps \
+    poppler-utils \
+    fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    group_name="$(getent group "$PYGPT_GID" | cut -d: -f1 || true)"; \
+    if [ -z "$group_name" ]; then \
+        groupadd --gid "$PYGPT_GID" pygpt; \
+        group_name=pygpt; \
+    fi; \
+    useradd --uid "$PYGPT_UID" --gid "$group_name" --create-home --shell /bin/bash pygpt; \
+    echo 'pygpt ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/pygpt; \
+    chmod 0440 /etc/sudoers.d/pygpt; \
+    mkdir -p /data /opt/pygpt-venv; \
+    chown -R "$PYGPT_UID:$PYGPT_GID" /data /opt/pygpt-venv
+
+# Python environment required by the IPython sandbox. It is owned by the
+# unprivileged user, so ordinary `pip install` does not need root privileges.
+# The stock image includes a practical data/science/document toolkit so agents
+# can analyze files and generate charts without installing common packages first.
+USER pygpt
+RUN python -m venv /opt/pygpt-venv \
+    && /opt/pygpt-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && /opt/pygpt-venv/bin/pip install --no-cache-dir \
+        jupyter \
+        ipykernel \
+        numpy \
+        pandas \
+        matplotlib \
+        scipy \
+        sympy \
+        scikit-learn \
+        pillow \
+        openpyxl \
+        xlsxwriter \
+        pypdf \
+        pdfminer.six \
+        pdfplumber \
+        pymupdf \
+        reportlab \
+        python-docx \
+        python-pptx \
+        requests \
+        beautifulsoup4 \
+        lxml \
+        tabulate \
+        pyyaml
+ENV PATH="/opt/pygpt-venv/bin:/home/pygpt/.local/bin:${PATH}"
+
+# Expose the necessary ports for Jupyter kernel communication.
+EXPOSE 5555 5556 5557 5558 5559
+
+# Data directory, bound as a volume to the local 'data' directory.
+WORKDIR /data
+
+# Start the IPython kernel with specified ports and settings.
+CMD ["ipython", "kernel", \
+"--ip=0.0.0.0", \
+"--transport=tcp", \
+"--shell=5555", \
+"--iopub=5556", \
+"--stdin=5557", \
+"--control=5558", \
+"--hb=5559", \
+"--Session.key=19749810-8febfa748186a01da2f7b28c", \
+"--Session.signature_scheme=hmac-sha256"]
+""".strip()
+
+IPYTHON_DOCKERFILE = r"""
+# Tip: After making changes to this Dockerfile, you must rebuild the image to apply the changes (Tools -> Docker -> Rebuild IPython Docker Image).
+
+FROM python:3.12-slim
+
+# IDs are supplied by PyGPT while building the stock image. On Linux they
+# match the desktop user so bind-mounted files keep the correct ownership.
+ARG PYGPT_UID=1000
+ARG PYGPT_GID=1000
+
+# Common command-line tools used by the sandbox, including PDF text extraction
+# utilities and fonts required for reliable chart rendering.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    wget \
+    tree \
+    ca-certificates \
+    passwd \
+    sudo \
+    zip \
+    unzip \
+    tar \
+    gzip \
+    bzip2 \
+    xz-utils \
+    jq \
+    file \
+    procps \
+    nodejs \
+    npm \
+    poppler-utils \
+    fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    group_name="$(getent group "$PYGPT_GID" | cut -d: -f1 || true)"; \
+    if [ -z "$group_name" ]; then \
+        groupadd --gid "$PYGPT_GID" pygpt; \
+        group_name=pygpt; \
+    fi; \
+    useradd --uid "$PYGPT_UID" --gid "$group_name" --create-home --shell /bin/bash pygpt; \
+    echo 'pygpt ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/pygpt; \
+    chmod 0440 /etc/sudoers.d/pygpt; \
+    mkdir -p /data /opt/pygpt-venv; \
+    chown -R "$PYGPT_UID:$PYGPT_GID" /data /opt/pygpt-venv
+
+# Python environment required by the IPython sandbox. It is owned by the
+# unprivileged user, so ordinary `pip install` does not need root privileges.
+# The stock image includes a practical data/science/document toolkit so agents
+# can analyze files and generate charts without installing common packages first.
+USER pygpt
+RUN python -m venv /opt/pygpt-venv \
+    && /opt/pygpt-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && /opt/pygpt-venv/bin/pip install --no-cache-dir \
+        jupyter \
+        ipykernel \
+        pytest \
+        numpy \
+        pandas \
+        matplotlib \
+        scipy \
+        sympy \
+        scikit-learn \
+        pillow \
+        openpyxl \
+        xlsxwriter \
+        pypdf \
+        pdfminer.six \
+        pdfplumber \
+        pymupdf \
+        reportlab \
+        python-docx \
+        python-pptx \
+        requests \
+        beautifulsoup4 \
+        lxml \
+        tabulate \
+        pyyaml
+ENV PATH="/opt/pygpt-venv/bin:/home/pygpt/.local/bin:${PATH}"
+
+# Expose the necessary ports for Jupyter kernel communication.
+EXPOSE 5555 5556 5557 5558 5559
+
+# Data directory, bound as a volume to the local 'data' directory.
+WORKDIR /data
+
+# Start the IPython kernel with specified ports and settings.
+CMD ["ipython", "kernel", \
+"--ip=0.0.0.0", \
+"--transport=tcp", \
+"--shell=5555", \
+"--iopub=5556", \
+"--stdin=5557", \
+"--control=5558", \
+"--hb=5559", \
+"--Session.key=19749810-8febfa748186a01da2f7b28c", \
+"--Session.signature_scheme=hmac-sha256"]
+""".strip()
+
 PYTHON_LEGACY_DOCKERFILE_39 = """
 FROM python:3.9-alpine
 
@@ -100,7 +308,7 @@ RUN mkdir /data
 WORKDIR /data
 """.strip()
 
-PYTHON_LEGACY_DOCKERFILE = r"""
+PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED = r"""
 FROM python:3.12-alpine
 
 # IDs are supplied by PyGPT while building the stock image. On Linux they
@@ -109,7 +317,7 @@ ARG PYGPT_UID=1000
 ARG PYGPT_GID=1000
 
 # Small set of commonly useful command-line tools plus passwordless sudo.
-RUN apk add --no-cache git curl ca-certificates sudo
+RUN apk add --no-cache git curl wget ca-certificates sudo bash zip tree unzip tar gzip bzip2 xz jq file coreutils findutils
 
 RUN set -eux; \
     group_name="$(awk -F: -v gid="$PYGPT_GID" '$3 == gid {print $1; exit}' /etc/group)"; \
@@ -126,6 +334,83 @@ RUN set -eux; \
 # Keep Python packages installed at runtime outside the system interpreter.
 USER pygpt
 RUN python -m venv /opt/pygpt-venv
+ENV PATH="/opt/pygpt-venv/bin:/home/pygpt/.local/bin:${PATH}"
+
+# Data directory, bound as a volume to the local 'data/' directory.
+WORKDIR /data
+""".strip()
+
+PYTHON_LEGACY_DOCKERFILE = r"""
+FROM python:3.12-slim
+
+# IDs are supplied by PyGPT while building the stock image. On Linux they
+# match the desktop user so bind-mounted files keep the correct ownership.
+ARG PYGPT_UID=1000
+ARG PYGPT_GID=1000
+
+# Common command-line tools used by the sandbox, including PDF text extraction
+# utilities and fonts required for reliable chart rendering.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    wget \
+    tree \
+    ca-certificates \
+    passwd \
+    sudo \
+    zip \
+    unzip \
+    tar \
+    gzip \
+    bzip2 \
+    xz-utils \
+    jq \
+    file \
+    procps \
+    poppler-utils \
+    fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    group_name="$(getent group "$PYGPT_GID" | cut -d: -f1 || true)"; \
+    if [ -z "$group_name" ]; then \
+        groupadd --gid "$PYGPT_GID" pygpt; \
+        group_name=pygpt; \
+    fi; \
+    useradd --uid "$PYGPT_UID" --gid "$group_name" --create-home --shell /bin/bash pygpt; \
+    echo 'pygpt ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/pygpt; \
+    chmod 0440 /etc/sudoers.d/pygpt; \
+    mkdir -p /data /opt/pygpt-venv; \
+    chown -R "$PYGPT_UID:$PYGPT_GID" /data /opt/pygpt-venv
+
+# Keep Python packages installed at runtime outside the system interpreter.
+# The stock image includes the same practical data/science/document toolkit as
+# the IPython sandbox so both execution paths have predictable capabilities.
+USER pygpt
+RUN python -m venv /opt/pygpt-venv \
+    && /opt/pygpt-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && /opt/pygpt-venv/bin/pip install --no-cache-dir \
+        numpy \
+        pandas \
+        matplotlib \
+        scipy \
+        sympy \
+        scikit-learn \
+        pillow \
+        openpyxl \
+        xlsxwriter \
+        pypdf \
+        pdfminer.six \
+        pdfplumber \
+        pymupdf \
+        reportlab \
+        python-docx \
+        python-pptx \
+        requests \
+        beautifulsoup4 \
+        lxml \
+        tabulate \
+        pyyaml
 ENV PATH="/opt/pygpt-venv/bin:/home/pygpt/.local/bin:${PATH}"
 
 # Data directory, bound as a volume to the local 'data/' directory.
@@ -206,6 +491,10 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "ipython_execute",
             instruction="execute Python code in IPython interpreter (in current kernel) and get output. "
+                        "Execution is non-interactive: never use input(), getpass(), or code that waits for stdin; "
+                        "provide required values directly in code. Shell commands invoked with ! are also "
+                        "non-interactive. Kernel failure is recovered automatically once; do not call "
+                        "ipython_kernel_restart repeatedly. "
                         "Tip: when generating plots or other image data always print path to generated image at "
                         "the end and provide local path (prefixed with file://, not sandbox:) to the user.",
             params=[
@@ -222,11 +511,12 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "ipython_sys_exec",
-            instruction="execute a system/shell command in the Code Interpreter environment. "
+            instruction="execute a system/shell command in the IPython interpreter environment. "
                         "When the IPython Docker sandbox is enabled, execute the command inside the same "
                         "running IPython container. When the sandbox is disabled, execute it on the host. "
                         "Use this for operating-system commands and command-line tools; use ipython_execute "
-                        "for Python code.",
+                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
+                        "for stdin; pass all required answers/options in the command itself.",
             params=[
                 {
                     "name": "command",
@@ -278,7 +568,8 @@ class Config(BaseConfig):
 
         plugin.add_cmd(
             "ipython_kernel_restart",
-            instruction="restart IPython kernel",
+            instruction="manually restart IPython kernel only after a real kernel failure when automatic recovery "
+                        "did not recover it. Never call this command repeatedly or in a retry loop",
             params=[],
             enabled=True,
             description="Allows to restart IPython kernel",
@@ -408,8 +699,18 @@ class Config(BaseConfig):
             "attach_output",
             type="bool",
             value=True,
-            label="Connect to the Python code interpreter window",
-            description="Attach code input/output to the Python code interpreter window.",
+            label="Connect to the Python interpreter window",
+            description="Attach code input/output to the Python interpreter window.",
+            tab="general",
+        )
+        plugin.add_option(
+            "output_max_entries",
+            type="int",
+            value=10,
+            min=0,
+            max=10000,
+            label="Max interpreter window entries",
+            description="Maximum number of input/output blocks kept in the Python interpreter window. Set to 0 for no limit.",
             tab="general",
         )
         plugin.add_option(
@@ -424,11 +725,12 @@ class Config(BaseConfig):
         # commands
         plugin.add_cmd(
             "python_sys_exec",
-            instruction="execute a system/shell command in the legacy Python Code Interpreter environment. "
+            instruction="execute a system/shell command in the legacy Python Interpreter environment. "
                         "When the legacy Python Docker sandbox is enabled, execute the command inside the same "
                         "Python container. When the sandbox is disabled, execute it on the host. Use this for "
                         "operating-system commands and command-line tools; use code_execute/code_execute_file "
-                        "for Python code.",
+                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
+                        "for stdin; pass all required answers/options in the command itself.",
             params=[
                 {
                     "name": "command",
@@ -443,7 +745,8 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "code_execute",
-            instruction="save generated Python code and execute it",
+            instruction="save generated Python code and execute it. Execution is non-interactive: never use input(), "
+                        "getpass(), or code that waits for stdin; provide required values directly in code.",
             params=[
                 {
                     "name": "path",
@@ -465,7 +768,8 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "code_execute_file",
-            instruction="execute Python code from existing file",
+            instruction="execute Python code from existing file. Execution is non-interactive; files that wait for "
+                        "stdin will receive EOF instead of blocking the tool call.",
             params=[
                 {
                     "name": "path",
@@ -480,7 +784,8 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "code_execute_all",
-            instruction="run all Python code from my interpreter",
+            instruction="run all Python code from my interpreter. Execution is non-interactive: never use input(), "
+                        "getpass(), or code that waits for stdin; provide required values directly in code.",
             params=[
                 {
                     "name": "code",

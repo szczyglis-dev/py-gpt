@@ -215,7 +215,7 @@ or (Poetry >= 2.0):
 
 
 .. tip::
-    You can use ``PyInstaller`` to create a compiled version of the application for your system (required version >= ``6.4.0``).
+    You can use ``PyInstaller`` to create a compiled version of the application for your system (required version ``6.4.0``).
 
 Troubleshooting
 ---------------
@@ -347,8 +347,7 @@ You can also manualy enable legacy mode by editing config file - open the ``%WOR
 
 Other requirements
 ------------------
-For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
-and an active API key that must be input into the program. Local models served through Ollama do not require an OpenAI account or external API keys.
+For API-based models, an internet connection and the appropriate provider API key are required. Models from OpenAI, Google, Anthropic, and xAI require API keys for their respective providers. Local models, such as those served through Ollama, do not require external API keys.
 
 Debugging and logging
 ---------------------

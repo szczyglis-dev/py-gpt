@@ -10,11 +10,12 @@
 # ================================================== #
 
 import os
-
 from openai import AsyncOpenAI
+from openai.types.shared import Reasoning
 from agents import (
     Model,
     ModelProvider,
+    ModelSettings,
     OpenAIChatCompletionsModel,
     set_tracing_disabled,
 )
@@ -36,6 +37,47 @@ class CustomModelProvider(ModelProvider):
 
     def get_model(self, model_name: str | None) -> Model:
         return OpenAIChatCompletionsModel(model=model_name, openai_client=self.client)
+
+
+def append_reasoning_model_settings(
+        kwargs: dict,
+        window,
+        model: ModelItem,
+) -> None:
+    """Merge the current runtime reasoning effort into Agent ModelSettings.
+
+    openai-agents==0.6.9 forwards ``ModelSettings.reasoning.effort`` to
+    Chat Completions as ``reasoning_effort``.  Merge instead of replacing so
+    helper-agent settings such as ``tool_choice="required"`` remain intact.
+    """
+    if isinstance(model, str):
+        model = window.core.models.get(model)
+    if model is None:
+        return
+
+    effort = window.core.models.get_reasoning_effort(model)
+    if not effort:
+        return
+
+    current = kwargs.get("model_settings")
+    if isinstance(current, dict):
+        current = ModelSettings(**current)
+    elif not isinstance(current, ModelSettings):
+        current = ModelSettings()
+
+    if getattr(model, "provider", None) == "open_router":
+        # OpenRouter's OpenAI-compatible endpoint uses its provider-specific
+        # ``reasoning`` object.  Send it through extra_body so the pinned
+        # OpenAI SDK does not validate it as a Chat Completions keyword.
+        extra_body = dict(current.extra_body or {})
+        reasoning = dict(extra_body.get("reasoning") or {})
+        reasoning["effort"] = effort
+        extra_body["reasoning"] = reasoning
+        override = ModelSettings(extra_body=extra_body)
+    else:
+        override = ModelSettings(reasoning=Reasoning(effort=effort))
+
+    kwargs["model_settings"] = current.resolve(override)
 
 
 def get_custom_model_provider(window, model: ModelItem) -> CustomModelProvider:

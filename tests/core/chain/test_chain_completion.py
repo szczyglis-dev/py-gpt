@@ -6,117 +6,140 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.05.01 03:00:00                  #
+# Updated Date: 2026.09.07 00:30:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
 
 from tests.mocks import mock_window_conf
-# from pygpt_net.core.chain.completion import Completion
+from pygpt_net.core.chain.completion import Completion
+from pygpt_net.core.types import MODE_COMPLETION
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 
+def _configure_build_window(window, history):
+    window.core.tokens = MagicMock()
+    window.core.tokens.from_user.return_value = 9
+    window.core.tokens.from_text.return_value = 31
+    window.core.ctx = MagicMock()
+    window.core.ctx.get_history.return_value = history
+
+    def config_get(key, default=None):
+        return {
+            "max_total_tokens": 100,
+            "use_context": True,
+        }.get(key, default)
+
+    window.core.config.get.side_effect = config_get
+
+
 def test_build(mock_window_conf):
-    """
-    Test build completion
-    
-    items = []
-    ctx_item = CtxItem()
-    ctx_item.input = 'user message'
-    items.append(ctx_item)
+    """Build an unnamed completion prompt from system text and history."""
+    first = CtxItem()
+    first.input = "user message"
+    second = CtxItem()
+    second.output = "AI message"
+    history = [first, second]
+    _configure_build_window(mock_window_conf, history)
 
-    ctx_item = CtxItem()
-    ctx_item.output = 'AI message'
-    items.append(ctx_item)
-
-    mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
     completion = Completion(mock_window_conf)
-    completion.window.core.config.get.return_value = True
-    completion.window.core.ctx.get_history.return_value = items
+    model = ModelItem("test-model")
+    model.ctx = 80
 
-    model = ModelItem()
     message = completion.build(
-        prompt='test_prompt',
-        system_prompt='test_system_prompt',
+        prompt="test_prompt",
+        system_prompt="test_system_prompt",
         model=model,
     )
-    assert message == 'test_system_prompt\nuser message\nAI message\ntest_prompt'
-    """
+
+    assert message == "test_system_prompt\nuser message\nAI message\ntest_prompt"
+    mock_window_conf.core.ctx.get_history.assert_called_once_with(
+        None,
+        "test-model",
+        "langchain",
+        9,
+        80,
+    )
+    mock_window_conf.core.tokens.from_text.assert_called_once_with(
+        message,
+        "test-model",
+    )
+    assert completion.get_used_tokens() == 31
 
 
 def test_build_with_names(mock_window_conf):
-    """
-    Test build completion with names
-    
-    items = []
-    ctx_item = CtxItem()
-    ctx_item.input = 'user message'
-    ctx_item.input_name = 'User'
-    ctx_item.output_name = 'AI'
-    items.append(ctx_item)
+    """Build a completion prompt with explicit user and assistant labels."""
+    first = CtxItem()
+    first.input = "user message"
+    first.input_name = "User"
+    first.output_name = "AI"
 
-    ctx_item = CtxItem()
-    ctx_item.output = 'AI message'
-    ctx_item.input_name = 'User'
-    ctx_item.output_name = 'AI'
-    items.append(ctx_item)
+    second = CtxItem()
+    second.output = "AI message"
+    second.input_name = "User"
+    second.output_name = "AI"
+
+    history = [first, second]
+    _configure_build_window(mock_window_conf, history)
 
     completion = Completion(mock_window_conf)
-    completion.window.core.config.get.return_value = True
-    mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
-    completion.window.core.ctx.get_history.return_value = items
-
-    model = ModelItem()
+    model = ModelItem("test-model")
+    model.ctx = 80
 
     message = completion.build(
-        prompt='test_prompt',
-        system_prompt='test_system_prompt',
-        ai_name='AI',
-        user_name='User',
+        prompt="test_prompt",
+        system_prompt="test_system_prompt",
+        ai_name="AI",
+        user_name="User",
         model=model,
     )
-    assert message == 'test_system_prompt\nUser: user message\nAI: AI message\nUser: test_prompt\nAI:'
-    """
+
+    assert message == (
+        "test_system_prompt\n"
+        "User: user message\n"
+        "AI: AI message\n"
+        "User: test_prompt\n"
+        "AI:"
+    )
 
 
 def test_send(mock_window_conf):
-    """
-    Test completion
-    
-    model = ModelItem()
-    model.name = 'test'
-    model.langchain = {'provider': 'test'}
+    """Send initializes the completion provider and invokes the built prompt."""
+    model = ModelItem("test-model")
+    model.langchain = {"provider": "test"}
 
-    mock_window_conf.core.models.get.return_value = model
+    provider = MagicMock()
+    llm = MagicMock()
+    llm.invoke.return_value = "test_response"
+    provider.completion.return_value = llm
+    mock_window_conf.core.llm = MagicMock()
+    mock_window_conf.core.llm.llms = {"test": provider}
+
     completion = Completion(mock_window_conf)
-    completion.build = MagicMock()
-    completion.build.return_value = 'test_messages'
-    mock_chat_instance = MagicMock()
-    mock_chat_instance.invoke.return_value = 'test_response'
+    completion.build = MagicMock(return_value="test_messages")
 
-    completion.window.core.llm.llms = {'test': MagicMock()}
-    completion.window.core.llm.llms['test'].completion = MagicMock(return_value=mock_chat_instance)
     response = completion.send(
-        prompt='test_prompt',
-        system_prompt='test_system_prompt',
-        ai_name='AI',
-        user_name='User',
+        prompt="test_prompt",
+        system_prompt="test_system_prompt",
+        ai_name="AI",
+        user_name="User",
         model=model,
     )
-    assert response == 'test_response'
-    completion.build.assert_called_once_with(
-        prompt='test_prompt',
-        system_prompt='test_system_prompt',
-        ai_name='AI',
-        user_name='User',
-        model=model,
-    )
-    completion.window.core.llm.llms['test'].completion.assert_called_once_with(
+
+    assert response == "test_response"
+    provider.init.assert_called_once_with(
         mock_window_conf,
         model,
-        False
+        "langchain",
+        MODE_COMPLETION,
     )
-    mock_chat_instance.invoke.assert_called_once_with('test_messages')
-    """
-
+    provider.completion.assert_called_once_with(mock_window_conf, model, False)
+    completion.build.assert_called_once_with(
+        prompt="test_prompt",
+        system_prompt="test_system_prompt",
+        model=model,
+        ai_name="AI",
+        user_name="User",
+    )
+    llm.invoke.assert_called_once_with("test_messages")

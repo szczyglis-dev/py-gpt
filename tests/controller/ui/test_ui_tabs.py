@@ -21,6 +21,7 @@ def dummy_window():
     core_tabs = MagicMock()
     core_config = MagicMock()
     core_ctx = MagicMock()
+    core_ctx.output.has_request.return_value = False
     controller_notepad = MagicMock()
     controller_ctx = MagicMock()
     controller_ui = MagicMock()
@@ -407,9 +408,11 @@ def test_update_tooltip(tabs, dummy_window):
     fake_tabs.setTabToolTip = MagicMock()
     fake_tabs.count = MagicMock(return_value=3)
     dummy_window.ui.layout.get_tabs_by_idx = MagicMock(return_value=fake_tabs)
-    tabs.current = 1
+    tab = SimpleNamespace(type=Tab.TAB_CHAT, idx=1, column_idx=0, tooltip="")
+    tabs.get_current_tab = MagicMock(return_value=tab)
     tabs.update_tooltip("new tooltip")
-    fake_tabs.setTabToolTip.assert_called_with(1, "new tooltip")
+    fake_tabs.setTabToolTip.assert_called_once_with(1, "new tooltip")
+    assert tab.tooltip == "new tooltip"
 
 def test_rename(tabs, dummy_window):
     dummy_tab = MagicMock(title="Old Title")
@@ -425,21 +428,27 @@ def test_rename(tabs, dummy_window):
 def test_update_name(tabs, dummy_window):
     dummy_window.ui.dialog["rename"].close = MagicMock()
     tabs.update_name(4, "NewName", close=True)
-    dummy_window.core.tabs.update_title.assert_called_with(4, "NewName", "NewName")
+    dummy_window.core.tabs.update_title.assert_called_with(
+        4, "NewName", "NewName", column_idx=0, custom_name=True, title_source="custom"
+    )
     dummy_window.ui.dialog["rename"].close.assert_called_once()
 
 def test_update_title(tabs, dummy_window):
-    dummy_tab = MagicMock(type=Tab.TAB_CHAT, idx=1, tooltip="tip")
+    dummy_tab = SimpleNamespace(
+        type=Tab.TAB_CHAT, idx=1, column_idx=0, title="Old", tooltip="tip",
+        custom_name=False, title_source="context"
+    )
     dummy_window.core.tabs.get_tab_by_index.return_value = dummy_tab
-    dummy_window.core.tabs.count_by_type.return_value = 2
-    dummy_window.core.tabs.get_order_by_idx_and_type.return_value = 1
     fake_tabs = MagicMock()
-    fake_tabs.setTabToolTip = MagicMock()
+    fake_tabs.count.return_value = 2
     dummy_window.ui.layout.get_tabs_by_idx = MagicMock(return_value=fake_tabs)
     tabs.current = 1
-    tabs.update_title(1, "LongTabNameExtra")
+    assert tabs.update_title(1, "LongTabNameExtra") is True
+    fake_tabs.setTabText.assert_called_with(1, "LongTabNameExtr...")
     fake_tabs.setTabToolTip.assert_called_with(1, "LongTabNameExtra")
-    dummy_window.core.tabs.update_title.assert_called()
+    assert dummy_tab.title == "LongTabNameExtr..."
+    assert dummy_tab.tooltip == "LongTabNameExtra"
+    assert dummy_tab.title_source == "context"
 
 def test_update_title_current(tabs, dummy_window):
     orig_update_title = tabs.update_title
@@ -456,17 +465,11 @@ def test_update_title_current(tabs, dummy_window):
 def test_on_load_ctx(tabs, dummy_window):
     dummy_tab = MagicMock(type=Tab.TAB_CHAT)
     dummy_window.core.tabs.get_tab_by_index.return_value = dummy_tab
-    dummy_meta = MagicMock(id=77, name="MetaName")
-    orig_update_title_current = tabs.update_title_current
-    called = False
-    def fake_update_title(name):
-        nonlocal called
-        called = True
-    tabs.update_title_current = fake_update_title
+    dummy_meta = SimpleNamespace(id=77, name="MetaName")
+    tabs.update_title_by_tab = MagicMock(return_value=True)
     tabs.on_load_ctx(dummy_meta)
     assert dummy_tab.data_id == 77
-    assert called is True
-    tabs.update_title_current = orig_update_title_current
+    tabs.update_title_by_tab.assert_called_once_with(dummy_tab, "MetaName")
 
 def test_open_by_type(tabs, dummy_window):
     dummy_window.core.tabs.get_min_idx_by_type.return_value = 2
@@ -522,7 +525,7 @@ def test_move_tab(tabs, dummy_window):
         called_switch = True
     tabs.switch_tab_by_idx = fake_switch
     tabs.move_tab(3, 0, 1)
-    dummy_window.core.tabs.move_tab.assert_called_with(dummy_tab, 1)
+    dummy_window.core.tabs.move_tab.assert_called_with(dummy_tab, 1, new_idx=None)
     assert called is True
     assert called_switch is True
     tabs.on_column_changed = orig_on_column_changed

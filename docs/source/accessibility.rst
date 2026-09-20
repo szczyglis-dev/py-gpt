@@ -1,7 +1,7 @@
 Accessibility
 =============
 
-Since version ``2.2.8``, PyGPT has added beta support for disabled people and voice control. This may be very useful for blind people.
+PyGPT includes beta accessibility features and voice control, including options that can assist blind and visually impaired users.
 
 
 In the ``Config / Accessibility`` menu, you can turn on accessibility features such as:
@@ -18,7 +18,7 @@ In the ``Config / Accessibility`` menu, you can turn on accessibility features s
 
 Voice control can be turned on in two ways: globally, through settings in ``Config -> Accessibility``, and by using the ``Voice control (inline)`` plugin. Both options let you use the same voice commands, but they work a bit differently - the global option allows you to run commands outside of a conversation, anywhere, while the plugin option lets you execute commands directly during a conversation – allowing you to interact with the model and execute commands at the same time, within the conversation.
 
-In the plugin (inline) option, you can also turn on a special trigger word that will be needed for content to be recognized as a voice command. You can set this up by going to ``Plugins -> Settings -> Voice Control (inline)``:
+In the plugin (inline) option, you can also turn on a special trigger word that will be needed for content to be recognized as a voice command. You can set this up by going to ``Plugins -> Settings -> Voice control (inline)``:
 
 .. code-block:: ini
 

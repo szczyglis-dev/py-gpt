@@ -1,0 +1,338 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "skill-creator",
+      "display_name": "Skill Creator",
+      "description": "Create, improve and evaluate portable Agent Skills with SKILL.md, scripts, references and assets.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/skill-creator",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/skill-creator"
+    },
+    {
+      "name": "systematic-debugging",
+      "display_name": "Systematic Debugging",
+      "description": "Root-cause-first debugging workflow for bugs, failing tests, performance problems, build failures and unexpected behavior.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/systematic-debugging",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/systematic-debugging"
+    },
+    {
+      "name": "test-driven-development",
+      "display_name": "Test-Driven Development",
+      "description": "RED-GREEN-REFACTOR workflow for implementing features, bug fixes and refactors with tests written first.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/test-driven-development",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/test-driven-development"
+    },
+    {
+      "name": "requesting-code-review",
+      "display_name": "Code Review",
+      "description": "Structured code-review workflow for checking completed tasks and major changes against requirements before merge.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/requesting-code-review",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/requesting-code-review"
+    },
+    {
+      "name": "writing-plans",
+      "display_name": "Implementation Planning",
+      "description": "Turns specifications and requirements into detailed, testable implementation plans with exact files and verification steps.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/writing-plans",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/writing-plans"
+    },
+    {
+      "name": "frontend-design",
+      "display_name": "Frontend Design",
+      "description": "Guidance for building distinctive production UI with intentional layout, typography, visual hierarchy and interaction design.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/frontend-design"
+    },
+    {
+      "name": "vercel-react-best-practices",
+      "display_name": "React Best Practices",
+      "description": "Vercel Engineering guidance for React and Next.js performance, data fetching, rendering, bundles and refactoring.",
+      "author": "Vercel",
+      "standard": "Agent Skills",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices",
+      "homepage": "https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices"
+    },
+    {
+      "name": "vercel-composition-patterns",
+      "display_name": "React Composition Patterns",
+      "description": "Vercel guidance for scalable React component architecture, composition, state management and React 19 patterns.",
+      "author": "Vercel",
+      "standard": "Agent Skills",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/main/skills/composition-patterns",
+      "homepage": "https://github.com/vercel-labs/agent-skills/tree/main/skills/composition-patterns"
+    },
+    {
+      "name": "webapp-testing",
+      "display_name": "Web App Testing",
+      "description": "Playwright-based workflow for interacting with and testing local web applications, including screenshots and browser logs.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/webapp-testing",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/webapp-testing"
+    },
+    {
+      "name": "mcp-builder",
+      "display_name": "MCP Builder",
+      "description": "Guide for building high-quality MCP servers and tools with Python/FastMCP or Node/TypeScript MCP SDKs.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/mcp-builder",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/mcp-builder"
+    },
+    {
+      "name": "agents-sdk",
+      "display_name": "OpenAI Agents SDK",
+      "description": "Build, run, deploy and evaluate OpenAI Agents SDK applications using the current Codex plugin skill layout.",
+      "author": "OpenAI",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/openai-developers/skills/agents-sdk",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/openai-developers/skills/agents-sdk"
+    },
+    {
+      "name": "docx",
+      "display_name": "DOCX Documents",
+      "description": "Create, read, edit and transform Word .docx/.dotx documents, including professional formatting and document structure.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/docx",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/docx"
+    },
+    {
+      "name": "pdf",
+      "display_name": "PDF",
+      "description": "Read, create, merge, split, rotate, OCR, extract tables/images, fill forms and otherwise process PDF files.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/pdf",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/pdf"
+    },
+    {
+      "name": "xlsx",
+      "display_name": "Spreadsheets",
+      "description": "Create, read, edit, clean, format and analyze Excel/CSV/TSV spreadsheets, including formulas and charts.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/xlsx",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/xlsx"
+    },
+    {
+      "name": "pptx",
+      "display_name": "Presentations",
+      "description": "Create, read, edit, combine and transform PowerPoint .pptx/.potx presentations, layouts, notes and templates.",
+      "author": "Anthropic",
+      "standard": "Agent Skills / Claude",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/pptx",
+      "homepage": "https://github.com/anthropics/skills/tree/main/skills/pptx"
+    },
+    {
+      "name": "brainstorming",
+      "display_name": "Brainstorming & Design",
+      "description": "Design-first workflow that clarifies requirements, explores alternatives and turns rough ideas into an implementation-ready technical design before coding.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/brainstorming",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/brainstorming"
+    },
+    {
+      "name": "executing-plans",
+      "display_name": "Executing Plans",
+      "description": "Executes an existing implementation plan in controlled batches with verification and review checkpoints.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/executing-plans",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/executing-plans"
+    },
+    {
+      "name": "subagent-driven-development",
+      "display_name": "Subagent-Driven Development",
+      "description": "Implements planned work task-by-task using focused subagents and staged specification/code-quality review.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/subagent-driven-development",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/subagent-driven-development"
+    },
+    {
+      "name": "dispatching-parallel-agents",
+      "display_name": "Parallel Agent Dispatch",
+      "description": "Splits independent work into parallel agent tasks and coordinates results without unnecessary serial execution.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/dispatching-parallel-agents",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/dispatching-parallel-agents"
+    },
+    {
+      "name": "receiving-code-review",
+      "display_name": "Receiving Code Review",
+      "description": "Processes review feedback technically: verifies claims, resolves ambiguities and applies justified changes instead of blindly accepting suggestions.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/receiving-code-review",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/receiving-code-review"
+    },
+    {
+      "name": "verification-before-completion",
+      "display_name": "Verification Before Completion",
+      "description": "Requires fresh tests, checks and concrete evidence before declaring coding, debugging or refactoring work complete.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/verification-before-completion",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/verification-before-completion"
+    },
+    {
+      "name": "using-git-worktrees",
+      "display_name": "Git Worktrees",
+      "description": "Creates isolated Git worktrees for feature and refactor work, verifies a clean baseline and keeps concurrent changes separated.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/using-git-worktrees",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/using-git-worktrees"
+    },
+    {
+      "name": "finishing-a-development-branch",
+      "display_name": "Finish Development Branch",
+      "description": "Finishes completed branch work with verification and structured choices for merge, pull request, retention or cleanup.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/finishing-a-development-branch",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/finishing-a-development-branch"
+    },
+    {
+      "name": "writing-skills",
+      "display_name": "Writing Agent Skills",
+      "description": "Creates and tests reusable Agent Skills with clear triggers, progressive disclosure and maintainable instructions.",
+      "author": "Superpowers",
+      "standard": "Agent Skills / Codex Plugin",
+      "url": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/writing-skills",
+      "homepage": "https://github.com/openai/plugins/tree/main/plugins/superpowers/skills/writing-skills"
+    },
+    {
+      "name": "vercel-react-view-transitions",
+      "display_name": "React View Transitions",
+      "description": "Vercel guidance for React View Transition API, shared-element transitions, route animations and Next.js App Router integration.",
+      "author": "Vercel",
+      "standard": "Agent Skills",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/main/skills/react-view-transitions",
+      "homepage": "https://github.com/vercel-labs/agent-skills/tree/main/skills/react-view-transitions"
+    },
+    {
+      "name": "vercel-react-native-skills",
+      "display_name": "React Native Best Practices",
+      "description": "Production guidance for React Native and Expo covering rendering, lists, animation, navigation, state, native APIs and mobile performance.",
+      "author": "Vercel",
+      "standard": "Agent Skills",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/main/skills/react-native-skills",
+      "homepage": "https://github.com/vercel-labs/agent-skills/tree/main/skills/react-native-skills"
+    },
+    {
+      "name": "web-design-guidelines",
+      "display_name": "Web Design Guidelines",
+      "description": "Reviews frontend code against practical accessibility, UX, forms, focus, animation, typography, image and performance guidelines.",
+      "author": "Vercel",
+      "standard": "Agent Skills",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines",
+      "homepage": "https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines"
+    },
+    {
+      "name": "vercel-optimize",
+      "display_name": "Vercel Optimize",
+      "description": "Audits deployed Vercel applications for performance, reliability, caching, function usage and cost, then targets the relevant code paths.",
+      "author": "Vercel",
+      "standard": "Agent Skills",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/main/skills/vercel-optimize",
+      "homepage": "https://github.com/vercel-labs/agent-skills/tree/main/skills/vercel-optimize"
+    },
+    {
+      "name": "deploy-to-vercel",
+      "display_name": "Deploy to Vercel",
+      "description": "Packages and deploys web projects to Vercel with framework detection and preview deployment output.",
+      "author": "Vercel",
+      "standard": "Agent Skills",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/main/skills/deploy-to-vercel",
+      "homepage": "https://github.com/vercel-labs/agent-skills/tree/main/skills/deploy-to-vercel"
+    },
+    {
+      "name": "stripe-best-practices",
+      "display_name": "Stripe Best Practices",
+      "description": "Official Stripe guidance for payments, subscriptions, Connect, Tax, webhooks, API choices, migrations and secure key handling.",
+      "author": "Stripe",
+      "standard": "Agent Skills",
+      "url": "https://github.com/stripe/ai/tree/main/skills/stripe-best-practices",
+      "homepage": "https://github.com/stripe/ai/tree/main/skills/stripe-best-practices"
+    },
+    {
+      "name": "postgres-best-practices",
+      "display_name": "Postgres Best Practices",
+      "description": "Vendor-neutral Postgres guidance for schema design, indexing, query optimization, database performance and common production pitfalls.",
+      "author": "Neon",
+      "standard": "Agent Skills",
+      "url": "https://github.com/neondatabase/postgres-skills/tree/main/skills/postgres-best-practices",
+      "homepage": "https://github.com/neondatabase/postgres-skills/tree/main/skills/postgres-best-practices"
+    },
+    {
+      "name": "neon",
+      "display_name": "Neon",
+      "description": "Official Neon workflow and platform guidance for projects, branches, serverless Postgres development and Neon tooling.",
+      "author": "Neon",
+      "standard": "Agent Skills",
+      "url": "https://github.com/neondatabase/agent-skills/tree/main/plugins/neon-postgres/skills/neon",
+      "homepage": "https://github.com/neondatabase/agent-skills/tree/main/plugins/neon-postgres/skills/neon"
+    },
+    {
+      "name": "neon-postgres",
+      "display_name": "Neon Postgres",
+      "description": "Detailed Neon/Postgres guidance for connections, pooling, branching, migrations, diagnostics, scaling, replicas and search workloads.",
+      "author": "Neon",
+      "standard": "Agent Skills",
+      "url": "https://github.com/neondatabase/agent-skills/tree/main/plugins/neon-postgres/skills/neon-postgres",
+      "homepage": "https://github.com/neondatabase/agent-skills/tree/main/plugins/neon-postgres/skills/neon-postgres"
+    },
+    {
+      "name": "workers-best-practices",
+      "display_name": "Cloudflare Workers Best Practices",
+      "description": "Official Cloudflare patterns for writing, reviewing and configuring production Workers, including streaming, bindings, secrets and observability.",
+      "author": "Cloudflare",
+      "standard": "Agent Skills",
+      "url": "https://github.com/cloudflare/skills/tree/main/skills/workers-best-practices",
+      "homepage": "https://github.com/cloudflare/skills/tree/main/skills/workers-best-practices"
+    },
+    {
+      "name": "durable-objects",
+      "display_name": "Cloudflare Durable Objects",
+      "description": "Official Cloudflare guidance for stateful coordination with Durable Objects, RPC, SQLite storage, alarms, WebSockets and hibernation.",
+      "author": "Cloudflare",
+      "standard": "Agent Skills",
+      "url": "https://github.com/cloudflare/skills/tree/main/skills/durable-objects",
+      "homepage": "https://github.com/cloudflare/skills/tree/main/skills/durable-objects"
+    },
+    {
+      "name": "wrangler",
+      "display_name": "Cloudflare Wrangler",
+      "description": "Official operational skill for developing, deploying and managing Workers and Cloudflare resources with Wrangler.",
+      "author": "Cloudflare",
+      "standard": "Agent Skills",
+      "url": "https://github.com/cloudflare/skills/tree/main/skills/wrangler",
+      "homepage": "https://github.com/cloudflare/skills/tree/main/skills/wrangler"
+    },
+    {
+      "name": "web-perf",
+      "display_name": "Web Performance",
+      "description": "Cloudflare skill for auditing Core Web Vitals, render-blocking resources, network chains and frontend performance bottlenecks.",
+      "author": "Cloudflare",
+      "standard": "Agent Skills",
+      "url": "https://github.com/cloudflare/skills/tree/main/skills/web-perf",
+      "homepage": "https://github.com/cloudflare/skills/tree/main/skills/web-perf"
+    }
+  ]
+}

@@ -452,3 +452,23 @@ def test_get_dir(mock_window):
     context = Context(mock_window)
     result = context.get_dir(meta)
     assert result == expected
+
+def test_read_content_flattens_durable_mentions_before_forwarding_loader_prompt(mock_window):
+    attachment = attachment_mod.AttachmentItem()
+    attachment.deserialize({
+        "path": "test_path",
+        "type": attachment_mod.AttachmentItem.TYPE_FILE,
+    })
+    mock_window.core.idx.indexing.read_text_content = MagicMock(return_value=("content", []))
+    context = Context(mock_window)
+    prompt = (
+        "open <attachment>doc.txt</attachment> and "
+        "<file_context>%workdir%/data/src/app.py</file_context>"
+    )
+
+    context.read_content(attachment, "test_path", prompt)
+
+    mock_window.core.idx.indexing.read_text_content.assert_called_once_with(
+        path="test_path",
+        loader_kwargs={"prompt": "open doc.txt and %workdir%/data/src/app.py"},
+    )

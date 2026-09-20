@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:40:00
+# Updated Date: 2026.09.18 13:45:00
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -48,8 +48,11 @@ class Nodes:
         elif type == 'font.ctx.list':
             nodes[key].setStyleSheet(theme.style('font.ctx.list'))
 
-    def apply_all(self):
-        """Apply stylesheets to nodes"""
+    def apply_all(self, dispatch_theme: bool = True):
+        """Apply stylesheets to nodes.
+
+        :param dispatch_theme: emit renderer theme-change event for web output
+        """
         w = self.window
         ui = w.ui
         ctrl = w.controller
@@ -59,6 +62,7 @@ class Nodes:
             'font.chat.input': [
                 'input',
                 'input_extra',
+                'prompt.model',
             ],
             'font.chat.output': [
                 'output',
@@ -81,14 +85,11 @@ class Nodes:
                 'preset.presets.new',
                 'preset.prompt',
                 'preset.prompt.label',
-                'preset.temperature.label',
                 'preset.use',
                 'prompt.label',
                 'prompt.mode',
                 'prompt.mode.label',
-                'prompt.model',
                 'prompt.model.label',
-                'temperature.label',
                 'toolbox.prompt.label',
                 'toolbox.preset.ai_name.label',
                 'toolbox.preset.user_name.label',
@@ -114,7 +115,7 @@ class Nodes:
         if ui.notepad:
             for np in ui.notepad.values():
                 ta = np.textarea
-                ta.setStyleSheet(style_output)
+                ta.apply_theme_style()
                 ta.value = size
 
         # apply to calendar
@@ -144,7 +145,11 @@ class Nodes:
                     obj.update_zoom()
                 except Exception:
                     pass
-            w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
+            input_container = ui.nodes.get('input.container')
+            if input_container is not None and hasattr(input_container, 'sync_width'):
+                input_container.sync_width()
+            if dispatch_theme:
+                w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
 
         # font size, legacy (markdown)
         elif engine == 'legacy':

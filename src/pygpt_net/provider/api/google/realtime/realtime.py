@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 23:00:00                  #
+# Updated Date: 2026.09.10 15:55:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,11 @@ from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.core.realtime.options import RealtimeOptions
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.realtime.shared.session import extract_last_session_id
+from pygpt_net.core.realtime.shared.computer import (
+    is_context_command as is_realtime_computer_command,
+    latest_transport_image,
+    prepare as prepare_realtime_computer,
+)
 from pygpt_net.item.model import ModelItem
 
 from .client import GoogleLiveClient
@@ -68,6 +73,15 @@ class Realtime:
         self.window.controller.realtime.set_busy()
         self.handler.set_debug(is_debug)
 
+        # Tools + shared realtime Computer Use bridge
+        functions, realtime_system_prompt = prepare_realtime_computer(
+            self.window, context, context.external_functions, self.PROVIDER
+        )
+        tools = self.window.core.api.google.tools.prepare(model, functions)
+        remote_tools = self.window.core.api.google.remote_tools.build_remote_tools(model)
+        if tools:
+            remote_tools = []  # in Google, remote tools are not allowed if function calling is used
+
         # handle sub-reply (tool results from tool calls)
         if context.ctx.internal:
             if context.ctx.prev_ctx and context.ctx.prev_ctx.extra.get("prev_tool_calls"):
@@ -83,17 +97,31 @@ class Realtime:
                         tool_results = json.loads(tool_results)
                     except Exception:
                         pass
-                    self.handler.send_tool_results_sync({
-                        tool_call_id: tool_results
-                    })
+                    # The tool-result send can synchronously wait for the follow-up
+                    # model response. Bind the continuation context first, otherwise
+                    # that response is written/rendered against the previous tool-call
+                    # context and can replace the preceding message.
                     self.handler.update_ctx(context.ctx)
+                    self.window.controller.realtime.manager.update_ctx(context.ctx)
+                    prev_ctx = context.ctx.prev_ctx
+                    is_computer_call = any(
+                        is_realtime_computer_command(
+                            self.window,
+                            prev_ctx,
+                            str((call.get("function") or {}).get("name") or ""),
+                        )
+                        for call in tool_calls
+                        if isinstance(call, dict)
+                    )
+                    screenshot_path = (
+                        latest_transport_image(self.window, context.ctx)
+                        if is_computer_call else None
+                    )
+                    self.handler.send_tool_results_sync(
+                        {tool_call_id: tool_results},
+                        image_paths=[screenshot_path] if screenshot_path else None,
+                    )
                     return True  # do not start new session, just send tool results
-
-        # Tools
-        tools = self.window.core.api.google.tools.prepare(model, context.external_functions)
-        remote_tools = self.window.core.api.google.remote_tools.build_remote_tools(model)
-        if tools:
-            remote_tools = []  # in Google, remote tools are not allowed if function calling is used
 
         # Resolve last session ID, prefer history, then fallback to current ctx and in-memory handler handle
         last_session_id = extract_last_session_id(context.history) if context.history else None
@@ -146,6 +174,7 @@ class Realtime:
         if auto_turn and self.handler.is_session_active() and (context.prompt.strip() == "" or context.prompt == "..."):
             self.handler.update_session_tools_sync(tools, remote_tools)
             self.handler.update_ctx(context.ctx)
+            self.window.controller.realtime.manager.update_ctx(context.ctx)
             return True  # do not send new request if session is active
 
         # Voice
@@ -163,7 +192,7 @@ class Realtime:
         opts = RealtimeOptions(
             provider=self.PROVIDER,
             model=model.id,
-            system_prompt=context.system_prompt,
+            system_prompt=realtime_system_prompt,
             prompt=context.prompt,
             voice=voice_name,
             audio_data=audio_bytes,

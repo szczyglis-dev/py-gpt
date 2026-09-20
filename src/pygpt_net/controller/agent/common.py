@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.21 20:00:00                  #
+# Updated Date: 2026.09.12 18:30:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -24,19 +24,72 @@ class Common:
         """
         self.window = window
 
+    def _set_toolbox_toggle(self, key: str, state: bool):
+        """Update an Agent toolbox toggle without re-entering its handler."""
+        try:
+            widget = self.window.ui.config.get('global', {}).get(key)
+        except AttributeError:
+            widget = None
+        if widget is None:
+            return
+
+        box = getattr(widget, 'box', None)
+        if box is None:
+            widget.setChecked(bool(state))
+            return
+
+        state = bool(state)
+        previous = box.blockSignals(True)
+        try:
+            widget.setChecked(state)
+        finally:
+            box.blockSignals(previous)
+
+        # AnimToggle normally moves its handle from stateChanged.  Signals are
+        # intentionally blocked above to avoid recursively entering the paired
+        # toggle handler, so trigger only its visual animation explicitly.
+        setup_animation = getattr(box, "setup_animation", None)
+        if callable(setup_animation):
+            setup_animation(state)
+        else:
+            box.update()
+
+    def sync_stop_continue_ui(self):
+        """Synchronize the mutually exclusive Auto-stop/Always continue toggles."""
+        self._set_toolbox_toggle(
+            'agent.auto_stop',
+            bool(self.window.core.config.get('agent.auto_stop')),
+        )
+        self._set_toolbox_toggle(
+            'agent.continue',
+            bool(self.window.core.config.get('agent.continue.always')),
+        )
+
+    def normalize_stop_continue(self):
+        """Repair an old contradictory state where both options are enabled."""
+        if self.window.core.config.get('agent.auto_stop') and \
+                self.window.core.config.get('agent.continue.always'):
+            # Always continue is the more explicit mode; when both legacy values
+            # are true, keep it and disable Auto-stop.
+            self.window.core.config.set('agent.auto_stop', False)
+            self.window.core.config.save()
+
     def enable_auto_stop(self):
-        """Enable auto stop (Legacy)"""
+        """Enable auto stop and disable Always continue (Legacy)."""
         self.window.core.config.set('agent.auto_stop', True)
+        self.window.core.config.set('agent.continue.always', False)
         self.window.core.config.save()
+        self.sync_stop_continue_ui()
 
     def disable_auto_stop(self):
-        """Disable auto stop (Legacy)"""
+        """Disable auto stop (Legacy)."""
         self.window.core.config.set('agent.auto_stop', False)
         self.window.core.config.save()
+        self._set_toolbox_toggle('agent.auto_stop', False)
 
     def toggle_auto_stop(self, state: bool):
         """
-        Toggle auto stop (Legacy)
+        Toggle auto stop (Legacy). Enabling it disables Always continue.
 
         :param state: state of checkbox
         """
@@ -46,18 +99,21 @@ class Common:
             self.enable_auto_stop()
 
     def enable_continue(self):
-        """Enable always continue (Legacy)"""
+        """Enable Always continue and disable Auto-stop (Legacy)."""
         self.window.core.config.set('agent.continue.always', True)
+        self.window.core.config.set('agent.auto_stop', False)
         self.window.core.config.save()
+        self.sync_stop_continue_ui()
 
     def disable_continue(self):
-        """Disable always continue (Legacy)"""
+        """Disable Always continue (Legacy)."""
         self.window.core.config.set('agent.continue.always', False)
         self.window.core.config.save()
+        self._set_toolbox_toggle('agent.continue', False)
 
     def toggle_continue(self, state: bool):
         """
-        Toggle always continue (Legacy)
+        Toggle Always continue (Legacy). Enabling it disables Auto-stop.
 
         :param state: state of checkbox
         """
@@ -80,12 +136,24 @@ class Common:
             return True
         return False
 
+    def should_confirm_infinity_loop(self) -> bool:
+        """Return True when the infinite-run safety confirmation is enabled."""
+        value = self.window.core.config.get('agent.infinity.confirm')
+        # Fail safe for profiles that have not gone through the 2.8.17 patch yet.
+        return True if value is None else bool(value)
+
+    def disable_infinity_loop_confirm(self):
+        """Persistently disable the infinite-run confirmation dialog."""
+        self.window.core.config.set('agent.infinity.confirm', False)
+        self.window.core.config.save()
+
     def display_infinity_loop_confirm(self):
         """Show infinity run confirm dialog"""
         self.window.ui.dialogs.confirm(
             type="agent.infinity.run",
             id=0,
             msg=trans("agent.infinity.confirm.content"),
+            dont_show_again=True,
         )
 
     def show_status(self):

@@ -32,7 +32,6 @@ class Patch:
         is_expert = False
         is_agent_llama = False
         is_agent_assistant = False
-        is_agent_code_act = False
         is_agent_react_workflow = False
         is_agent_openai = False
         is_computer = False
@@ -124,23 +123,6 @@ class Patch:
                 if old < parse_version("2.4.11"):
                     if 'agent_openai_assistant' not in self.window.core.presets.items and not is_agent_assistant:
                         is_agent_assistant = True  # prevent multiple copies
-
-                # < 2.5.33
-                if old < parse_version("2.5.33"):
-                    if 'agent_code_act' not in self.window.core.presets.items and not is_agent_code_act:
-                        print("Migrating preset file from < 2.5.33...")
-                        files = [
-                            'agent_code_act.json',
-                        ]
-                        for file in files:
-                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
-                                               'presets', file)
-                            shutil.copyfile(src, dst)
-                            print("Patched file: {}.".format(dst))
-
-                        updated = True
-                        is_agent_code_act = True  # prevent multiple copies
 
                 # < 2.5.71
                 if old < parse_version("2.5.71"):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.05 18:00:00                  #
+# Updated Date: 2026.09.12 12:15:00                  #
 # ================================================== #
 
 import json
@@ -20,6 +20,9 @@ class PresetItem:
     agent: bool = False
     agent_llama: bool = False
     agent_openai: bool = False
+    agent_v2: bool = False
+    agent_v2_allow_local_tools: bool = True
+    agent_v2_allow_remote_tools: bool = True
     agent_provider: Optional[str] = None
     agent_provider_openai: Optional[str] = None
     ai_avatar: str = ""
@@ -46,7 +49,6 @@ class PresetItem:
     prompt: str = ""
     research: bool = False
     remote_tools: List[Any] = field(default_factory=list)
-    temperature: float = 1.0
     tools: Dict[str, Any] = field(default_factory=lambda: {"function": []})
     uuid: Optional[str] = None
     user_name: str = ""
@@ -57,6 +59,9 @@ class PresetItem:
         self.agent = False
         self.agent_llama = False
         self.agent_openai = False
+        self.agent_v2 = False
+        self.agent_v2_allow_local_tools = True
+        self.agent_v2_allow_remote_tools = True
         self.agent_provider = None
         self.agent_provider_openai = None
         self.ai_avatar = ""
@@ -83,7 +88,6 @@ class PresetItem:
         self.prompt = ""
         self.research = False
         self.remote_tools = []
-        self.temperature = 1.0
         self.tools = {
             "function": [],
         }
@@ -110,6 +114,9 @@ class PresetItem:
             "agent": self.agent,
             "agent_llama": self.agent_llama,
             "agent_openai": self.agent_openai,
+            "agent_v2": self.agent_v2,
+            "agent_v2_allow_local_tools": self.agent_v2_allow_local_tools,
+            "agent_v2_allow_remote_tools": self.agent_v2_allow_remote_tools,
             "agent_provider": self.agent_provider,
             "agent_provider_openai": self.agent_provider_openai,
             "ai_avatar": self.ai_avatar,
@@ -136,7 +143,6 @@ class PresetItem:
             "prompt": self.prompt,
             "remote_tools": self.remote_tools,
             "research": self.research,
-            "temperature": self.temperature,
             "tool.function": self.tools["function"],
             "user_name": self.user_name,
             "uuid": str(self.uuid),
@@ -156,6 +162,13 @@ class PresetItem:
             self.agent_llama = data["agent_llama"]
         if "agent_openai" in data:
             self.agent_openai = data["agent_openai"]
+        if "agent_v2" in data:
+            self.agent_v2 = bool(data["agent_v2"])
+        # Agent/Expert tool policy defaults to enabled for older presets that
+        # predate these fields. Assign unconditionally so reusing a PresetItem
+        # cannot leak a previous False value when the keys are absent.
+        self.agent_v2_allow_local_tools = bool(data.get("agent_v2_allow_local_tools", True))
+        self.agent_v2_allow_remote_tools = bool(data.get("agent_v2_allow_remote_tools", True))
         if "agent_provider" in data:
             self.agent_provider = data["agent_provider"]
         if "agent_provider_openai" in data:
@@ -208,8 +221,6 @@ class PresetItem:
             self.remote_tools = data["remote_tools"]
         if "research" in data:
             self.research = data["research"]
-        if "temperature" in data:
-            self.temperature = data["temperature"]
         if "tool.function" in data:
             self.tools["function"] = data["tool.function"]
         if "user_name" in data:
@@ -227,6 +238,7 @@ class PresetItem:
         self.agent = False
         self.agent_llama = False
         self.agent_openai = False
+        self.agent_v2 = False
         self.audio = False
         self.assistant = False
         self.chat = False

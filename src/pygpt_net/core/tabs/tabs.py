@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 12:30:00                  #
+# Updated Date: 2026.09.12 20:20:00                  #
 # ================================================== #
 
 import uuid
@@ -167,6 +167,7 @@ class Tabs:
         tab.pid = self.last_pid
         tab.type = type
         tab.title = title
+        tab.title_source = "default"
         tab.icon = icon
         tab.child = child
         tab.data_id = data_id
@@ -218,6 +219,7 @@ class Tabs:
         tab.pid = self.last_pid
         tab.type = type
         tab.title = title
+        tab.title_source = "default"
         tab.icon = icon
 
         # compute a safe insertion index within the target column
@@ -268,6 +270,9 @@ class Tabs:
         if 'custom_name' in data and data['custom_name'] is not None:
             tab.custom_name = data['custom_name']
 
+        if 'title_source' in data and data['title_source'] is not None:
+            tab.title_source = data['title_source']
+
         if 'column_idx' in data and data['column_idx'] is not None:
             tab.column_idx = data['column_idx']
 
@@ -282,9 +287,11 @@ class Tabs:
         if tab.type == Tab.TAB_CHAT:  # chat
             try:
                 self.add_chat(tab)
-                self.window.core.ctx.output.mapping[tab.pid] = tab.data_id  # restore pid => meta.id mapping
-                self.window.core.ctx.output.last_pids[tab.data_id] = tab.pid
-                self.window.core.ctx.output.last_pid = tab.pid
+                output = self.window.core.ctx.output
+                output.init()
+                output.mapping.setdefault(tab.column_idx, {})[tab.pid] = tab.data_id
+                output.last_pids.setdefault(tab.column_idx, {})[tab.data_id] = tab.pid
+                output.last_pid = tab.pid
             except Exception as e:
                 print("Error restoring chat tab:", e)
         elif tab.type == Tab.TAB_NOTEPAD: # notepad
@@ -342,15 +349,16 @@ class Tabs:
             return
         try:
             if tab.type == Tab.TAB_CHAT:
-                node = self.window.ui.nodes['output'].get(tab.pid)
+                # Detach registry entries first.  This prevents nested Qt events
+                # during widget teardown from resolving wrappers whose C++ object
+                # is already scheduled for deletion.
+                node = self.window.ui.nodes['output'].pop(tab.pid, None)
                 if node:
                     node.unload()  # unload page completely
                     tab.unwrap(node)
-                    self.window.ui.nodes['output'].pop(pid, None)
-                node_plain = self.window.ui.nodes['output_plain'].get(tab.pid)
+                node_plain = self.window.ui.nodes['output_plain'].pop(tab.pid, None)
                 if node_plain:
                     tab.unwrap(node_plain)
-                    self.window.ui.nodes['output_plain'].pop(pid, None)
 
             if tab.type in (Tab.TAB_CHAT, Tab.TAB_NOTEPAD, Tab.TAB_TOOL):
                 tab.cleanup()  # unload refs from memory
@@ -655,6 +663,12 @@ class Tabs:
         else:
             return tabs.addTab(tab.child, tab.title)
 
+    @staticmethod
+    def _sync_tooltip_with_title(tab: Tab) -> None:
+        """Keep non-chat tab tooltips aligned with their visible tab names."""
+        if tab.type != Tab.TAB_CHAT:
+            tab.tooltip = "" if tab.title is None else str(tab.title)
+
     def add_chat(self, tab: Tab):
         """
         Add chat tab
@@ -696,6 +710,7 @@ class Tabs:
             idx = tab.data_id  # restore prev idx
         tab.child, idx, data_id = self.window.controller.notepad.create(idx, tab, restore=restore)
         tab.data_id = data_id  # notepad idx in db, enumerated from 1
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -713,6 +728,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.explorer.setup()
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -731,6 +747,7 @@ class Tabs:
         tab.parent = column
         tab.child = self.window.ui.chat.output.painter.setup()
         tab.child.append(self.window.ui.painter)
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -748,6 +765,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.calendar.setup()
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -773,6 +791,7 @@ class Tabs:
         tab.title = trans(tool.tab_title)
         tab.parent = column
         tab.child = self.from_widget(widget)
+        self._sync_tooltip_with_title(tab)
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -780,12 +799,13 @@ class Tabs:
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
 
-    def move_tab(self, tab: Tab, column_idx: int):
+    def move_tab(self, tab: Tab, column_idx: int, new_idx: int = None):
         """
         Move tab to column
 
         :param tab: Tab instance
         :param column_idx: Column index
+        :param new_idx: optional insertion index in destination column
         """
         if tab is None:
             return
@@ -797,14 +817,17 @@ class Tabs:
         old_tabs.removeTab(tab.idx)
         new_column = self.window.ui.layout.get_column_by_idx(column_idx)
         new_tabs = new_column.get_tabs()
+        insert_idx = new_tabs.count() if new_idx is None else max(0, min(int(new_idx), new_tabs.count()))
         if tab.type == Tab.TAB_CHAT:
             # Chat tabs intentionally use text only (no leading icon).
-            tab.idx = new_tabs.addTab(tab.child, tab.title)
+            tab.idx = new_tabs.insertTab(insert_idx, tab.child, tab.title)
         else:
             icon = QIcon()  # for test purposes only
             if isinstance(tab.icon, str):
                 icon = QIcon(tab.icon)
-            tab.idx = new_tabs.addTab(tab.child, icon, tab.title)
+            tab.idx = new_tabs.insertTab(insert_idx, tab.child, icon, tab.title)
+        if tab.tooltip is not None:
+            new_tabs.setTabToolTip(tab.idx, tab.tooltip)
         tab.parent = new_column
         tab.column_idx = column_idx
         self.update()
@@ -837,6 +860,8 @@ class Tabs:
             "data_id": None,
             "title": "Chat",
             "tooltip": "Chat",
+            "custom_name": False,
+            "title_source": "default",
             "column_idx": 0,
         }
         data[1] = {
@@ -847,6 +872,8 @@ class Tabs:
             "data_id": None,
             "title": "Files",
             "tooltip": "Files",
+            "custom_name": False,
+            "title_source": "default",
             "column_idx": 0,
             "tool_id": "explorer",
         }
@@ -858,6 +885,8 @@ class Tabs:
             "data_id": None,
             "title": "Calendar",
             "tooltip": "Calendar",
+            "custom_name": False,
+            "title_source": "default",
             "column_idx": 0,
             "tool_id": "calendar",
         }
@@ -869,6 +898,8 @@ class Tabs:
             "data_id": None,
             "title": "Painter",
             "tooltip": "Painter",
+            "custom_name": False,
+            "title_source": "default",
             "column_idx": 0,
             "tool_id": "painter",
         }
@@ -899,10 +930,26 @@ class Tabs:
                     "data_id": item['data_id'],
                     "title": item['title'],
                     "tooltip": item['title'],
+                    "custom_name": False,
+                    "title_source": "default",
                     "column_idx": 0,
                     "tool_id": "notepad",
                 }
                 next_idx += 1
+
+        data[next_idx] = {
+            "uuid": uuid.uuid4(),
+            "pid": next_idx,
+            "idx": 0,
+            "type": Tab.TAB_TOOL,
+            "data_id": None,
+            "title": "Agent Workflow",
+            "tooltip": "Agent Workflow",
+            "custom_name": False,
+            "title_source": "default",
+            "column_idx": 1,
+            "tool_id": "agent_workflow",
+        }
         return data
 
     def load(self):
@@ -930,6 +977,7 @@ class Tabs:
                     "title": trans(self.titles[type]),
                     "tooltip": trans(self.titles[type]),
                     "custom_name": False,
+                    "title_source": "default",
                     "column_idx": 0,
                     "tool_id": None,
                 }
@@ -947,7 +995,10 @@ class Tabs:
         self.update()
 
     def save(self):
-        """Save tabs data to config"""
+        """Save tabs data to config."""
+        # Snapshot widget state first so a last-moment rename/title update is not
+        # lost if shutdown happens before another tabs.update() call.
+        self.update()
         data = {}
         for pid in self.pids:
             tab = self.pids[pid]
@@ -965,6 +1016,7 @@ class Tabs:
                 "title": title,
                 "tooltip": tab.tooltip,
                 "custom_name": tab.custom_name,
+                "title_source": tab.title_source,
                 "column_idx": tab.column_idx,
                 "tool_id": tab.tool_id,
             }
@@ -980,27 +1032,38 @@ class Tabs:
             self,
             idx: int,
             title: str,
-            tooltip: Optional[str] = None
+            tooltip: Optional[str] = None,
+            column_idx: Optional[int] = None,
+            custom_name: bool = True,
+            title_source: Optional[str] = None,
     ):
         """
-        Update tab title
+        Update a tab title and its persistent metadata.
 
-        :param idx: Tab index
-        :param title: Tab title
-        :param tooltip: Tab tooltip
+        ``custom_name`` must only be True for an explicit user rename. Automatic
+        context/browser titles should use False so they remain synchronizable.
         """
-        column_idx = self.window.controller.ui.tabs.get_current_column_idx()
+        if column_idx is None:
+            column_idx = self.window.controller.ui.tabs.get_current_column_idx()
         tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
         tab = self.get_tab_by_index(idx, column_idx)
         if tab is None:
-            return
+            return False
+
+        old = (tab.title, tab.tooltip, tab.custom_name, tab.title_source)
         tab.title = title
         tab.tooltip = tooltip
-        tab.custom_name = True
+        tab.custom_name = bool(custom_name)
+        if title_source is not None:
+            tab.title_source = title_source
+        elif custom_name:
+            tab.title_source = "custom"
+
         if title is not None:
             tabs.setTabText(idx, title)
         if tooltip is not None:
             tabs.setTabToolTip(idx, tooltip)
+        return old != (tab.title, tab.tooltip, tab.custom_name, tab.title_source)
 
     def reload_titles(self):
         """Reload default tab titles"""

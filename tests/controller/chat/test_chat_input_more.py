@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 17:20:00                  #
+# Updated Date: 2026.09.06 02:00:00                  #
 # ================================================== #
 import os
-from unittest.mock import MagicMock, call, ANY
+from inspect import signature
+from types import SimpleNamespace
+from unittest.mock import MagicMock, call, ANY, patch
 import pytest
 from pygpt_net.core.events import Event, AppEvent, KernelEvent, RenderEvent
 from pygpt_net.core.bridge import BridgeContext
@@ -21,8 +23,10 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_IMAGE,
     MODE_CHAT,
+    MODE_AGENT_V2,
 )
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 from pygpt_net.controller.chat.input import Input
 
@@ -31,6 +35,9 @@ def create_dummy_window():
     win.ui = MagicMock()
     win.ui.nodes = {'input': MagicMock()}
     win.ui.nodes['input'].toPlainText = MagicMock(return_value="dummy text")
+    win.ui.nodes['input'].serialize_mentions = MagicMock(
+        side_effect=lambda: win.ui.nodes['input'].toPlainText()
+    )
     win.ui.dialogs = MagicMock()
     win.ui.dialogs.alert = MagicMock()
     win.controller = MagicMock()
@@ -101,7 +108,18 @@ def create_dummy_window():
     win.core.attachments.native.get_provider = MagicMock(return_value=None)
     win.core.ctx = MagicMock()
     win.core.ctx.count_meta = MagicMock(return_value=1)
-    win.core.ctx.get_current = MagicMock(return_value="ctx")
+    meta = SimpleNamespace(id=1, name="Chat")
+    tab = SimpleNamespace(pid=1, type=Tab.TAB_CHAT, data_id=1, column_idx=0)
+    win.core.tabs = MagicMock()
+    win.core.tabs.get_tab_by_pid = MagicMock(return_value=tab)
+    win.core.ctx.output = MagicMock()
+    win.core.ctx.output.has_request = MagicMock(return_value=False)
+    win.core.ctx.output.begin_request = MagicMock(return_value=1)
+    win.core.ctx.output.get_request_meta = MagicMock(return_value=meta)
+    win.core.ctx.get_meta_by_id = MagicMock(return_value=meta)
+    win.core.ctx.get_current_meta = MagicMock(return_value=meta)
+    win.core.ctx.get_current = MagicMock(return_value=1)
+    win.controller.ui.tabs.get_effective_current_pid = MagicMock(return_value=1)
     win.dispatch = MagicMock()
     return win
 
@@ -191,50 +209,6 @@ def test_send_input_agent_mode():
     assert calls
 
 
-def test_send_input_pending_safety_non_continue_is_consumed():
-    win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "not yet"
-    win.controller.chat.command.has_pending_safety_confirmation.return_value = True
-    win.controller.chat.command.handle_pending_safety_input.return_value = True
-    inp = Input(win)
-
-    inp.send_input(force=False)
-
-    win.controller.chat.command.handle_pending_safety_input.assert_called_once_with("not yet")
-    user_send = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], Event) and c.args[0].name == Event.USER_SEND
-    ]
-    assert user_send == []
-    clear_input = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], RenderEvent) and c.args[0].name == RenderEvent.CLEAR_INPUT
-    ]
-    assert clear_input == []
-
-
-def test_send_input_pending_safety_continue_is_consumed_and_cleared():
-    win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "continue"
-    win.controller.chat.command.has_pending_safety_confirmation.return_value = True
-    win.controller.chat.command.handle_pending_safety_input.return_value = True
-    inp = Input(win)
-
-    inp.send_input(force=False)
-
-    win.controller.chat.command.handle_pending_safety_input.assert_called_once_with("continue")
-    user_send = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], Event) and c.args[0].name == Event.USER_SEND
-    ]
-    assert user_send == []
-    clear_input = [
-        c for c in win.dispatch.call_args_list
-        if c.args and isinstance(c.args[0], RenderEvent) and c.args[0].name == RenderEvent.CLEAR_INPUT
-    ]
-    assert len(clear_input) == 1
-
-
 def test_send_input_agent_llama_mode():
     win = create_dummy_window()
     win.controller.ctx.extra.is_editing.return_value = False
@@ -249,44 +223,69 @@ def test_send_input_attachments_success():
     win = create_dummy_window()
     win.ui.nodes['input'].toPlainText.return_value = "attachment text"
     win.core.config.get = MagicMock(return_value=MODE_CHAT)
-    win.controller.chat.attachment.has.return_value = True
-    inp = Input(win)
-    inp.send_input(force=False)
-    calls = win.dispatch.call_args_list
-    found_busy = any(isinstance(arg[0], KernelEvent) and arg[0].data.get("msg") == "Reading attachments..." for arg, _ in calls)
-    assert found_busy
-    win.controller.chat.attachment.handle.assert_called_once_with(MODE_CHAT, "attachment text")
+    win.controller.kernel.stopped.return_value = False
+    win.core.ctx.output.has_request.side_effect = [False, True]
 
-def test_send_input_attachments_native_status():
-    win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "native attachment"
-    win.core.config.get = MagicMock(return_value=MODE_CHAT)
-    win.controller.chat.attachment.has.return_value = True
-    win.core.attachments.native.get_provider.return_value = "openai"
     inp = Input(win)
-    inp.send_input(force=False)
-    calls = win.dispatch.call_args_list
-    found_busy = any(
-        isinstance(arg[0], KernelEvent)
-        and arg[0].data.get("msg") == "Processing attachments..."
-        for arg, _ in calls
+    inp.generating = True
+
+    worker = MagicMock()
+    with patch("pygpt_net.controller.chat.input.InputWorker", return_value=worker) as worker_cls:
+        inp.send_input(force=False)
+
+    meta = win.core.ctx.get_meta_by_id.return_value
+    win.controller.chat.attachment.begin_turn.assert_called_once_with(meta)
+    worker_cls.assert_called_once_with(
+        window=win,
+        request_id=1,
+        mode=MODE_CHAT,
+        text="attachment text",
+        meta=meta,
     )
-    assert found_busy
-    win.controller.chat.attachment.handle.assert_called_once_with(
-        MODE_CHAT, "native attachment"
-    )
+    worker.signals.success.connect.assert_called_once()
+    worker.signals.error.connect.assert_called_once()
+    win.threadpool.start.assert_called_once_with(worker)
+    win.controller.chat.attachment.handle.assert_not_called()
+
+
+def test_send_input_attachments_are_deferred_to_worker():
+    win = create_dummy_window()
+    inp = Input(win)
+    meta = win.core.ctx.get_meta_by_id.return_value
+
+    worker = MagicMock()
+    with patch("pygpt_net.controller.chat.input.InputWorker", return_value=worker):
+        inp._start_preprocessing(MODE_CHAT, "native attachment", meta)
+
+    win.controller.chat.attachment.handle.assert_not_called()
+    win.controller.chat.attachment.upload.assert_not_called()
+    win.threadpool.start.assert_called_once_with(worker)
+    assert inp._preprocess_worker is worker
+    assert inp._preprocess_id == 1
+
 
 def test_send_input_attachments_error():
     win = create_dummy_window()
-    win.ui.nodes['input'].toPlainText.return_value = "attachment error"
-    win.core.config.get = MagicMock(return_value=MODE_CHAT)
-    win.controller.chat.attachment.has.return_value = True
-    win.controller.chat.attachment.handle.side_effect = Exception("error")
     inp = Input(win)
-    inp.send_input(force=False)
-    calls = win.dispatch.call_args_list
-    found_error = any(isinstance(arg[0], KernelEvent) and arg[0].data.get("msg", "").startswith("Error processing attachments:") for arg, _ in calls)
-    assert found_error
+    inp.generating = True
+    inp._preprocess_id = 1
+    error = RuntimeError("attachment error")
+
+    inp._on_preprocess_error(1, error)
+
+    assert inp.generating is False
+    assert inp._preprocess_id is None
+    assert inp._preprocess_worker is None
+    error_events = [
+        args[0]
+        for args, _ in win.dispatch.call_args_list
+        if args and isinstance(args[0], KernelEvent) and args[0].name == KernelEvent.STATE_ERROR
+    ]
+    assert len(error_events) == 1
+    assert "attachment error" in error_events[0].data.get("msg", "")
+    win.controller.chat.common.sync_send_stop_buttons.assert_called_once_with()
+    win.core.ctx.output.finish_request.assert_called_once_with(win.core.ctx.output.get_request_meta.return_value)
+    win.controller.ui.tabs.sync_focused_chat_context.assert_called_once_with()
 
 def test_send_calls_execute():
     win = create_dummy_window()
@@ -295,17 +294,79 @@ def test_send_calls_execute():
     context.prompt = "dummy prompt"
     context.ctx = "prev_ctx"
     context.multimodal_ctx = "mm_ctx"
+    context.attachments = {"runtime": "attachment"}
     inp.execute = MagicMock()
     extra = {"force": True, "reply": True, "internal": True, "parent_id": 42}
     inp.send(context, extra)
-    inp.execute.assert_called_once_with(
-        text="dummy prompt",
-        force=True,
-        reply=True,
-        internal=True,
-        prev_ctx="prev_ctx",
-        multimodal_ctx="mm_ctx",
-    )
+    expected = {
+        "text": "dummy prompt",
+        "force": True,
+        "reply": True,
+        "internal": True,
+        "prev_ctx": "prev_ctx",
+        "multimodal_ctx": "mm_ctx",
+        "mode_override": None,
+        "model_override": None,
+        "agent_continue": False,
+        "runtime_attachments": {"runtime": "attachment"},
+        "send_initialized": False,
+    }
+    if "preflight_busy" in signature(Input.execute).parameters:
+        expected.update(preflight_busy=False, preflight_token=None)
+    inp.execute.assert_called_once_with(**expected)
+
+def test_send_internal_reply_preserves_origin_mode_and_model():
+    win = create_dummy_window()
+    inp = Input(win)
+    inp.execute = MagicMock()
+
+    origin = CtxItem()
+    origin.mode = MODE_LLAMA_INDEX
+    origin.model = "origin-model"
+
+    context = BridgeContext()
+    context.prompt = "tool result"
+    context.ctx = origin
+    context.multimodal_ctx = None
+
+    inp.send(context, {"force": True, "reply": True, "internal": True})
+
+    expected = {
+        "text": "tool result",
+        "force": True,
+        "reply": True,
+        "internal": True,
+        "prev_ctx": origin,
+        "multimodal_ctx": None,
+        "mode_override": MODE_LLAMA_INDEX,
+        "model_override": "origin-model",
+        "agent_continue": False,
+        "runtime_attachments": {},
+        "send_initialized": False,
+    }
+    if "preflight_busy" in signature(Input.execute).parameters:
+        expected.update(preflight_busy=False, preflight_token=None)
+    inp.execute.assert_called_once_with(**expected)
+
+
+def test_send_internal_reply_agents_v2_is_not_forwarded_to_legacy_pipeline():
+    win = create_dummy_window()
+    inp = Input(win)
+    inp.execute = MagicMock()
+
+    origin = CtxItem()
+    origin.mode = MODE_AGENT_V2
+    origin.model = "agent-model"
+
+    context = BridgeContext()
+    context.prompt = "tool result"
+    context.ctx = origin
+    context.multimodal_ctx = None
+
+    inp.send(context, {"force": True, "reply": True, "internal": True})
+
+    inp.execute.assert_not_called()
+
 
 def test_execute_assistant_no_assistant():
     win = create_dummy_window()
@@ -335,7 +396,17 @@ def test_execute_handle_allowed():
     mm_ctx = MagicMock()
     mm_ctx.is_audio_input = False
     inp.execute(text="non empty", force=True, reply=False, internal=False, prev_ctx="prev", multimodal_ctx=mm_ctx)
-    win.controller.chat.text.send.assert_called_once_with(text="non empty", reply=False, internal=False, prev_ctx="prev", multimodal_ctx=ANY)
+    win.controller.chat.text.send.assert_called_once_with(
+        text="non empty",
+        reply=False,
+        internal=False,
+        prev_ctx="prev",
+        multimodal_ctx=ANY,
+        mode_override=None,
+        model_override=None,
+        agent_continue=False,
+        runtime_attachments=None,
+    )
 
 def test_execute_empty_text():
     win = create_dummy_window()

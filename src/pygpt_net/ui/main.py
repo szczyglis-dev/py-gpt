@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 20:00:00                  #
+# Updated Date: 2026.09.14 10:15:00                  #
 # ================================================== #
 
 import os
@@ -22,7 +22,12 @@ from pygpt_net.controller import Controller
 from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
+from pygpt_net.ui.widget.window_chrome import WindowChrome
 from pygpt_net.utils import get_app_meta, freeze_updates, set_env, has_env, get_env, trans
+
+
+# Set to False to use the native system window frame/title bar.
+WINDOW_FRAMELESS = True
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -47,7 +52,12 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param args: launcher arguments
         """
         super().__init__()
-        self.setWindowFlags(self.windowFlags() | Qt.WindowMinMaxButtonsHint | Qt.WindowMaximizeButtonHint)
+        # Optional borderless main window. Set WINDOW_FRAMELESS = False above
+        # to fall back to the native system frame/title bar for platform testing.
+        # Do not add native min/max/close hints in frameless mode - on Linux they
+        # may request server-side decorations again.
+        if WINDOW_FRAMELESS:
+            self.setWindowFlag(Qt.FramelessWindowHint, True)
         self.app = app
         self.args = args
         self.timer = None
@@ -60,6 +70,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.update_timer_interval = 300000  # check every 5 minutes
         self.state = self.STATE_IDLE
         self.prevState = None
+        self._fullscreen_restore_maximized = False
         self.is_post_update = False
 
         # app ready emission control
@@ -94,6 +105,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         with freeze_updates(self):
             self.ui.init()
 
+        # Custom frameless window chrome. Keep the attribute available in both
+        # modes because state/fullscreen handlers treat it as optional.
+        self.window_chrome = None
+        if WINDOW_FRAMELESS:
+            self.window_chrome = WindowChrome(self)
+            self.window_chrome.setup()
+
         # global shortcuts
         self.shortcuts = []
         self._esc_shortcut = None  # keep a direct handle to temporarily disable during rerouting
@@ -101,6 +119,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup signals
         self.statusChanged.connect(self.update_status)
         self.stateChanged.connect(self.update_state)
+        # Tray Exit calls QApplication.quit() directly and therefore may bypass
+        # closeEvent(). Keep shutdown attached to the application lifecycle too.
+        self.app.aboutToQuit.connect(self.shutdown)
 
     def handle_engine_args(self):
         """Handle launcher arguments"""
@@ -235,6 +256,8 @@ class MainWindow(QMainWindow, QtStyleTools):
     def showEvent(self, e):
         super().showEvent(e)
         QTimer.singleShot(0, self.ui.on_show)
+        if getattr(self, "window_chrome", None) is not None:
+            QTimer.singleShot(0, self.window_chrome.refresh)
 
     def paintEvent(self, e):
         """
@@ -301,6 +324,18 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param event
         :param all: True to dispatch to all plugins
         """
+        # Profile reload touches many controllers and some of them emit their
+        # own STATUS messages (including empty ones). Keep the profile reload
+        # status visible until settings.profile.after_update() confirms that
+        # the complete switch has finished. Resolving the translation here also
+        # makes the message follow a language changed by the target profile.
+        profile = getattr(getattr(self.controller, "settings", None), "profile", None)
+        if (
+                event.name == KernelEvent.STATUS
+                and getattr(profile, "switching", False)
+        ):
+            event.data["status"] = trans("dialog.profile.status.reloading")
+
         self.core.dispatcher.dispatch(event, all=all)
 
     def closeEvent(self, event):
@@ -337,6 +372,11 @@ class MainWindow(QMainWindow, QtStyleTools):
             return
         self.is_closing = True
         print("Closing...")
+        print("Stopping camera...")
+        try:
+            self.controller.camera.shutdown()
+        except Exception as e:
+            self.core.debug.log(e)
         print("Sending terminate signal to all...")
         self.controller.kernel.terminate()
         print("Saving context and projects...")
@@ -386,6 +426,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param event: Event
         """
         if event.type() == QEvent.WindowStateChange:
+            if getattr(self, "window_chrome", None) is not None:
+                QTimer.singleShot(0, self.window_chrome.update_state)
             if self.isMinimized() and self.core.config.get('layout.tray.minimize'):
                 self.ui.tray_menu['restore'].setVisible(True)
                 self.hide()
@@ -415,7 +457,9 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def restore(self):
         """Restore window"""
-        if self.prevState == Qt.WindowMaximized or self.isMaximized():
+        if self.isFullScreen():
+            self.showFullScreen()
+        elif self.prevState == Qt.WindowMaximized or self.isMaximized():
             self.showMaximized()
         else:
             self.showNormal()
@@ -474,14 +518,41 @@ class MainWindow(QMainWindow, QtStyleTools):
     def _on_escape_shortcut(self):
         """
         Global ESC: deliver ESC to the focused/popup widget first so it can handle and cleanup correctly.
-        If nothing handles it, run the app-level escape handler.
+        If there is no popup/modal, leave fullscreen before running the app-level escape handler.
         """
         if self._route_escape_to_focus_or_popup():
+            return
+        if self.isFullScreen():
+            self.toggle_fullscreen(False)
             return
         try:
             self.controller.access.on_escape()
         except Exception:
             pass
+
+    def toggle_fullscreen(self, checked=None):
+        """Toggle native fullscreen mode while preserving the previous window state."""
+        enable = not self.isFullScreen() if checked is None else bool(checked)
+
+        if enable and not self.isFullScreen():
+            self._fullscreen_restore_maximized = self.isMaximized()
+            self.showFullScreen()
+        elif not enable and self.isFullScreen():
+            if self._fullscreen_restore_maximized:
+                self.showMaximized()
+            else:
+                self.showNormal()
+
+        action = getattr(self, 'ui', None)
+        if action is not None:
+            fullscreen_action = self.ui.menu.get('theme.fullscreen') if hasattr(self.ui, 'menu') else None
+            if fullscreen_action is not None and fullscreen_action.isChecked() != enable:
+                fullscreen_action.blockSignals(True)
+                fullscreen_action.setChecked(enable)
+                fullscreen_action.blockSignals(False)
+
+        if getattr(self, "window_chrome", None) is not None:
+            QTimer.singleShot(0, self.window_chrome.update_state)
 
     def setup_global_shortcuts(self):
         """Setup global shortcuts"""
