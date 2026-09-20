@@ -280,12 +280,10 @@ def test_run_executes_window_lifecycle_without_real_qt_or_process_exit(launcher_
     geometry = MagicMock()
     geometry.width.return_value = 1280
     geometry.height.return_value = 900
-    launcher.window.screen.return_value.availableGeometry.return_value = geometry
-
-    screen_geometry = MagicMock()
-    screen_geometry.topLeft.return_value = "top-left"
-    launcher_module.QScreen = SimpleNamespace(availableGeometry=MagicMock(return_value=screen_geometry))
-    launcher_module.QApplication = SimpleNamespace(primaryScreen=MagicMock(return_value="primary"))
+    geometry.topLeft.return_value = "top-left"
+    screen = MagicMock()
+    screen.availableGeometry.return_value = geometry
+    launcher_module.QApplication = SimpleNamespace(primaryScreen=MagicMock(return_value=screen))
     signal_mock = MagicMock()
     exit_mock = MagicMock()
     launcher_module.signal = SimpleNamespace(

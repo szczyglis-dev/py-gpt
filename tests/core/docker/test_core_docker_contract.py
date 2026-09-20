@@ -135,6 +135,7 @@ def test_run_as_root_user_and_labels_use_optional_option():
     assert docker.get_container_labels() == {
         "pygpt.run_as_root": "true",
         "pygpt.data_dir": os.path.normcase(os.path.realpath("/work/data")),
+        "pygpt.data_mount": "/mnt/data",
     }
 
     plugin2, _ = make_plugin(values={})
@@ -144,6 +145,7 @@ def test_run_as_root_user_and_labels_use_optional_option():
     assert docker2.get_container_labels() == {
         "pygpt.run_as_root": "false",
         "pygpt.data_dir": os.path.normcase(os.path.realpath("/work/data")),
+        "pygpt.data_mount": "/mnt/data",
     }
 
 

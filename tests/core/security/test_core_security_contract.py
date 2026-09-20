@@ -123,7 +123,8 @@ def test_ensure_command_whitelist_blacklist_and_sandbox(tmp_path):
     sec, *_ = make_security(tmp_path, values=values)
     with pytest.raises(SecurityError, match="blocked by the blacklist"):
         sec.ensure_command("git status")
-    assert sec.ensure_command("git status", sandbox=True) == ["git"]
+    with pytest.raises(SecurityError, match="blocked by the blacklist"):
+        sec.ensure_command("git status", sandbox=True)
 
 
 def test_computer_safety_state_and_messages(tmp_path):

@@ -200,10 +200,10 @@ def test_get_workdir_prefix_switches_for_sandbox():
     filesystem = SimpleNamespace(get_data_dir=MagicMock(return_value='/user/data'))
     cfg.window = SimpleNamespace(core=SimpleNamespace(plugins=plugins, filesystem=filesystem))
 
-    plugins.get_option.return_value = False
+    plugins.get_option.return_value = "disabled"
     assert cfg.get_workdir_prefix() == "/user/data"
-    plugins.get_option.return_value = True
-    assert cfg.get_workdir_prefix() == "/data"
+    plugins.get_option.return_value = "docker"
+    assert cfg.get_workdir_prefix() == "/mnt/data"
 
 
 def test_plugin_config_update_and_remove():

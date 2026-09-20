@@ -39,6 +39,7 @@ def _tool(tmp_path):
     config = MagicMock()
     config.get_user_dir.side_effect = lambda kind: str(data_dir if kind == "data" else tmp_dir)
     plugin = MagicMock()
+    plugin.is_ipython_enabled.return_value = True
     plugins = MagicMock()
     plugins.get.return_value = plugin
     parser = MagicMock()
@@ -97,10 +98,10 @@ def test_code_interpreter_setup_restores_config_and_initializes_once(tmp_path):
         "interpreter.input": "print(1)",
         "interpreter.execute_all": True,
         "interpreter.auto_clear": True,
-        "interpreter.ipython": False,
     }
     tool.window.core.config.has.side_effect = lambda key: key in values
     tool.window.core.config.get.side_effect = lambda key, *args: values[key]
+    tool.window.core.plugins.get.return_value.is_ipython_enabled.return_value = False
 
     tool.setup()
 
@@ -112,8 +113,8 @@ def test_code_interpreter_setup_restores_config_and_initializes_once(tmp_path):
     tool.signals.set_checkbox_all.emit.assert_called_once_with(True)
     tool.signals.set_checkbox_auto_clear.emit.assert_called_once_with(True)
     tool.signals.set_checkbox_ipython.emit.assert_called_once_with(False)
-    # self.ipython is still the tool's in-memory value until widget callback updates it.
-    tool.signals.toggle_all_visible.emit.assert_called_once_with(False)
+    assert tool.ipython is False
+    tool.signals.toggle_all_visible.emit.assert_not_called()
     tool.window.core.config.set.assert_not_called()
 
 
@@ -397,6 +398,7 @@ def test_code_interpreter_store_history_skips_missing_history_widget(tmp_path):
 def test_code_interpreter_simple_state_accessors_and_toolbar(tmp_path):
     tool, _, _, _ = _tool(tmp_path)
     tool.ipython = False
+    tool.window.core.plugins.get.return_value.is_ipython_enabled.return_value = False
     tool.opened = True
     assert tool.is_ipython() is False
     assert tool.is_opened() is True
@@ -426,14 +428,22 @@ def test_code_interpreter_toggle_settings_update_config_and_signals(tmp_path):
     tool.window.core.config.set.assert_called_with("interpreter.auto_clear", True)
     tool.signals.set_checkbox_auto_clear.emit.assert_called_once_with(True)
 
+    tool.window.core.config.data = {}
     widget.checkbox_ipython.isChecked.return_value = False
     tool.toggle_ipython(widget)
     assert tool.ipython is False
-    tool.window.core.config.set.assert_called_with("interpreter.ipython", False)
+    tool.window.core.plugins.get.return_value.set_option_value.assert_called_with("use_ipython", False)
+    assert tool.window.core.config.data["plugins"]["cmd_code_interpreter"]["use_ipython"] is False
+    tool.window.core.config.save.assert_called_once_with()
+    tool.signals.set_checkbox_ipython.emit.assert_called_with(False)
     tool.signals.toggle_all_visible.emit.assert_called_with(True)
 
     widget.checkbox_ipython.isChecked.return_value = True
     tool.toggle_ipython(widget)
+    tool.window.core.plugins.get.return_value.set_option_value.assert_called_with("use_ipython", True)
+    assert tool.window.core.config.data["plugins"]["cmd_code_interpreter"]["use_ipython"] is True
+    assert tool.window.core.config.save.call_count == 2
+    tool.signals.set_checkbox_ipython.emit.assert_called_with(True)
     tool.signals.toggle_all_visible.emit.assert_called_with(False)
 
     widget.checkbox_all.isChecked.return_value = True
