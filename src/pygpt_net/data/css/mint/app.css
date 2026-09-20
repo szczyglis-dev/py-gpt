@@ -793,3 +793,12 @@ QPushButton#chatInputReasoningEffort:hover {{
   margin-right: 0px;
 }}
 
+/* Final combo popup selection precedence. */
+QListView#ComboPopupList::item:selected,
+QListView#ComboPopupList::item:selected:hover,
+QListView#ComboPopupList::item:selected:focus {{
+  background: #d9e9e1;
+  color: #17382d;
+  selection-color: #17382d;
+  font-weight: bold;
+}}

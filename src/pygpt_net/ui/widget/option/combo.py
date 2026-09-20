@@ -381,29 +381,27 @@ class CurrentSelectedDelegate(QStyledItemDelegate):
         if isinstance(view, ComboPopupListView):
             fg, bg, bold, stripe_w, stripe_color = view.current_selected_style()
 
-        # Prepare option clone to adjust font/colors when item is the current combo value
+        # Prepare option clone to adjust font/colors when item is the current combo value.
+        # The combo's current value is not necessarily selected by the popup view once
+        # the mouse moves over another row. Mark it as selected explicitly so the
+        # popup's :selected QSS remains authoritative for both background and text.
         opt = QStyleOptionViewItem(option)
         selected = bool(opt.state & QStyle.State_Selected)
         hovered = bool(opt.state & QStyle.State_MouseOver)
 
         if is_current_combo and not selected:
-            # Apply text color and bold font only when not in selected state to not clash with :selected visuals
+            opt.state |= QStyle.State_Selected
+            selected = True
+
+        if is_current_combo:
             if isinstance(fg, QColor) and fg.isValid():
                 opt.palette.setColor(QPalette.Text, fg)
                 opt.palette.setColor(QPalette.HighlightedText, fg)
             if bold:
                 opt.font.setBold(True)
 
-        # Fill background before default painting when applicable and not selected/hovered
-        if is_current_combo and not selected and not hovered:
-            if isinstance(bg, QColor) and bg.isValid() and bg.alpha() > 0:
-                painter.save()
-                painter.setBrush(QBrush(bg))
-                painter.setPen(Qt.NoPen)
-                painter.drawRect(opt.rect)
-                painter.restore()
-
-        # Default painting (respects QSS for :selected and :hover)
+        # Default painting now uses the selected-state QSS for the current combo item,
+        # even while another popup row is under the mouse cursor.
         super().paint(painter, opt, index)
 
         # Draw left stripe/marker overlay to persistently mark current selection even when hovered/selected

@@ -277,6 +277,8 @@ QListView#ComboPopupList {{
   border-radius: 10px;
   background: #0d1710;
   border: 2px solid #275b39;
+  qproperty-currentSelectedBgColor: #39ff88;
+  qproperty-currentSelectedTextColor: #050806;
 }}
 
 QComboBox[name="SearchableCombo"] QAbstractItemView::item,
@@ -707,3 +709,12 @@ QPushButton#chatInputReasoningEffort:hover {{
   margin-right: 0px;
 }}
 
+/* Final combo popup selection precedence. */
+QListView#ComboPopupList::item:selected,
+QListView#ComboPopupList::item:selected:hover,
+QListView#ComboPopupList::item:selected:focus {{
+  background: #39ff88;
+  color: #050806;
+  selection-color: #050806;
+  font-weight: bold;
+}}
