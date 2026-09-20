@@ -223,6 +223,7 @@ class Docker:
                     tty=True,
                     stdin_open=True,
                     command=entrypoint,
+                    working_dir="/mnt/data",
                     labels=labels,
                     **({"user": user} if user else {}),
                 )
@@ -237,6 +238,7 @@ class Docker:
                 tty=True,
                 stdin_open=True,
                 command=entrypoint,
+                working_dir="/mnt/data",
                 labels=labels,
                 **({"user": user} if user else {}),
             )
@@ -342,6 +344,7 @@ class Docker:
                     tty=True,
                     stdin_open=True,
                     command=entrypoint,  # 'running'
+                    working_dir="/mnt/data",
                     labels=labels,
                     **({"user": user} if user else {}),
                 )
@@ -362,6 +365,7 @@ class Docker:
                 tty=True,
                 stdin_open=True,
                 command=entrypoint,  # 'running'
+                working_dir="/mnt/data",
                 labels=labels,
                 **({"user": user} if user else {}),
             )
@@ -390,8 +394,11 @@ class Docker:
         for item in config:
             if item['enabled']:
                 host_dir = item['host'].format(workdir=workdir)
+                docker_dir = item['docker']
+                if item.get('host') == '{workdir}' and docker_dir == '/data':
+                    docker_dir = '/mnt/data'
                 data[host_dir] = {
-                    'bind': item['docker'],
+                    'bind': docker_dir,
                     'mode': 'rw',
                 }
         return data
@@ -440,10 +447,11 @@ class Docker:
         return None
 
     def get_container_labels(self, ctx=None) -> dict:
-        """Labels used to detect a sandbox user-mode change."""
+        """Labels used to detect sandbox runtime mapping changes."""
         return {
             "pygpt.run_as_root": "true" if self.get_run_as_root() else "false",
             "pygpt.data_dir": os.path.normcase(os.path.realpath(self.get_local_data_dir(ctx=ctx))),
+            "pygpt.data_mount": "/mnt/data",
         }
 
     def execute(self, cmd: str, ctx=None) -> Optional[bytes]:
@@ -468,6 +476,7 @@ class Docker:
                 cmd,
                 stdout=True,
                 stderr=True,
+                workdir="/mnt/data",
             )
             tmp = result.output.decode("utf-8")
             response = tmp.encode("utf-8")

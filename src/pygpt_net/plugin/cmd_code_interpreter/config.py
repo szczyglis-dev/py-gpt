@@ -144,7 +144,7 @@ class Config(BaseConfig):
         volumes_items = [
             {
                 "enabled": True,
-                "docker": "/data",
+                "docker": "/mnt/data",
                 "host": "{workdir}",
             },
         ]
@@ -304,26 +304,6 @@ class Config(BaseConfig):
 
         # commands
         plugin.add_cmd(
-            "python_sys_exec",
-            instruction="execute a system/shell command in the standard Python interpreter environment. "
-                        "When the Python Docker sandbox is enabled, execute the command inside the same "
-                        "Python container. When the sandbox is disabled, execute it on the host. Use this for "
-                        "operating-system commands and command-line tools; use python_exec/python_exec_file "
-                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
-                        "for stdin; pass all required answers/options in the command itself.",
-            params=[
-                {
-                    "name": "command",
-                    "type": "str",
-                    "description": "system/shell command to execute",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="Allows system commands execution in the standard Python environment",
-            tab="python_legacy",
-        )
-        plugin.add_cmd(
             "python_exec",
             instruction="save generated Python code and execute it. Execution is non-interactive: never use input(), "
                         "getpass(), or code that waits for stdin; provide required values directly in code.",
@@ -360,6 +340,26 @@ class Config(BaseConfig):
             ],
             enabled=True,
             description="Allows Python code execution from existing file",
+            tab="python_legacy",
+        )
+        plugin.add_cmd(
+            "python_sys_exec",
+            instruction="execute a system/shell command in the standard Python interpreter environment. "
+                        "When the Python Docker sandbox is enabled, execute the command inside the same "
+                        "Python container. When the sandbox is disabled, execute it on the host. Use this for "
+                        "operating-system commands and command-line tools; use python_exec/python_exec_file "
+                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
+                        "for stdin; pass all required answers/options in the command itself.",
+            params=[
+                {
+                    "name": "command",
+                    "type": "str",
+                    "description": "system/shell command to execute",
+                    "required": True,
+                },
+            ],
+            enabled=True,
+            description="Allows system commands execution in the standard Python environment",
             tab="python_legacy",
         )
         plugin.add_cmd(

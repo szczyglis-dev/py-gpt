@@ -45,7 +45,7 @@ class CodeActAgent(BaseAgent):
         tools = kwargs.get("plugin_tools", {})
         specs = kwargs.get("plugin_specs", [])
         retriever_tool = kwargs.get("retriever_tools", None)
-        workdir = kwargs.get("workdir", "/data")
+        workdir = kwargs.get("workdir", "/mnt/data")
         llm = kwargs.get("llm", None)
         preset = context.preset
         system_prompt = self.get_option(preset, "additional", "prompt")

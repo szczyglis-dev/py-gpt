@@ -110,9 +110,16 @@ class Plugin(BasePlugin):
         migrated_ipython = migrate_default_dockerfile(
             self,
             "ipython_dockerfile",
-            IPYTHON_DOCKERFILE_LEGACY,
+            IPYTHON_DOCKERFILE.replace("/mnt/data", "/data"),
             IPYTHON_DOCKERFILE,
         )
+        if not migrated_ipython:
+            migrated_ipython = migrate_default_dockerfile(
+                self,
+                "ipython_dockerfile",
+                IPYTHON_DOCKERFILE_LEGACY,
+                IPYTHON_DOCKERFILE,
+            )
         if not migrated_ipython:
             migrated_ipython = migrate_default_dockerfile(
                 self,
@@ -131,9 +138,16 @@ class Plugin(BasePlugin):
         migrated_python = migrate_default_dockerfile(
             self,
             "dockerfile",
-            PYTHON_LEGACY_DOCKERFILE_39,
+            PYTHON_LEGACY_DOCKERFILE.replace("/mnt/data", "/data"),
             PYTHON_LEGACY_DOCKERFILE,
         )
+        if not migrated_python:
+            migrated_python = migrate_default_dockerfile(
+                self,
+                "dockerfile",
+                PYTHON_LEGACY_DOCKERFILE_39,
+                PYTHON_LEGACY_DOCKERFILE,
+            )
         if not migrated_python:
             migrated_python = migrate_default_dockerfile(
                 self,
@@ -216,11 +230,11 @@ class Plugin(BasePlugin):
                     if item == "ipython_sys_exec":
                         cmd["instruction"] += (
                             "\nThe command runs inside the same Docker container as the current IPython kernel. "
-                            "Directory /data is the container's workdir and is mapped on the host to: {}"
+                            "Directory /mnt/data is the container's workdir and is mapped on the host to: {}"
                         ).format(data_dir)
                     else:
                         cmd["instruction"] += (
-                            "\nIPython works in a Docker container. Directory /data is the container's workdir "
+                            "\nIPython works in a Docker container. Directory /mnt/data is the container's workdir "
                             "and is mapped on the host to: {}"
                         ).format(data_dir)
                     if self.get_option_value("ipython_run_as_root"):
@@ -249,11 +263,11 @@ class Plugin(BasePlugin):
                     if item == "python_sys_exec":
                         cmd["instruction"] += (
                             "\nThe command runs inside the same Docker container as the standard Python "
-                            "interpreter. Directory /data is the container's workdir and is mapped on the host to: {}"
+                            "interpreter. Directory /mnt/data is the container's workdir and is mapped on the host to: {}"
                         ).format(data_dir)
                     else:
                         cmd["instruction"] += (
-                            "\nPython works in a Docker container. Directory /data is the container's workdir "
+                            "\nPython works in a Docker container. Directory /mnt/data is the container's workdir "
                             "and is mapped on the host to: {}"
                         ).format(data_dir)
                     if self.get_option_value("docker_run_as_root"):

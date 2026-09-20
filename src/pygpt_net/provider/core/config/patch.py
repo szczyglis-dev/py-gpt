@@ -1126,6 +1126,23 @@ class Patch:
                     data.pop("interpreter.ipython")
                     updated = True
 
+                # The canonical Docker workdir mount moved from /data to
+                # /mnt/data. Migrate only the stock {workdir} mapping and leave
+                # custom volume destinations untouched.
+                for plugin_id in ("cmd_code_interpreter", "cmd_system"):
+                    plugin_cfg = plugins.get(plugin_id)
+                    if not isinstance(plugin_cfg, dict):
+                        continue
+                    volumes = plugin_cfg.get("docker_volumes")
+                    if not isinstance(volumes, list):
+                        continue
+                    for volume in volumes:
+                        if not isinstance(volume, dict):
+                            continue
+                        if volume.get("host") == "{workdir}" and volume.get("docker") == "/data":
+                            volume["docker"] = "/mnt/data"
+                            updated = True
+
                 # Preserve command enable/disable state while moving to the new
                 # public tool names. New keys win if they already exist.
                 command_renames = {

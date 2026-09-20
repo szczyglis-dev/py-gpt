@@ -240,8 +240,8 @@ RUN set -eux; \
     useradd --uid "$PYGPT_UID" --gid "$group_name" --create-home --shell /bin/bash pygpt; \
     echo 'pygpt ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/pygpt; \
     chmod 0440 /etc/sudoers.d/pygpt; \
-    mkdir -p /data /opt/pygpt-venv; \
-    chown -R "$PYGPT_UID:$PYGPT_GID" /data /opt/pygpt-venv
+    mkdir -p /mnt/data /opt/pygpt-venv; \
+    chown -R "$PYGPT_UID:$PYGPT_GID" /mnt/data /opt/pygpt-venv
 
 # Python environment required by the IPython sandbox. It is owned by the
 # unprivileged user, so ordinary `pip install` does not need root privileges.
@@ -281,7 +281,7 @@ ENV PATH="/opt/pygpt-venv/bin:/home/pygpt/.local/bin:${PATH}"
 EXPOSE 5555 5556 5557 5558 5559
 
 # Data directory, bound as a volume to the local 'data' directory.
-WORKDIR /data
+WORKDIR /mnt/data
 
 # Start the IPython kernel with specified ports and settings.
 CMD ["ipython", "kernel", \
@@ -377,8 +377,8 @@ RUN set -eux; \
     useradd --uid "$PYGPT_UID" --gid "$group_name" --create-home --shell /bin/bash pygpt; \
     echo 'pygpt ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/pygpt; \
     chmod 0440 /etc/sudoers.d/pygpt; \
-    mkdir -p /data /opt/pygpt-venv; \
-    chown -R "$PYGPT_UID:$PYGPT_GID" /data /opt/pygpt-venv
+    mkdir -p /mnt/data /opt/pygpt-venv; \
+    chown -R "$PYGPT_UID:$PYGPT_GID" /mnt/data /opt/pygpt-venv
 
 # Keep Python packages installed at runtime outside the system interpreter.
 # The stock image includes the same practical data/science/document toolkit as
@@ -411,5 +411,5 @@ RUN python -m venv /opt/pygpt-venv \
 ENV PATH="/opt/pygpt-venv/bin:/home/pygpt/.local/bin:${PATH}"
 
 # Data directory, bound as a volume to the local 'data/' directory.
-WORKDIR /data
+WORKDIR /mnt/data
 """.strip()

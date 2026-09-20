@@ -221,7 +221,7 @@ class Runner:
         path = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
         mapping = {}
         mapping[path] = {
-            "bind": "/data",
+            "bind": "/mnt/data",
             "mode": "rw",
         }
         return mapping

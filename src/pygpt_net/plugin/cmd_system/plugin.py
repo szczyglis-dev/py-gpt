@@ -92,13 +92,21 @@ class Plugin(BasePlugin):
         self.config.from_defaults(self)
 
     def migrate_docker_defaults(self) -> bool:
-        """Upgrade an unchanged stock sandbox Dockerfile from Python 3.9."""
-        return migrate_default_dockerfile(
+        """Upgrade unchanged stock sandbox Dockerfiles."""
+        migrated = migrate_default_dockerfile(
             self,
             "dockerfile",
-            SYSTEM_DOCKERFILE_39,
+            SYSTEM_DOCKERFILE.replace("/mnt/data", "/data"),
             SYSTEM_DOCKERFILE,
         )
+        if not migrated:
+            migrated = migrate_default_dockerfile(
+                self,
+                "dockerfile",
+                SYSTEM_DOCKERFILE_39,
+                SYSTEM_DOCKERFILE,
+            )
+        return migrated
 
     def handle(self, event: Event, *args, **kwargs):
         """

@@ -269,11 +269,11 @@ class Filesystem:
         return value
 
     def from_sandbox_data_path(self, path: str, ctx=None) -> str:
-        """Map a Docker ``/data`` path to the active host data workdir.
+        """Map a Docker data path to the active host data workdir.
 
-        This helper is intentionally explicit: host absolute paths are not
-        globally reinterpreted. Call it only when a value is known to come
-        from a sandbox/container namespace.
+        ``/mnt/data`` is the canonical sandbox mount. ``/data`` remains
+        accepted for compatibility with tool outputs and conversations created
+        by older PyGPT versions.
         """
         if not path:
             return path
@@ -281,18 +281,19 @@ class Filesystem:
         if raw.lower().startswith("sandbox:"):
             raw = raw[len("sandbox:"):].strip()
         normalized = raw.replace("\\", "/")
-        if normalized == "/data" or normalized.startswith("/data/"):
-            tail = normalized[len("/data"):].lstrip("/")
-            root = self.get_data_dir(ctx=ctx)
-            if not tail:
-                return root
-            return os.path.join(root, *[part for part in tail.split("/") if part])
+        for root_prefix in ("/mnt/data", "/data"):
+            if normalized == root_prefix or normalized.startswith(root_prefix + "/"):
+                tail = normalized[len(root_prefix):].lstrip("/")
+                root = self.get_data_dir(ctx=ctx)
+                if not tail:
+                    return root
+                return os.path.join(root, *[part for part in tail.split("/") if part])
         return path
 
     def resolve_sandbox_path(self, path: str, ctx=None) -> str:
         """Resolve a model-facing ``sandbox:`` path to a host path.
 
-        ``/data`` is the only sandbox root that follows the active project.
+        ``/mnt/data`` is the canonical sandbox root that follows the active project; ``/data`` is accepted for backward compatibility.
         ``/pygpt_tmp`` and all ordinary profile directories (notably ``tmp``)
         stay rooted in the base profile.  Absolute host paths emitted by a
         tool are preserved when they already point inside the base profile or
@@ -321,7 +322,8 @@ class Filesystem:
             normalized = normalized[1:]
 
         # Docker/project data namespace.
-        if normalized == "/data" or normalized.startswith("/data/"):
+        if normalized == "/mnt/data" or normalized.startswith("/mnt/data/") \
+                or normalized == "/data" or normalized.startswith("/data/"):
             return self.from_sandbox_data_path(normalized, ctx=ctx)
 
         # Internal interpreter temporary namespace is always global/base.
@@ -496,7 +498,7 @@ class Filesystem:
 
         # Resolve the sandbox namespace before generic workdir handling.
         # In particular, preserve real absolute host paths and keep tmp rooted
-        # in the base profile; only /data follows the active project.
+        # in the base profile; only the sandbox data mount follows the active project.
         if path.lower().startswith('sandbox:'):
             path = self.resolve_sandbox_path(path, ctx=ctx)
             if os.path.isabs(path):
@@ -575,7 +577,7 @@ class Filesystem:
             return path
 
         # A relative path explicitly rooted at data belongs to the runtime data
-        # directory. This preserves legacy ``data/foo`` and sandbox:/data/foo.
+        # directory. This preserves legacy ``data/foo`` and old sandbox:/data/foo paths.
         portable = path.replace("\\", "/")
         if portable == "data" or portable.startswith("data/"):
             tail = portable[len("data"):].lstrip("/")

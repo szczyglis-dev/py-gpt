@@ -702,7 +702,7 @@ class Skills:
 
         # Agent Skills commonly use {baseDir} in commands/resources. A single
         # host path is wrong when the selected execution tool runs in Docker,
-        # while /data is wrong for host-side tools. Resolve it to the currently
+        # while /mnt/data is wrong for host-side tools. Resolve it to the currently
         # preferred shell runtime and also return both path variants below so an
         # agent can switch tools without guessing.
         body = body.replace("{baseDir}", execution["preferred_working_directory"])
@@ -791,13 +791,13 @@ class Skills:
         return real
 
     def _sandbox_workdir_path(self, path: str, ctx=None) -> str:
-        """Map a materialized skill path to the Docker /data namespace."""
+        """Map a materialized skill path to the Docker /mnt/data namespace."""
         data_dir = os.path.realpath(self.window.core.filesystem.get_data_dir(ctx=ctx))
         real = os.path.realpath(path)
         if not self._is_inside(real, data_dir):
             return real.replace(os.sep, "/")
         rel = os.path.relpath(real, data_dir).replace(os.sep, "/")
-        return "/data" if rel == "." else f"/data/{rel}"
+        return "/mnt/data" if rel == "." else f"/mnt/data/{rel}"
 
     def _plugin_enabled(self, plugin_id: str) -> bool:
         try:
@@ -850,7 +850,7 @@ class Skills:
         that module reliably when the skill root is the working directory (or
         explicitly present on PYTHONPATH). The materialized tree is inside the
         active data mount, so the same files are available as an absolute host
-        path and as ``/data/...`` inside either PyGPT Docker sandbox.
+        path and as ``/mnt/data/...`` inside either PyGPT Docker sandbox.
         """
         host_path = os.path.realpath(materialized)
         sandbox_path = self._sandbox_workdir_path(materialized, ctx=ctx)

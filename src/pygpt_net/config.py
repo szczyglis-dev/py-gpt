@@ -220,7 +220,7 @@ class Config:
         """
         workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
         if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox") == "docker":
-            workdir = "/data"
+            workdir = "/mnt/data"
         return workdir
 
     def remove_plugin_config(self, plugin: str, key: str = None) -> bool:

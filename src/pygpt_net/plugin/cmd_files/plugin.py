@@ -132,7 +132,7 @@ class Plugin(BasePlugin):
 
         The host data path is always the working directory for Files I/O. If an
         enabled Code Interpreter uses either Docker sandbox (IPython and/or legacy
-        Python), explicitly describe the separate container namespace and /data
+        Python), explicitly describe the separate container namespace and /mnt/data
         volume mapping so the model does not pass host paths into sandbox code.
 
         :return: prompt fragment
@@ -156,19 +156,19 @@ class Plugin(BasePlugin):
 
         if ipython_sandbox:
             guidance.append(
-                "For the IPython Docker sandbox, use /data as the working directory inside "
+                "For the IPython Docker sandbox, use /mnt/data as the working directory inside "
                 "ipython_exec, IPython shell or magic commands, and "
                 "ipython_sys_exec."
             )
 
         if legacy_sandbox:
             guidance.append(
-                "For the legacy Python Docker sandbox, use /data as the working directory inside "
+                "For the legacy Python Docker sandbox, use /mnt/data as the working directory inside "
                 "python_exec/python_exec_file and python_sys_exec."
             )
 
         guidance.append(
-            "The container path /data is mapped to the same host directory: " + host_data_dir
+            "The container path /mnt/data is mapped to the same host directory: " + host_data_dir
         )
         parts.append(" ".join(guidance))
         return "\n\n".join(parts)

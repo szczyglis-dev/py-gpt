@@ -36,7 +36,7 @@ class Config(BaseConfig):
         volumes_items = [
             {
                 "enabled": True,
-                "docker": "/data",
+                "docker": "/mnt/data",
                 "host": "{workdir}",
             },
         ]
