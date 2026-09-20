@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.09.20 10:35:00                  #
 # ================================================== #
 
 import os
@@ -186,7 +186,7 @@ class DockerBackend(ExecutionBackend):
             path = self.plugin.window.tools.get("interpreter").file_current
             if "path" in item["params"]:
                 path = item["params"]["path"]
-            runner.log("Saving Python file: {}".format(path), sandbox=True)
+            runner.log("Saving temporary Python file: {}".format(path), sandbox=True)
             with open(self.prepare_path(path, on_host=True, ctx=ctx), "w", encoding="utf-8") as file:
                 file.write(data)
         else:

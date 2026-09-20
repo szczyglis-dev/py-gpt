@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.09.20 10:35:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.09.20 10:35:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -305,25 +305,19 @@ class Config(BaseConfig):
         # commands
         plugin.add_cmd(
             "python_exec",
-            instruction="save generated Python code and execute it. Execution is non-interactive: never use input(), "
-                        "getpass(), or code that waits for stdin; provide required values directly in code.",
+            instruction="execute Python code. "
+                        "Execution is non-interactive: never use input(), getpass(), or code that waits for "
+                        "stdin; provide required values directly in code.",
             params=[
-                {
-                    "name": "path",
-                    "type": "str",
-                    "description": "path to save",
-                    "default": ".interpreter.current.py",
-                    "required": True,
-                },
                 {
                     "name": "code",
                     "type": "str",
-                    "description": "code",
+                    "description": "Python code to execute",
                     "required": True,
                 },
             ],
             enabled=True,
-            description="Allows Python code execution (generate and execute from file)",
+            description="Allows direct Python code execution",
             tab="python_legacy",
         )
         plugin.add_cmd(
