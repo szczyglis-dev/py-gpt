@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.8.27 (2026-09-20)
+
+- Added a built-in sandboxed Python interpreter running in its own virtual environment, managed by `uv`, available as the default third sandbox option in the Python Interpreter and System / OS plugins. It allows Python code to be executed without requiring Python to be installed on the host system and without using Docker, as the interpreter is bundled and managed directly by PyGPT. See the documentation: Plugins -> Python Interpreter.
+- Fixed HTML / Canvas base directory handling for relative paths and local assets.
+- UI and CSS fixes, refinements, and visual improvements.
+
 ## 2.8.26 (2026-09-20)
 
 - Refactored, improved, and simplified QSS/QML handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.

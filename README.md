@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.26** | build: **2026-09-20** | Python: **>=3.10, <3.14**
+Release: **2.8.27** | build: **2026-09-20** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2626,6 +2626,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.27 (2026-09-20)**
+
+- Added a built-in sandboxed Python interpreter running in its own virtual environment, managed by `uv`, available as the default third sandbox option in the Python Interpreter and System / OS plugins. It allows Python code to be executed without requiring Python to be installed on the host system and without using Docker, as the interpreter is bundled and managed directly by PyGPT. See the documentation: Plugins -> Python Interpreter.
+- Fixed HTML / Canvas base directory handling for relative paths and local assets.
+- UI and CSS fixes, refinements, and visual improvements.
+
 **2.8.26 (2026-09-20)**
 
 - Refactored, improved, and simplified CSS/QSS handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
@@ -2658,61 +2664,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added date and time headers above chat input blocks.
 - Added support for referencing other conversations from the database using `@mentions` with conversation IDs, e.g. `What were we talking about in chat @123?`
 - Added various CSS, layout, and UI improvements.
-
-**2.8.23 (2026-09-17)**
-
-- Improved and extended Agents workflows.
-- Extended and condensed Agents instructions.
-- Added the Agent Workflow tool with real-time workflow preview, available as a dialog or tab.
-- Fixed auto-scroll and scroll-follow issues.
-- Optimized memory usage in the Python interpreter.
-- Improved CSS and UI layout.
-
-**2.8.22 (2026-09-16)**
-
-- Reorganized Context settings into **General**, **Tools**, and **Advanced handling**.
-- Added **Agent Workflows** for Chat with Agents with editable built-in workflows, custom UUID-based profiles, independent prompts, toolbox/Config access, migration support, documentation, and translations.
-- Moved Chat with Agents prompt editing from Settings to Agent Workflows.
-- Added direct `Config -> MCP...` access to MCP settings.
-- Added **Restore tool calls in runtime**, independent from database storage and history restore.
-- Added **Display tool calls JSON** in Chats -> Render, with aggregated Tool/Tools status when disabled.
-- Improved attachment handling.
-
-**2.8.21 (2026-09-16)**
-
-- Fixed restoring hidden chats from collapsed columns.
-- Added tool call storage settings in Settings -> Context, with Disable, Truncate, and Full modes.
-- Added history restore mode settings in Settings -> Agents -> Chat with Agents.
-- Added a distinct background highlight for the current day of the week in Calendar.
-- Added Undo support to the Clear Image button in Painter.
-- Added a System Info dialog to the About menu.
-- Added support for custom instructions and system prompts in Chat with Agents under Settings -> Agents -> Chat with Agents -> Advanced.
-- Optimized database storage.
-- Simplified the token counter display.
-- Moved the Stream checkbox to Settings -> Context -> Render.
-- Moved the Plain Text mode switch to the icon bar above the input field.
-- Various UI fixes and improvements.
-
-**2.8.20 (2026-09-15)**
-
-- Added an integration layer between Chat with Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.
-- Optimized Agents memory storage.
-
-**2.8.19 (2026-09-15)**
-
-- Split the Plugins list into Popular and Other sections.
-- Optimized and simplified the Plugin Settings dialog.
-- Fixed status visibility on non-chat tabs.
-- Fixed footer state restoration after changing profiles.
-- Fixed a Google `show_reasoning` error when used as a background vision model.
-- Fixed @mention restoration after application startup.
-- Fixed runtime WebView restoration when returning from plain text view on another tab.
-- Fixed RAG engine LLM selection in Chat with Agents.
-- Added support for runtime attachment and image appending from the workdir.
-- Added token counters and usage tracking to Chat with Agents.
-- Improved image attachment @mentions.
-- Added loaders for heavy operations such as indexing and embedding.
-- Updated CSS styles and translations.
 
 # Credits and links
 

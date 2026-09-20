@@ -612,7 +612,7 @@ class Config:
             except Exception as e:
                 print(f"Error setting env var: {e}")
         if list_loaded:
-            print(f"Setting environment vars: {', '.join(list_loaded)}")
+            print(f"Setting environment: {', '.join(list_loaded)}")
 
     def save(self, filename: str = "config.json"):
         """

@@ -2,58 +2,69 @@
 <PAD>
 <PAD_Version>4.0</PAD_Version>
 <Program_Name>PyGPT - Desktop AI Assistant</Program_Name>
-<Program_Version>2.8.26</Program_Version>
+<Program_Version>2.8.27</Program_Version>
 <Program_Release_Month>09</Program_Release_Month>
 <Program_Release_Day>20</Program_Release_Day>
 <Program_Release_Year>2026</Program_Release_Year>
 <Program_Cost_Dollars>0</Program_Cost_Dollars>
 <Program_Type>Open Source</Program_Type>
-<Download_URL>https://pygpt.net/download/2.8.26/pygpt-2.8.26.zip</Download_URL>
+<Download_URL>https://pygpt.net/download/2.8.27/pygpt-2.8.27.zip</Download_URL>
 <Application_OS_Support>Linux 64 bit</Application_OS_Support>
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
-<Program_Language>English, Deutsch, Francaise, Italian, Espaniol, Ukrainian, Chinese, Polish</Program_Language>
+<Program_Language>English, German, French, Italian, Spanish, Ukrainian, Chinese, Polish, Arabic, Bulgarian, Czech, Danish, Finnish, Hebrew, Hindi, Hungarian, Japanese, Korean, Dutch, Norwegian, Portuguese, Romanian, Russian, Slovak, Swedish, Turkish</Program_Language>
 <Program_Description_Short>Desktop AI Assistant powered by: OpenAI GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, internet access, file handling, command execution and more.</Program_Description_Short>
 <Program_Description_Long><![CDATA[Desktop AI Assistant powered by: OpenAI GPT-6, GPT-5, GPT-4, o1, o3, Gemini, Claude, Grok, DeepSeek, and other models supported by Llama Index, and Ollama. Chatbot, agents, completion, image generation, vision analysis, speech-to-text, plugins, MCP, internet access, file handling, command execution and more.
 
 Features
 - Desktop AI Assistant for Linux, Windows and Mac, written in Python.
 - Works similarly to ChatGPT, but locally (on a desktop computer).
-- 10 modes of operation: Chat, Chat with Files, Realtime + audio, Research (Perplexity), Completion, Image and video generation, Experts, Computer use, Agents and Autonomous Mode.
-- Supports multiple models like OpenAI GPT-6, GPT-5, GPT-4, o1, o3, o4, Google Gemini, Anthropic Claude, xAI Grok, DeepSeek V3/R1, Perplexity / Sonar, and any model accessible through LlamaIndex and Ollama such as DeepSeek, gpt-oss, Llama 3, Mistral, Bielik, etc.
-- Chat with your own Files: integrated LlamaIndex support: chat with data such as: txt, pdf, csv, html, md, docx, json, epub, xlsx, xml, webpages, Google, GitHub, video/audio, images and other data types, or use conversation history as additional context provided to the model.
-- Built-in vector databases support and automated files and data embedding.
+- 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
+- Supports multiple models like OpenAI GPT-6 Astra, GPT-5.6, GPT-4, Google Gemini, Anthropic Claude, xAI Grok, DeepSeek V3/R1, Perplexity / Sonar, and any model accessible through Ollama such as Gemma, Qwen, Llama, Mistral, DeepSeek, Bielik, Nemotron, gpt-oss, etc.
+- Chat with your own Files: integrated RAG LlamaIndex support: chat with data such as: txt, pdf, csv, html, md, docx, json, epub, xlsx, xml, webpages, Google, GitHub, video/audio, images and other data types, or use conversation history as additional context provided to the model.
+- Built-in vector databases support and automated files, db context and data embedding.
+- Image generation via models like gpt-image, Imagen, Gemini, and Nano Banana.
+- Video generation via models like Veo3 and Sora2.
+- Internet access via DuckDuckGo, Google and Microsoft Bing.
+- Speech synthesis via OpenAI, Microsoft Azure, Google Cloud / GenAI, Eleven Labs and xAI Text-To-Speech services.
+- Speech recognition via OpenAI Whisper (API or local), Google / Google Cloud / GenAI, Microsoft Bing and xAI Grok Voice.
+- Plugins support with built-in plugins like Files I/O, Python interpreter, Web search, Google, Facebook, X/Twitter, Slack, Telegram, GitHub, MCP, and many more.
+- MCP support.
+- Built-in MCP Connectors manager with catalog browsing and import from common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
+- Includes Chat with Agents, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
+- Supports project-specific AGENTS.md rules for the main agent in Chat with Agents.
+- Supports portable SKILL.md-based Agent Skills, with GitHub/local import, an Explore catalog, per-profile enable/disable management, and on-demand use in Chat with Agents.
+- Built-in Python/OS tool with real-time Python / IPython execution.
+- Camera capture for real-time image analysis in Chat and other supported modes, controlled from the Audio / Video menu.
+- Image analysis via vision models.
 - Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
 - Handles and stores the full context of conversations (short and long-term memory).
-- Internet access via DuckDuckGo, Google and Microsoft Bing.
-- Speech synthesis via Microsoft Azure, Google, Eleven Labs and OpenAI Text-To-Speech services.
-- Speech recognition via OpenAI Whisper, Google and Microsoft Speech Recognition.
-- MCP support.
-- Real-time video camera capture in Vision mode.
-- Image analysis via GPT-4 Vision and GPT-4o.
 - Integrated calendar, day notes and search in contexts by selected date.
-- Tools and commands execution (via plugins: access to the local filesystem, Python Code Interpreter, system commands execution, and more).
+- Tools and commands execution (via plugins: access to the local filesystem, Python/OS, system commands execution, and more).
 - Custom commands creation and execution.
 - Crontab / Task scheduler included.
 - Manages files and attachments with options to upload, download, and organize.
-- Context history with the capability to revert to previous contexts (long-term memory).
+- Context history with the capability to revert to previous contexts (long-term memory), plus optional experimental advanced context handling for very long conversations.
 - Allows you to easily manage prompts with handy editable presets.
 - Provides an intuitive operation and interface.
 - Includes a notepad.
 - Includes simple painter / drawing tool.
+- Includes the node-based Agent Builder (Legacy) for older agent modes.
 - Supports multiple languages.
 - Requires no previous knowledge of using AI models.
-- Simplifies image generation using DALL-E.
 - Fully configurable.
 - Themes support.
 - Real-time code syntax highlighting.
-- Plugins support with built-in plugins like Files I/O, Code Interpreter, Web Search, Google, Facebook, X/Twitter, Slack, Telegram, GitHub, MCP, Wolfram, and many more.
 - Built-in token usage calculation.
 - Open source; source code is available on GitHub.
-- Utilizes the user’s own API key.
+- Utilizes the user's own API key.
 - and many more.
 
-The application is free, open-source, and runs on PCs with Windows 10, Windows 11, and Linux. The full Python source code is available on GitHub.
-PyGPT uses the user's API key - to use the application, you must have a registered OpenAI account and your own API key.
+The application is free, open-source, and runs on PCs with Linux, Windows 10, Windows 11 and Mac. 
+Full Python source code is available on GitHub.
+
+PyGPT uses your own API credentials to connect to supported AI providers such as OpenAI, Google, Anthropic, xAI, Perplexity, Mistral, OpenRouter, and others. Depending on the selected model and provider, you may need an account and a valid API key for that service. Local models do not require external API credentials.
+You can also use built-it LlamaIndex support to connect to other Large Language Models (LLMs), 
+such as those on HuggingFace. Additional API keys may be required.
 ]]></Program_Description_Long>
 <Company_Name>Marcin Szczygliński</Company_Name>
 <Company_Website_URL>https://pygpt.net</Company_Website_URL>

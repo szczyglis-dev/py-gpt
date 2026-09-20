@@ -127,9 +127,6 @@ The ``Files I/O`` and ``Python interpreter`` plugins use the same runtime-resolv
 
 If ``Settings -> Files and attachments -> General -> Store images, captures, and uploads in the workdir data directory`` is enabled, ``img``, ``capture`` and ``upload`` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. The internal ``tmp`` directory always remains in the base profile workdir.
 
-.. image:: images/v2_file_output.png
-   :width: 800
-
 To allow the model to manage files or execute Python code, enable the ``Tools`` switch together with the required plugins:
 
 .. image:: images/v2_code_execute.png
