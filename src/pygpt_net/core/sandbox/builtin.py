@@ -636,7 +636,12 @@ class BuiltinSandboxRuntime:
         except Exception:
             pass
 
-    def _communicate(self, argv: Sequence[str], ctx=None):
+    def prepare_process(self, argv: Sequence[str], ctx=None):
+        """Prepare a child command with the Built-in sandbox environment.
+
+        This is shared by short-lived Python/shell commands and persistent
+        processes such as the Built-in IPython kernel.
+        """
         data_dir = self.get_data_dir(ctx=ctx)
         env = self._build_env(ctx=ctx)
         command = list(argv)
@@ -658,6 +663,34 @@ class BuiltinSandboxRuntime:
             else:
                 self._warn_isolation_fallback(self._landlock_preflight_details)
 
+        return command, data_dir, env
+
+    def attach_process_job(self, process):
+        """Attach a Windows child to the Built-in sandbox Job Object."""
+        if os.name != "nt":
+            return None
+        job = self._attach_windows_job(process)
+        if not job:
+            self._warn_isolation_fallback(
+                "Windows Job Object could not be attached to the child process"
+            )
+        return job
+
+    @staticmethod
+    def close_process_job(job):
+        """Close a Windows Job Object handle returned by attach_process_job()."""
+        if not job or os.name != "nt":
+            return
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.CloseHandle.restype = wintypes.BOOL
+        kernel32.CloseHandle(job)
+
+    def _communicate(self, argv: Sequence[str], ctx=None):
+        command, data_dir, env = self.prepare_process(argv, ctx=ctx)
+
         creationflags = 0
         start_new_session = False
         if os.name == "nt":
@@ -676,21 +709,11 @@ class BuiltinSandboxRuntime:
             start_new_session=start_new_session,
         )
 
-        job = self._attach_windows_job(process) if os.name == "nt" else None
-        if os.name == "nt" and not job:
-            self._warn_isolation_fallback(
-                "Windows Job Object could not be attached to the child process"
-            )
+        job = self.attach_process_job(process)
         try:
             return process.communicate()
         finally:
-            if job:
-                from ctypes import wintypes
-
-                kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-                kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
-                kernel32.CloseHandle.restype = wintypes.BOOL
-                kernel32.CloseHandle(job)
+            self.close_process_job(job)
 
     # ------------------------------------------------------------------
     # Linux: Landlock
@@ -1054,7 +1077,7 @@ print("PYGPT_LANDLOCK_OK")
 (allow mach-lookup)
 (allow ipc-posix*)
 (allow iokit-open)
-(allow network-outbound (remote ip "*:*"))
+(allow network*)
 (allow file-read-metadata)
 (allow file-map-executable)
 {read_rules}

@@ -170,6 +170,9 @@ class Runner:
         """
         backend = self.plugin.get_execution_backend()
         sandbox = backend.sandboxed
+        preparing = backend.consume_preparing_response(request)
+        if preparing is not None:
+            return preparing
         data = item["params"]['code']
 
         # Model/tool executions should recover a genuinely dead kernel once on
@@ -239,6 +242,9 @@ class Runner:
         """
         backend = self.plugin.get_execution_backend()
         sandbox = backend.sandboxed
+        preparing = backend.consume_preparing_response(request)
+        if preparing is not None:
+            return preparing
         self.append_input("", ctx=ctx)
         self.send_interpreter_input("")  # send input to interpreter tool
 

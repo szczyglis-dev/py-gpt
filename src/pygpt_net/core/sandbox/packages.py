@@ -25,10 +25,11 @@ BUILTIN_BASE_PACKAGES = [
     "wheel",
 ]
 
-# Mirrors the stock ordinary-Python Docker sandbox (PYTHON_LEGACY_DOCKERFILE).
-# Built-in mode intentionally uses CPython rather than IPython/Jupyter, hence
-# jupyter/ipykernel are not part of this list.
+# Mirrors the stock Python/IPython Docker sandboxes. The same Built-in venv is
+# used for ordinary CPython and, when enabled, the persistent IPython kernel.
 BUILTIN_PYTHON_PACKAGES = [
+    "jupyter",
+    "ipykernel",
     "numpy",
     "pandas",
     "matplotlib",

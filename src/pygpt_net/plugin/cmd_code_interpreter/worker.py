@@ -84,7 +84,7 @@ class Worker(BaseWorker):
 
                         elif item["cmd"] == "ipython_exec":
                             response = self.cmd_ipython_exec(item)
-                            if "silent" in item:
+                            if "silent" in item and not self._is_builtin_preparing(response):
                                 self.ctx.bag = response  # store tmp response
                                 response = None
 
@@ -96,7 +96,7 @@ class Worker(BaseWorker):
 
                         elif item["cmd"] == "ipython_kernel_restart":
                             response = self.cmd_ipython_kernel_restart(item)
-                            if "silent" in item:
+                            if "silent" in item and not self._is_builtin_preparing(response):
                                 self.ctx.bag = response  # store tmp response
                                 response = None
 

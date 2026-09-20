@@ -13,6 +13,7 @@ import os
 import threading
 
 from pygpt_net.core.sandbox import BuiltinSandboxRuntime
+from ..ipython import BuiltinKernel
 
 from .base import ExecutionBackend
 from ..sandbox import SandboxMode
@@ -41,6 +42,7 @@ class BuiltinBackend(ExecutionBackend):
     def __init__(self, plugin=None):
         super().__init__(plugin)
         self.runtime = BuiltinSandboxRuntime(plugin.window, "python")
+        self.ipython = BuiltinKernel(plugin, self.runtime)
         self._defer_lock = threading.RLock()
         self._defer_count = 0
 
@@ -70,9 +72,27 @@ class BuiltinBackend(ExecutionBackend):
         }
 
     def supports_command(self, cmd: str) -> bool:
-        # Built-in mode intentionally uses ordinary CPython; it does not start
-        # or reuse the application's local/Docker IPython kernel.
-        return cmd not in self.IPYTHON_COMMANDS
+        return True
+
+    def consume_preparing_response(self, request: dict):
+        """Return the first-use response for runner-managed IPython commands."""
+        if self._must_defer():
+            return self._preparing_response(request)
+        return None
+
+    def get_ipython_interpreter(self):
+        return self.ipython
+
+    def execute_ipython(self, data: str, ctx=None, auto_init: bool = True):
+        return self.ipython.execute(
+            data,
+            current=True,
+            auto_init=auto_init,
+            ctx=ctx,
+        )
+
+    def restart_ipython(self, ctx=None):
+        return self.ipython.restart_kernel(ctx=ctx)
 
     def prepare_path(self, path: str, on_host: bool = True, ctx=None) -> str:
         if self.is_interpreter_temp_path(path):
@@ -169,7 +189,27 @@ class BuiltinBackend(ExecutionBackend):
         }
 
     def ipython_sys_exec(self, ctx, item: dict, request: dict) -> dict:
-        raise RuntimeError("IPython is not available in the Built-in sandbox mode")
+        if self._must_defer():
+            return self._preparing_response(request)
+        runner = self.runner
+        command = item["params"]["command"]
+        self.plugin.window.core.security.ensure_command(command, sandbox=True)
+        runner.send_interpreter_input(command)
+        runner.log(f"Executing Built-in IPython system command: {command}", sandbox=True)
+        runner.send_interpreter_output_begin("stdout")
+        try:
+            stdout, stderr = self.runtime.run_shell(command, ctx=ctx)
+        except Exception as exc:
+            runner.error(exc)
+            stdout = None
+            stderr = str(exc).encode("utf-8")
+        result = runner.handle_result(stdout, stderr)
+        runner.send_interpreter_output_end("stdout")
+        return {
+            "request": request,
+            "result": str(result),
+            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        }
 
     def get_runtime_workdir(self, ctx=None) -> str:
         return self.runtime.get_data_dir(ctx=ctx)
@@ -180,17 +220,22 @@ class BuiltinBackend(ExecutionBackend):
         return self.runtime.resolve_data_path(path, ctx=ctx)
 
     def get_tool_instruction(self, cmd: str, data_dir: str) -> str:
-        if cmd == "python_sys_exec":
+        if cmd in {"python_sys_exec", "ipython_sys_exec"}:
             return (
                 "\nThe command runs in PyGPT's built-in uv-managed Python sandbox. "
                 f"Its CWD is {data_dir}; the sandbox virtual environment is {self.runtime.venv_root}. "
                 "Use pip or python -m pip from this environment for packages needed by executed code."
             )
+        if cmd.startswith("ipython_"):
+            return (
+                "\nIPython runs as a persistent kernel inside PyGPT's built-in uv-managed sandbox. "
+                f"Use {data_dir} as the working directory and save user files there. "
+                "Kernel state is preserved between executions until the kernel is restarted."
+            )
         if cmd.startswith("python_"):
             return (
                 "\nPython runs as a separate process in PyGPT's built-in uv-managed sandbox. "
-                f"Use {data_dir} as the working directory and save user files there. "
-                "This mode uses ordinary CPython, not IPython."
+                f"Use {data_dir} as the working directory and save user files there."
             )
         return ""
 

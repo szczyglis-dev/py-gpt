@@ -72,9 +72,7 @@ class Plugin(BasePlugin):
         self.config.from_defaults(self)
 
     def is_ipython_enabled(self) -> bool:
-        """Return True when IPython is selected and supported by the backend."""
-        if self.is_sandbox_mode(SandboxMode.BUILTIN):
-            return False
+        """Return True when the IPython interpreter option is enabled."""
         return bool(self.get_option_value("use_ipython"))
 
     def get_sandbox_mode(self) -> SandboxMode:
@@ -348,8 +346,14 @@ class Plugin(BasePlugin):
         if self.is_ipython_enabled():
             cmd = "ipython_exec"
             if self.get_option_value("fresh_kernel"):
-                self.get_execution_backend().restart_ipython()
-                time.sleep(1)
+                backend = self.get_execution_backend()
+                # Built-in first-use provisioning must stay asynchronous under
+                # the heavy-operation loader. Do not make a direct kernel
+                # restart synchronously create the venv from the GUI thread.
+                runtime = getattr(backend, "runtime", None)
+                if runtime is None or runtime.is_ready():
+                    backend.restart_ipython()
+                    time.sleep(1)
         self.window.tools.get("interpreter").clear_output()
         commands = [
             {

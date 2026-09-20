@@ -40,6 +40,10 @@ class ExecutionBackend:
         """Return whether this backend supports the requested command."""
         return True
 
+    def consume_preparing_response(self, request: dict):
+        """Return a first-use preparation response, or None when ready."""
+        return None
+
     def get_ipython_interpreter(self):
         """Return the IPython kernel implementation for this backend."""
         return self.plugin.ipython_local
