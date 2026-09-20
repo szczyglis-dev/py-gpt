@@ -6,7 +6,7 @@ Overview
 
 **PyGPT** is an **all-in-one desktop AI assistant** supporting models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``o1``, ``o3``), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, and models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``Gemma 4``, ``Qwen 3.6``, ``Llama 4``, ``Mistral Small 3.2``, ``DeepSeek``, ``Bielik``, ``Nemotron``, and ``gpt-oss``.
 
-It supports chat, agents, completions, Chat with Files (via ``LlamaIndex``), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
+It supports chat, agents, completions, Chat with Files (via ``LlamaIndex``), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google``, ``Microsoft Bing`` and ``You.com``.
 
 **PyGPT** also provides speech synthesis through ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI``, plus speech recognition with ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Bing`` and ``xAI Grok Voice``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -31,11 +31,10 @@ Features
 * Built-in vector databases support and automated files and data embedding.
 * Image generation via models like ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
 * Video generation via models like ``Veo3`` and ``Sora2``.
-* Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
+* Internet access via ``DuckDuckGo``, ``Google``, ``Microsoft Bing`` and ``You.com``.
 * Speech synthesis via ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI`` Text-To-Speech services.
 * Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing`` and ``xAI Grok Voice``.
-* Plugins support with built-in plugins like ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
-* MCP support.
+* Plugins support with built-in plugins like ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.* MCP support.
 * Built-in MCP Connectors manager with catalog browsing and import from common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
 * Camera capture for real-time image analysis in Chat and other supported modes, controlled from the ``Audio / Video`` menu.
 * Image analysis via vision models.

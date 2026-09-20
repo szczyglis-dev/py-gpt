@@ -3077,7 +3077,7 @@ Web search
 
 To activate this feature, turn on the ``Web search`` plugin found in the ``Plugins`` menu.
 
-Web searches are provided by ``DuckDuckGo``, ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
+Web searches are provided by ``DuckDuckGo``, ``Google Custom Search Engine``, ``Microsoft Bing`` and ``You.com`` APIs and can be extended with other search engine providers. 
 
 **Options**
 
@@ -3090,6 +3090,7 @@ Available providers:
 - DuckDuckGo
 - Google
 - Microsoft Bing
+- You.com
 
 **DuckDuckGo**
 
@@ -3137,6 +3138,16 @@ You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bin
 - ``Bing Search API endpoint`` *bing_endpoint*
 
 API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/search
+
+**You.com**
+
+- ``You.com API KEY`` *youcom_api_key*
+
+Optional. You can obtain your own API key at https://you.com/platform/api-keys - if left empty, the keyless endpoint is used.
+
+- ``You.com MCP endpoint`` *youcom_endpoint*
+
+You.com MCP endpoint, default: https://api.you.com/mcp?profile=free (keyless); use https://api.you.com/mcp with an API key.
 
 **General options**
 
