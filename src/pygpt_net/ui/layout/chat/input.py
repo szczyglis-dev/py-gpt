@@ -224,7 +224,7 @@ class ChatInputRootContainer(QWidget):
 class Input:
     VISION_ICON_SIZE = 16
     VISION_ICON_LEFT_SPACING = 6
-    VISION_ICON_VERTICAL_SHIFT = -1
+    VISION_ICON_VERTICAL_SHIFT = -2
 
     def __init__(self, window=None):
         """

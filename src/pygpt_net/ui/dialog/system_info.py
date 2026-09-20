@@ -48,7 +48,15 @@ class WorkdirSizeWorker(QRunnable):
     def run(self):
         total = 0
         try:
-            for dirpath, _, filenames in os.walk(self.path):
+            root = os.path.abspath(self.path)
+            for dirpath, dirnames, filenames in os.walk(root):
+                # The built-in interpreter is a reproducible runtime
+                # environment, not profile payload.  Do not include its
+                # potentially large uv runtime/venvs in Workdir size.  Only
+                # exclude the profile-root sandbox; a user-created
+                # data/sandbox directory still counts normally.
+                if os.path.abspath(dirpath) == root:
+                    dirnames[:] = [name for name in dirnames if name != "sandbox"]
                 for name in filenames:
                     path = os.path.join(dirpath, name)
                     try:
