@@ -718,3 +718,14 @@ QListView#ComboPopupList::item:selected:focus {{
   selection-color: #080505;
   font-weight: bold;
 }}
+
+/* Current model highlight in runtime model menu */
+QMenu#chatInputModelMenu::item:checked {
+  background-color: #241515;
+  color: #f3dddd;
+}
+QMenu#chatInputModelMenu::item:checked:selected {
+  background-color: #241515;
+  color: #f3dddd;
+}
+
