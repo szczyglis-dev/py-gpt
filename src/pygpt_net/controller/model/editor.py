@@ -139,6 +139,7 @@ class Editor:
                 "type": "textarea",
                 "label": "model.extra",
                 "description": "model.extra.desc",
+                "advanced": True,
             },
         }
         self.custom_fields = ["extra_json"]
