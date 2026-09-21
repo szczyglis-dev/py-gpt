@@ -11,11 +11,12 @@
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QComboBox, QPushButton
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QPushButton
 
 from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.option.prompt import PromptTextarea
+from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
@@ -80,14 +81,18 @@ class Prompt:
         # config while keeping the internal PRIMARY_AGENT strategy user-facing as
         # ``Chat``. The whole row is visible only in Agents v2 mode.
         mode_label = TitleLabel(trans("agent.v2.mode.label"))
-        mode_combo = QComboBox()
+        mode_combo = NoScrollCombo()
+        mode_combo.setSearchEnabled(False)
         for agent in w.core.agents_v2.editor.get_agents():
             if agent.get("built_in"):
                 text = trans(str(agent.get("label_key") or ""))
             else:
                 text = str(agent.get("name") or agent.get("id") or "")
             mode_combo.addItem(text, agent["id"])
-        mode_combo.setMinimumWidth(40)
+        # Let the closed combo shrink with the toolbox, while the popup
+        # itself is fitted to the longest workflow name by NoScrollCombo.
+        mode_combo.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        mode_combo.setMinimumWidth(0)
         mode_combo.setToolTip(trans("agent.v2.mode.tooltip"))
 
         configured_mode = str(

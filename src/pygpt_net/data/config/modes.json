@@ -67,17 +67,16 @@
             "default": false,
             "legacy": true
         },
-        "agent": {
-            "id": "agent",
-            "name": "Agent (legacy)",
-            "label": "mode.agent",
-            "default": false,
-            "legacy": true
-        },
         "expert": {
             "id": "expert",
             "name": "Experts",
             "label": "mode.expert",
+            "default": false
+        },
+        "agent": {
+            "id": "agent",
+            "name": "Autonomous mode",
+            "label": "mode.agent",
             "default": false
         }
     }

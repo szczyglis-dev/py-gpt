@@ -330,6 +330,10 @@ You can adjust the number of Autonomous loop iterations in the ``Plugins / Setti
 
 - **Always continue** *always_continue* - Keeps the loop open-ended and asks the model to continue with additional useful in-scope work instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the normal iteration limit until the run is stopped externally. Enabling Auto-stop disables Always continue. *Default:* ``False``
 
+- **Dynamic continuous prompt** *dynamic_continue* - After each completed pass, performs a hidden, tool-free call to the same selected model. This second call acts as a judge: it receives the original user input plus the configured tail of recent Autonomous Assistant responses, evaluates what is still missing or worth improving, and returns the instruction used for the next pass. The generated instruction is displayed in the live conversation as a localized ``Judge:`` pseudo-input and is not treated as a new user turn. If the judge call fails or returns an empty instruction, the normal static continuation prompt is used. *Default:* ``True``
+
+- **Responses to judge** *dynamic_continue_messages* - Number of the most recent Autonomous Assistant responses included in each hidden judge request. The original user input is always included. Set ``0`` to include all Assistant responses produced since that input. Multiple tool/text fragments belonging to the same Autonomous provider pass are grouped as one response for this limit. *Default:* ``3``
+
 - **Reverse roles between iterations** *reverse_roles* - Only for Completion mode. If enabled, this option reverses the roles (AI <> user) with each iteration. For example, if in the previous iteration the response was generated for "Batman," the next iteration will use that response to generate an input for "Joker." *Default:* ``True``
 
 Bitbucket

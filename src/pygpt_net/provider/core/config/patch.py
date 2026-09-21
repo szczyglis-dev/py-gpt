@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 10:00:00                  #
+# Updated Date: 2026.09.21 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -1248,6 +1248,19 @@ class Patch:
             # < 2.8.28
             if old < parse_version("2.8.28"):
                 print("Migrating config from < 2.8.28...")
+
+                # Dynamic Autonomous continuation uses a hidden judge request to
+                # generate the next-pass instruction. It is enabled by default,
+                # with a bounded response tail, and the judge system prompt is
+                # exposed as a normal configurable prompt.
+                for key in (
+                    "agent.continue.dynamic",
+                    "agent.continue.dynamic.messages",
+                    "prompt.agent.continue.judge",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
 
                 # Autonomous mode no longer owns a separate RAG selector.
                 # RAG is selected globally from the shared toolbox combo.

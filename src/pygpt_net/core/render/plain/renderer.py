@@ -19,6 +19,7 @@ from pygpt_net.core.text.mentions import to_display_text as mentions_to_display_
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.utils import trans
 
 from .body import Body
 from .helpers import Helpers
@@ -449,8 +450,34 @@ class Renderer(BaseRenderer):
         :param item: context item
         """
         self.append_input(meta, item)
-        self.append_output(meta, item)
+        if not self.append_autonomous_judge_timeline(meta, item):
+            self.append_output(meta, item)
         self.append_extra(meta, item)
+
+
+    def append_autonomous_judge_timeline(self, meta: CtxMeta, item: CtxItem) -> bool:
+        """Render runtime Autonomous parts with judge prompts interleaved."""
+        parts = list(getattr(item, "parts", None) or [])
+        has_judge = any(
+            isinstance(getattr(part, "extra", None), dict)
+            and part.extra.get("agent_judge") is True
+            and part.extra.get("judge_input") not in (None, "")
+            for part in parts
+        )
+        if not has_judge:
+            return False
+
+        for part in parts:
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("agent_judge") is True and extra.get("judge_input") not in (None, ""):
+                self.append_raw(
+                    meta, item,
+                    f"> {trans('agent.judge')}: {str(extra.get('judge_input')).strip()}",
+                )
+            output = str(getattr(part, "output", None) or "").strip()
+            if output:
+                self.append_raw(meta, item, output)
+        return True
 
     def append(
             self,

@@ -32,7 +32,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI assistant for `Linux`, `Windows` and `macOS`, written in Python.
 - Runs as a local desktop application with a ChatGPT-like conversational interface.
-- Work modes include Chat, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
+- Work modes include Chat, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, Autonomous mode, plus legacy Agent modes.
 - Supports `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and models available through `LlamaIndex` and `Ollama`, including `DeepSeek`, `Qwen`, `gpt-oss`, `Gemma`, `Mistral`, `Llama`, and others.
 - Integrated `LlamaIndex` RAG for files, webpages, Google/GitHub data, media, images, conversation history, and formats such as `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, and `xml`.
 - Built-in vector-store support with automatic file, database-context, and data embedding.
@@ -380,7 +380,7 @@ For supported models/providers, you can alternatively enable the provider-side i
 
 ## Chat with Agents
 
-**Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)`, `Agent (OpenAI)`, and `Agent (Autonomous)` modes.
+**Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)` and `Agent (OpenAI)` modes, as well as from the separate `Autonomous mode`.
 
 The **Workflow** selector below the system prompt lets you choose how the agent workflow operates. The default is **Chat**.
 
@@ -437,7 +437,7 @@ The same section also exposes worker-count and iteration limits used by the Chat
 
 For all four limits, `0` means **unlimited**. The three iteration settings control internal agent reasoning/tool-call cycles, not user conversation turns; the worker limit controls how many worker agents may be created in a Chat or Orchestrator workflow. Raising or removing these limits can substantially increase API usage, token consumption, execution time, and the number of tool operations. **Swarm** keeps its separately declared worker count and is not constrained by the Chat/Orchestrator worker limit.
 
-Settings kept only for older agent implementations are separated into the **Legacy** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These Legacy options do not control the Chat with Agents tool-chain display.
+Settings kept only for older agent implementations are separated into the **Options** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These options do not control the Chat with Agents tool-chain display.
 
 ### RAG, attachments and artifacts
 
@@ -603,6 +603,28 @@ Experts can be activated or deactivated from the preset list using the RMB conte
 
 The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same `expert_call` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
 
+## Autonomous mode
+
+**Autonomous mode** is a single-agent loop for tasks that should continue across multiple model passes without requiring a new user message after every step. The same model keeps working on the original request, reviews the accumulated result, performs additional useful work or verification, and continues until the run is stopped by its configured rules. It does not create or orchestrate worker agents.
+
+The current implementation is **Chat-backed**. Autonomous requests use the same bridge, provider routing, API selection, native tool/function-call settings, and normal tool execution flow as standard `Chat`. 
+
+Autonomous uses the same global **RAG** selector shown at the bottom of the toolbox. If no index is selected, it follows normal Chat routing. Selecting a valid index routes the run through the LlamaIndex RAG runtime with that index. Select `---` to keep normal Chat routing.
+
+**Run controls**
+
+- **Max run steps (iterations)** limits the number of autonomous model passes. Set it to `0` for an unlimited loop. Tool calls and their results are handled inside the normal tool flow and do not represent a separate user turn.
+- **Auto-stop** allows the agent to terminate the run early when it determines that the original goal is complete, or when a run-control condition requires stopping. When Auto-stop is disabled, the agent is not given the internal completion-control tool; the loop is then governed by the configured run limit or a manual/application stop.
+- **Always continue** keeps the run open-ended and instructs the agent to continue exploring useful in-scope refinements instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the configured iteration limit, so the run continues until it is stopped externally.
+- **Dynamic continuous prompt** is enabled by default. After each completed pass, PyGPT makes a hidden, tool-free call to the same selected model and uses it as a judge. The judge receives the original user input plus a configurable tail of recent Autonomous Assistant responses, then returns a focused instruction for the next pass. The generated instruction is shown in the live conversation as a localized `Judge:` pseudo-input, but it is not stored or handled as a new user turn. If the judge call fails or returns an empty result, PyGPT falls back to the normal static continuation prompt.
+- **Responses to judge** controls how many recent Autonomous Assistant responses are sent with the original user input to that judge. The default is `3`; set it to `0` to include all Assistant responses produced since the current user input. Tool rounds inside one Autonomous provider pass are grouped as one response for this limit.
+- **Auto-stop** and **Always continue** are mutually exclusive. Enabling either one immediately disables the other; both may also be disabled.
+
+When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation because an unattended run can generate substantial API usage, token consumption, and repeated tool actions.
+
+**WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
+
+
 ## Agent (LlamaIndex)
 
 **Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
@@ -749,26 +771,6 @@ Below is a pattern for how different types of agents work. You can use these pat
 
 - When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
 
-## Agent (Autonomous)
-
-**Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
-
-`Agent (Autonomous)` is a legacy single-agent loop for tasks that should continue across multiple model passes without requiring a new user message after every step. The same model keeps working on the original request, reviews the accumulated result, performs additional useful work or verification, and continues until the run is stopped by its configured rules. It does not create or orchestrate worker agents.
-
-The current implementation is **Chat-backed**. Autonomous requests use the same bridge, provider routing, API selection, native tool/function-call settings, and normal tool execution flow as standard `Chat`. 
-
-Autonomous uses the same global **RAG** selector shown at the bottom of the toolbox. If no index is selected, it follows normal Chat routing. Selecting a valid index routes the run through the LlamaIndex RAG runtime with that index. Select `---` to keep normal Chat routing.
-
-**Run controls**
-
-- **Max run steps (iterations)** limits the number of autonomous model passes. Set it to `0` for an unlimited loop. Tool calls and their results are handled inside the normal tool flow and do not represent a separate user turn.
-- **Auto-stop** allows the agent to terminate the run early when it determines that the original goal is complete, or when a run-control condition requires stopping. When Auto-stop is disabled, the agent is not given the internal completion-control tool; the loop is then governed by the configured run limit or a manual/application stop.
-- **Always continue** keeps the run open-ended and instructs the agent to continue exploring useful in-scope refinements instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the configured iteration limit, so the run continues until it is stopped externally.
-- **Auto-stop** and **Always continue** are mutually exclusive. Enabling either one immediately disables the other; both may also be disabled.
-
-When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation because an unattended run can generate substantial API usage, token consumption, and repeated tool actions.
-
-**WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
 
 
 # Indexing and RAG
@@ -1444,6 +1446,8 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 The Autonomous mode plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Files I/O, Python interpreter, image generation, and other integrations remain available through the normal PyGPT tool flow.
 
 The **Iterations** option limits the number of autonomous passes; `0` means unlimited. **Auto-stop** lets the model finish the run early when the goal is complete. **Always continue** is mutually exclusive with Auto-stop: enabling it disables Auto-stop and makes the loop open-ended, ignoring the normal iteration limit until the run is stopped externally.
+
+**Dynamic continuous prompt** is enabled by default. After every completed pass, a hidden, tool-free call to the same selected model acts as a judge and produces the next continuation instruction from the original user input plus a recent tail of Autonomous Assistant responses. The judge instruction is shown in the live conversation as a localized `Judge:` pseudo-input, without creating another user turn. **Responses to judge** defaults to `3`; set it to `0` to send all Assistant responses produced since that user input. If the judge call fails, the plugin falls back to the static continuation prompt.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#autonomous-mode
 
@@ -2284,7 +2288,7 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Vision and camera:** Camera
 - **Audio:** Devices, Options, Cache
 - **Indexes / RAG:** General, Vector Store, Chat, Embeddings, File indexing, Context indexing, Data loaders, Clear and truncate
-- **Agents and experts:** Chat with Agents, Agents, Autonomous, Legacy
+- **Agents and experts:** Chat with Agents, Agents, Autonomous, Options
 - **Security:** General, Computer use, Linux, Windows, macOS
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:

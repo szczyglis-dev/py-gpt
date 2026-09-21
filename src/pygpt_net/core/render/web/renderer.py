@@ -3885,13 +3885,19 @@ class Renderer(BaseRenderer):
         parts = []
         for part in all_parts:
             part_uuid = str(getattr(part, "uuid", "") or "")
+            part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
             visible_part_tools = bool(include_tool_calls) and bool(
                 self.helpers.extract_extra_tool_calls(
                     ctx.get_part_tool_calls(visible_only=True, part=part)
                 )
             )
+            has_judge_input = bool(
+                part_extra.get("agent_judge") is True
+                and part_extra.get("judge_input") not in (None, "")
+            )
             if (getattr(part, "output", None) not in (None, "")
                     or visible_part_tools
+                    or has_judge_input
                     or part_uuid in anchored_uuids):
                 parts.append(part)
 
@@ -3904,9 +3910,16 @@ class Renderer(BaseRenderer):
             ))
             for part in parts
         )
-        # A single plain text part needs no sub-timeline. Any status, tool or
-        # multiple partials do, because relative ordering then matters.
-        if len(parts) == 1 and not has_visible_structured_tools and not workflow_statuses:
+        has_judge_inputs = any(
+            isinstance(getattr(part, "extra", None), dict)
+            and part.extra.get("agent_judge") is True
+            and part.extra.get("judge_input") not in (None, "")
+            for part in parts
+        )
+        # A single plain text part needs no sub-timeline. Any status, tool, judge
+        # pseudo-input or multiple partials do, because relative ordering matters.
+        if (len(parts) == 1 and not has_visible_structured_tools
+                and not has_judge_inputs and not workflow_statuses):
             return []
 
         timeline = []
@@ -3949,6 +3962,23 @@ class Renderer(BaseRenderer):
                 "status_text": str(record.get("text") or ""),
                 "status_tool_names": list(record.get("tool_names") or []),
                 "status_active": bool(record.get("active")),
+            })
+
+        def append_judge_input(part, text):
+            """Add a UI-only pseudo-input for a dynamic Autonomous judge instruction."""
+            nonlocal seq
+            value = str(text or "").strip()
+            if not value:
+                return
+            seq += 1
+            timeline.append({
+                "part_id": getattr(part, "id", None),
+                "part_uuid": getattr(part, "uuid", None),
+                "render_id": -(base_id * 10000 + seq),
+                "text": value,
+                "tool_calls": [],
+                "judge_input": True,
+                "judge_label": trans("agent.judge"),
             })
 
         part_by_uuid = {
@@ -4007,6 +4037,8 @@ class Renderer(BaseRenderer):
             append_part_statuses(before_by_part.get(part_uuid, []), part)
 
             part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if part_extra.get("agent_judge") is True:
+                append_judge_input(part, part_extra.get("judge_input"))
             source_text = str(getattr(part, "output", None) or "")
             if final_only_text:
                 if part_extra.get("agents_v2_final") is True:
@@ -4091,7 +4123,8 @@ class Renderer(BaseRenderer):
         for segment in timeline:
             calls = list(segment.get("tool_calls") or [])
             is_tool_only = bool(calls) and not segment.get("text") \
-                and not segment.get("status_id") and not segment.get("status_kind")
+                and not segment.get("status_id") and not segment.get("status_kind") \
+                and not segment.get("judge_input")
 
             if is_tool_only and grouped_timeline:
                 previous = grouped_timeline[-1]
@@ -4099,7 +4132,8 @@ class Renderer(BaseRenderer):
                 previous_is_tool_only = bool(previous_calls) \
                     and not previous.get("text") \
                     and not previous.get("status_id") \
-                    and not previous.get("status_kind")
+                    and not previous.get("status_kind") \
+                    and not previous.get("judge_input")
                 if previous_is_tool_only:
                     previous["tool_calls"] = previous_calls + calls
                     continue

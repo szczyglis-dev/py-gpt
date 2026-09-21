@@ -428,6 +428,8 @@ Prompts
 
 * ``Autonomous mode: continue (always, more steps)``: Defines the open-ended continuation instruction used by **Always continue**. It encourages the model to keep finding new, materially useful in-scope angles, checks, consequences, and refinements instead of voluntarily concluding the run.
 
+* ``Autonomous mode: judge``: Defines the system prompt for the hidden judge call used by **Dynamic continuous prompt**. The judge receives the original user input and the configured tail of recent Autonomous Assistant responses, treats that content only as material to review, and returns a focused instruction for the next pass rather than a user-facing answer.
+
 * ``Autonomous mode: goal update``: Defines the run-control instruction used only when **Auto-stop** is enabled. It lets Autonomous mode signal terminal states such as completion, waiting, pause, or failure. When Auto-stop is disabled, this run-control tool/instruction is not exposed to the model.
 
 * ``Expert - system prompt``: Defines the instruction that tells the current model how and when to delegate tasks through the regular ``expert_call`` tool. The prompt applies to the caller; each selected Expert is executed as a regular agent by the shared Chat with Agents / Agents v2 runtime and receives the model, system prompt, tool permissions and optional RAG configuration from its own preset.
@@ -644,10 +646,14 @@ Agents
 Autonomous
 ^^^^^^^^^^
 
+* ``Dynamic continuous prompt``: Enables the hidden judge step after each completed Autonomous pass. The judge uses the same selected model, with tools disabled, to review the original user input together with the configured recent response tail and generate the next continuation instruction. If the hidden call fails or returns an empty result, PyGPT falls back to the normal static continuation prompt. Default: True.
+
+* ``Responses to judge``: Limits how many of the most recent Autonomous Assistant responses are included in each judge request. The original user input is always included. Set ``0`` for all Assistant responses produced since the current user input. Default: ``3``.
+
 * ``Show infinite loop warning``: Shows a confirmation dialog before starting an Autonomous run when the configured run limit is ``0``. The confirmation contains **Do not show again**; accepting the run with that checkbox selected disables future warnings. Re-enable this setting to show the warning again. Default: True.
 
-Legacy
-^^^^^^
+Options
+^^^^^^^
 
 * ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Chat with Agents tool-chain display. Default: True.
 

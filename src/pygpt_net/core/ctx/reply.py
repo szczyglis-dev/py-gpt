@@ -31,6 +31,7 @@ class ReplyContext:
     input: str = ""
     internal: bool = False
     cmds: list = field(default_factory=list)
+    extra: dict = field(default_factory=dict)
 
     def __init__(self):
         """Reply context"""
@@ -42,6 +43,7 @@ class ReplyContext:
         self.input = ""
         self.internal = False
         self.cmds = []
+        self.extra = {}
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -57,6 +59,7 @@ class ReplyContext:
             "parent_id": self.parent_id,
             "input": self.input,
             "cmds": self.cmds,
+            "extra": self.extra,
         }
         if self.bridge_context is not None:
             data["bridge_context"] = self.bridge_context.to_dict()

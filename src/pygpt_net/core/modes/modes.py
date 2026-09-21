@@ -42,7 +42,6 @@ class Modes:
         self.provider = JsonFileProvider(window)
         self.initialized = False
         self.all = (
-            MODE_AGENT,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
             MODE_AGENT_V2,
@@ -50,6 +49,7 @@ class Modes:
             MODE_CHAT,
             MODE_COMPLETION,
             MODE_EXPERT,
+            MODE_AGENT,
             MODE_IMAGE,
             # MODE_LANGCHAIN,
             MODE_LLAMA_INDEX,
