@@ -97,14 +97,19 @@ Remote vector stores management.
 Python/OS
 ---------
 
-This tool allows you to run Python code directly from within the app. It is integrated with the ``Python interpreter`` plugin. The plugin's ``Use IPython`` option selects IPython (default) or standard Python, while ``Sandbox`` selects host execution (``Disabled``), the built-in uv-managed CPython runtime (default), or Docker. The built-in mode separates the Python environment and process from PyGPT's own interpreter, but it does not restrict host filesystem or network access. Docker provides the container boundary and the strongest isolation of the available options. The dedicated ``python_sys_exec`` and ``ipython_sys_exec`` tools are checked against the system-command whitelist/blacklist in every execution mode; Docker uses the Linux policy. This command check does not inspect processes spawned by arbitrary Python/IPython code. In Docker mode the active conversation data workdir is available as ``/mnt/data``. Application-managed interpreter/IPython input, output, and connection files are kept under ``%workdir%/tmp``. See the ``Python interpreter`` section in :doc:`plugins` for the complete ``%workdir%/sandbox`` layout and backend isolation rules.
+This tool runs Python/IPython code through the ``Python interpreter`` plugin. ``Use IPython`` selects IPython (default) or standard Python, while ``Sandbox`` selects host execution, the built-in uv-managed environment, or Docker. The built-in mode separates the runtime from PyGPT's own Python environment but does not restrict host filesystem or network access; Docker provides stronger isolation. In Docker mode the active conversation data workdir is available as ``/mnt/data``.
 
 .. important::
-   Host Python/IPython execution requires a working Python environment on the host system. ``Built-in sandbox`` is the Python plugin default; it creates its own uv-managed CPython environment on first use and does not require Docker, but it is not a filesystem/network security boundary. ``Docker`` requires Docker and provides the strongest isolation of the available options.
+   Host mode requires a working local Python environment. Docker requires Docker Engine or Docker Desktop.
 
-   Docker installation: https://docs.docker.com/engine/install/
+Managing sandbox environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Docker Desktop: https://docs.docker.com/desktop/
+Use ``Tools -> Sandbox / Docker`` to rebuild Docker images or recreate the built-in Python/System environments.
+
+The built-in environments normally rebuild automatically after their package list changes. Use the menu actions when you want to rebuild immediately or reset an environment to its configured package set. Packages installed manually are removed by a rebuild unless they are also listed in the corresponding plugin's **Built-in sandbox** settings.
+
+See the ``Python interpreter`` and ``System (OS)`` sections in :doc:`plugins` for package configuration and sandbox behavior.
 
 HTML/JS Canvas
 ---------------

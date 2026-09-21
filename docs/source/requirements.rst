@@ -1,54 +1,38 @@
 How to Install
 ===============
 
-Binaries
---------
+Prebuilt binaries
+-----------------
 
-You can download compiled binary versions for ``Linux`` and ``Windows`` (10/11). 
+**Download PyGPT:** https://pygpt.net/#download
 
-**PyGPT** binaries require a PC with Windows 10, 11, or Linux. Simply download the installer or the archive with the appropriate version from the download page at https://pygpt.net, extract it, or install it, and then run the application. A binary version for Mac is not available, so you must run PyGPT from PyPi or from the source code on Mac. Currently, only 64-bit binaries are available.
+Prebuilt 64-bit packages are the simplest installation option:
 
-Windows 10 and 11
-`````````````````
-The application is available for 64-bit Windows 10, 11 in the form of an MSI installer.
-The installer will automatically install all required dependencies and create
-a shortcut on the desktop. Just download the installer from the download page and
-run it
-
-Linux
-`````
-The application is available for 64-bit Linux in the form of an archive with
-all required dependencies. Just download the archive from the download page and
-extract it. Then run the application by running the ``pygpt`` binary file in the
-root directory.
-
-Linux version requires ``GLIBC`` >= ``2.35``.
+* **Windows 10/11** - MSI installer.
+* **Linux** - prebuilt archive; requires ``GLIBC >= 2.35``.
+* **macOS** - install from PyPI or run from source.
 
 Microsoft Store
 ---------------
 
-For Windows 10/11, you can install **PyGPT** directly from Microsoft Store:
+Windows users can also install PyGPT from Microsoft Store:
 
-Link to MS Store: https://apps.microsoft.com/detail/XP99R4MX3X65VQ
+https://apps.microsoft.com/detail/XP99R4MX3X65VQ
 
 AppImage
----------
+--------
 
-You can download the latest **PyGPT** ``AppImage`` for Linux from the release page:
+Download the latest AppImage from GitHub Releases:
 
-**Releases:** https://github.com/szczyglis-dev/py-gpt/releases
+https://github.com/szczyglis-dev/py-gpt/releases
 
-**Tip:** Remember to give execution permissions to the downloaded file:
+Make it executable before the first run:
 
 .. code-block:: console
 
-    $ chmod +x ./PyGPT-X.X.X-x86_64.AppImage
+    chmod +x ./PyGPT-X.X.X-x86_64.AppImage
 
-To manage future updates you can use ``AppImageUpdate`` tool:
-
-You can download it from: https://github.com/AppImage/AppImageUpdate/releases
-
-After downloading, run the following command in terminal:
+Optional incremental updates are available through AppImageUpdate: https://github.com/AppImage/AppImageUpdate
 
 .. code-block:: console
 
@@ -57,165 +41,104 @@ After downloading, run the following command in terminal:
 Snap Store
 ----------
 
-You can install **PyGPT** directly from Snap Store:
+Install PyGPT:
 
 .. code-block:: console
 
-    $ sudo snap install pygpt
+    sudo snap install pygpt
 
-
-To manage future updates just use:
-
-.. code-block:: console
-
-    $ sudo snap refresh pygpt
-
-
-**Using camera:** to use camera in Snap version you must connect the camera with interface:
+Update an existing installation:
 
 .. code-block:: console
 
-    $ snap connect pygpt:camera
+    sudo snap refresh pygpt
 
+Optional Snap interfaces are required only for the corresponding features.
 
-**Using microphone:** to use microphone in Snap version you must connect the microphone with:
-
-.. code-block:: console
-
-    $ sudo snap connect pygpt:audio-record :audio-record
-    $ sudo snap connect pygpt:alsa
-
-**Using audio output:** to use audio output in Snap version you must connect the audio with:
+Camera:
 
 .. code-block:: console
 
-    $ sudo snap connect pygpt:audio-playback
-    $ sudo snap connect pygpt:alsa
+    sudo snap connect pygpt:camera
 
-
-**Connecting the Docker sandbox in the Snap version**:
-
-To use Docker-backed plugin sandboxes in the Snap version, you must connect PyGPT to the Docker daemon:
+Microphone:
 
 .. code-block:: console
 
-    $ sudo snap connect pygpt:docker-executables docker:docker-executables
+    sudo snap connect pygpt:audio-record :audio-record
+    sudo snap connect pygpt:alsa
+
+Audio output:
 
 .. code-block:: console
 
-    $ sudo snap connect pygpt:docker docker:docker-daemon
+    sudo snap connect pygpt:audio-playback
+    sudo snap connect pygpt:alsa
 
-
-
-**Snap Store:** https://snapcraft.io/pygpt
-
-Python version
----------------
-The second way to run is to download the source code from GitHub and run
-the application using the Python interpreter (``>=3.10``, ``<3.14``).
-You can also install application from PyPi (using ``pip install``) and we recommend this type of installation.
-
-PyPi (pip)
-``````````
-
-1. Create a new virtual environment:
+Docker sandbox:
 
 .. code-block:: console
 
-    $ python3 -m venv venv
-    $ source venv/bin/activate
+    sudo snap connect pygpt:docker-executables docker:docker-executables
+    sudo snap connect pygpt:docker docker:docker-daemon
 
-2. Install from PyPi:
+Snap Store: https://snapcraft.io/pygpt
 
-.. code-block:: console
+PyPI (pip)
+-----------
 
-    $ pip install pygpt-net
-
-3. Once installed run the command to start the application:
-
-.. code-block:: console
-
-    $ pygpt
-
-
-Running from source code
-------------------------
-
-Install with pip
-````````````````
-
-1. Clone git repository or download .zip file:
+Requires Python ``>=3.10, <3.14``. A virtual environment is recommended:
 
 .. code-block:: console
 
-    $ git clone https://github.com/szczyglis-dev/py-gpt.git
-    $ cd py-gpt
+    python3 -m venv venv
+    source venv/bin/activate
 
-2. Create a new virtual environment:
-
-.. code-block:: console
-
-    $ python3 -m venv venv
-    $ source venv/bin/activate
-
-3. Install requirements:
+Install and run PyGPT:
 
 .. code-block:: console
 
-    $ pip install -r requirements.txt
+    pip install pygpt-net
+    pygpt
 
-4. Run the application:
+Running from source
+-------------------
 
-.. code-block:: console
-
-    $ python3 run.py
-    
-
-Install with Poetry
-```````````````````
-
-1. Clone git repository or download .zip file:
+Clone the repository and install the requirements in a virtual environment:
 
 .. code-block:: console
 
-    $ git clone https://github.com/szczyglis-dev/py-gpt.git
-    $ cd py-gpt
+    git clone https://github.com/szczyglis-dev/py-gpt.git
+    cd py-gpt
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    python3 run.py
 
-2. Install Poetry (if not installed):
+Poetry
+``````
 
-.. code-block:: console
-
-    $ pip install poetry
-
-3. Create a new virtual environment that uses Python 3.10:
-
-.. code-block:: console
-    
-    $ poetry env use python3.10
-    $ poetry shell
-
-or (Poetry >= 2.0):
-
-.. code-block:: console
-    
-    $ poetry env use python3.10
-    $ poetry env activate
-
-4. Install requirements:
+Poetry can be used instead of ``pip``:
 
 .. code-block:: console
 
-    $ poetry install
+    git clone https://github.com/szczyglis-dev/py-gpt.git
+    cd py-gpt
+    pip install poetry
+    poetry env use python3.10
+    poetry shell
+    poetry install
+    poetry run python3 run.py
 
-5. Run the application:
+For Poetry >= 2.0, activate the environment with:
 
 .. code-block:: console
 
-    $ poetry run python3 run.py
-
+    poetry env use python3.10
+    poetry env activate
 
 .. tip::
-    You can use ``PyInstaller`` to create a compiled version of the application for your system (required version ``6.4.0``).
+   You can use ``PyInstaller`` to create a compiled version of the application (required version ``6.4.0``).
 
 Troubleshooting
 ---------------
@@ -244,22 +167,6 @@ If you have problems with audio on Linux, then try to install ``portaudio19-dev`
     $ sudo apt install libasound2-data 
     $ sudo apt install libasound2-plugins
 
-
-**Access to camera in Snap version:**
-
-To use camera capture and image analysis in the Snap version you must connect the camera with:
-
-.. code-block:: console
-
-    $ sudo snap connect pygpt:camera
-
-**Access to microphone in Snap version:**
-
-To use microphone in Snap version you must connect the microphone with:
-
-.. code-block:: console
-
-    $ sudo snap connect pygpt:audio-record :audio-record
 
 **Snap and AppArmor permission denied**
 

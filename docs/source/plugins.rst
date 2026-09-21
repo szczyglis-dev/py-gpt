@@ -38,7 +38,7 @@ The following plugins are currently available:
 * ``Telegram`` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 * ``Tuya (IoT)`` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
 * ``TwelveLabs`` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
-* ``Vision (inline)`` - adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
+* ``Vision (inline)`` - provides a fallback vision model when the selected chat model does not support image input; models with native vision handle images directly.
 * ``Voice control (inline)`` - lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
 * ``Web search`` - adds real-time web search, webpage retrieval, crawling, and external-content indexing using supported search providers and LlamaIndex loaders.
 * ``Wikipedia`` - provides Wikipedia search, article lookup, summaries, geographic discovery, and random-page access.
@@ -46,7 +46,6 @@ The following plugins are currently available:
 * ``X/Twitter`` - connects to X for searching and reading posts, publishing content, managing interactions, bookmarks, and media.
 
 **Tip:** Inline plugins work independently of the ``Tools`` switch in the toolbox. Once enabled, they remain active throughout the conversation and can provide their functionality automatically when applicable.
-
 
 Creating Your Own Plugins
 -------------------------
@@ -69,15 +68,11 @@ See the section ``Extending PyGPT / Adding a custom plugin`` for more details.
 API calls
 ----------
 
-**PyGPT** lets you connect the model to the external services using custom defined API calls.
+The API calls plugin turns user-defined HTTP endpoints into model-callable tools. Configure GET/POST parameters, JSON templates, headers and placeholders to connect a conversation to your own REST APIs.
+**Options**
 
-To activate this feature, turn on the ``API calls`` plugin found in the ``Plugins`` menu.
 
-In this plugin you can provide list of allowed API calls, their parameters and request types. The model will replace provided placeholders with required params and make API call to external service.
-
-- ``Your custom API calls`` *cmds*
-
-You can provide custom API calls on the list here.
+- **Your custom API calls** *cmds* - You can provide custom API calls on the list here.
 
 Params to specify for API call:
 
@@ -111,31 +106,25 @@ In the ``POST JSON`` request you must provide JSON object template to be send, u
 
 You can also provide any required credentials, like Authorization headers, API keys, tokens, etc. using the ``headers`` field - you can provide a JSON object here with a dictionary ``key => value`` - provided JSON object will be converted to headers dictonary and send with the request.
 
-- ``Disable SSL verify`` *disable_ssl*
+- **Disable SSL verify** *disable_ssl* - Controls TLS certificate verification for outgoing API requests. Disable verification only for endpoints that require it. *Default:* ``False``
 
-Disables SSL verification when making requests. *Default:* `False`
+- **Timeout** *timeout* - Maximum time to wait for the remote API connection before the request fails. *Default:* ``5``
 
-- ``Timeout`` *timeout*
+- **User agent** *user_agent* - HTTP User-Agent header sent with requests. *Default:* ``Mozilla/5.0``
 
-Connection timeout (seconds). *Default:* `5`
+**Tools**
 
-- ``User agent`` *user_agent*
-
-User agent to use when making requests, default: ``Mozilla/5.0``. *Default:* `Mozilla/5.0`
+Each enabled API definition is exposed as a tool using its configured **Name**. For example, the bundled example is exposed as ``search_wiki``.
 
 
 Audio input
 ------------
 
-The plugin facilitates speech recognition. The default provider is ``OpenAI Whisper``; ``local Whisper``, ``Google``, ``Google Cloud``, ``Google GenAI``, ``Microsoft Bing``, and xAI Grok Voice providers are also available. It allows voice input and voice commands to be captured through your microphone and transcribed into text. Once the plugin is enabled, use the ``Microphone`` icon on the right side of the input field to start voice input.
-
-The plugin can be extended with other speech recognition providers.
+The Audio input plugin captures microphone audio and converts speech to text for chat input and voice commands. It supports OpenAI Whisper, local Whisper, Google, Google Cloud, Google GenAI, Microsoft Bing and xAI Grok Voice, with configurable device, language and recognition behavior.
 
 **Options**
 
-- ``Provider`` *provider*
-
-Choose the provider. *Default:* `Whisper`
+- **Provider** *provider* - Selects the speech-to-text backend used for microphone transcription. *Default:* ``Whisper``
 
 Available providers:
 
@@ -149,164 +138,101 @@ Available providers:
 
 **Whisper (API)**
 
-- ``Model`` *whisper_model*
-
-Choose the model. *Default:* `whisper-1`
+- **Model** *whisper_model* - Selects the OpenAI Whisper model used for API transcription. *Default:* ``whisper-1``
 
 **Whisper (local)**
 
-- ``Model`` *whisper_local_model*
-
-Choose the local model. *Default:* `base`
+- **Model** *whisper_local_model* - Selects the local Whisper model size/checkpoint used for on-device transcription. *Default:* ``base``
 
 Available models: https://github.com/openai/whisper
 
-- ``Custom model name override`` *whisper_local_model_custom*
+- **Custom model name override** *whisper_local_model_custom* - Optional custom model name or local checkpoint path. When set, it overrides the model selected above. *Default:* ``empty``
 
-Optional custom model name or local checkpoint path. When set, it overrides the model selected above. *Default:* empty
-
-- ``Keep model in RAM`` *whisper_local_keep_in_memory*
-
-Keep the local Whisper model loaded between transcriptions. Disable this to reduce RAM usage at the cost of reloading it from the local cache for each transcription. *Default:* `True`
+- **Keep model in RAM** *whisper_local_keep_in_memory* - Keep the local Whisper model loaded between transcriptions. Disable this to reduce RAM usage at the cost of reloading it from the local cache for each transcription. *Default:* ``True``
 
 **Google**
 
-- ``Additional keywords arguments`` *google_args*
-
-Additional keywords arguments for r.recognize_google(audio, **kwargs)
+- **Additional keywords arguments** *google_args* - Additional keyword arguments passed to ``r.recognize_google(audio, **kwargs)``.
 
 **Google Cloud**
 
-- ``Additional keywords arguments`` *google_cloud_args*
-
-Additional keyword arguments passed to ``recognize_google_cloud(audio, **kwargs)``. The default list contains ``language=en-US``.
+- **Additional keywords arguments** *google_cloud_args* - Additional keyword arguments passed to ``recognize_google_cloud(audio, **kwargs)``. The default list contains ``language=en-US``.
 
 **Google GenAI**
 
-- ``Model`` *google_genai_audio_model*
+- **Model** *google_genai_audio_model* - Gemini model used for audio transcription. *Default:* ``gemini-2.5-flash``
 
-Gemini model used for audio transcription. *Default:* ``gemini-2.5-flash``
-
-- ``System Prompt`` *google_genai_audio_prompt*
-
-System instruction used to guide transcription output.
+- **System Prompt** *google_genai_audio_prompt* - System instruction used to guide transcription output.
 
 **xAI Grok Voice**
 
-- ``Sample rate (Hz)`` *xai_voice_audio_sample_rate* - PCM input sample rate. *Default:* ``16000``
-- ``System Prompt`` *xai_voice_system_prompt* - system instruction used to guide transcription output.
-- ``Region (optional)`` *xai_voice_region* - optional regional endpoint such as ``us-east-1``; empty uses the global endpoint.
-- ``Chunk size (ms)`` *xai_voice_chunk_ms* - WebSocket audio chunk size. *Default:* ``200``
+- **Sample rate (Hz)** *xai_voice_audio_sample_rate* - PCM input sample rate. *Default:* ``16000``
+- **System Prompt** *xai_voice_system_prompt* - system instruction used to guide transcription output.
+- **Region (optional)** *xai_voice_region* - optional regional endpoint such as ``us-east-1``; empty uses the global endpoint.
+- **Chunk size (ms)** *xai_voice_chunk_ms* - WebSocket audio chunk size. *Default:* ``200``
 
 **Bing**
 
-- ``Additional keywords arguments`` *bing_args*
-
-Additional keywords arguments for r.recognize_bing(audio, **kwargs)
+- **Additional keywords arguments** *bing_args* - Additional keyword arguments passed to ``r.recognize_bing(audio, **kwargs)``.
 
 **General options**
 
-- ``Auto send`` *auto_send*
+- **Auto send** *auto_send* - Automatically send recognized speech as input text after recognition. *Default:* ``True``
 
-Automatically send recognized speech as input text after recognition. *Default:* `True`
-
-- ``Advanced mode`` *advanced*
-
-Enable only if you want to use advanced mode and the settings below. Do not enable this option if you just want to use the simplified mode (default). *Default:* `False`
+- **Advanced mode** *advanced* - Enable only if you want to use advanced mode and the settings below. Do not enable this option if you just want to use the simplified mode (default). *Default:* ``False``
 
 **Advanced mode options**
 
-- ``Timeout`` *timeout*
+- **Timeout** *timeout* - The duration in seconds that the application waits for voice input from the microphone. *Default:* ``5``
 
-The duration in seconds that the application waits for voice input from the microphone. *Default:* `5`
+- **Phrase max length** *phrase_length* - Maximum duration for a voice sample (in seconds).  *Default:* ``10``
 
-- ``Phrase max length`` *phrase_length*
+- **Min energy** *min_energy* - Minimum threshold multiplier above the noise level to begin recording. *Default:* ``1.3``
 
-Maximum duration for a voice sample (in seconds).  *Default:* `10`
+- **Adjust for ambient noise** *adjust_noise* - Calibrates the microphone energy threshold against current ambient noise before recognition. *Default:* ``True``
 
-- ``Min energy`` *min_energy*
+- **Continuous listen** *continuous_listen* - Experimental: continuous listening - do not stop listening after a single input. Warning: This feature may lead to unexpected results and requires fine-tuning with the rest of the options! If disabled, listening must be started manually using the ``Microphone`` icon on the right side of the input field. *Default:* ``False``
 
-Minimum threshold multiplier above the noise level to begin recording. *Default:* `1.3`
+- **Wait for response** *wait_response* - Delays the next listening cycle until the current model response has finished. *Default:* ``True``
 
-- ``Adjust for ambient noise`` *adjust_noise*
+- **Magic word** *magic_word* - Requires the configured wake phrase before captured speech is accepted as input. *Default:* ``False``
 
-Enables adjustment to ambient noise levels. *Default:* `True`
+- **Reset Magic word** *magic_word_reset* - Reset the magic word status after it is received (the magic word will need to be provided again). *Default:* ``True``
 
-- ``Continuous listen`` *continuous_listen*
+- **Magic words** *magic_words* - List of magic words to initiate listening (Magic word mode must be enabled). *Default:* ``OK, Okay, Hey GPT, OK GPT``
 
-Experimental: continuous listening - do not stop listening after a single input. Warning: This feature may lead to unexpected results and requires fine-tuning with the rest of the options! If disabled, listening must be started manually using the ``Microphone`` icon on the right side of the input field. *Default:* `False`
+- **Magic word timeout** *magic_word_timeout* - he number of seconds the application waits for magic word. *Default:* ``1``
 
-- ``Wait for response`` *wait_response*
+- **Magic word phrase max length** *magic_word_phrase_length* - The minimum phrase duration for magic word. *Default:* ``2``
 
-Wait for a response before initiating listening for the next input. *Default:* `True`
+- **Prefix words** *prefix_words* - List of words that must initiate each phrase to be processed. For example, you can define words like "OK" or "GPT"—if set, any phrases not starting with those words will be ignored. Insert multiple words or phrases separated by commas. Leave empty to deactivate.  *Default:* ``empty``
 
-- ``Magic word`` *magic_word*
-
-Activate listening only after the magic word is provided. *Default:* `False`
-
-- ``Reset Magic word`` *magic_word_reset*
-
-Reset the magic word status after it is received (the magic word will need to be provided again). *Default:* `True`
-
-- ``Magic words`` *magic_words*
-
-List of magic words to initiate listening (Magic word mode must be enabled). *Default:* `OK, Okay, Hey GPT, OK GPT`
-
-- ``Magic word timeout`` *magic_word_timeout*
-
-he number of seconds the application waits for magic word. *Default:* `1`
-
-- ``Magic word phrase max length`` *magic_word_phrase_length*
-
-The minimum phrase duration for magic word. *Default:* `2`
-
-- ``Prefix words`` *prefix_words*
-
-List of words that must initiate each phrase to be processed. For example, you can define words like "OK" or "GPT"—if set, any phrases not starting with those words will be ignored. Insert multiple words or phrases separated by commas. Leave empty to deactivate.  *Default:* `empty`
-
-- ``Stop words`` *stop_words*
-
-List of words that will stop the listening process. *Default:* `stop, exit, quit, end, finish, close, terminate, kill, halt, abort`
+- **Stop words** *stop_words* - List of words that will stop the listening process. *Default:* ``stop, exit, quit, end, finish, close, terminate, kill, halt, abort``
 
 Options related to Speech Recognition internals:
 
-- ``energy_threshold`` *recognition_energy_threshold*
+- **energy_threshold** *recognition_energy_threshold* - Represents the energy level threshold for sounds. *Default:* ``300``
 
-Represents the energy level threshold for sounds. *Default:* `300`
+- **dynamic_energy_threshold** *recognition_dynamic_energy_threshold* - Represents whether the energy level threshold (see recognizer_instance.energy_threshold) for sounds should be automatically adjusted based on the currently ambient noise level while listening. *Default:* ``True``
 
-- ``dynamic_energy_threshold`` *recognition_dynamic_energy_threshold*
+- **dynamic_energy_adjustment_damping** *recognition_dynamic_energy_adjustment_damping* - Represents approximately the fraction of the current energy threshold that is retained after one second of dynamic threshold adjustment. *Default:* ``0.15``
 
-Represents whether the energy level threshold (see recognizer_instance.energy_threshold) for sounds should be automatically adjusted based on the currently ambient noise level while listening. *Default:* `True`
+- **pause_threshold** *recognition_pause_threshold* - Represents the minimum length of silence (in seconds) that will register as the end of a phrase. *Default:* ``0.8``
 
-- ``dynamic_energy_adjustment_damping`` *recognition_dynamic_energy_adjustment_damping*
-
-Represents approximately the fraction of the current energy threshold that is retained after one second of dynamic threshold adjustment. *Default:* `0.15`
-
-- ``pause_threshold`` *recognition_pause_threshold*
-
-Represents the minimum length of silence (in seconds) that will register as the end of a phrase. *Default:* `0.8`
-
-- ``adjust_for_ambient_noise: duration`` *recognition_adjust_for_ambient_noise_duration*
-
-The duration parameter is the maximum number of seconds that it will dynamically adjust the threshold for before returning. *Default:* `1`
+- **adjust_for_ambient_noise: duration** *recognition_adjust_for_ambient_noise_duration* - The duration parameter is the maximum number of seconds that it will dynamically adjust the threshold for before returning. *Default:* ``1``
 
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 Audio output
 -------------------------
 
-When enabled, the plugin synthesizes every received response as speech using OpenAI TTS or providers such as ``Microsoft Azure``, ``Google Cloud TTS``, ``Google GenAI TTS``, ``Eleven Labs``, and ``xAI TTS``. You can add more text-to-speech providers to it too. ``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
-Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
-
-Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
+The Audio output plugin reads model responses aloud. Choose OpenAI, Azure, Google Cloud, Google GenAI, ElevenLabs or xAI TTS and configure the provider-specific voice, model, language and credentials.
 
 To enable voice synthesis, activate the ``Audio output`` plugin in the ``Plugins`` menu or enable ``Output: Speech synthesis`` in the **Audio** section of the ``Audio / Video`` menu (both options enable the same plugin).
 
 **Options**
 
-- ``Provider`` *provider*
-
-Choose the provider. *Default:* `OpenAI TTS`
+- **Provider** *provider* - Selects the text-to-speech backend used to synthesize model responses. *Default:* ``OpenAI TTS``
 
 Available providers:
 
@@ -319,18 +245,13 @@ Available providers:
 
 **OpenAI Text-To-Speech**
 
-- ``Model`` *openai_model*
-
-Choose the model. Available options:
+- **Model** *openai_model* - Selects the OpenAI TTS model used for speech synthesis. *Default:* ``tts-1``. Available options:
 
 * tts-1
 * tts-1-hd
 
-*Default:* `tts-1`
 
-- `Voice` *openai_voice*
-
-Choose the voice. Available voices to choose from:
+- **Voice** *openai_voice* - Selects the OpenAI TTS voice. *Default:* ``alloy``. Available voices:
 
 * alloy
 * echo
@@ -339,76 +260,49 @@ Choose the voice. Available voices to choose from:
 * nova
 * shimmer
 
-*Default:* `alloy`
 
 **Microsoft Azure Text-To-Speech**
 
-- ``Azure API Key`` *azure_api_key*
+- **Azure API Key** *azure_api_key* - Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
-Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+- **Azure Region** *azure_region* - You must also provide the appropriate region for Azure here. *Default:* ``eastus``
 
-- ``Azure Region`` *azure_region*
+- **Voice (EN)** *azure_voice_en* - Here you can specify the name of the voice used for speech synthesis for English. *Default:* ``en-US-AriaNeural``
 
-You must also provide the appropriate region for Azure here. *Default:* `eastus`
-
-- ``Voice (EN)`` *azure_voice_en*
-
-Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
-
-- ``Voice (non-English)`` *azure_voice_pl*
-
-Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* `pl-PL-AgnieszkaNeural`
+- **Voice (non-English)** *azure_voice_pl* - Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* ``pl-PL-AgnieszkaNeural``
 
 **Google Text-To-Speech**
 
-- ``Google Cloud Text-to-speech API Key`` *google_api_key*
+- **Google Cloud Text-to-speech API Key** *google_api_key* - You can obtain your own API key at: https://console.cloud.google.com/apis/library/texttospeech.googleapis.com
 
-You can obtain your own API key at: https://console.cloud.google.com/apis/library/texttospeech.googleapis.com
+- **Voice** *google_voice* - Specify voice. Voices: https://cloud.google.com/text-to-speech/docs/voices
 
-- ``Voice`` *google_voice*
-
-Specify voice. Voices: https://cloud.google.com/text-to-speech/docs/voices
-
-- ``Language code`` *google_lang*
-
-Language code used for synthesis. *Default:* ``en-US``. Language codes: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
+- **Language code** *google_lang* - Language code used for synthesis. *Default:* ``en-US``. Language codes: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
 
 **Google GenAI Text-To-Speech**
 
-- ``Model`` *google_genai_tts_model*
+- **Model** *google_genai_tts_model* - Gemini TTS model. *Default:* ``gemini-2.5-flash-preview-tts``
 
-Gemini TTS model. *Default:* ``gemini-2.5-flash-preview-tts``
-
-- ``Voice`` *google_genai_tts_voice*
-
-Gemini TTS voice name; values are case-sensitive. *Default:* ``Kore``
+- **Voice** *google_genai_tts_voice* - Gemini TTS voice name; values are case-sensitive. *Default:* ``Kore``
 
 **Eleven Labs Text-To-Speech**
 
-- ``Eleven Labs API Key`` *eleven_labs_api_key*
+- **Eleven Labs API Key** *eleven_labs_api_key* - You can obtain your own API key at: https://elevenlabs.io/speech-synthesis
 
-You can obtain your own API key at: https://elevenlabs.io/speech-synthesis
+- **Voice ID** *eleven_labs_voice* - Voice ID. Voices: https://elevenlabs.io/voice-library
 
-- ``Voice ID`` *eleven_labs_voice*
-
-Voice ID. Voices: https://elevenlabs.io/voice-library
-
-- ``Model`` *eleven_labs_model*
-
-Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
+- **Model** *eleven_labs_model* - Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
 
 **xAI Text-To-Speech**
 
-- ``Voice`` *xai_tts_voice* - Grok Voice name (Ara, Rex, Sal, Eve, Leo). *Default:* ``Ara``
-- ``Sample rate (Hz)`` *xai_tts_sample_rate* - PCM output sample rate. *Default:* ``24000``
-- ``System Prompt`` *xai_tts_instructions* - instruction controlling speaking style. *Default:* neutral, clear, verbatim TTS instruction.
-- ``File container`` *xai_tts_file_container* - ``wav`` or ``raw``. *Default:* ``wav``
-- ``Region (optional)`` *xai_tts_region* - optional regional endpoint; empty uses the global endpoint.
+- **Voice** *xai_tts_voice* - Grok Voice name (Ara, Rex, Sal, Eve, Leo). *Default:* ``Ara``
+- **Sample rate (Hz)** *xai_tts_sample_rate* - PCM output sample rate. *Default:* ``24000``
+- **System Prompt** *xai_tts_instructions* - Instruction controlling speaking style. *Default:* ``neutral, clear, verbatim TTS instruction``
+- **File container** *xai_tts_file_container* - ``wav`` or ``raw``. *Default:* ``wav``
+- **Region (optional)** *xai_tts_region* - optional regional endpoint; empty uses the global endpoint.
 
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via model.
-
-
 
 Autonomous mode
 -------------------------
@@ -417,45 +311,31 @@ Autonomous mode
 .. warning::
    **Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
-The plugin activates the iterative Autonomous loop inside supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes. It can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the configured run-control rules stop it.
+The Autonomous mode plugin activates the iterative Autonomous loop inside supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes. It can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the configured run-control rules stop it.
 
-The plugin uses the normal PyGPT tool flow, so it can cooperate with other enabled plugins such as Web search, Files I/O, Python interpreter, image generation, and other integrations. Provider-native function/tool calls are used according to the normal global/model configuration rather than a separate Autonomous setting.
+The Autonomous mode plugin uses the normal PyGPT tool flow, so it can cooperate with other enabled plugins such as Web search, Files I/O, Python interpreter, image generation, and other integrations. Provider-native function/tool calls are used according to the normal global/model configuration rather than a separate Autonomous setting.
 
 **Options**
 
 You can adjust the number of Autonomous loop iterations in the ``Plugins / Settings...`` menu under the following option:
 
-- ``Iterations`` *iterations*
-
-*Default:* `3`
+- **Iterations** *iterations* - *Default:* ``3``
 
 .. warning::
    Setting this option to ``0`` activates an **infinite loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
-- ``Prompts`` *prompts*
+- **Prompts** *prompts* - Editable list of prompts used to instruct how to handle autonomous mode, you can create as many prompts as you want. First active prompt on list will be used to handle autonomous mode.
 
-Editable list of prompts used to instruct how to handle autonomous mode, you can create as many prompts as you want. 
-First active prompt on list will be used to handle autonomous mode.
+- **Auto-stop after goal is reached** *auto_stop* - If enabled, the model can terminate the autonomous run early when the original goal is complete. If disabled, the internal completion-control tool is not exposed and the run continues until the iteration limit or an external/manual stop. *Default:* ``True``
 
-- ``Auto-stop after goal is reached`` *auto_stop*
+- **Always continue** *always_continue* - Keeps the loop open-ended and asks the model to continue with additional useful in-scope work instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the normal iteration limit until the run is stopped externally. Enabling Auto-stop disables Always continue. *Default:* ``False``
 
-If enabled, the model can terminate the autonomous run early when the original goal is complete. If disabled, the internal completion-control tool is not exposed and the run continues until the iteration limit or an external/manual stop. *Default:* `True`
-
-- ``Always continue`` *always_continue*
-
-Keeps the loop open-ended and asks the model to continue with additional useful in-scope work instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the normal iteration limit until the run is stopped externally. Enabling Auto-stop disables Always continue. *Default:* `False`
-
-- ``Reverse roles between iterations`` *reverse_roles*
-
-Only for Completion mode. 
-If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
-if in the previous iteration the response was generated for "Batman," the next iteration will use that 
-response to generate an input for "Joker." *Default:* `True`
+- **Reverse roles between iterations** *reverse_roles* - Only for Completion mode. If enabled, this option reverses the roles (AI <> user) with each iteration. For example, if in the previous iteration the response was generated for "Batman," the next iteration will use that response to generate an input for "Joker." *Default:* ``True``
 
 Bitbucket
 ---------
 
-The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
+The Bitbucket plugin exposes Bitbucket Cloud repositories, files, issues, pull requests, workspaces and account information as tools. Authentication can use an App Password or bearer token.
 
 
 * Retrieve details about the authenticated user.
@@ -479,157 +359,95 @@ The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud AP
 
 **Options**
 
-- ``API base`` *api_base*
+- **API base** *api_base* - Define the base URL for the Bitbucket Cloud API. *Default:* ``https://api.bitbucket.org/2.0``
 
-  Define the base URL for the Bitbucket Cloud API. *Default:* `https://api.bitbucket.org/2.0`
-
-- ``HTTP timeout (s)`` *http_timeout*
-
-  Set the timeout for HTTP requests in seconds. *Default:* `30`
+- **HTTP timeout (s)** *http_timeout* - Set the timeout for HTTP requests in seconds. *Default:* ``30``
 
 **Auth options**
 
-- ``Auth mode`` *auth_mode*
-
-  Select the authentication mode. *Default:* `auto`
+- **Auth mode** *auth_mode* - Selects which Bitbucket credential type is used for API requests. *Default:* ``auto``
 
   Available modes:
   * auto
   * basic
   * bearer
 
-- ``Username`` *bb_username*
+- **Username** *bb_username* - Provide your Bitbucket username (handle, not email).
 
-  Provide your Bitbucket username (handle, not email).
+- **App Password** *bb_app_password* - Specify your Bitbucket App Password (Basic). This option is secret.
 
-- ``App Password`` *bb_app_password*
-
-  Specify your Bitbucket App Password (Basic). This option is secret.
-
-- ``Bearer token`` *bb_access_token*
-
-  Enter the OAuth access token (Bearer). This option is secret.
+- **Bearer token** *bb_access_token* - Enter the OAuth access token (Bearer). This option is secret.
 
 **Cached convenience**
 
-- ``(auto) User UUID`` *user_uuid*
+- **(auto) User UUID** *user_uuid* - Cached after using the `bb_me` command.
 
-  Cached after using the `bb_me` command.
+- **(auto) Username** *username* - Cached after using the `bb_me` command.
 
-- ``(auto) Username`` *username*
+**Tools**
 
-  Cached after using the `bb_me` command.
+*Auth*
 
-**Commands**
+- ``bb_auth_set_mode`` - Set the authentication mode: auto|basic|bearer.
 
-*Auth Options*
+- ``bb_set_app_password`` - Set App Password credentials including username and app password.
 
-- ``bb_auth_set_mode``
+- ``bb_set_bearer`` - Set the Bearer authentication token.
 
-  Set the authentication mode: auto|basic|bearer.
-
-- ``bb_set_app_password``
-
-  Set App Password credentials including username and app password.
-
-- ``bb_set_bearer``
-
-  Set the Bearer authentication token.
-
-- ``bb_auth_check``
-
-  Run diagnostics to show authentication results for `/user`.
+- ``bb_auth_check`` - Run diagnostics to show authentication results for `/user`.
 
 *User Management*
 
-- ``bb_me``
+- ``bb_me`` - Retrieve details for the authenticated user.
 
-  Retrieve details for the authenticated user.
+- ``bb_user_get`` - Fetch user information by username.
 
-- ``bb_user_get``
-
-  Fetch user information by username.
-
-- ``bb_workspaces_list``
-
-  List all accessible workspaces.
+- ``bb_workspaces_list`` - List all accessible workspaces.
 
 *Repositories Management*
 
-- ``bb_repos_list``
+- ``bb_repos_list`` - Display a list of repositories.
 
-  Display a list of repositories.
+- ``bb_repo_get`` - Fetch details of a specific repository.
 
-- ``bb_repo_get``
+- ``bb_repo_create`` - Create a new repository in a specified workspace.
 
-  Fetch details of a specific repository.
-
-- ``bb_repo_create``
-
-  Create a new repository in a specified workspace.
-
-- ``bb_repo_delete``
-
-  Delete a repository (requires confirmation).
+- ``bb_repo_delete`` - Delete a repository (requires confirmation).
 
 *Contents Management*
 
-- ``bb_contents_get``
+- ``bb_contents_get`` - Retrieve file or directory contents from a repository.
 
-  Retrieve file or directory contents from a repository.
+- ``bb_file_put`` - Create or update a file in a repository.
 
-- ``bb_file_put``
-
-  Create or update a file in a repository.
-
-- ``bb_file_delete``
-
-  Delete specified files within a repository.
+- ``bb_file_delete`` - Delete specified files within a repository.
 
 *Issues Management*
 
-- ``bb_issues_list``
+- ``bb_issues_list`` - List issues in a repository.
 
-  List issues in a repository.
+- ``bb_issue_create`` - Create a new issue within a repository.
 
-- ``bb_issue_create``
+- ``bb_issue_comment`` - Add a comment to an existing issue.
 
-  Create a new issue within a repository.
-
-- ``bb_issue_comment``
-
-  Add a comment to an existing issue.
-
-- ``bb_issue_update``
-
-  Update details of an existing issue.
+- ``bb_issue_update`` - Update details of an existing issue.
 
 *Pull Requests Management*
 
-- ``bb_prs_list``
+- ``bb_prs_list`` - Display a list of pull requests.
 
-  Display a list of pull requests.
+- ``bb_pr_create`` - Create a new pull request.
 
-- ``bb_pr_create``
-
-  Create a new pull request.
-
-- ``bb_pr_merge``
-
-  Merge an existing pull request.
+- ``bb_pr_merge`` - Merge an existing pull request.
 
 *Search Functionality*
 
-- ``bb_search_repos``
-
-  Search repositories using Bitbucket Query Language (BBQL).
-
+- ``bb_search_repos`` - Search repositories using Bitbucket Query Language (BBQL).
 
 Chat history (inline)
 ----------------------------------
 
-Provides access to context history database.
-Plugin also provides access to reading and creating day notes.
+The Chat history (inline) plugin lets the model search and read saved conversations and work with calendar day notes, including creating and updating notes.
 
 Example prompts:
 
@@ -639,111 +457,58 @@ Example prompts:
 * Show me yesterday's conversations.
 * Show me the contents of conversation ID 123.
 
-You can also use ``@`` ID tags to automatically use summary of previous contexts in current discussion.
-To use context from previous discussion with specified ID use following syntax in your query:
-
-.. code-block:: ini
-
-   @123
-
-Where ``123`` is the ID of previous context (conversation) in database, example of use:
-
-.. code-block:: ini
-
-   Let's talk about discussion @123
+Conversation references are integrated with ``@mentions``. Type ``@`` to select a saved conversation, or reference it directly by numeric ID, for example ``@123``. PyGPT retrieves information from that conversation relevant to the current request and adds it as context automatically. Conversation mentions work independently of whether the Chat history plugin is enabled. See :doc:`attachments` for details.
 
 **Options**
 
-- ``Enable: using context @ ID tags`` *use_tags*
+- **Model** *model_summarize* - Model used to summarize retrieved conversation content. *Default:* ``gpt-4o-mini``
 
-When enabled, it allows to automatically retrieve context history using @ tags, e.g. use @123 in question to use summary of context with ID 123 as additional context. *Default:* `False`
+- **Max summary tokens** *summary_max_tokens* - Maximum output-token budget for generated summaries. *Default:* ``1500``
 
-- ``Tool: get date range context list`` *cmd.get_ctx_list_in_date_range*
+- **Max contexts to retrieve** *ctx_items_limit* - Max items in context history list to retrieve in one query. 0 = no limit. *Default:* ``30``
 
-Allows `get_ctx_list_in_date_range` command execution. If enabled, it allows getting the list of context history (previous conversations). *Default:* `True`
-
-- ``Tool: get context content by ID`` *cmd.get_ctx_content_by_id*
-
-Allows `get_ctx_content_by_id` command execution. If enabled, it allows getting summarized content of context with defined ID. *Default:* `True`
-
-- ``Tool: count contexts in date range`` *cmd.count_ctx_in_date*
-
-Allows `count_ctx_in_date` command execution. If enabled, it allows counting contexts in date range. *Default:* `True`
-
-- ``Tool: get day note`` *cmd.get_day_note*
-
-Allows `get_day_note` command execution. If enabled, it allows retrieving day note for specific date. *Default:* `True`
-
-- ``Tool: add day note`` *cmd.add_day_note*
-
-Allows `add_day_note` command execution. If enabled, it allows adding day note for specific date. *Default:* `True`
-
-- ``Tool: update day note`` *cmd.update_day_note*
-
-Allows `update_day_note` command execution. If enabled, it allows updating day note for specific date. *Default:* `True`
-
-- ``Tool: remove day note`` *cmd.remove_day_note*
-
-Allows `remove_day_note` command execution. If enabled, it allows removing day note for specific date. *Default:* `True`
-
-- ``Model`` *model_summarize*
-
-Model used for summarize. *Default:* `gpt-4o-mini`
-
-- ``Max summary tokens`` *summary_max_tokens*
-
-Max tokens in output when generating summary. *Default:* `1500`
-
-- ``Max contexts to retrieve`` *ctx_items_limit*
-
-Max items in context history list to retrieve in one query. 0 = no limit. *Default:* `30`
-
-- ``Per-context items content chunk size`` *chunk_size*
-
-Per-context content chunk size (max characters per chunk). *Default:* `100000 chars`
+- **Per-context items content chunk size** *chunk_size* - Per-context content chunk size (max characters per chunk). *Default:* ``100000 chars``
 
 **Options (advanced)**
 
-- ``Prompt: @ tags (system)`` *prompt_tag_system*
+- **Prompt: conversation extraction** *prompt_tag_summary* - Prompt used for query-focused extraction from previous conversation chunks, including conversation ``@ID`` references and history retrieval tools.
 
-Prompt for use @ tag (system).
+- **Prompt: conversation reduction** *prompt_tag_reduce* - Prompt used to merge multiple extracted chunks from long previous conversations into one compact result.
 
-- ``Prompt: @ tags (summary)`` *prompt_tag_summary*
+**Tools**
 
-Prompt for use @ tag (summary).
-
+- ``get_ctx_list_in_date_range`` - List saved conversations from a specified date range.
+- ``get_ctx_content_by_id`` - Retrieve summarized content from a saved conversation by ID.
+- ``count_ctx_in_date`` - Count saved conversations in a specified date range.
+- ``get_day_note`` - Read the calendar note for a specified date.
+- ``add_day_note`` - Create a calendar note for a specified date.
+- ``update_day_note`` - Update an existing calendar day note.
+- ``remove_day_note`` - Remove a calendar day note.
 
 Crontab / Task scheduler
 ------------------------
 
-Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+The Crontab / Task scheduler plugin lets the model create, inspect and manage scheduled prompts and tasks using cron expressions.
 
 .. image:: images/v2_crontab.png
    :width: 800
 
 **Options**
 
-- ``Your tasks`` *crontab*
-
-Add your cron-style tasks here. 
-They will be executed automatically at the times you specify in the cron-based job format. 
-If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
+- **Your tasks** *crontab* - Add your cron-style tasks here. They will be executed automatically at the times you specify in the cron-based job format. If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
 
 Number of active tasks is always displayed in a tray dropdown menu:
 
-- ``Create a new context on job run`` *new_ctx*
+- **Create a new context on job run** *new_ctx* - Starts each scheduled job in a new conversation instead of reusing the current context. *Default:* ``True``
 
-If enabled, then a new context will be created on every run of the job." *Default:* `True`
-
-- ``Show notification on job run`` *show_notify*
-
-If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
-
+- **Show notification on job run** *show_notify* - Shows a desktop/tray notification whenever the scheduled job starts. *Default:* ``True``
 
 Custom commands
 ------------------------
 
-With the ``Custom commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+The Custom commands plugin turns your own shell commands, scripts and applications into model-callable tools. Each command can define its arguments, usage instruction and execution rules; a tutorial command is included as an example:
+
+**Options**
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -802,32 +567,37 @@ With the setup above, every time you ask model to generate a song for you and sa
 
   > please execute tutorial test command
 
+**Tools**
+
+Each enabled custom command is exposed as a tool using its configured **name**.
+
+
 Experts (inline)
 -----------------
 
-The plugin makes enabled Expert presets available in supported chat modes through the regular ``expert_call`` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Chat with Agents**, and its final response is returned directly as the tool result.
+The Experts (inline) plugin makes enabled Expert presets available in supported chat modes through the regular ``expert_call`` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Chat with Agents**, and its final response is returned directly as the tool result.
 
 Use **Experts** mode to define, configure, enable, or disable Expert presets. Once an Expert is enabled, you can simply ask for it by name in the conversation, for example: ``Ask the Python programmer expert to review this code.`` The model can then call ``expert_call`` automatically.
 
 See the ``Work modes -> Experts`` section for more details.
 
+**Tools**
+
+- ``expert_call`` - Delegate a self-contained task to an enabled Expert and return its result.
+
 Extra system prompt
 -----------------------------
 
-The plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+The Extra system prompt plugin appends selected reusable instructions or context to the active system prompt, making the same guidance available on every request.
 
 **Options**
 
-- ``Prompts`` *prompts*
-
-List of extra prompts - prompts that will be appended to system prompt. 
-All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
-
+- **Prompts** *prompts* - List of extra prompts - prompts that will be appended to system prompt. All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
 
 Facebook
 --------
 
-The plugin integrates with Facebook's Graph API to enable various actions such as managing pages, posts, and media uploads. It uses OAuth2 for authentication and supports automatic token exchange processes. 
+The Facebook plugin exposes Facebook Graph API operations for pages, posts and media, including publishing, deleting and uploading content. Authentication uses OAuth2.
 
 * Retrieving basic information about the authenticated user.
 * Listing all Facebook pages the user has access to.
@@ -839,155 +609,88 @@ The plugin integrates with Facebook's Graph API to enable various actions such a
 
 **Options**
 
-- ``Graph API Version`` *graph_version*
+- **Graph API Version** *graph_version* - Specify the API version. *Default:* ``v21.0``
 
-Specify the API version. *Default:* `v21.0`
+- **API Base** *api_base* - Base address for the Graph API. The version will be appended automatically.
 
-- ``API Base`` *api_base*
+- **Authorize Base** *authorize_base* - Base address for OAuth authorization. The version will be appended automatically.
 
-Base address for the Graph API. The version will be appended automatically.
-
-- ``Authorize Base`` *authorize_base*
-
-Base address for OAuth authorization. The version will be appended automatically.
-
-- ``HTTP Timeout (s)`` *http_timeout*
-
-Set the timeout for HTTP requests in seconds. *Default:* `30`
+- **HTTP Timeout (s)** *http_timeout* - Set the timeout for HTTP requests in seconds. *Default:* ``30``
 
 **OAuth2 (PKCE) Settings**
 
-- ``App ID (client_id)`` *oauth2_client_id*
+- **App ID (client_id)** *oauth2_client_id* - Provide your Facebook App ID.
 
-Provide your Facebook App ID.
+- **App Secret (optional)** *oauth2_client_secret* - Required for long-lived token exchange unless using PKCE. *Secret*
 
-- ``App Secret (optional)`` *oauth2_client_secret*
+- **Confidential Client** *oauth2_confidential* - Use `client_secret` on exchange instead of `code_verifier`.
 
-Required for long-lived token exchange unless using PKCE. *Secret*
+- **Redirect URI** *oauth2_redirect_uri* - Matches one of the valid OAuth Redirect URIs in your Meta App.
 
-- ``Confidential Client`` *oauth2_confidential*
+- **Scopes** *oauth2_scopes* - Space-separated authorized permissions.
 
-Use `client_secret` on exchange instead of `code_verifier`.
+- **(auto) nonce** *oauth2_nonce* - Generated automatically by ``fb_oauth_begin`` for the OIDC flow. This is an internal cached value and normally should not be edited manually. *Secret*
 
-- ``Redirect URI`` *oauth2_redirect_uri*
-
-Matches one of the valid OAuth Redirect URIs in your Meta App. 
-
-- ``Scopes`` *oauth2_scopes*
-
-Space-separated authorized permissions. 
-
-- ``(auto) nonce`` *oauth2_nonce*
-
-Generated automatically by ``fb_oauth_begin`` for the OIDC flow. This is an internal cached value and normally should not be edited manually. *Secret*
-
-- ``User Access Token`` *oauth2_access_token*
-
-Stores user access token. *Secret*
+- **User Access Token** *oauth2_access_token* - Stores user access token. *Secret*
 
 **Cache**
 
-- ``User ID`` *user_id*
+- **User ID** *user_id* - Cached after calling `fb_me` or OAuth exchange.
 
-Cached after calling `fb_me` or OAuth exchange.
+- **User Name** *user_name* - Cached after calling `fb_me` or OAuth exchange.
 
-- ``User Name`` *user_name*
+- **Default Page ID** *fb_page_id* - Selected via `fb_page_set_default`.
 
-Cached after calling `fb_me` or OAuth exchange.
+- **Default Page Name** *fb_page_name* - Selected via `fb_page_set_default`.
 
-- ``Default Page ID`` *fb_page_id*
-
-Selected via `fb_page_set_default`.
-
-- ``Default Page Name`` *fb_page_name*
-
-Selected via `fb_page_set_default`.
-
-- ``Default Page Access Token`` *fb_page_access_token*
-
-Cached with `fb_page_set_default` or on demand. *Secret*
+- **Default Page Access Token** *fb_page_access_token* - Cached with `fb_page_set_default` or on demand. *Secret*
 
 **OAuth UX Options**
 
-- ``Auto-start OAuth`` *oauth_auto_begin*
+- **Auto-start OAuth** *oauth_auto_begin* - Automatically begin PKCE flow when commands need a user token.
 
-Automatically begin PKCE flow when commands need a user token.
+- **Open Browser Automatically** *oauth_open_browser* - Open authorization URL in the default web browser.
 
-- ``Open Browser Automatically`` *oauth_open_browser*
+- **Use Local Server for OAuth** *oauth_local_server* - Start a local HTTP server to capture redirect.
 
-Open authorization URL in the default web browser.
+- **OAuth Local Timeout (s)** *oauth_local_timeout* - Duration to wait for a redirect with code. *Default:* ``180``
 
-- ``Use Local Server for OAuth`` *oauth_local_server*
+- **Success HTML** *oauth_success_html* - HTML displayed on successful local callback.
 
-Start a local HTTP server to capture redirect.
+- **Fail HTML** *oauth_fail_html* - HTML displayed on callback error.
 
-- ``OAuth Local Timeout (s)`` *oauth_local_timeout*
+- **OAuth Local Port** *oauth_local_port* - Set the local HTTP port; should be above 1024 and allowed in the app. *Default:* ``8732``
 
-Duration to wait for a redirect with code. *Default:* `180`
+- **Allow Fallback Port** *oauth_allow_port_fallback* - Choose a free local port if the preferred port is busy or forbidden.
 
-- ``Success HTML`` *oauth_success_html*
+**Tools**
 
-HTML displayed on successful local callback.
+- ``fb_oauth_begin`` - Start OAuth2 (PKCE) flow and return the authorization URL.
 
-- ``Fail HTML`` *oauth_fail_html*
+- ``fb_oauth_exchange`` - Trades authorization code for a user access token.
 
-HTML displayed on callback error.
+- ``fb_token_extend`` - Exchange a short-lived token for a long-lived token; requires app secret.
 
-- ``OAuth Local Port`` *oauth_local_port*
+- ``fb_me`` - Retrieve the authorized user's profile.
 
-Set the local HTTP port; should be above 1024 and allowed in the app. *Default:* `8732`
+- ``fb_pages_list`` - List pages the user manages with details like ID, name, and access token.
 
-- ``Allow Fallback Port`` *oauth_allow_port_fallback*
+- ``fb_page_set_default`` - Cache name and access token for a default page.
 
-Choose a free local port if the preferred port is busy or forbidden.
+- ``fb_page_posts`` - Retrieve the page's feed (posts).
 
-**Commands**
+- ``fb_page_post_create`` - Publish a post with optional text, links, and photos.
 
-- ``Auth: Begin OAuth2`` *fb_oauth_begin*
+- ``fb_page_post_delete`` - Remove a specified page post.
 
-Starts OAuth2 (PKCE) flow and returns the authorization URL.
-
-- ``Auth: Exchange Code`` *fb_oauth_exchange*
-
-Trades authorization code for a user access token.
-
-- ``Auth: Extend User Token`` *fb_token_extend*
-
-Exchanges a short-lived token for a long-lived token; requires app secret.
-
-- ``Users: Me`` *fb_me*
-
-Retrieves the authorized user's profile.
-
-- ``Pages: List`` *fb_pages_list*
-
-Lists pages the user manages with details like ID, name, and access token.
-
-- ``Pages: Set Default`` *fb_page_set_default*
-
-Caches name and access token for a default page.
-
-- ``Posts: List`` *fb_page_posts*
-
-Retrieves the page's feed (posts).
-
-- ``Posts: Create`` *fb_page_post_create*
-
-Publishes a post with optional text, links, and photos.
-
-- ``Posts: Delete`` *fb_page_post_delete*
-
-Removes a specified page post.
-
-- ``Media: Upload Photo`` *fb_page_photo_upload*
-
-Uploads a photo to a page from a local path or URL.
-
+- ``fb_page_photo_upload`` - Upload a photo to a page from a local path or URL.
 
 Files I/O
 ------------------
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the active ``data`` workdir. Normally this is ``<profile workdir>/data``. If the current conversation belongs to a project with ``Use shared workdir`` disabled, the project's configured directory is used instead. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system. The ``cwd`` tool reports the same runtime-resolved data workdir.
+The Files I/O plugin gives the model file and directory tools for reading, writing, copying, moving, downloading, searching and indexing content on the local filesystem. The ``cwd`` tool reports the active conversation data directory.
+
+The effective filesystem scope is controlled in ``Config -> Settings -> Security -> General``. Read and write restrictions can be configured independently; disabling them allows Files I/O to access paths outside the active data directory, including the host filesystem. **Warning:** broader filesystem access can expose or modify sensitive files, so enable it only when required and only for trusted workflows.
 
 Plugin capabilities include:
 
@@ -1003,129 +706,60 @@ Plugin capabilities include:
 * Moving (renaming) files and directories
 * Reading file info
 * Indexing files and directories using LlamaIndex
-- Querying files using LlamaIndex
-- Searching for files and directories
+* Querying files using LlamaIndex
+* Searching for files and directories
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
-**Options:**
+**Options**
 
 **General**
 
-- ``Tool: send (upload) file as attachment`` *cmd.send_file*
 
-Allows `send_file` command execution. *Default:* `True`
-
-- ``Tool: read file`` *cmd.read_file*
-
-Allows `read_file` command execution. *Default:* `True`
-
-- ``Tool: append to file`` *cmd.append_file*
-
-Allows `append_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
-
-- ``Tool: save file`` *cmd.save_file*
-
-Allows `save_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
-
-- ``Tool: delete file`` *cmd.delete_file*
-
-Allows `delete_file` command execution. *Default:* `True`
-
-- ``Tool: list files (ls)`` *cmd.list_files*
-
-Allows `list_dir` command execution. *Default:* `True`
-
-- ``Tool: list files in dirs in directory (ls)`` *cmd.list_dir*
-
-Allows `mkdir` command execution. *Default:* `True`
-
-- ``Tool: downloading files`` *cmd.download_file*
-
-Allows `download_file` command execution. *Default:* `True`
-
-- ``Tool: removing directories`` *cmd.rmdir*
-
-Allows `rmdir` command execution. *Default:* `True`
-
-- ``Tool: copying files`` *cmd.copy_file*
-
-Allows `copy_file` command execution. *Default:* `True`
-
-- ``Tool: copying directories (recursive)`` *cmd.copy_dir*
-
-Allows `copy_dir` command execution. *Default:* `True`
-
-- ``Tool: move files and directories (rename)`` *cmd.move*
-
-Allows `move` command execution. *Default:* `True`
-
-- ``Tool: check if path is directory`` *cmd.is_dir*
-
-Allows `is_dir` command execution. *Default:* `True`
-
-- ``Tool: check if path is file`` *cmd.is_file*
-
-Allows `is_file` command execution. *Default:* `True`
-
-- ``Tool: check if file or directory exists`` *cmd.file_exists*
-
-Allows `file_exists` command execution. *Default:* `True`
-
-- ``Tool: get file size`` *cmd.file_size*
-
-Allows `file_size` command execution. *Default:* `True`
-
-- ``Tool: get file info`` *cmd.file_info*
-
-Allows `file_info` command execution. *Default:* `True`
-
-- ``Tool: find file or directory`` *cmd.find*
-
-Allows `find` command execution. *Default:* `True`
-
-- ``Tool: get current working directory`` *cmd.cwd*
-
-Allows `cwd` command execution. *Default:* `True`
-
-- ``Use data loaders`` *use_loaders*
-
-Use data loaders from LlamaIndex for file reading (`read_file` command). *Default:* `True`
+- **Use data loaders** *use_loaders* - Use data loaders from LlamaIndex for file reading (the ``read_file`` tool). *Default:* ``True``
 
 **Indexing**
 
-- ``Tool: quick query the file with LlamaIndex`` *cmd.query_file*
 
-Allows `query_file` command execution (in-memory index). If enabled, model will be able to quick index file into memory and query it for data (in-memory index) *Default:* `True`
+- **Model for query in-memory index** *model_tmp_query* - Model used to query the temporary in-memory index through ``query_file``. *Default:* ``gpt-4o-mini``
 
-- ``Model for query in-memory index`` *model_tmp_query*
 
-Model used for query temporary index for `query_file` command (in-memory index). *Default:* `gpt-4o-mini`
+- **Use project index if in use** *use_project_index* - When enabled and the current conversation belongs to a project, persistent file indexing targets that project's isolated ``Current project`` index instead of the configured global file index. Outside a project, the configured index is used normally. *Default:* ``True``
 
-- ``Tool: indexing files to persistent index`` *cmd.file_index*
+- **Index to use when indexing files** *idx* - ID of the normal index to use for persistent file indexing when no active project index is selected. *Default:* ``base``
 
-Allows `file_index` command execution. If enabled, model will be able to index file or directory using LlamaIndex (persistent index). *Default:* `True`
+- **Auto index reading files** *auto_index* - If enabled, every time file is read, it will be automatically indexed (persistent index). *Default:* ``False``
 
-- ``Use project index if in use`` *use_project_index*
+- **Only index reading files** *only_index* - If enabled, file will be indexed without return its content on file read (persistent index). *Default:* ``False``
 
-When enabled and the current conversation belongs to a project, persistent file indexing targets that project's isolated ``Current project`` index instead of the configured global file index. Outside a project, the configured index is used normally. *Default:* `True`
+**Tools**
 
-- ``Index to use when indexing files`` *idx*
-
-ID of the normal index to use for persistent file indexing when no active project index is selected. *Default:* `base`
-
-- ``Auto index reading files`` *auto_index*
-
-If enabled, every time file is read, it will be automatically indexed (persistent index). *Default:* `False`
-
-- ``Only index reading files`` *only_index*
-
-If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
+- ``send_file`` - Send a local filesystem file back to the conversation as an attachment.
+- ``read_file`` - Read file contents from the filesystem within the configured security scope.
+- ``append_file`` - Append text to an existing text-based file.
+- ``save_file`` - Create or overwrite text-based files.
+- ``delete_file`` - Delete files from the filesystem within the configured security scope.
+- ``list_files`` - List files and directories in a path.
+- ``list_dir`` - List files and directories in the selected directory.
+- ``download_file`` - Download remote files to a local filesystem path within the configured security scope.
+- ``rmdir`` - Remove directories.
+- ``copy_file`` - Copy files.
+- ``copy_dir`` - Recursively copy directories.
+- ``move`` - Move or rename files and directories.
+- ``is_dir`` - Test whether a path is a directory.
+- ``is_file`` - Test whether a path is a file.
+- ``file_exists`` - Test whether a file or directory exists.
+- ``file_size`` - Read a file size.
+- ``file_info`` - Read file metadata and path information.
+- ``find`` - Search the filesystem for files and directories within the configured security scope.
+- ``cwd`` - Query the active data working directory.
+- ``query_file`` - Build a temporary in-memory index for one file and query it with LlamaIndex.
+- ``file_index`` - Add files or directories to a persistent LlamaIndex index.
 
 GitHub
 ------
 
-The plugin provides seamless integration with GitHub, allowing various operations such as repository management, issue tracking, pull requests, and more through GitHub's API. This plugin requires authentication, which can be configured using a Personal Access Token (PAT) or OAuth Device Flow.
+The GitHub plugin exposes repositories, files, issues, pull requests, searches and account operations through the GitHub API. Authenticate with a Personal Access Token or OAuth Device Flow.
 
 * Retrieve details about your GitHub profile.
 * Get information about a specific GitHub user.
@@ -1149,118 +783,89 @@ The plugin provides seamless integration with GitHub, allowing various operation
 
 **Options**
 
-- ``API base`` *api_base*
+- **API base** *api_base* - Configure the base URL for GitHub's API. *Default:* ``https://api.github.com``
 
-  Configure the base URL for GitHub's API. *Default:* `https://api.github.com`
+- **Web base** *web_base* - Set the GitHub website base URL. *Default:* ``https://github.com``
 
-- ``Web base`` *web_base*
+- **API version header** *api_version* - Specify the API version for requests. *Default:* ``2022-11-28``
 
-  Set the GitHub website base URL. *Default:* `https://github.com`
-
-- ``API version header`` *api_version*
-
-  Specify the API version for requests. *Default:* `2022-11-28`
-
-- ``HTTP timeout (s)`` *http_timeout*
-
-  Define timeout for API requests in seconds. *Default:* `30`
+- **HTTP timeout (s)** *http_timeout* - Define timeout for API requests in seconds. *Default:* ``30``
 
 **OAuth Device Flow**
 
-- ``OAuth Client ID`` *oauth_client_id*
+- **OAuth Client ID** *oauth_client_id* - Set the Client ID from your GitHub OAuth App. Supports Device Flow. *Secret*
 
-  Set the Client ID from your GitHub OAuth App. Supports Device Flow. *Secret*
+- **Scopes** *oauth_scopes* - List the space-separated OAuth scopes. *Default:* ``repo read:org read:user user:email``
 
-- ``Scopes`` *oauth_scopes*
+- **Open browser automatically** *oauth_open_browser* - Automatically open the verification URL in the default browser. *Default:* ``True``
 
-  List the space-separated OAuth scopes. *Default:* `repo read:org read:user user:email`
+- **Auto-start auth when required** *oauth_auto_begin* - Start Device Flow automatically when a command requires a token. *Default:* ``True``
 
-- ``Open browser automatically`` *oauth_open_browser*
-
-  Automatically open the verification URL in the default browser. *Default:* `True`
-
-- ``Auto-start auth when required`` *oauth_auto_begin*
-
-  Start Device Flow automatically when a command requires a token. *Default:* `True`
-
-- ``(auto) Granted scopes`` *oauth_scope_granted*
-
-  Scopes returned after successful authorization. This value is maintained automatically.
+- **(auto) Granted scopes** *oauth_scope_granted* - Scopes returned after successful authorization. This value is maintained automatically.
 
 **Tokens**
 
-- ``(auto) OAuth access token`` *gh_access_token*
+- **(auto) OAuth access token** *gh_access_token* - Store OAuth access token for Device/Web. *Secret*
 
-  Store OAuth access token for Device/Web. *Secret*
+- **PAT token (optional)** *pat_token* - Provide a Personal Access Token (classic or fine-grained) for authentication. *Secret*
 
-- ``PAT token (optional)`` *pat_token*
-
-  Provide a Personal Access Token (classic or fine-grained) for authentication. *Secret*
-
-- ``Auth scheme`` *auth_scheme*
-
-  Choose the authentication scheme: `Bearer` or `Token` (use `Token` for PAT).
+- **Auth scheme** *auth_scheme* - Choose the authentication scheme: `Bearer` or `Token` (use `Token` for PAT).
 
 **Cache**
 
-- ``(auto) User ID`` *user_id*
+- **(auto) User ID** *user_id* - Cache User ID after `gh_me` or authentication.
 
-  Cache User ID after `gh_me` or authentication.
+- **(auto) Username** *username* - Cache username after `gh_me` or authentication.
 
-- ``(auto) Username`` *username*
+**Tools**
 
-  Cache username after `gh_me` or authentication.
+*Auth*
 
-**Commands**
+- ``gh_device_begin`` - Begin OAuth Device Flow.
+- ``gh_device_poll`` - Poll for access token using device code.
+- ``gh_set_pat`` - Set Personal Access Token.
 
-- **Auth**
+*Users*
 
-  * ``gh_device_begin`` - Begin OAuth Device Flow.
-  * ``gh_device_poll`` - Poll for access token using device code.
-  * ``gh_set_pat`` - Set Personal Access Token.
+- ``gh_me`` - Get authenticated user details.
+- ``gh_user_get`` - Retrieve user information by username.
 
-- **Users**
+*Repositories*
 
-  * ``gh_me`` - Get authenticated user details.
-  * ``gh_user_get`` - Retrieve user information by username.
+- ``gh_repos_list`` - List all repositories.
+- ``gh_repo_get`` - Get details for a specific repository.
+- ``gh_repo_create`` - Create a new repository.
+- ``gh_repo_delete`` - Delete an existing repository. (*Disabled by default*).
 
-- **Repositories**
+*Contents*
 
-  * ``gh_repos_list`` - List all repositories.
-  * ``gh_repo_get`` - Get details for a specific repository.
-  * ``gh_repo_create`` - Create a new repository.
-  * ``gh_repo_delete`` - Delete an existing repository. (*Disabled by default*)
+- ``gh_contents_get`` - Get file or directory contents.
+- ``gh_file_put`` - Create or update a file via Contents API.
+- ``gh_file_delete`` - Delete a file via Contents API.
 
-- **Contents**
+*Issues*
 
-  * ``gh_contents_get`` - Get file or directory contents.
-  * ``gh_file_put`` - Create or update a file via Contents API.
-  * ``gh_file_delete`` - Delete a file via Contents API.
+- ``gh_issues_list`` - List issues in a repository.
+- ``gh_issue_create`` - Create a new issue.
+- ``gh_issue_comment`` - Comment on an issue.
+- ``gh_issue_close`` - Close an existing issue.
 
-- **Issues**
+*Pull Requests*
 
-  * ``gh_issues_list`` - List issues in a repository.
-  * ``gh_issue_create`` - Create a new issue.
-  * ``gh_issue_comment`` - Comment on an issue.
-  * ``gh_issue_close`` - Close an existing issue.
+- ``gh_pulls_list`` - List all pull requests.
+- ``gh_pull_create`` - Create a new pull request.
+- ``gh_pull_merge`` - Merge an existing pull request.
 
-- **Pull Requests**
+*Search*
 
-  * ``gh_pulls_list`` - List all pull requests.
-  * ``gh_pull_create`` - Create a new pull request.
-  * ``gh_pull_merge`` - Merge an existing pull request.
-
-- **Search**
-
-  * ``gh_search_repos`` - Search for repositories.
-  * ``gh_search_issues`` - Search for issues and pull requests.
-  * ``gh_search_code`` - Search for code across repositories.
-
+- ``gh_search_repos`` - Search for repositories.
+- ``gh_search_issues`` - Search for issues and pull requests.
+- ``gh_search_code`` - Search for code across repositories.
 
 Google (Gmail, Drive, Calendar, Contacts, YT, Keep, Docs, Maps, Colab)
 ----------------------------------------------------------------------
 
-The plugin integrates with various Google services, enabling features such as email management, calendar events, contact handling, and document manipulation through Google APIs.
+The Google plugin exposes Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab and YouTube tools so the model can work with Google data and services from a conversation.
 
 
 **Gmail**
@@ -1336,249 +941,196 @@ The plugin integrates with various Google services, enabling features such as em
 
 **Options**
 
-- ``Google credentials.json (content)`` *credentials*
+- **Google credentials.json (content)** *credentials* - Paste the JSON content of your OAuth client or Service Account. This is mandatory for the plugin to access your Google services. *Secret:* Yes
 
-  Paste the JSON content of your OAuth client or Service Account. This is mandatory for the plugin to access your Google services. *Secret:* Yes
+- **OAuth token store (auto)** *oauth_token* - Automatically stores and updates the refresh token necessary for Google service access. *Secret:* Yes
 
-- ``OAuth token store (auto)`` *oauth_token*
+- **Use local server for OAuth** *oauth_local_server* - Run a local server for the installed app OAuth flow to simplify the authentication process. *Default:* ``True``
 
-  Automatically stores and updates the refresh token necessary for Google service access. *Secret:* Yes
+- **OAuth local port (0=random)** *oauth_local_port* - Specify the port for `InstalledAppFlow.run_local_server`. A value of `0` lets the system choose a random available port. *Default:* ``0``
 
-- ``Use local server for OAuth`` *oauth_local_server*
+- **Scopes** *oauth_scopes* - Define space-separated OAuth scopes for services like Gmail, Calendar, Drive, Contacts, YouTube, Docs, and Keep. Extend scopes to include Keep services if needed.
 
-  Run a local server for the installed app OAuth flow to simplify the authentication process. *Default:* `True`
+- **Impersonate user (Workspace DWD)** *impersonate_user* - Optionally provide a subject for service account domain-wide delegation.
 
-- ``OAuth local port (0=random)`` *oauth_local_port*
+- **YouTube API Key (optional)** *youtube_api_key* - If provided, allows fetching public video information without needing OAuth tokens. *Secret:* Yes
 
-  Specify the port for `InstalledAppFlow.run_local_server`. A value of `0` lets the system choose a random available port. *Default:* `0`
+- **Allow unofficial YouTube transcript** *allow_unofficial_youtube_transcript* - Enables the use of `youtube-transcript-api` for transcripts when official captions are unavailable. *Default:* ``False``
 
-- ``Scopes`` *oauth_scopes*
+- **Keep mode** *keep_mode* - Determines the mode for accessing Keep: `official`, `unofficial`, or `auto`. *Default:* ``auto``
 
-  Define space-separated OAuth scopes for services like Gmail, Calendar, Drive, Contacts, YouTube, Docs, and Keep. Extend scopes to include Keep services if needed. 
+- **Allow unofficial Keep** *allow_unofficial_keep* - Use `gkeepapi` as a fallback for Keep services, requiring `keep_username` and `keep_master_token`. *Default:* ``True``
 
-- ``Impersonate user (Workspace DWD)`` *impersonate_user*
+- **Keep username (unofficial)** *keep_username* - Set the email used for `gkeepapi`.
 
-  Optionally provide a subject for service account domain-wide delegation.
+- **Keep master token (unofficial)** *keep_master_token* - Provide the master token for `gkeepapi` usage, ensuring secure handling. *Secret:* Yes
 
-- ``YouTube API Key (optional)`` *youtube_api_key*
+- **Google Maps API Key** *google_maps_api_key* - Necessary for accessing Google Maps features like Geocoding, Directions, and Distance Matrix. *Secret:* Yes
 
-  If provided, allows fetching public video information without needing OAuth tokens. *Secret:* Yes
+- **Maps API Key (alias)** *maps_api_key* - Alias for `google_maps_api_key` for backward compatibility. *Secret:* Yes
 
-- ``Allow unofficial YouTube transcript`` *allow_unofficial_youtube_transcript*
+**Tools**
 
-  Enables the use of `youtube-transcript-api` for transcripts when official captions are unavailable. *Default:* `False`
+*Gmail*
 
-- ``Keep mode`` *keep_mode*
+- ``gmail_list_recent`` - List n newest Gmail messages.
+- ``gmail_list_all`` - List all Gmail messages (paginated).
+- ``gmail_search`` - Search Gmail.
+- ``gmail_get_by_id`` - Get Gmail message by ID.
+- ``gmail_send`` - Send Gmail message.
 
-  Determines the mode for accessing Keep: `official`, `unofficial`, or `auto`. *Default:* `auto`
+*Calendar*
 
-- ``Allow unofficial Keep`` *allow_unofficial_keep*
+- ``calendar_events_recent`` - Upcoming events (from now).
+- ``calendar_events_today`` - Events for today (UTC day bounds).
+- ``calendar_events_tomorrow`` - Events for tomorrow (UTC day bounds).
+- ``calendar_events_all`` - All events in range.
+- ``calendar_events_by_date`` - Events for date or date range.
+- ``calendar_add_event`` - Add calendar event.
+- ``calendar_delete_event`` - Delete event by ID.
 
-  Use `gkeepapi` as a fallback for Keep services, requiring `keep_username` and `keep_master_token`. *Default:* `True`
+*Keep*
 
-- ``Keep username (unofficial)`` *keep_username*
+- ``keep_list_notes`` - List notes (Keep).
+- ``keep_add_note`` - Add note (Keep).
 
-  Set the email used for `gkeepapi`.
+*Drive*
 
-- ``Keep master token (unofficial)`` *keep_master_token*
+- ``drive_list_files`` - List Drive files.
+- ``drive_find_by_path`` - Find Drive file by path.
+- ``drive_download_file`` - Download Drive file.
+- ``drive_upload_file`` - Upload local file to Drive.
 
-  Provide the master token for `gkeepapi` usage, ensuring secure handling. *Secret:* Yes
+*YouTube*
 
-- ``Google Maps API Key`` *google_maps_api_key*
+- ``youtube_video_info`` - Get YouTube video info.
+- ``youtube_transcript`` - Get YouTube transcript.
 
-  Necessary for accessing Google Maps features like Geocoding, Directions, and Distance Matrix. *Secret:* Yes
+*Contacts*
 
-- ``Maps API Key (alias)`` *maps_api_key*
+- ``contacts_list`` - List contacts.
+- ``contacts_add`` - Add new contact.
 
-  Alias for `google_maps_api_key` for backward compatibility. *Secret:* Yes
+*Google Docs*
 
-**Commands**
+- ``docs_create`` - Create Google Doc.
+- ``docs_get`` - Get Google Doc (structure + plain text).
+- ``docs_list`` - List Google Docs.
+- ``docs_append_text`` - Append text to Google Doc.
+- ``docs_replace_text`` - Replace all text occurrences in Google Doc.
+- ``docs_insert_heading`` - Insert heading at end of Google Doc.
+- ``docs_export`` - Export Google Doc to file.
+- ``docs_copy_from_template`` - Make a copy of template Google Doc.
 
-- **Gmail**
+*Google Maps*
 
-  * ``gmail_list_recent`` - List n newest Gmail messages.
-  * ``gmail_list_all`` - List all Gmail messages (paginated).
-  * ``gmail_search`` - Search Gmail.
-  * ``gmail_get_by_id`` - Get Gmail message by ID.
-  * ``gmail_send`` - Send Gmail message.
+- ``maps_geocode`` - Geocode an address.
+- ``maps_reverse_geocode`` - Reverse geocode coordinates.
+- ``maps_directions`` - Get directions between origin and destination.
+- ``maps_distance_matrix`` - Distance Matrix for origins and destinations.
+- ``maps_places_textsearch`` - Places Text Search.
+- ``maps_places_nearby`` - Nearby Places.
+- ``maps_static_map`` - Generate Static Map image.
 
-- **Calendar**
+*Google Colab*
 
-  * ``calendar_events_recent`` - Upcoming events (from now).
-  * ``calendar_events_today`` - Events for today (UTC day bounds).
-  * ``calendar_events_tomorrow`` - Events for tomorrow (UTC day bounds).
-  * ``calendar_events_all`` - All events in range.
-  * ``calendar_events_by_date`` - Events for date or date range.
-  * ``calendar_add_event`` - Add calendar event.
-  * ``calendar_delete_event`` - Delete event by ID.
-
-- **Keep**
-
-  * ``keep_list_notes`` - List notes (Keep).
-  * ``keep_add_note`` - Add note (Keep).
-
-- **Drive**
-
-  * ``drive_list_files`` - List Drive files.
-  * ``drive_find_by_path`` - Find Drive file by path.
-  * ``drive_download_file`` - Download Drive file.
-  * ``drive_upload_file`` - Upload local file to Drive.
-
-- **YouTube**
-
-  * ``youtube_video_info`` - Get YouTube video info.
-  * ``youtube_transcript`` - Get YouTube transcript.
-
-- **Contacts**
-
-  * ``contacts_list`` - List contacts.
-  * ``contacts_add`` - Add new contact.
-
-- **Google Docs**
-
-  * ``docs_create`` - Create Google Doc.
-  * ``docs_get`` - Get Google Doc (structure + plain text).
-  * ``docs_list`` - List Google Docs.
-  * ``docs_append_text`` - Append text to Google Doc.
-  * ``docs_replace_text`` - Replace all text occurrences in Google Doc.
-  * ``docs_insert_heading`` - Insert heading at end of Google Doc.
-  * ``docs_export`` - Export Google Doc to file.
-  * ``docs_copy_from_template`` - Make a copy of template Google Doc.
-
-- **Google Maps**
-
-  * ``maps_geocode`` - Geocode an address.
-  * ``maps_reverse_geocode`` - Reverse geocode coordinates.
-  * ``maps_directions`` - Get directions between origin and destination.
-  * ``maps_distance_matrix`` - Distance Matrix for origins and destinations.
-  * ``maps_places_textsearch`` - Places Text Search.
-  * ``maps_places_nearby`` - Nearby Places.
-  * ``maps_static_map`` - Generate Static Map image.
-
-- **Google Colab**
-
-  * ``colab_list_notebooks`` - List Colab notebooks on Drive.
-  * ``colab_create_notebook`` - Create new Colab notebook.
-  * ``colab_add_code_cell`` - Add code cell to notebook.
-  * ``colab_add_markdown_cell`` - Add markdown cell to notebook.
-  * ``colab_get_link`` - Get Colab edit link.
-  * ``colab_rename`` - Rename notebook.
-  * ``colab_duplicate`` - Duplicate notebook.
-
+- ``colab_list_notebooks`` - List Colab notebooks on Drive.
+- ``colab_create_notebook`` - Create new Colab notebook.
+- ``colab_add_code_cell`` - Add code cell to notebook.
+- ``colab_add_markdown_cell`` - Add markdown cell to notebook.
+- ``colab_get_link`` - Get Colab edit link.
+- ``colab_rename`` - Rename notebook.
+- ``colab_duplicate`` - Duplicate notebook.
 
 Image generation (inline)
 -------------------------
 
-The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The current model can call the plugin's ``image`` tool with a dedicated image prompt. The plugin does not require the ``Tools`` switch to be enabled.
+The Image generation (inline) plugin adds an ``image`` tool to chats so the current model can delegate image creation or editing to the image-generation model configured in the plugin. It works independently of the global ``Tools`` switch.
 
 **Options**
 
-- ``Model`` *model*
+- **Model** *model* - Image-generation model used by the plugin. *Default:* ``gpt-image-2.5-flare``
 
-Image-generation model used by the plugin. *Default:* ``gpt-image-2.5-flare``
+- **Prompt** *prompt* - Image-generation instructions that can be appended to the current system prompt. They tell the current model when and how to use the ``image`` tool.
 
-- ``Prompt`` *prompt*
+- **Append image prompt to system prompt** *append_prompt* - If enabled, the plugin appends the configured image-generation instructions to the system prompt. Disable it if you want the ``image`` tool to remain available without adding the extra image-generation instructions. *Default:* ``True``
 
-Image-generation instructions that can be appended to the current system prompt. They tell the current model when and how to use the ``image`` tool.
+**Tools**
 
-- ``Append image prompt to system prompt`` *append_prompt*
-
-If enabled, the plugin appends the configured image-generation instructions to the system prompt. Disable it if you want the ``image`` tool to remain available without adding the extra image-generation instructions. *Default:* ``True``
-
+- ``image`` - Generate or edit an image using the image-generation model configured in the plugin.
 
 Mailer
 -------
 
-Enables the sending, receiving, and reading of emails from the inbox. Currently, only SMTP is supported. More options coming soon.
+The Mailer plugin provides email tools for sending messages and accessing configured mailbox operations. Configure the mail server, account credentials and individual mail tools in the plugin settings.
 
 **Options**
 
-- ``From (email)`` *from_email*
+- **From (email)** *from_email* - From (email), e.g. me@domain.com
 
-From (email), e.g. me@domain.com
 
-- ``Tool: send_mail`` *cmd.send_mail*
+- **SMTP Host** *smtp_host* - SMTP Host, e.g. smtp.domain.com
 
-Allows ``send_mail`` command execution. If enabled, model will be able to sending emails.
+- **SMTP Port (Inbox)** *smtp_port_inbox* - SMTP port used for incoming mail. *Default:* ``995``
 
-- ``Tool: receive_emails`` *cmd.receive_emails*
+- **SMTP Port (Outbox)** *smtp_port_outbox* - SMTP port used for outgoing mail. *Default:* ``465``
 
-Allows ``receive_emails`` command execution. If enabled, model will be able to receive emails from the server.
+- **SMTP User** *smtp_user* - SMTP User, e.g. user@domain.com
 
-- ``Tool: get_email_body`` *cmd.get_email_body*
+- **SMTP Password** *smtp_password* - SMTP Password.
 
-Allows ``get_email_body`` command execution. If enabled, model will be able to receive message body from the server.
+**Tools**
 
-- ``SMTP Host`` *smtp_host*
-
-SMTP Host, e.g. smtp.domain.com
-
-- ``SMTP Port (Inbox)`` *smtp_port_inbox*
-
-SMTP Port, default: 995
-
-- ``SMTP Port (Outbox)`` *smtp_port_outbox*
-
-SMTP Port, default: 465
-
-- ``SMTP User`` *smtp_user*
-
-SMTP User, e.g. user@domain.com
-
-- ``SMTP Password`` *smtp_password*
-
-SMTP Password.
+- ``send_mail`` - Send email through the configured mail account.
+- ``receive_emails`` - Retrieve messages from the configured mailbox.
+- ``get_email_body`` - Retrieve the body of a selected email message.
 
 MCP
 ---
 
-With the ``MCP`` plugin, you can connect **PyGPT** to remote tools exposed by Model Context Protocol servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server and optionally cache discovery results for speed.
+The MCP plugin connects PyGPT to Model Context Protocol servers over stdio, Streamable HTTP or SSE, discovers their tools and exposes allowed tools to the model. Discovery results can be cached and filtered per server.
 
-To configure MCP connections, use the direct shortcut ``Config -> MCP...``. It opens the same MCP configuration available through ``Plugins -> Settings -> MCP``. Use either entry point when you want to connect PyGPT to an external service or tool server through MCP.
+To configure MCP connections, use ``Config -> MCP...`` or ``Plugins -> Settings -> MCP``. For easier setup and management, use **MCP Connectors** from ``Config -> MCP... -> Connectors...`` to browse, import and manage connector definitions. See :doc:`connectors` for more details.
 
 How it works
 ^^^^^^^^^^^^
 
 - You define one or more MCP servers in the plugin settings.
-- For every active server, the plugin discovers its tools and exposes them to the model as commands.
-- Each exposed command name is derived from the server label and tool name in the form ``label__tool``.
-  - Names are sanitized to allowed characters ``[a-zA-Z0-9_-]`` and kept under 64 characters. The plugin truncates and adds a short hash if needed to ensure uniqueness.
-- If ``allowed_commands`` is set, only those tools are exposed (whitelist).
-- If ``disabled_commands`` is set, those tools are hidden (blacklist).
+- For every active server, the plugin discovers its tools and exposes them to the model.
+- Each exposed tool name is derived from the server label and tool name in the form ``label__tool``. Names are sanitized to ``[a-zA-Z0-9_-]`` and kept under 64 characters; long names are shortened with a hash when needed.
+- If ``allowed_commands`` is set, only tools matching its comma-separated names or wildcard patterns are exposed.
+- If ``disabled_commands`` is set, tools matching its comma-separated names or wildcard patterns are hidden.
 - Discovery results can be cached (TTL) so you don’t re-fetch the list on every prompt.
-- When the model chooses a command, the plugin opens a session to the appropriate server and calls the tool with typed arguments mapped from JSON Schema.
+- When the model chooses a tool, the plugin opens a session to the appropriate server and calls it with typed arguments mapped from JSON Schema.
 
 Adding a new MCP server
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Click the **ADD** button and fill in:
+Click **ADD** and configure the server:
 
-1. label
-   - A short, human-friendly server name used in tool names (``label__tool``).
-   - It should be unique across servers. Only ``[a-zA-Z0-9_-]`` are used; other characters are replaced automatically.
-2. server_address
-   - Transport is detected from the address:
-     - stdio:
-       - ``stdio: uv run server fastmcp_quickstart stdio``
-       - ``stdio: python /path/to/your_mcp_server.py --stdio``
-     - Streamable HTTP:
-       - ``http://localhost:8000/mcp``
-       - ``https://your-host.tld/mcp``
-     - SSE:
-       - ``http://localhost:8000/sse``
-       - ``sse://your-host.tld/sse`` or ``sse+https://your-host.tld/sse``
-3. authorization (optional)
-   - Value for the ``Authorization`` header on HTTP/SSE (e.g., ``Bearer YOUR_TOKEN``).
-   - Not used for stdio.
-4. allowed_commands (optional)
-   - Comma-separated list of tool names to expose from this server (whitelist).
-   - Match the exact tool names reported by the MCP server (not titles).
-5. disabled_commands (optional)
-   - Comma-separated list of tool names to hide from this server (blacklist).
-6. active
-   - Enable/disable this server.
+* **active** - Enable or disable the server. Imported connectors are disabled until explicitly enabled.
+* **label** - Short server name used in exposed tool names (``label__tool``). Unsupported characters are replaced automatically.
+* **server_address** - Server command or URL. Examples:
 
-After saving, open any chat. During the command syntax build step, the plugin discovers tools on all active servers and publishes them to the model.
+  * stdio: ``stdio: uv run server fastmcp_quickstart stdio`` or ``stdio: python /path/to/your_mcp_server.py --stdio``
+  * Streamable HTTP: ``http://localhost:8000/mcp`` or ``https://your-host.tld/mcp``
+  * SSE: ``http://localhost:8000/sse``, ``sse://your-host.tld/sse`` or ``sse+https://your-host.tld/sse``
+
+* **transport** - Transport type: ``auto``, ``stdio``, ``http`` or ``sse``. ``auto`` detects the transport from ``server_address``.
+* **authorization** - Optional ``Authorization`` header value for HTTP/SSE, for example ``Bearer YOUR_TOKEN``. An explicit value takes precedence over other Authorization sources.
+* **env** - JSON object with environment variables passed to a stdio server process. Values may reference existing environment variables.
+* **headers** - JSON object with HTTP/SSE request headers. Header values may reference environment variables.
+* **env_http_headers** - JSON object mapping HTTP header names to environment variable names, for example ``{"X-API-Key": "MY_API_KEY"}``.
+* **bearer_token_env_var** - Environment variable containing a bearer token. When set, its value is sent as ``Authorization: Bearer <token>`` unless an explicit Authorization value overrides it.
+* **cwd** - Working directory for a stdio server process.
+* **allowed_commands** - Optional comma-separated allow list of MCP tool names or wildcard patterns. When set, only matching tools are exposed.
+* **disabled_commands** - Optional comma-separated deny list of MCP tool names or wildcard patterns. Matching tools are hidden.
+* **startup_timeout_sec** - Optional timeout, in seconds, for starting and initializing the MCP connection. Leave empty to use the built-in default.
+* **tool_timeout_sec** - Optional timeout, in seconds, for individual MCP tool calls. Leave empty to use the built-in default.
+* **source** - Informational source/origin of the server definition, used by the connector manager. It does not change MCP execution.
+* **extra** - Optional JSON metadata preserved for imported/vendor-specific connector fields. It is not used as executable MCP configuration.
+
+After saving and enabling the server, its discovered tools become available in chats.
 
 Example: quickstart via stdio
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1589,7 +1141,7 @@ Example: quickstart via stdio
 - disabled_commands: (leave empty)
 - active: ``ON``
 
-Discovered commands might look like:
+Discovered tools might look like:
 
 .. code-block:: json
 
@@ -1611,7 +1163,7 @@ Example: remote docs server (HTTP/SSE)
 - allowed_commands: ``read_wiki_structure, read_wiki_contents, ask_question``
 - active: ``ON``
 
-The model will see commands like:
+The model will see tools like:
 
 .. code-block:: json
 
@@ -1645,11 +1197,18 @@ The model will see commands like:
 
 Caching (Tools Cache)
 ^^^^^^^^^^^^^^^^^^^^^
+**Options**
 
-- ``Cache tools list`` *tools_cache_enabled* - cache discovered tools so they do not have to be rediscovered for every prompt. *Default:* ``True``
-- ``Cache TTL (seconds)`` *tools_cache_ttl* - how long the tool list remains valid per server. *Default:* ``300``
+
+- **Cache tools list** *tools_cache_enabled* - cache discovered tools so they do not have to be rediscovered for every prompt. *Default:* ``True``
+- **Cache TTL (seconds)** *tools_cache_ttl* - how long the tool list remains valid per server. *Default:* ``300``
 - The plugin automatically invalidates the cache if you change server configuration (label, address, authorization, allow/deny lists).
 - To force refresh immediately, toggle a server off/on or modify any of its fields and save.
+
+**Tools**
+
+Tools are discovered dynamically from active MCP servers. Their system names use the ``label__tool`` format, for example ``quickstart__echo``.
+
 
 Transports
 ^^^^^^^^^^
@@ -1666,11 +1225,10 @@ Security notes
 - Only connect to servers you trust. Tools can perform actions as implemented by the server.
 - Keep labels short and non-sensitive (labels are visible in tool names and logs).
 
-
 Memory (inline)
 ---------------
 
-The ``Memory (inline)`` plugin provides three related memory mechanisms:
+The Memory (inline) plugin gives the model persistent memory beyond normal chat history. It provides three related mechanisms:
 
 * **Compact long-term memory** - one global memory outside projects and one isolated memory row for each project. This memory is intended for durable, reusable facts/state and can be updated automatically with a configured model.
 * **Keyed memory** - raw database-backed key/value records in ``memory_keys``. Values are stored exactly as supplied and are never summarized or rewritten by the memory-update model. Keys are isolated between global and per-project scopes.
@@ -1684,54 +1242,44 @@ Conversation continuation notes are different: they belong only to the current c
 
 **Options**
 
-- ``Memory update model`` *model_update*
+- **Memory update model** *model_update* - Model used for automatic end-of-context global/project memory updates and, when enabled, for refining manual ``memory_add`` calls. It is not the model that selects ordinary conversation history.
 
-Model used for automatic end-of-context global/project memory updates and, when enabled, for refining manual ``memory_add`` calls. It is not the model that selects ordinary conversation history.
+- **Maximum memory characters** *max_chars* - Target maximum size of the global/project compact memory in characters. The model is asked to stay within this limit. *Default:* ``15000``. Storage allows an additional ``300``-character safety margin before hard truncation, so the default hard safety limit is ``15300`` characters. This setting does not control ``memory_ctx`` continuation-note size; that is configured under ``Settings -> Context -> Maximum continuation note characters``.
 
-- ``Maximum memory characters`` *max_chars*
+- **Refine memory before adding** *refine_add* - Applies only to manual ``memory_add`` calls. When enabled, the configured memory update model merges and rewrites the added information into the existing global/project memory instead of blindly appending raw text. Automatic end-of-context memory updates are always refined by the model regardless of this setting. *Default:* ``True``.
 
-Target maximum size of the global/project compact memory in characters. The model is asked to stay within this limit. *Default:* ``15000``. Storage allows an additional ``300``-character safety margin before hard truncation, so the default hard safety limit is ``15300`` characters. This setting does not control ``memory_ctx`` continuation-note size; that is configured under ``Settings -> Context -> Maximum continuation note characters``.
+- **Auto attach memory to every conversation** *auto_attach* - Automatically appends the active global or project compact memory to the system prompt in a ``<context_memory>...</context_memory>`` block. It does not auto-attach keyed records or ``memory_ctx`` notes. *Default:* ``False``.
 
-- ``Refine memory before adding`` *refine_add*
+- **Auto attach memory only in projects** *auto_attach_project* - Automatically appends the project compact memory to the system prompt when the current conversation belongs to a project. It does not expose global memory as a fallback inside a project. *Default:* ``True``.
 
-Applies only to manual ``memory_add`` calls. When enabled, the configured memory update model merges and rewrites the added information into the existing global/project memory instead of blindly appending raw text. Automatic end-of-context memory updates are always refined by the model regardless of this setting. *Default:* ``True``.
+- **Search memory key content** *key_search_content* - Controls ``memory_key_search``. Key names are always searched with ``LIKE '%query%'``. When this option is enabled, stored key content is searched with the same ``LIKE`` expression as well. *Default:* ``False`` to avoid scanning stored content unless explicitly requested.
 
-- ``Auto attach memory to every conversation`` *auto_attach*
+**Tools**
 
-Automatically appends the active global or project compact memory to the system prompt in a ``<context_memory>...</context_memory>`` block. It does not auto-attach keyed records or ``memory_ctx`` notes. *Default:* ``False``.
+**Compact global/project memory**
 
-- ``Auto attach memory only in projects`` *auto_attach_project*
-
-Automatically appends the project compact memory to the system prompt when the current conversation belongs to a project. It does not expose global memory as a fallback inside a project. *Default:* ``True``.
-
-- ``Search memory key content`` *key_search_content*
-
-Controls ``memory_key_search``. Key names are always searched with ``LIKE '%query%'``. When this option is enabled, stored key content is searched with the same ``LIKE`` expression as well. *Default:* ``False`` to avoid scanning stored content unless explicitly requested.
-
-**Compact global/project memory tools**
-
-- ``memory_get`` - Reads the complete compact memory for the current global/project scope. Enabled by default.
+- ``memory_get`` - Read the complete compact memory for the current global/project scope. Enabled by default.
 - ``memory_add`` - Selectively adds highly important, durable information. When refinement is enabled, the update model merges it contextually with existing memory instead of appending duplicate facts. Disabled by default.
-- ``memory_update`` - Replaces the complete compact memory content for the current scope. Disabled by default.
-- ``memory_clear`` - Clears the current compact memory. The model must first ask the user for explicit confirmation and may call the command only after confirmation. Enabled by default.
+- ``memory_update`` - Replace the complete compact memory content for the current scope. Disabled by default.
+- ``memory_clear`` - Clear the current compact memory. The model must first ask the user for explicit confirmation and may call the command only after confirmation. Enabled by default.
 
-**Keyed memory tools**
+**Keyed memory**
 
-- ``memory_key_get(key|keys)`` - Reads raw keyed-memory records by one key or a list of keys. Enabled by default.
-- ``memory_key_add(key, content)`` - Creates a new keyed record. It never overwrites an existing key and stores ``content`` exactly as provided, without LLM processing. Enabled by default.
-- ``memory_key_append(key, content)`` - Appends ``content`` exactly as provided to an existing keyed record; no separator is inserted automatically. Enabled by default.
-- ``memory_key_update(key, content)`` - Replaces the raw content of an existing keyed record. Enabled by default.
-- ``memory_key_list()`` - Returns only the key names for the current scope; it does not return content. Enabled by default.
-- ``memory_key_search(query)`` - Returns matching keyed records. It always searches key names and also searches content only when ``Search memory key content`` is enabled. Enabled by default.
-- ``memory_key_remove(key|keys)`` - Removes one key or a list of keys from the current scope. Enabled by default.
+- ``memory_key_get`` - Read raw keyed-memory records by one key or a list of keys. Enabled by default.
+- ``memory_key_add`` - Create a new keyed record. It never overwrites an existing key and stores ``content`` exactly as provided, without LLM processing. Enabled by default.
+- ``memory_key_append`` - Append ``content`` exactly as provided to an existing keyed record; no separator is inserted automatically. Enabled by default.
+- ``memory_key_update`` - Replace the raw content of an existing keyed record. Enabled by default.
+- ``memory_key_list`` - Return only the key names for the current scope; it does not return content. Enabled by default.
+- ``memory_key_search`` - Return matching keyed records. It always searches key names and also searches content only when ``Search memory key content`` is enabled. Enabled by default.
+- ``memory_key_remove`` - Remove one key or a list of keys from the current scope. Enabled by default.
 
 The keyed operations never fall back from project memory to global memory. A conversation inside a project sees only that project's keyed records, while a conversation outside projects sees only global keyed records.
 
-**Conversation continuation-note tools**
+**Conversation continuation notes**
 
-- ``memory_ctx_get()`` - Reads compact continuation notes for the current conversation only. Enabled by default.
-- ``memory_ctx_add(text)`` - Appends one concise continuation note to the current conversation. Each addition is stored on a new line. Use it for important state that should survive history compaction, not for routine chatter. Enabled by default.
-- ``memory_ctx_replace(text)`` - Replaces the complete continuation-note state for the current conversation. Use it to consolidate stale or duplicated notes. It does not modify global/project memory. Enabled by default.
+- ``memory_ctx_get`` - Read compact continuation notes for the current conversation only. Enabled by default.
+- ``memory_ctx_add`` - Append one concise continuation note to the current conversation. Each addition is stored on a new line. Use it for important state that should survive history compaction, not for routine chatter. Enabled by default.
+- ``memory_ctx_replace`` - Replace the complete continuation-note state for the current conversation. Use it to consolidate stale or duplicated notes. It does not modify global/project memory. Enabled by default.
 
 ``memory_ctx`` stores one row per conversation metadata record and tracks the compacted-history checkpoint/generation used by advanced context handling. Deleting or rewinding conversation history also invalidates the corresponding continuation state where required so stale compacted state is not replayed as newer history.
 
@@ -1739,14 +1287,13 @@ The keyed operations never fall back from project memory to global memory. A con
 
    ``Advanced context handling`` is experimental and is configured in ``Config -> Settings -> Context``. The Memory plugin can access conversation continuation notes, but the core checkpoint/rolling-context mechanism is not dependent on the plugin being enabled.
 
-
 Mouse and keyboard
 -------------------
 
 .. warning::
    **Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
 
-The plugin allows for controlling the mouse and keyboard by the model. With this plugin, you can send a task to the model, e.g., "open notepad, type something in it" or "open web browser, do search, find something."
+The Mouse and keyboard plugin gives the model desktop interaction tools for pointer movement, clicks, scrolling, keyboard input and screenshots. It can also provide the browser interaction backend used by Computer use.
 
 Plugin capabilities include:
 
@@ -1759,79 +1306,34 @@ Plugin capabilities include:
 
 The ``Tools`` switch must be enabled to use this plugin.
 
-**Options:**
+**Options**
 
 **General**
 
-- ``Prompt`` *prompt*
+- **Prompt** *prompt* - Prompt used to instruct how to control the mouse and keyboard.
 
-Prompt used to instruct how to control the mouse and keyboard.
+- **Enable: Allow mouse movement** *allow_mouse_move* - Lets the model move the mouse pointer. *Default:* ``True``
 
-- ``Enable: Allow mouse movement`` *allow_mouse_move*
+- **Enable: Allow mouse click** *allow_mouse_click* - Lets the model press mouse buttons at the current or requested position. *Default:* ``True``
 
-Allows mouse movement. *Default:* `True`
+- **Enable: Allow mouse scroll** *allow_mouse_scroll* - Lets the model scroll the active window or page. *Default:* ``True``
 
-- ``Enable: Allow mouse click`` *allow_mouse_click*
+- **Enable: Allow keyboard key press** *allow_keyboard* - Lets the model send keyboard input, including text and key combinations. *Default:* ``True``
 
-Allows mouse click. *Default:* `True`
+- **Enable: Allow making screenshots** *allow_screenshot* - Lets the model capture screenshots for visual inspection. *Default:* ``True``
 
-- ``Enable: Allow mouse scroll`` *allow_mouse_scroll*
+- **Auto-focus on the window** *auto_focus* - Clicks/focuses the target window before keyboard typing. *Default:* ``False``
 
-Allows mouse scroll. *Default:* `True`
-
-- ``Enable: Allow keyboard key press`` *allow_keyboard*
-
-Allows keyboard typing. *Default:* `True`
-
-- ``Enable: Allow making screenshots`` *allow_screenshot*
-
-Allows making screenshots. *Default:* `True`
-
-- ``Auto-focus on the window`` *auto_focus*
-
-Clicks/focuses the target window before keyboard typing. *Default:* ``False``
-
-- ``Tool: mouse_get_pos`` *cmd.mouse_get_pos*
-
-Allows ``mouse_get_pos`` command execution. *Default:* `True`
-
-- ``Tool: mouse_set_pos`` *cmd.mouse_set_pos*
-
-Allows ``mouse_set_pos`` command execution. *Default:* `True`
-
-- ``Tool: make_screenshot`` *cmd.make_screenshot*
-
-Allows ``make_screenshot`` command execution. *Default:* `True`
-
-- ``Tool: mouse_click`` *cmd.mouse_click*
-
-Allows ``mouse_click`` command execution. *Default:* `True`
-
-- ``Tool: mouse_move`` *cmd.mouse_move*
-
-Allows ``mouse_move`` command execution. *Default:* `True`
-
-- ``Tool: mouse_scroll`` *cmd.mouse_scroll*
-
-Allows ``mouse_scroll`` command execution. *Default:* `True`
-
-- ``Tool: keyboard_key`` *cmd.keyboard_key*
-
-Allows ``keyboard_key`` command execution. *Default:* `True`
-
-- ``Tool: keyboard_type`` *cmd.keyboard_type*
-
-Allows ``keyboard_type`` command execution. *Default:* `True`
 
 **Sandbox (Playwright)**
 
-- ``Browsers directory`` *sandbox_path* - path to the Playwright browser installation; leave empty to use the default.
-- ``Engine`` *sandbox_engine* - Playwright browser engine: ``chromium``, ``firefox``, or ``webkit``. *Default:* ``chromium``
-- ``Headless mode`` *sandbox_headless* - run the Playwright browser without a visible window. *Default:* ``False``
-- ``Browser args`` *sandbox_args* - additional comma-separated browser arguments. *Default:* ``--disable-extensions, --disable-file-system``
-- ``Home URL`` *sandbox_home* - browser home page. *Default:* ``https://duckduckgo.com``
-- ``Viewport width`` *sandbox_viewport_w* - viewport width in pixels. *Default:* ``1440``
-- ``Viewport height`` *sandbox_viewport_h* - viewport height in pixels. *Default:* ``900``
+- **Browsers directory** *sandbox_path* - path to the Playwright browser installation; leave empty to use the default.
+- **Engine** *sandbox_engine* - Playwright browser engine: ``chromium``, ``firefox``, or ``webkit``. *Default:* ``chromium``
+- **Headless mode** *sandbox_headless* - run the Playwright browser without a visible window. *Default:* ``False``
+- **Browser args** *sandbox_args* - additional comma-separated browser arguments. *Default:* ``--disable-extensions, --disable-file-system``
+- **Home URL** *sandbox_home* - browser home page. *Default:* ``https://duckduckgo.com``
+- **Viewport width** *sandbox_viewport_w* - viewport width in pixels. *Default:* ``1440``
+- **Viewport height** *sandbox_viewport_h* - viewport height in pixels. *Default:* ``900``
 
 The sandbox uses ``Playwright`` (https://playwright.dev/). The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
 
@@ -1850,10 +1352,21 @@ Configure the sandbox in ``Plugins -> Settings -> Mouse and keyboard -> Sandbox 
 
 When using Computer use, enable the ``Sandbox`` switch in the Computer use toolbox to run browser interaction through this configured Playwright sandbox.
 
+**Tools**
+
+- ``mouse_get_pos`` - Read the current mouse pointer position.
+- ``mouse_set_pos`` - Set the mouse pointer position.
+- ``make_screenshot`` - Capture a screenshot of the desktop.
+- ``mouse_click`` - Click mouse buttons.
+- ``mouse_move`` - Move the mouse pointer.
+- ``mouse_scroll`` - Scroll with the mouse.
+- ``keyboard_key`` - Send individual keys and key combinations.
+- ``keyboard_type`` - Type text through the keyboard.
+
 OpenStreetMap
 -------------
 
-Provides everyday mapping utilities using OpenStreetMap services:
+The OpenStreetMap plugin provides geocoding, place search, routing and map/tile utilities through OpenStreetMap-related services:
 
 * Forward and reverse geocoding via Nominatim
 * Search with optional near/bbox filters
@@ -1871,33 +1384,29 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
 
 **Options**
 
-- ``HTTP timeout (s)`` *http_timeout*
+- **HTTP timeout (s)** *http_timeout* - Maximum time to wait for OpenStreetMap service requests.
 
-- ``User-Agent`` *user_agent*
+- **User-Agent** *user_agent* - HTTP User-Agent header sent to OpenStreetMap services.
 
-- ``Contact email (Nominatim)`` *contact_email*
+- **Contact email (Nominatim)** *contact_email* - Contact email sent with Nominatim requests as recommended by the public service policy.
 
-- ``Accept-Language`` *accept_language*
+- **Accept-Language** *accept_language* - Preferred response language sent to OpenStreetMap services.
 
-- ``Nominatim base`` *nominatim_base*
+- **Nominatim base** *nominatim_base* - Base URL of the Nominatim geocoding service.
 
-- ``OSRM base`` *osrm_base*
+- **OSRM base** *osrm_base* - Base URL of the OSRM routing service.
 
-- ``Tile base`` *tile_base*
+- **Tile base** *tile_base* - Base URL template used to download OpenStreetMap tiles.
 
-- ``Default zoom`` *map_zoom*
+- **Default zoom** *map_zoom* - Default map zoom used when a tool call does not provide one.
 
-- ``Default width`` *map_width*  
-  Used only to estimate zoom for bbox (no image rendering).
+- **Default width** *map_width* - Used only to estimate zoom for bbox (no image rendering).
 
-- ``Default height`` *map_height*  
-  Used only to estimate zoom for bbox (no image rendering).
+- **Default height** *map_height* - Used only to estimate zoom for bbox (no image rendering).
 
-**Tools (Commands)**
+**Tools**
 
-- ``Tool: osm_geocode``
-
-  Forward geocoding of free-text addresses/places using Nominatim. Supports optional country filtering and near/viewbox bounding. Each result includes ``map_url`` (openstreetmap.org link centered on the result with a marker).
+- ``osm_geocode`` - Forward geocoding of free-text addresses/places using Nominatim. Supports optional country filtering and near/viewbox bounding. Each result includes ``map_url`` (openstreetmap.org link centered on the result with a marker).
 
   Parameters:
   - ``query`` (str, required)
@@ -1912,9 +1421,7 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
   - ``zoom`` (int, optional) — zoom used for ``map_url`` (defaults to option ``Default zoom``)
   - ``layers`` (str, optional) — optional ``layers=`` value for OSM site URLs
 
-- ``Tool: osm_reverse``
-
-  Reverse geocoding for a given coordinate. Response includes ``map_url`` (openstreetmap.org link).
+- ``osm_reverse`` - Reverse geocoding for a given coordinate. Response includes ``map_url`` (openstreetmap.org link).
 
   Parameters:
   - ``lat`` (float) and ``lon`` (float) or ``point`` (str ``lat,lon``)
@@ -1922,13 +1429,9 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
   - ``addressdetails`` (bool, optional)
   - ``layers`` (str, optional) — optional ``layers=`` value for OSM site URLs
 
-- ``Tool: osm_search``
+- ``osm_search`` - Alias convenience wrapper for ``osm_geocode`` with the same parameters (results also include ``map_url``).
 
-  Alias convenience wrapper for ``osm_geocode`` with the same parameters (results also include ``map_url``).
-
-- ``Tool: osm_route``
-
-  Plan a route via OSRM. Accepts addresses or coordinates for start/end and optional waypoints. Always returns ``map_url`` pointing to the openstreetmap.org Directions page (the route is drawn there). In addition:
+- ``osm_route`` - Plan a route via OSRM. Accepts addresses or coordinates for start/end and optional waypoints. Always returns ``map_url`` pointing to the openstreetmap.org Directions page (the route is drawn there). In addition:
   - mode=url — no OSRM call; returns only ``map_url`` (Directions) and waypoints,
   - mode=summary (default) — returns distance/duration (no geometry) + ``map_url``,
   - mode=full — can include compact geometry (``geometry_polyline6``) and optionally steps.
@@ -1954,9 +1457,7 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
 
   Deprecated/no-op parameters (kept for backward compatibility): ``out``, ``color``, ``weight``.
 
-- ``Tool: osm_staticmap``
-
-  Build an openstreetmap.org URL (center/zoom or bbox; optional marker). Only the first valid marker is used. ``width``/``height`` are used only to estimate zoom when a bbox is provided.
+- ``osm_staticmap`` - Build an openstreetmap.org URL (center/zoom or bbox; optional marker). Only the first valid marker is used. ``width``/``height`` are used only to estimate zoom when a bbox is provided.
 
   Parameters:
   - ``center`` (str) or ``lat``/``lon`` (optional), ``zoom`` (int, optional)
@@ -1966,45 +1467,38 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
   - ``layers`` (str, optional) — optional ``layers=`` value
   - ``width`` (int), ``height`` (int) — used only to estimate zoom for bbox
 
-- ``Tool: osm_bbox_map``
-
-  Shortcut to build an openstreetmap.org URL from a bounding box.
+- ``osm_bbox_map`` - Shortcut to build an openstreetmap.org URL from a bounding box.
 
   Parameters:
   - ``bbox`` (list[4], required) — ``minlon,minlat,maxlon,maxlat``
   - optional ``markers``, ``width``, ``height``
 
-- ``Tool: osm_show_url``
-
-  Build an openstreetmap.org URL centered at a point with a marker.
+- ``osm_show_url`` - Build an openstreetmap.org URL centered at a point with a marker.
 
   Parameters:
   - ``point`` (str) or ``lat``/``lon``
   - ``zoom`` (int, optional)
   - ``layers`` (str, optional)
 
-- ``Tool: osm_route_url``
-
-  Build an openstreetmap.org Directions URL for start/end (the route is drawn on the page).
+- ``osm_route_url`` - Build an openstreetmap.org Directions URL for start/end (the route is drawn on the page).
 
   Parameters:
   - ``start`` (str) / ``end`` (str) or coordinate pairs
   - ``mode`` (str, optional) — ``car`` | ``bike`` | ``foot``
 
-- ``Tool: osm_tile``
-
-  Download a single XYZ tile (z/x/y.png). Useful for diagnostics or custom composition. The file is saved under ``data/openstreetmap/`` by default.
+- ``osm_tile`` - Download a single XYZ tile (z/x/y.png). Useful for diagnostics or custom composition. The file is saved under ``data/openstreetmap/`` by default.
 
   Parameters:
   - ``z`` (int), ``x`` (int), ``y`` (int), ``out`` (str, optional)
 
-
 Python interpreter
 -------------------------
 
+The Python interpreter plugin gives the model and the Python/OS tool a Python/IPython runtime for code execution, package use and shell commands, with host, built-in and Docker backends.
+
 **Executing Code**
 
-The plugin provides local Python execution for model-generated code and for code started manually from the ``Python/OS`` window. It uses the active conversation's runtime ``data`` workdir, so a project with a custom data workdir is handled automatically. Execution can run directly on the host or through the selected sandbox backend. The ``Sandbox`` selector provides ``Disabled``, ``Built-in sandbox``, and ``Docker``.
+The Python interpreter plugin provides local Python execution for model-generated code and for code started manually from the ``Python/OS`` window. It uses the active conversation's runtime ``data`` workdir, so a project with a custom data workdir is handled automatically. Execution can run directly on the host or through the selected sandbox backend. The ``Sandbox`` selector provides ``Disabled``, ``Built-in sandbox``, and ``Docker``.
 
 The ``Use IPython`` option selects which Python tool set is exposed to the model:
 
@@ -2020,15 +1514,15 @@ The two execution tool sets are never exposed together. HTML Canvas tools are in
 **Sandbox:** Select the backend in ``Plugins -> Settings -> Python interpreter -> General -> Sandbox``. Available modes are ``Disabled``, ``Built-in sandbox`` and ``Docker``. ``Built-in sandbox`` is the default mode for the Python interpreter plugin.
 
 Execution and isolation rules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``Disabled``
-^^^^^^^^^^^^
+~~~~~~~~~~~~
 
 ``Disabled`` uses the host Python/IPython environment and executes shell commands on the host. There is no sandbox boundary. Host-side Security guards are still applied where a plugin operation explicitly passes through them (for example, command whitelist/blacklist checks for dedicated system-command tools and path checks for plugin-managed file arguments), but they do not intercept arbitrary filesystem, subprocess or network access performed by executed Python/IPython code itself. Treat code executed in this mode as normal code running with the OS permissions of the PyGPT process.
 
 ``Built-in sandbox``
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 The built-in backend is a **separate execution environment**, not a filesystem or container security boundary. It is intended to keep model-executed Python and command-line tooling separate from the Python environment used to run PyGPT itself, without requiring Docker.
 
@@ -2056,6 +1550,52 @@ The built-in runtime is created under the base PyGPT profile workdir. The defaul
 
 For the Python plugin, both standard Python and IPython use ``%workdir%/sandbox/python``. The environment is provisioned by ``uv`` and has its own Python executable, ``pip`` and packages. PyGPT prepends this environment's ``bin``/``Scripts`` directory to ``PATH``, sets ``VIRTUAL_ENV`` to the built-in venv, disables the user site with ``PYTHONNOUSERSITE=1``, removes inherited ``PYTHONHOME``/``PYTHONPATH`` and uses the private ``state/python/home`` and ``state/python/tmp`` directories for HOME and temporary files. This prevents the built-in interpreter from accidentally using PyGPT's own virtual environment, but it is **environment separation only**.
 
+Built-in packages and environment rebuild
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configure persistent packages in ``Plugins -> Settings -> Python interpreter -> Built-in sandbox -> Packages to install``. Enter one Python package requirement per line, for example:
+
+.. code-block:: text
+
+   requests
+   numpy==2.3.1
+   pandas>=2.3
+
+The default Python package list is:
+
+.. code-block:: text
+
+   jupyter
+   ipykernel
+   numpy
+   pandas
+   matplotlib
+   scipy
+   sympy
+   scikit-learn
+   pillow
+   openpyxl
+   xlsxwriter
+   pypdf
+   pdfminer.six
+   pdfplumber
+   pymupdf
+   reportlab
+   python-docx
+   python-pptx
+   requests
+   beautifulsoup4
+   lxml
+   tabulate
+   pyyaml
+
+``pip``, ``setuptools``, ``wheel`` and ``pytest`` are installed as base packages and do not need to be added to the list.
+
+Changing the list recreates the environment on the next built-in use. To rebuild immediately, use ``Tools -> Sandbox / Docker -> Re-create built-in venv for Python interpreter``.
+
+.. important::
+   Packages installed manually with ``pip`` are removed by a rebuild unless they are also added to ``Packages to install``.
+
 The active conversation's ``data`` workdir is the process CWD. Normally this is ``%workdir%/data``. If the conversation belongs to a project with a custom data workdir, that project directory becomes the CWD automatically. Relative paths are resolved from this directory.
 
 There is deliberately **no host filesystem restriction** in the built-in backend. Absolute paths remain host paths, and Python code, IPython code and shell commands can read or write any host location allowed to the OS account running PyGPT. The built-in process also uses the host network stack and runs with the same user privileges as PyGPT; it does not use a separate mount namespace, user namespace or network namespace. On Windows, child processes are additionally attached to a Job Object with kill-on-close/process-lifetime handling, but this does not restrict filesystem or network access.
@@ -2065,7 +1605,7 @@ Standard ``python_exec`` calls run in separate child processes. IPython uses a p
 The working-directory filesystem read/write restrictions are still bypassed for Built-in execution; this change does not add filesystem isolation. The system-command whitelist/blacklist is handled separately and **does apply** to the dedicated ``python_sys_exec`` and ``ipython_sys_exec`` tools in Built-in mode, using the whitelist/blacklist for the host operating system. This is an application-level command guard only: arbitrary Python/IPython code can still start processes itself (for example with ``subprocess`` or ``os.system``), so Built-in must still be treated as code with host-level filesystem/network access.
 
 ``Docker``
-^^^^^^^^^^
+~~~~~~~~~~
 
 Docker provides the actual container boundary and is the strongest isolation option supplied by these plugins. The active conversation's ``data`` workdir is mounted read/write at ``/mnt/data`` by the stock configuration and ``/mnt/data`` is used as the runtime CWD. Project-specific data workdirs are mapped automatically.
 
@@ -2076,8 +1616,6 @@ The stock Docker images run as the unprivileged ``pygpt`` user by default. Passw
 Docker isolation depends on the Docker daemon, image, privileges, capabilities and volume/port mappings configured by the user. Avoid mounting sensitive host directories or the Docker socket into model-controlled containers.
 
 For the dedicated Python system-command tools (``python_sys_exec`` and ``ipython_sys_exec``), PyGPT checks the system-command whitelist/blacklist **before** sending the command to Docker. The stock Docker runtimes are Linux containers, so these checks use the ``Security -> Linux`` command list even when the PyGPT host is Windows or macOS. This does not inspect processes spawned indirectly by arbitrary Python/IPython code.
-
-**Docker permissions:** The stock Docker images run as the unprivileged ``pygpt`` user by default, with passwordless ``sudo`` available when elevated privileges are required. The IPython and standard-Python Docker settings have separate ``Run as root`` options.
 
 Docker installation: https://docs.docker.com/engine/install/
 
@@ -2111,237 +1649,146 @@ To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemo
 .. tip::
    Remember to enable the ``Tools`` switch to allow tools from plugins to be executed.
 
-**Options:**
+**Options**
 
 **General**
 
-- ``Use IPython`` *use_ipython*
+- **Use IPython** *use_ipython* - Select the interpreter mode. When enabled, PyGPT exposes only the IPython tool set. When disabled, it exposes only the standard Python tool set. *Default:* ``True``
 
-Select the interpreter mode. When enabled, PyGPT exposes only the IPython tool set. When disabled, it exposes only the standard Python tool set. *Default:* ``True``
+- **Sandbox** *sandbox* - Select the execution backend. ``Disabled`` executes in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed CPython/IPython environment and separate processes, but does not restrict host filesystem or network access. ``Docker`` runs in a container and provides the strongest isolation of the available options. Filesystem Security restrictions keep their existing sandbox behavior, while the system-command whitelist/blacklist applies to ``python_sys_exec`` and ``ipython_sys_exec`` in every mode. *Default:* ``Built-in sandbox``
 
-- ``Sandbox`` *sandbox*
+- **Connect to the Python/OS window** *attach_output* - Automatically attach code input/output to the Python/OS window. *Default:* ``True``
 
-Select the execution backend. ``Disabled`` executes in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed CPython/IPython environment and separate processes, but does not restrict host filesystem or network access. ``Docker`` runs in a container and provides the strongest isolation of the available options. Filesystem Security restrictions keep their existing sandbox behavior, while the system-command whitelist/blacklist applies to ``python_sys_exec`` and ``ipython_sys_exec`` in every mode. *Default:* ``Built-in sandbox``
+- **Max interpreter window entries** *output_max_entries* - Maximum number of input/output blocks kept in the interpreter window. Set to ``0`` for no limit. *Default:* ``10``
 
-- ``Connect to the Python/OS window`` *attach_output*
+- **Always run code in a fresh kernel** *fresh_kernel* - If enabled, each IPython execution uses the same path as the interpreter's **Run in a fresh kernel** action instead of reusing the current kernel state. *Default:* ``False``
 
-Automatically attach code input/output to the Python/OS window. *Default:* ``True``
 
-- ``Max interpreter window entries`` *output_max_entries*
+**Built-in sandbox**
 
-Maximum number of input/output blocks kept in the interpreter window. Set to ``0`` for no limit. *Default:* ``10``
-
-- ``Always run code in a fresh kernel`` *fresh_kernel*
-
-If enabled, each IPython execution uses the same path as the interpreter's **Run in a fresh kernel** action instead of reusing the current kernel state. *Default:* ``False``
+- **Packages to install** *builtin_packages* - Python package requirements for the built-in environment, one per line. Base packages (``pip``, ``setuptools``, ``wheel`` and ``pytest``) are installed separately. Changes rebuild the environment on the next use. *Default:* ``built-in Python package set``
 
 
 **IPython**
 
-- ``Run as root`` *ipython_run_as_root*
+- **Run as root** *ipython_run_as_root* - Run the IPython Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
 
-Run the IPython Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
+- **Dockerfile for IPython kernel** *ipython_dockerfile* - Dockerfile used to build the IPython kernel image. You can customize it and rebuild the image via ``Tools -> Rebuild IPython Docker Image``.
 
-- ``Dockerfile for IPython kernel`` *ipython_dockerfile*
+- **Session Key** *ipython_session_key* - Session key used by the IPython kernel connection. It must match the key provided by the container configuration.
 
-Dockerfile used to build the IPython kernel image. You can customize it and rebuild the image via ``Tools -> Rebuild IPython Docker Image``.
+- **Docker image name** *ipython_image_name* - Custom Docker image name. *Default:* ``pygpt_ipython_kernel``
 
-- ``Session Key`` *ipython_session_key*
+- **Docker container name** *ipython_container_name* - Custom Docker container name. *Default:* ``pygpt_ipython_kernel_container``
 
-Session key used by the IPython kernel connection. It must match the key provided by the container configuration.
+- **Connection address** *ipython_conn_addr* - *Default:* ``127.0.0.1``
 
-- ``Docker image name`` *ipython_image_name*
+- **Port: shell** *ipython_port_shell* - *Default:* ``5555``
 
-Custom Docker image name. *Default:* ``pygpt_ipython_kernel``
+- **Port: iopub** *ipython_port_iopub* - *Default:* ``5556``
 
-- ``Docker container name`` *ipython_container_name*
+- **Port: stdin** *ipython_port_stdin* - *Default:* ``5557``
 
-Custom Docker container name. *Default:* ``pygpt_ipython_kernel_container``
+- **Port: control** *ipython_port_control* - *Default:* ``5558``
 
-- ``Connection address`` *ipython_conn_addr*
-
-Default: ``127.0.0.1``
-
-- ``Port: shell`` *ipython_port_shell*
-
-Default: ``5555``
-
-- ``Port: iopub`` *ipython_port_iopub*
-
-Default: ``5556``
-
-- ``Port: stdin`` *ipython_port_stdin*
-
-Default: ``5557``
-
-- ``Port: control`` *ipython_port_control*
-
-Default: ``5558``
-
-- ``Port: hb`` *ipython_port_hb*
-
-Default: ``5559``
-
-- ``Tool: ipython_exec`` *cmd.ipython_exec*
-
-Executes Python code in the current IPython kernel. The tool accepts one required ``code`` parameter. *Default:* ``True``
-
-- ``Tool: ipython_sys_exec`` *cmd.ipython_sys_exec*
-
-Executes a shell/system command in the active IPython environment. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker runtime and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment. *Default:* ``True``
-
-- ``Tool: ipython_kernel_restart`` *cmd.ipython_kernel_restart*
-
-Restarts the IPython kernel. Normally automatic recovery handles a kernel failure; this tool is intended for manual recovery when needed. *Default:* ``True``
+- **Port: hb** *ipython_port_hb* - *Default:* ``5559``
 
 
 **Python (legacy / standard Python)**
 
-- ``Run as root`` *docker_run_as_root*
+- **Run as root** *docker_run_as_root* - Run the standard Python Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
 
-Run the standard Python Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
+- **Python command template** *python_cmd_tpl* - Python command template used to execute the temporary or selected Python file; use ``{filename}`` as the file-path placeholder. *Default:* ``python3 {filename}``
 
-- ``Python command template`` *python_cmd_tpl*
+- **Dockerfile** *dockerfile* - Dockerfile used by the standard Python Docker backend. You can customize it and rebuild the image via ``Tools -> Rebuild Python (Legacy) Docker Image``.
 
-Python command template used to execute the temporary or selected Python file; use ``{filename}`` as the file-path placeholder. *Default:* ``python3 {filename}``
+- **Docker image name** *image_name* - Custom Docker image name. *Default:* ``pygpt_python_legacy``
 
-- ``Dockerfile`` *dockerfile*
+- **Docker container name** *container_name* - Custom Docker container name. *Default:* ``pygpt_python_legacy_container``
 
-Dockerfile used by the standard Python Docker backend. You can customize it and rebuild the image via ``Tools -> Rebuild Python (Legacy) Docker Image``.
+- **Docker run command** *docker_entrypoint* - Command used to keep the standard Python container alive. *Default:* ``tail -f /dev/null``
 
-- ``Docker image name`` *image_name*
+- **Docker volumes** *docker_volumes* - Host-to-container volume mappings. The stock configuration maps the active conversation's runtime ``data`` workdir to ``/mnt/data``. If a project uses a custom data workdir, the Docker mapping is updated at runtime for that project. The application's base workdir and its non-data directories are not remapped.
 
-Custom Docker image name. *Default:* ``pygpt_python_legacy``
-
-- ``Docker container name`` *container_name*
-
-Custom Docker container name. *Default:* ``pygpt_python_legacy_container``
-
-- ``Docker run command`` *docker_entrypoint*
-
-Command used to keep the standard Python container alive. *Default:* ``tail -f /dev/null``
-
-- ``Docker volumes`` *docker_volumes*
-
-Host-to-container volume mappings. The stock configuration maps the active conversation's runtime ``data`` workdir to ``/mnt/data``. If a project uses a custom data workdir, the Docker mapping is updated at runtime for that project. The application's base workdir and its non-data directories are not remapped.
-
-- ``Docker ports`` *docker_ports*
-
-Optional host-to-container port mappings. The default list is empty.
-
-- ``Tool: python_exec`` *cmd.python_exec*
-
-Executes Python code directly. The public tool accepts only the required ``code`` parameter; PyGPT manages the temporary script path internally. *Default:* ``True``
-
-- ``Tool: python_exec_file`` *cmd.python_exec_file*
-
-Executes an existing Python file. The tool accepts the required ``path`` parameter. *Default:* ``True``
-
-- ``Tool: python_sys_exec`` *cmd.python_sys_exec*
-
-Executes a shell/system command in the standard Python runtime. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in Python venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker backend and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment. *Default:* ``True``
+- **Docker ports** *docker_ports* - Optional host-to-container port mappings. The default list is empty.
 
 
 **HTML Canvas**
 
-- ``Tool: html_render_output`` *cmd.html_render_output*
+**Tools**
 
-Renders HTML/JS code in the built-in HTML Canvas. *Default:* ``True``
-
-- ``Tool: html_get_output`` *cmd.html_get_output*
-
-Returns the current output from HTML Canvas. *Default:* ``True``
-
+- ``ipython_exec`` - Execute Python code in the current IPython kernel. The tool accepts one required ``code`` parameter.
+- ``ipython_sys_exec`` - Execute a shell/system command in the active IPython environment. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker runtime and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment.
+- ``ipython_kernel_restart`` - Restart the IPython kernel. Normally automatic recovery handles a kernel failure; this tool is intended for manual recovery when needed.
+- ``python_exec`` - Execute Python code directly. The public tool accepts only the required ``code`` parameter; PyGPT manages the temporary script path internally.
+- ``python_exec_file`` - Execute an existing Python file. The tool accepts the required ``path`` parameter.
+- ``python_sys_exec`` - Execute a shell/system command in the standard Python runtime. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in Python venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker backend and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment.
+- ``html_render_output`` - Render HTML/JS code in the built-in HTML Canvas.
+- ``html_get_output`` - Return the current output from HTML Canvas.
 
 RAG (inline)
 ------------
 
-Plugin integrates ``LlamaIndex`` storage in any chat and provides additional knowledge into context.
+The RAG (inline) plugin lets standard chats query configured LlamaIndex indexes and inject retrieved context when needed. It can use the active project index automatically.
 
 **Options**
 
-- ``Ask LlamaIndex first`` *ask_llama_first*
+- **Ask LlamaIndex first** *ask_llama_first* - When enabled, then `LlamaIndex` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `LlamaIndex` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* ``False``
 
-When enabled, then `LlamaIndex` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `LlamaIndex` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
+- **Auto-prepare question before asking LlamaIndex first** *prepare_question* - When enabled, then question will be prepared before asking LlamaIndex first to create best query.
 
-- ``Auto-prepare question before asking LlamaIndex first`` *prepare_question*
+- **Model for question preparation** *model_prepare_question* - Model used to prepare question before asking LlamaIndex. *Default:* ``gpt-4o-mini``
 
-When enabled, then question will be prepared before asking LlamaIndex first to create best query.
+- **Max output tokens for question preparation** *prepare_question_max_tokens* - Max tokens in output when preparing question before asking LlamaIndex. *Default:* ``500``
 
-- ``Model for question preparation`` *model_prepare_question*
+- **Prompt for question preparation** *syntax_prepare_question* - System prompt for question preparation.
 
-Model used to prepare question before asking LlamaIndex. *Default:* `gpt-4o-mini`
+- **Max characters in question** *max_question_chars* - Maximum query length for LlamaIndex; ``0`` disables the limit. *Default:* ``1000``
 
-- ``Max output tokens for question preparation`` *prepare_question_max_tokens*
+- **Append metadata to context** *append_meta* - Includes retrieved document metadata with the RAG context passed to the model. *Default:* ``False``
 
-Max tokens in output when preparing question before asking LlamaIndex. *Default:* `500`
+- **Model** *model_query* - Model used for querying ``LlamaIndex``. *Default:* ``gpt-4o-mini``
 
-- ``Prompt for question preparation`` *syntax_prepare_question*
-
-System prompt for question preparation.
-
-- ``Max characters in question`` *max_question_chars*
-
-Max characters in question when querying LlamaIndex, 0 = no limit, default: `1000`
-
-- ``Append metadata to context`` *append_meta*
-
-If enabled, then metadata from LlamaIndex will be appended to additional context. *Default:* `False`
-
-- ``Model`` *model_query*
-
-Model used for querying ``LlamaIndex``. *Default:* ``gpt-4o-mini``
-
-- ``Image model`` *model_image*
-
-Vision model used by the Image (vision) data loader when API mode is active. *Default:* ``gpt-4o``
+- **Image model** *model_image* - Vision model used by the Image (vision) data loader when API mode is active. *Default:* ``gpt-4o``
 
 Audio/video transcription is configured separately in the ``Audio input`` plugin and uses the provider selected there.
 
-- ``Use project index if in use`` *use_project_index*
+- **Use project index if in use** *use_project_index* - When enabled and the current conversation belongs to a project, the plugin queries that project's isolated ``Current project`` index instead of the configured global indexes. Outside a project, the configured indexes are used normally. *Default:* ``True``
 
-When enabled and the current conversation belongs to a project, the plugin queries that project's isolated ``Current project`` index instead of the configured global indexes. Outside a project, the configured indexes are used normally. *Default:* `True`
+- **Index name** *idx* - Indexes to use outside an active project, or when project-index usage is disabled. If you want to use multiple indexes at once then separate them by comma. *Default:* ``base``
 
-- ``Index name`` *idx*
+**Tools**
 
-Indexes to use outside an active project, or when project-index usage is disabled. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
-
+- ``get_context`` - Retrieve additional context from the configured index.
 
 Real time
 ----------
 
-This plugin automatically adds the current date and time to each system prompt you send. 
-You have the option to include just the date, just the time, or both.
-
-When enabled, it quietly enhances each system prompt with current time information before sending it to model.
+The Real time plugin adds the current date, time or both to the system prompt, giving models explicit access to the local current time for each request.
 
 **Options**
 
-- ``Append time`` *hour*
+- **Append time** *hour* - Adds the current local time to the system prompt for each request. *Default:* ``True``
 
-If enabled, it appends the current time to the system prompt. *Default:* `True`
+- **Append date** *date* - Adds the current local date to the system prompt for each request. *Default:* ``True``
 
-- ``Append date`` *date*
+- **Template** *tpl* - Template to append to the system prompt. The placeholder ``{time}`` will be replaced with the current date and time in real-time. *Default:* ``Current time is {time}.``
 
-If enabled, it appends the current date to the system prompt. *Default:* `True` 
+**Tools**
 
-- ``Template`` *tpl*
-
-Template to append to the system prompt. The placeholder ``{time}`` will be replaced with the 
-current date and time in real-time. *Default:* `Current time is {time}.`
-
+- ``get_time`` - Get the current date and time.
 
 Serial port / USB
 ------------------
 
-Provides commands for reading and sending data to USB ports.
+The Serial port / USB plugin lets the model exchange text or raw bytes with configured serial devices, such as Arduino boards and other controllers.
 
 .. note::
    In the Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
 
 You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
 
-Above is an example of co-operation with the following code uploaded to ``Arduino Uno`` and connected via USB:
+Below is an example of co-operation with the following code uploaded to ``Arduino Uno`` and connected via USB:
 
 .. code-block:: cpp
 
@@ -2362,47 +1809,30 @@ Above is an example of co-operation with the following code uploaded to ``Arduin
 
 **Options**
 
-- ``USB port`` *serial_port*
+- **USB port** *serial_port* - USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3, *Default:* ``/dev/ttyUSB0``
 
-USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3, *Default:* ``/dev/ttyUSB0``
+- **Connection speed (baudrate, bps)** *serial_bps* - Port connection speed, in bps. *Default:* ``9600``
 
-- ``Connection speed (baudrate, bps)`` *serial_bps*
+- **Timeout** *timeout* - Timeout in seconds. *Default:* ``1``
 
-Port connection speed, in bps. *Default:* ``9600``
+- **Sleep** *sleep* - Sleep in seconds after connection. *Default:* ``2``
 
-- ``Timeout`` *timeout*
+**Tools**
 
-Timeout in seconds. *Default:* ``1``
-
-- ``Sleep`` *sleep*
-
-Sleep in seconds after connection. *Default:* ``2``
-
-- ``Tool: Send text commands to USB port`` *cmd.serial_send*
-
-Allows ``serial_send`` command execution". *Default:* `True`
-
-- ``Tool: Send raw bytes to USB port`` *cmd.serial_send_bytes*
-
-Allows ``serial_send_bytes`` command execution. *Default:* `True`
-
-- ``Tool: Read data from USB port`` *cmd.serial_read*
-
-Allows ``serial_read`` command execution. *Default:* `True`
-
+- ``serial_send`` - Send text commands to the configured serial port.
+- ``serial_send_bytes`` - Send raw bytes to the configured serial port.
+- ``serial_read`` - Read data from the configured serial port.
 
 Server (SSH/FTP)
 ----------------
 
-The Server plugin provides integration for remote server management via SSH, SFTP, and FTP protocols. This plugin allows executing commands, transferring files, and managing directories on remote servers.
+The Server (SSH/FTP) plugin provides remote command execution and file management over SSH, SFTP and FTP, including directory operations and file transfers.
 
-The plugin can be configured with various options to customize connectivity and feature access.
+The Server (SSH/FTP) plugin can be configured with various options to customize connectivity and feature access.
 
 **Options**
 
-- ``Servers`` *servers*
-
-Define server configurations with credentials and server details. **The model does not access credentials, only names and ports.**
+- **Servers** *servers* - Define server configurations with credentials and server details. **The model does not access credentials, only names and ports.**
 
   - ``enabled`` - Enable or disable server configuration
   - ``name`` - Name of the server. **(visible for the model)**
@@ -2412,111 +1842,64 @@ Define server configurations with credentials and server details. **The model do
   - ``port`` - Connection port (SSH by default). **(visible for the model)**
   - ``desc`` - Description of the server configuration.
 
-- ``Network timeout (s)`` *net_timeout*
+- **Network timeout (s)** *net_timeout* - Set the timeout for network operations. *Default:* ``30``
 
-Set the timeout for network operations. *Default:* `30`
+- **Prefer system ssh/scp/sftp** *prefer_system_ssh* - Choose whether to use native ssh/scp/sftp binaries and system keys. *Default:* ``False``
 
-- ``Prefer system ssh/scp/sftp`` *prefer_system_ssh*
+- **ssh binary** *ssh_binary* - Specify the path to the ssh binary. *Default:* ``"ssh"``
 
-Choose whether to use native ssh/scp/sftp binaries and system keys. *Default:* `False`
+- **scp binary** *scp_binary* - Specify the path to the scp binary. *Default:* ``"scp"``
 
-- ``ssh binary`` *ssh_binary*
+- **sftp binary** *sftp_binary* - Specify the path to the sftp binary. *Default:* ``"sftp"``
 
-Specify the path to the ssh binary. *Default:* `"ssh"`
+- **Extra ssh options** *ssh_options* - Add extra options to be appended to ssh/scp commands. *Default:* ``""``
 
-- ``scp binary`` *scp_binary*
-
-Specify the path to the scp binary. *Default:* `"scp"`
-
-- ``sftp binary`` *sftp_binary*
-
-Specify the path to the sftp binary. *Default:* `"sftp"`
-
-- ``Extra ssh options`` *ssh_options*
-
-Add extra options to be appended to ssh/scp commands. *Default:* `""`
-
-- ``Paramiko: Auto add host keys`` *ssh_auto_add_hostkey*
-
-Enable automatic addition of host keys for Paramiko SSHClient. *Default:* `True`
+- **Paramiko: Auto add host keys** *ssh_auto_add_hostkey* - Enable automatic addition of host keys for Paramiko SSHClient. *Default:* ``True``
 
 - **FTP/FTPS**
 
-  * ``FTP TLS default`` *ftp_use_tls_default*
+  * **FTP TLS default** *ftp_use_tls_default* - Choose whether to use FTP over TLS (explicit) by default. *Default:* ``False``
 
-    Choose whether to use FTP over TLS (explicit) by default. *Default:* `False`
-
-  * ``FTP passive mode`` *ftp_passive_default*
-
-    Set the default FTP mode to passive. *Default:* `True`
+  * **FTP passive mode** *ftp_passive_default* - Set the default FTP mode to passive. *Default:* ``True``
 
 - **Telnet**
 
-  * ``Telnet: login prompt`` *telnet_login_prompt*
+  * **Telnet: login prompt** *telnet_login_prompt* - Expected prompt for username during Telnet login. *Default:* ``"login:"``
 
-    Expected prompt for username during Telnet login. *Default:* `"login:"`
+  * **Telnet: password prompt** *telnet_password_prompt* - Expected prompt for password input during Telnet login. *Default:* ``"Password:"``
 
-  * ``Telnet: password prompt`` *telnet_password_prompt*
-
-    Expected prompt for password input during Telnet login. *Default:* `"Password:"`
-
-  * ``Telnet: shell prompt`` *telnet_prompt*
-
-    Define the prompt used to delimit command output in Telnet. *Default:* `"$ "`
+  * **Telnet: shell prompt** *telnet_prompt* - Define the prompt used to delimit command output in Telnet. *Default:* ``"$ "``
 
 - **SMTP**
 
-  * ``SMTP STARTTLS default`` *smtp_use_tls_default*
+  * **SMTP STARTTLS default** *smtp_use_tls_default* - Enable STARTTLS by default for SMTP connections. *Default:* ``True``
 
-    Enable STARTTLS by default for SMTP connections. *Default:* `True`
+  * **SMTP SSL default** *smtp_use_ssl_default* - Enable SMTP over SSL by default. *Default:* ``False``
 
-  * ``SMTP SSL default`` *smtp_use_ssl_default*
+  * **Default From address** *smtp_from_default* - Default address used if 'from_addr' not provided in smtp_send command. *Default:* ``""``
 
-    Enable SMTP over SSL by default. *Default:* `False`
+**Tools**
 
-  * ``Default From address`` *smtp_from_default*
+- ``srv_exec`` - Execute remote shell command via SSH or Telnet.
 
-    Default address used if 'from_addr' not provided in smtp_send command. *Default:* `""`
+- ``srv_ls`` - List remote directory contents using SFTP/FTP or SSH.
 
-**Commands**
+- ``srv_get`` - Download files from remote servers to local directories.
 
-- ``srv_exec``
+- ``srv_put`` - Upload local files to remote servers.
 
-  Execute remote shell command via SSH or Telnet.
+- ``srv_rm`` - Remove remote files or empty directories (non-recursive).
 
-- ``srv_ls``
+- ``srv_mkdir`` - Create directories on remote servers.
 
-  List remote directory contents using SFTP/FTP or SSH.
+- ``srv_stat`` - Retrieve information about remote files, such as type, size, and last modification time.
 
-- ``srv_get``
-
-  Download files from remote servers to local directories.
-
-- ``srv_put``
-
-  Upload local files to remote servers.
-
-- ``srv_rm``
-
-  Remove remote files or empty directories (non-recursive).
-
-- ``srv_mkdir``
-
-  Create directories on remote servers.
-
-- ``srv_stat``
-
-  Retrieve information about remote files, such as type, size, and last modification time.
-
-- ``smtp_send``
-
-  Send emails via SMTP, using the server configurations provided.
-
+- ``smtp_send`` - Send emails via SMTP, using the server configurations provided.
 
 Slack
 -----
 
-The Slack plugin integrates with the Slack Web API, enabling interaction with Slack workspaces through the application. This plugin supports OAuth2 for authentication, which allows for seamless integration with Slack services, enabling actions such as posting messages, retrieving users, and managing conversations.
+The Slack plugin exposes workspace conversations, messages, users and file transfer operations through the Slack Web API. Authentication uses OAuth2.
 
 * Retrieving a list of users.
 * Listing all conversations.
@@ -2527,164 +1910,93 @@ The Slack plugin integrates with the Slack Web API, enabling interaction with Sl
 * Deleting a chat message.
 * Uploading files to Slack.
 
-The plugin can be configured with various options to customize connectivity and feature access.
+The Slack plugin can be configured with various options to customize connectivity and feature access.
 
 **Options**
 
-- ``API base`` *api_base*
+- **API base** *api_base* - Set the base URL for Slack's API. *Default:* ``https://slack.com/api``
 
-Set the base URL for Slack's API. *Default:* `https://slack.com/api`
+- **OAuth base** *oauth_base* - Set the base URL for OAuth authorization. *Default:* ``https://slack.com``
 
-- ``OAuth base`` *oauth_base*
-
-Set the base URL for OAuth authorization. *Default:* `https://slack.com`
-
-- ``HTTP timeout (s)`` *http_timeout*
-
-Specify the request timeout in seconds. *Default:* `30`
+- **HTTP timeout (s)** *http_timeout* - Specify the request timeout in seconds. *Default:* ``30``
 
 **OAuth2 (Slack)**
 
-- ``OAuth2 Client ID`` *oauth2_client_id*
+- **OAuth2 Client ID** *oauth2_client_id* - Provide the Client ID from your Slack App. This field is secret.
 
-Provide the Client ID from your Slack App. This field is secret.
+- **OAuth2 Client Secret** *oauth2_client_secret* - Provide the Client Secret from your Slack App. This field is secret.
 
-- ``OAuth2 Client Secret`` *oauth2_client_secret*
+- **Redirect URI** *oauth2_redirect_uri* - Specify the redirect URI that matches one in your Slack App. *Default:* ``http://127.0.0.1:8733/callback``
 
-Provide the Client Secret from your Slack App. This field is secret.
+- **Bot scopes (comma-separated)** *bot_scopes* - Define the scopes for the bot token. *Default:* ``chat:write,users:read,...``
 
-- ``Redirect URI`` *oauth2_redirect_uri*
-
-Specify the redirect URI that matches one in your Slack App. *Default:* `http://127.0.0.1:8733/callback`
-
-- ``Bot scopes (comma-separated)`` *bot_scopes*
-
-Define the scopes for the bot token. *Default:* `chat:write,users:read,...`
-
-- ``User scopes (comma-separated)`` *user_scopes*
-
-Specify optional user scopes for user token if required.
+- **User scopes (comma-separated)** *user_scopes* - Specify optional user scopes for user token if required.
 
 **Tokens/cache**
 
-- ``(auto/manual) Bot token`` *bot_token*
+- **(auto/manual) Bot token** *bot_token* - Input or obtain the bot token automatically or manually. This field is secret.
 
-Input or obtain the bot token automatically or manually. This field is secret.
+- **(auto) User token (optional)** *user_token* - Get the user token if user scopes are required. This field is secret.
 
-- ``(auto) User token (optional)`` *user_token*
+- **(auto) Refresh token** *oauth2_refresh_token* - Store refresh token if rotation is enabled. This field is secret.
 
-Get the user token if user scopes are required. This field is secret.
+- **(auto) Expires at (unix)** *oauth2_expires_at* - Automatically calculate the token expiry time.
 
-- ``(auto) Refresh token`` *oauth2_refresh_token*
+- **(auto) Team ID** *team_id* - Cache the Team ID after auth.test or OAuth.
 
-Store refresh token if rotation is enabled. This field is secret.
+- **(auto) Bot user ID** *bot_user_id* - Cache the Bot user ID post OAuth exchange.
 
-- ``(auto) Expires at (unix)`` *oauth2_expires_at*
+- **(auto) Authed user ID** *authed_user_id* - Cache the authenticated user ID after auth.test/OAuth.
 
-Automatically calculate the token expiry time.
+- **Auto-start OAuth when required** *oauth_auto_begin* - Enable automatic initiation of OAuth flow if a command needs a token. *Default:* ``True``
 
-- ``(auto) Team ID`` *team_id*
+- **Open browser automatically** *oauth_open_browser* - Open the authorize URL in default browser. *Default:* ``True``
 
-Cache the Team ID after auth.test or OAuth.
+- **Use local server for OAuth** *oauth_local_server* - Activate local HTTP server to capture redirect. *Default:* ``True``
 
-- ``(auto) Bot user ID`` *bot_user_id*
+- **OAuth local timeout (s)** *oauth_local_timeout* - Set time to wait for redirect with code. *Default:* ``180``
 
-Cache the Bot user ID post OAuth exchange.
+- **Success HTML** *oauth_success_html* - Specify HTML displayed on successful local callback.
 
-- ``(auto) Authed user ID`` *authed_user_id*
+- **Fail HTML** *oauth_fail_html* - Specify HTML displayed on failed local callback.
 
-Cache the authenticated user ID after auth.test/OAuth.
+- **OAuth local port (0=auto)** *oauth_local_port* - Set local HTTP port; must be registered in Slack App. *Default:* ``8733``
 
-- ``Auto-start OAuth when required`` *oauth_auto_begin*
+- **Allow fallback port if busy** *oauth_allow_port_fallback* - Fallback to a free local port if preferred port is busy. *Default:* ``True``
 
-Enable automatic initiation of OAuth flow if a command needs a token. *Default:* `True`
+**Tools**
 
-- ``Open browser automatically`` *oauth_open_browser*
+- ``slack_oauth_begin`` - Begin the OAuth2 flow and return the authorize URL.
 
-Open the authorize URL in default browser. *Default:* `True`
+- ``slack_oauth_exchange`` - Exchange authorization code for tokens.
 
-- ``Use local server for OAuth`` *oauth_local_server*
+- ``slack_oauth_refresh`` - Refresh token if rotation is enabled.
 
-Activate local HTTP server to capture redirect. *Default:* `True`
+- ``slack_auth_test`` - Test authentication and retrieve IDs.
 
-- ``OAuth local timeout (s)`` *oauth_local_timeout*
+- ``slack_users_list`` - List workspace users (contacts).
 
-Set time to wait for redirect with code. *Default:* `180`
+- ``slack_conversations_list`` - List channels/DMs visible to the token.
 
-- ``Success HTML`` *oauth_success_html*
+- ``slack_conversations_history`` - Fetch channel/DM history.
 
-Specify HTML displayed on successful local callback.
+- ``slack_conversations_replies`` - Fetch a thread by root ts.
 
-- ``Fail HTML`` *oauth_fail_html*
+- ``slack_conversations_open`` - Open or resume DM or MPDM.
 
-Specify HTML displayed on failed local callback.
+- ``slack_chat_post_message`` - Post a message to a channel or DM.
 
-- ``OAuth local port (0=auto)`` *oauth_local_port*
+- ``slack_chat_delete`` - Delete a message from a channel or DM.
 
-Set local HTTP port; must be registered in Slack App. *Default:* `8733`
-
-- ``Allow fallback port if busy`` *oauth_allow_port_fallback*
-
-Fallback to a free local port if preferred port is busy. *Default:* `True`
-
-**Commands**
-
-- ``slack_oauth_begin``
-
-Begin the OAuth2 flow and return the authorize URL.
-
-- ``slack_oauth_exchange``
-
-Exchange authorization code for tokens.
-
-- ``slack_oauth_refresh``
-
-Refresh token if rotation is enabled.
-
-- ``slack_auth_test``
-
-Test authentication and retrieve IDs.
-
-- ``slack_users_list``
-
-List workspace users (contacts).
-
-- ``slack_conversations_list``
-
-List channels/DMs visible to the token.
-
-- ``slack_conversations_history``
-
-Fetch channel/DM history.
-
-- ``slack_conversations_replies``
-
-Fetch a thread by root ts.
-
-- ``slack_conversations_open``
-
-Open or resume DM or MPDM.
-
-- ``slack_chat_post_message``
-
-Post a message to a channel or DM.
-
-- ``slack_chat_delete``
-
-Delete a message from a channel or DM.
-
-- ``slack_files_upload``
-
-Upload a file via external flow and share in Slack.
-
+- ``slack_files_upload`` - Upload a file via external flow and share in Slack.
 
 System (OS)
 -----------
 
-The plugin provides operating-system command execution through a selectable execution backend. The ``Sandbox`` option is the single execution-mode selector: ``Disabled``, ``Built-in sandbox`` or ``Docker``. The backend layer is separate from the ``sys_exec`` tool contract, so the same tool is used regardless of execution mode.
+The System (OS) plugin gives the model a ``sys_exec`` tool for running shell commands in the active data workdir. Commands can run on the host, in the built-in uv-managed environment, or in Docker.
 
 System/OS execution and isolation rules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``Disabled`` executes ``sys_exec`` in the host environment. The command runs with the privileges of the PyGPT process. The configured system-command whitelist/blacklist is checked before execution, using the policy for the host operating system.
 
@@ -2703,6 +2015,16 @@ System/OS execution and isolation rules
 
 The System built-in venv is separate from the Python interpreter venv. Its ``bin``/``Scripts`` directory is placed first in ``PATH`` and it has its own packaging tools, so commands and packages installed into ``sandbox/os`` do not modify PyGPT's own Python environment or ``sandbox/python``.
 
+Built-in packages and environment rebuild
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configure persistent packages in ``Plugins -> Settings -> System (OS) -> Built-in sandbox -> Packages to install``, one Python package requirement per line. The editable list is empty by default; ``pip``, ``setuptools``, ``wheel`` and ``pytest`` are installed as base packages.
+
+Changing the list recreates the environment on the next built-in use. To rebuild immediately, use ``Tools -> Sandbox / Docker -> Re-create built-in venv for System / OS plugin``.
+
+.. important::
+   Packages installed manually are removed by a rebuild unless they are also added to ``Packages to install``.
+
 The active conversation's ``data`` workdir is used as the command CWD. Normally this is ``%workdir%/data``; a project's custom data workdir is used automatically when configured. Relative command paths therefore start from the active data workdir.
 
 Despite its name, the System built-in backend is **not a filesystem sandbox**. Commands are started as separate host processes (``/bin/sh -c`` on Unix-like systems or ``cmd.exe``/``COMSPEC`` on Windows) with a private HOME/TMP and the built-in venv environment, but they run as the same OS user as PyGPT and can access the host filesystem and network according to that user's permissions. On Windows the process is additionally attached to a Job Object for process-lifetime handling; this does not restrict filesystem or network access.
@@ -2713,51 +2035,34 @@ The system-command whitelist/blacklist is **not bypassed** in ``Sandbox = Built-
 
 ``sys_exec`` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled.
 
-**Options:**
+**Options**
 
 **General**
 
-- ``Sandbox`` *sandbox*
+- **Sandbox** *sandbox* - Select the execution backend. ``Disabled`` executes commands in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed environment and separate process execution, but does not restrict host filesystem or network access. ``Docker`` requires Docker and provides the strongest isolation of the available options. The system-command whitelist/blacklist applies to ``sys_exec`` in every mode; Host/Built-in use the host OS policy and Docker uses the Linux policy. *Default:* ``Disabled``
 
-Select the execution backend. ``Disabled`` executes commands in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed environment and separate process execution, but does not restrict host filesystem or network access. ``Docker`` requires Docker and provides the strongest isolation of the available options. The system-command whitelist/blacklist applies to ``sys_exec`` in every mode; Host/Built-in use the host OS policy and Docker uses the Linux policy. *Default:* ``Disabled``
+- **Auto-append CWD to sys_exec** *auto_cwd* - Automatically append the current runtime working directory to ``sys_exec`` commands. On the host this is the active conversation's data workdir. In the Docker backend the runtime working directory is ``/mnt/data``. *Default:* ``True``
 
-- ``Auto-append CWD to sys_exec`` *auto_cwd*
+- **Connect to the Python/OS window** *attach_output* - Mirror ``sys_exec`` command input and output to the Python/OS window. *Default:* ``True``
 
-Automatically append the current runtime working directory to ``sys_exec`` commands. On the host this is the active conversation's data workdir. In the Docker backend the runtime working directory is ``/mnt/data``. *Default:* ``True``
 
-- ``Connect to the Python/OS window`` *attach_output*
+**Built-in sandbox**
 
-Mirror ``sys_exec`` command input and output to the Python/OS window. *Default:* ``True``
-
-- ``Tool: sys_exec`` *cmd.sys_exec*
-
-Allows system command execution through the currently selected execution backend. Commands are checked against the configured system-command whitelist/blacklist before execution in Host, Built-in and Docker modes. Commands are non-interactive and should not wait for stdin. *Default:* ``True``
+- **Packages to install** *builtin_packages* - Additional Python package requirements for the built-in System / OS environment, one per line. Base packages (``pip``, ``setuptools``, ``wheel`` and ``pytest``) are installed separately. Changes rebuild the environment on the next use. *Default:* ``empty``
 
 **Sandbox (Docker backend)**
 
-- ``Run as root`` *docker_run_as_root*
+- **Run as root** *docker_run_as_root* - Run the Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` can be used for commands that require root privileges. *Default:* ``False``
 
-  Run the Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` can be used for commands that require root privileges. *Default:* ``False``
+- **Dockerfile** *dockerfile* - The Dockerfile used to build the sandbox image. The stock image is based on Python 3.12 Alpine, includes commonly used shell/network utilities, uses ``/mnt/data`` as the workdir, and runs as the unprivileged ``pygpt`` user by default. You can customize it and rebuild via ``Tools -> Rebuild Docker sandbox Images``.
 
-- ``Dockerfile`` *dockerfile*
+- **Docker image name** *image_name* - Name of the Docker image used by the sandbox. *Default:* ``pygpt_system``
 
-  The Dockerfile used to build the sandbox image. The stock image is based on Python 3.12 Alpine, includes commonly used shell/network utilities, uses ``/mnt/data`` as the workdir, and runs as the unprivileged ``pygpt`` user by default. You can customize it and rebuild via ``Tools -> Rebuild Docker sandbox Images``.
+- **Docker container name** *container_name* - Name of the Docker container started for the sandbox. *Default:* ``pygpt_system_container``
 
-- ``Docker image name`` *image_name*
+- **Docker run command** *docker_entrypoint* - Command executed when starting the container (keeps the container alive). *Default:* ``tail -f /dev/null``
 
-  Name of the Docker image used by the sandbox. *Default:* ``pygpt_system``
-
-- ``Docker container name`` *container_name*
-
-  Name of the Docker container started for the sandbox. *Default:* ``pygpt_system_container``
-
-- ``Docker run command`` *docker_entrypoint*
-
-  Command executed when starting the container (keeps the container alive). *Default:* ``tail -f /dev/null``
-
-- ``Docker volumes`` *docker_volumes*
-
-  Host ↔ container volume mappings. By default, the active runtime ``data`` workdir on the host is mapped read/write to ``/mnt/data`` in the container. A custom project data workdir is therefore mounted automatically when a conversation from that project runs the tool.
+- **Docker volumes** *docker_volumes* - Host ↔ container volume mappings. By default, the active runtime ``data`` workdir on the host is mapped read/write to ``/mnt/data`` in the container. A custom project data workdir is therefore mounted automatically when a conversation from that project runs the tool.
 
   Structure of each item:
 
@@ -2767,9 +2072,7 @@ Allows system command execution through the currently selected execution backend
 
   Default: one runtime mapping of the active data workdir → ``/mnt/data``
 
-- ``Docker ports`` *docker_ports*
-
-  Host ↔ container port mappings. You can specify protocol on the container side (e.g. ``8888/tcp``), otherwise TCP is assumed.
+- **Docker ports** *docker_ports* - Host ↔ container port mappings. You can specify protocol on the container side (e.g. ``8888/tcp``), otherwise TCP is assumed.
 
   Structure of each item:
 
@@ -2779,46 +2082,31 @@ Allows system command execution through the currently selected execution backend
 
   Default: empty list (no ports exposed)
 
-Notes:
-
-- When ``Sandbox = Docker``, relative paths passed in commands are resolved against ``/mnt/data`` inside the container.
-- The plugin checks Docker availability and prompts to build the image if it does not exist.
-- ``Sandbox = Disabled`` uses the host environment and does not start or require Docker. ``Sandbox = Built-in sandbox`` does not require Docker and uses ``%workdir%/sandbox/os``, but it still has host filesystem/network access. ``Sandbox = Docker`` requires Docker to be installed and running.
-- The system-command whitelist/blacklist applies to ``sys_exec`` in all three modes. Host and Built-in use the current host OS list; Docker uses the Linux list. This application-level check does not replace Docker isolation and does not inspect commands launched indirectly by other code.
-
 **WinAPI (Windows)**
 
-- ``Enable WinAPI`` *winapi_enabled*
+- **Enable WinAPI** *winapi_enabled* - Enables Windows Desktop/WinAPI integration (window management, input, screenshots) on Microsoft Windows. *Default:* ``True``
 
-  Enables Windows Desktop/WinAPI integration (window management, input, screenshots) on Microsoft Windows. Default: ``True``
+- **Keys: per-char delay (ms)** *win_keys_per_char_delay_ms* - Delay between characters when typing Unicode text with ``win_keys_text``. *Default:* ``2``
 
-- ``Keys: per-char delay (ms)`` *win_keys_per_char_delay_ms*
+- **Keys: hold (ms)** *win_keys_hold_ms* - Hold duration for modifier keys (e.g., CTRL/ALT/SHIFT) in ``win_keys_send``. *Default:* ``50``
 
-  Delay between characters when typing Unicode text with ``win_keys_text``. Default: ``2``
+- **Keys: gap (ms)** *win_keys_gap_ms* - Gap between consecutive key taps in ``win_keys_send``. *Default:* ``30``
 
-- ``Keys: hold (ms)`` *win_keys_hold_ms*
-
-  Hold duration for modifier keys (e.g., CTRL/ALT/SHIFT) in ``win_keys_send``. Default: ``50``
-
-- ``Keys: gap (ms)`` *win_keys_gap_ms*
-
-  Gap between consecutive key taps in ``win_keys_send``. Default: ``30``
-
-- ``Drag: step delay (ms)`` *win_drag_step_delay_ms*
-
-  Delay between intermediate mouse-move steps during ``win_drag``. Default: ``10``
+- **Drag: step delay (ms)** *win_drag_step_delay_ms* - Delay between intermediate mouse-move steps during ``win_drag``. *Default:* ``10``
 
 Notes:
 
-- WinAPI features are available only on Microsoft Windows. On other platforms, WinAPI commands are not exposed.
-- WinAPI commands are added to the command syntax list only when ``platform == "Windows"`` and ``winapi_enabled`` is ``True``.
-- Window and area screenshots use Qt’s ``QScreen.grabWindow(...)``; images are saved as PNG files (non-absolute paths are stored under the user data directory).
+- WinAPI features are available only on Microsoft Windows.
+- Window and area screenshots are saved as PNG files under the user data directory unless an absolute path is provided.
 
+**Tools**
+
+- ``sys_exec`` - Allows system command execution through the currently selected execution backend. Commands are checked against the configured system-command whitelist/blacklist before execution in Host, Built-in and Docker modes. Commands are non-interactive and should not wait for stdin.
 
 Telegram
 ---------
 
-The plugin enables integration with Telegram for both bots and user accounts through the ``Bot API`` and the ``Telethon`` library respectively. It allows sending and receiving messages, managing chats, and handling updates.
+The Telegram plugin provides messaging, chat, contact, media and file tools for Telegram bots and user accounts through the Bot API and Telethon.
 
 * Sending text messages to a chat or channel.
 * Sending photos with an optional caption to a chat or channel.
@@ -2832,32 +2120,22 @@ The plugin enables integration with Telegram for both bots and user accounts thr
 
 **Options**
 
-- ``Mode`` *mode*
-
-  Choose the mode of operation. *Default:* `bot`
+- **Mode** *mode* - Selects Telegram **Bot API** mode or **User/Telethon** mode. *Default:* ``bot``
 
   Available modes:
 
   * Bot (via ``Bot API``)
   * User (via ``Telethon``)
 
-- ``API base (Bot)`` *api_base*
+- **API base (Bot)** *api_base* - Base URL for the Telegram Bot API. *Default:* ``https://api.telegram.org``
 
-  Base URL for the Telegram Bot API. *Default:* `https://api.telegram.org`
-
-- ``HTTP timeout (s)`` *http_timeout*
-
-  Timeout in seconds for HTTP requests. *Default:* `30`
+- **HTTP timeout (s)** *http_timeout* - Timeout in seconds for HTTP requests. *Default:* ``30``
 
 **Bot Options**
 
-- ``Bot token`` *bot_token*
+- **Bot token** *bot_token* - Token obtained from BotFather for authentication.
 
-  Token obtained from BotFather for authentication.
-
-- ``Default parse_mode`` *default_parse_mode*
-
-  Default parse mode for sending messages. *Default:* `HTML`
+- **Default parse_mode** *default_parse_mode* - Default parse mode for sending messages. *Default:* ``HTML``
 
   Available modes:
 
@@ -2865,111 +2143,62 @@ The plugin enables integration with Telegram for both bots and user accounts thr
   * Markdown
   * MarkdownV2
 
-- ``Disable link previews (default)`` *default_disable_preview*
+- **Disable link previews (default)** *default_disable_preview* - Disables Telegram link previews for outgoing messages unless overridden per call. *Default:* ``False``
 
-  Option to disable link previews by default. *Default:* `False`
+- **Disable notifications (default)** *default_disable_notification* - Sends Telegram messages silently by default unless overridden per call. *Default:* ``False``
 
-- ``Disable notifications (default)`` *default_disable_notification*
+- **Protect content (default)** *default_protect_content* - Enables Telegram content protection on outgoing messages by default. *Default:* ``False``
 
-  Option to disable message notifications by default. *Default:* `False`
-
-- ``Protect content (default)`` *default_protect_content*
-
-  Option to protect the content by default. *Default:* `False`
-
-- ``(auto) last update id`` *last_update_id*
-
-  Automatically stored ID after using tg_get_updates.
+- **(auto) last update id** *last_update_id* - Automatically stored ID after using tg_get_updates.
 
 **User Options (Telethon)**
 
-- ``API ID (user mode)`` *api_id*
+- **API ID (user mode)** *api_id* - ID required for user authentication. Get from: `https://my.telegram.org`
 
-  ID required for user authentication. Get from: `https://my.telegram.org`
+- **API Hash (user mode)** *api_hash* - Hash required for user authentication. Get from: `https://my.telegram.org`
 
-- ``API Hash (user mode)`` *api_hash*
+- **Phone number (+CC...)** *phone_number* - Phone number used to send login code in user mode.
 
-  Hash required for user authentication. Get from: `https://my.telegram.org`
+- **(optional) 2FA password** *password_2fa* - Password for two-step verification if enabled.
 
-- ``Phone number (+CC...)`` *phone_number*
+- **(auto) Session (StringSession)** *user_session* - Session string saved after successful login in user mode.
 
-  Phone number used to send login code in user mode.
+- **Auto-begin login when needed** *auto_login_begin* - Automatically send login code if authentication is needed and not available. *Default:* ``True``
 
-- ``(optional) 2FA password`` *password_2fa*
+**Tools**
 
-  Password for two-step verification if enabled.
+- ``tg_login_begin`` - Begin Telegram user login (sends code to phone).
 
-- ``(auto) Session (StringSession)`` *user_session*
+- ``tg_login_complete`` - Complete login with code and optional 2FA password.
 
-  Session string saved after successful login in user mode.
+- ``tg_logout`` - Log out and clear saved session.
 
-- ``Auto-begin login when needed`` *auto_login_begin*
+- ``tg_mode`` - Return current mode (bot|user).
 
-  Automatically send login code if authentication is needed and not available. *Default:* `True`
+- ``tg_me`` - Get authorized identity using Bot getMe or User get_me.
 
-**Commands**
+- ``tg_send_message`` - Send text message to chat/channel.
 
-- ``tg_login_begin``
+- ``tg_send_photo`` - Send photo to chat/channel.
 
-  Begin Telegram user login (sends code to phone).
+- ``tg_send_document`` - Send document/file to chat/channel.
 
-- ``tg_login_complete``
+- ``tg_get_chat`` - Get chat info by id or @username.
 
-  Complete login with code and optional 2FA password.
+- ``tg_get_updates`` - Poll updates in bot mode, automatically store last_update_id.
 
-- ``tg_logout``
+- ``tg_download_file`` - Download file by file_id in bot mode.
 
-  Log out and clear saved session.
+- ``tg_contacts_list`` - List contacts in user mode.
 
-- ``tg_mode``
+- ``tg_dialogs_list`` - List recent dialogs or chats in user mode.
 
-  Return current mode (bot|user).
-
-- ``tg_me``
-
-  Get authorized identity using Bot getMe or User get_me.
-
-- ``tg_send_message``
-
-  Send text message to chat/channel.
-
-- ``tg_send_photo``
-
-  Send photo to chat/channel.
-
-- ``tg_send_document``
-
-  Send document/file to chat/channel.
-
-- ``tg_get_chat``
-
-  Get chat info by id or @username.
-
-- ``tg_get_updates``
-
-  Poll updates in bot mode, automatically store last_update_id.
-
-- ``tg_download_file``
-
-  Download file by file_id in bot mode.
-
-- ``tg_contacts_list``
-
-  List contacts in user mode.
-
-- ``tg_dialogs_list``
-
-  List recent dialogs or chats in user mode.
-
-- ``tg_messages_get``
-
-  Get recent messages from a chat in user mode.
-
+- ``tg_messages_get`` - Get recent messages from a chat in user mode.
 
 Tuya (IoT)
 -----------
 
-The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless interactions with your smart devices via the Tuya Cloud API. This plugin provides a user-friendly interface to manage and control devices directly from your assistant.
+The Tuya (IoT) plugin lets the model list, inspect, search and control supported smart-home devices connected through Tuya Cloud.
 
 * Provide your Tuya Cloud credentials to enable communication.
 * Access and list all smart devices connected to your Tuya app account.
@@ -2981,108 +2210,67 @@ The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless in
 
 **Options**
 
-- ``API base`` *api_base*
+- **API base** *api_base* - Base URL for interacting with the Tuya API. *Default:* ``https://openapi.tuyaeu.com``
 
-  Base URL for interacting with the Tuya API. *Default:* `https://openapi.tuyaeu.com`
+- **HTTP timeout (s)** *http_timeout* - Requests timeout duration in seconds. *Default:* ``30``
 
-- ``HTTP timeout (s)`` *http_timeout*
-
-  Requests timeout duration in seconds. *Default:* `30`
-
-- ``Language`` *lang*
-
-  Language setting for API interactions. *Default:* `en`
+- **Language** *lang* - Language setting for API interactions. *Default:* ``en``
 
 **Credentials**
 
-- ``Tuya Client ID`` *tuya_client_id*
+- **Tuya Client ID** *tuya_client_id* - Client ID from the Tuya IoT Platform Cloud project. *Secret*
 
-  Client ID from the Tuya IoT Platform Cloud project. *Secret*
+- **Tuya Client Secret** *tuya_client_secret* - Client secret from the Tuya IoT Platform Cloud project. *Secret*
 
-- ``Tuya Client Secret`` *tuya_client_secret*
-
-  Client secret from the Tuya IoT Platform Cloud project. *Secret*
-
-- ``Tuya UID (App Account)`` *tuya_uid*
-
-  UID of the linked Tuya App account; required for listing devices.
+- **Tuya UID (App Account)** *tuya_uid* - UID of the linked Tuya App account; required for listing devices.
 
 **Automatically managed state**
 
 The following plugin fields are maintained by the Tuya integration and normally should not be edited manually:
 
-- ``(auto) Access token`` *tuya_access_token* - stored access token. *Secret*
-- ``(auto) Refresh token`` *tuya_refresh_token* - stored refresh token when provided. *Secret*
-- ``(auto) Expires in (s)`` *tuya_token_expires_in* - token lifetime in seconds.
-- ``(auto) Expire at (epoch s)`` *tuya_token_expire_at* - expiration timestamp. *Default:* ``0``
-- ``(auto) Cached devices`` *tuya_cached_devices* - cached device list used by name search. *Default:* ``[]``
+- **(auto) Access token** *tuya_access_token* - stored access token. *Secret*
+- **(auto) Refresh token** *tuya_refresh_token* - stored refresh token when provided. *Secret*
+- **(auto) Expires in (s)** *tuya_token_expires_in* - token lifetime in seconds.
+- **(auto) Expire at (epoch s)** *tuya_token_expire_at* - expiration timestamp. *Default:* ``0``
+- **(auto) Cached devices** *tuya_cached_devices* - cached device list used by name search. *Default:* ``[]``
 
-**Commands**
+**Tools**
 
-**Auth**
+*Auth*
 
-- ``tuya_set_keys``
+- ``tuya_set_keys`` - Input your Tuya Cloud credentials to enable device interactions.
 
-  Input your Tuya Cloud credentials to enable device interactions.
+- ``tuya_set_uid`` - Set your Tuya App Account UID for managing device listings.
 
-- ``tuya_set_uid``
+- ``tuya_token_get`` - Obtain an access token for authenticated API requests.
 
-  Set your Tuya App Account UID for managing device listings.
+*Devices*
 
-- ``tuya_token_get``
+- ``tuya_devices_list`` - List all devices associated with your account UID, with options to paginate results.
 
-  Obtain an access token for authenticated API requests.
+- ``tuya_device_get`` - Retrieve detailed information for a specified device.
 
-**Devices**
+- ``tuya_device_status`` - Check the current status and data point values of a device.
 
-- ``tuya_devices_list``
+- ``tuya_device_functions`` - Discover supported functions and data point codes for a specific device.
 
-  List all devices associated with your account UID, with options to paginate results.
+- ``tuya_find_device`` - Quickly locate devices using name-based searches from cached data.
 
-- ``tuya_device_get``
+*Control*
 
-  Retrieve detailed information for a specified device.
+- ``tuya_device_set`` - Set specific data point values for a device or use multiple settings at once.
 
-- ``tuya_device_status``
+- ``tuya_device_send`` - Send a list of raw commands directly to a device for execution.
 
-  Check the current status and data point values of a device.
+- ``tuya_device_on`` - Turn a device on with an optional switch code.
 
-- ``tuya_device_functions``
+- ``tuya_device_off`` - Switch a device off, with automatic code detection if needed.
 
-  Discover supported functions and data point codes for a specific device.
+- ``tuya_device_toggle`` - Toggle a device's on/off state.
 
-- ``tuya_find_device``
+*Sensors*
 
-  Quickly locate devices using name-based searches from cached data.
-
-**Control**
-
-- ``tuya_device_set``
-
-  Set specific data point values for a device or use multiple settings at once.
-
-- ``tuya_device_send``
-
-  Send a list of raw commands directly to a device for execution.
-
-- ``tuya_device_on``
-
-  Turn a device on with an optional switch code.
-
-- ``tuya_device_off``
-
-  Switch a device off, with automatic code detection if needed.
-
-- ``tuya_device_toggle``
-
-  Toggle a device's on/off state.
-
-**Sensors**
-
-- ``tuya_sensors_read``
-
-  Read normalized sensor values from your connected devices.
-
+- ``tuya_sensors_read`` - Read normalized sensor values from your connected devices.
 
 TwelveLabs
 ----------
@@ -3093,85 +2281,58 @@ Provide your API key in the plugin settings, or set the ``TWELVELABS_API_KEY`` e
 
 **Options**
 
-- ``API Key`` *api_key* - TwelveLabs API key; if empty, ``TWELVELABS_API_KEY`` is used.
-- ``Pegasus model`` *pegasus_model* - model used for video analysis. *Default:* ``pegasus1.5``
-- ``Marengo model`` *marengo_model* - model used for multimodal embeddings. *Default:* ``marengo3.0``
-- ``Max tokens`` *max_tokens* - default maximum output tokens for Pegasus analysis. *Default:* ``2048``
-- ``Temperature`` *temperature* - default Pegasus sampling temperature. *Default:* ``0.2``
-- ``Request timeout (s)`` *timeout* - TwelveLabs API request timeout. *Default:* ``300``
+- **API Key** *api_key* - TwelveLabs API key; if empty, ``TWELVELABS_API_KEY`` is used.
+- **Pegasus model** *pegasus_model* - model used for video analysis. *Default:* ``pegasus1.5``
+- **Marengo model** *marengo_model* - model used for multimodal embeddings. *Default:* ``marengo3.0``
+- **Max tokens** *max_tokens* - default maximum output tokens for Pegasus analysis. *Default:* ``2048``
+- **Temperature** *temperature* - default Pegasus sampling temperature. *Default:* ``0.2``
+- **Request timeout (s)** *timeout* - TwelveLabs API request timeout. *Default:* ``300``
 
-**Commands**
+**Tools**
 
-- ``tl_analyze_video``
+- ``tl_analyze_video`` - Analyze/understand a video with Pegasus and answer a prompt about it (summary, description, Q&A). Accepts either a public video ``url`` or an already-indexed ``video_id``.
 
-  Analyze/understand a video with Pegasus and answer a prompt about it (summary, description, Q&A). Accepts either a public video ``url`` or an already-indexed ``video_id``.
-
-- ``tl_embed_text``
-
-  Create a Marengo multimodal text embedding. The returned vector lives in the same space as Marengo video embeddings, which is useful for text-to-video search.
-
+- ``tl_embed_text`` - Create a Marengo multimodal text embedding. The returned vector lives in the same space as Marengo video embeddings, which is useful for text-to-video search.
 
 Vision (inline)
 ----------------
 
-The plugin adds image analysis to supported chat modes without relying on the deprecated standalone Vision mode. When an image attachment, screenshot, or camera capture is detected, the request is handled through Chat with the image-capable model configured in the plugin. This preserves the plugin's dedicated-model behavior while removing the dependency on the legacy Vision mode.
+Models with native image input can analyze images directly in Chat; **Vision (inline) is not needed for them**. Use this plugin only as a fallback when the selected chat model does not support vision. In that case, image attachments, screenshots and camera captures are routed through the separately configured image-capable Chat model.
 
-Camera capture is controlled from the main ``Audio / Video`` menu, under the **Video** section. ``Enable camera`` starts/stops the preview and ``Auto capture`` captures the current frame automatically for compatible vision turns. With auto capture disabled, click the live camera preview to take a snapshot manually.
-
-The plugin model list is filtered by capabilities (``Chat`` + image input), not by provider. Models from any supported provider can therefore be selected, including OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible endpoints, and other configured providers. Native Google, Anthropic, and xAI SDK routing is respected when enabled; otherwise the configured OpenAI-compatible Chat endpoint is used where applicable.
-
-.. tip::
-   The ``+ Vision`` label at the bottom of the Chat window is an availability indicator for inline image analysis. Image handling is automatic when compatible image content is supplied; there is no separate legacy Vision-mode switch to enable.
+Camera capture is controlled from the main ``Audio / Video`` menu under **Video**. The fallback model list is filtered by ``Chat`` + image-input capability and can use any supported provider.
 
 **Options**
 
-- ``Model`` *model*
+- **Model** *model* - The image-capable Chat model used temporarily for image analysis. The list is filtered by capability rather than provider. *Default:* ``gpt-4o``.
 
-The image-capable Chat model used temporarily for image analysis. The list is filtered by capability rather than provider. *Default:* ``gpt-4o``.
+- **Prompt** *prompt* - The prompt used for inline image analysis. It is appended to or replaces the current system prompt while the temporary image-capable model is used in Chat mode.
 
-- ``Prompt`` *prompt*
+- **Replace prompt** *replace_prompt* - Replace the whole system prompt with the image-analysis prompt instead of appending it to the current prompt. *Default:* ``False``
 
-The prompt used for inline image analysis. It is appended to or replaces the current system prompt while the temporary image-capable model is used in Chat mode.
+**Tools**
 
-- ``Replace prompt`` *replace_prompt*
-
-Replace the whole system prompt with the image-analysis prompt instead of appending it to the current prompt. *Default:* ``False``
-
-- ``Tool: capturing images from camera`` *cmd.camera_capture*
-
-Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The ``Tools`` switch must be enabled. *Default:* `False`
-
-- ``Tool: making screenshots`` *cmd.make_screenshot*
-
-Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The ``Tools`` switch must be enabled. *Default:* `False`
-
+- ``camera_capture`` - Capture an image from the configured camera. Disabled by default.
+- ``make_screenshot`` - Capture a screenshot for image analysis. Disabled by default.
 
 Voice control (inline)
 ----------------------
 
-The plugin provides voice control command execution within a conversation.
+The Voice control (inline) plugin recognizes spoken PyGPT actions while you are in a conversation. An optional magic prefix can be required before a spoken action is treated as a voice command.
 
 **Options**
 
-- ``Magic prefix for voice commands`` *cmd_prefix* - optional phrase required before an inline voice command is accepted. *Default:* ``Execute voice command``
+- **Magic prefix for voice commands** *cmd_prefix* - optional phrase required before an inline voice command is accepted. *Default:* ``Execute voice command``
 
 See the ``Accessibility`` section for more details.
-
 
 Web search
 -----------
 
-**PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
-
-To activate this feature, turn on the ``Web search`` plugin found in the ``Plugins`` menu.
-
-Web searches are provided by ``DuckDuckGo``, ``Google Custom Search Engine`` and ``Microsoft Bing`` APIs and can be extended with other search engine providers. 
+The Web search plugin gives the model live web search, page retrieval and crawling tools using DuckDuckGo, Google Custom Search or Microsoft Bing. Retrieved web content can also be passed into LlamaIndex-based workflows where supported.
 
 **Options**
 
-- `Provider` *provider*
-
-Choose the provider. *Default:* `Google`
+- **Provider** *provider* - Selects the search engine used by the web search tools. *Default:* ``Google``
 
 Available providers:
 
@@ -3183,10 +2344,10 @@ Available providers:
 
 DuckDuckGo does not require an API key. In source/PyPI installations it requires the ``duckduckgo-search`` or ``ddgs`` package.
 
-- ``Region (kl)`` *ddg_region* - regional search setting, e.g. ``us-en``, ``pl-pl``, or ``wt-wt``. *Default:* ``us-en``
-- ``SafeSearch`` *ddg_safesearch* - ``on``, ``moderate``, or ``off``. *Default:* ``off``
-- ``Time limit (df)`` *ddg_timelimit* - ``d``, ``w``, ``m``, ``y``, or empty for any time. *Default:* empty
-- ``Backend`` *ddg_backend* - ``auto``, ``html``, or ``lite``. *Default:* ``html``
+- **Region (kl)** *ddg_region* - regional search setting, e.g. ``us-en``, ``pl-pl``, or ``wt-wt``. *Default:* ``us-en``
+- **SafeSearch** *ddg_safesearch* - ``on``, ``moderate``, or ``off``. *Default:* ``off``
+- **Time limit (df)** *ddg_timelimit* - ``d``, ``w``, ``m``, ``y``, or empty for any time. *Default:* ``empty``
+- **Backend** *ddg_backend* - ``auto``, ``html``, or ``lite``. *Default:* ``html``
 
 **Google**
 
@@ -3208,134 +2369,72 @@ These data must be configured in the appropriate fields in the ``Plugins / Setti
 
 **Options**
 
-- ``Google Custom Search API KEY`` *google_api_key*
+- **Google Custom Search API KEY** *google_api_key* - You can obtain your own API key at https://developers.google.com/custom-search/v1/overview
 
-You can obtain your own API key at https://developers.google.com/custom-search/v1/overview
-
-- ``Google Custom Search CX ID`` *google_api_cx*
-
-You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all - remember to enable "Search on ALL internet pages" option in project settings.
+- **Google Custom Search CX ID** *google_api_cx* - You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all - remember to enable "Search on ALL internet pages" option in project settings.
 
 **Microsoft Bing**
 
-- ``Bing Search API KEY`` *bing_api_key*
+- **Bing Search API KEY** *bing_api_key* - You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
 
-You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
-
-- ``Bing Search API endpoint`` *bing_endpoint*
-
-API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/search
+- **Bing Search API endpoint** *bing_endpoint* - API endpoint for Bing Search API. *Default:* ``https://api.bing.microsoft.com/v7.0/search``
 
 **General options**
 
-- ``Number of pages to search`` *num_pages*
+- **Number of pages to search** *num_pages* - Maximum number of search results/pages requested per query. *Default:* ``10``
 
-Maximum number of search results/pages requested per query. *Default:* `10`
+- **Number of max URLs to open at once** *max_open_urls* - Maximum number of URLs that the plugin opens in one batch. *Default:* ``3``
 
-- ``Number of max URLs to open at once`` *max_open_urls*
+- **Max content characters** *max_page_content_length* - Max characters of page content to get (0 = unlimited). *Default:* ``0``
 
-Maximum number of URLs that the plugin opens in one batch. *Default:* ``3``
+- **Per-page content chunk size** *chunk_size* - Per-page content chunk size (max characters per chunk). *Default:* ``20000``
 
-- ``Max content characters`` *max_page_content_length*
+- **Disable SSL verify** *disable_ssl* - Controls TLS certificate verification while fetching web pages. Disable verification only when required by the target site. *Default:* ``True``
 
-Max characters of page content to get (0 = unlimited). *Default:* `0`
+- **Use raw content (without summarization)** *raw* - Return raw content from web search instead of summarized content. Provides more data but consumes more tokens. *Default:* ``True``
 
-- ``Per-page content chunk size`` *chunk_size*
+- **Show thumbnail images** *img_thumbnail* - Fetch thumbnail images from opened websites when available. *Default:* ``True``
 
-Per-page content chunk size (max characters per chunk). *Default:* `20000`
+- **Timeout** *timeout* - Maximum time to wait for the remote API connection before the request fails. *Default:* ``5``
 
-- ``Disable SSL verify`` *disable_ssl*
+- **User agent** *user_agent* - User agent to use when making requests. *Default:* ``Mozilla/5.0``.
 
-Disables SSL certificate verification when crawling web pages. *Default:* `True`
+- **Max result length** *max_result_length* - Max length of the summarized or raw result (characters). *Default:* ``50000``
 
-- ``Use raw content (without summarization)`` *raw*
-
-Return raw content from web search instead of summarized content. Provides more data but consumes more tokens. *Default:* `True`
-
-- ``Show thumbnail images`` *img_thumbnail*
-
-Fetch thumbnail images from opened websites when available. *Default:* ``True``
-
-- ``Timeout`` *timeout*
-
-Connection timeout (seconds). *Default:* `5`
-
-- ``User agent`` *user_agent*
-
-User agent to use when making requests. *Default:* `Mozilla/5.0`.
-
-- ``Max result length`` *max_result_length*
-
-Max length of the summarized or raw result (characters). *Default:* `50000`
-
-- ``Max summary tokens`` *summary_max_tokens*
-
-Max tokens in output when generating summary. *Default:* `1500`
-
-- ``Tool: web_search`` *cmd.web_search*
-
-Allows `web_search` command execution. If enabled, model will be able to search the Web. *Default:* `True`
-
-- ``Tool: web_url_open`` *cmd.web_url_open*
-
-Allows `web_url_open` command execution. If enabled, model will be able to open specified URL and summarize content. *Default:* `True`
-
-- ``Tool: web_url_raw`` *cmd.web_url_raw*
-
-Allows `web_url_raw` command execution. If enabled, model will be able to open specified URL and get the raw content. *Default:* `True`
-
-- ``Tool: web_request`` *cmd.web_request*
-
-Allows `web_request` command execution. If enabled, model will be able to send any HTTP request to specified URL or API endpoint. *Default:* `True`
-
-- ``Tool: web_extract_links`` *cmd.web_extract_links*
-
-Allows `web_extract_links` command execution. If enabled, model will be able to open URL and get list of all links from it. *Default:* `True`
-
-- ``Tool: web_extract_images`` *cmd.web_extract_images*
-
-Allows `web_extract_images` command execution. If enabled, model will be able to open URL and get list of all images from it.. *Default:* `True`
+- **Max summary tokens** *summary_max_tokens* - Maximum output-token budget for generated summaries. *Default:* ``1500``
 
 
 **Advanced**
 
-- ``Model used for web page summarize`` *summary_model*
+- **Model used for web page summarize** *summary_model* - Model used for web page summarize. *Default:* ``gpt-4o-mini``
 
-Model used for web page summarize. *Default:* `gpt-4o-mini`
+- **Summarize prompt** *prompt_summarize* - Prompt used for web search results summarize, use {query} as a placeholder for search query
 
-- ``Summarize prompt`` *prompt_summarize*
-
-Prompt used for web search results summarize, use {query} as a placeholder for search query
-
-- ``Summarize prompt (URL open)`` *prompt_summarize_url*
-
-Prompt used for specified URL page summarize
+- **Summarize prompt (URL open)** *prompt_summarize_url* - Prompt used for specified URL page summarize
 
 
 **Indexing**
 
-- ``Tool: web_index`` *cmd.web_index*
 
-Allows `web_index` command execution. If enabled, model will be able to index pages and external content using LlamaIndex (persistent index). *Default:* `True`
+- **Auto-index all used URLs using LlamaIndex** *auto_index* - If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* ``False``
 
-- ``Tool: web_index_query`` *cmd.web_index_query*
+- **Index to use** *idx* - ID of index to use for web page indexing (persistent index). *Default:* ``base``
 
-Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using LlamaIndex (in-memory index). *Default:* `True`
+**Tools**
 
-- ``Auto-index all used URLs using LlamaIndex`` *auto_index*
-
-If enabled, every URL used by the model will be automatically indexed using LlamaIndex (persistent index). *Default:* `False`
-
-- ``Index to use`` *idx*
-
-ID of index to use for web page indexing (persistent index). *Default:* `base`
-
---
+- ``web_search`` - Search the web with the selected search provider.
+- ``web_url_open`` - Open a URL and return summarized page content.
+- ``web_url_raw`` - Open a URL and return raw page content.
+- ``web_request`` - Send HTTP requests to a URL or API endpoint.
+- ``web_extract_links`` - Extract links from a web page.
+- ``web_extract_images`` - Extract image URLs from a web page.
+- ``web_index`` - Add web or external content to a persistent LlamaIndex index.
+- ``web_index_query`` - Build a temporary in-memory index for web content and query it with LlamaIndex.
 
 Wikipedia
 ----------
 
-The Wikipedia plugin allows for comprehensive interactions with Wikipedia, including language settings, article searching, summaries, and random article discovery. This plugin offers a variety of options to optimize your search experience.
+The Wikipedia plugin provides article search, summaries, full-page lookup, title suggestions, geographic discovery and random-page tools with configurable language handling.
 
 * Set your preferred language for Wikipedia queries.
 * Retrieve and check the current language setting.
@@ -3347,101 +2446,59 @@ The Wikipedia plugin allows for comprehensive interactions with Wikipedia, inclu
 
 **Options**
 
-- ``Language`` *lang*
+- **Language** *lang* - Default Wikipedia language. *Default:* ``en``
 
-  Default Wikipedia language. *Default:* `en`
+- **Auto Suggest** *auto_suggest* - Uses Wikipedia title suggestions when an exact page title is not found. *Default:* ``True``
 
-- ``Auto Suggest`` *auto_suggest*
+- **Follow Redirects** *redirect* - Follows Wikipedia redirects to the destination article automatically. *Default:* ``True``
 
-  Enable automatic suggestions for titles. *Default:* `True`
+- **Rate Limit** *rate_limit* - Enables request throttling to avoid sending Wikipedia API calls too quickly. *Default:* ``True``
 
-- ``Follow Redirects`` *redirect*
+- **User-Agent** *user_agent* - Custom User-Agent string for requests. *Default:* ``pygpt-net-wikipedia-plugin/1.0 (+https://pygpt.net)``
 
-  Enable following of page redirects. *Default:* `True`
+- **Summary Sentences** *summary_sentences* - Default number of sentences in summaries. *Default:* ``3``
 
-- ``Rate Limit`` *rate_limit*
+- **Default Results Limit** *results_default* - Number of results for searches. *Default:* ``10``
 
-  Control Wikipedia API request rate limiting. *Default:* `True`
+- **Content Maximum Characters** *content_max_chars* - Maximum characters for page content. *Default:* ``5000``
 
-- ``User-Agent`` *user_agent*
+- **Max List Items** *max_list_items* - Maximum items from article lists. *Default:* ``50``
 
-  Custom User-Agent string for requests. *Default:* `pygpt-net-wikipedia-plugin/1.0 (+https://pygpt.net)`
+- **Full Content by Default** *content_full_default* - Return full content by default. *Default:* ``False``
 
-- ``Summary Sentences`` *summary_sentences*
+**Tools**
 
-  Default number of sentences in summaries. *Default:* `3`
+*Language*
 
-- ``Default Results Limit`` *results_default*
+- ``wp_set_lang`` - Set the language for Wikipedia queries.
 
-  Number of results for searches. *Default:* `10`
+- ``wp_get_lang`` - Retrieve current language setting.
 
-- ``Content Maximum Characters`` *content_max_chars*
+- ``wp_languages`` - Get list of supported languages.
 
-  Maximum characters for page content. *Default:* `5000`
+*Search / Suggest*
 
-- ``Max List Items`` *max_list_items*
+- ``wp_search`` - Search for articles using keywords.
 
-  Maximum items from article lists. *Default:* `50`
+- ``wp_suggest`` - Get title suggestions for queries.
 
-- ``Full Content by Default`` *content_full_default*
+*Read*
 
-  Return full content by default. *Default:* `False`
+- ``wp_summary`` - Fetch a summary of a Wikipedia article.
 
-**Commands**
+- ``wp_page`` - Access full details of a Wikipedia article.
 
-**Language**
+- ``wp_section`` - Get content of a specific article section.
 
-- ``wp_set_lang``
+*Discover*
 
-  Set the language for Wikipedia queries.
+- ``wp_random`` - Discover random Wikipedia article titles.
 
-- ``wp_get_lang``
+- ``wp_geosearch`` - Find articles near specific coordinates.
 
-  Retrieve current language setting.
+*Utilities*
 
-- ``wp_languages``
-
-  Get list of supported languages.
-
-**Search / Suggest**
-
-- ``wp_search``
-
-  Search for articles using keywords.
-
-- ``wp_suggest``
-
-  Get title suggestions for queries.
-
-**Read**
-
-- ``wp_summary``
-
-  Fetch a summary of a Wikipedia article.
-
-- ``wp_page``
-
-  Access full details of a Wikipedia article.
-
-- ``wp_section``
-
-  Get content of a specific article section.
-
-**Discover**
-
-- ``wp_random``
-
-  Discover random Wikipedia article titles.
-
-- ``wp_geosearch``
-
-  Find articles near specific coordinates.
-
-**Utilities**
-
-- ``wp_open``
-
-  Open articles in a web browser by title or URL.
+- ``wp_open`` - Open articles in a web browser by title or URL.
 
 Wolfram Alpha
 -------------
@@ -3450,53 +2507,33 @@ Provides computational knowledge via Wolfram Alpha: short answers, full JSON pod
 
 **Options**
 
-- ``API base`` *api_base*
+- **API base** *api_base* - Base API URL. *Default:* ``https://api.wolframalpha.com``. Change only if you use a proxy/gateway.
 
-  Base API URL (default: ``https://api.wolframalpha.com``). Change only if you use a proxy/gateway.
+- **HTTP timeout (s)** *http_timeout* - Request timeout in seconds.
 
-- ``HTTP timeout (s)`` *http_timeout*
+- **Wolfram Alpha AppID** *wa_appid* - AppID used to authenticate requests. Stored as a secret. Get it from: https://developer.wolframalpha.com/portal/myapps/
 
-  Request timeout in seconds.
+- **Units** *units* - Preferred unit system for supported endpoints: ``metric`` or ``nonmetric``.
 
-- ``Wolfram Alpha AppID`` *wa_appid*
+- **Simple background** *simple_background* - Background for Simple API images: ``white`` or ``transparent``.
 
-  AppID used to authenticate requests. Stored as a secret. Get it from: https://developer.wolframalpha.com/portal/myapps/
+- **Simple layout** *simple_layout* - Layout for Simple API images, e.g., ``labelbar`` or ``inputonly``.
 
-- ``Units`` *units*
+- **Simple width** *simple_width* - Target width for Simple API images (pixels). Leave empty to use the service default.
 
-  Preferred unit system for supported endpoints: ``metric`` or ``nonmetric``.
+**Tools**
 
-- ``Simple background`` *simple_background*
-
-  Background for Simple API images: ``white`` or ``transparent``.
-
-- ``Simple layout`` *simple_layout*
-
-  Layout for Simple API images, e.g., ``labelbar`` or ``inputonly``.
-
-- ``Simple width`` *simple_width*
-
-  Target width for Simple API images (pixels). Leave empty to use the service default.
-
-**Tools (Commands)**
-
-- ``Tool: wa_short`` *cmd.wa_short*
-
-  Returns a concise text answer suitable for quick facts and simple numeric results.
+- ``wa_short`` - Return a concise text answer suitable for quick facts and simple numeric results.
 
   Parameters:
   - ``query`` (str, required) — natural-language or math input.
 
-- ``Tool: wa_spoken`` *cmd.wa_spoken*
-
-  Returns a one-sentence, spoken-style answer.
+- ``wa_spoken`` - Return a one-sentence, spoken-style answer.
 
   Parameters:
   - ``query`` (str, required)
 
-- ``Tool: wa_simple`` *cmd.wa_simple*
-
-  Renders a compact result image (PNG/GIF) via the Simple API and saves it to a file.
+- ``wa_simple`` - Render a compact result image (PNG/GIF) via the Simple API and save it to a file.
 
   Parameters:
   - ``query`` (str, required)
@@ -3505,9 +2542,7 @@ Provides computational knowledge via Wolfram Alpha: short answers, full JSON pod
   - ``layout`` (str, optional) — e.g., ``labelbar`` | ``inputonly``.
   - ``width`` (int, optional) — target image width (px).
 
-- ``Tool: wa_query`` *cmd.wa_query*
-
-  Runs a full query and returns pods as JSON (``queryresult.pods``). Can optionally download pod images.
+- ``wa_query`` - Run a full query and return pods as JSON (``queryresult.pods``). Can optionally download pod images.
 
   Parameters:
   - ``query`` (str, required)
@@ -3519,16 +2554,12 @@ Provides computational knowledge via Wolfram Alpha: short answers, full JSON pod
   - ``download_images`` (bool, optional) — if true, downloads pod images.
   - ``max_images`` (int, optional) — limit for downloaded images.
 
-- ``Tool: wa_calculate`` *cmd.wa_calculate*
-
-  Evaluates or simplifies an expression. Tries the short-answer endpoint first, then falls back to a full JSON query.
+- ``wa_calculate`` - Evaluate or simplify an expression. Tries the short-answer endpoint first, then falls back to a full JSON query.
 
   Parameters:
   - ``expr`` (str, required)
 
-- ``Tool: wa_solve`` *cmd.wa_solve*
-
-  Solves one equation or a system of equations over a chosen domain.
+- ``wa_solve`` - Solve one equation or a system of equations over a chosen domain.
 
   Parameters:
   - ``equation`` (str, optional) — single equation.
@@ -3537,9 +2568,7 @@ Provides computational knowledge via Wolfram Alpha: short answers, full JSON pod
   - ``variables`` (list[str], optional) — variables set.
   - ``domain`` (str, optional) — ``reals`` | ``integers`` | ``complexes``.
 
-- ``Tool: wa_derivative`` *cmd.wa_derivative*
-
-  Computes a derivative (with optional evaluation at a point).
+- ``wa_derivative`` - Compute a derivative (with optional evaluation at a point).
 
   Parameters:
   - ``expr`` (str, required)
@@ -3547,9 +2576,7 @@ Provides computational knowledge via Wolfram Alpha: short answers, full JSON pod
   - ``order`` (int, optional, default ``1``)
   - ``at`` (str, optional) — evaluation point, e.g., ``x=0``.
 
-- ``Tool: wa_integral`` *cmd.wa_integral*
-
-  Computes an indefinite or definite integral.
+- ``wa_integral`` - Compute an indefinite or definite integral.
 
   Parameters:
   - ``expr`` (str, required)
@@ -3557,26 +2584,20 @@ Provides computational knowledge via Wolfram Alpha: short answers, full JSON pod
   - ``a`` (str, optional) — lower bound (for definite integrals).
   - ``b`` (str, optional) — upper bound.
 
-- ``Tool: wa_units_convert`` *cmd.wa_units_convert*
-
-  Converts numeric values between units.
+- ``wa_units_convert`` - Convert numeric values between units.
 
   Parameters:
   - ``value`` (str, required) — numeric value.
   - ``from`` (str, required) — source unit.
   - ``to`` (str, required) — target unit.
 
-- ``Tool: wa_matrix`` *cmd.wa_matrix*
-
-  Performs matrix operations.
+- ``wa_matrix`` - Perform matrix operations.
 
   Parameters:
   - ``op`` (str, optional, default ``determinant``) — ``determinant`` | ``inverse`` | ``eigenvalues`` | ``rank``.
   - ``matrix`` (list[list], required) — e.g., ``[[1,2],[3,4]]``.
 
-- ``Tool: wa_plot`` *cmd.wa_plot*
-
-  Generates a function plot as an image via the Simple API and saves it to a file.
+- ``wa_plot`` - Generate a function plot as an image via the Simple API and save it to a file.
 
   Parameters:
   - ``func`` (str, required) — function, e.g., ``sin(x)``.
@@ -3588,7 +2609,7 @@ Provides computational knowledge via Wolfram Alpha: short answers, full JSON pod
 X/Twitter
 ----------
 
-The X/Twitter plugin integrates with the X platform, allowing for comprehensive interactions such as tweeting, retweeting, liking, media uploads, and more. This plugin requires OAuth2 authentication and offers various configuration options to manage API interactions effectively.
+The X/Twitter plugin exposes X tools for reading and searching posts, publishing, replying, quoting, likes, reposts, bookmarks and media uploads. Authentication uses OAuth2.
 
 * Retrieve user details by providing their username.
 * Fetch user information using their unique ID.
@@ -3611,209 +2632,117 @@ The X/Twitter plugin integrates with the X platform, allowing for comprehensive 
 
 **Options**
 
-- ``API base`` *api_base*
+- **API base** *api_base* - Base API URL. *Default:* ``https://api.x.com``
 
-  Base API URL. *Default:* `https://api.x.com`
+- **Authorize base** *authorize_base* - Base URL for OAuth authorization. *Default:* ``https://x.com``
 
-- ``Authorize base`` *authorize_base*
-
-  Base URL for OAuth authorization. *Default:* `https://x.com`
-
-- ``HTTP timeout (s)`` *http_timeout*
-
-  Requests timeout in seconds. *Default:* `30`
+- **HTTP timeout (s)** *http_timeout* - Requests timeout in seconds. *Default:* ``30``
 
 **OAuth2 PKCE**
 
-- ``OAuth2 Client ID`` *oauth2_client_id*
+- **OAuth2 Client ID** *oauth2_client_id* - Client ID from X Developer Portal. *Secret*
 
-  Client ID from X Developer Portal. *Secret*
+- **OAuth2 Client Secret (optional)** *oauth2_client_secret* - Only for confidential clients. *Secret*
 
-- ``OAuth2 Client Secret (optional)`` *oauth2_client_secret*
+- **Confidential client (use Basic auth)** *oauth2_confidential* - Enable if your App is confidential. *Default:* ``False``
 
-  Only for confidential clients. *Secret*
+- **Redirect URI** *oauth2_redirect_uri* - Must match one of the callback URLs in your X App. *Default:* ``http://127.0.0.1:8731/callback``
 
-- ``Confidential client (use Basic auth)`` *oauth2_confidential*
+- **Scopes** *oauth2_scopes* - OAuth2 scopes for Authorization Code with PKCE. *Default:* ``tweet.read users.read like.read like.write tweet.write bookmark.read bookmark.write tweet.moderate.write offline.access``
 
-  Enable if your App is confidential. *Default:* `False`
+- **(auto) code_verifier** *oauth2_code_verifier* - Generated by x_oauth_begin. *Secret*
 
-- ``Redirect URI`` *oauth2_redirect_uri*
+- **(auto) state** *oauth2_state* - Generated by x_oauth_begin. *Secret*
 
-  Must match one of the callback URLs in your X App. *Default:* `http://127.0.0.1:8731/callback`
+- **(auto) Access token** *oauth2_access_token* - Stored user access token. *Secret*
 
-- ``Scopes`` *oauth2_scopes*
+- **(auto) Refresh token** *oauth2_refresh_token* - Stored user refresh token. *Secret*
 
-  OAuth2 scopes for Authorization Code with PKCE. *Default:* `tweet.read users.read like.read like.write tweet.write bookmark.read bookmark.write tweet.moderate.write offline.access`
-
-- ``(auto) code_verifier`` *oauth2_code_verifier*
-
-  Generated by x_oauth_begin. *Secret*
-
-- ``(auto) state`` *oauth2_state*
-
-  Generated by x_oauth_begin. *Secret*
-
-- ``(auto) Access token`` *oauth2_access_token*
-
-  Stored user access token. *Secret*
-
-- ``(auto) Refresh token`` *oauth2_refresh_token*
-
-  Stored user refresh token. *Secret*
-
-- ``(auto) Expires at (unix)`` *oauth2_expires_at*
-
-  Auto-calculated expiry time.
+- **(auto) Expires at (unix)** *oauth2_expires_at* - Auto-calculated expiry time.
 
 **App-only Bearer (optional for read-only)**
 
-- ``App-only Bearer token (optional)`` *bearer_token*
-
-  Optional app-only bearer for read endpoints. *Secret*
+- **App-only Bearer token (optional)** *bearer_token* - Optional app-only bearer for read endpoints. *Secret*
 
 **Convenience cache**
 
-- ``(auto) User ID`` *user_id*
+- **(auto) User ID** *user_id* - Cached after x_me or oauth exchange.
 
-  Cached after x_me or oauth exchange.
+- **(auto) Username** *username* - Cached after x_me or oauth exchange.
 
-- ``(auto) Username`` *username*
+- **Auto-start OAuth when required** *oauth_auto_begin* - Start PKCE flow automatically if needed. *Default:* ``True``
 
-  Cached after x_me or oauth exchange.
+- **Open browser automatically** *oauth_open_browser* - Open authorize URL in default browser. *Default:* ``True``
 
-- ``Auto-start OAuth when required`` *oauth_auto_begin*
+- **Use local server for OAuth** *oauth_local_server* - Capture redirect using a local server. *Default:* ``True``
 
-  Start PKCE flow automatically if needed. *Default:* `True`
+- **OAuth local timeout (s)** *oauth_local_timeout* - Time to wait for redirect with code. *Default:* ``180``
 
-- ``Open browser automatically`` *oauth_open_browser*
+- **Success HTML** *oauth_success_html* - HTML displayed on local callback success.
 
-  Open authorize URL in default browser. *Default:* `True`
+- **Fail HTML** *oauth_fail_html* - HTML displayed on local callback error.
 
-- ``Use local server for OAuth`` *oauth_local_server*
+- **OAuth local port (0=auto)** *oauth_local_port* - Local HTTP port for callback. *Default:* ``8731``
 
-  Capture redirect using a local server. *Default:* `True`
+- **Allow fallback port if busy** *oauth_allow_port_fallback* - Use a free port if the preferred port is busy. *Default:* ``True``
 
-- ``OAuth local timeout (s)`` *oauth_local_timeout*
+**Tools**
 
-  Time to wait for redirect with code. *Default:* `180`
+*Auth*
 
-- ``Success HTML`` *oauth_success_html*
+- ``x_oauth_begin`` - Begin OAuth2 PKCE flow.
 
-  HTML displayed on local callback success.
+- ``x_oauth_exchange`` - Exchange authorization code for tokens.
 
-- ``Fail HTML`` *oauth_fail_html*
+- ``x_oauth_refresh`` - Refresh access token using refresh_token.
 
-  HTML displayed on local callback error.
+*Users*
 
-- ``OAuth local port (0=auto)`` *oauth_local_port*
+- ``x_me`` - Get authorized user information.
 
-  Local HTTP port for callback. *Default:* `8731`
+- ``x_user_by_username`` - Lookup user by username.
 
-- ``Allow fallback port if busy`` *oauth_allow_port_fallback*
+- ``x_user_by_id`` - Lookup user by ID.
 
-  Use a free port if the preferred port is busy. *Default:* `True`
+*Timelines / Search*
 
-**Commands**
+- ``x_user_tweets`` - Retrieve user Tweet timeline.
 
-**Auth**
+- ``x_search_recent`` - Perform recent search within the last 7 days.
 
-- ``x_oauth_begin``
+*Tweet CRUD*
 
-  Begin OAuth2 PKCE flow.
+- ``x_tweet_create`` - Create a new Tweet/Post.
 
-- ``x_oauth_exchange``
+- ``x_tweet_delete`` - Delete a Tweet by ID.
 
-  Exchange authorization code for tokens.
+- ``x_tweet_reply`` - Reply to a Tweet.
 
-- ``x_oauth_refresh``
+- ``x_tweet_quote`` - Quote a Tweet.
 
-  Refresh access token using refresh_token.
+*Actions*
 
-**Users**
+- ``x_like`` - Like a Tweet.
 
-- ``x_me``
+- ``x_unlike`` - Unlike a Tweet.
 
-  Get authorized user information.
+- ``x_retweet`` - Retweet a Tweet.
 
-- ``x_user_by_username``
+- ``x_unretweet`` - Undo a retweet.
 
-  Lookup user by username.
+- ``x_hide_reply`` - Hide or unhide a reply to your Tweet.
 
-- ``x_user_by_id``
+*Bookmarks*
 
-  Lookup user by ID.
+- ``x_bookmarks_list`` - List bookmarks.
 
-**Timelines / Search**
+- ``x_bookmark_add`` - Add a bookmark.
 
-- ``x_user_tweets``
+- ``x_bookmark_remove`` - Remove a bookmark.
 
-  Retrieve user Tweet timeline.
+*Media*
 
-- ``x_search_recent``
+- ``x_upload_media`` - Upload media and return media_id.
 
-  Perform recent search within the last 7 days.
-
-**Tweet CRUD**
-
-- ``x_tweet_create``
-
-  Create a new Tweet/Post.
-
-- ``x_tweet_delete``
-
-  Delete a Tweet by ID.
-
-- ``x_tweet_reply``
-
-  Reply to a Tweet.
-
-- ``x_tweet_quote``
-
-  Quote a Tweet.
-
-**Actions**
-
-- ``x_like``
-
-  Like a Tweet.
-
-- ``x_unlike``
-
-  Unlike a Tweet.
-
-- ``x_retweet``
-
-  Retweet a Tweet.
-
-- ``x_unretweet``
-
-  Undo a retweet.
-
-- ``x_hide_reply``
-
-  Hide or unhide a reply to your Tweet.
-
-**Bookmarks**
-
-- ``x_bookmarks_list``
-
-  List bookmarks.
-
-- ``x_bookmark_add``
-
-  Add a bookmark.
-
-- ``x_bookmark_remove``
-
-  Remove a bookmark.
-
-**Media**
-
-- ``x_upload_media``
-
-  Upload media and return media_id.
-
-- ``x_media_set_alt_text``
-
-  Attach alt text to uploaded media.
+- ``x_media_set_alt_text`` - Attach alt text to uploaded media.
 

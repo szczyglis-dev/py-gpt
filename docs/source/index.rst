@@ -26,6 +26,7 @@ Contents
    requirements
    quick_start
    modes
+   skills
    context
    attachments
    indexing
@@ -33,7 +34,6 @@ Contents
    profiles
    models
    plugins
-   skills
    connectors
    tools
    functions

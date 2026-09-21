@@ -4,9 +4,7 @@ Work modes
 Chat
 -----
 
-**+ Inline Vision and Image generation**
-
-In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``o1``, ``o3``, ``Claude``, ``Gemini``, ``Grok``, ``Perplexity (Sonar)``, ``DeepSeek``, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible APIs, including ``Responses API`` and ``ChatCompletions API`` compatible endpoints where supported.
+In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra``, ``GPT-5.6``, ``Claude``, ``Gemini``, ``Grok``, ``Sonar (Perplexity)``, ``DeepSeek``, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible ``ChatCompletions API`` endpoints where supported. Local ``Ollama`` models and models from other configured providers are also supported.
 
 
 .. note::
@@ -19,28 +17,26 @@ In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra``, ``GPT
    - Google GenAI SDK
    - xAI SDK
 
-Local ``Ollama`` models and models from other configured providers are also supported.
-
-**RAG:** At the bottom of the toolbox, use the ``RAG`` selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select ``---`` to use the normal Chat provider path. See :doc:`indexing` for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
-
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
-
-Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the ``Files and Attachments`` section for more information on how to use attachments.
 
 .. image:: images/v2_mode_chat.png
    :width: 800
 
-**Vision:** If the currently selected model cannot accept image input, enable the ``Vision (inline)`` plugin in the Plugins menu. When compatible image content is detected, PyGPT temporarily routes that turn through Chat using the image-capable model configured in the plugin. The plugin model is selected by capabilities rather than by provider, so supported OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible, and other configured models can be used.
+Above the message input, PyGPT shows an estimated token count for the text you type.
 
+**Attachments:** You can attach and upload files from the input area. See :doc:`Files and Attachments <attachments>` for supported formats and attachment modes.
 
-.. image:: images/v3_vision_plugins.png
-   :width: 400
+**RAG:** At the bottom of the toolbox, use the ``RAG`` selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select ``---`` to use the normal Chat provider path. See :doc:`indexing` for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
 
-With this plugin, you can capture an image with your camera or attach an image and send it for analysis. Camera controls are available from the main ``Audio / Video`` menu under the **Video** section. Use ``Enable camera`` to start the live preview. Enable ``Auto capture`` to automatically capture the current frame for compatible vision turns; with auto capture disabled, click the live camera preview to take a manual snapshot. Camera device, resolution, and JPEG quality are configured in ``Settings -> Vision and camera -> Camera``:
+.. image:: images/v2_mode_chat.png
+   :width: 800
+
+**Vision:** Models with native image input support vision directly in every Chat, without the ``Vision (inline)`` plugin. Enable ``Vision (inline)`` only when the selected model does not support image input; image turns are then routed through the separately configured image-capable Chat model.
+
+When vision is available, you can attach images or capture them with the camera for analysis. Camera controls are available from the main ``Audio / Video`` menu under the **Video** section. Use ``Enable camera`` to start the live preview. Enable ``Auto capture`` to use the current frame automatically for compatible vision turns; with auto capture disabled, click the live camera preview to take a snapshot. Camera device, resolution, and JPEG quality are configured in ``Settings -> Vision and camera -> Camera``:
 
 .. image:: images/v3_vision_chat.png
    :width: 800
-
 
 **Image generation:** If you want to generate images directly in chat, enable the ``Image generation (inline)`` plugin in the Plugins menu. The plugin allows you to generate images in Chat mode.
 
@@ -60,54 +56,46 @@ Agent modes
 ^^^^^^^^^^^
 
 **Chat**
-   The default mode. A primary agent communicates directly with the user, uses available tools, and can delegate selected tasks to background workers when useful. This is the general-purpose option for a normal agent conversation with multi-agent assistance available on demand.
+   The default mode. The primary agent responds directly and can delegate tasks to workers when useful.
 
 **Orchestrator**
-   A dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can execute concurrently. This mode is intended for structured, multi-stage tasks where explicit coordination and verification are useful. The Orchestrator runtime supports up to ``16`` workers by default. You can change this limit in ``Settings -> Agents and experts -> Chat with Agents -> Max workers (Chat / Orchestrator)``; set it to ``0`` for no worker limit.
+   Coordinates specialist workers for structured, multi-step tasks. The default limit is ``16`` workers; set **Max workers (Chat / Orchestrator)** to ``0`` for no limit.
 
 **Swarm**
-   The orchestrator launches a swarm containing the number of workers requested by the user. If the request does not specify the number of agents, the orchestrator chooses a small purposeful team (usually 2–4). An explicit user count takes precedence. Workers are numbered and prefixed in status output. At startup the orchestrator reports that it is launching the swarm and states its size, then periodically reports an aggregated status with the number of running agents and a summary of what they are doing. Swarm does not impose a worker-count limit.
+   Launches a group of workers and reports aggregate progress. If no worker count is requested, the orchestrator chooses a small team. Swarm has no built-in worker-count limit.
 
 .. warning::
-   **Use Swarm with care.** This mode has no built-in limit on the number of agents that can be created. Requesting a large swarm can cause unexpectedly high API usage, token consumption, local or remote resource usage, many concurrent tool operations, and other unexpected effects. Start with a reasonable number of agents and supervise workflows that can modify files, execute code or system commands, or perform external actions.
+   Large swarms can generate high API/token usage and many concurrent tool operations. Use a reasonable worker count, especially when tools can modify files or execute commands.
 
 Autonomous execution
 ^^^^^^^^^^^^^^^^^^^^
 
-All three workflows and their workers continue within the same run after intermediate text checkpoints. They inspect the task, use available tools, verify results and correct failures before finishing. For code changes, the default instructions require meaningful tests where needed, execution of appropriate checks, correction of failures and review of the final changes. Other tasks use verification appropriate to their domain. Simple conversational questions do not require artificial work.
+The selected workflow continues across intermediate checkpoints until it completes, needs user input, is stopped, or reaches a configured limit. Agents can use available tools, inspect results and verify work before returning the final response.
 
-Chat and workers call ``task_complete(outcome, evidence)`` before their final response. Outcomes are ``completed``, ``blocked`` and ``needs_input``; evidence describes actual verification or the precise blocker. Orchestrator and Swarm use ``workflow_finish`` with the same optional outcome/evidence fields. Successful completion still requires workers to be settled; a blocked workflow can cancel outstanding workers and return the required user decision. These tools record the agent's assessment, not an independent proof of correctness.
-
-Checkpoints preserve conversation memory and consume the existing iteration budget; they do not start a new run or reset limits. Stop cancels active work. Reaching an iteration limit is reported as potentially incomplete work, including for workers. Three identical consecutive text checkpoints without tool activity also stop the run as incomplete, preventing unchanged-answer loops even with unlimited iterations. Tool access remains controlled by the enabled plugins, provider capabilities and preset settings.
+Iteration limits apply to internal agent cycles rather than user conversation turns. Reaching a limit may return incomplete work; ``0`` disables the corresponding application-level limit.
 
 Swarm collaboration
 ^^^^^^^^^^^^^^^^^^^
 
-Swarm workers run concurrently and can communicate directly using ``swarm_peers``, ``swarm_send`` and ``swarm_receive``. Messages can target another worker, the orchestrator or all peers. Sender identity is bound by the runtime. Messages are delivered before the recipient's next model step; they do not interrupt an executing tool. A worker can also wait for a reply for up to 60 seconds. Mailboxes hold at most 64 messages per recipient, with a maximum of 16,000 characters per message; overflowing sends return an error rather than silently discarding evidence.
-
-Workers should share findings, request review and coordinate file ownership before editing shared files. Peer messages are evidence, not user instructions or authorization. Completed workers retain their memory and can be restarted by the orchestrator with ``agent_run`` for corrections; sending a message alone does not restart them. Local plugin calls retain the runtime's existing serialization where required, even while agents and provider calls run concurrently.
+Swarm workers can exchange messages, share findings and coordinate work while the workflow is running. Peer messages are treated as worker output, not as user instructions or authorization.
 
 Agent Workflows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Open ``Config -> Agent Workflows...`` to manage Chat with Agents workflows. The same editor can be opened with the settings icon in the Chat with Agents toolbox. The three built-in profiles -- **Chat**, **Orchestrator**, and **Swarm** -- are always shown first and cannot be deleted. Their names and runtime strategies stay fixed, but their complete main system prompt can be edited. When a built-in prompt override is empty, the system-prompt text area shows the current built-in default as its placeholder, so the effective default is visible without copying it into the override.
+Open ``Config -> Agent Workflows...`` or use the settings icon in the Chat with Agents toolbox. The built-in **Chat**, **Orchestrator**, and **Swarm** profiles cannot be deleted. Their prompts can be customized, while their runtime type remains fixed.
 
-The built-in prompt overrides remain stored under the same configuration keys used by earlier releases, so existing custom Chat/Orchestrator/Swarm prompts continue to work after upgrading. Leaving a built-in main prompt empty keeps its built-in default. Execution and verification instructions are included in each default prompt. The completion-tool contract is supplied by the runtime even for custom prompts.
+Use **New** to create a custom profile with a name, system prompt, and **Runtime**: **Primary agent**, **Orchestrator**, or **Swarm**. The selected runtime controls how the profile delegates work and which workflow tools are available.
 
-Use **New** to create a user-defined agent profile. Custom profiles are stored in ``config.json`` under ``agent.v2.custom_agents`` and are identified by UUID. Each custom profile has an editable name, one complete system prompt, and a **Runtime** setting. Runtime can be **Primary agent**, **Orchestrator**, or **Swarm**. The selected runtime controls the actual execution strategy and tool surface used when that custom workflow is run. Built-in profiles display the same Runtime row for clarity, but their runtime radios are disabled because those strategies are fixed.
+Custom profiles use only the prompt you provide. **From defaults** loads the built-in prompt for the selected runtime as a starting point. Older custom profiles without a runtime setting continue to use **Orchestrator**.
 
-The runtime-specific tool surfaces are the same as for the corresponding built-in workflow: **Primary agent** uses the normal enabled local/remote tools plus ``delegate_task`` and ``workflow_status``; **Orchestrator** exposes explicit worker lifecycle tools such as ``agent_create``, ``agent_update``, ``agent_run``, ``agent_status``, ``agent_list``, ``agent_wait``, ``agent_stop``, ``agent_remove``, ``workflow_status``, and ``workflow_finish``; **Swarm** extends the Orchestrator surface with ``swarm_start``, ``swarm_status``, ``swarm_send``, ``swarm_receive``, and ``swarm_peers``. Enabled plugin/provider tools, ``shared_context`` and ``query_index`` remain available where the selected runtime permits them.
-
-A custom profile has no implicit built-in main role prompt: if its system-prompt field is empty, PyGPT does not substitute Chat, Orchestrator or Swarm instructions. Use **From defaults** when you want a starting template; for a custom profile it loads the complete built-in default prompt matching the currently selected runtime. Older custom profiles created before the Runtime field existed remain backward compatible: if ``runtime`` is absent, PyGPT uses **Orchestrator**, matching the historical behavior. The editor also includes an in-place Help reference for the agent workflow tools and runtime context blocks such as ``%workdir%``, ``<runtime_capabilities>``, ``<runtime_environment>``, ``<additional_system_prompt>``, ``<additional_project_rules>``, ``<additional_context>``, ``<rag_access>``, ``<workflow_language>``, and ``<worker_identity>``.
-
-Runtime changes are kept in the editor draft together with the name and system prompt and are persisted when **Save** is used. Saving Agent Workflows immediately refreshes the workflow selector in the toolbox. Built-in profiles remain the first three entries; custom profiles follow them in their saved order. Selecting a custom profile stores its UUID in ``agent.v2.mode``; the runtime resolves that UUID to the profile and then uses the profile's saved ``runtime`` value to choose the execution strategy.
+The editor also includes a Help reference for workflow tools and runtime context placeholders.
 
 Agent Workflow monitor
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The built-in **Agent Workflow** tool provides a real-time view of an active Chat with Agents run. It groups the primary agent/orchestrator and worker agents into a readable tree and shows timestamped run events such as status updates, worker creation, task execution and tool calls. Tool rows can be expanded to inspect input/output, and each agent exposes a **Details** panel with the runtime metadata available for that agent, including prompts and task/input information.
 
-Open the monitor from ``Tools -> Agent Workflow`` or pin it as an output tab. It is included in the default second-column tab layout. When the first actual Chat with Agents run starts after the user sends input in a profile, PyGPT reveals the Agent Workflow tab and expands split-screen once. Merely selecting the mode does not trigger the introduction. A configuration flag records that it has already been shown, so later runs and mode changes do not modify the user's layout automatically.
+Open the monitor from ``Tools -> Agent Workflow`` or pin it as an output tab. It is included in the default second-column tab layout and is revealed automatically on the first actual Chat with Agents run.
 
 The monitor is runtime-only. Every new top-level agent run clears the previous view automatically, and **Clear view** can clear it manually. The tool does not replace persisted conversation history, the full-workflow rendering option, or Debug workflow logging.
 
@@ -185,16 +173,20 @@ Recommended use cases
 
 Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-stage work such as coding and file operations, research with independent verification, RAG-assisted tasks, implementation plus testing, or workflows that combine several tools. Use **Swarm** only when a task genuinely benefits from many parallel, independent workers and you intentionally want to choose the swarm size yourself.
 
+Agent Skills
+^^^^^^^^^^^^
+
+**Agent Skills** extend Chat with Agents with reusable ``SKILL.md`` instruction packages containing procedures, references, scripts and assets. Enabled skills are discovered from compact metadata and loaded only when needed. See :doc:`skills` for installation, supported formats, runtime behavior and security notes.
+
 Realtime + audio
 ----------------
-This mode works like Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and more natural voice communication.
+This mode provides native, low-latency voice conversations with **OpenAI Realtime**, **Google Gemini Live**, and **xAI Grok** real-time models. Audio is streamed directly between PyGPT and the selected provider without the regular audio input/output plugins.
 
 The audio toolbox provides two options for controlling voice turns:
 
 * **Auto (VAD)** - enables automatic voice activity detection. While you speak, microphone audio is streamed to the active real-time model/provider, which detects when speech starts and when you stop speaking. The turn is then committed automatically and the model can respond without requiring you to manually stop the recording.
 * **Loop** - automatically starts microphone recording again after the model finishes playing its audio response. This enables continuous back-and-forth voice conversation without having to click the microphone button before every next turn. When used together with **Auto (VAD)**, each new turn can start automatically and end automatically when you stop speaking.
 
-At this moment, OpenAI real-time models (via the Realtime API), Google Gemini real-time models (via the Live API), and xAI Grok real-time models are supported.
 
 Research
 --------
@@ -224,10 +216,8 @@ Generating images and videos is akin to a chat conversation  -  a user's prompt 
 .. image:: images/v3_img.png
    :width: 800
 
-Image generation using image models is also available in every mode via plugin ``Image generation (inline)``. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
 
-If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
-Plugin allows you to generate images in Chat mode:
+To generate images directly inside a chat, enable **Image generation (inline)** in the Plugins menu:
 
 .. image:: images/v3_img_chat.png
    :width: 800
@@ -265,9 +255,12 @@ Images are stored in the base-profile ``img`` directory by default. If ``Store i
 
 Computer use
 -------------
-This mode allows for autonomous computer control.
 
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. 
+.. warning::
+   **Computer use can give the model full control of your computer.** The model can move the mouse, type, click, open applications, read visible content, and perform actions with your user permissions. Use this mode only for tasks you trust and supervise sensitive operations.
+
+Computer use lets supported models operate the desktop or browser through mouse and keyboard actions.
+
 
 PyGPT uses the selected provider's native ``Computer use`` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in ``Mouse and keyboard`` integration.
 

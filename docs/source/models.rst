@@ -135,23 +135,21 @@ There is built-in support for those LLM providers:
 Custom providers (OpenAI-compatible)
 ------------------------------------
 
-PyGPT can create OpenAI Chat Completions-compatible model providers at runtime. No custom launcher or source-code registration is required. Open:
+Add OpenAI Chat Completions-compatible providers in:
 
 .. code-block:: ini
 
    Config -> Settings -> Custom providers
 
-Add one row per provider and configure:
+Configure one row per provider with:
 
-* ``Provider name`` - display name used in provider selectors.
-* ``API base URL`` - OpenAI-compatible API base URL, typically ending in ``/v1``.
-* ``API key`` - provider API key; it can be empty for endpoints that do not require authentication.
+* ``Provider name``
+* ``API base URL``
+* ``API key`` (optional when the endpoint does not require authentication)
 
-The list is persisted in ``config.json`` under ``api_custom_providers``. Saving Settings updates the LLM provider registry immediately, so the provider becomes available in the Models Editor, model-provider filters, and ``Config -> Models -> Import`` without restarting PyGPT. The importer requests the provider's standard OpenAI-compatible ``/models`` endpoint.
+After saving, the provider is available in the Models Editor and ``Config -> Models -> Import``. Normal Chat uses the OpenAI-compatible Chat Completions API; LlamaIndex-backed flows reuse the same provider endpoint and credentials automatically.
 
-In normal ``Chat`` mode, models assigned to a runtime custom provider are sent through the native OpenAI Python SDK using the Chat Completions API and the configured base URL/key. When Chat is routed through RAG and in other LlamaIndex-based flows, PyGPT creates the corresponding LlamaIndex ``OpenAILike`` instance and automatically reuses the same provider-level API base URL and API key. You do not need to duplicate them in LlamaIndex ``**kwargs`` or ``ENV``. Runtime custom providers do not use the OpenAI Responses API.
-
-After defining the provider, import its models from ``Config -> Models -> Import`` or create/edit a model manually and select the new provider. Per-model ``API base`` and ``API key`` values, if set in the Models Editor, override the provider-level values for that model.
+Per-model ``API base`` and ``API key`` values can override the provider defaults.
 
 Per-model API base and API key
 ------------------------------

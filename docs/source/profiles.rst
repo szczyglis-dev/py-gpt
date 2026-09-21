@@ -25,15 +25,7 @@ Use ``File -> Export profile...`` to create a portable ZIP archive of the curren
 * **Files** - the remaining persistent profile files and directories, including images, uploads, captures, indexes, history and other profile-owned working files outside ``data/``.
 * **Workdir data/** - only the profile's shared ``data/`` directory. This option is disabled by default; the other three sections are enabled by default.
 
-The dialog shows an approximate size next to each section, for example ``Database (30 MB)`` or ``Files (1.4 GB)``. Before exporting, PyGPT checks the available disk space with an additional safety margin. Export runs in a background worker and displays the same cancellable loader used for other long-running file operations. The default filename uses the form ``PyGPT_export_YYYY_MM__DD_hh_ii_ss.zip``.
+The dialog shows the approximate size of each section. Temporary files, caches, logs, and project-specific data workdirs outside the profile workdir are not included.
 
-Every archive contains ``export_meta.json`` with the PyGPT version, export time and the list of exported sections. Temporary files, caches, logs, the global ``profile.json`` registry and ``path.cfg`` are not included. Project-specific custom data workdirs located outside the profile workdir are also not included.
-
-Use ``File -> Import profile...`` to restore one of these ZIP archives into a **new** profile. PyGPT validates ``export_meta.json`` before importing. An archive exported by a newer PyGPT version is rejected until the application is updated to at least that version. Only sections present in the archive can be selected for import. The import dialog also requires a non-empty, unique profile name and proposes ``Imported (YYYY-MM-DD)`` by default.
-
-After clicking **Import profile**, select a workdir for the new profile. If the selected directory is not empty, PyGPT warns that all of its current contents will be replaced. Existing profile workdirs and unsafe overlapping locations cannot be selected. Disk space is checked again on the filesystem containing the selected destination.
-
-Import is performed in a background worker. Data is first extracted and validated in a staging directory next to the destination. The destination is replaced only during the final commit, which also allows the previous directory to be restored if the commit fails. Cancellation is available until this final commit begins. Sections that were not exported, were not selected, or contain missing startup files are initialized with fresh-profile defaults.
-
-When import finishes, PyGPT adds the new profile to the profile list and asks whether to switch to it immediately. Choosing **No** keeps the current profile active and only refreshes the profile list.
+Use ``File -> Import profile...`` to restore an exported ZIP as a **new** profile. Choose the available sections to import, provide a unique profile name, and select its workdir. Archives created by a newer PyGPT version require that version or later.
 

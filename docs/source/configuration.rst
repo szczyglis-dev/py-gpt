@@ -624,7 +624,7 @@ Chat with Agents
 
 * ``Worker max iterations``: Maximum number of iterations for each worker agent in any Chat with Agents mode. Set ``0`` for no application-level iteration limit. Default: ``24``.
 
-Main-agent prompt editing is no longer part of the Chat with Agents **Advanced** settings. Use ``Config -> Agent Workflows...`` (or the settings icon next to the toolbox ``Step by step`` switch) to edit the built-in Chat/Orchestrator/Swarm prompt overrides and to create user-defined agent workflows. Existing built-in prompt override keys remain compatible with older profiles. Custom agents are stored separately in ``config.json`` under ``agent.v2.custom_agents``; each custom row can store ``runtime`` as ``primary_agent``, ``orchestrator`` or ``swarm``. Rows created by older versions without ``runtime`` default to ``orchestrator``. See :doc:`modes` -> **Chat with Agents / Agent Workflows** for the editor, runtime selection, tool surfaces and prompt details.
+Use ``Config -> Agent Workflows...`` (or the settings icon in the Chat with Agents toolbox) to edit built-in Chat/Orchestrator/Swarm prompts and create custom workflows. Older custom profiles without a runtime setting continue to use **Orchestrator**. See :doc:`modes` -> **Chat with Agents / Agent Workflows** for details.
 
 An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling iteration limits can increase latency, token/API usage, and tool execution. The Chat/Orchestrator worker limit controls the number of workers created in those workflows; ``0`` removes that limit. Swarm is not constrained by this setting and uses its separately declared worker count.
 
@@ -732,7 +732,7 @@ Personalize
 Custom providers
 ~~~~~~~~~~~~~~~~
 
-* ``Custom providers``: A runtime list of model providers compatible with the OpenAI Chat Completions API. Each row contains ``Provider name``, ``API base URL``, and ``API key``. Entries are stored in ``config.json`` as ``api_custom_providers`` and are registered immediately after Settings are saved.
+* ``Custom providers``: OpenAI Chat Completions-compatible providers configured with a ``Provider name``, ``API base URL``, and optional ``API key``. They become available after Settings are saved.
 
   Custom providers appear in model provider selectors and in ``Config -> Models -> Import``. Normal Chat requests use the native OpenAI SDK against the configured base URL. When Chat is routed through RAG, PyGPT uses LlamaIndex ``OpenAILike``. The model importer reads the OpenAI-compatible ``/models`` endpoint.
 
