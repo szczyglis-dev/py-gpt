@@ -71,6 +71,15 @@ class ChatWebOutput(QWebEngineView):
 
         # self._profile = self._make_profile(self)
         self.setPage(CustomWebEnginePage(self.window, self, profile=None))
+
+        # Every ChatWebOutput owns a separate page.  Bind its JS console signal
+        # immediately so new tabs and renderer-recycled views are visible in
+        # Debug -> Logger as well, not only the page active during startup.
+        try:
+            self.window.controller.debug.connect_page_signals(self.page())
+        except (AttributeError, RuntimeError):
+            pass
+
         self._install_web_content_filters()
         try:
             self.page().profile().downloadRequested.connect(self._on_download_requested)

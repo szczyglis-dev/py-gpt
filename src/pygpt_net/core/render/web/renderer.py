@@ -2977,20 +2977,32 @@ class Renderer(BaseRenderer):
         """
         Evaluate arbitrary JS in the output node context.
 
+        ``QWebEnginePage.runJavaScript`` expects the callback as the third
+        argument (after ``worldId``).  Passing it as the second argument can be
+        interpreted as a world ID and fail before the script is evaluated.
+
+        Console output (console.log/warn/error/...) is delivered separately by
+        ``javaScriptConsoleMessage``.  The callback below therefore reports
+        only an actual expression result and skips JavaScript undefined/null
+        values represented by Qt as ``None``.
+
         :param script: JS code to run
         """
         current = self.window.core.ctx.get_current()
         meta = self.window.core.ctx.get_meta_by_id(current)
         node = self.get_output_node(meta)
         if node is None:
+            self.window.controller.debug.log("[JS] No active WebEngine output", window=True)
             return
+
         def callback(val):
-            self.window.core.debug.console.log(f"[JS] {val}")
-            print(f"[JS] {val}")
+            if val is not None:
+                self.window.controller.debug.log(f"[JS] {val}", window=True)
+
         try:
-            node.page().runJavaScript(script, callback)
-        except Exception:
-            pass
+            node.page().runJavaScript(script, 0, callback)
+        except Exception as e:
+            self.window.controller.debug.log(f"[JS] Error: {e}", window=True)
 
     # ------------------------- Helpers: build JSON blocks -------------------------
 

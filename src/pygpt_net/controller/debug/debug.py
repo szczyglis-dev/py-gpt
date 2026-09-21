@@ -160,11 +160,40 @@ class Debug(QObject):
         self.fixtures.setup()
 
     def connect_signals(self):
-        """Connect signals"""
-        # webengine debug signals
-        if self.window.controller.chat.render.get_engine() == "web":
-            signals = self.window.controller.chat.render.web_renderer.get_output_node().page().signals
+        """Connect debug signals for all existing WebEngine output pages."""
+        if self.window.controller.chat.render.get_engine() != "web":
+            return
+
+        # A chat can have more than one WebEngine page (split screen), and
+        # renderer recycling replaces pages at runtime.  Do not bind only the
+        # page that happened to be current during post-setup.
+        outputs = self.window.ui.nodes.get("output", {})
+        if isinstance(outputs, dict):
+            for node in outputs.values():
+                try:
+                    self.connect_page_signals(node.page())
+                except (AttributeError, RuntimeError):
+                    pass
+
+    def connect_page_signals(self, page):
+        """
+        Connect JavaScript console messages from a WebEngine page to logger.
+
+        The marker lives on the page-owned signals object, so recycled pages
+        get their own connection while repeated setup calls stay idempotent.
+
+        :param page: QWebEnginePage instance
+        """
+        if page is None:
+            return
+        signals = getattr(page, "signals", None)
+        if signals is None or getattr(signals, "_pygpt_debug_connected", False):
+            return
+        try:
             signals.js_message.connect(self.handle_js_message)
+            signals._pygpt_debug_connected = True
+        except (AttributeError, RuntimeError, TypeError):
+            pass
 
     @Slot(int, str, str)
     def handle_js_message(
