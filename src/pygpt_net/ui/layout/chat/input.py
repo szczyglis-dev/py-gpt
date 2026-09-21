@@ -570,6 +570,14 @@ class Input:
         nodes['chat.plugins'] = ChatStatusLabel("")
         nodes['chat.plugins'].setSizePolicy(min_policy)
 
+        nodes['chat.mcp'] = ChatStatusLabel("")
+        nodes['chat.mcp'].setSizePolicy(min_policy)
+        nodes['chat.mcp'].setContentsMargins(10, 0, 0, 0)
+
+        nodes['chat.skills'] = ChatStatusLabel("")
+        nodes['chat.skills'].setSizePolicy(min_policy)
+        nodes['chat.skills'].setContentsMargins(10, 0, 0, 0)
+
         nodes['input.counter'] = ChatStatusLabel("")
         nodes['input.counter'].setToolTip("")
         nodes['input.counter'].setWordWrap(False)
@@ -623,6 +631,8 @@ class Input:
         layout.addWidget(plugin_addon['schedule'], alignment=Qt.AlignVCenter)
         layout.addSpacing(4)
         layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
+        layout.addWidget(nodes['chat.mcp'], alignment=Qt.AlignVCenter)
+        layout.addWidget(nodes['chat.skills'], alignment=Qt.AlignVCenter)
         layout.addSpacing(self.VISION_ICON_LEFT_SPACING)
         layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)

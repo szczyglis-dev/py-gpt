@@ -494,6 +494,8 @@ class Plugins:
     def update_info(self):
         """Update enabled plugin/MCP/Skill counters below the chat input."""
         pm = self.window.core.plugins
+
+        # Plugins
         enabled_names = []
         plugin_count = 0
         for pid in pm.get_ids():
@@ -501,42 +503,73 @@ class Plugins:
                 plugin_count += 1
                 enabled_names.append(pm.get_name(pid))
 
-        counters = []
+        plugin_label = self.window.ui.nodes['chat.plugins']
         if plugin_count > 0:
             key = 'chatbox.plugins' if plugin_count == 1 else 'chatbox.plugins.plural'
-            counters.append(f"{plugin_count} {trans(key)}")
+            enabled_names.sort(key=str.casefold)
+            plugin_label.setText(f"{plugin_count} {trans(key)}")
+            plugin_label.setToolTip("\n".join(enabled_names))
+            plugin_label.setVisible(True)
+        else:
+            plugin_label.clear()
+            plugin_label.setToolTip("")
+            plugin_label.setVisible(False)
 
         # MCP count means active configured MCP servers. Keep it hidden when
         # the MCP plugin itself is disabled, even if server rows remain active
         # in its saved configuration.
+        mcp_label = self.window.ui.nodes.get('chat.mcp')
+        mcp_names = []
         if self.is_enabled("mcp"):
             try:
                 mcp = pm.get("mcp")
                 servers = mcp.get_option_value("servers") if mcp is not None else []
-                mcp_count = sum(
-                    1 for server in (servers or [])
-                    if isinstance(server, dict) and bool(server.get("active", False))
-                )
-                if mcp_count > 0:
-                    key = 'chatbox.mcp' if mcp_count == 1 else 'chatbox.mcp.plural'
-                    counters.append(f"{mcp_count} {trans(key)}")
+                for server in (servers or []):
+                    if not isinstance(server, dict) or not bool(server.get("active", False)):
+                        continue
+                    name = str(server.get("label") or server.get("server_address") or "").strip()
+                    if name:
+                        mcp_names.append(name)
             except Exception:
-                pass
+                mcp_names = []
+
+        if mcp_label is not None:
+            if mcp_names:
+                key = 'chatbox.mcp' if len(mcp_names) == 1 else 'chatbox.mcp.plural'
+                mcp_names.sort(key=str.casefold)
+                mcp_label.setText(f"{len(mcp_names)} {trans(key)}")
+                mcp_label.setToolTip("\n".join(mcp_names))
+                mcp_label.setVisible(True)
+            else:
+                mcp_label.clear()
+                mcp_label.setToolTip("")
+                mcp_label.setVisible(False)
 
         # Skills participate only in the Agents v2 / Chat with Agents runtime.
+        skills_label = self.window.ui.nodes.get('chat.skills')
+        skill_names = []
         if self.window.core.config.get("mode") == MODE_AGENT_V2:
             try:
-                skill_count = len(self.window.core.skills.list_installed(enabled_only=True))
-                if skill_count > 0:
-                    key = 'chatbox.skills' if skill_count == 1 else 'chatbox.skills.plural'
-                    counters.append(f"{skill_count} {trans(key)}")
+                for skill in self.window.core.skills.list_installed(enabled_only=True):
+                    if not isinstance(skill, dict):
+                        continue
+                    name = str(skill.get("name") or skill.get("dir_name") or "").strip()
+                    if name:
+                        skill_names.append(name)
             except Exception:
-                pass
+                skill_names = []
 
-        enabled_names.sort(key=str.casefold)
-        tooltip = "\n".join(enabled_names)
-        self.window.ui.nodes['chat.plugins'].setText("   ".join(counters))
-        self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
+        if skills_label is not None:
+            if skill_names:
+                key = 'chatbox.skills' if len(skill_names) == 1 else 'chatbox.skills.plural'
+                skill_names.sort(key=str.casefold)
+                skills_label.setText(f"{len(skill_names)} {trans(key)}")
+                skills_label.setToolTip("\n".join(skill_names))
+                skills_label.setVisible(True)
+            else:
+                skills_label.clear()
+                skills_label.setToolTip("")
+                skills_label.setVisible(False)
 
     def _apply_cmds_common(
             self,
