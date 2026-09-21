@@ -93,6 +93,26 @@ class ComputerRuntime:
         except Exception:
             return False
 
+    def _show_tool_status(self, tool_name: str) -> bool:
+        """Return whether provider Computer Use should emit a raw tool status.
+
+        This lightweight runtime is used outside Agents v2, where there is no
+        dedicated per-tool status timeline. Provider adapters share the Agents v2
+        Computer Use implementation and still expect this hook to exist, so keep
+        the contract compatible while suppressing the Agents-v2-specific status row.
+        """
+        return False
+
+    def record_token_usage(self, response: Any, actor_id: str = "orchestrator") -> bool:
+        """Compatibility hook for provider adapters used outside Agents v2.
+
+        Normal Chat/LlamaIndex usage accounting is handled by the surrounding
+        bridge/runtime. The provider Computer Use continuation adapter calls this
+        hook opportunistically, so a no-op implementation keeps the shared runtime
+        contract complete without double-counting tokens.
+        """
+        return False
+
     def emit_runtime_status(self, key: str, **kwargs) -> None:
         # Agents v2 has a dedicated partial/status renderer. Legacy/regular modes
         # do not, so keep this hook transient and diagnostic instead of persisting

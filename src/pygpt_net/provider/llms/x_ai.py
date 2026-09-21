@@ -178,7 +178,8 @@ class xAILLM(BaseLLM):
             window,
             model: ModelItem,
             stream: bool = False,
-            allow_remote_tools: bool = True
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Return xAI LLM for Agents v2.
 

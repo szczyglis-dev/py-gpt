@@ -237,7 +237,8 @@ class OllamaLLM(BaseLLM):
             window,
             model: ModelItem,
             stream: bool = False,
-            allow_remote_tools: bool = True
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Return native Ollama LLM for agent workflows."""
         return self._llama_native(window, model)

@@ -22,6 +22,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_CHAT,
     MODE_AGENT_V2,
+    MODE_COMPUTER,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -260,10 +261,11 @@ class OpenAILLM(BaseLLM):
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Use the shared provider continuation adapter when Computer Use is active."""
         tools = window.core.api.openai.remote_tools.append_to_tools(
-            mode=MODE_LLAMA_INDEX,
+            mode=MODE_COMPUTER if force_computer_use else MODE_LLAMA_INDEX,
             model=model,
             stream=stream,
             is_expert_call=False,
@@ -276,6 +278,7 @@ class OpenAILLM(BaseLLM):
                 model=model,
                 stream=stream,
                 allow_remote_tools=True,
+                force_computer_use=force_computer_use,
             )
             binder = getattr(llm, "bind_computer_runtime", None)
             if callable(binder):
@@ -288,7 +291,8 @@ class OpenAILLM(BaseLLM):
             window,
             model: ModelItem,
             stream: bool = False,
-            allow_remote_tools: bool = True
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """
         Return OpenAI LLM for Agents v2.
@@ -314,7 +318,7 @@ class OpenAILLM(BaseLLM):
                 window=window,
                 model=model,
                 stream=stream,
-                mode=MODE_AGENT_V2,
+                mode=MODE_COMPUTER if force_computer_use else MODE_AGENT_V2,
                 args=args,
             )
 

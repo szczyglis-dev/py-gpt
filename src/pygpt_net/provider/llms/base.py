@@ -310,6 +310,7 @@ class BaseLLM:
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Return a LlamaIndex LLM with the Chat with Files Computer Use bridge.
 
@@ -324,6 +325,7 @@ class BaseLLM:
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Return a LlamaIndex LLM bound to the shared Computer Use runtime.
 
@@ -337,6 +339,7 @@ class BaseLLM:
             model=model,
             stream=stream,
             computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
         )
 
     def llama_agent(
@@ -344,7 +347,8 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False,
-            allow_remote_tools: bool = True
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """
         Return LlamaIndex LLM instance for Agents v2.
@@ -357,6 +361,7 @@ class BaseLLM:
         :param model: model instance
         :param stream: stream mode
         :param allow_remote_tools: allow provider-native remote tools
+        :param force_computer_use: force provider-native Computer Use remote tool
         :return: provider instance
         """
         return self.llama(window=window, model=model, stream=stream)

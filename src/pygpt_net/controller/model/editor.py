@@ -58,6 +58,11 @@ class Editor:
                 "description": "model.mode.desc",
                 "use": "modes",
             },
+            "tool_calls": {
+                "type": "bool",
+                "label": "model.tool_calls",
+                "description": "model.tool_calls.desc",
+            },
             "default": {
                 "type": "bool",
                 "label": "model.default",
@@ -78,45 +83,33 @@ class Editor:
                 "label": "model.input",
                 "description": "model.input.desc",
                 "use": "multimodal",
-                "advanced": True,
             },
             "output": {
                 "type": "bool_list",  # list of comma separated values
                 "label": "model.output",
                 "description": "model.output.desc",
                 "use": "multimodal",
-                "advanced": True,
             },
             "ctx": {
                 "type": "int",
                 "label": "model.ctx",
                 "description": "model.ctx.desc",
-                "advanced": True,
             },
             "tokens": {
                 "type": "int",
                 "label": "model.tokens",
                 "description": "model.tokens.desc",
-                "advanced": True,
-            },
-            "tool_calls": {
-                "type": "bool",
-                "label": "model.tool_calls",
-                "description": "model.tool_calls.desc",
-                "advanced": True,
             },
             "custom_api_endpoint": {
                 "type": "text",
                 "label": "model.custom_api_endpoint",
                 "description": "model.custom_api_endpoint.desc",
-                "advanced": True,
             },
             "custom_api_key": {
                 "type": "text",
                 "label": "model.custom_api_key",
                 "description": "model.custom_api_key.desc",
                 "secret": True,
-                "advanced": True,
             },
             "llama_index.args": {
                 "type": "dict",
@@ -146,7 +139,6 @@ class Editor:
                 "type": "textarea",
                 "label": "model.extra",
                 "description": "model.extra.desc",
-                "advanced": True,
             },
         }
         self.custom_fields = ["extra_json"]

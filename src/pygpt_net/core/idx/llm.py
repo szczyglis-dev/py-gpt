@@ -50,6 +50,7 @@ class Llm:
             multimodal: bool = False,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> Union[BaseLLM, MultiModalLLM]:
         """
         Get LLM provider
@@ -58,6 +59,7 @@ class Llm:
         :param multimodal: Allow multi-modal flag (True to get multimodal provider if available)
         :param stream: Stream mode (True to enable streaming)
         :param computer_runtime: Shared provider-native Computer Use runtime adapter
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: Llama LLM instance
         """
         # TMP: deprecation warning fix
@@ -94,6 +96,7 @@ class Llm:
                         model=model,
                         stream=stream,
                         computer_runtime=runtime,
+                        force_computer_use=force_computer_use,
                     )
                 else:
                     llm = llm_provider.llama(
@@ -155,6 +158,7 @@ class Llm:
             stream: bool = False,
             allow_remote_tools: bool = True,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> BaseLLM:
         """
         Get a LlamaIndex LLM configured for agent workflows.
@@ -167,6 +171,7 @@ class Llm:
         :param stream: Stream mode
         :param allow_remote_tools: Allow provider-native remote tools
         :param computer_runtime: Optional shared Computer Use runtime to bind
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: LlamaIndex LLM instance
         """
         if not self.initialized:
@@ -191,6 +196,7 @@ class Llm:
                     model=model,
                     stream=stream,
                     allow_remote_tools=allow_remote_tools,
+                    force_computer_use=force_computer_use,
                 )
             elif self.window.core.llm.is_custom_provider(provider):
                 raise RuntimeError(f"Custom provider is not configured: {provider}")
@@ -286,6 +292,7 @@ class Llm:
             stream: bool = False,
             auto_embed: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ):
         """
         Get service context + embeddings provider
@@ -294,9 +301,15 @@ class Llm:
         :param stream: Stream mode (True to enable streaming)
         :param auto_embed: Auto-detect embeddings provider based on model capabilities
         :param computer_runtime: Shared provider-native Computer Use runtime adapter
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: Service context instance
         """
-        llm = self.get(model=model, stream=stream, computer_runtime=computer_runtime)
+        llm = self.get(
+            model=model,
+            stream=stream,
+            computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
+        )
         if not auto_embed:
             embed_model = self.get_embeddings_provider()
         else:

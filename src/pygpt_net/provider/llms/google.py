@@ -155,15 +155,22 @@ class GoogleLLM(BaseLLM):
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Use the shared provider continuation adapter when Computer Use is active."""
         remote = window.core.api.google.remote_tools
-        if remote.is_computer_use_enabled(model):
+        computer_enabled = (
+            remote.supports_computer_use(model)
+            if force_computer_use
+            else remote.is_computer_use_enabled(model)
+        )
+        if computer_enabled:
             llm = self.llama_agent(
                 window=window,
                 model=model,
                 stream=stream,
                 allow_remote_tools=True,
+                force_computer_use=force_computer_use,
             )
             binder = getattr(llm, "bind_computer_runtime", None)
             if callable(binder):
@@ -176,7 +183,8 @@ class GoogleLLM(BaseLLM):
             window,
             model: ModelItem,
             stream: bool = False,
-            allow_remote_tools: bool = True
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Return Google GenAI configured for Agents v2.
 
@@ -206,7 +214,13 @@ class GoogleLLM(BaseLLM):
         self._append_reasoning_effort(window, model, args)
 
         remote = []
-        if allow_remote_tools:
+        if force_computer_use:
+            try:
+                if window.core.api.google.remote_tools.supports_computer_use(model):
+                    remote = [window.core.api.google.computer.get_tool()]
+            except Exception as e:
+                window.core.debug.log(e)
+        elif allow_remote_tools:
             try:
                 remote = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
             except Exception as e:

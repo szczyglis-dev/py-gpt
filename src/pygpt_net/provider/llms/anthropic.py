@@ -274,10 +274,14 @@ class AnthropicLLM(BaseLLM):
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Use the shared provider continuation adapter when Computer Use is active."""
         try:
-            remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
+            if force_computer_use and window.core.api.anthropic.computer.supports_model(model):
+                remote_tools = [window.core.api.anthropic.computer.get_tool(model=model)]
+            else:
+                remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
         except Exception as exc:
             window.core.debug.log(exc)
             remote_tools = []
@@ -295,6 +299,7 @@ class AnthropicLLM(BaseLLM):
                 model=model,
                 stream=stream,
                 allow_remote_tools=True,
+                force_computer_use=force_computer_use,
             )
             binder = getattr(llm, "bind_computer_runtime", None)
             if callable(binder):
@@ -307,7 +312,8 @@ class AnthropicLLM(BaseLLM):
             window,
             model: ModelItem,
             stream: bool = False,
-            allow_remote_tools: bool = True
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
     ) -> LlamaBaseLLM:
         """Return Anthropic configured for Agents v2.
 
@@ -334,7 +340,14 @@ class AnthropicLLM(BaseLLM):
             )
 
         built_remote_tools = []
-        if allow_remote_tools:
+        if force_computer_use:
+            try:
+                if window.core.api.anthropic.computer.supports_model(model):
+                    built_remote_tools = [window.core.api.anthropic.computer.get_tool(model=model)]
+            except Exception as e:
+                window.core.debug.log(e)
+                built_remote_tools = []
+        elif allow_remote_tools:
             try:
                 built_remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
             except Exception as e:
@@ -342,20 +355,25 @@ class AnthropicLLM(BaseLLM):
                 built_remote_tools = []
 
         if built_remote_tools:
-            existing = args.get("tools") or []
-            if not isinstance(existing, list):
-                existing = []
+            if force_computer_use:
+                # Dedicated Computer Use mirrors native MODE_COMPUTER behavior:
+                # keep the provider Computer tool exclusive.
+                args["tools"] = built_remote_tools
+            else:
+                existing = args.get("tools") or []
+                if not isinstance(existing, list):
+                    existing = []
 
-            def _key(tool: dict) -> str:
-                return f"{tool.get('type')}::{tool.get('name')}"
+                def _key(tool: dict) -> str:
+                    return f"{tool.get('type')}::{tool.get('name')}"
 
-            index = {_key(tool) for tool in existing if isinstance(tool, dict)}
-            for tool in built_remote_tools:
-                key = _key(tool) if isinstance(tool, dict) else None
-                if key and key not in index:
-                    existing.append(tool)
-                    index.add(key)
-            args["tools"] = existing
+                index = {_key(tool) for tool in existing if isinstance(tool, dict)}
+                for tool in built_remote_tools:
+                    key = _key(tool) if isinstance(tool, dict) else None
+                    if key and key not in index:
+                        existing.append(tool)
+                        index.add(key)
+                args["tools"] = existing
 
         self._merge_anthropic_beta_header(
             args,

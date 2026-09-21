@@ -23,6 +23,7 @@ from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
+    MODE_COMPUTER,
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
 )
@@ -285,6 +286,12 @@ class Chat:
         # Chat with Files is synchronous LlamaIndex code, so bind a tiny runtime
         # adapter that reuses the same provider adapters/executor as Agents v2.
         computer_runtime = ComputerRuntime(self.window, context)
+        force_computer_use = context.parent_mode == MODE_COMPUTER
+
+        # When Computer Use is routed through RAG/LlamaIndex, the visible mode
+        # is still Computer Use even though the bridge runtime is llama_index.
+        # Force the provider-native Computer Use remote tool in that case so the
+        # RAG backend keeps the same computer-control capability as native mode.
 
         # retrieve additional context from index if tools enabled
         additional_ctx = None
@@ -324,12 +331,14 @@ class Chat:
                 model,
                 stream=stream,
                 computer_runtime=computer_runtime,
+                force_computer_use=force_computer_use,
             )
         else:
             llm = self.window.core.idx.llm.get(
                 model,
                 stream=stream,
                 computer_runtime=computer_runtime,
+                force_computer_use=force_computer_use,
             )
 
         # TODO: if multimodal support, try to get multimodal provider
@@ -1013,6 +1022,7 @@ class Chat:
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ):
         """
         Get index instance
@@ -1020,7 +1030,8 @@ class Chat:
         :param idx: idx name (id)
         :param model: model instance
         :param stream: stream mode
-        :param computer_runtime: optional Chat with Files Computer Use runtime
+        :param computer_runtime: optional shared Computer Use runtime
+        :param force_computer_use: force provider-native Computer Use remote tool
         """
         requested_idx = idx
         idx = self.window.core.idx.resolve_idx(idx)
@@ -1030,6 +1041,7 @@ class Chat:
                 model=model,
                 stream=stream,
                 computer_runtime=computer_runtime,
+                force_computer_use=force_computer_use,
             )
             return self.storage.index_from_empty(embed_model), llm
         if not self.storage.exists(idx):
@@ -1039,6 +1051,7 @@ class Chat:
                     model=model,
                     stream=stream,
                     computer_runtime=computer_runtime,
+                    force_computer_use=force_computer_use,
                 )
                 index = self.storage.index_from_empty(embed_model)
                 return index, llm
@@ -1048,6 +1061,7 @@ class Chat:
             model=model,
             stream=stream,
             computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
         )
         index = self.storage.get(idx, llm, embed_model)  # get index
         if self.window.core.idx.project.is_virtual(requested_idx):

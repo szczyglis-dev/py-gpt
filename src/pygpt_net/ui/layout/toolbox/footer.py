@@ -72,10 +72,10 @@ class Footer:
             self.raw.setup(),
             self.image.setup(),
             self.video.setup(),
-            self.indexes.setup_options(),
             self.env.setup(),
             self.window.ui.nodes['voice.control.btn'],
             self.audio.setup(),
+            self.indexes.setup_options(),
             self.split.setup(),
         ]
 
