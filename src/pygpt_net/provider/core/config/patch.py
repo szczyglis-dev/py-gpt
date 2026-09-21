@@ -1249,6 +1249,12 @@ class Patch:
             if old < parse_version("2.8.28"):
                 print("Migrating config from < 2.8.28...")
 
+                # RAG/LlamaIndex sources are hidden by default from 2.8.28.
+                # Apply the new default to existing profiles as well.
+                if data.get("ctx.sources") is not False:
+                    data["ctx.sources"] = False
+                    updated = True
+
                 # Dynamic Autonomous continuation uses a hidden judge request to
                 # generate the next-pass instruction. It is enabled by default,
                 # with a bounded response tail, and the judge system prompt is

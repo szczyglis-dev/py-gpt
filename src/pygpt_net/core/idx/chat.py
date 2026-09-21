@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 21:40:00                  #
+# Updated Date: 2026.09.22 00:50:00                  #
 # ================================================== #
 
 import json
@@ -15,7 +15,7 @@ from typing import Optional, Dict, Any, List
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
-from llama_index.core.tools import QueryEngineTool
+from llama_index.core.tools import BaseTool, QueryEngineTool
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -34,6 +34,7 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
 from .context import Context
+from .rag_context import RAGContextPreparer
 from .response import Response
 
 class Chat:
@@ -54,6 +55,10 @@ class Chat:
         self.storage = storage
         self.context = Context(window)
         self.response = Response(window)
+        self.rag_context = RAGContextPreparer(
+            top_k=self.RETRIEVAL_TOP_K,
+            logger=self.log,
+        )
         self.prev_message = None  # previous message, used in chat mode
 
     def call(
@@ -293,19 +298,10 @@ class Chat:
         # Force the provider-native Computer Use remote tool in that case so the
         # RAG backend keeps the same computer-control capability as native mode.
 
-        # retrieve additional context from index if tools enabled
-        additional_ctx = None
-        if self.window.core.config.get("llama.idx.chat.auto_retrieve", False):
-            if use_index and cmd_enabled and not ctx.internal:
-                response = self.query_retrieval(
-                    query=query,
-                    idx=idx,
-                    model=model,
-                )
-                if response:
-                    additional_ctx = response
-            if additional_ctx is not None:
-                system_prompt += "\n\n# Additional context:\n\n" + additional_ctx  # append additional context
+        # Direct RAG prefetch for native tool calls is handled later, after the
+        # index, LLM, chat history and tool schemas are available. This lets the
+        # same RAGContextPreparer account for the real final-request token budget.
+        auto_retrieve = self.window.core.config.get("llama.idx.chat.auto_retrieve", False)
 
         # -- log ---
         self.log("Chat with index...")
@@ -319,7 +315,7 @@ class Chat:
             f"use index: {use_index}, "
             f"cmd enabled: {cmd_enabled}, "
             f"num_attachments: {len(context.attachments) if context.attachments else 0}, "
-            f"additional ctx: {additional_ctx}, "
+            f"auto retrieve: {auto_retrieve}, "
             f"query: {query}"
         )
 
@@ -340,34 +336,6 @@ class Chat:
                 computer_runtime=computer_runtime,
                 force_computer_use=force_computer_use,
             )
-
-        # LlamaIndex chat engines own a separate background consumer for their
-        # streaming response.  That works for chat-engine history, but it also
-        # means the provider stream can be consumed into LlamaIndex's queue before
-        # PyGPT's StreamWorker starts reading it.  The result is a buffered/burst
-        # response (visually indistinguishable from non-streaming) specifically on
-        # the RAG + tools-disabled path.
-        #
-        # For a real UI stream, retrieve the RAG context here and then use the
-        # normal direct LLM streaming path below.  This is also the same strategy
-        # already used when native tools are enabled: retrieval remains
-        # synchronous, while generation is streamed directly by the provider.
-        # Keep ``simple`` as the explicit no-query-engine mode.
-        if use_index and stream and not cmd_enabled:
-            stream_nodes = []
-            if chat_mode != "simple":
-                stream_nodes = self._retrieve_nodes(index, query)
-                additional_ctx = self._format_retrieved_nodes(stream_nodes)
-                if additional_ctx:
-                    system_prompt += "\n\n# Additional context:\n\n" + additional_ctx
-                if stream_nodes:
-                    ctx.add_doc_meta(self.get_metadata(stream_nodes))
-
-            self.log(
-                f"Direct RAG stream: nodes={len(stream_nodes)}, "
-                f"chat_mode={chat_mode}"
-            )
-            use_index = False
 
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
@@ -419,6 +387,56 @@ class Chat:
                         "a multimodal user message."
                     )
 
+        # Prepare the real tool set before RAG packing so PromptHelper can reserve
+        # space for native tool schemas in the final request. ReAct keeps the
+        # native LlamaIndex QueryEngineTool path inside call_agent().
+        tools = self.window.core.agents.tools.prepare(context, extra, force=True)
+
+        # LlamaIndex 0.14.22+ can buffer Context/CompactAndRefine streaming before
+        # PyGPT's StreamWorker consumes it. Use one shared pre-answer RAG pipeline
+        # for direct provider calls:
+        #   * tools OFF + stream: always prepare context before llm.stream_chat();
+        #   * native tools + auto-retrieve: prepare the same context before
+        #     llm.[stream_]chat_with_tools().
+        # ReAct is intentionally excluded here: its RAG path remains fully
+        # handled by LlamaIndex through QueryEngineTool/as_query_engine().
+        direct_rag = bool(
+            use_index
+            and (
+                (stream and not cmd_enabled)
+                or (
+                    cmd_enabled
+                    and not use_react
+                    and auto_retrieve
+                    and not ctx.internal
+                )
+            )
+        )
+        if direct_rag:
+            prepared_rag = self.prepare_rag_context(
+                index=index,
+                llm=llm,
+                query=query,
+                history=history,
+                chat_mode=chat_mode,
+                system_prompt=system_prompt,
+                model=model,
+                tools=tools if cmd_enabled else None,
+            )
+            if prepared_rag.has_context:
+                system_prompt += "\n\n" + prepared_rag.context
+            if prepared_rag.nodes:
+                ctx.add_doc_meta(self.get_metadata(prepared_rag.nodes))
+
+            self.log(
+                f"Direct RAG context prepared: nodes={len(prepared_rag.nodes)}, "
+                f"chat_mode={chat_mode}, condensed={prepared_rag.condensed}, "
+                f"retrieval_query={prepared_rag.retrieval_query}, "
+                f"tools={cmd_enabled}"
+            )
+            # Final generation now belongs to the normal provider path.
+            use_index = False
+
         self.prev_message = None  # reset previous message
         memory = self.get_memory_buffer(history, llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
@@ -427,7 +445,6 @@ class Chat:
             model.id,
         )
         ctx.input_tokens = input_tokens
-        tools = self.window.core.agents.tools.prepare(context, extra, force=True)  # prepare tools for agent
 
         if use_index:
             # 1) if tools enabled use agent engine
@@ -545,7 +562,7 @@ class Chat:
                             response = llm.chat(**request_kwargs)
             else:
                 # NO TOOLS + DIRECT LLM. If RAG is active in streaming mode,
-                # retrieved context was already appended to the system prompt.
+                # the prepared RAG context was already appended to the system prompt.
                 history.insert(0, self.context.add_system(system_prompt))
                 history.append(self.context.add_user(
                     query,
@@ -611,11 +628,50 @@ class Chat:
 
         return False
 
+    def prepare_rag_context(
+            self,
+            index,
+            llm,
+            query: str,
+            history: Optional[List[ChatMessage]],
+            chat_mode: str,
+            system_prompt: str,
+            model: ModelItem,
+            tools: Optional[List[BaseTool]] = None,
+    ):
+        """Prepare selected-index evidence for a direct model/tool request.
+
+        This is the shared integration point used by streaming RAG without tools
+        and native tool-call auto-retrieval. ReAct intentionally keeps the native
+        LlamaIndex QueryEngineTool/as_query_engine path.
+        """
+        context_window_limit = self.window.core.config.get("max_total_tokens")
+        if not isinstance(context_window_limit, int):
+            context_window_limit = 0
+
+        model_context_window = self.window.core.models.get_num_ctx(model.id)
+        if model_context_window > 0 and (
+                context_window_limit <= 0
+                or model_context_window < context_window_limit
+        ):
+            context_window_limit = model_context_window
+
+        return self.rag_context.prepare(
+            index=index,
+            llm=llm,
+            query=query,
+            history=history or [],
+            chat_mode=chat_mode,
+            system_prompt=system_prompt,
+            tools=tools,
+            context_window_limit=context_window_limit,
+        )
+
     def call_agent(
             self,
             context: BridgeContext,
             signals: Optional[BridgeSignals] = None,
-            tools: Optional[List[QueryEngineTool]] = None,
+            tools: Optional[List[BaseTool]] = None,
             ctx: Optional[CtxItem] = None,
             query: str = "",
             history: Optional[List[ChatMessage]] = None,
@@ -631,7 +687,7 @@ class Chat:
 
         :param context: Bridge context
         :param signals: Bridge signals
-        :param tools: Tools
+        :param tools: Agent tools
         :param ctx: CtxItem
         :param query: Input prompt
         :param history: Chat history
@@ -642,6 +698,7 @@ class Chat:
         :param verbose: Verbose mode, default is False
         :return: True if success, False otherwise
         """
+        tools = list(tools or [])
         if index:
             query_engine = index.as_query_engine(
                 llm=llm,
@@ -652,7 +709,7 @@ class Chat:
                 query_engine=query_engine,
                 name=TOOL_QUERY_ENGINE_NAME,
                 description=TOOL_QUERY_ENGINE_DESCRIPTION,
-                return_direct=True,  # return direct response from index
+                return_direct=True,
             )
             tools.append(index_tool)
 
@@ -905,18 +962,37 @@ class Chat:
             model: Optional[ModelItem] = None
     ) -> str:
         """
-        Query attachment
+        Retrieve and prepare RAG context without generating the final answer.
+
+        This helper is shared by Agents v2 prefetch, legacy agents and RAG
+        plugins. Keep the return value as plain prepared context text (without
+        the system-prompt RAG wrapper) so existing callers remain compatible.
 
         :param query: query
         :param idx: index id
         :param model: model
-        :return: response
+        :return: prepared context text
         """
         if model is None:
             model = self.window.core.models.from_defaults()
+
         index, llm = self.get_index(idx, model, stream=False)
-        nodes = self._retrieve_nodes(index, query)
-        return self._format_retrieved_nodes(nodes)
+        prepared = self.prepare_rag_context(
+            index=index,
+            llm=llm,
+            query=query,
+            history=[],
+            chat_mode="context",
+            system_prompt="",
+            model=model,
+            tools=None,
+        )
+
+        # query_retrieval() historically returns only the retrieved material.
+        # Callers such as Agents v2/legacy agents add their own prompt wrappers.
+        if prepared.packed_chunks:
+            return str(prepared.packed_chunks[0]).strip()
+        return ""
 
     @staticmethod
     def _get_node_text(node: Any) -> str:

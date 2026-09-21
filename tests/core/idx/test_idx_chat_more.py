@@ -113,7 +113,11 @@ def make_window(config_map=None):
         resolve_idx=lambda value: "proj_7" if value == "__project__" else value,
         project=project,
     )
-    models = SimpleNamespace(is_tool_call_allowed=lambda mode, model: True, from_defaults=lambda: FakeModelItem())
+    models = SimpleNamespace(
+        is_tool_call_allowed=lambda mode, model: True,
+        from_defaults=lambda: FakeModelItem(),
+        get_num_ctx=Mock(return_value=0),
+    )
     plugins = SimpleNamespace(get_option=lambda a,b: False)
     agents = SimpleNamespace(provider=SimpleNamespace(get=Mock()), tools=SimpleNamespace(prepare=Mock()), runner=SimpleNamespace(llama_workflow=SimpleNamespace(run=Mock())))
     api = SimpleNamespace(logger=SimpleNamespace(log_input=Mock(), log_output=Mock()))
@@ -315,12 +319,26 @@ def test_query_web_indexes_and_cleans_tmp(monkeypatch):
 def test_query_retrieval_returns_text_when_found(monkeypatch):
     chat = make_chat(monkeypatch)
     monkeypatch.setattr(chat_mod, "ModelItem", FakeModelItem)
+    model = FakeModelItem()
     index = Mock()
-    retriever = SimpleNamespace(retrieve=Mock(return_value=[FakeNode("nid","TXT",0.9)]))
-    index.as_retriever = Mock(return_value=retriever)
-    chat.get_index = Mock(return_value=(index, Mock()))
-    out = chat.query_retrieval(query="q", idx="i", model=FakeModelItem())
-    assert out == "TXT"
+    llm = Mock()
+    prepared = SimpleNamespace(packed_chunks=["[Source 1]\nTXT"])
+    chat.get_index = Mock(return_value=(index, llm))
+    chat.prepare_rag_context = Mock(return_value=prepared)
+
+    out = chat.query_retrieval(query="q", idx="i", model=model)
+
+    assert out == "[Source 1]\nTXT"
+    chat.prepare_rag_context.assert_called_once_with(
+        index=index,
+        llm=llm,
+        query="q",
+        history=[],
+        chat_mode="context",
+        system_prompt="",
+        model=model,
+        tools=None,
+    )
 
 def test_get_memory_buffer_uses_chat_memory(monkeypatch):
     chat = make_chat(monkeypatch)
@@ -412,7 +430,8 @@ def test_call_agent_runs_react_agent_and_returns_output(monkeypatch):
     assert output == "agent answer"
     call = call_once.call_args.kwargs
     assert call["extra"]["agent_provider"] == "react"
-    assert call["extra"]["agent_tools"] is tools
+    assert call["extra"]["agent_tools"] == tools
+    assert call["extra"]["agent_tools"] is not tools
     assert call["context"].prompt == "question"
     assert call["context"].history == ["history"]
     chat.window.core.api.logger.log_input.assert_called_once()
