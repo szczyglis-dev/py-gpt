@@ -6,7 +6,6 @@ Chat
 
 In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra``, ``GPT-5.6``, ``Claude``, ``Gemini``, ``Grok``, ``Sonar (Perplexity)``, ``DeepSeek``, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible ``ChatCompletions API`` endpoints where supported. Local ``Ollama`` models and models from other configured providers are also supported.
 
-
 .. note::
    This mode uses the provider SDK directly. If there's no native client built into the app, models like Sonar or local Ollama models such as Qwen 3.6 and Gemma 4 are supported in Chat mode via LlamaIndex or OpenAI-compatible API endpoints. The app automatically switches to these endpoints when using non-OpenAI models. You can enable or disable the use of the native API SDK (per provider) in ``Settings -> API Keys``. If the native SDK is disabled, the OpenAI SDK will be used via the compatible ChatCompletions API endpoint.
 
@@ -26,10 +25,13 @@ Above the message input, PyGPT shows an estimated token count for the text you t
 
 **Attachments:** You can attach and upload files from the input area. See :doc:`Files and Attachments <attachments>` for supported formats and attachment modes.
 
+.. image:: images/attachment.png
+   :width: 400
+
 **RAG:** At the bottom of the toolbox, use the ``RAG`` selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select ``---`` to use the normal Chat provider path. See :doc:`indexing` for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
 
-.. image:: images/v2_mode_chat.png
-   :width: 800
+.. image:: images/rag.png
+   :width: 400
 
 **Vision:** Models with native image input support vision directly in every Chat, without the ``Vision (inline)`` plugin. Enable ``Vision (inline)`` only when the selected model does not support image input; image turns are then routed through the separately configured image-capable Chat model.
 
@@ -41,9 +43,6 @@ When vision is available, you can attach images or capture them with the camera 
 **Image generation:** If you want to generate images directly in chat, enable the ``Image generation (inline)`` plugin in the Plugins menu. The plugin allows you to generate images in Chat mode.
 
 For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in ``Config -> Settings -> Remote Tools``. When available, this lets the model generate images natively without the inline plugin.
-
-.. image:: images/v3_img_chat.png
-   :width: 800
 
 Chat with Agents
 ----------------

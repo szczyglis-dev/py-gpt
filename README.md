@@ -361,7 +361,12 @@ Above the message input, PyGPT shows an estimated token count for the text you t
 
 **Attachments:** You can attach and upload files from the input area. See [Files and Attachments](#files-and-attachments) for supported formats and attachment modes.
 
+![attachment](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/attachment.png)
+
+
 **RAG:** At the bottom of the toolbox, use the **RAG** selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select `---` to use the normal Chat provider path. See [Indexing and RAG](#indexing-and-rag) for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
+
+![rag](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/rag.png)
 
 **Vision:** Models with native image input support vision directly in every Chat, without the `Vision (inline)` plugin. Enable `Vision (inline)` only when the selected model does not support image input; image turns are then routed through the separately configured image-capable Chat model.
 
@@ -372,8 +377,6 @@ When vision is available, you can attach images or capture them with the camera 
 **Image generation:** If you want to generate images directly in chat, enable the `Image generation (inline)` plugin in the Plugins menu. The plugin allows you to generate images in Chat mode.
 
 For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in `Config -> Settings -> Remote Tools`. When available, this lets the model generate images natively without the inline plugin.
-
-![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
 
 ## Chat with Agents
 
