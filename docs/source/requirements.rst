@@ -217,39 +217,30 @@ when trying to run the compiled version for Linux, try updating GLIBC to version
 
 If you have problems with audio or microphone in the non-binary PIP/Python version on Windows, check to see if FFmpeg is installed. If it's not, install it and add it to the PATH. You can find a tutorial on how to do this here: https://phoenixnap.com/kb/ffmpeg-windows. The binary version already includes FFmpeg.
 
-
 **Windows and VC++ Redistributable**
 
 On Windows, the proper functioning requires the installation of the ``VC++ Redistributable``, which can be found on the Microsoft website:
 
 https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
 
-The libraries from this environment are used by ``PySide6`` - one of the base packages used by PyGPT. 
+The libraries from this environment are used by ``PySide6`` - one of the base packages used by PyGPT.
 The absence of the installed libraries may cause display errors or completely prevent the application from running.
 
 It may also be necessary to add the path ``C:\path\to\venv\Lib\python3.x\site-packages\PySide6`` to the ``PATH`` variable.
 
-
 **WebEngine/Chromium renderer and OpenGL problems**
 
-If you have problems with ``WebEngine / Chromium`` renderer you can force the legacy mode by launching the app with command line arguments:
-
-.. code-block:: console
-
-    $ python3 run.py --legacy=1
-
-and to force disable OpenGL hardware acceleration:
+If you have problems with ``WebEngine / Chromium`` renderer you can try to disable OpenGL hardware acceleration by launching the app with command line arguments:
 
 .. code-block:: console
 
     $ python3 run.py --disable-gpu=1
 
 
-You can also manualy enable legacy mode by editing config file - open the ``%WORKDIR%/config.json`` config file in editor and set the following options:
+You can also manually disable hardware acceleration by editing config file - open the ``%WORKDIR%/config.json`` config file in editor and set the following options:
 
 .. code-block:: json
 
-    "render.engine": "legacy",
     "render.open_gl": false,
 
 Other requirements

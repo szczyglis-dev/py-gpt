@@ -173,10 +173,10 @@ LlamaIndex ``**kwargs`` and ``ENV`` fields are optional overrides. Leave them em
 How to use local or other models
 --------------------------------
 
-Gemma 4, Qwen 3.6, Llama 4, Mistral, DeepSeek, Bielik, gpt-oss, and other local models
+DeepSeek, Qwen, gpt-oss, Gemma, Mistral, Llama, and other local models
 ``````````````````````````````````````````````````````````````````````````````````````
 
-How to use locally installed Gemma 4, Qwen 3.6, Llama 4, DeepSeek, Mistral, Bielik, and other models:
+How to use locally installed DeepSeek, Qwen, gpt-oss, Gemma, Mistral, Llama, and other models:
 
 1) Choose the ``Chat`` working mode.
 

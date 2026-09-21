@@ -4,11 +4,9 @@ Introduction
 Overview
 ----------------
 
-**PyGPT** is an **all-in-one desktop AI assistant** supporting models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, etc.), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, and models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``Gemma``, ``Qwen``, ``Llama``, ``Mistral``, ``DeepSeek``, ``Bielik``, ``Nemotron``, and ``gpt-oss``.
+**PyGPT** is an open-source desktop AI assistant for ``Linux``, ``Windows`` and ``macOS``. It supports models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, etc.), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, plus models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``DeepSeek``, ``Qwen``, ``gpt-oss``, ``Gemma``, ``Mistral``, ``Llama``, and others.
 
-It supports chat, agents, completions, RAG over indexed data, image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
-
-**PyGPT** also provides speech synthesis through ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI``, plus speech recognition with ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Bing`` and ``xAI Grok Voice``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
+Beyond chat, PyGPT includes **Chat with Agents** with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
 
 *Dark theme*
 
@@ -23,54 +21,50 @@ It supports chat, agents, completions, RAG over indexed data, image and video ge
 
 Features
 ---------
-* Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
-* Works similarly to ``ChatGPT``, but locally (on a desktop computer).
-* Multiple modes of operation: Chat, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
-* Supports multiple models like ``OpenAI GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Gemma``, ``Qwen``, ``Llama``, ``Mistral``, ``DeepSeek``, ``Bielik``, ``Nemotron``, ``gpt-oss``, etc.
-* Integrated RAG with ``LlamaIndex``: use data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
-* Built-in vector databases support and automated files, db context and data embedding.
-* Image generation via models like ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
-* Video generation via models like ``Veo3`` and ``Sora2``.
-* Internet access via ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
-* Speech synthesis via ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI`` Text-To-Speech services.
-* Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing`` and ``xAI Grok Voice``.
-* Plugins support with built-in plugins like ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and many more.
-* MCP support.
-* Built-in MCP Connectors manager with catalog browsing and import from common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
-* Includes Chat with Agents, a multi-agent mode with Chat, Orchestrator, and Swarm workflows for direct agent interaction, controlled background delegation, or large parallel worker groups.
-* Supports project-specific ``AGENTS.md`` rules for the main agent in Chat with Agents.
-* Supports portable ``SKILL.md``-based Agent Skills, with GitHub/local import, an Explore catalog, per-profile enable/disable management, and on-demand use in Chat with Agents.
-* Built-in ``Python/OS`` tool with real-time Python / IPython execution.
-* Camera capture for real-time image analysis in Chat and other supported modes, controlled from the ``Audio / Video`` menu.
-* Image analysis via vision models.
-* Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
-* Handles and stores the full context of conversations (short and long-term memory).
-* Integrated calendar, day notes and search in contexts by selected date.
-* Tools and commands execution (via plugins: access to the local filesystem, Python/OS, system commands execution, and more).
-* Custom commands creation and execution.
-* Crontab / Task scheduler included.
-* Manages files and attachments with options to upload, download, and organize.
-* Context history with the capability to revert to previous contexts (long-term memory), plus optional experimental advanced context handling for very long conversations.
-* Allows you to easily manage prompts with handy editable presets.
-* Provides an intuitive operation and interface.
-* Includes a notepad.
-* Includes simple painter / drawing tool.
-* Includes the node-based Agent Builder (Legacy) for older agent modes.
-* Supports multiple languages.
-* Requires no previous knowledge of using AI models.
-* Fully configurable.
-* Themes support.
+* Desktop AI assistant for ``Linux``, ``Windows`` and ``macOS``, written in Python.
+* Runs as a local desktop application with a ChatGPT-like conversational interface.
+* Work modes include Chat, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
+* Supports ``OpenAI GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and models available through ``LlamaIndex`` and ``Ollama``, including ``DeepSeek``, ``Qwen``, ``gpt-oss``, ``Gemma``, ``Mistral``, ``Llama``, and others.
+* Integrated ``LlamaIndex`` RAG for files, webpages, Google/GitHub data, media, images, conversation history, and formats such as ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, and ``xml``.
+* Built-in vector-store support with automatic file, database-context, and data embedding.
+* Image generation with models such as ``gpt-image``, ``Imagen``, ``Gemini``, and ``Nano Banana``.
+* Video generation with models such as ``Veo3`` and ``Sora2``.
+* Web search via ``DuckDuckGo``, ``Google``, and ``Microsoft Bing``.
+* Speech synthesis via ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs``, and ``xAI``.
+* Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing``, and ``xAI Grok Voice``.
+* Extensible plugin system with ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and more.
+* Model Context Protocol (MCP) support.
+* Built-in **MCP Connectors** manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
+* **Chat with Agents** multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
+* Project-specific ``AGENTS.md`` rules for the main Chat with Agents agent.
+* Portable ``SKILL.md``-based **Agent Skills** with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
+* Built-in **Python/OS** tool for real-time Python, IPython, and system command execution.
+* Camera capture for real-time image input in Chat and other supported modes.
+* Image analysis with vision-capable models.
+* Accessibility features including keyboard shortcuts, voice control, and spoken descriptions of on-screen actions.
+* Conversation history with short- and long-term memory support.
+* Integrated calendar, day notes, and conversation search by date.
+* Tool and command execution through plugins, including filesystem, Python/OS, and system commands.
+* User-defined custom commands and scripts exposed as tools.
+* Built-in Crontab / Task scheduler.
+* File and attachment upload, download, organization, and processing.
+* Reopen and continue previous conversations, with optional experimental advanced context handling for very long chats.
+* Editable prompt and model presets for reusable configurations.
+* Desktop UI designed for direct, practical use.
+* Built-in notepad.
+* Built-in painter / drawing tool.
+* Node-based Agent Builder (Legacy) for older agent modes.
+* Multi-language interface support.
+* No prior AI-model experience required.
+* Extensive configuration options.
+* Theme support.
 * Real-time code syntax highlighting.
-* Built-in token usage calculation.
+* Built-in token usage estimation and reporting.
 * **Open source**; source code is available on ``GitHub``.
-* Utilizes the user's own API key.
+* Uses the user's own provider API keys.
 * and many more.
 
-The application is free, open-source, and runs on PCs with ``Linux``, ``Windows 10``, ``Windows 11`` and ``Mac``. 
-Full Python source code is available on ``GitHub``.
-
-
-PyGPT uses your own API credentials to connect to supported AI providers such as OpenAI, Google, Anthropic, xAI, Perplexity, Mistral, OpenRouter, and others. Depending on the selected model and provider, you may need an account and a valid API key for that service. Local models do not require external API credentials.
+PyGPT is free and open source. Cloud providers use your own API credentials; local models such as those served through ``Ollama`` do not require external API keys. Additional credentials may be required for specific providers and integrations.
 
 .. note::
    This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
