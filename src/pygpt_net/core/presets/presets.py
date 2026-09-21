@@ -87,6 +87,24 @@ class Presets:
         preset.uuid = str(uuid.uuid4())
         return preset
 
+    @staticmethod
+    def _matches_mode(item: PresetItem, mode: str, preset_id: Optional[str] = None) -> bool:
+        """Return whether a preset is visible in a mode.
+
+        Chat with Files is a legacy alias of Chat from 2.8.28. Its real
+        presets remain available in Chat without rewriting the files. Legacy
+        virtual ``current.*`` presets are excluded so Chat keeps one canonical
+        Current entry. Research remains a separate preset mode.
+        """
+        if mode == MODE_CHAT:
+            if item.chat:
+                return True
+            if preset_id and str(preset_id).startswith("current."):
+                return False
+            return bool(item.llama_index)
+        attr = Presets._MODE_TO_ATTR.get(mode)
+        return bool(attr and getattr(item, attr, False))
+
     def append_current(self):
         """Append current presets"""
         items = self.items
@@ -174,7 +192,7 @@ class Presets:
         if preset.assistant:
             return MODE_ASSISTANT
         if preset.llama_index:
-            return MODE_LLAMA_INDEX
+            return MODE_CHAT
         if preset.agent:
             return MODE_AGENT
         if preset.agent_llama:
@@ -204,8 +222,7 @@ class Presets:
         item = self.items.get(id)
         if not item:
             return False
-        attr = self._MODE_TO_ATTR.get(mode)
-        return bool(attr and getattr(item, attr, False))
+        return self._matches_mode(item, mode, id)
 
     def get_by_idx(self, idx: int, mode: str) -> str:
         """
@@ -234,10 +251,7 @@ class Presets:
         item = self.items.get(id)
         if not item:
             return None
-        attr = self._MODE_TO_ATTR.get(mode)
-        if not attr:
-            return None
-        return item if getattr(item, attr, False) else None
+        return item if self._matches_mode(item, mode, id) else None
 
     def get(self, id: str) -> Optional[PresetItem]:
         """
@@ -264,10 +278,12 @@ class Presets:
         :param mode: mode name
         :return: presets dict for mode
         """
-        attr = self._MODE_TO_ATTR.get(mode)
-        if not attr:
+        if mode not in self._MODE_TO_ATTR:
             return {}
-        data = {id: item for id, item in self.items.items() if getattr(item, attr, False)}
+        data = {
+            id: item for id, item in self.items.items()
+            if self._matches_mode(item, mode, id)
+        }
         if not self._dnd_enabled():
             return data
         ordered_ids = self._ordered_ids_for_mode(mode)
@@ -535,10 +551,12 @@ class Presets:
         return {item.uuid: pid for pid, item in self.items.items() if item.uuid}
 
     def _visible_ids_for_mode(self, mode: str) -> List[str]:
-        attr = self._MODE_TO_ATTR.get(mode)
-        if not attr:
+        if mode not in self._MODE_TO_ATTR:
             return []
-        return [pid for pid, it in self.items.items() if getattr(it, attr, False)]
+        return [
+            pid for pid, it in self.items.items()
+            if self._matches_mode(it, mode, pid)
+        ]
 
     def _visible_regular_ids_for_mode(self, mode: str) -> List[str]:
         return [pid for pid in self._visible_ids_for_mode(mode) if not self._is_special_id(pid)]
@@ -627,9 +645,9 @@ class Presets:
         - current.<mode> first (if exists)
         - then remaining items by order stored as UUIDs
         """
-        attr = self._MODE_TO_ATTR.get(mode)
-        if not attr:
+        if mode not in self._MODE_TO_ATTR:
             return []
+        attr = self._MODE_TO_ATTR.get(mode)
         store = self._order_get_store()
         ordered_uuids = self._order_sync_mode(mode, store)
         self._order_set_store(store)
@@ -637,11 +655,11 @@ class Presets:
         uuid_to_id = self._uuid_to_id_map()
         head_id = f"current.{mode}"
         out: List[str] = []
-        if head_id in self.items and getattr(self.items[head_id], attr, False):
+        if head_id in self.items and self._matches_mode(self.items[head_id], mode, head_id):
             out.append(head_id)
         for u in ordered_uuids:
             pid = uuid_to_id.get(u)
-            if pid and getattr(self.items.get(pid, PresetItem()), attr, False):
+            if pid and self._matches_mode(self.items.get(pid, PresetItem()), mode, pid):
                 out.append(pid)
         return out
 

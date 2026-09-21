@@ -741,7 +741,7 @@ For embeddings, implement ``get_embeddings_model()`` and return a LlamaIndex ``B
 
 Depending on its purpose, a wrapper can implement:
 
-* ``llama()`` - return a LlamaIndex LLM for Chat with Files / LlamaIndex agents.
+* ``llama()`` - return a LlamaIndex LLM for RAG and LlamaIndex agents.
 * ``get_embeddings_model()`` - return a LlamaIndex embedding model.
 * ``get_openai_agent_provider()`` - optionally provide a model adapter for OpenAI Agents.
 * ``get_models()`` - optionally expose provider-side model discovery.

@@ -6,7 +6,7 @@ Uploading attachments
 
 **Using Your Own Files as Additional Context in Conversations**
 
-You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database, which makes them available all the time during a "Chat with Files" session, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
+You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database and selecting that index through the ``RAG`` selector in a supported conversation, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
 
 **Attachments**
 

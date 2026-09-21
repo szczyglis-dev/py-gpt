@@ -14,6 +14,7 @@ import json
 from typing import Optional, Any, Union
 
 from pygpt_net.core.events import Event
+from pygpt_net.core.types import MODE_LLAMA_INDEX
 from pygpt_net.utils import trans
 
 
@@ -370,6 +371,14 @@ class Editor:
 
         # update current model
         if self.current in self.window.core.models.items:
+            # Chat with Files is hidden from the mode bool-list, but existing
+            # model definitions may still need that internal capability. Preserve
+            # it when editing an existing model. Research remains visible/editable.
+            previous_modes = list(self.window.core.models.items[self.current].mode or [])
+            visible_modes = list(data_dict.get("mode") or [])
+            if MODE_LLAMA_INDEX in previous_modes and MODE_LLAMA_INDEX not in visible_modes:
+                visible_modes.append(MODE_LLAMA_INDEX)
+            data_dict["mode"] = visible_modes
             self.window.core.models.items[self.current].from_dict(data_dict)
             if persist:
                 # change key to model ID if key not exists

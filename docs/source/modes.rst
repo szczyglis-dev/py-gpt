@@ -21,6 +21,8 @@ In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra``, ``GPT
 
 Local ``Ollama`` models and models from other configured providers are also supported.
 
+**RAG:** At the bottom of the toolbox, use the ``RAG`` selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select ``---`` to use the normal Chat provider path. See :doc:`indexing` for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
+
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
 Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the ``Files and Attachments`` section for more information on how to use attachments.
@@ -46,116 +48,6 @@ For supported models/providers, you can alternatively enable the provider-side i
 
 .. image:: images/v3_img_chat.png
    :width: 800
-
-Chat with Files (LlamaIndex)
------------------------------
-
-This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
-
-.. tip::
-   If you do not want to call tools/commands, disable the ``Tools`` switch. It will speed up the response time when using local models. When tools are enabled, PyGPT prefers native tool calls whenever the current model/provider supports them. If native tool calls are unavailable, Chat with Files automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming, so stream mode is disabled automatically only on that path; there is no separate ReAct setting.
-
-**Querying single files**
-
-You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. A similar command is available for querying web and external content: ``Directly query web content with LlamaIndex``.
-
-**For example:**
-
-If you have a file: ``data/my_cars.txt`` with content ``My car is red.`` (``data`` means the active data workdir for the current conversation/project)
-
-You can ask for: ``Query the file my_cars.txt about what color my car is.``
-
-And you will receive the response: ``Red``.
-
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto index reading files`` in plugin settings. Remember to enable the ``Tools`` switch to allow the use of tools and commands from plugins.
-
-**Using Chat with Files mode**
-
-In this mode, you are querying the whole index, stored in a vector store database.
-To start, you need to index (embed) the files you want to use as additional context.
-Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
-
-https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
-
-For a visualization from OpenAI's page, see this picture:
-
-.. image:: images/vectors.png
-
-Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
-
-To index your files, copy or upload them into the active ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Embed into index``. The active data directory is normally ``<profile workdir>/data``; when the current conversation belongs to a project with a custom workdir, the project's directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``RAG (inline)`` plugin.
-
-Built-in file loaders: 
-
-**Files:**
-
-* CSV files (csv)
-* Epub files (epub)
-* Excel .xlsx spreadsheets (xlsx)
-* HTML files (html, htm)
-* IPYNB Notebook files (ipynb)
-* Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
-* JSON files (json)
-* Markdown files (md)
-* PDF documents (pdf)
-* Plain-text files (txt)
-* Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
-* Word .docx documents (docx)
-* XML files (xml)
-
-**Web/external content:**
-
-* Bitbucket
-* ChatGPT Retrieval Plugin
-* GitHub Issues
-* GitHub Repository
-* Google Calendar
-* Google Docs
-* Google Drive 
-* Google Gmail
-* Google Keep
-* Google Sheets
-* Microsoft OneDrive
-* RSS
-* SQL Database
-* Sitemap (XML)
-* Twitter/X posts
-* Webpages (crawling any webpage content)
-* YouTube (transcriptions)
-
-You can configure data loaders in ``Settings -> Indexes / RAG -> Data loaders`` by providing list of keyword arguments for specified loaders.
-You can also develop and provide your own custom loader and register it within the application.
-
-LlamaIndex is also integrated with the context database, so conversation history can be indexed and used as additional RAG context. File indexing and conversation-context indexing are configured separately in ``Settings -> Indexes / RAG -> File indexing`` and ``Context indexing``.
-
-Project conversations can use an isolated ``Current project`` index. When ``Use isolated index per project`` is enabled, project context is kept separate from the global auto-indexing targets and is updated incrementally. The same project index can be selected in Chat with Files, from the Files context menu, and by project-aware plugins.
-
-See :doc:`indexing` for the complete description of file indexing, context auto-indexing modes, isolated project indexes, project lifecycle, and truncation.
-
-.. warning::
-   Remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
-
-.. tip::
-   Using the Chat with Files mode, you have default access to files manually indexed from the active ``data`` directory. For a project with a custom data workdir this means that project's directory; otherwise it is the shared profile ``data`` directory. You can also use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
-
-**Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the ``Tools`` switch to reduce the number of tokens used by the system prompt.
-
-**Available vector stores** (provided by ``LlamaIndex``):
-
-* ChromaVectorStore
-* ElasticsearchStore
-* PineconeVectorStore
-* QdrantVectorStore
-* RedisVectorStore
-* SimpleVectorStore
-
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / RAG -> Vector Store``. See the section: ``Configuration / Vector stores`` for configuration reference.
-
-**Configuring data loaders**
-
-In the ``Settings -> Indexes / RAG -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
-
 
 Chat with Agents
 ----------------
@@ -614,13 +506,7 @@ The current implementation is **Chat-backed**. Autonomous requests use the same 
 RAG / index routing
 ~~~~~~~~~~~~~~~~~~~
 
-If no RAG index is selected, Autonomous follows normal Chat routing. To use an index, select it in:
-
-.. code-block:: ini
-
-   Settings -> Agents and experts -> Autonomous -> Index to use
-
-Selecting an index forces the run through ``Chat with Files (LlamaIndex)`` with that index. Select ``---`` to keep normal Chat routing.
+Autonomous uses the same global ``RAG`` selector shown at the bottom of the toolbox. If no index is selected, it follows normal Chat routing. Selecting a valid index routes the run through the LlamaIndex RAG runtime with that index. Select ``---`` to keep normal Chat routing.
 
 Run controls
 ~~~~~~~~~~~~

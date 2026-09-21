@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 10:20:00
+# Updated Date: 2026.09.21 11:45:00
 # ================================================== #
 
 import copy
@@ -50,6 +50,99 @@ class Bridge:
         )
         self.worker = None
 
+    def resolve_api_provider(self, model) -> Optional[str]:
+        """
+        Resolve the direct API backend for a model.
+
+        Native provider SDKs take precedence when explicitly enabled. If a
+        native SDK is disabled, providers that expose an OpenAI-compatible
+        endpoint use the OpenAI transport. ``None`` means there is no direct
+        API transport for the model and the caller may use a higher-level
+        fallback such as LlamaIndex.
+
+        :param model: ModelItem instance or None
+        :return: API attribute name: openai/google/anthropic/xai, or None
+        """
+        if model is None:
+            return "openai"
+
+        provider = getattr(model, "provider", None)
+        native = {
+            "google": ("api_native_google", "google"),
+            "anthropic": ("api_native_anthropic", "anthropic"),
+            "x_ai": ("api_native_xai", "xai"),
+        }
+        if provider in native:
+            config_key, api_provider = native[provider]
+            if self.window.core.config.get(config_key, False):
+                return api_provider
+
+        if model.is_openai_supported():
+            return "openai"
+
+        return None
+
+    def call_api(
+            self,
+            context: BridgeContext,
+            extra: Optional[Dict[str, Any]] = None,
+            rt_signals=None,
+            signals=None,
+            quick: bool = False
+    ):
+        """
+        Call the resolved API backend, with LlamaIndex as the final fallback.
+
+        This is the common provider dispatch used by both normal bridge workers
+        and synchronous quick calls. Native/OpenAI-compatible routing and the
+        final LlamaIndex fallback therefore cannot drift between the two paths.
+
+        :param context: Bridge context
+        :param extra: extra data
+        :param rt_signals: realtime signals for normal provider calls
+        :param signals: bridge worker signals used by the LlamaIndex fallback
+        :param quick: use provider quick_call instead of call
+        :return: provider result
+        """
+        api_provider = self.resolve_api_provider(context.model)
+        if api_provider is None:
+            model_id = getattr(context.model, "id", None) or "unknown"
+            self.window.core.debug.info(
+                "[bridge] No direct API provider for model {}. "
+                "Falling back to LlamaIndex.".format(model_id)
+            )
+            if quick:
+                return self.call_llama_index_quick(context, extra)
+            return self.window.core.idx.chat.call(
+                context=context,
+                extra=extra,
+                signals=signals,
+            )
+
+        api = getattr(self.window.core.api, api_provider)
+        label = {
+            "openai": "OpenAI",
+            "google": "Google",
+            "anthropic": "Anthropic",
+            "xai": "xAI",
+        }.get(api_provider, api_provider)
+        suffix = " (quick)" if quick else ""
+        self.window.core.debug.info(
+            "[bridge] Using {} SDK{}.".format(label, suffix)
+        )
+
+        if quick:
+            return api.quick_call(
+                context=context,
+                extra=extra,
+            )
+
+        return api.call(
+            context=context,
+            extra=extra,
+            rt_signals=rt_signals,
+        )
+
     def request(
             self,
             context: BridgeContext,
@@ -81,6 +174,16 @@ class Bridge:
         prompt = context.prompt
         mode = context.mode
         model = context.model  # model instance, not ID
+
+        # Chat with Files is a legacy UI alias from 2.8.28. Normalize it to
+        # Chat before runtime routing; the shared RAG selection then decides
+        # whether Chat uses the native SDK path or LlamaIndex. Research remains
+        # a first-class mode because it has research-specific runtime behavior.
+        if mode == MODE_LLAMA_INDEX:
+            self.window.core.debug.info("[bridge] Legacy Chat with Files alias -> Chat")
+            mode = MODE_CHAT
+            context.mode = MODE_CHAT
+
         base_mode = mode
         context.parent_mode = base_mode  # store base mode
 
@@ -131,8 +234,6 @@ class Bridge:
                 mode = MODE_AGENT_V2
             elif not force_rag_runtime and not model.is_supported(mode):  # check selected mode
                 mode = self.window.core.models.get_supported_mode(model, mode)  # switch
-                if base_mode == MODE_CHAT and mode == MODE_LLAMA_INDEX:
-                    context.idx = None # capability fallback only; no RAG was explicitly selected
         self.window.core.debug.info("[bridge] Using mode: " + str(mode))
 
         if mode == MODE_LLAMA_INDEX and base_mode != MODE_LLAMA_INDEX:
@@ -257,61 +358,52 @@ class Bridge:
             context.model.reasoning_effort = False
 
         try:
-            if context.model is not None:
-                # check if model is supported by OpenAI API, if not then try to use llama-index or langchain call
-                if not context.model.is_supported(MODE_CHAT):
-
-                    # tmp switch to: llama-index
-                    if context.model.is_supported(MODE_LLAMA_INDEX):
-                        context.stream = False  # force disable stream
-                        ctx = context.ctx  # output will be filled in query
-                        ctx.input = context.prompt
-                        try:
-                            res = self.window.core.idx.chat.chat(
-                                context=context,
-                                extra=extra,
-                                disable_cmd=True,
-                            )
-                            if res:
-                                return ctx.output  # response text is in ctx.output
-                        except Exception as e:
-                            self.window.core.debug.error("Error in Llama-index quick call: " + str(e))
-                            self.window.core.debug.error(e)
-                        return ""
-
-                    # tmp switch to: langchain
-                    """
-                    elif context.model.is_supported(MODE_LANGCHAIN):
-                        context.stream = False
-                        ctx = context.ctx
-                        ctx.input = context.prompt
-                        try:
-                            res = self.window.core.chain.chat(
-                                context=context,
-                                extra=extra,
-                            )
-                            if res:
-                                return ctx.output  # response text is in ctx.output
-                        except Exception as e:
-                            self.window.core.debug.error("Error in Langchain quick call: " + str(e))
-                            self.window.core.debug.error(e)
-                        return ""
-                    """
-
-            # if model is research model, then switch to research / Perplexity endpoint
-            if context.mode is None or context.mode == MODE_CHAT:
-                if context.model is not None:
-                    if not context.model.is_supported(MODE_CHAT):
-                        if context.model.is_supported(MODE_RESEARCH):
+            model = context.model
+            if model is not None:
+                # Research-only models keep the legacy quick-call mode switch.
+                # Transport selection is resolved independently by call_api().
+                if context.mode is None or context.mode == MODE_CHAT:
+                    if not model.is_supported(MODE_CHAT):
+                        if model.is_supported(MODE_RESEARCH):
                             context.mode = MODE_RESEARCH
 
-            # default: OpenAI API call
-            return self.window.core.api.openai.quick_call(
+            return self.call_api(
                 context=context,
                 extra=extra,
+                quick=True,
             )
         finally:
             context.model = original_model
+
+    def call_llama_index_quick(
+            self,
+            context: BridgeContext,
+            extra: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """
+        Make a synchronous LlamaIndex fallback call and return response text.
+
+        :param context: Bridge context
+        :param extra: extra data
+        :return: response content
+        """
+        context.stream = False
+        ctx = context.ctx
+        ctx.input = context.prompt
+        try:
+            res = self.window.core.idx.chat.chat(
+                context=context,
+                extra=extra,
+                disable_cmd=True,
+            )
+            if res:
+                return ctx.output
+        except Exception as e:
+            self.window.core.debug.error(
+                "Error in Llama-index quick call: " + str(e)
+            )
+            self.window.core.debug.error(e)
+        return ""
 
     def get_worker(self) -> BridgeWorker:
         """

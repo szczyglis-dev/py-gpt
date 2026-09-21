@@ -23,7 +23,6 @@ from pygpt_net.core.types import (
     MODE_EXPERT,
     MODE_IMAGE,
     MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_RESEARCH,
     MODE_COMPUTER,
@@ -109,7 +108,7 @@ class Preset(BaseConfigDialog):
         # modes
         mode_keys_left = [
             MODE_CHAT,
-            MODE_LLAMA_INDEX,
+            MODE_AGENT_V2,
             MODE_AUDIO,
             MODE_RESEARCH,
         ]
@@ -121,7 +120,6 @@ class Preset(BaseConfigDialog):
             MODE_EXPERT,
         ]
         mode_keys_right = [
-            MODE_AGENT_V2,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
             MODE_AGENT,

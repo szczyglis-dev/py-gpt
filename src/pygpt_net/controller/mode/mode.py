@@ -15,6 +15,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_V2,
     MODE_CHAT, MODE_AUDIO,
+    MODE_LLAMA_INDEX,
 )
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
@@ -52,6 +53,10 @@ class Mode:
         elif mode == "assistant":
             print("Assistants mode is deprecated from v2.8.5 and no longer selectable. "
                   "Switching to Chat mode.")
+            return MODE_CHAT
+        elif mode == MODE_LLAMA_INDEX:
+            print("Chat with Files mode is deprecated from v2.8.28 and no longer selectable. "
+                  "Switching to Chat mode with the shared RAG selector.")
             return MODE_CHAT
         return mode
 
@@ -143,9 +148,11 @@ class Mode:
     def init_list(self):
         """Init modes list."""
         data = self.window.core.modes.get_all()
+        selectable = self.window.core.modes.get_ordered_keys()
         regular = {}
         legacy = {}
-        for mode_id, item in data.items():
+        for mode_id in selectable:
+            item = data[mode_id]
             target = legacy if item.legacy else regular
             label = trans(item.label)
             if mode_id == MODE_AGENT_V2 and AGENTS2_IS_BETA:
@@ -171,6 +178,10 @@ class Mode:
         mode = cfg.get('mode')
         if mode is None or mode == "":
             cfg.set('mode', self.window.core.modes.get_default())
+            return
+        normalized = self._normalize_mode(mode)
+        if normalized != mode:
+            cfg.set('mode', normalized)
 
     def default_all(self):
         """Set default mode, model and preset"""

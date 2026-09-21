@@ -274,7 +274,7 @@
   "llama.hub.loaders.use_local": false,
   "llama.idx.auto": "off",
   "llama.idx.auto.index": "base",
-  "llama.idx.auto.modes": "chat,completion,vision,research,llama_index,agent",
+  "llama.idx.auto.modes": "chat,completion,vision,research,agent",
   "llama.idx.auto.project": true,
   "llama.idx.chat.auto_retrieve": true,
   "llama.idx.chat.mode": "context",

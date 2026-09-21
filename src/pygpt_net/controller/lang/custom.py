@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 22:23:00
+# Updated Date: 2026.09.21 11:05:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -20,7 +20,6 @@ from pygpt_net.core.types import (
     MODE_EXPERT,
     MODE_IMAGE,
     MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_RESEARCH,
     MODE_AGENT_OPENAI,
@@ -62,7 +61,6 @@ class Custom:
         self.window.ui.config['preset'][MODE_IMAGE].setText(trans("preset.img"))
         # self.window.ui.config['preset'][MODE_VISION].setText(trans("preset.vision"))
         # self.window.ui.config['preset'][MODE_LANGCHAIN].setText(trans("preset.langchain"))
-        self.window.ui.config['preset'][MODE_LLAMA_INDEX].setText(trans("preset.llama_index"))
         self.window.ui.config['preset'][MODE_AGENT].setText(trans("preset.agent"))
         self.window.ui.config['preset'][MODE_AGENT_LLAMA].setText(trans("preset.agent_llama"))
         self.window.ui.config['preset'][MODE_AGENT_OPENAI].setText(trans("preset.agent_openai"))
@@ -197,6 +195,13 @@ class Custom:
                     combo.setItemText(i, trans(key))
             combo.setToolTip(trans('agent.v2.mode.tooltip'))
 
+        # Autonomous toolbox tabs are created dynamically and need their
+        # tab captions refreshed explicitly on a runtime language change.
+        agent_tabs = self.window.ui.nodes.get('agent.options.tabs')
+        if agent_tabs is not None:
+            agent_tabs.setTabText(0, trans('toolbox.agent.tab.flow'))
+            agent_tabs.setTabText(1, trans('toolbox.agent.tab.steps'))
+
         manage_agents = self.window.ui.nodes.get('agent.v2.manage')
         if manage_agents is not None:
             manage_agents.setToolTip(trans('toolbox.agent.v2.manage.tooltip'))
@@ -291,4 +296,3 @@ class Custom:
         self.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
 
         # llama index model
-        self.window.ui.nodes['llama_index.mode.select'].set_keys(self.window.controller.idx.get_modes_keys())

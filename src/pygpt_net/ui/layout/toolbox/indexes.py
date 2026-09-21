@@ -16,7 +16,6 @@ from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QC
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.ui.widget.lists.index_combo import IndexCombo
-from pygpt_net.ui.widget.lists.llama_mode_combo import LlamaModeCombo
 from pygpt_net.utils import trans
 
 
@@ -114,22 +113,6 @@ class Indexes:
         nodes['indexes.select'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         nodes['indexes.select'].setMinimumWidth(0)
 
-        option = {
-            "name": "llama.idx.mode",
-            "label": "toolbox.llama_index.mode",
-            "search": False,
-            "keys": self.window.controller.idx.get_modes_keys(),
-            "value": "chat",
-        }
-        nodes['llama_index.mode.select'] = LlamaModeCombo(
-            self.window,
-            'global',
-            'llama.idx.mode',
-            option,
-        )
-        nodes['llama_index.mode.select'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
-        nodes['llama_index.mode.select'].setMinimumWidth(0)
-
         nodes['indexes.new'] = QPushButton(self._settings_icon, "")
         # Configure compact, borderless settings button for options row
         icon_size = 20
@@ -139,11 +122,11 @@ class Indexes:
         nodes['indexes.new'].setFixedSize(icon_size, icon_size)
         nodes['indexes.new'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         nodes['indexes.new'].setFocusPolicy(Qt.NoFocus)
+        nodes['indexes.new'].setCursor(Qt.PointingHandCursor)
         nodes['indexes.new'].setToolTip(trans('toolbox.indexes.edit.tooltip'))
         nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
         nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
-        nodes['llama_index.mode.label'] = TitleLabel(trans("toolbox.llama_index.mode.label"))
 
         idx_layout = QHBoxLayout()
         idx_layout.addWidget(nodes['indexes.label'])
@@ -159,21 +142,8 @@ class Indexes:
         idx_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         nodes['idx.select.widget'] = idx_widget
 
-        mode_layout = QHBoxLayout()
-        mode_layout.addWidget(nodes['llama_index.mode.label'])
-        mode_layout.addWidget(nodes['llama_index.mode.select'])
-        mode_layout.setContentsMargins(0, 0, 0, 10)
-        mode_layout.setStretch(1, 1)
-        mode_widget = QWidget()
-        mode_widget.setLayout(mode_layout)
-        mode_widget.setMinimumHeight(55)
-        mode_widget.setMinimumWidth(0)
-        mode_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        nodes['llama_index.mode.widget'] = mode_widget
-
         rows = QVBoxLayout()
         rows.addWidget(idx_widget)
-        rows.addWidget(mode_widget)
 
         nodes['idx.options'] = QWidget()
         nodes['idx.options'].setLayout(rows)

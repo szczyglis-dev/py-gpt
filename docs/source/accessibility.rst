@@ -78,7 +78,6 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Send the message to input
 - Append message to current input without sending it
 - Switch to chat mode
-- Switch to chat with files (llama-index) mode
 - Switch to the next mode
 - Switch to the previous mode
 - Switch to the next model

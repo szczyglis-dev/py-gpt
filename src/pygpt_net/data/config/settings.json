@@ -2630,6 +2630,21 @@
         "advanced": false,
         "tab": "store"
     },
+    "llama.idx.mode": {
+        "section": "llama-index",
+        "type": "combo",
+        "use": "llama_index_rag_modes",
+        "slider": false,
+        "label": "settings.llama.idx.mode",
+        "description": "settings.llama.idx.mode.desc",
+        "value": "chat",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "chat"
+    },
     "llama.idx.chat.mode": {
         "section": "llama-index",
         "type": "combo",

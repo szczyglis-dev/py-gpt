@@ -69,7 +69,10 @@ class Modes:
         """
         regular = []
         legacy = []
+        hidden = {MODE_LLAMA_INDEX}
         for mode_id, item in self.items.items():
+            if mode_id in hidden:
+                continue
             (legacy if item.legacy else regular).append(mode_id)
         return tuple(regular + legacy)
 

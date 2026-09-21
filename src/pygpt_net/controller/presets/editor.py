@@ -142,10 +142,6 @@ class Editor:
             # "type": "bool",
             # "label": "preset.assistant",
             # },
-            MODE_LLAMA_INDEX: {
-                "type": "bool",
-                "label": "preset.llama_index",
-            },
             MODE_COMPUTER: {
                 "type": "bool",
                 "label": "preset.computer",
@@ -1139,7 +1135,7 @@ class Editor:
             # elif mode == MODE_ASSISTANT:
                 # data.assistant = True
             elif mode == MODE_LLAMA_INDEX:
-                data.llama_index = True
+                data.chat = True
             elif mode == MODE_EXPERT:
                 data.expert = True
             elif mode == MODE_AGENT:
@@ -1159,6 +1155,10 @@ class Editor:
 
         options = {}
         data_dict = data.to_dict()
+        # Present legacy Chat with Files presets as Chat in the editor. Research
+        # remains a separate mode. Saving the preset normalizes the legacy flag.
+        if data_dict.get(MODE_LLAMA_INDEX):
+            data_dict[MODE_CHAT] = True
         if mode == MODE_EXPERT:
             # Expert presets are agents with a fixed Experts mode, just like
             # Chat with Agents presets are fixed to Agents v2. Do not expose or
@@ -1231,7 +1231,6 @@ class Editor:
             MODE_IMAGE,
             # MODE_VISION,
             # MODE_LANGCHAIN,
-            MODE_LLAMA_INDEX,
             MODE_EXPERT,
             MODE_AGENT_LLAMA,
             MODE_AGENT,
@@ -1403,6 +1402,10 @@ class Editor:
 
         preset = self.window.core.presets.items[id]
         preset.from_dict(data_dict)
+        # Chat with Files is no longer a selectable preset mode. If an old
+        # LlamaIndex preset is edited, its visible Chat checkbox becomes the
+        # canonical mode and the legacy flag is removed on save.
+        preset.llama_index = False
         preset.filename = id
         preset.tools = {
             'function': [],  # functions are assigned separately (below)

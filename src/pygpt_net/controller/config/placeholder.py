@@ -47,6 +47,7 @@ class Placeholder:
             "languages": lambda p: self.get_languages(),
             "llama_index_auto_index_policy": lambda p: self.get_llama_index_auto_index_policy(),
             "llama_index_chat_modes": lambda p: self.get_llama_index_chat_modes(),
+            "llama_index_rag_modes": lambda p: self.get_llama_index_rag_modes(),
             "llama_index_loaders": lambda p: self.get_llama_index_loaders(),
             "llama_index_loaders_file": lambda p: self.get_llama_index_loaders(type="file"),
             "llama_index_loaders_web": lambda p: self.get_llama_index_loaders(type="web"),
@@ -239,6 +240,14 @@ class Placeholder:
         """
         return self.window.core.api.openai.remote_tools.get_choices()
 
+    def get_llama_index_rag_modes(self) -> List[Dict[str, str]]:
+        """Return the user-facing RAG operation modes."""
+        return [
+            {"chat": trans('toolbox.llama_index.mode.chat')},
+            {"query": trans('toolbox.llama_index.mode.query')},
+            {"retrieval": trans('toolbox.llama_index.mode.retrieval')},
+        ]
+
     def get_llama_index_chat_modes(self) -> List[Dict[str, str]]:
         """
         Get llama chat modes list
@@ -319,7 +328,11 @@ class Placeholder:
         if params is None:
             params = {}
         modes = self.window.core.modes.get_all()
-        return [{mid: trans("mode." + mid)} for mid in modes]
+        return [
+            {mid: trans("mode." + mid)}
+            for mid in self.window.core.modes.get_ordered_keys()
+            if mid in modes
+        ]
 
     def get_multimodal(self, params: dict = None) -> List[Dict[str, str]]:
         """

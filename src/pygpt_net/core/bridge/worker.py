@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:18:00                  #
+# Updated Date: 2026.09.21 11:45:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -149,49 +149,14 @@ class BridgeWorker(QRunnable):
                     extra=self.extra,
                 )
 
-            # API SDK: chat, completion, vision, image, assistants
+            # API/provider dispatch with the same LlamaIndex fallback as quick calls.
             else:
-                sdk = "openai"  # default to OpenAI SDK
-                model = self.context.model
-                if model.provider == "google":
-                    if core.config.get("api_native_google", False):
-                        sdk = "google"
-                elif model.provider == "anthropic":
-                    if core.config.get("api_native_anthropic", False):
-                        sdk = "anthropic"
-                elif model.provider == "x_ai":
-                    if core.config.get("api_native_xai", False):
-                        sdk = "x_ai"
-
-                # call appropriate SDK
-                if sdk == "google":
-                    core.debug.info("[bridge] Using Google SDK.")
-                    result = core.api.google.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "anthropic":
-                    core.debug.info("[bridge] Using Anthropic SDK.")
-                    result = core.api.anthropic.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "x_ai":
-                    core.debug.info("[bridge] Using xAI SDK.")
-                    result = core.api.xai.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "openai":
-                    core.debug.info("[bridge] Using OpenAI SDK.")
-                    result = core.api.openai.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
+                result = core.bridge.call_api(
+                    context=self.context,
+                    extra=self.extra,
+                    rt_signals=self.rt_signals,
+                    signals=self.signals,
+                )
         except Exception as e:
             if self.extra is not None:
                 self.extra["error"] = e

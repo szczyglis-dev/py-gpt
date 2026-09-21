@@ -16,7 +16,7 @@ Release: **2.8.27** | build: **2026-09-20** | Python: **>=3.10, <3.14**
 
 **PyGPT** is an **all-in-one desktop AI assistant** supporting models from `OpenAI` (`GPT-6 Astra`, `GPT-5.6`, `GPT-4`, etc.), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, and models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `Gemma`, `Qwen`, `Llama`, `Mistral`, `DeepSeek`, `Bielik`, `Nemotron`, and `gpt-oss`.
 
-It supports chat, **Chat with Agents** and other agent workflows, completions, Chat with Files (RAG), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
+It supports chat, **Chat with Agents** and other agent workflows, completions, RAG over indexed data, image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google` and `Microsoft Bing`.
 
 **PyGPT** also provides speech synthesis through `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI`, plus speech recognition with `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Bing` and `xAI Grok Voice`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -34,9 +34,9 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
+- Multiple modes of operation: Chat, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
 - Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `Ollama` such as `Gemma`, `Qwen`, `Llama`, `Mistral`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
-- Chat with your own Files: integrated RAG `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
+- Integrated RAG with `LlamaIndex`: use data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Built-in vector databases support and automated files, db context and data embedding.
 - Image generation via models like `gpt-image`, `Imagen`, `Gemini`, and `Nano Banana`.
 - Video generation via models like `Veo3` and `Sora2`.
@@ -438,6 +438,8 @@ Currently built-in native clients:
 
 Local `Ollama` models and models from other configured providers are also supported.
 
+**RAG:** At the bottom of the toolbox, use the **RAG** selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select `---` to use the normal Chat provider path. See [Indexing and RAG](#indexing-and-rag) for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
+
 The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
 
 Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the `Files and Attachments` section for more information on how to use attachments.
@@ -457,145 +459,6 @@ With this plugin, you can capture an image with your camera or attach an image a
 For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in `Config -> Settings -> Remote Tools`. When available, this lets the model generate images natively without the inline plugin.
 
 ![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
-
-##  Chat with Files (LlamaIndex)
-
-This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for immediate querying of your indexed documents.
-
-**Tip:** If you do not want to call tools/commands, disable the `Tools` switch. It will speed up the response time when using local models. When tools are enabled, PyGPT prefers native tool calls whenever the current model/provider supports them. If native tool calls are unavailable, Chat with Files automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming, so stream mode is disabled automatically only on that path; there is no separate ReAct setting.
-
-**Querying single files**
-
-You can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. A similar command is available for querying web and external content: `Directly query web content with LlamaIndex`.
-
-**For example:**
-
-If you have a file: `data/my_cars.txt` with content `My car is red.`
-
-You can ask for: `Query the file my_cars.txt about what color my car is.`
-
-And you will receive the response: `Red`.
-
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option `Auto-index readed files` in plugin settings. Remember to enable the `Tools` switch to allow the use of tools and commands from plugins. 
-
-**Using Chat with Files mode**
-
-In this mode, you are querying the whole index, stored in a vector store database.
-To start, you need to index (embed) the files you want to use as additional context.
-Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
-
-https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
-
-For a visualization from OpenAI's page, see this picture:
-
-![vectors](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4bbb3860-58a0-410d-b5cb-3fbfadf1a367)
-
-Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
-
-To index your files, copy or upload them into the active `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with a custom data workdir, the project directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `RAG (inline)` plugin.
-
-![v2_idx1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx1.png)
-
-After the file(s) are indexed (embedded in vector store), you can use context from them in chat mode.
-
-Built-in file loaders: 
-
-**Files:**
-
-- CSV files (csv)
-- Epub files (epub)
-- Excel .xlsx spreadsheets (xlsx)
-- HTML files (html, htm)
-- IPYNB Notebook files (ipynb)
-- Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
-- JSON files (json)
-- Markdown files (md)
-- PDF documents (pdf)
-- Plain-text files (txt)
-- Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
-- Word .docx documents (docx)
-- XML files (xml)
-
-**Web/external content:**
-
-- Bitbucket
-- ChatGPT Retrieval Plugin
-- GitHub Issues
-- GitHub Repository
-- Google Calendar
-- Google Docs
-- Google Drive 
-- Google Gmail
-- Google Keep
-- Google Sheets
-- Microsoft OneDrive
-- RSS
-- SQL Database
-- Sitemap (XML)
-- Twitter/X posts
-- Webpages (crawling any webpage content)
-- YouTube (transcriptions)
-
-You can configure data loaders in `Settings / Indexes / RAG / Data Loaders` by providing list of keyword arguments for specified loaders.
-You can also develop and provide your own custom loader and register it within the application.
-
-LlamaIndex is also integrated with the context database, so conversation history can be indexed and used as additional RAG context. Context indexing is configured separately from file indexing in `Settings -> Indexes / RAG -> Context indexing`.
-
-### File, context, and project indexing
-
-PyGPT separates file indexing from conversation-context indexing:
-
-- **File indexing** indexes files and directories into a selected persistent vector index. Use `Settings -> Indexes / RAG -> File indexing`, the **Index all** action, or `Files -> RMB -> Embed into index`.
-- **Context indexing** indexes stored conversation items from the context database. It is configured in `Settings -> Indexes / RAG -> Context indexing`.
-- **Project indexes** are isolated runtime indexes associated with projects. They are created and resolved automatically and do not need to be added to the normal configured indexes list.
-
-A project's **data workdir** and its **project index** are separate. The data workdir controls which filesystem directory the Files view and file tools use; the project index controls vector-store data. Changing the project data workdir does not move or rebuild the project index.
-
-The **Conversation auto-indexing** setting has three modes:
-
-- **Off** - disables automatic conversation-context indexing.
-- **Auto-index all conversations** - enables automatic context indexing for conversations both inside and outside projects.
-- **Auto-index only in projects** - enables automatic context indexing only for conversations assigned to projects.
-
-The **Use isolated index per project** option controls where conversations inside projects are stored. When enabled, each project uses its own isolated index. PyGPT exposes it in the UI as **Current project** and internally resolves it to a project-specific ID such as `proj_<project_id>`. These project indexes are created and updated on demand and are not added to the normal `Indexes` list. When this option is disabled, project conversations use the global auto-indexing index or indexes selected in **Indexes for global auto-indexing**.
-
-The **Enable auto-indexing in modes** setting further limits which work modes may trigger automatic context indexing. Project context indexing is incremental: PyGPT tracks the last indexed conversation item and continues from that point on subsequent updates.
-
-Project-aware indexing is also available outside automatic context indexing:
-
-- In **Chat with Files**, select **Current project** to query the active project's isolated index.
-- In the **Files** tab, `RMB -> Embed into index -> Current project` indexes the selected file or directory into the active project.
-- The **RAG (inline)** and **Files I/O** plugins can automatically use the active project index when their **Use project index if in use** option is enabled (default: enabled).
-- The project context menu provides **Update project index** and **Truncate project index** actions. Updating continues incrementally; truncating removes the project's index data and resets its indexing state.
-- Deleting a project also removes its project index. Duplicating a project rebuilds a corresponding isolated index only when the source project had one.
-
-Removing an entry from `Settings -> Indexes / RAG -> General -> Indexes` removes only the configuration entry; it does **not** delete data already stored in the vector store. Use the **Clear and truncate** tab to permanently remove a selected index or all tracked project indexes.
-
-**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
-
-**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the active `data` directory. For a project with a custom data workdir this means that project's directory; otherwise it is the shared profile `data` directory. You can also use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
-
-**Token limit:** When you use `Chat with Files` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the `Tools` switch to reduce the number of tokens used by the system prompt.
-
-**Available vector stores** (provided by `LlamaIndex`):
-
-```
-- ChromaVectorStore
-- ElasticsearchStore
-- PinecodeVectorStore
-- QdrantVectorStore
-- RedisVectorStore
-- SimpleVectorStore
-```
-
-You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> Indexes / RAG -> Vector Store`. See the section: `Configuration / Vector stores` for configuration reference.
-
-
-**Configuring data loaders**
-
-In the `Settings -> Indexes / RAG -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance. See the section: `Configuration / Data Loaders` for configuration reference.
-
 
 ## Chat with Agents
 
@@ -974,13 +837,7 @@ Below is a pattern for how different types of agents work. You can use these pat
 
 The current implementation is **Chat-backed**. Autonomous requests use the same bridge, provider routing, API selection, native tool/function-call settings, and normal tool execution flow as standard `Chat`. 
 
-If no RAG index is selected, Autonomous follows normal Chat routing. To use an index, select it in:
-
-```ini
-Settings -> Agents and experts -> Autonomous -> Index to use
-```
-
-Selecting an index forces the run through `Chat with Files (LlamaIndex)` with that index. Select `---` to keep normal Chat routing.
+Autonomous uses the same global **RAG** selector shown at the bottom of the toolbox. If no index is selected, it follows normal Chat routing. Selecting a valid index routes the run through the LlamaIndex RAG runtime with that index. Select `---` to keep normal Chat routing.
 
 **Run controls**
 
@@ -993,6 +850,141 @@ When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation beca
 
 **WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
 
+
+# Indexing and RAG
+
+PyGPT uses **LlamaIndex** and a vector store to provide persistent Retrieval-Augmented Generation (RAG) over indexed files, external data, and conversation history. Indexing and retrieval are configured in `Settings -> Indexes / RAG`.
+
+## Using RAG in Chat
+
+At the bottom of the Chat toolbox, use the **RAG** selector to choose the index that should provide additional context. Selecting `---` keeps the normal Chat provider path. When a valid index is selected, PyGPT routes the request through the LlamaIndex RAG runtime automatically, using the selected model through its LlamaIndex provider wrapper.
+
+The **RAG mode** option in `Settings -> Indexes / RAG -> Chat` controls how the selected index is used:
+
+- **Chat** retrieves relevant indexed context and generates a normal conversational answer with the selected model.
+- **Query the Index Only** sends the prompt through the index query path without the normal conversational chat flow.
+- **Retrieve Only** returns retrieved index context without generating the normal chat response.
+
+The separate **Chat mode** setting controls the LlamaIndex chat-engine mode used when **RAG mode** is set to **Chat**.
+
+When the **Tools** switch is enabled in RAG-backed Chat, PyGPT uses native tool calls whenever the current model/provider path supports them. If native tool calls are unavailable, it can fall back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming; normal native tool-call paths can stream.
+
+RAG is also available in other supported workflows. The exact execution path depends on the mode: for example, Completion uses its LlamaIndex completion path, while Chat with Agents exposes the selected index as a RAG tool.
+
+## Indexing files for RAG
+
+To use persistent RAG, first index (embed) the files or external data you want to query. Embedding transforms document content into vectors stored in the selected vector store.
+
+To index files, copy or upload them into the active `data` directory and use **Index all** or `RMB -> Embed into index` in the Files view. You can also use the Indexer tool or supported plugins. The active data directory is normally `<profile workdir>/data`; when the current conversation belongs to a project with a custom data workdir, that project directory is used instead.
+
+If you're unfamiliar with embeddings and how they work, see:
+
+https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
+
+For a visualization from OpenAI's page:
+
+![vectors](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4bbb3860-58a0-410d-b5cb-3fbfadf1a367)
+
+Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
+
+## Querying single files
+
+You can query an individual file on the fly with the `query_file` command from the **Files I/O** plugin. A temporary in-memory index is created for that query; it is not persisted as a normal index unless the plugin is configured to index read files automatically. A similar command is available for querying web and external content through LlamaIndex.
+
+For example, if `data/my_cars.txt` contains `My car is red.`, you can ask the model to query that file for the car color and receive `Red` as the result. Enable the **Tools** switch when using tool commands from plugins.
+
+## Index types
+
+PyGPT uses three related index concepts:
+
+- **Configured indexes** are the normal persistent indexes listed in `Settings -> Indexes / RAG -> General -> Indexes`. They can contain files, external data, and indexed conversation context.
+- **Project indexes** are isolated persistent indexes created automatically for projects. They are shown to the user as **Current project** and are not added to the normal configured index list.
+- **Temporary indexes** are created in memory for operations such as querying a single attachment or using the Files I/O `query_file` tool. They are not persisted as normal indexes.
+
+**Important:** Removing an item from the normal **Indexes** list removes only its configuration entry. It does not delete the already stored vector data. Use **Clear and truncate** when you want to permanently remove index data.
+
+## Supported data
+
+Built-in file loaders include CSV, Epub, XLSX, HTML, IPYNB, images, JSON, Markdown, PDF, plain text, video/audio, DOCX, and XML. Built-in web/external loaders include Bitbucket, ChatGPT Retrieval Plugin, GitHub Issues and repositories, Google Calendar/Docs/Drive/Gmail/Keep/Sheets, Microsoft OneDrive, RSS, SQL databases, sitemaps, Twitter/X posts, webpages, and YouTube transcriptions.
+
+Additional loader arguments can be configured in `Settings -> Indexes / RAG -> Data loaders`. Custom loaders can also be registered by extensions.
+
+## File indexing
+
+The **File indexing** tab controls how files and directories are embedded into persistent indexes. The main options include recursive directory indexing, replacement of old versions during re-indexing, excluded extensions, stop-on-error behavior, and custom metadata for file and web/external documents.
+
+The Files view is project-aware. If the active conversation belongs to a project with a custom data workdir, the view uses that directory as its filesystem root; outside projects, or when **Use shared workdir** is enabled, it uses the shared `<profile workdir>/data` directory.
+
+When the current conversation belongs to a project, **Current project** is available as a runtime index target. Selecting it indexes the file or directory into the isolated index for that project. The project's filesystem data workdir and its isolated vector index are separate concepts: changing the data workdir does not move, rename, or rebuild the project's vector index.
+
+## Context indexing
+
+LlamaIndex is integrated with the context database, so stored conversation history can also be indexed and used as RAG context. **Context indexing** is configured separately from file indexing.
+
+The **Conversation auto-indexing** setting has three modes:
+
+- **Off** - disables automatic conversation-context indexing.
+- **Auto-index all conversations** - enables automatic context indexing for conversations both inside and outside projects.
+- **Auto-index only in projects** - enables automatic context indexing only for conversations assigned to projects.
+
+The **Enable auto-indexing in modes** setting further limits which work modes may trigger automatic context indexing.
+
+### Global context indexes
+
+**Indexes for global auto-indexing** is a multi-select list. One or more normal configured indexes can be selected. The global selection is used outside projects and for project conversations when **Use isolated index per project** is disabled.
+
+### Isolated project indexes
+
+**Use isolated index per project** is enabled by default. When enabled, each project uses its own isolated index. PyGPT exposes it in the UI as **Current project** and internally resolves it to a project-specific ID such as `proj_<project_id>`. These project indexes are created and updated on demand and are not added to the normal **Indexes** list.
+
+Project context indexing is incremental. PyGPT tracks the last indexed conversation item and continues from that point on subsequent updates.
+
+Project indexes follow the project lifecycle:
+
+- **Update project index** continues indexing from the last indexed item.
+- **Truncate project index** permanently removes that project's index data and resets its indexing state.
+- Deleting a project also removes its isolated project index when it exists.
+- Duplicating a project creates/rebuilds an isolated index for the duplicate only when the source project already had one.
+
+## Using the current project index
+
+The active project index can be used from multiple places:
+
+- In a supported mode such as **Chat**, select **Current project** in the **RAG** selector at the bottom of the toolbox.
+- In the **Files** tab, use `RMB -> Embed into index -> Current project` for a file or directory.
+- In the **RAG (inline)** plugin, enable **Use project index if in use** to query the active project's isolated index automatically.
+- In the **Files I/O** plugin, enable **Use project index if in use** so persistent file indexing performed by the plugin targets the active project instead of the configured global file index.
+
+Outside a project, the virtual **Current project** target is unavailable and normal configured indexes are used.
+
+## Attachments and temporary RAG
+
+Attachments can provide additional context independently of the persistent RAG index selected in the toolbox. In attachment **RAG** mode, PyGPT creates or uses a temporary vector index for the attachment. This temporary context is scoped to the conversation/attachment flow and does not automatically become part of the selected persistent index.
+
+## Vector stores
+
+Available vector stores provided by LlamaIndex include:
+
+- ChromaVectorStore
+- ElasticsearchStore
+- PineconeVectorStore
+- QdrantVectorStore
+- RedisVectorStore
+- SimpleVectorStore
+
+Configure the selected backend in `Settings -> Indexes / RAG -> Vector Store`. Provider-specific connection arguments can be supplied through the Vector Store `**kwargs` setting when required.
+
+## Embeddings
+
+Embedding configuration is shared by persistent file indexing, conversation context indexing, and attachment RAG. Configure it in `Settings -> Indexes / RAG -> Embeddings`. Provider credentials and endpoints are normally inherited from the provider's global configuration.
+
+## Token and usage notes
+
+Indexing uses the configured embedding provider and can generate API usage and token costs. Re-indexing large file collections or conversation histories may generate many embedding requests.
+
+When **RAG mode** is **Chat**, retrieved context is added to the model-facing request. Large retrieved context plus plugin/tool instructions can approach the model's context limit. Disable unused plugins/tools or reduce retrieval scope if you encounter token-limit errors.
+
+**Warning:** Monitor embedding and model usage with the selected provider, especially when indexing or re-indexing large data sets.
 
 # Agent Skills
 
@@ -1096,7 +1088,7 @@ The available modes are:
 - `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved.
 - `Store full input/output` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
 
-The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence.
+The storage policy applies to all modes that use tools, including Chat (with or without RAG), legacy Agents, and Chat with Agents. It affects only durable database persistence.
 
 **Restore tool calls in runtime** controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
@@ -1110,7 +1102,7 @@ Once a conversation begins, a title for the chat is generated and displayed on t
 
 **Using Your Own Files as Additional Context in Conversations**
 
-You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database, which makes them available all the time during a "Chat with Files" session, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
+You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database and selecting that index through the **RAG** selector in a supported conversation, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
 
 **Attachments**
 
@@ -1360,7 +1352,7 @@ You can import new models by manually editing `models.json` or by using the mode
 
 **Tip:** The models on the list are sorted by provider, not by manufacturer. A model from a particular manufacturer may be available through different providers (e.g., OpenAI models can be provided by the `OpenAI API` or by `OpenRouter`). If you want to use a specific model through a particular provider, you need to configure the provider in `Config -> Models -> Edit`, or import it directly via `Config -> Models -> Import`.
 
-**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings (Chat with Files and attachments RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
+**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings (persistent and attachment RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
 
 ## Adding a custom model
 
@@ -1399,7 +1391,7 @@ and add a row with:
 
 Custom providers are stored in `config.json` under the `api_custom_providers` key. After saving Settings, they are registered immediately and become available anywhere PyGPT uses the LLM provider registry, including the Models Editor and `Config -> Models -> Import`. The importer obtains the model list from the provider's OpenAI-compatible `/models` endpoint.
 
-Models assigned to a custom provider use the native OpenAI Python SDK with the **Chat Completions API** in normal Chat mode. In **Chat with Files (LlamaIndex)** and LlamaIndex-based flows, PyGPT uses the LlamaIndex `OpenAILike` wrapper and automatically reuses the same provider-level API base URL and API key. You do not need to duplicate them in LlamaIndex `**kwargs` or `ENV`. Custom runtime providers intentionally use Chat Completions compatibility; they do not enable the OpenAI Responses API.
+Models assigned to a custom provider use the native OpenAI Python SDK with the **Chat Completions API** in normal Chat mode. When Chat is routed through RAG and in other LlamaIndex-based flows, PyGPT uses the LlamaIndex `OpenAILike` wrapper and automatically reuses the same provider-level API base URL and API key. You do not need to duplicate them in LlamaIndex `**kwargs` or `ENV`. Custom runtime providers intentionally use Chat Completions compatibility; they do not enable the OpenAI Responses API.
 
 Once the provider is saved, import its models from `Config -> Models -> Import`, or create/edit a model manually and select the custom provider from the provider list. Model-specific `API base` / `API key` values in the Models Editor, when provided, override the custom provider values for that model.
 
@@ -1409,7 +1401,7 @@ Once the provider is saved, import its models from `Config -> Models -> Import`,
 
 How to use locally installed Gemma 4, Qwen 3.6, Llama 4, DeepSeek, Mistral, Bielik, and other models:
 
-1) Choose a working mode: `Chat` or `Chat with Files`.
+1) Choose the `Chat` working mode.
 
 2) On the models list, select, edit, import, or add a model with the `ollama` provider. The model ID should match the name served by Ollama. No LlamaIndex `model_name` entry in Advanced `**kwargs` is required; PyGPT uses the model ID automatically.
 
@@ -1468,7 +1460,7 @@ The Ollama endpoint is inherited from the global `OLLAMA_API_BASE` configuration
 
 ### Other providers and LlamaIndex-based modes
 
-PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal `Chat`, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. `Chat with Files` and other non-Chat workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
+PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal `Chat`, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. RAG-backed Chat and other workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
 
 Configure provider credentials/endpoints once in `Config -> Settings -> API Keys` or, for runtime OpenAI-compatible providers, in `Config -> Settings -> Custom providers`. LlamaIndex-backed modes reuse those global settings automatically and use the selected model ID as the model name. Model-level LlamaIndex `**kwargs` and `ENV` can remain empty.
 
@@ -2160,7 +2152,7 @@ Using the calendar, you can go back to selected conversations from a specific da
 ## Indexer
 
 
-This tool allows indexing of local files or directories and external web content to a vector database, which can then be used with the `Chat with Files` mode. Using this tool, you can manage local indexes and add new data with built-in `LlamaIndex` integration.
+This tool allows indexing of local files or directories and external web content to a vector database, which can then be selected through the **RAG** selector in Chat and other supported workflows. Using this tool, you can manage local indexes and add new data with built-in `LlamaIndex` integration.
 
 ![v2_tool_indexer](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_indexer.png)
 
@@ -2371,7 +2363,6 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Send the message to input
 - Append message to current input without sending it
 - Switch to chat mode
-- Switch to chat with files (llama-index) mode
 - Switch to the next mode
 - Switch to the previous mode
 - Switch to the next model
@@ -2571,8 +2562,7 @@ Keyword arguments for RedisVectorStore(`**kwargs`):
 
 You can extend list of available providers by creating custom provider and registering it on app launch.
 
-By default, you are using chat-based mode when using `Chat with Files`.
-If you want to only query index (without chat) you can enable `Query index only (without chat)` option.
+Use `Settings -> Indexes / RAG -> Chat -> RAG mode` to choose between normal RAG-backed Chat, querying the index only, or retrieval only.
 
 ### Adding custom vector stores and data loaders
 

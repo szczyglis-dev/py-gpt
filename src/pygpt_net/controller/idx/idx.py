@@ -263,11 +263,10 @@ class Idx:
         self._sync_combo(idx)
 
     def select_current_mode(self):
-        """Select current mode on list"""
+        """Sync cached RAG mode from Settings-backed config."""
         mode = self.window.core.config.get('llama.idx.mode')
-        if mode is None:
-            return
-        self.window.ui.nodes['llama_index.mode.select'].set_value(mode)
+        if mode is not None:
+            self.current_mode = mode
 
     def select_default(self):
         """Set default idx"""

@@ -6,7 +6,7 @@ Overview
 
 **PyGPT** is an **all-in-one desktop AI assistant** supporting models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, etc.), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, and models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``Gemma``, ``Qwen``, ``Llama``, ``Mistral``, ``DeepSeek``, ``Bielik``, ``Nemotron``, and ``gpt-oss``.
 
-It supports chat, agents, completions, Chat with Files (RAG), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
+It supports chat, agents, completions, RAG over indexed data, image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with ``DuckDuckGo``, ``Google`` and ``Microsoft Bing``.
 
 **PyGPT** also provides speech synthesis through ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs`` and ``xAI``, plus speech recognition with ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Bing`` and ``xAI Grok Voice``. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
 
@@ -25,9 +25,9 @@ Features
 ---------
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
-* 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
+* Multiple modes of operation: Chat, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
 * Supports multiple models like ``OpenAI GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and any model accessible through ``LlamaIndex`` and ``Ollama`` such as ``Gemma``, ``Qwen``, ``Llama``, ``Mistral``, ``DeepSeek``, ``Bielik``, ``Nemotron``, ``gpt-oss``, etc.
-* Chat with your own Files: integrated RAG ``LlamaIndex`` support: chat with data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
+* Integrated RAG with ``LlamaIndex``: use data such as: ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``, webpages, ``Google``, ``GitHub``, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 * Built-in vector databases support and automated files, db context and data embedding.
 * Image generation via models like ``gpt-image``, ``Imagen``, ``Gemini`` and ``Nano Banana``.
 * Video generation via models like ``Veo3`` and ``Sora2``.

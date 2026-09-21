@@ -135,6 +135,15 @@ class Models:
         """
         return self.items.get(key)
 
+    @staticmethod
+    def _mode_compatible(item: ModelItem, mode: Optional[str]) -> bool:
+        """Treat deprecated Chat-with-Files capability as Chat-compatible."""
+        if mode is None:
+            return True
+        if mode == MODE_CHAT:
+            return any(m in item.mode for m in (MODE_CHAT, MODE_LLAMA_INDEX))
+        return mode in item.mode
+
     def resolve_model_key(
             self,
             mode: Optional[str],
@@ -150,13 +159,13 @@ class Models:
             return None
         key = str(model)
         item = self.items.get(key)
-        if item is not None and (mode is None or mode in item.mode):
+        if item is not None and self._mode_compatible(item, mode):
             return key
 
         base_key = legacy_base_key(key)
         if base_key:
             item = self.items.get(base_key)
-            if item is not None and (mode is None or mode in item.mode):
+            if item is not None and self._mode_compatible(item, mode):
                 return base_key
         return None
 
@@ -243,7 +252,7 @@ class Models:
         """
         if model not in self.items:
             return False
-        return mode in self.items[model].mode
+        return self._mode_compatible(self.items[model], mode)
 
     def get_id(
             self,
@@ -283,7 +292,7 @@ class Models:
         :param mode: mode name
         :return: models dict for mode
         """
-        return {k: v for k, v in self.items.items() if mode in v.mode}
+        return {k: v for k, v in self.items.items() if self._mode_compatible(v, mode)}
 
     def get_next(
             self,
@@ -414,7 +423,7 @@ class Models:
         :return: True if model exists for mode
         """
         item = self.items.get(model)
-        return bool(item and mode in item.mode)
+        return bool(item and self._mode_compatible(item, mode))
 
     def get_default(self, mode: str) -> Optional[str]:
         """
@@ -507,7 +516,7 @@ class Models:
         :return: mode (supported)
         """
         prev_mode = mode
-        if model.is_supported(MODE_CHAT) and mode != MODE_LLAMA_INDEX:
+        if model.is_supported(MODE_CHAT):
             if prev_mode != MODE_CHAT:
                 self.window.core.debug.info(
                     "WARNING: Switching to chat mode (model not supported in: {})".format(prev_mode))
@@ -516,14 +525,8 @@ class Models:
         if model.is_supported(MODE_RESEARCH):
             if prev_mode != MODE_RESEARCH:
                 self.window.core.debug.info(
-                    "WARNING: Switching to research mode (model not supported in: {})".format(mode))
-            mode = MODE_RESEARCH
-
-        elif model.is_supported(MODE_LLAMA_INDEX):
-            if prev_mode != MODE_LLAMA_INDEX:
-                self.window.core.debug.info(
-                    "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
-            mode = MODE_LLAMA_INDEX
+                    "WARNING: Switching to research mode (model not supported in: {})".format(prev_mode))
+            return MODE_RESEARCH
 
         return mode
 

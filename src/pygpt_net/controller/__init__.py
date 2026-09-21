@@ -230,6 +230,7 @@ class Controller:
             # value without calling mode.set(), so the current context is not
             # modified as a side effect of the profile switch.
             if profile_mode:
+                profile_mode = self.mode._normalize_mode(profile_mode)
                 self.window.core.config.set("mode", profile_mode)
                 self.ui.init_toolbox()
                 self.ui.update()

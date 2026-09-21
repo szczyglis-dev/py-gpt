@@ -63,7 +63,6 @@ class Mode:
         is_agent_v2 = mode == MODE_AGENT_V2
         is_expert = mode == MODE_EXPERT
         is_media = mode == MODE_IMAGE
-        is_llama_index = mode == MODE_LLAMA_INDEX
         is_completion = mode == MODE_COMPLETION
         is_audio = mode == MODE_AUDIO
 
@@ -282,15 +281,14 @@ class Mode:
         else:
             ui_nodes['assistants.widget'].setVisible(False)
 
-        # Shared RAG selector. Chat with Files additionally exposes its
-        # query/retrieval mode row; other modes only show the RAG combo.
+        # Shared RAG selector. The RAG operation mode (chat/query/retrieval)
+        # is configured globally in Settings -> RAG -> Chat.
         show_rag = mode in (
             MODE_CHAT, MODE_LLAMA_INDEX, MODE_AGENT_V2, MODE_RESEARCH,
             MODE_COMPUTER, MODE_COMPLETION, MODE_AGENT, MODE_EXPERT,
         )
         ui_nodes['idx.options'].setVisible(show_rag)
         ui_nodes['idx.select.widget'].setVisible(show_rag)
-        ui_nodes['llama_index.mode.widget'].setVisible(is_llama_index)
 
         if is_media:
             ui_nodes['input.counter'].setVisible(False)

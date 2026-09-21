@@ -155,7 +155,6 @@ class Mapping:
         nodes['cmd.enabled'] = 'cmd.enabled'
         nodes['toolbox.prompt.label'] = 'toolbox.prompt'
         nodes["indexes.label"] = "toolbox.indexes.label"
-        nodes["llama_index.mode.label"] = "toolbox.llama_index.mode.label"
         nodes["agent.llama.loop.score.label"] = "toolbox.agent.llama.loop.score.label"
         nodes["agent.llama.loop.label"] = "toolbox.agent.llama.loop.label"
         nodes["agent.llama.loop.enabled"] = "toolbox.agent.llama.loop.enabled.label"

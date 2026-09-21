@@ -97,7 +97,7 @@ The available modes are:
 * ``Store truncated`` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends ``....``. Object keys and nesting are preserved.
 * ``Store full input/output`` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
 
-The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence.
+The storage policy applies to all modes that use tools, including Chat (with or without RAG), legacy Agents, and Chat with Agents. It affects only durable database persistence.
 
 Tool-call rendering is configured separately in ``Settings -> Chats -> Render -> Display tool calls JSON``. When enabled (default), completed calls can be shown as expandable request/response JSON blocks. When disabled, those blocks are hidden and live tool activity is shown only as one aggregated ``Tool/Tools`` status row. This display option does not change tool execution, persistence, or replay to the model.
 

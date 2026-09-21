@@ -57,7 +57,7 @@ Using the calendar, you can go back to selected conversations from a specific da
 Indexer
 -------
 
-This tool allows indexing of local files or directories and external web content to a vector database, which can then be used with the ``Chat with Files`` mode. Using this tool, you can manage local indexes and add new data with built-in ``LlamaIndex`` integration. Project conversations can also use an isolated ``Current project`` index; see :doc:`indexing` for project-aware file and context indexing.
+This tool allows indexing of local files or directories and external web content to a vector database, which can then be selected through the ``RAG`` selector in Chat and other supported workflows. Using this tool, you can manage local indexes and add new data with built-in ``LlamaIndex`` integration. Project conversations can also use an isolated ``Current project`` index; see :doc:`indexing` for project-aware file and context indexing.
 
 .. image:: images/v2_tool_indexer.png
    :width: 800

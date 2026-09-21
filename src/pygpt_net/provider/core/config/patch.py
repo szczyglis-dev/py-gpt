@@ -1257,6 +1257,46 @@ class Patch:
                     del data["agent.idx"]
                     updated = True
 
+                # Chat with Files is a UI alias of Chat from 2.8.28. Preserve
+                # the active legacy preset/model when an old profile last used
+                # it, then normalize the persisted mode so startup never points
+                # at the hidden selector. Research remains a first-class mode.
+                legacy_mode = data.get("mode")
+                if legacy_mode == "llama_index":
+                    for key in ("current_preset", "current_model"):
+                        mapping = data.get(key)
+                        if isinstance(mapping, dict) and mapping.get(legacy_mode):
+                            value = mapping[legacy_mode]
+                            if key == "current_preset" and value == "current.llama_index":
+                                value = "current.chat"
+                            mapping["chat"] = value
+                            updated = True
+                    if data.get("preset") == "current.llama_index":
+                        data["preset"] = "current.chat"
+                        updated = True
+                    data["mode"] = "chat"
+                    updated = True
+
+                # Mode bool-lists no longer expose Chat with Files. Fold any
+                # saved llama_index selection into Chat; keep Research intact.
+                for key in ("llama.idx.auto.modes", "personalize.modes"):
+                    value = data.get(key)
+                    if not isinstance(value, str):
+                        continue
+                    modes = []
+                    for item in value.split(","):
+                        item = item.strip()
+                        if not item:
+                            continue
+                        if item == "llama_index":
+                            item = "chat"
+                        if item not in modes:
+                            modes.append(item)
+                    normalized_modes = ",".join(modes)
+                    if normalized_modes != value:
+                        data[key] = normalized_modes
+                        updated = True
+
         # update file
         migrated = False
         if updated:

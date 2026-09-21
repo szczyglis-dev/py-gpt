@@ -620,6 +620,8 @@ class Ctx:
 
         thread = ctx.get_thread()
         mode = ctx.get_mode()
+        if mode is not None:
+            mode = ctrl.mode._normalize_mode(mode)
         model = ctx.get_model()
         assistant_id = ctx.get_assistant()
         preset = ctx.get_preset()

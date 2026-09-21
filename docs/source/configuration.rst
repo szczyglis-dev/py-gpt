@@ -52,7 +52,7 @@ OpenAI
 
 * ``Use the Responses API in Chat mode``: Sends OpenAI Chat-mode requests through the Responses API instead of Chat Completions. This enables Responses-specific capabilities and remote tools where supported by the selected model. Default: True.
 
-* ``Use the Responses API in Chat with Files mode (LlamaIndex)``: Makes OpenAI-backed Chat with Files/LlamaIndex requests use the Responses API rather than Chat Completions. It affects only OpenAI models and allows the LlamaIndex path to use Responses-specific behavior where supported. Default: True.
+* ``Use the Responses API in RAG (LlamaIndex)``: Makes OpenAI-backed LlamaIndex RAG requests use the Responses API rather than Chat Completions. It affects only OpenAI models and allows the LlamaIndex path to use Responses-specific behavior where supported. Default: True.
 
 Google
 ^^^^^^
@@ -531,16 +531,18 @@ Vector Store
 Chat
 ^^^^
 
-* ``Chat mode``: Selects the LlamaIndex chat-engine mode used by Chat with Files, which determines how retrieved context and conversation history are combined when generating an answer. ``context`` is the default general-purpose mode. Default: ``context``.
+* ``RAG mode``: Selects how the active RAG index handles a prompt. ``Chat`` retrieves context and generates a conversational answer, ``Query the Index Only`` uses the index query path, and ``Retrieve Only`` returns retrieved context without the normal chat response. Default: ``Chat``.
 
-Tool-call routing in Chat with Files is automatic. When the ``Tools`` switch is enabled, PyGPT uses native tool calls whenever the current model/provider path supports them. If native tool calls are unavailable, PyGPT automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming in this integration, so streaming is disabled automatically only for that fallback path. There is no separate ReAct setting.
+* ``Chat mode``: Selects the LlamaIndex chat-engine mode used when ``RAG mode`` is ``Chat``, determining how retrieved context and conversation history are combined when generating an answer. ``context`` is the default general-purpose mode. Default: ``context``.
 
-* ``Auto-retrieve additional context``: Runs retrieval for every Chat with Files query and injects the matching indexed content into the model context automatically. Disable it if retrieval should happen only through an explicit agent/tool path. Default: True.
+Tool-call routing in RAG-backed Chat is automatic. When the ``Tools`` switch is enabled, PyGPT uses native tool calls whenever the current model/provider path supports them. If native tool calls are unavailable, PyGPT automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming in this integration, so streaming is disabled automatically only for that fallback path. There is no separate ReAct setting.
+
+* ``Auto-retrieve additional context``: Runs retrieval for every RAG-backed Chat query and injects the matching indexed content into the model context automatically. Disable it if retrieval should happen only through an explicit agent/tool path. Default: True.
 
 Embeddings
 ^^^^^^^^^^
 
-* ``Embeddings provider``: Selects the global embedding provider used for indexing and Chat with Files. Credentials and endpoints are resolved from that provider's normal global configuration (``API Keys`` or ``Custom providers``), so they do not need to be duplicated in the embedding configuration. Default: ``openai``.
+* ``Embeddings provider``: Selects the global embedding provider used for indexing and RAG. Credentials and endpoints are resolved from that provider's normal global configuration (``API Keys`` or ``Custom providers``), so they do not need to be duplicated in the embedding configuration. Default: ``openai``.
 
 * ``Default embedding models``: Defines the default embedding model for each provider. The same list is used for file indexing, conversation-context indexing, and attachment RAG. For provider-aware automatic embedding, PyGPT uses the entry matching the active model/provider when one is configured; otherwise it falls back to the global embedding provider and its default model.
 
@@ -642,8 +644,6 @@ Agents
 Autonomous
 ^^^^^^^^^^
 
-* ``Index to use``: Selects an optional RAG index for Autonomous mode. ``---`` keeps normal Chat routing. Selecting an index is the only Autonomous-specific routing override and forces the request through ``Chat with Files (LlamaIndex)`` with that index. Default: ``---``.
-
 * ``Show infinite loop warning``: Shows a confirmation dialog before starting an Autonomous run when the configured run limit is ``0``. The confirmation contains **Do not show again**; accepting the run with that checkbox selected disables future warnings. Re-enable this setting to show the warning again. Default: True.
 
 Legacy
@@ -734,7 +734,7 @@ Custom providers
 
 * ``Custom providers``: A runtime list of model providers compatible with the OpenAI Chat Completions API. Each row contains ``Provider name``, ``API base URL``, and ``API key``. Entries are stored in ``config.json`` as ``api_custom_providers`` and are registered immediately after Settings are saved.
 
-  Custom providers appear in model provider selectors and in ``Config -> Models -> Import``. Normal Chat requests use the native OpenAI SDK against the configured base URL. Chat with Files uses LlamaIndex ``OpenAILike``. The model importer reads the OpenAI-compatible ``/models`` endpoint.
+  Custom providers appear in model provider selectors and in ``Config -> Models -> Import``. Normal Chat requests use the native OpenAI SDK against the configured base URL. When Chat is routed through RAG, PyGPT uses LlamaIndex ``OpenAILike``. The model importer reads the OpenAI-compatible ``/models`` endpoint.
 
 Updates
 ~~~~~~~
@@ -772,7 +772,7 @@ Debug
 
 * ``Log Chat with Agents (verbose mode, full output)``: Logs the complete Chat with Agents orchestration flow, including system prompts, tool availability and calls, worker operations/state, inputs, outputs, RAG context, and workflow lifecycle. This may contain sensitive data. Default: False.
 
-* ``Log LlamaIndex usage to console``: Prints LlamaIndex indexing, retrieval, and query-flow diagnostics to the console. Enable it when troubleshooting Chat with Files or vector-store behavior. Default: False.
+* ``Log LlamaIndex usage to console``: Prints LlamaIndex indexing, retrieval, and query-flow diagnostics to the console. Enable it when troubleshooting RAG or vector-store behavior. Default: False.
 
 * ``Log Realtime sessions to console``: Prints lifecycle and provider diagnostics for Realtime/audio sessions to the console. This is useful for connection, streaming, and event troubleshooting. Default: False.
 
@@ -1166,8 +1166,7 @@ Keyword arguments for RedisVectorStore(``**kwargs``):
 
 You can extend list of available providers by creating custom provider and registering it on app launch.
 
-By default, you are using chat-based mode when using ``Chat with Files``.
-If you want to only query index (without chat) you can enable ``Query index only (without chat)`` option.
+Use ``Settings -> Indexes / RAG -> Chat -> RAG mode`` to choose between normal RAG-backed Chat, querying the index only, or retrieval only.
 
 
 **Adding custom vector stores and offline data loaders**
