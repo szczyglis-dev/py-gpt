@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 10:00:00                  #
+# Updated Date: 2026.09.21 21:40:00                  #
 # ================================================== #
 
 import json
@@ -265,7 +265,7 @@ class Chat:
         cmd_enabled = self.window.core.config.get("cmd", False)  # use tools
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
-        if disable_cmd:
+        if disable_cmd or (extra and extra.get("disable_tools", False)):
             cmd_enabled = False
 
         # ReAct is an automatic fallback for models/providers that cannot use
@@ -340,6 +340,34 @@ class Chat:
                 computer_runtime=computer_runtime,
                 force_computer_use=force_computer_use,
             )
+
+        # LlamaIndex chat engines own a separate background consumer for their
+        # streaming response.  That works for chat-engine history, but it also
+        # means the provider stream can be consumed into LlamaIndex's queue before
+        # PyGPT's StreamWorker starts reading it.  The result is a buffered/burst
+        # response (visually indistinguishable from non-streaming) specifically on
+        # the RAG + tools-disabled path.
+        #
+        # For a real UI stream, retrieve the RAG context here and then use the
+        # normal direct LLM streaming path below.  This is also the same strategy
+        # already used when native tools are enabled: retrieval remains
+        # synchronous, while generation is streamed directly by the provider.
+        # Keep ``simple`` as the explicit no-query-engine mode.
+        if use_index and stream and not cmd_enabled:
+            stream_nodes = []
+            if chat_mode != "simple":
+                stream_nodes = self._retrieve_nodes(index, query)
+                additional_ctx = self._format_retrieved_nodes(stream_nodes)
+                if additional_ctx:
+                    system_prompt += "\n\n# Additional context:\n\n" + additional_ctx
+                if stream_nodes:
+                    ctx.add_doc_meta(self.get_metadata(stream_nodes))
+
+            self.log(
+                f"Direct RAG stream: nodes={len(stream_nodes)}, "
+                f"chat_mode={chat_mode}"
+            )
+            use_index = False
 
         # TODO: if multimodal support, try to get multimodal provider
         # if model.is_multimodal():
@@ -423,7 +451,9 @@ class Chat:
                 else:
                     use_index = False # fallback to LLM if tools enabled but not using ReAct
             else:
-                # 2) if tools disabled, use index as chat engine
+                # 2) tools disabled + non-stream: keep the LlamaIndex chat engine.
+                # Streaming requests have already been routed to direct LLM
+                # streaming above after explicit RAG retrieval.
                 chat_engine_kwargs = {
                     "llm": llm,
                     "chat_mode": chat_mode,
@@ -439,13 +469,10 @@ class Chat:
                     history=history,
                     extra=extra,
                     model=model.id,
-                    path="index.as_chat_engine(...).stream_chat" if stream else "index.as_chat_engine(...).chat",
+                    path="index.as_chat_engine(...).chat",
                 )
                 chat_engine = index.as_chat_engine(**chat_engine_kwargs)
-                if stream:
-                    response = chat_engine.stream_chat(query)
-                else:
-                    response = chat_engine.chat(query)
+                response = chat_engine.chat(query)
 
                 # check for not empty
                 if hasattr(response, "source_nodes") and len(response.source_nodes) == 0:
@@ -517,7 +544,8 @@ class Chat:
                             )
                             response = llm.chat(**request_kwargs)
             else:
-                # NO TOOLS + NO INDEX
+                # NO TOOLS + DIRECT LLM. If RAG is active in streaming mode,
+                # retrieved context was already appended to the system prompt.
                 history.insert(0, self.context.add_system(system_prompt))
                 history.append(self.context.add_user(
                     query,

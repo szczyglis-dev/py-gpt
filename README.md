@@ -481,6 +481,8 @@ The audio toolbox provides two options for controlling voice turns:
 
 **Research** is a provider-aware mode for models designed for web research and deep-research workflows. Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**.
 
+> **Current limitation:** Regular tool calls are temporarily disabled in **Research** mode. RAG can still be selected, but support is provider/model-dependent and may not work correctly with some research models or provider-specific research APIs. Verify the response when indexed RAG context is required.
+
 Configure the API key for the provider you want to use in `Config -> Settings -> API Keys`. For Perplexity models, see https://perplexity.ai.
 
 **Google Remote MCP:** Google Remote MCP can be enabled in `Config -> Settings -> Remote Tools -> Google`. In the current PyGPT implementation it is available in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
@@ -1140,9 +1142,6 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - `claude-sonnet-5` (Anthropic)
 - `deepseek-v4-flash` (DeepSeek)
 - `deepseek-v4-pro` (DeepSeek)
-- `deep-research-max-preview-04-2026` (Google)
-- `deep-research-preview-04-2026` (Google)
-- `deep-research-pro-preview-12-2025` (Google)
 - `gemini-2.5-computer-use-preview-10-2025` (Google)
 - `gemini-2.5-flash` (Google)
 - `gemini-2.5-flash-image` (Google)

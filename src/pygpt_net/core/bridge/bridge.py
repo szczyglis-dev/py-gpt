@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 11:45:00
+# Updated Date: 2026.09.21 21:30:00
 # ================================================== #
 
 import copy
@@ -32,6 +32,13 @@ from pygpt_net.core.types import (
 
 from .context import BridgeContext
 from .worker import BridgeWorker
+
+
+# Temporary compatibility switch: Research models currently do not handle
+# PyGPT app-level tools reliably. Keep the policy centralized in the bridge so
+# it can be removed by flipping a single constant once provider support is ready.
+DISABLE_RESEARCH_TOOLS = True
+
 
 class Bridge:
     def __init__(self, window=None):
@@ -142,6 +149,33 @@ class Bridge:
             extra=extra,
             rt_signals=rt_signals,
         )
+
+    def apply_mode_tool_policy(
+            self,
+            context: BridgeContext,
+            extra: Optional[Dict[str, Any]] = None
+    ):
+        """Apply temporary mode-specific tool compatibility rules."""
+        if not DISABLE_RESEARCH_TOOLS:
+            return
+
+        # parent_mode preserves the visible mode when Research is routed through
+        # the shared RAG/LlamaIndex runtime. Checking both also covers direct and
+        # quick Research calls.
+        if context.mode != MODE_RESEARCH and context.parent_mode != MODE_RESEARCH:
+            return
+
+        if context.external_functions:
+            self.window.core.debug.info(
+                "[bridge] Research mode: temporarily disabling app tools."
+            )
+        context.external_functions = []
+
+        # LlamaIndex/RAG prepares its tools from the global command registry
+        # rather than context.external_functions, so carry an explicit runtime
+        # marker for that path as well.
+        if extra is not None:
+            extra["disable_tools"] = True
 
     def request(
             self,
@@ -272,6 +306,8 @@ class Bridge:
         if extra is None:
             extra = {}
 
+        self.apply_mode_tool_policy(context, extra)
+
         # async worker
         worker = self.get_worker()
         worker.context = context
@@ -358,6 +394,8 @@ class Bridge:
             context.model.reasoning_effort = False
 
         try:
+            self.apply_mode_tool_policy(context, extra)
+
             model = context.model
             if model is not None:
                 # Research-only models keep the legacy quick-call mode switch.
