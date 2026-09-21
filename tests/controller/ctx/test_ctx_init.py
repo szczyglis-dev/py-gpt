@@ -220,6 +220,7 @@ def test_load(mock_window):
     mock_window.core.ctx.get_model = MagicMock(return_value='gpt-4')
     mock_window.core.ctx.get_assistant = MagicMock(return_value='as_123')
     mock_window.core.ctx.get_preset = MagicMock(return_value='preset_123')
+    mock_window.controller.mode._normalize_mode = MagicMock(side_effect=lambda mode: mode)
 
     ctx.load(3)
 

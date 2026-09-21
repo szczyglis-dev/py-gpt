@@ -308,6 +308,8 @@ def test_send_calls_execute():
         "mode_override": None,
         "model_override": None,
         "agent_continue": False,
+        "agent_judge": False,
+        "agent_judge_text": "",
         "runtime_attachments": {"runtime": "attachment"},
         "send_initialized": False,
     }
@@ -341,6 +343,8 @@ def test_send_internal_reply_preserves_origin_mode_and_model():
         "mode_override": MODE_LLAMA_INDEX,
         "model_override": "origin-model",
         "agent_continue": False,
+        "agent_judge": False,
+        "agent_judge_text": "",
         "runtime_attachments": {},
         "send_initialized": False,
     }
@@ -405,6 +409,8 @@ def test_execute_handle_allowed():
         mode_override=None,
         model_override=None,
         agent_continue=False,
+        agent_judge=False,
+        agent_judge_text="",
         runtime_attachments=None,
     )
 

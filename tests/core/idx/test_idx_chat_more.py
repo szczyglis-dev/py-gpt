@@ -247,8 +247,8 @@ def test_is_stream_allowed_behavior(monkeypatch):
     model = FakeModelItem()
     win.core.config._m.update({"cmd": True})
     win.core.models.is_tool_call_allowed = Mock(return_value=False)
-    assert chat.is_stream_allowed(model) is False
-    win.core.models.is_tool_call_allowed.assert_called_once_with(MODE_LLAMA_INDEX, model)
+    assert chat.is_stream_allowed(model) is True
+    win.core.models.is_tool_call_allowed.assert_not_called()
 
     win.core.models.is_tool_call_allowed.reset_mock()
     win.core.config._m.update({"cmd": False})

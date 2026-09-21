@@ -35,28 +35,35 @@ def test_preset_editor_setup_refreshes_dynamic_lists_and_registers_hooks():
 
 def test_preset_editor_to_current_copies_selected_personalization_values():
     ctrl, window = _editor()
-    preset = SimpleNamespace(ai_name='AI', user_name='User', prompt='Prompt')
+    preset = SimpleNamespace(ai_name='AI', user_name='User', prompt='Prompt', filename='preset-1')
     ctrl.to_current(preset)
     assert window.core.config.set.call_args_list == [
         (('ai_name', 'AI'), {}),
         (('user_name', 'User'), {}),
         (('prompt', 'Prompt'), {}),
     ]
+    window.controller.presets.apply_lists_from_preset.assert_called_once_with('preset-1')
 
 
 def test_preset_editor_from_current_applies_all_global_values_to_editor():
     ctrl, window = _editor()
     values = {
         'ai_name': 'AI', 'user_name': 'User', 'prompt': 'P',
-        'model': 'm1', 'mode': 'chat',
+        'model': 'm1', 'mode': 'chat', 'llama.idx.current': None,
+        'preset.plugins': None,
     }
-    window.core.config.get.side_effect = lambda key: values[key]
+    window.core.config.get.side_effect = lambda key: values.get(key)
+    ctrl.update_indexes_list = MagicMock()
+    ctrl.update_plugin_presets_list = MagicMock()
+    ctrl.set_runtime_list_selection = MagicMock()
     ctrl.from_current()
     calls = window.controller.config.apply_value.call_args_list
     assert [c.kwargs['key'] for c in calls] == [
-        'ai_name', 'user_name', 'prompt', 'model'
+        'ai_name', 'user_name', 'prompt', 'model', 'plugin_preset'
     ]
-    assert calls[-1].kwargs['value'] == 'm1'
+    assert calls[3].kwargs['value'] == 'm1'
+    assert calls[4].kwargs['value'] == '_'
+    ctrl.update_indexes_list.assert_called_once_with(None)
 
 
 def test_preset_editor_update_from_global_updates_current_preset_and_saves():
@@ -70,16 +77,20 @@ def test_preset_editor_update_from_global_updates_current_preset_and_saves():
     window.core.presets.save.assert_called_once_with('preset-1')
 
 
-def test_preset_editor_toggle_tab_updates_qt_tab():
-    ctrl, window = _editor()
+def test_preset_editor_toggle_tab_rebuilds_static_tab_set():
+    ctrl, _ = _editor()
     assert 'experts' not in ctrl.TAB_IDX
-    tabs = window.ui.tabs['preset.editor.tabs']
+    ctrl._current_visible_tab_names = MagicMock(return_value=['general', 'options'])
+    ctrl._rebuild_static_tabs = MagicMock()
+
     ctrl.toggle_tab('remote_tools', True)
-    tabs.setTabEnabled.assert_called_with(ctrl.TAB_IDX['remote_tools'], True)
-    tabs.setTabVisible.assert_called_with(ctrl.TAB_IDX['remote_tools'], True)
+    visible = set(ctrl._rebuild_static_tabs.call_args.args[0])
+    assert visible == {'general', 'remote_tools', 'options'}
+
+    ctrl._current_visible_tab_names.return_value = ['general', 'remote_tools', 'options']
     ctrl.toggle_tab('remote_tools', False)
-    tabs.setTabEnabled.assert_called_with(ctrl.TAB_IDX['remote_tools'], False)
-    tabs.setTabVisible.assert_called_with(ctrl.TAB_IDX['remote_tools'], False)
+    visible = set(ctrl._rebuild_static_tabs.call_args.args[0])
+    assert visible == {'general', 'options'}
 
 
 def test_preset_editor_remove_avatar_requires_confirmation_when_not_forced():
@@ -257,6 +268,9 @@ def test_preset_editor_append_default_prompt_uses_provider_default():
 def test_preset_editor_update_indexes_list_refreshes_schema_and_widget():
     ctrl, window = _editor()
     widget = MagicMock()
+    widget.get_value.return_value = '_'
+    widget.combo.findData.return_value = 0
+    widget.locked = False
     window.ui.config = {'preset': {'idx': widget}}
     window.controller.config.placeholder.apply_by_id.return_value = {'_': 'None', 'idx1': 'Index 1'}
     ctrl.update_indexes_list()
@@ -289,7 +303,10 @@ def test_preset_editor_edit_resolves_index_and_opens_editor():
     ctrl.init = MagicMock()
     ctrl.fit_splitter_to_content = MagicMock()
     ctrl._normalize_extra_tabs = MagicMock()
-    ctrl.edit(4)
+    ctrl.sync_tabs_for_mode = MagicMock()
+    with patch('pygpt_net.controller.presets.editor.QTimer.singleShot') as single_shot:
+        ctrl.edit(4)
+    single_shot.assert_called_once_with(0, ctrl.sync_tabs_for_mode)
     window.core.presets.get_by_idx.assert_called_once_with(4, 'chat')
     ctrl.init.assert_called_once_with(preset)
     window.ui.dialogs.open_editor.assert_called_once_with('editor.preset.presets', 4, width=800)
@@ -298,6 +315,7 @@ def test_preset_editor_edit_resolves_index_and_opens_editor():
 def test_preset_editor_reload_all_optionally_rebuilds_dynamic_options():
     ctrl, _ = _editor()
     ctrl.update_providers_list = MagicMock()
+    ctrl.update_plugin_presets_list = MagicMock()
     ctrl.reload_all_custom_agent_options = MagicMock()
     ctrl.init = MagicMock()
     ctrl.opened = True
@@ -320,7 +338,7 @@ def test_preset_editor_init_new_chat_preset_uses_mocked_dynamic_helpers():
         'reload_all', 'load_extra_defaults', 'update_indexes_list', 'load_extra_options',
         'toggle_extra_options', 'update_avatar_config', 'show_hide_by_mode',
         'toggle_extra_options_by_provider', 'append_default_prompt',
-        'fit_splitter_to_content',
+        'fit_splitter_to_content', 'sync_tabs_for_mode',
     ]:
         setattr(ctrl, name, MagicMock())
 

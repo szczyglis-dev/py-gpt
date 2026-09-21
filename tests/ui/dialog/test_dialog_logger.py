@@ -11,7 +11,7 @@ def _window(with_commands=True):
         console = SimpleNamespace(on_send=MagicMock())
     debug = SimpleNamespace(console=console)
     return SimpleNamespace(
-        core=SimpleNamespace(debug=debug),
+        core=SimpleNamespace(debug=debug, config=SimpleNamespace(get=MagicMock(return_value=16))),
         controller=SimpleNamespace(debug=SimpleNamespace(clear_logger=MagicMock())),
         ui=SimpleNamespace(nodes={}, dialog={}),
     )

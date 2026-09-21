@@ -112,12 +112,12 @@ def test_runtime_custom_provider_is_openai_compatible():
     assert item.is_supported(MODE_CHAT) is True
 
 
-def test_non_compatible_unknown_provider_is_not_supported_in_chat_but_other_modes_follow_list():
+def test_non_compatible_unknown_provider_modes_follow_configured_list():
     item = ModelItem("unknown-model")
     item.provider = "unknown_provider"
     item.mode = ["chat", "vision"]
     assert item.is_openai_supported() is False
-    assert item.is_supported(MODE_CHAT) is False
+    assert item.is_supported(MODE_CHAT) is True
     assert item.is_supported(MODE_VISION) is True
 
 

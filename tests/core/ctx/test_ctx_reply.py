@@ -33,6 +33,7 @@ def test_replycontext_defaults_and_to_dict_none_fields():
         "parent_id": None,
         "input": "",
         "cmds": [],
+        "extra": {},
     }
 
 def test_to_dict_with_nested_objects_calls_to_dict_and_returns_nested_dicts():

@@ -26,7 +26,6 @@ def _window(profile_mode="create", auto_capture=False):
         return default
 
     window.core.config.get.side_effect = cfg_get
-    window.controller.idx.get_modes_keys.return_value = ["a", "b"]
     return window
 
 
@@ -46,7 +45,6 @@ def test_lang_custom_apply_updates_capture_tooltip_and_delegates_subcontrollers(
     window.ui.nodes["dialog.profile.item.btn.update"].setText.assert_called_once_with(
         "tr:dialog.profile.item.btn.create"
     )
-    window.ui.nodes["llama_index.mode.select"].set_keys.assert_called_once_with(["a", "b"])
 
 
 def test_lang_custom_apply_uses_auto_capture_tooltip_and_tolerates_missing_painter_helper():

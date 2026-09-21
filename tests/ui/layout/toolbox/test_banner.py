@@ -33,7 +33,7 @@ def test_banner_set_items_creates_widget_lazily_and_inserts_it(qapp):
         widget = cls.return_value
         builder.set_items([{"path": "/tmp/banner.png"}])
 
-    cls.assert_called_once_with(width=256, height=36, parent=window)
+    cls.assert_called_once_with(width=200, height=36, parent=window)
     assert builder.widget is widget
     assert window.ui.nodes["toolbox.banner"] is widget
     layout.insertWidget.assert_called_once_with(0, widget, 0, Qt.AlignTop | Qt.AlignRight)

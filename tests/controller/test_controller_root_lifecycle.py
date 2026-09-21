@@ -13,7 +13,7 @@ def _bare_controller():
         "debug", "kernel", "chat", "layout", "ui", "lang", "agent_workflow", "assistant",
         "remote_store", "agent", "agents_v2", "tools", "ctx", "presets", "idx",
         "dialogs", "audio", "attachment", "camera", "access", "realtime",
-        "media", "settings", "plugins", "model", "launcher", "calendar",
+        "media", "settings", "plugins", "model", "mode", "launcher", "calendar",
         "painter", "notepad", "files", "theme", "profile_exporter", "skills", "connectors",
     ):
         setattr(controller, name, MagicMock())

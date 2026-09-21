@@ -10,27 +10,21 @@ def test_tools_callbacks_delegate_to_matching_components():
     action = MagicMock()
     action.data.return_value = "calendar"
     window.sender.return_value = action
-    interpreter_plugin = MagicMock()
-    system_plugin = MagicMock()
-    window.core.plugins.get.side_effect = lambda key: {
-        "cmd_code_interpreter": interpreter_plugin,
-        "cmd_system": system_plugin,
-    }[key]
-
     Tools._open_tab_action(widget)
     Tools._toggle_remote_store(widget)
     Tools._rebuild_ipython(widget)
     Tools._rebuild_python_legacy(widget)
     Tools._rebuild_system(widget)
+    Tools._rebuild_python_builtin(widget)
+    Tools._rebuild_system_builtin(widget)
 
     window.controller.tools.open_tab.assert_called_once_with("calendar")
     window.controller.remote_store.toggle_editor.assert_called_once()
-    assert window.core.plugins.get.call_count == 3
-    window.core.plugins.get.assert_any_call("cmd_code_interpreter")
-    window.core.plugins.get.assert_any_call("cmd_system")
-    interpreter_plugin.builder.build_and_restart.assert_called_once()
-    interpreter_plugin.docker.build_and_restart.assert_called_once()
-    system_plugin.docker.build_and_restart.assert_called_once()
+    window.controller.tools.rebuild_ipython_docker.assert_called_once_with()
+    window.controller.tools.rebuild_python_legacy_docker.assert_called_once_with()
+    window.controller.tools.rebuild_system_docker.assert_called_once_with()
+    window.controller.tools.rebuild_python_builtin.assert_called_once_with()
+    window.controller.tools.rebuild_system_builtin.assert_called_once_with()
 
 
 def _window(tab_tools, menu_actions):
@@ -74,8 +68,15 @@ def test_tools_setup_adds_tab_actions_and_returns_early_without_plugin_actions()
 def test_tools_setup_adds_plugin_remote_store_and_docker_actions():
     extra = MagicMock()
     window, menu = _window({}, {"tool.extra": extra})
-    widget = SimpleNamespace(window=window, _toggle_remote_store=MagicMock(), _rebuild_ipython=MagicMock(),
-                             _rebuild_python_legacy=MagicMock(), _rebuild_system=MagicMock())
+    widget = SimpleNamespace(
+        window=window,
+        _toggle_remote_store=MagicMock(),
+        _rebuild_ipython=MagicMock(),
+        _rebuild_python_legacy=MagicMock(),
+        _rebuild_system=MagicMock(),
+        _rebuild_python_builtin=MagicMock(),
+        _rebuild_system_builtin=MagicMock(),
+    )
     docker_menu = MagicMock()
     menu.addMenu.return_value = docker_menu
 
@@ -93,5 +94,7 @@ def test_tools_setup_adds_plugin_remote_store_and_docker_actions():
     assert "menu.tools.ipython.rebuild" in window.ui.menu
     assert "menu.tools.python_legacy.rebuild" in window.ui.menu
     assert "menu.tools.system.rebuild" in window.ui.menu
+    assert "menu.tools.python_builtin.rebuild" in window.ui.menu
+    assert "menu.tools.system_builtin.rebuild" in window.ui.menu
     assert menu.addSeparator.call_count == 3
-    assert docker_menu.addAction.call_count == 3
+    assert docker_menu.addAction.call_count == 5

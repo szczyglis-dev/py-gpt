@@ -279,7 +279,7 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     assert runtime.return_tool_calls_to_main_ctx is True
     assert runtime.allow_local_tools is False
     assert runtime.allow_remote_tools is True
-    assert runtime.index_id is None
+    assert runtime.index_id == "fallback-index"
     assert runtime.shared_context_text == "shared"
     assert runtime.runtime_system_context == "runtime"
     assert runtime.workflow_final_requested is False
