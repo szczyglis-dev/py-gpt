@@ -41,7 +41,11 @@ class BuiltinBackend(ExecutionBackend):
 
     def __init__(self, plugin=None):
         super().__init__(plugin)
-        self.runtime = BuiltinSandboxRuntime(plugin.window, "python")
+        self.runtime = BuiltinSandboxRuntime(
+            plugin.window,
+            "python",
+            packages_provider=plugin.get_builtin_packages,
+        )
         self.ipython = BuiltinKernel(plugin, self.runtime)
         self._defer_lock = threading.RLock()
         self._defer_count = 0
@@ -50,6 +54,8 @@ class BuiltinBackend(ExecutionBackend):
         """Start first-use provisioning but let the worker return a tool response."""
         if self.runtime.is_ready():
             return True
+        if self.ipython.initialized:
+            self.ipython.shutdown_kernel()
         with self._defer_lock:
             self._defer_count += len(commands)
         self.plugin.builtin_preparer.prepare(self.runtime)

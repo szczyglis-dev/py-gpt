@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.09.21 16:30:00                  #
 # ================================================== #
 
 import asyncio
 import hashlib
 import re
 import shlex
+import tempfile
 import time
 from typing import Dict, List, Tuple, Any, Optional
 from urllib.parse import urlparse
@@ -45,6 +46,11 @@ class Plugin(BasePlugin):
         # In-memory discovery cache (per server)
         self._tools_cache: Dict[str, Dict[str, Any]] = {}
         self._last_config_signature: Optional[str] = None
+
+        # Stdio connectors without an explicit cwd must never inherit the app's
+        # process cwd (for source runs this can be the repository root). Keep a
+        # per-server temporary working directory for the lifetime of the plugin.
+        self._stdio_tempdirs: Dict[str, tempfile.TemporaryDirectory] = {}
 
     def init_options(self):
         """Initialize options"""
@@ -272,11 +278,9 @@ class Plugin(BasePlugin):
                     cmd, args = self._parse_stdio_command(address)
                     kwargs = {"command": cmd, "args": args}
                     env = build_env(server)
-                    cwd = (server.get("cwd") or "").strip()
                     if env is not None:
                         kwargs["env"] = env
-                    if cwd:
-                        kwargs["cwd"] = cwd
+                    kwargs["cwd"] = self.get_stdio_cwd(server)
                     params = StdioServerParameters(**kwargs)
                     async with stdio_client(params) as (read, write):
                         async with ClientSession(read, write) as session:
@@ -556,6 +560,36 @@ class Plugin(BasePlugin):
         if addr.startswith("stdio:"):
             return f"stdio::{addr[len('stdio:'):].strip()}"
         return addr
+
+    def get_stdio_cwd(self, server: dict) -> str:
+        """Return an explicit or isolated working directory for an stdio server.
+
+        Leaving cwd unset makes subprocesses inherit PyGPT's process cwd. Tools
+        such as ``uv`` then discover the PyGPT repository as their project and
+        may create files such as ``uv.lock`` there. An explicitly configured cwd
+        is preserved; otherwise use an isolated system temporary directory.
+        """
+        cwd = str(server.get("cwd") or "").strip()
+        if cwd:
+            return cwd
+
+        label = str(server.get("label") or "server").strip() or "server"
+        key = f"{label}|{self._server_key(server)}"
+        tempdir = self._stdio_tempdirs.get(key)
+        if tempdir is None:
+            slug = self._slugify(label)[:24] or "server"
+            tempdir = tempfile.TemporaryDirectory(prefix=f"pygpt-mcp-{slug}-")
+            self._stdio_tempdirs[key] = tempdir
+        return tempdir.name
+
+    def destroy(self):
+        """Release temporary stdio working directories."""
+        for tempdir in list(self._stdio_tempdirs.values()):
+            try:
+                tempdir.cleanup()
+            except Exception:
+                pass
+        self._stdio_tempdirs.clear()
 
     def _config_signature(self, active_servers: List[Tuple[int, dict]]) -> str:
         """Signature of current config to invalidate cache when config changes."""

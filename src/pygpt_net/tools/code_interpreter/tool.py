@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 09:00:00                  #
+# Updated Date: 2026.09.21 16:30:00                  #
 # ================================================== #
 
 import json
@@ -438,7 +438,7 @@ class CodeInterpreter(BaseTool):
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
         safe_emit(self.signals, "focus_input")
         event = KernelEvent(KernelEvent.STATUS, {
             'status': f"[OK] Kernel restarted at {strftime('%H:%M:%S')}.",
@@ -520,7 +520,7 @@ class CodeInterpreter(BaseTool):
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
         input_textarea.clear()
         input_textarea.setFocus()
 
@@ -562,7 +562,17 @@ class CodeInterpreter(BaseTool):
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
+
+    def _dispatch_interpreter_event(self, event: Event):
+        """Dispatch manual interpreter commands only to the interpreter plugin.
+
+        The interpreter UI is not a chat/tool round. Broadcasting its private
+        CMD_EXECUTE event through ``controller.command.dispatch_only`` touches
+        every plugin and the shared reply stack, which can leak unrelated plugin
+        activity into the chat UI.
+        """
+        self.window.core.dispatcher.apply("cmd_code_interpreter", event)
 
     def update_input(self):
         """Update input data"""

@@ -10,6 +10,7 @@
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
+from pygpt_net.core.sandbox import BUILTIN_OS_PACKAGES, builtin_packages_to_text
 
 
 from .dockerfile import SYSTEM_DOCKERFILE
@@ -56,6 +57,14 @@ class Config(BaseConfig):
             description="Disabled runs system commands directly on the host (unsafe). Built-in runs commands in a dedicated uv-managed CPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option. The system-command whitelist/blacklist applies in every execution mode.",
             keys=SandboxMode.options(),
             tab="general",
+        )
+        plugin.add_option(
+            "builtin_packages",
+            type="textarea",
+            value=builtin_packages_to_text(BUILTIN_OS_PACKAGES),
+            label="Packages to install",
+            description="Python package requirements installed in the Built-in sandbox used by the System / OS plugin. Enter one package specification per line. Re-create the Built-in venv to apply changes immediately; otherwise it will be recreated automatically on the next Built-in sandbox use.",
+            tab="builtin_sandbox",
         )
 
         # Sandbox options

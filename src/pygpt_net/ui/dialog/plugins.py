@@ -200,11 +200,12 @@ class Plugins:
 
                 for tab_id in content_tabs:
                     tab_name = tab_id
-                    # if translation, translate tab name
-                    if tab_id in plugin.tabs:
+                    global_tab_key = f"plugin.tab.{tab_id}"
+                    translated_tab_name = trans(global_tab_key)
+                    if translated_tab_name != global_tab_key:
+                        tab_name = translated_tab_name
+                    elif tab_id in plugin.tabs:
                         tab_name = plugin.tabs[tab_id]
-                        if tab_id == "general":
-                            tab_name = trans("plugin.tab.general")
                     else:
                         tab_name = tab_name.replace("_", " ").capitalize()
                     scroll_widget = QWidget()

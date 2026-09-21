@@ -18,11 +18,10 @@ import shutil
 import subprocess
 import sys
 import threading
-from typing import Optional, Sequence
+from typing import Callable, Optional, Sequence
 
 from .packages import (
     BUILTIN_BASE_PACKAGES,
-    get_builtin_environment_packages,
     get_builtin_packages,
 )
 
@@ -44,11 +43,17 @@ class BuiltinSandboxRuntime:
     _prepare_lock = threading.RLock()
     _MARKER = ".pygpt-sandbox.json"
 
-    def __init__(self, window, name: str):
+    def __init__(
+            self,
+            window,
+            name: str,
+            packages_provider: Optional[Callable[[], Sequence[str]]] = None,
+    ):
         if name not in {"python", "os"}:
             raise ValueError(f"Unsupported built-in sandbox name: {name}")
         self.window = window
         self.name = name
+        self.packages_provider = packages_provider
 
     # ------------------------------------------------------------------
     # Paths / environment
@@ -244,13 +249,20 @@ class BuiltinSandboxRuntime:
             return os.path.realpath(path)
         return None
 
+    def get_packages(self) -> list[str]:
+        """Return the current user-configured package list for this venv."""
+        if self.packages_provider is None:
+            return get_builtin_packages(self.name)
+        packages = self.packages_provider()
+        return [str(item).strip() for item in packages if str(item).strip()]
+
     def _marker_data(self) -> dict:
         return {
-            "version": 6,
+            "version": 7,
             "python": self.PYTHON_VERSION,
             "base_python": self._base_python() or "managed",
             "name": self.name,
-            "packages": get_builtin_environment_packages(self.name),
+            "packages": [*BUILTIN_BASE_PACKAGES, *self.get_packages()],
         }
 
     def _marker_matches(self) -> bool:
@@ -298,11 +310,11 @@ class BuiltinSandboxRuntime:
         else:
             shutil.rmtree(self.venv_root)
 
-    def ensure_ready(self, ctx=None) -> str:
+    def ensure_ready(self, ctx=None, force: bool = False) -> str:
         """Create/update the sandbox venv and return its Python executable."""
         with self._prepare_lock:
             self._ensure_directories(ctx=ctx)
-            if self._marker_matches():
+            if not force and self._marker_matches():
                 self._ensure_private_dirs()
                 return self.python_bin
 
@@ -510,7 +522,7 @@ class BuiltinSandboxRuntime:
                     f"executable at: {self.pip_bin}"
                 )
 
-            packages = get_builtin_packages(self.name)
+            packages = self.get_packages()
             if packages:
                 install_packages = subprocess.run(
                     [

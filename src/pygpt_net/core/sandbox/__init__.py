@@ -16,6 +16,8 @@ from .packages import (
     BUILTIN_OS_PACKAGES,
     BUILTIN_PYTHON_PACKAGES,
     BUILTIN_SANDBOX_PACKAGES,
+    builtin_packages_to_text,
+    parse_builtin_packages,
     get_builtin_environment_packages,
     get_builtin_packages,
 )
@@ -28,6 +30,8 @@ __all__ = [
     "BUILTIN_OS_PACKAGES",
     "BUILTIN_PYTHON_PACKAGES",
     "BUILTIN_SANDBOX_PACKAGES",
+    "builtin_packages_to_text",
+    "parse_builtin_packages",
     "get_builtin_environment_packages",
     "get_builtin_packages",
 ]

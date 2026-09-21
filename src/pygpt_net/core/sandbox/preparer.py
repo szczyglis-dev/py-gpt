@@ -14,6 +14,7 @@ import threading
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 
 from pygpt_net.core.qt import safe_emit
+from pygpt_net.utils import trans
 
 
 class BuiltinSandboxPrepareSignals(QObject):
@@ -24,15 +25,16 @@ class BuiltinSandboxPrepareSignals(QObject):
 class BuiltinSandboxPrepareWorker(QRunnable):
     """Provision one Built-in sandbox environment outside the GUI thread."""
 
-    def __init__(self, runtime):
+    def __init__(self, runtime, force: bool = False):
         super().__init__()
         self.runtime = runtime
+        self.force = bool(force)
         self.signals = BuiltinSandboxPrepareSignals()
 
     @Slot()
     def run(self):
         try:
-            self.runtime.ensure_ready()
+            self.runtime.ensure_ready(force=self.force)
             safe_emit(self.signals, "finished", self.runtime)
         except Exception as exc:
             safe_emit(self.signals, "error", self.runtime, exc)
@@ -50,6 +52,7 @@ class BuiltinSandboxPreparer(QObject):
         self.worker = None
         self._loader_active = False
         self._pending = False
+        self._request = None
         self._lock = threading.RLock()
         self.start_requested.connect(self._start)
 
@@ -57,13 +60,23 @@ class BuiltinSandboxPreparer(QObject):
         """Schedule preparation once. Return True while preparation is needed."""
         if runtime.is_ready():
             return False
+        return self._schedule(runtime, force=False, manual=False)
+
+    def rebuild(self, runtime) -> bool:
+        """Force recreation of the selected Built-in venv in the background."""
+        return self._schedule(runtime, force=True, manual=True)
+
+    def _schedule(self, runtime, force: bool, manual: bool) -> bool:
         with self._lock:
             if self._pending:
-                return True
+                return False if manual else True
             self._pending = True
-        # May be emitted by a plugin worker. Because this QObject belongs to the
-        # GUI thread, _start() is queued there and may safely open the dialog.
-        self.start_requested.emit(runtime)
+        request = {
+            "runtime": runtime,
+            "force": bool(force),
+            "manual": bool(manual),
+        }
+        self.start_requested.emit(request)
         return True
 
     def is_preparing(self) -> bool:
@@ -71,12 +84,20 @@ class BuiltinSandboxPreparer(QObject):
             return self._pending
 
     @Slot(object)
-    def _start(self, runtime):
-        if runtime.is_ready():
+    def _start(self, request):
+        runtime = request["runtime"]
+        force = bool(request.get("force"))
+        manual = bool(request.get("manual"))
+        self._request = request
+
+        if not force and runtime.is_ready():
             self._finish_state()
             return
 
-        message = f"Preparing Built-in sandbox environment: {self.label}..."
+        if manual:
+            message = trans("sandbox.builtin.rebuild.start")
+        else:
+            message = f"Preparing Built-in sandbox environment: {self.label}..."
         print(f"[BUILT-IN SANDBOX] {message}")
         try:
             dialog = self.plugin.window.ui.dialogs.show_loader(
@@ -89,7 +110,7 @@ class BuiltinSandboxPreparer(QObject):
             self._loader_active = False
             self.plugin.window.core.debug.log(exc)
 
-        worker = BuiltinSandboxPrepareWorker(runtime)
+        worker = BuiltinSandboxPrepareWorker(runtime, force=force)
         worker.signals.finished.connect(self._finished)
         worker.signals.error.connect(self._failed)
         self.worker = worker
@@ -108,13 +129,24 @@ class BuiltinSandboxPreparer(QObject):
         with self._lock:
             self._pending = False
         self.worker = None
+        self._request = None
 
     @Slot(object)
     def _finished(self, runtime):
+        request = self._request or {}
+        manual = bool(request.get("manual"))
         self._close_loader()
         self._finish_state()
-        message = f"Built-in sandbox environment ready: {self.label}"
-        print(f"[BUILT-IN SANDBOX] {message} ({runtime.venv_root})")
+        if manual:
+            message = trans("sandbox.builtin.rebuild.finish")
+            print(f"[BUILT-IN SANDBOX] {message} ({runtime.venv_root})")
+            try:
+                self.plugin.window.ui.dialogs.alert(message)
+            except Exception:
+                pass
+        else:
+            message = f"Built-in sandbox environment ready: {self.label}"
+            print(f"[BUILT-IN SANDBOX] {message} ({runtime.venv_root})")
         try:
             self.plugin.window.update_status(message)
         except Exception:
@@ -122,6 +154,8 @@ class BuiltinSandboxPreparer(QObject):
 
     @Slot(object, object)
     def _failed(self, runtime, error):
+        request = self._request or {}
+        manual = bool(request.get("manual"))
         self._close_loader()
         self._finish_state()
         message = f"Unable to prepare Built-in sandbox environment ({self.label}): {error}"
@@ -134,3 +168,8 @@ class BuiltinSandboxPreparer(QObject):
             self.plugin.window.update_status(message)
         except Exception:
             pass
+        if manual:
+            try:
+                self.plugin.window.ui.dialogs.alert(str(error))
+            except Exception:
+                pass

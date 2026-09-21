@@ -23,6 +23,7 @@ BUILTIN_BASE_PACKAGES = [
     "pip",
     "setuptools",
     "wheel",
+    "pytest",
 ]
 
 # Mirrors the stock Python/IPython Docker sandboxes. The same Built-in venv is
@@ -69,6 +70,31 @@ def get_builtin_packages(name: str) -> list[str]:
     return list(BUILTIN_SANDBOX_PACKAGES.get(name, []))
 
 
+def builtin_packages_to_text(packages: list[str]) -> str:
+    """Serialize a package list for the editable plugin textarea."""
+    return "\n".join(str(item).strip() for item in packages if str(item).strip())
+
+
+def parse_builtin_packages(value) -> list[str]:
+    """Parse one package requirement per line, preserving order."""
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        source = value
+    else:
+        source = str(value).splitlines()
+
+    packages = []
+    seen = set()
+    for item in source:
+        package = str(item).strip()
+        if not package or package in seen:
+            continue
+        seen.add(package)
+        packages.append(package)
+    return packages
+
+
 def get_builtin_environment_packages(name: str) -> list[str]:
-    """Return the complete package spec used to version a Built-in venv."""
+    """Return the complete default package spec for a Built-in venv."""
     return [*BUILTIN_BASE_PACKAGES, *get_builtin_packages(name)]

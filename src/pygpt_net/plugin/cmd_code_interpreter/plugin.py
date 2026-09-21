@@ -18,7 +18,7 @@ from PySide6.QtCore import Slot
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.core.sandbox import BuiltinSandboxPreparer
+from pygpt_net.core.sandbox import BuiltinSandboxPreparer, parse_builtin_packages
 
 from .config import Config
 from .sandbox import SandboxMode
@@ -91,6 +91,19 @@ class Plugin(BasePlugin):
     def is_ipython_enabled(self) -> bool:
         """Return True when the IPython interpreter option is enabled."""
         return bool(self.get_option_value("use_ipython"))
+
+    def get_builtin_packages(self) -> list[str]:
+        """Return package requirements configured for the Built-in venv."""
+        return parse_builtin_packages(self.get_option_value("builtin_packages"))
+
+    def rebuild_builtin_sandbox(self) -> bool:
+        """Force recreation of the Python Built-in sandbox venv."""
+        backend = self.execution.get_backend(SandboxMode.BUILTIN)
+        try:
+            backend.ipython.shutdown_kernel()
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+        return self.builtin_preparer.rebuild(backend.runtime)
 
     def get_sandbox_mode(self) -> SandboxMode:
         """Return the selected execution/sandbox mode."""

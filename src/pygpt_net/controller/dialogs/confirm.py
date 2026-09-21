@@ -266,6 +266,18 @@ class Confirm:
         elif type == 'settings.editor.defaults.app':
             self.window.controller.settings.editor.load_editor_defaults_app(True)
 
+        # sandbox / Docker rebuilds
+        elif type == 'tools.sandbox.rebuild.ipython_docker':
+            self.window.controller.tools.rebuild_ipython_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.python_legacy_docker':
+            self.window.controller.tools.rebuild_python_legacy_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.system_docker':
+            self.window.controller.tools.rebuild_system_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.python_builtin':
+            self.window.controller.tools.rebuild_python_builtin(force=True)
+        elif type == 'tools.sandbox.rebuild.system_builtin':
+            self.window.controller.tools.rebuild_system_builtin(force=True)
+
         # plugins
         elif type == 'plugin.settings.defaults.user':
             self.window.controller.plugins.settings.load_defaults_user(True)

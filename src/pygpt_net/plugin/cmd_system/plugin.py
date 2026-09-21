@@ -16,7 +16,7 @@ from PySide6.QtCore import Slot
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.core.sandbox import BuiltinSandboxPreparer
+from pygpt_net.core.sandbox import BuiltinSandboxPreparer, parse_builtin_packages
 
 from .config import Config
 from .docker import Docker
@@ -90,6 +90,15 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         self.config.from_defaults(self)
+
+    def get_builtin_packages(self) -> list[str]:
+        """Return package requirements configured for the Built-in venv."""
+        return parse_builtin_packages(self.get_option_value("builtin_packages"))
+
+    def rebuild_builtin_sandbox(self) -> bool:
+        """Force recreation of the System / OS Built-in sandbox venv."""
+        backend = self.execution.get_backend(SandboxMode.BUILTIN)
+        return self.builtin_preparer.rebuild(backend.runtime)
 
     def get_sandbox_mode(self) -> SandboxMode:
         """Return the selected System/OS execution mode."""

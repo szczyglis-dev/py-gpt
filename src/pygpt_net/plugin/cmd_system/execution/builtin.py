@@ -34,7 +34,11 @@ class BuiltinBackend(ExecutionBackend):
 
     def __init__(self, plugin=None):
         super().__init__(plugin)
-        self.runtime = BuiltinSandboxRuntime(plugin.window, "os")
+        self.runtime = BuiltinSandboxRuntime(
+            plugin.window,
+            "os",
+            packages_provider=plugin.get_builtin_packages,
+        )
         self._defer_lock = threading.RLock()
         self._defer_count = 0
 
