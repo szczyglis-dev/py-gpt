@@ -132,6 +132,40 @@ class Connectors:
             self.window.core.plugins.enable("mcp")
 
     @staticmethod
+    def get_server_id(server: dict) -> str:
+        """Return the stable textual ID used by presets for an MCP item."""
+        return str(server.get("label") or "").strip()
+
+    def get_active_ids(self) -> List[str]:
+        """Return textual IDs of active configured MCP servers."""
+        out = []
+        for server in self.get_servers():
+            server_id = self.get_server_id(server)
+            if server_id and bool(server.get("active", False)):
+                out.append(server_id)
+        return out
+
+    def set_active_ids(self, ids: Iterable[str], save: bool = True) -> List[str]:
+        """Apply an MCP active-server selection by textual ID.
+
+        Missing IDs are ignored. Every currently available server not present
+        in the requested selection is deactivated.
+        """
+        selected = {str(item).strip() for item in (ids or []) if str(item).strip()}
+        servers = self.get_servers()
+        active = []
+        for server in servers:
+            server_id = self.get_server_id(server)
+            is_active = bool(server_id and server_id in selected)
+            server["active"] = is_active
+            if is_active:
+                active.append(server_id)
+        self.set_servers(servers, save=save)
+        if active:
+            self.window.core.plugins.enable("mcp")
+        return active
+
+    @staticmethod
     def _identity(server: dict) -> Tuple[str, str]:
         return (
             str(server.get("label") or "").strip().lower(),

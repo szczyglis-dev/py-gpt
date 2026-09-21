@@ -113,6 +113,7 @@ class Connectors:
         self.window.core.connectors.set_active(
             int(idx), item.checkState(0) == Qt.CheckState.Checked
         )
+        self.window.controller.presets.sync_mcp_from_global()
         self.window.controller.plugins.update_info()
 
     def add_manual(self):
@@ -128,6 +129,7 @@ class Connectors:
             return
         self.window.core.connectors.add_servers([value])
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
         self.window.controller.plugins.update_info()
 
     def edit_selected(self):
@@ -145,6 +147,7 @@ class Connectors:
             return
         self.window.core.connectors.update_server(idx, value)
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
         self.window.controller.plugins.update_info()
 
     def remove_selected(self):
@@ -189,6 +192,7 @@ class Connectors:
             return
         self.window.core.connectors.remove_server(idx)
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
         self.window.controller.plugins.update_info()
         if self._catalog:
             self._render_catalog(self._catalog)
@@ -414,6 +418,7 @@ class Connectors:
             self._render_catalog(result)
             return
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
         self.window.controller.plugins.update_info()
         if action == "install_catalog_many":
             self._render_catalog(self._catalog)

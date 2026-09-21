@@ -161,6 +161,9 @@ class Settings:
             plugins_cfg.pop(pid, None)
 
         window.controller.plugins.presets.save_current()
+        # MCP servers can also be edited through the generic plugin settings
+        # dictionary, so keep the active preset snapshot synchronized here too.
+        window.controller.presets.sync_mcp_from_global()
         window.core.config.save()
         self.close()
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 11:05:00
+# Updated Date: 2026.09.21 14:55:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -75,10 +75,17 @@ class Custom:
         self.window.ui.config['preset'][MODE_RESEARCH].setText(trans("preset.research"))
         self.window.ui.config['preset'][MODE_COMPUTER].setText(trans("preset.computer"))
         self.window.ui.config['preset']["ai_personalize"].setText(trans("preset.ai_personalize"))
+        self.window.ui.config['preset']["mcp_use"].setText(trans("preset.use_list"))
+        self.window.ui.config['preset']["agent_skills_use"].setText(trans("preset.use_list"))
 
-        self.window.ui.tabs['preset.editor.tabs'].setTabText(0, trans("preset.tab.general"))
-        self.window.ui.tabs['preset.editor.tabs'].setTabText(1, trans("preset.tab.personalize"))
-        self.window.ui.tabs['preset.editor.tabs'].setTabText(2, trans("preset.tab.remote_tools"))
+        # Preset tabs are physically removed/reinserted when the app mode
+        # changes, so their runtime indexes are not fixed. Retranslate by page
+        # identity instead of using build-time numeric positions.
+        self.window.controller.presets.editor.retranslate_tabs()
+        presets_tabs = self.window.ui.nodes.get('presets.tabs')
+        if presets_tabs is not None:
+            presets_tabs.setTabText(0, trans("toolbox.agents.label"))
+            presets_tabs.setTabText(1, trans("preset.tab.skills"))
 
         # Shared preset prompt tab and the Autonomous-mode hint are not part of
         # the generic option-label mapping, so update them explicitly when the

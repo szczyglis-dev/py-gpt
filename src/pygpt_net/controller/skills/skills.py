@@ -96,6 +96,7 @@ class Skills:
             self._update_installed_status()
         finally:
             self._refreshing = False
+        self.refresh_toolbox()
 
     def _update_installed_status(self):
         node = self.window.ui.nodes.get("skills.installed.status")
@@ -117,10 +118,34 @@ class Skills:
         name = item.data(0, Qt.ItemDataRole.UserRole)
         if not name:
             return
-        enabled = item.checkState(0) == Qt.CheckState.Checked
-        self.window.core.skills.set_enabled(str(name), enabled)
-        self._update_installed_status()
+        self.set_enabled(
+            str(name),
+            item.checkState(0) == Qt.CheckState.Checked,
+            source="dialog",
+        )
+
+    def on_toolbox_enabled_changed(self, name: str, enabled: bool):
+        """Apply a skill checkbox change coming from the toolbox."""
+        self.set_enabled(name, enabled, source="toolbox")
+
+    def set_enabled(self, name: str, enabled: bool, source: str = ""):
+        """Set global skill state and synchronize all skill views/preset state."""
+        if not self.window.core.skills.set_enabled(str(name), bool(enabled)):
+            return
+        if source != "dialog":
+            self.refresh_installed()
+        else:
+            self._update_installed_status()
+            self.refresh_toolbox()
+        self.window.controller.presets.sync_agent_skills_from_global()
         self.window.controller.plugins.update_info()
+
+    def refresh_toolbox(self):
+        """Refresh the compact toolbox Skills list when it is available."""
+        try:
+            self.window.ui.toolbox.presets.refresh_skills()
+        except (AttributeError, RuntimeError):
+            pass
 
     def import_github(self):
         value, ok = QInputDialog.getText(
@@ -188,6 +213,7 @@ class Skills:
         try:
             self.window.core.skills.remove(name)
             self.refresh_installed()
+            self.window.controller.presets.sync_agent_skills_from_global()
             self.window.controller.plugins.update_info()
             self._set_status_key("skills.status.removed", name=display_name)
         except Exception as exc:
@@ -392,6 +418,7 @@ class Skills:
             self._render_catalog(result)
             return
         self.refresh_installed()
+        self.window.controller.presets.sync_agent_skills_from_global()
         self.window.controller.plugins.update_info()
         if action == "install_catalog_many":
             # Rebuild Explore from the cached catalog so newly installed rows get

@@ -359,6 +359,38 @@ class Skills:
         self._save_registry(registry)
         return True
 
+    def get_enabled_ids(self) -> List[str]:
+        """Return canonical textual IDs of currently enabled installed skills."""
+        return [
+            str(item.get("name") or "").strip()
+            for item in self.list_installed(enabled_only=True)
+            if str(item.get("name") or "").strip()
+        ]
+
+    def set_enabled_ids(self, names: Iterable[str]) -> List[str]:
+        """Apply an enabled-skill selection in one registry write.
+
+        Only currently installed skills participate. Unknown IDs are ignored,
+        which keeps preset restoration safe when a referenced skill was removed.
+        """
+        selected = {str(name).strip() for name in (names or []) if str(name).strip()}
+        installed = self.list_installed()
+        registry = self._load_registry()
+        items = registry.setdefault("items", {})
+        enabled = []
+        for skill in installed:
+            name = str(skill.get("name") or "").strip()
+            key = str(skill.get("dir_name") or name).strip()
+            if not name or not key:
+                continue
+            active = name in selected
+            meta = items.setdefault(key, {})
+            meta["enabled"] = active
+            if active:
+                enabled.append(name)
+        self._save_registry(registry)
+        return enabled
+
     def remove(self, name: str) -> bool:
         skill = self.get(name)
         if skill is None:

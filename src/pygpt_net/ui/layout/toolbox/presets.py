@@ -12,7 +12,10 @@
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, QStandardItem, Qt, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QSizePolicy
+from PySide6.QtWidgets import (
+    QAbstractItemView, QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QSizePolicy,
+    QTabWidget, QTreeWidget, QTreeWidgetItem,
+)
 
 from pygpt_net.core.types import MODE_EXPERT
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
@@ -31,6 +34,7 @@ class Presets:
         self.window = window
         self.footer = Footer(window)
         self.id = 'preset.presets'
+        self._skills_refreshing = False
 
     def setup(self) -> QWidget:
         """
@@ -39,12 +43,30 @@ class Presets:
         :return: QWidget
         """
         presets = self.setup_presets()
+        preset_page = QWidget()
+        preset_page.setLayout(presets)
+
+        skills_page = self.setup_skills()
+
+        tabs = QTabWidget()
+        tabs.addTab(preset_page, trans("toolbox.agents.label"))
+        tabs.addTab(skills_page, trans("preset.tab.skills"))
+        # The extra Skills tab belongs to Chat with Agents only. Other modes
+        # keep the previous compact presets UI with no visible tab bar.
+        tabs.setTabVisible(1, False)
+        tabs.tabBar().setVisible(False)
+        self.window.ui.nodes['presets.tabs'] = tabs
+
+        outer = QVBoxLayout()
+        outer.addWidget(tabs, 1)
+        outer.setContentsMargins(0, 0, 0, 0)
 
         self.window.ui.nodes['presets.widget'] = QWidget()
-        self.window.ui.nodes['presets.widget'].setLayout(presets)
+        self.window.ui.nodes['presets.widget'].setLayout(outer)
         self.window.ui.nodes['presets.widget'].setMinimumHeight(180)
         self.window.ui.nodes['presets.widget'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        self.refresh_skills()
         return self.window.ui.nodes['presets.widget']
 
     def setup_presets(self) -> QVBoxLayout:
@@ -94,6 +116,67 @@ class Presets:
         nodes[self.id].setModel(self.window.ui.models[self.id])
 
         return layout
+
+
+    def setup_skills(self) -> QWidget:
+        """Build the global Agent Skills selector shown in the toolbox."""
+        tree = QTreeWidget()
+        tree.setColumnCount(1)
+        tree.setHeaderHidden(True)
+        tree.setRootIsDecorated(False)
+        tree.setAlternatingRowColors(True)
+        tree.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        tree.setUniformRowHeights(True)
+        tree.itemChanged.connect(self._on_skill_changed)
+        self.window.ui.nodes['toolbox.skills.list'] = tree
+
+        layout = QVBoxLayout()
+        layout.addWidget(tree, 1)
+        layout.setContentsMargins(2, 5, 2, 5)
+        page = QWidget()
+        page.setLayout(layout)
+        return page
+
+    def refresh_skills(self):
+        """Refresh toolbox skill checkboxes from the profile-wide registry."""
+        tree = self.window.ui.nodes.get('toolbox.skills.list')
+        if tree is None:
+            return
+        self._skills_refreshing = True
+        try:
+            tree.clear()
+            try:
+                skills = self.window.core.skills.list_installed()
+            except Exception:
+                skills = []
+            for skill in skills:
+                skill_id = str(skill.get('name') or '').strip()
+                if not skill_id:
+                    continue
+                item = QTreeWidgetItem(tree)
+                item.setData(0, QtCore.Qt.UserRole, skill_id)
+                item.setText(0, str(skill.get('display_name') or skill_id))
+                description = str(skill.get('description') or '').strip()
+                if description:
+                    item.setToolTip(0, description)
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(
+                    0,
+                    Qt.Checked if skill.get('enabled') else Qt.Unchecked,
+                )
+        finally:
+            self._skills_refreshing = False
+
+    def _on_skill_changed(self, item: QTreeWidgetItem, column: int):
+        if self._skills_refreshing or column != 0:
+            return
+        skill_id = item.data(0, QtCore.Qt.UserRole)
+        if not skill_id:
+            return
+        self.window.controller.skills.on_toolbox_enabled_changed(
+            str(skill_id),
+            item.checkState(0) == Qt.Checked,
+        )
 
     def create_model(self, parent) -> QStandardItemModel:
         """

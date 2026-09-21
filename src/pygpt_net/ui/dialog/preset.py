@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, \
-    QTabWidget, QFileDialog, QScrollArea, QFrame
+    QTabWidget, QFileDialog, QScrollArea, QFrame, QTreeWidget, QAbstractItemView
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -270,6 +270,55 @@ class Preset(BaseConfigDialog):
         widget_remote_tools = QWidget()
         widget_remote_tools.setLayout(rows_remote_tools)
 
+        # MCP preset list. The checkbox controls whether selecting this preset
+        # restores its saved MCP selection; the list itself is populated at
+        # editor init from currently configured MCP servers.
+        mcp_tree = QTreeWidget()
+        mcp_tree.setColumnCount(1)
+        mcp_tree.setHeaderHidden(True)
+        mcp_tree.setRootIsDecorated(False)
+        mcp_tree.setAlternatingRowColors(True)
+        mcp_tree.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        mcp_tree.setUniformRowHeights(True)
+        self.window.ui.nodes['preset.editor.mcp.list'] = mcp_tree
+        rows_mcp = QVBoxLayout()
+        rows_mcp.setContentsMargins(10, 10, 10, 10)
+        rows_mcp.addLayout(options['mcp_use'])
+        rows_mcp.addWidget(mcp_tree, 1)
+        rows_mcp.addWidget(self.add_description("preset.mcp_list.desc"))
+        widget_mcp = QWidget()
+        widget_mcp.setLayout(rows_mcp)
+
+        # Agent Skills list is available only to Chat with Agents presets.
+        skills_tree = QTreeWidget()
+        skills_tree.setColumnCount(1)
+        skills_tree.setHeaderHidden(True)
+        skills_tree.setRootIsDecorated(False)
+        skills_tree.setAlternatingRowColors(True)
+        skills_tree.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        skills_tree.setUniformRowHeights(True)
+        self.window.ui.nodes['preset.editor.skills.list'] = skills_tree
+        rows_skills = QVBoxLayout()
+        rows_skills.setContentsMargins(10, 10, 10, 10)
+        rows_skills.addLayout(options['agent_skills_use'])
+        rows_skills.addWidget(skills_tree, 1)
+        rows_skills.addWidget(self.add_description("preset.skills_list.desc"))
+        widget_skills = QWidget()
+        widget_skills.setLayout(rows_skills)
+
+        # Runtime restore options. Values stored in the preset are always kept
+        # as snapshots, while these switches decide which of them are applied
+        # when the preset becomes active.
+        rows_options = QVBoxLayout()
+        rows_options.setContentsMargins(10, 10, 10, 0)
+        rows_options.addLayout(options['plugin_preset'])
+        rows_options.addLayout(options['plugin_preset_use'])
+        rows_options.addLayout(options['model_use'])
+        rows_options.addLayout(options['idx_use'])
+        rows_options.addStretch(1)
+        widget_options = QWidget()
+        widget_options.setLayout(rows_options)
+
         # personalize
         personalize_rows = QVBoxLayout()
         for key in personalize_keys:
@@ -344,6 +393,9 @@ class Preset(BaseConfigDialog):
         tabs.addTab(splitter, trans("preset.tab.general"))
         tabs.addTab(widget_personalize, trans("preset.tab.personalize"))
         tabs.addTab(widget_remote_tools, trans("preset.tab.remote_tools"))
+        tabs.addTab(widget_mcp, trans("preset.tab.mcp"))
+        tabs.addTab(widget_skills, trans("preset.tab.skills"))
+        tabs.addTab(widget_options, trans("preset.tab.options"))
         self.window.ui.tabs['preset.editor.tabs'] = tabs
 
         layout = QVBoxLayout()

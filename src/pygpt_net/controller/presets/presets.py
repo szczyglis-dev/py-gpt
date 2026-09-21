@@ -97,6 +97,8 @@ class Presets:
         preset = w.core.presets.items.get(preset_id) if preset_id else None
         if preset is None:
             return
+        if not bool(getattr(preset, 'idx_use', True)):
+            return
         raw_idx = getattr(preset, 'idx', None)
         idx = None if raw_idx in (None, '', '_', '-') else raw_idx
         # Keep config, controller state and the visible shared combo coherent.
@@ -104,6 +106,136 @@ class Presets:
         w.controller.idx.set_current(idx, sync_combo=True)
         if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
             cfg.set('agent.llama.idx', raw_idx)
+
+    def apply_lists_from_preset(self, preset_id: Optional[str] = None):
+        """Restore preset-owned MCP/Skills lists when their use switch is enabled."""
+        w = self.window
+        cfg = w.core.config
+        if preset_id is None:
+            preset_id = cfg.get('preset')
+        preset = w.core.presets.items.get(preset_id) if preset_id else None
+        if preset is None:
+            return
+
+        if bool(getattr(preset, 'mcp_use', False)):
+            try:
+                w.core.connectors.set_active_ids(getattr(preset, 'mcp', []) or [])
+                w.controller.connectors.refresh_installed()
+                w.controller.plugins.update_info()
+            except Exception as exc:
+                w.core.debug.log(exc)
+
+        if cfg.get('mode') == MODE_AGENT_V2 and bool(getattr(preset, 'agent_skills_use', False)):
+            try:
+                w.core.skills.set_enabled_ids(getattr(preset, 'agent_skills', []) or [])
+                w.controller.skills.refresh_installed()
+                try:
+                    w.ui.toolbox.presets.refresh_skills()
+                except (AttributeError, RuntimeError):
+                    pass
+                w.controller.plugins.update_info()
+            except Exception as exc:
+                w.core.debug.log(exc)
+
+    def apply_plugin_preset_from_preset(self, preset_id: Optional[str] = None):
+        """Restore the plugin preset stored in a preset when explicitly enabled."""
+        w = self.window
+        cfg = w.core.config
+        if preset_id is None:
+            preset_id = cfg.get('preset')
+        preset = w.core.presets.items.get(preset_id) if preset_id else None
+        if preset is None or not bool(getattr(preset, 'plugin_preset_use', False)):
+            return
+
+        plugin_preset_id = str(getattr(preset, 'plugin_preset', None) or '').strip()
+        if not plugin_preset_id:
+            return
+
+        controller = w.controller.plugins.presets
+        if controller.get_preset(plugin_preset_id) is None:
+            return
+
+        # Apply directly instead of going through toggle(): selecting a normal
+        # preset must not feed the restored value back as a user-originated
+        # plugin-preset change.
+        cfg.set('preset.plugins', plugin_preset_id)
+        cfg.save()
+        controller.update()
+        controller.preset_to_current()
+        w.controller.plugins.reconfigure()
+
+    def apply_runtime_from_preset(self, preset_id: Optional[str] = None):
+        """Restore all runtime selections owned by a preset."""
+        self.apply_plugin_preset_from_preset(preset_id)
+        self.apply_rag_from_preset(preset_id)
+        self.apply_lists_from_preset(preset_id)
+
+    def sync_plugin_preset_from_global(self):
+        """Persist the selected global plugin preset into the active preset snapshot."""
+        w = self.window
+        cfg = w.core.config
+        preset_id = cfg.get('preset')
+        if not preset_id or preset_id == '*':
+            return
+        preset = w.core.presets.get_by_id(cfg.get('mode'), preset_id)
+        if preset is None:
+            return
+
+        value = str(cfg.get('preset.plugins') or '').strip() or None
+        if getattr(preset, 'plugin_preset', None) == value:
+            return
+        preset.plugin_preset = value
+        w.core.presets.save(preset_id)
+
+        editor = w.controller.presets.editor
+        if editor.opened and editor.current_id == preset_id:
+            editor.update_plugin_presets_list(value)
+
+    def sync_mcp_from_global(self):
+        """Persist the current global MCP selection into the active preset snapshot."""
+        w = self.window
+        cfg = w.core.config
+        preset_id = cfg.get('preset')
+        if not preset_id or preset_id == '*':
+            return
+        preset = w.core.presets.get_by_id(cfg.get('mode'), preset_id)
+        if preset is None:
+            return
+        try:
+            value = w.core.connectors.get_active_ids()
+        except Exception:
+            return
+        if list(getattr(preset, 'mcp', []) or []) == value:
+            return
+        preset.mcp = value
+        w.core.presets.save(preset_id)
+        editor = w.controller.presets.editor
+        if editor.opened and editor.current_id == preset_id:
+            editor.set_runtime_list_selection('mcp', value)
+
+    def sync_agent_skills_from_global(self):
+        """Persist the current global Agent Skills selection into the active agent preset."""
+        w = self.window
+        cfg = w.core.config
+        if cfg.get('mode') != MODE_AGENT_V2:
+            return
+        preset_id = cfg.get('preset')
+        if not preset_id or preset_id == '*':
+            return
+        preset = w.core.presets.get_by_id(MODE_AGENT_V2, preset_id)
+        if preset is None:
+            return
+        try:
+            value = w.core.skills.get_enabled_ids()
+        except Exception:
+            return
+        if list(getattr(preset, 'agent_skills', []) or []) == value:
+            return
+        preset.agent_skills = value
+        w.core.presets.save(preset_id)
+        editor = w.controller.presets.editor
+        if editor.opened and editor.current_id == preset_id:
+            editor.set_runtime_list_selection('skills', value)
 
     def select(self, idx: int):
         """
@@ -141,7 +273,7 @@ class Presets:
         if 'current_preset' not in w.core.config.data:
             w.core.config.data['current_preset'] = {}
         w.core.config.data['current_preset'][mode] = preset_id
-        self.apply_rag_from_preset(preset_id)
+        self.apply_runtime_from_preset(preset_id)
         self.select_model()
         w.controller.ui.update()
         w.controller.model.select_current()
@@ -367,7 +499,7 @@ class Presets:
         if 'current_preset' not in w.core.config.data:
             w.core.config.data['current_preset'] = {}
         w.core.config.data['current_preset'][mode] = preset_id
-        self.apply_rag_from_preset(preset_id)
+        self.apply_runtime_from_preset(preset_id)
 
     def set_by_idx(
             self,
@@ -386,7 +518,7 @@ class Presets:
         if 'current_preset' not in w.core.config.data:
             w.core.config.data['current_preset'] = {}
         w.core.config.data['current_preset'][mode] = preset_id
-        self.apply_rag_from_preset(preset_id)
+        self.apply_runtime_from_preset(preset_id)
         self.select_model()
 
     def select_current(self, no_scroll: bool = False):
@@ -426,7 +558,7 @@ class Presets:
             else:
                 cfg.set('preset', w.core.presets.get_default(mode))
             new_id = cfg.get('preset')
-            self.apply_rag_from_preset(new_id)
+            self.apply_runtime_from_preset(new_id)
             editor_ctrl = w.controller.presets.editor
             if editor_ctrl.opened and editor_ctrl.current != new_id:
                 self.editor.init(new_id)
@@ -452,7 +584,8 @@ class Presets:
         w.core.config.set('user_name', preset.user_name)
         w.core.config.set('agent.llama.provider', preset.agent_provider)
         w.core.config.set('agent.openai.provider', preset.agent_provider_openai)
-        w.core.config.set('agent.llama.idx', preset.idx)
+        if bool(getattr(preset, 'idx_use', True)):
+            w.core.config.set('agent.llama.idx', preset.idx)
 
     def update_current(self):
         """Update current mode, model and preset"""
@@ -467,7 +600,8 @@ class Presets:
             cfg.set('prompt', preset.prompt)
             cfg.set('agent.llama.provider', preset.agent_provider)
             cfg.set('agent.openai.provider', preset.agent_provider_openai)
-            cfg.set('agent.llama.idx', preset.idx)
+            if bool(getattr(preset, 'idx_use', True)):
+                cfg.set('agent.llama.idx', preset.idx)
             return
         cfg.set('user_name', None)
         cfg.set('ai_name', None)
@@ -513,6 +647,8 @@ class Presets:
         # that preset. ``model.restore_from_ctx`` applies to conversation
         # context restoration, not to selecting a preset from the presets UI.
         preset = w.core.presets.items[preset_id]
+        if not bool(getattr(preset, 'model_use', True)):
+            return
         model = preset.model
         if not model or model == "_":
             return
@@ -766,6 +902,7 @@ class Presets:
                         if 'current_preset' not in w.core.config.data:
                             w.core.config.data['current_preset'] = {}
                         w.core.config.data['current_preset'][mode] = target_id
+                        self.apply_runtime_from_preset(target_id)
                     else:
                         # Fallback: clear selection to allow select_default() to pick the first available
                         w.core.config.set('preset', None)

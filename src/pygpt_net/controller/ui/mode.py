@@ -93,14 +93,11 @@ class Mode:
 
         # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
         if not is_agent_openai and not is_agent_llama:
-            # Agents v2 and Experts use the compact agent preset layout and do
-            # not expose the legacy Personalize tab.
-            presets_editor.toggle_tab("personalize", not (is_agent_v2 or is_expert))
+            # Preset-editor tab visibility is synchronized atomically below.
             if 'preset.prompt' in ui_nodes and ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(False)
                 ui_nodes['preset.prompt'].setPlaceholderText("")
         else:
-            presets_editor.toggle_tab("personalize", False)
             if 'preset.prompt' in ui_nodes and not ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(True)
                 ui_nodes['preset.prompt'].setPlaceholderText(trans("toolbox.agent.preset.placeholder"))
@@ -130,10 +127,11 @@ class Mode:
         else:
             ui_nodes['env.widget'].setVisible(True)
 
-        # agents/experts/presets label visibility
+        # agents/experts/presets label visibility. Chat with Agents uses the
+        # toolbox tab title itself, so avoid duplicating an "Agents" header.
         show_agents_label = is_agent or is_agent_llama or is_agent_openai or is_agent_v2
         if show_agents_label:
-            ui_nodes['preset.agents.label'].setVisible(True)
+            ui_nodes['preset.agents.label'].setVisible(not is_agent_v2)
             ui_nodes['preset.experts.label'].setVisible(False)
             ui_nodes['preset.presets.label'].setVisible(False)
         elif is_expert:
@@ -145,11 +143,26 @@ class Mode:
             ui_nodes['preset.experts.label'].setVisible(False)
             ui_nodes['preset.presets.label'].setVisible(True)
 
-        # Expert presets now use the same compact agent editor as Agents v2.
-        # The old per-preset remote-tools tab is no longer used; tool access is
-        # controlled by the two agent_v2_allow_* booleans instead.
+        # Chat with Agents adds a second toolbox tab for the global Skills
+        # registry. In every other mode the previous single-list appearance is
+        # preserved by hiding both the Skills page and the tab bar.
+        presets_tabs = ui_nodes.get('presets.tabs')
+        if presets_tabs is not None:
+            presets_tabs.setTabVisible(1, is_agent_v2)
+            presets_tabs.tabBar().setVisible(is_agent_v2)
+            if not is_agent_v2 and presets_tabs.currentIndex() != 0:
+                presets_tabs.setCurrentIndex(0)
+            if is_agent_v2:
+                try:
+                    self.window.ui.toolbox.presets.refresh_skills()
+                except (AttributeError, RuntimeError):
+                    pass
+
+        # Rebuild the complete preset-tab visibility map from the current mode
+        # on every switch. Do not mutate individual tabs in separate branches: a
+        # partial update can otherwise leave hidden state from the previous mode.
         ui_nodes['preset.editor.description'].setVisible(is_expert)
-        presets_editor.toggle_tab("remote_tools", False)
+        presets_editor.sync_tabs_for_mode(mode)
 
         if is_completion:
             ui_nodes['preset.editor.user_name'].setVisible(True)
@@ -176,8 +189,6 @@ class Mode:
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent"))
         elif is_agent_v2:
-            presets_editor.toggle_tab("personalize", False)
-            presets_editor.toggle_tab("remote_tools", False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
@@ -187,8 +198,6 @@ class Mode:
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_v2"))
         elif is_expert:
-            presets_editor.toggle_tab("personalize", False)
-            presets_editor.toggle_tab("remote_tools", False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)

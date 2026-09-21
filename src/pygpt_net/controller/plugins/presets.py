@@ -152,6 +152,7 @@ class Presets:
         if current == id:
             self.window.core.config.set('preset.plugins', '')
             self.window.core.config.save()
+            self.window.controller.presets.sync_plugin_preset_from_global()
 
         self.update_list()
         self.update_menu()
@@ -305,6 +306,12 @@ class Presets:
         """Reload items"""
         items = self.get_presets()
         self.window.plugin_presets.update_list("preset.plugins.list", items)
+        try:
+            editor = self.window.controller.presets.editor
+            if editor.opened:
+                editor.update_plugin_presets_list()
+        except (AttributeError, RuntimeError):
+            pass
 
     def update_menu(self):
         """Update presets menu"""
@@ -354,6 +361,7 @@ class Presets:
         self.window.core.config.set('preset.plugins', id)
         self.window.core.config.save()
         self.update()
+        self.window.controller.presets.sync_plugin_preset_from_global()
 
         self.preset_to_current()
         self.window.controller.plugins.reconfigure()
