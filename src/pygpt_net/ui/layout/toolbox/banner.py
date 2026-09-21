@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 13:15:00                  #
+# Updated Date: 2026.09.21 15:20:00                  #
 # ================================================== #
 
 import os
@@ -21,7 +21,7 @@ from PySide6.QtWidgets import QLabel
 class Banner:
     """Toolbox banner UI wrapper."""
 
-    WIDTH = 256
+    WIDTH = 200
     HEIGHT = 36
 
     def __init__(self, window=None):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 13:55:00                  #
+# Updated Date: 2026.09.21 15:45:00                  #
 # ================================================== #
 
 import os
@@ -85,7 +85,14 @@ class Footer:
             rows.addWidget(section)
 
         rows.setContentsMargins(2, 0, 0, 0)
+
+        # Footer is the fixed bottom block of the toolbox. Its height follows
+        # the currently visible mode-specific sections, but it never receives
+        # or gives up space when the toolbox splitter is moved.
+        widget.setMinimumWidth(0)
+        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.hover_sections = sections
+        self.window.ui.nodes['toolbox.footer'] = widget
 
         return widget
 

@@ -27,3 +27,12 @@ QMenuBar::item {{
   padding-top: 14px;
   padding-bottom: 14px;
 }}
+
+/* Autonomous toolbox tabs: keep a single underline below the active tab. */
+QTabWidget#agentOptionsTabs::pane {{
+  border: 0px;
+}}
+QTabBar#agentOptionsTabBar::tab {{
+  border-top-color: transparent;
+}}
+

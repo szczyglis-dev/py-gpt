@@ -233,7 +233,7 @@ class SystemInfo(QObject):
                 value = "-"
             else:
                 fs = self.window.core.filesystem
-                value = f"{fs.sizeof_fmt(profile_size)} / {fs.sizeof_fmt(full_size)}"
+                value = f"{fs.sizeof_fmt(profile_size)} / {fs.sizeof_fmt(full_size)} {trans('dialog.system_info.with_sandbox')}"
         self.values["workdir_size"] = value
         self._render()
 
