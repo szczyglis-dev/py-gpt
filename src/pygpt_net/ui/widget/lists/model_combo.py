@@ -63,7 +63,7 @@ class CompactModelCombo(QPushButton):
         self.setFocusPolicy(Qt.NoFocus)
         self.setFlat(True)
         self.setIcon(QIcon())
-        self.setToolTip(trans("toolbox.model.label"))
+        self.setToolTip(trans("input.model.tooltip"))
         self.clicked.connect(self._show_menu)
 
     def set_keys(self, keys):
@@ -128,7 +128,7 @@ class CompactModelCombo(QPushButton):
         display = fm.elidedText(label, Qt.ElideMiddle, self.MAX_LABEL_WIDTH)
         text = f"{display}  ▴"
         self.setText(text)
-        self.setToolTip(label)
+        self.setToolTip(trans("input.model.tooltip"))
         self.ensurePolished()
         text_width = fm.horizontalAdvance(text)
         # Keep enough room for the complete label + arrow. Horizontal padding is

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:40:00
+# Updated Date: 2026.09.21 13:22:00
 # ================================================== #
 
 import json
@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 
 from pygpt_net.core.types import (
     MODE_CHAT,
+    MODE_LLAMA_INDEX,
     MODE_VISION,
     MULTIMODAL_IMAGE,
     MODE_AUDIO,
@@ -95,16 +96,20 @@ class ModelItem:
         if 'is_hidden' in data:
             self.is_hidden = data['is_hidden']
         if 'input' in data:
-            input = data['input'].replace(' ', '')
-            self.input = input.split(',')
+            self.input = self._normalize_list(data['input'])
         if 'mode' in data:
-            mode = data['mode'].replace(' ', '')
-            self.mode = mode.split(',')
+            self.mode = self._normalize_list(data['mode'])
+            # Backward compatibility: old models configured only for the
+            # removed Chat with Files mode are regular Chat models now.
+            # Keep the legacy flag and add Chat so the model becomes visible
+            # in Chat immediately and the normalized mode list is persisted
+            # on the next regular model save.
+            if MODE_LLAMA_INDEX in self.mode and MODE_CHAT not in self.mode:
+                self.mode.append(MODE_CHAT)
         if 'name' in data:
             self.name = data['name']
         if 'output' in data:
-            output = data['output'].replace(' ', '')
-            self.output = output.split(',')
+            self.output = self._normalize_list(data['output'])
         if 'provider' in data:
             self.provider = data['provider']
         if 'reasoning_effort' in data:
@@ -121,6 +126,36 @@ class ModelItem:
             self.llama_index['args'] = data['llama_index.args']
         if 'llama_index.env' in data:
             self.llama_index['env'] = data['llama_index.env']
+
+    @staticmethod
+    def _normalize_list(value) -> list:
+        """
+        Normalize model list fields loaded from config/editor values.
+
+        Persisted model definitions use comma-separated strings. Accept a
+        list as well for callers that already provide normalized values, but
+        keep the editor bool-list contract unchanged.
+
+        :param value: comma-separated string or iterable of values
+        :return: normalized list of non-empty strings
+        """
+        if value is None:
+            return []
+        if isinstance(value, str):
+            values = value.split(',')
+        elif isinstance(value, (list, tuple, set)):
+            values = value
+        else:
+            values = [value]
+
+        result = []
+        for item in values:
+            if item is None:
+                continue
+            item = str(item).strip()
+            if item:
+                result.append(item)
+        return result
 
     def to_dict(self) -> dict:
         """
@@ -178,14 +213,18 @@ class ModelItem:
 
     def is_supported(self, mode: str) -> bool:
         """
-        Check if model supports mode
+        Check if model supports a user-facing mode.
+
+        Transport/backend support is resolved separately by Bridge.  In
+        particular, Chat is no longer synonymous with the OpenAI-compatible
+        API transport.  ``llama_index`` in old model configs is kept only as a
+        backward-compatible alias for Chat.
 
         :param mode: Mode
         :return: True if supported
         """
-        if mode == MODE_CHAT and not self.is_openai_supported():
-            # only OpenAI API compatible models are supported in Chat mode
-            return False
+        if mode == MODE_CHAT:
+            return MODE_CHAT in self.mode or MODE_LLAMA_INDEX in self.mode
         return mode in self.mode
 
     def is_multimodal(self) -> bool:

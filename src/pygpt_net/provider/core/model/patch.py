@@ -29,6 +29,7 @@ from pygpt_net.core.types import (
     MODE_COMPUTER,
     MODE_EXPERT,
     MODE_COMPLETION,
+    MODE_LLAMA_INDEX,
 )
 
 # old patches moved here
@@ -808,6 +809,18 @@ class Patch:
 
                 if cfg_changed:
                     cfg.save()
+
+            # < 2.8.28 <--- Chat with Files mode folded into Chat
+            if old < parse_version("2.8.28"):
+                print("Migrating models from < 2.8.28...")
+                for model in data.values():
+                    modes = list(getattr(model, "mode", None) or [])
+                    if MODE_LLAMA_INDEX not in modes:
+                        continue
+                    if MODE_CHAT not in modes:
+                        modes.append(MODE_CHAT)
+                    model.mode = [item for item in modes if item != MODE_LLAMA_INDEX]
+                    updated = True
 
         # update file
         if updated:

@@ -41,6 +41,11 @@ class Custom:
     def apply(self):
         """Apply custom mappings"""
         
+        # Runtime model selector tooltip is not covered by the generic text mapping.
+        model_selector = self.window.ui.nodes.get("prompt.model")
+        if model_selector is not None:
+            model_selector.setToolTip(trans("input.model.tooltip"))
+
         # tool: indexer
         self.window.ui.tabs['tool.indexer'].setTabText(0, trans('tool.indexer.tab.files'))
         self.window.ui.tabs['tool.indexer'].setTabText(1, trans('tool.indexer.tab.web'))

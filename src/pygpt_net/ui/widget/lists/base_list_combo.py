@@ -29,7 +29,7 @@ class BaseListCombo(QWidget):
         self.current_id = None
         self.keys = []
         self.real_time = False
-        self.combo = NoScrollCombo(parent=self.window)
+        self.combo = self.create_combo()
         self.combo.currentIndexChanged.connect(self.on_combo_change)
         self.initialized = False
         self.locked = False
@@ -45,6 +45,10 @@ class BaseListCombo(QWidget):
         self.setLayout(self.layout)
         self.fit_to_content()
         self.initialized = True
+
+    def create_combo(self):
+        """Create the underlying combo widget."""
+        return NoScrollCombo(parent=self.window)
 
     def update(self):
         """Prepare items."""
