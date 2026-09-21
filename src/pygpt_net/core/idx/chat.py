@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 22:25:00                  #
+# Updated Date: 2026.09.21 10:00:00                  #
 # ================================================== #
 
 import json
@@ -658,18 +658,16 @@ class Chat:
         """
         Return whether Chat with Files can use the normal streaming path.
 
-        ReAct itself is non-streaming in this integration. It is selected
-        automatically only when tools are enabled and native tool calls are not
-        available for the current model/provider path.
+        Tools no longer disable streaming at the RAG/bridge level. Providers
+        with native tool calls use ``stream_chat_with_tools``; providers that
+        require the ReAct fallback still complete that fallback non-streaming
+        inside ``call_agent``. Keep this hook for compatibility with callers
+        and plugins that may query it.
 
-        :param model: Current model, if already resolved
-        :return: True if stream is allowed
+        :param model: Current model, kept for API compatibility
+        :return: True
         """
-        if not self.window.core.config.get("cmd", False):
-            return True
-        if model is None:
-            return True
-        return self.window.core.models.is_tool_call_allowed(MODE_LLAMA_INDEX, model)
+        return True
 
     def query_file(
             self,

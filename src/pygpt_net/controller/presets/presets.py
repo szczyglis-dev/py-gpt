@@ -18,10 +18,16 @@ from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.types import (
     MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_COMPUTER,
     MODE_EXPERT,
-    MODE_AGENT_OPENAI,
+    MODE_LLAMA_INDEX,
+    MODE_RESEARCH,
 )
 from pygpt_net.controller.presets.editor import Editor
 from pygpt_net.core.events import AppEvent
@@ -74,6 +80,31 @@ class Presets:
             and preset_data.agent_provider_openai.startswith("openai_agent_bot")
         )
 
+    def apply_rag_from_preset(self, preset_id: Optional[str] = None):
+        """Load a preset's RAG selection into the shared runtime selector."""
+        w = self.window
+        cfg = w.core.config
+        mode = cfg.get('mode')
+        supported = {
+            MODE_CHAT, MODE_LLAMA_INDEX, MODE_RESEARCH, MODE_COMPUTER,
+            MODE_COMPLETION, MODE_AGENT, MODE_AGENT_V2, MODE_EXPERT,
+            MODE_AGENT_LLAMA, MODE_AGENT_OPENAI,
+        }
+        if mode not in supported:
+            return
+        if preset_id is None:
+            preset_id = cfg.get('preset')
+        preset = w.core.presets.items.get(preset_id) if preset_id else None
+        if preset is None:
+            return
+        raw_idx = getattr(preset, 'idx', None)
+        idx = None if raw_idx in (None, '', '_', '-') else raw_idx
+        # Keep config, controller state and the visible shared combo coherent.
+        # This is an explicit preset selection, so the preset's RAG value wins.
+        w.controller.idx.set_current(idx, sync_combo=True)
+        if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+            cfg.set('agent.llama.idx', raw_idx)
+
     def select(self, idx: int):
         """
         Select preset by list index (legacy)
@@ -110,6 +141,7 @@ class Presets:
         if 'current_preset' not in w.core.config.data:
             w.core.config.data['current_preset'] = {}
         w.core.config.data['current_preset'][mode] = preset_id
+        self.apply_rag_from_preset(preset_id)
         self.select_model()
         w.controller.ui.update()
         w.controller.model.select_current()
@@ -335,6 +367,7 @@ class Presets:
         if 'current_preset' not in w.core.config.data:
             w.core.config.data['current_preset'] = {}
         w.core.config.data['current_preset'][mode] = preset_id
+        self.apply_rag_from_preset(preset_id)
 
     def set_by_idx(
             self,
@@ -353,6 +386,7 @@ class Presets:
         if 'current_preset' not in w.core.config.data:
             w.core.config.data['current_preset'] = {}
         w.core.config.data['current_preset'][mode] = preset_id
+        self.apply_rag_from_preset(preset_id)
         self.select_model()
 
     def select_current(self, no_scroll: bool = False):
@@ -392,6 +426,7 @@ class Presets:
             else:
                 cfg.set('preset', w.core.presets.get_default(mode))
             new_id = cfg.get('preset')
+            self.apply_rag_from_preset(new_id)
             editor_ctrl = w.controller.presets.editor
             if editor_ctrl.opened and editor_ctrl.current != new_id:
                 self.editor.init(new_id)
@@ -474,8 +509,9 @@ class Presets:
         preset_id = cfg.get('preset')
         if not preset_id or preset_id not in w.core.presets.items:
             return
-        if not bool(cfg.get('model.restore_from_ctx', False)):
-            return
+        # An explicit preset selection always restores the model stored in
+        # that preset. ``model.restore_from_ctx`` applies to conversation
+        # context restoration, not to selecting a preset from the presets UI.
         preset = w.core.presets.items[preset_id]
         model = preset.model
         if not model or model == "_":

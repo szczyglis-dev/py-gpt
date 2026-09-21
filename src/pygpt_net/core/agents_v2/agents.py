@@ -61,11 +61,11 @@ class _PromptPreviewRuntime:
         self.allow_remote_tools = bool(
             getattr(preset, "agent_v2_allow_remote_tools", True)
         )
-        self.index_id = (
-            (getattr(preset, "idx", None) if preset is not None else None)
-            or index_id
-        )
-        if self.index_id == "_":
+        # The preset controller loads preset.idx into the shared RAG selector.
+        # Preview must mirror the real runtime and use the current toolbox value,
+        # including an explicit clear performed after preset selection.
+        self.index_id = index_id
+        if self.index_id in ("_", "-"):
             self.index_id = None
 
         # Preflight happens before the user turn starts, so retrieval has not run

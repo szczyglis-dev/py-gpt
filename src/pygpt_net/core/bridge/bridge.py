@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 14:00:00
+# Updated Date: 2026.09.21 10:20:00
 # ================================================== #
 
 import copy
@@ -21,6 +21,8 @@ from pygpt_net.core.types import (
     MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_CHAT,
+    MODE_COMPLETION,
+    MODE_COMPUTER,
     MODE_EXPERT,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
@@ -82,20 +84,44 @@ class Bridge:
         base_mode = mode
         context.parent_mode = base_mode  # store base mode
 
-        # Legacy Autonomous Agent is a virtual Chat-backed mode. Provider/API
-        # selection follows the same bridge path as ordinary Chat. The only
-        # autonomous override is an explicitly selected index, which routes the
-        # request through Chat with Files (LlamaIndex). Experts is also Chat-backed.
+        # Autonomous and Experts are virtual Chat-backed modes. The global RAG
+        # selector is the only source of truth; there is no mode-specific index.
         if base_mode in (MODE_AGENT, MODE_EXPERT):
             mode = MODE_CHAT
-            if base_mode == MODE_AGENT:
-                idx = self.window.core.agents.legacy.get_idx()
-                if idx is not None and idx != "_":
-                    mode = MODE_LLAMA_INDEX
-                    context.idx = idx
-                    self.window.core.debug.info("[agent] Using index: " + idx)
-                else:
-                    context.idx = None
+            if self.window.core.idx.is_valid(context.idx):
+                mode = MODE_LLAMA_INDEX
+                self.window.core.debug.info("[bridge] Using RAG index: " + str(context.idx))
+
+        # Shared RAG gateway: the visible UI mode stays unchanged, while the
+        # provider runtime is switched to the Chat with Files (LlamaIndex) path.
+        # Computer Use is supported here as well: the LlamaIndex chat layer binds
+        # the same provider-native ComputerRuntime adapter used by agent flows.
+        rag_gateway = base_mode in (
+            MODE_CHAT,
+            MODE_RESEARCH,
+            MODE_COMPUTER,
+        )
+        valid_rag = self.window.core.idx.is_valid(context.idx)
+        if rag_gateway and valid_rag:
+            mode = MODE_LLAMA_INDEX
+            self.window.core.debug.info("[bridge] RAG gateway -> LlamaIndex chat: " + str(context.idx))
+
+        # Completion has its own LlamaIndex runtime. Keep MODE_COMPLETION so the
+        # worker enters core.idx.completion instead of the chat-with-index path;
+        # the completion runtime performs RAG retrieval before complete/stream_complete.
+        rag_completion = base_mode == MODE_COMPLETION and valid_rag
+        if rag_completion:
+            mode = MODE_COMPLETION
+            context.idx_mode = MODE_COMPLETION
+            self.window.core.debug.info("[bridge] RAG gateway -> LlamaIndex completion: " + str(context.idx))
+
+        # A user-selected RAG index is an explicit routing decision. Do not let
+        # model mode metadata silently switch an active RAG request back to a
+        # native SDK mode (notably Research-only models), nor convert Completion
+        # with RAG into another provider mode.
+        force_rag_runtime = valid_rag and (
+            mode == MODE_LLAMA_INDEX or rag_completion
+        )
 
         # check if model is supported by selected mode - if not, then try to use supported mode
         if model is not None:
@@ -103,13 +129,10 @@ class Bridge:
             # LLM adapter, so model capability is checked against LlamaIndex separately.
             if base_mode == MODE_AGENT_V2:
                 mode = MODE_AGENT_V2
-            elif not model.is_supported(mode):  # check selected mode
+            elif not force_rag_runtime and not model.is_supported(mode):  # check selected mode
                 mode = self.window.core.models.get_supported_mode(model, mode)  # switch
                 if base_mode == MODE_CHAT and mode == MODE_LLAMA_INDEX:
-                    context.idx = None # disable index if in Chat mode and switch to Llama Index
-                    if not self.window.core.idx.chat.is_stream_allowed(model):
-                        context.stream = False  # disable stream in cmd mode
-
+                    context.idx = None # capability fallback only; no RAG was explicitly selected
         self.window.core.debug.info("[bridge] Using mode: " + str(mode))
 
         if mode == MODE_LLAMA_INDEX and base_mode != MODE_LLAMA_INDEX:

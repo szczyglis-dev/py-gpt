@@ -189,8 +189,11 @@ class AgentsV2Runtime:
         self.memory_store = AgentsV2MemoryStore(window)
         self.allow_local_tools = bool(getattr(self.preset, "agent_v2_allow_local_tools", True))
         self.allow_remote_tools = bool(getattr(self.preset, "agent_v2_allow_remote_tools", True))
-        self.index_id = (getattr(self.preset, "idx", None) if self.preset is not None else None) or context.idx
-        if self.index_id == "_":
+        # Preset selection is synchronized into the shared RAG selector by the
+        # presets controller. Runtime reads that selector as the single source of
+        # truth so a manual toolbox change after selecting a preset takes effect.
+        self.index_id = getattr(context, "idx", None)
+        if self.index_id in ("_", "-"):
             self.index_id = None
         self.rag_context_text = ""
 

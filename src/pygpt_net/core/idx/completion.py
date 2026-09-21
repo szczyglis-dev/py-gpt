@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:18:00                  #
+# Updated Date: 2026.09.21 10:20:00                  #
 # ================================================== #
 
 from typing import Any, Dict, List, Optional
@@ -38,21 +38,38 @@ class Completion:
         if ctx is None:
             ctx = CtxItem()
 
-        prompt = self.build(
-            prompt=context.prompt,
-            system_prompt=context.system_prompt,
-            model=model,
-            history=context.history,
-            ai_name=ctx.output_name,
-            user_name=ctx.input_name,
-        )
-
         llm = self.window.core.idx.llm.get_completion(
             model=model,
             stream=context.stream,
         )
         if llm is None:
             raise Exception("Invalid LlamaIndex completion provider")
+
+        # Completion must remain a plain-text completion even when RAG is
+        # selected. Retrieve index context first, then feed it to the dedicated
+        # LlamaIndex completion provider instead of routing through idx.chat.
+        system_prompt = context.system_prompt
+        if self.window.core.idx.is_valid(context.idx):
+            query = context.prompt or getattr(ctx, "final_input", "") or ""
+            rag_context, source_nodes = self._retrieve_rag_context(
+                idx=context.idx,
+                query=query,
+                llm=llm,
+            )
+            if rag_context:
+                if system_prompt:
+                    system_prompt += "\n\n"
+                system_prompt += "# Additional context:\n\n" + rag_context
+                ctx.add_doc_meta(self.window.core.idx.chat.get_metadata(source_nodes))
+
+        prompt = self.build(
+            prompt=context.prompt,
+            system_prompt=system_prompt,
+            model=model,
+            history=context.history,
+            ai_name=ctx.output_name,
+            user_name=ctx.input_name,
+        )
 
         request_kwargs = self._get_request_kwargs(
             context=context,
@@ -98,6 +115,37 @@ class Completion:
         ctx.output_tokens = self.window.core.tokens.from_text(output, model.id)
         ctx.set_output(output, ctx.output_name)
         return True
+
+    def _retrieve_rag_context(
+            self,
+            idx: str,
+            query: str,
+            llm,
+    ):
+        """Retrieve RAG context without changing Completion into chat mode."""
+        core = self.window.core
+        requested_idx = idx
+        resolved_idx = core.idx.resolve_idx(idx)
+        if resolved_idx is None:
+            return "", []
+
+        embed_model = core.idx.llm.get_embeddings_provider()
+        index = core.idx.storage.get(
+            id=resolved_idx,
+            llm=llm,
+            embed_model=embed_model,
+        )
+
+        if core.idx.project.is_virtual(requested_idx):
+            group_id = core.idx.project.get_group_id_from_idx(resolved_idx)
+            if group_id is not None:
+                core.idx.project.ensure(group_id)
+
+        nodes = core.idx.chat._retrieve_nodes(index, query)
+        core.debug.info(
+            f"[llama-index] Completion RAG: idx={requested_idx}, nodes={len(nodes)}"
+        )
+        return core.idx.chat._format_retrieved_nodes(nodes), nodes
 
     def _get_request_kwargs(
             self,

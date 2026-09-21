@@ -3192,21 +3192,6 @@
         "advanced": false,
         "tab": "legacy"
     },
-    "agent.idx": {
-        "section": "agent",
-        "type": "combo",
-        "use": "idx",
-        "slider": false,
-        "label": "settings.agent.idx",
-        "description": "settings.agent.idx.desc",
-        "value": "_",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "autonomous"
-    },
     "agent.infinity.confirm": {
         "section": "agent",
         "type": "bool",

@@ -76,10 +76,6 @@ class Editor:
                 options[key] = self.options[key]
                 options[key]['value'] = self.window.core.config.get(key)  # append current config value
             self.window.controller.config.load_options('config', options)
-            # Index choices are context-sensitive: refresh after loading values so
-            # the virtual Current project entry is available when Settings is
-            # opened from a project and an existing __project__ value is kept.
-            self.window.controller.idx.settings.update_idx_choices()
 
     def load(self):
         """Load settings options from config file"""
@@ -186,7 +182,6 @@ class Editor:
 
         # update idx list
         if self.config_changed('llama.idx.list'):
-            self.window.controller.idx.settings.update_idx_choices()
             self.window.tools.get("indexer").reload()
 
         # update idx storage

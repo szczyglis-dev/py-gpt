@@ -116,23 +116,31 @@ class Idx:
 
     def select_by_id(self, id: int):
         """
-        Select idx by list idx
+        Select idx by ID from the shared RAG combo.
 
-        :param id: id of the list (row idx)
+        The combo is the user-facing source of truth.  A full UI refresh may
+        resolve/select a default preset and that preset may carry its own RAG
+        value, so the explicit combo choice is re-applied after the refresh.
+
+        :param id: index ID
         """
-        # check if idx change is not locked
-        if id is None or id == "-":
-            self.current_idx = None
-            id = None
-
+        # Never mutate runtime state from transient combo signals emitted while
+        # the index list is being rebuilt (e.g. Current project injection).
         if self.change_locked():
             return
 
-        self.window.core.config.set('llama.idx.current', id)
-        self.current_idx = id
+        if id is None or id in ("-", "_"):
+            id = None
+
+        self.set_current(id)
+        self._save_current_preset_rag(id)
 
         # update all layout
         self.window.controller.ui.update()
+
+        # ui.update() can select a default preset as part of toolbox refresh.
+        # An explicit user RAG selection must win over that incidental refresh.
+        self.set_current(id, sync_combo=True)
 
     def set(self, idx: str):
         """
@@ -140,8 +148,7 @@ class Idx:
 
         :param idx: idx name
         """
-        self.window.core.config.set('llama.idx.current', idx)
-        self.current_idx = idx
+        self.set_current(idx)
 
     def idx_db_update_by_idx(self, idx: int):
         """
@@ -185,20 +192,75 @@ class Idx:
         idx = self.window.core.idx.get_by_idx(idx)
         if idx is None:
             return
+        self.set_current(idx)
+        self._save_current_preset_rag(idx)
+
+    def _save_current_preset_rag(self, idx: Optional[str]):
+        """Persist a user-selected RAG index in the active preset.
+
+        This intentionally mirrors the model selector behavior.  In particular,
+        the virtual ``current.<mode>`` preset is a persistent holder for the
+        user's last ad-hoc settings, so a newly created context must restore its
+        RAG selection instead of falling back to no index.
+        """
+        w = self.window
+        cfg = w.core.config
+        mode = cfg.get('mode')
+        preset_id = cfg.get('preset')
+        if not preset_id or preset_id == "*":
+            return
+
+        preset = w.core.presets.get_by_id(mode, preset_id)
+        if preset is None:
+            return
+
+        stored_idx = None if idx in (None, "", "-", "_") else idx
+        if getattr(preset, 'idx', None) == stored_idx:
+            return
+
+        preset.idx = stored_idx
+        w.core.presets.save(preset_id)
+
+    def set_current(self, idx: Optional[str], sync_combo: bool = False):
+        """Store one normalized shared RAG selection."""
+        if idx in (None, "", "-", "_"):
+            idx = None
         self.window.core.config.set('llama.idx.current', idx)
         self.current_idx = idx
+        if sync_combo:
+            self._sync_combo(idx)
+
+    def _sync_combo(self, idx: Optional[str]):
+        """Update the visible RAG combo without feeding its signal back."""
+        node = self.window.ui.nodes.get('indexes.select')
+        if node is None:
+            return
+        target = '-' if idx in (None, "", "-", "_") else idx
+        combo = node.combo
+        combo_idx = combo.findData(target)
+        if combo_idx < 0:
+            target = '-'
+            combo_idx = combo.findData(target)
+        if combo_idx < 0:
+            node.current_id = None
+            return
+        blocked = combo.blockSignals(True)
+        try:
+            combo.setCurrentIndex(combo_idx)
+            node.current_id = target
+        finally:
+            combo.blockSignals(blocked)
 
     def select_current(self):
-        """Select current idx on list."""
+        """Synchronize the shared RAG combo from persisted runtime state."""
         idx = self.window.core.config.get('llama.idx.current')
-        if idx is None:
-            self.current_idx = None
-            return
-        if self.window.ui.nodes['indexes.select'].has_key(idx):
-            self.window.ui.nodes['indexes.select'].set_value(idx)
-            self.current_idx = idx
-            return
-        self.current_idx = None  # clear if no index on list
+        if idx in (None, "", "-", "_"):
+            idx = None
+        elif not self.window.ui.nodes['indexes.select'].has_key(idx):
+            idx = None
+
+        self.current_idx = idx
+        self._sync_combo(idx)
 
     def select_current_mode(self):
         """Select current mode on list"""
@@ -334,6 +396,9 @@ class Idx:
         finally:
             self.locked = False
         self.select_current()
+        editor = self.window.controller.presets.editor
+        if editor.opened and self.window.ui.config.get(editor.id, {}).get('idx') is not None:
+            editor.update_indexes_list()
 
     def change_locked(self) -> bool:
         """
@@ -398,10 +463,22 @@ class Idx:
 
     def get_current(self) -> str:
         """
-        Get current index name
+        Get the currently selected RAG index.
+
+        For manual chat requests the visible shared combo is authoritative.  In
+        case a previous refresh left controller/config state stale, reconcile it
+        here before BridgeContext is created.
 
         :return: Current index name
         """
+        if not self.change_locked():
+            node = self.window.ui.nodes.get('indexes.select')
+            if node is not None:
+                idx = node.get_value()
+                if idx in (None, "", "-", "_"):
+                    idx = None
+                if idx != self.current_idx:
+                    self.set_current(idx)
         return self.current_idx
 
     def is_stopped(self) -> bool:

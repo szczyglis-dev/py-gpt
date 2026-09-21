@@ -19,9 +19,10 @@ class Legacy:
         self.window = window
 
     def get_idx(self) -> str:
-        """
-        Get agent index
+        """Return the globally selected RAG index.
 
-        :return: agent index
+        Autonomous mode and the inline Autonomous plugin share the same RAG
+        selector as the rest of the application; there is no agent-specific
+        index setting anymore.
         """
-        return self.window.core.config.get("agent.idx")
+        return self.window.controller.idx.get_current()

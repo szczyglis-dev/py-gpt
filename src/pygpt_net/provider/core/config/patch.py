@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 09:00:00                  #
+# Updated Date: 2026.09.21 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -1243,6 +1243,18 @@ class Patch:
                         presets_updated = True
                 if presets_updated:
                     self.window.core.plugins.save_presets()
+                    updated = True
+
+            # < 2.8.28
+            if old < parse_version("2.8.28"):
+                print("Migrating config from < 2.8.28...")
+
+                # Autonomous mode no longer owns a separate RAG selector.
+                # RAG is selected globally from the shared toolbox combo.
+                # Remove the historical per-Autonomous key after all earlier
+                # migrations, because some legacy patches may still create it.
+                if "agent.idx" in data:
+                    del data["agent.idx"]
                     updated = True
 
         # update file

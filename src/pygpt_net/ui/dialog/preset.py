@@ -201,9 +201,9 @@ class Preset(BaseConfigDialog):
             "filename",
             "name",
             "model",
+            "idx",
             "agent_provider",
             "agent_provider_openai",
-            "idx",
         ]
         # personalize tab
         personalize_keys = [

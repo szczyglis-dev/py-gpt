@@ -47,7 +47,6 @@
   "agent.auto_stop": true,
   "agent.continue.always": false,
   "agent.goal.notify": false,
-  "agent.idx": "_",
   "agent.idx.auto_retrieve": true,
   "agent.infinity.confirm": true,
   "agent.iterations": 3,

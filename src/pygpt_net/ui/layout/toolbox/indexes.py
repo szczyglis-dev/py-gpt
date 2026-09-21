@@ -157,6 +157,7 @@ class Indexes:
         idx_widget.setMinimumHeight(55)
         idx_widget.setMinimumWidth(0)
         idx_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        nodes['idx.select.widget'] = idx_widget
 
         mode_layout = QHBoxLayout()
         mode_layout.addWidget(nodes['llama_index.mode.label'])
@@ -168,6 +169,7 @@ class Indexes:
         mode_widget.setMinimumHeight(55)
         mode_widget.setMinimumWidth(0)
         mode_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        nodes['llama_index.mode.widget'] = mode_widget
 
         rows = QVBoxLayout()
         rows.addWidget(idx_widget)

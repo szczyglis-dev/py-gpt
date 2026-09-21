@@ -204,9 +204,7 @@ class Editor:
                 }
             },
         }
-        self.hidden_by_mode = {  # hidden fields by mode
-            MODE_CHAT: ["idx"],
-        }
+        self.hidden_by_mode = {}  # visibility is controlled by controller.ui.mode
         self.id = "preset"
         self.current = None
         self.current_id = None
@@ -1003,11 +1001,26 @@ class Editor:
             self.window.controller.config.placeholder.apply_by_id('agent_provider_openai')
         )
 
-    def update_indexes_list(self):
-        """Refresh index choices in the preset editor for the current context/project."""
+    def update_indexes_list(self, selected_value=Ellipsis):
+        """Refresh project-aware RAG choices and keep a valid selection."""
         keys = self.window.controller.config.placeholder.apply_by_id('idx')
         self.options['idx']['keys'] = keys
-        self.window.ui.config[self.id]['idx'].set_keys(keys, lock=True)
+        widget = self.window.ui.config[self.id]['idx']
+        current = widget.get_value() if selected_value is Ellipsis else selected_value
+        widget.set_keys(keys, lock=True)
+
+        target = current if current not in (None, '', '-') else '_'
+        index = widget.combo.findData(target)
+        if index < 0:
+            target = '_'
+            index = widget.combo.findData(target)
+        previous_locked = widget.locked
+        widget.locked = True
+        try:
+            widget.combo.setCurrentIndex(index)
+            widget.current_id = target if index >= 0 else None
+        finally:
+            widget.locked = previous_locked
 
     def hook_update(
             self,
@@ -1160,8 +1173,8 @@ class Editor:
             options[key] = self.options[key]
             options[key]['value'] = data_dict[key]
 
-        # refresh dynamic index choices (includes Current project when applicable)
-        self.update_indexes_list()
+        # refresh dynamic RAG choices (includes Current project when applicable)
+        self.update_indexes_list(data_dict.get('idx'))
 
         # load options
         self.window.controller.config.load_options(
@@ -1225,6 +1238,7 @@ class Editor:
             MODE_AGENT_OPENAI,
             MODE_AGENT_V2,
             MODE_AUDIO,
+            MODE_RESEARCH,
             MODE_COMPUTER,
         ]
 

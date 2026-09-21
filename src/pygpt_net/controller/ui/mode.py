@@ -13,6 +13,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_ASSISTANT,
+    MODE_CHAT,
     MODE_EXPERT,
     MODE_IMAGE,
     MODE_LLAMA_INDEX,
@@ -22,6 +23,7 @@ from pygpt_net.core.types import (
     MODE_AGENT_V2,
     MODE_COMPLETION,
     MODE_AUDIO,
+    MODE_RESEARCH,
 )
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event
@@ -167,7 +169,7 @@ class Mode:
 
         # prompt editor toolbox visibility
         if is_agent:
-            ui_nodes['preset.editor.idx'].setVisible(False)
+            ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
@@ -213,10 +215,13 @@ class Mode:
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         else:
-            if is_expert:
-                ui_nodes['preset.editor.idx'].setVisible(True)
-            else:
-                ui_nodes['preset.editor.idx'].setVisible(False)
+            # RAG can be stored directly in presets for the regular modes that
+            # can consume it, plus Chat with Files itself. Completion keeps the
+            # runtime selector in the toolbox but intentionally has no preset field.
+            show_preset_rag = mode in (
+                MODE_CHAT, MODE_LLAMA_INDEX, MODE_RESEARCH, MODE_COMPUTER,
+            )
+            ui_nodes['preset.editor.idx'].setVisible(show_preset_rag)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
             ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
@@ -277,10 +282,15 @@ class Mode:
         else:
             ui_nodes['assistants.widget'].setVisible(False)
 
-        if is_llama_index:
-            ui_nodes['idx.options'].setVisible(True)
-        else:
-            ui_nodes['idx.options'].setVisible(False)
+        # Shared RAG selector. Chat with Files additionally exposes its
+        # query/retrieval mode row; other modes only show the RAG combo.
+        show_rag = mode in (
+            MODE_CHAT, MODE_LLAMA_INDEX, MODE_AGENT_V2, MODE_RESEARCH,
+            MODE_COMPUTER, MODE_COMPLETION, MODE_AGENT, MODE_EXPERT,
+        )
+        ui_nodes['idx.options'].setVisible(show_rag)
+        ui_nodes['idx.select.widget'].setVisible(show_rag)
+        ui_nodes['llama_index.mode.widget'].setVisible(is_llama_index)
 
         if is_media:
             ui_nodes['input.counter'].setVisible(False)
