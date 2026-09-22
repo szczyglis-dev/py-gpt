@@ -107,7 +107,7 @@ A simple catalog can use the following structure:
 Runtime behavior
 ----------------
 
-Agent Skills are integrated with ``Chat with Agents`` and its Agents v2 runtime. PyGPT uses **progressive disclosure** so installing many skills does not automatically inject the full contents of every ``SKILL.md`` into each request.
+Agent Skills are integrated with ``Agents`` and its Agents v2 runtime. PyGPT uses **progressive disclosure** so installing many skills does not automatically inject the full contents of every ``SKILL.md`` into each request.
 
 At runtime:
 
@@ -201,4 +201,4 @@ Then add:
    2. Briefly describe the skill.
    3. Keep the response concise.
 
-Import the directory with ``Skills -> Import folder...``. After it is enabled, ``Chat with Agents`` can discover it from its description and load the full instructions only when needed.
+Import the directory with ``Skills -> Import folder...``. After it is enabled, ``Agents`` can discover it from its description and load the full instructions only when needed.

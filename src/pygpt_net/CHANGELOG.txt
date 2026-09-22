@@ -40,7 +40,7 @@
 - Removed the Edit JSON configs option.
 - Improved the chat input field.
 - Added a loader to the Docker builder.
-- Integrated system notifications with Chat with Agents.
+- Integrated system notifications with Agents.
 - The input field is now hidden in non-chat tabs.
 - Added date and time headers above chat input blocks.
 - Added support for referencing other conversations from the database using @mentions with conversation IDs, e.g. What were we talking about in chat @123?
@@ -58,8 +58,8 @@
 2.8.22 (2026-09-16)
 
 - Reorganized Context settings into General, Tools, and Advanced handling.
-- Added Agent Workflows for Chat with Agents with editable built-in workflows, custom UUID-based profiles, independent prompts, toolbox/Config access, migration support, documentation, and translations.
-- Moved Chat with Agents prompt editing from Settings to Agent Workflows.
+- Added Agent Workflows for Agents with editable built-in workflows, custom UUID-based profiles, independent prompts, toolbox/Config access, migration support, documentation, and translations.
+- Moved Agents prompt editing from Settings to Agent Workflows.
 - Added direct Config -> MCP... access to MCP settings.
 - Added Restore tool calls in runtime, independent from database storage and history restore.
 - Added Display tool calls JSON in Chats -> Render, with aggregated Tool/Tools status when disabled.
@@ -69,11 +69,11 @@
 
 - Fixed restoring hidden chats from collapsed columns.
 - Added tool call storage settings in Settings -> Context, with Disable, Truncate, and Full modes.
-- Added history restore mode settings in Settings -> Agents -> Chat with Agents.
+- Added history restore mode settings in Settings -> Agents -> Agents.
 - Added a distinct background highlight for the current day of the week in Calendar.
 - Added Undo support to the Clear Image button in Painter.
 - Added a System Info dialog to the About menu.
-- Added support for custom instructions and system prompts in Chat with Agents under Settings -> Agents -> Chat with Agents -> Advanced.
+- Added support for custom instructions and system prompts in Agents under Settings -> Agents -> Agents -> Advanced.
 - Optimized database storage.
 - Simplified the token counter display.
 - Moved the Stream checkbox to Settings -> Context -> Render.
@@ -82,7 +82,7 @@
 
 2.8.20 (2026-09-15)
 
-- Added an integration layer between Chat with Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.
+- Added an integration layer between Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.
 - Optimized Agents memory storage.
 
 2.8.19 (2026-09-15)
@@ -94,16 +94,16 @@
 - Fixed a Google `show_reasoning` error when used as a background vision model.
 - Fixed @mention restoration after application startup.
 - Fixed runtime WebView restoration when returning from plain text view on another tab.
-- Fixed RAG engine LLM selection in Chat with Agents.
+- Fixed RAG engine LLM selection in Agents.
 - Added support for runtime attachment and image appending from the workdir.
-- Added token counters and usage tracking to Chat with Agents.
+- Added token counters and usage tracking to Agents.
 - Improved image attachment @mentions.
 - Added loaders for heavy operations such as indexing and embedding.
 - Updated CSS styles and translations.
 
 2.8.18 (2026-09-15)
 
-- Extended the Chat with Agents workflow and added step-by-step execution mode.
+- Extended the Agents workflow and added step-by-step execution mode.
 - Fixed context token count display.
 - Simplified themes to two built-in options: Dark and Light.
 - Added @ mentions in the input field for referencing attachments, files, and directories.
@@ -117,7 +117,7 @@
 - Fixed runtime language switching.
 - Fixed tab tooltips.
 - Fixed chat reload race conditions.
-- Fixed streaming of final responses in Chat with Agents.
+- Fixed streaming of final responses in Agents.
 - Moved max worker limits to Settings.
 - Simplified model configuration.
 - Added Text tool to Painter.
@@ -129,13 +129,13 @@
 
 2.8.16 (2026-09-12)
 
-- Experts are now full-featured agents, using the same agent runtime and capabilities as agents in Chat with Agents.
+- Experts are now full-featured agents, using the same agent runtime and capabilities as agents in Agents.
 - Experts are now available as tools across all supported modes, allowing them to be invoked directly from anywhere in the application.
 
 2.8.15 (2026-09-11)
 
-- Renamed Agents v2 (beta) mode to Chat with Agents.
-- Added 3 separate submodes to Chat with Agents:
+- Renamed Agents v2 (beta) mode to Agents.
+- Added 3 separate submodes to Agents:
   - Chat - allows natural conversation with the primary agent, with delegated agents used when needed.
   - Orchestrator - the previous Agents v2 behavior, where the primary agent acts only as an orchestrator for other agents.
   - Swarm - allows creating and running a dynamically defined group of specialized agents/workers in parallel in the background. Swarm mode can run continuously with a defined number of parallel agents.

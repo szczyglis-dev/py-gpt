@@ -133,9 +133,9 @@ A built-in web browser based on Chromium, allowing you to open webpages directly
 Agent Workflow
 --------------
 
-**Agent Workflow** is a live, human-readable monitor for ``Chat with Agents`` / Agents v2. It shows the current run as a hierarchy of the primary agent or orchestrator and its worker agents, with timestamped status entries, agent turns, worker creation, task progress, and tool execution. Tool calls expose expandable input/output details, while each agent has a **Details** panel with available runtime information such as its system prompt, instruction, task, input, model/provider, language, and preset.
+**Agent Workflow** is a live, human-readable monitor for ``Agents`` / Agents v2. It shows the current run as a hierarchy of the primary agent or orchestrator and its worker agents, with timestamped status entries, agent turns, worker creation, task progress, and tool execution. Tool calls expose expandable input/output details, while each agent has a **Details** panel with available runtime information such as its system prompt, instruction, task, input, model/provider, language, and preset.
 
-Open it from ``Tools -> Agent Workflow`` as a dialog, or pin it to an output tab from the tab context menu. The default layout includes an Agent Workflow tab in the second output column. When the first actual ``Chat with Agents`` run starts after the user sends input in a profile, PyGPT reveals that tab and expands split-screen once so the monitor is discoverable. Merely selecting the mode does not trigger this behavior; after the first-run introduction, the user's layout is left unchanged.
+Open it from ``Tools -> Agent Workflow`` as a dialog, or pin it to an output tab from the tab context menu. The default layout includes an Agent Workflow tab in the second output column. When the first actual ``Agents`` run starts after the user sends input in a profile, PyGPT reveals that tab and expands split-screen once so the monitor is discoverable. Merely selecting the mode does not trigger this behavior; after the first-run introduction, the user's layout is left unchanged.
 
 .. image:: images/v3_workflow.png
    :width: 800
@@ -145,7 +145,7 @@ The view is runtime-only and is intended for observing active work rather than r
 Agent Builder (Legacy)
 ----------------------
 
-**Legacy modes only:** Agent Builder is used by the legacy ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` workflows. It is not used by the modern ``Chat with Agents`` mode.
+**Legacy modes only:** Agent Builder is used by the legacy ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` workflows. It is not used by the modern ``Agents`` mode.
 
 To launch Agent Builder, navigate to:
 

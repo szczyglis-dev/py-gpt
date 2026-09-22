@@ -21,7 +21,7 @@
   "research": false,
   "computer": false,
   "filename": "current.agent_v2",
-  "model": "gpt-5.6-sol",
+  "model": "gpt-5.6-luna",
   "tools": {
     "function": []
   },

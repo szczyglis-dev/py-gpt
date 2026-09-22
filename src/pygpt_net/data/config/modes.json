@@ -19,7 +19,7 @@
         },
         "agent_v2": {
             "id": "agent_v2",
-            "name": "Chat with Agents",
+            "name": "Agents",
             "label": "mode.agent_v2",
             "default": false
         },

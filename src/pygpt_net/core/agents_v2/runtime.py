@@ -369,7 +369,7 @@ class AgentsV2Runtime:
     @property
     def main_agent_description(self) -> str:
         if self.agent_definition is not None:
-            return "Custom Chat with Agents workflow"
+            return "Custom Agents workflow"
         return self.strategy.main_description
 
     def main_event(self, suffix: str) -> str:

@@ -6,7 +6,7 @@ Overview
 
 **PyGPT** is an open-source desktop AI assistant for ``Linux``, ``Windows`` and ``macOS``. It supports models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, etc.), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, plus models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``DeepSeek``, ``Qwen``, ``gpt-oss``, ``Gemma``, ``Mistral``, ``Llama``, and others.
 
-Beyond chat, PyGPT includes **Chat with Agents** with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
+Beyond chat, PyGPT includes **Agents** with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
 
 *Dark theme*
 
@@ -23,7 +23,7 @@ Features
 ---------
 * Desktop AI assistant for ``Linux``, ``Windows`` and ``macOS``, written in Python.
 * Runs as a local desktop application with a ChatGPT-like conversational interface.
-* Work modes include Chat, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, Autonomous mode, plus legacy Agent modes.
+* Work modes include Chat, Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, Autonomous mode, plus legacy Agent modes.
 * Supports ``OpenAI GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``DeepSeek V3/R1``, ``Perplexity / Sonar``, and models available through ``LlamaIndex`` and ``Ollama``, including ``DeepSeek``, ``Qwen``, ``gpt-oss``, ``Gemma``, ``Mistral``, ``Llama``, and others.
 * Integrated ``LlamaIndex`` RAG for files, webpages, Google/GitHub data, media, images, conversation history, and formats such as ``txt``, ``pdf``, ``csv``, ``html``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, and ``xml``.
 * Built-in vector-store support with automatic file, database-context, and data embedding.
@@ -35,8 +35,8 @@ Features
 * Extensible plugin system with ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and more.
 * Model Context Protocol (MCP) support.
 * Built-in **MCP Connectors** manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
-* **Chat with Agents** multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
-* Project-specific ``AGENTS.md`` rules for the main Chat with Agents agent.
+* **Agents** multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
+* Project-specific ``AGENTS.md`` rules for the main Agents agent.
 * Portable ``SKILL.md``-based **Agent Skills** with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
 * Built-in **Python/OS** tool for real-time Python, IPython, and system command execution.
 * Camera capture for real-time image input in Chat and other supported modes.

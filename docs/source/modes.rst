@@ -46,10 +46,10 @@ Images can be analyzed in real time from attachments, the camera enabled from th
 
 For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in ``Config -> Settings -> Remote Tools``. When available, this lets the model generate images natively without the inline plugin.
 
-Chat with Agents
+Agents
 ----------------
 
-**Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` modes, as well as from the separate ``Autonomous mode``.
+**Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` modes, as well as from the separate ``Autonomous mode``.
 
 The **Workflow** selector below the system prompt controls how the workflow operates. The default workflow is **Chat**.
 
@@ -83,7 +83,7 @@ Swarm workers can exchange messages, share findings and coordinate work while th
 Agent Workflows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Open ``Config -> Agent Workflows...`` or use the settings icon in the Chat with Agents toolbox. The built-in **Chat**, **Orchestrator**, and **Swarm** profiles cannot be deleted. Their prompts can be customized, while their runtime type remains fixed.
+Open ``Config -> Agent Workflows...`` or use the settings icon in the Agents toolbox. The built-in **Chat**, **Orchestrator**, and **Swarm** profiles cannot be deleted. Their prompts can be customized, while their runtime type remains fixed.
 
 Use **New** to create a custom profile with a name, system prompt, and **Runtime**: **Primary agent**, **Orchestrator**, or **Swarm**. The selected runtime controls how the profile delegates work and which workflow tools are available.
 
@@ -94,29 +94,29 @@ The editor also includes a Help reference for workflow tools and runtime context
 Agent Workflow monitor
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The built-in **Agent Workflow** tool provides a real-time view of an active Chat with Agents run. It groups the primary agent/orchestrator and worker agents into a readable tree and shows timestamped run events such as status updates, worker creation, task execution and tool calls. Tool rows can be expanded to inspect input/output, and each agent exposes a **Details** panel with the runtime metadata available for that agent, including prompts and task/input information.
+The built-in **Agent Workflow** tool provides a real-time view of an active Agents run. It groups the primary agent/orchestrator and worker agents into a readable tree and shows timestamped run events such as status updates, worker creation, task execution and tool calls. Tool rows can be expanded to inspect input/output, and each agent exposes a **Details** panel with the runtime metadata available for that agent, including prompts and task/input information.
 
-Open the monitor from ``Tools -> Agent Workflow`` or pin it as an output tab. It is included in the default second-column tab layout and is revealed automatically on the first actual Chat with Agents run.
+Open the monitor from ``Tools -> Agent Workflow`` or pin it as an output tab. It is included in the default second-column tab layout and is revealed automatically on the first actual Agents run.
 
 The monitor is runtime-only. Every new top-level agent run clears the previous view automatically, and **Clear view** can clear it manually. The tool does not replace persisted conversation history, the full-workflow rendering option, or Debug workflow logging.
 
 Project rules with AGENTS.md
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Chat with Agents supports optional project-specific instructions in ``AGENTS.md``. Before processing the user's input, the top-level main agent checks for ``%workdir%/AGENTS.md`` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main agent system prompt as additional project rules.
+Agents supports optional project-specific instructions in ``AGENTS.md``. Before processing the user's input, the top-level main agent checks for ``%workdir%/AGENTS.md`` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main agent system prompt as additional project rules.
 
 The workdir is resolved from the conversation that started the run, including a custom project data workdir, rather than from whichever project happens to be selected later in the UI. The file is read once for that run and is not stored in the conversation database. A symbolic link that resolves outside the active workdir is ignored.
 
-``AGENTS.md`` rules are intentionally applied only to the top-level **Chat with Agents** main agent. They are not automatically injected into worker agents or into Experts, even though Experts reuse the Agents v2 runtime. Put shared operational instructions in the main ``AGENTS.md`` and explicitly pass any worker-specific requirements when delegating work.
+``AGENTS.md`` rules are intentionally applied only to the top-level **Agents** main agent. They are not automatically injected into worker agents or into Experts, even though Experts reuse the Agents v2 runtime. Put shared operational instructions in the main ``AGENTS.md`` and explicitly pass any worker-specific requirements when delegating work.
 
 Tools and provider capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Chat with Agents can use both local and provider-side capabilities:
+Agents can use both local and provider-side capabilities:
 
 * **Local tools** from enabled PyGPT plugins can be made available to the primary agent/orchestrator and workers.
 * **Remote tools** exposed by the selected provider can be made available when supported by the provider/model and enabled in PyGPT.
-* Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with ``Allow local tools`` and ``Allow remote tools``.
+* Local and remote tools can be enabled or disabled independently in the Agents preset with ``Allow local tools`` and ``Allow remote tools``.
 * Models with native function calling use it when available. For compatible models without native function calling, the runtime can use a ReAct agent as a fallback.
 
 Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
@@ -124,13 +124,13 @@ Local plugin execution is integrated with the normal PyGPT command/tool system, 
 Settings
 ^^^^^^^^
 
-Agent-related application settings are available under ``Settings -> Agents and experts``. The **Chat with Agents** section contains settings intended for this workflow. ``Show full tool-chain in Chat with Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
+Agent-related application settings are available under ``Settings -> Agents and experts``. The **Agents** section contains settings intended for this workflow. ``Show full tool-chain in Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
 
 The global ``Chats -> Render -> Display tool calls JSON`` option must also be enabled for expandable request/response blocks to be shown. If it is disabled, tool execution remains unchanged and live tool activity is represented by one aggregated ``Tool/Tools`` status row.
 
-``Display full agent workflow`` is disabled by default. When enabled, completed Chat with Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This setting controls UI rendering only; it does not change what is stored in the database or the separate ``Restore full workflow history on next request`` policy used for model-facing history.
+``Display full agent workflow`` is disabled by default. When enabled, completed Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This setting controls UI rendering only; it does not change what is stored in the database or the separate ``Restore full workflow history on next request`` policy used for model-facing history.
 
-``Restore full workflow history on next request`` controls how completed Chat with Agents turns are replayed to the main agent on later requests. It is enabled by default for backward compatibility. When enabled, PyGPT rebuilds the ordered workflow from durable partials and restores intermediate main-agent output together with persisted worker results. This provides richer continuity but can use substantially more input tokens. When disabled, PyGPT restores only the authoritative final response from each completed Chat with Agents turn. The full workflow remains stored in the database and available to the UI; it is simply omitted from later model-facing history, reducing token usage at the cost of less detailed workflow context.
+``Restore full workflow history on next request`` controls how completed Agents turns are replayed to the main agent on later requests. It is enabled by default for backward compatibility. When enabled, PyGPT rebuilds the ordered workflow from durable partials and restores intermediate main-agent output together with persisted worker results. This provides richer continuity but can use substantially more input tokens. When disabled, PyGPT restores only the authoritative final response from each completed Agents turn. The full workflow remains stored in the database and available to the UI; it is simply omitted from later model-facing history, reducing token usage at the cost of less detailed workflow context.
 
 The same policy is used by the live history token estimate and by Advanced Context Handling when it sizes and snapshots durable history for checkpoints. With final-response-only history selected, those checkpoint snapshots use the final response rather than reintroducing the full stored workflow. Compact rolling memory created inside a currently running long workflow remains available so Advanced Context Handling can keep that active run coherent.
 
@@ -139,23 +139,23 @@ The runtime worker-count and iteration limits are configurable in the same secti
 * ``Max iterations (Chat / Orchestrator)`` - main-agent iteration limit for Chat and Orchestrator. Default: ``48``.
 * ``Max workers (Chat / Orchestrator)`` - maximum number of worker agents that can be created in Chat and Orchestrator workflows. Default: ``16``; set ``0`` for unlimited. This setting does not limit Swarm size.
 * ``Max iterations (Swarm)`` - main-agent/orchestrator iteration limit for Swarm. Default: ``4096``.
-* ``Worker max iterations`` - per-worker iteration limit in all Chat with Agents modes. Default: ``24``.
+* ``Worker max iterations`` - per-worker iteration limit in all Agents modes. Default: ``24``.
 
 For every limit, ``0`` means **unlimited**. The three iteration settings control internal agent reasoning/tool-call cycles, not user conversation turns; the worker limit controls how many worker agents may be created in a Chat or Orchestrator workflow. Higher or unlimited values may substantially increase API calls, token consumption, execution time, and tool activity. Swarm keeps its separately declared worker count and is not constrained by the Chat/Orchestrator worker limit.
 
-Options specific to older agent implementations are kept in the **Options** tab. ``Display full agent output in chat view`` controls full output rendering for legacy agent modes, while ``Display a tray notification when the goal is achieved`` controls legacy agent completion notifications. These options do not control the Chat with Agents tool-chain display.
+Options specific to older agent implementations are kept in the **Options** tab. ``Display full agent output in chat view`` controls full output rendering for legacy agent modes, while ``Display a tray notification when the goal is achieved`` controls legacy agent completion notifications. These options do not control the Agents tool-chain display.
 
 RAG, attachments and artifacts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If a valid index is selected in the Chat with Agents preset, a ``query_index`` RAG tool is exposed to the workflow. User attachments and extracted attachment context are shared with the active workflow and its workers. When the selected model supports image input, current image attachments are also supplied as native image blocks.
+If a valid index is selected in the Agents preset, a ``query_index`` RAG tool is exposed to the workflow. User attachments and extracted attachment context are shared with the active workflow and its workers. When the selected model supports image input, current image attachments are also supplied as native image blocks.
 
 Files, images, URLs and attachments produced by workers, local tools, or supported provider-side tools are collected by the runtime and propagated to the main user-visible response.
 
 Memory
 ^^^^^^
 
-The user-facing primary agent or orchestrator keeps hidden conversation history across turns in the current conversation/preset. This history is subject to the normal PyGPT/model token-window policy. For completed Chat with Agents turns, the ``Restore full workflow history on next request`` setting determines whether later requests receive the full persisted workflow or only the final response. Worker memory inside the active workflow is runtime-local and can be retained when the same worker is reused during that workflow.
+The user-facing primary agent or orchestrator keeps hidden conversation history across turns in the current conversation/preset. This history is subject to the normal PyGPT/model token-window policy. For completed Agents turns, the ``Restore full workflow history on next request`` setting determines whether later requests receive the full persisted workflow or only the final response. Worker memory inside the active workflow is runtime-local and can be retained when the same worker is reused during that workflow.
 
 Worker lifecycle by mode
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -177,7 +177,7 @@ Use **Chat** for general agent conversations and tasks where delegation is occas
 Agent Skills
 ^^^^^^^^^^^^
 
-**Agent Skills** extend Chat with Agents with reusable ``SKILL.md`` instruction packages containing procedures, references, scripts and assets. Enabled skills are discovered from compact metadata and loaded only when needed. See :doc:`skills` for installation, supported formats, runtime behavior and security notes.
+**Agent Skills** extend Agents with reusable ``SKILL.md`` instruction packages containing procedures, references, scripts and assets. Enabled skills are discovered from compact metadata and loaded only when needed. See :doc:`skills` for installation, supported formats, runtime behavior and security notes.
 
 Realtime + audio
 ----------------
@@ -295,13 +295,13 @@ Finally, enable the ``Sandbox`` switch in the Computer use toolbox when you want
 Experts
 -------
 
-**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
+**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Agents**. There is no separate legacy execution engine for an Expert.
 
 Each enabled Expert is exposed to the current conversation as a regular ``expert_call`` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result.
 
 In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while ``expert_call`` adds the ability to delegate work to specialized agents.
 
-Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
+Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
 
 How to use Experts
 ~~~~~~~~~~~~~~~~~~
@@ -318,7 +318,7 @@ The main model can then invoke ``expert_call`` automatically, use the returned r
 
 Experts can be activated or deactivated from the preset list using the RMB context menu and the ``Enable/Disable`` actions. Only enabled Experts are exposed through ``expert_call``.
 
-The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same ``expert_call`` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
+The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same ``expert_call`` tool in supported chat modes and executes the selected Expert through the same **Agents / Agents v2** runtime.
 
 
 Autonomous mode
@@ -352,7 +352,7 @@ When the run limit is set to ``0``, PyGPT shows an infinite-loop confirmation be
 Agent (LlamaIndex)
 ------------------
 
-**Legacy mode — not recommended. Use the newer and more advanced ``Chat with Agents`` mode instead.**
+**Legacy mode — not recommended. Use the newer and more advanced ``Agents`` mode instead.**
 
 This mode provides the older LlamaIndex-based agent workflows.
 
@@ -396,7 +396,7 @@ You can change the prompts used for evaluating the response in ``Settings -> Pro
 Agent (OpenAI)
 --------------
 
-**Legacy mode — not recommended. Use the newer and more advanced ``Chat with Agents`` mode instead.**
+**Legacy mode — not recommended. Use the newer and more advanced ``Agents`` mode instead.**
 
 This mode provides the older agent workflows built on the ``openai-agents`` library integrated into the application:
 

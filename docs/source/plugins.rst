@@ -16,7 +16,7 @@ The following plugins are currently available:
 * ``Chat history (inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 * ``Crontab / Task scheduler`` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
 * ``Custom commands`` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
-* ``Experts (inline)`` - exposes enabled Expert presets through the regular ``expert_call`` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Chat with Agents.
+* ``Experts (inline)`` - exposes enabled Expert presets through the regular ``expert_call`` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Agents.
 * ``Extra system prompt`` - automatically appends reusable custom instructions or additional context to the active system prompt.
 * ``Facebook`` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
 * ``Files I/O`` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
@@ -579,7 +579,7 @@ Each enabled custom command is exposed as a tool using its configured **name**.
 Experts (inline)
 -----------------
 
-The Experts (inline) plugin makes enabled Expert presets available in supported chat modes through the regular ``expert_call`` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Chat with Agents**, and its final response is returned directly as the tool result.
+The Experts (inline) plugin makes enabled Expert presets available in supported chat modes through the regular ``expert_call`` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Agents**, and its final response is returned directly as the tool result.
 
 Use **Experts** mode to define, configure, enable, or disable Expert presets. Once an Expert is enabled, you can simply ask for it by name in the conversation, for example: ``Ask the Python programmer expert to review this code.`` The model can then call ``expert_call`` automatically.
 
@@ -1242,7 +1242,7 @@ Because Memory is an inline plugin, it works independently of the ``Tools`` swit
 
 After a completed conversation turn, the plugin can asynchronously update the active global/project compact memory with the configured model. The updater treats memory as a canonical compact state rather than an append-only log: related facts are merged contextually, duplicates are consolidated, newer information can supersede obsolete entries, and routine or transient details are discarded. Outside projects, the update prompt focuses on durable information about the user. Inside a project, it keeps project-oriented durable state.
 
-Conversation continuation notes are different: they belong only to the current conversation and are not automatically shared with other chats. When the experimental ``Advanced context handling`` feature is enabled, PyGPT core can update these notes automatically as older turns are checkpointed. Chat with Agents also uses them as the persistent continuation block for the main agent's rolling context. The core Chat with Agents context tools remain available in advanced-context mode even when the Memory plugin itself is disabled; enabling Memory exposes the same ``memory_ctx_*`` operations through the plugin's inline command set as well.
+Conversation continuation notes are different: they belong only to the current conversation and are not automatically shared with other chats. When the experimental ``Advanced context handling`` feature is enabled, PyGPT core can update these notes automatically as older turns are checkpointed. Agents also uses them as the persistent continuation block for the main agent's rolling context. The core Agents context tools remain available in advanced-context mode even when the Memory plugin itself is disabled; enabling Memory exposes the same ``memory_ctx_*`` operations through the plugin's inline command set as well.
 
 **Options**
 

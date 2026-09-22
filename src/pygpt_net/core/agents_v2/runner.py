@@ -56,7 +56,7 @@ class Runner:
             self.window.core.debug.log(exc)
             try:
                 emitter.clear_status()
-                emitter.finish(f"Chat with Agents: {exc}")
+                emitter.finish(f"Agents: {exc}")
             except Exception:
                 pass
             return True

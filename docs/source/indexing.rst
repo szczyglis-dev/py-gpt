@@ -35,7 +35,7 @@ fallback is non-streaming; normal native tool-call paths can stream.
 .. note::
    RAG is also available in other supported workflows. The exact execution path
    depends on the mode: for example, Completion uses its LlamaIndex completion
-   path, while Chat with Agents exposes the selected index as a RAG tool.
+   path, while Agents exposes the selected index as a RAG tool.
 
 Indexing files for RAG
 ----------------------

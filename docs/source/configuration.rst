@@ -314,7 +314,7 @@ Advanced handling
 
 * ``Maximum continuation note characters``: Sets the character safety ceiling for compact continuation notes associated with one conversation. These notes preserve goals, decisions, completed work, constraints, findings, identifiers, and pending work across context-window rollovers. Model-facing notes are also token-clipped when necessary for the selected model. Default: ``24000``.
 
-See ``Context and memory -> Advanced context handling (experimental)`` for the full behavior, including ``memory_ctx`` tools and Chat with Agents rolling memory.
+See ``Context and memory -> Advanced context handling (experimental)`` for the full behavior, including ``memory_ctx`` tools and Agents rolling memory.
 
 Remote tools
 ~~~~~~~~~~~~
@@ -432,7 +432,7 @@ Prompts
 
 * ``Autonomous mode: goal update``: Defines the run-control instruction used only when **Auto-stop** is enabled. It lets Autonomous mode signal terminal states such as completion, waiting, pause, or failure. When Auto-stop is disabled, this run-control tool/instruction is not exposed to the model.
 
-* ``Expert - system prompt``: Defines the instruction that tells the current model how and when to delegate tasks through the regular ``expert_call`` tool. The prompt applies to the caller; each selected Expert is executed as a regular agent by the shared Chat with Agents / Agents v2 runtime and receives the model, system prompt, tool permissions and optional RAG configuration from its own preset.
+* ``Expert - system prompt``: Defines the instruction that tells the current model how and when to delegate tasks through the regular ``expert_call`` tool. The prompt applies to the caller; each selected Expert is executed as a regular agent by the shared Agents / Agents v2 runtime and receives the model, system prompt, tool permissions and optional RAG configuration from its own preset.
 
 * ``Image generation``: Defines the instruction given to the prompt-enhancement LLM before an image-generation request when raw prompt mode is not used. It controls how the user's request is expanded or reformulated for the image model.
 
@@ -603,16 +603,16 @@ See :doc:`indexing` for the complete description of global context indexing, iso
 Agents and experts
 ~~~~~~~~~~~~~~~~~~
 
-Chat with Agents
+Agents
 ^^^^^^^^^^^^^^^^
 
-* ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before a Chat with Agents run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
+* ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before a Agents run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
 
-* ``Show full tool-chain in Chat with Agents``: When enabled, the final Chat with Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
+* ``Show full tool-chain in Agents``: When enabled, the final Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
-* ``Display full agent workflow``: Keeps the complete visible sequence of persisted Chat with Agents partial responses in the chat after the workflow finishes and after the conversation is reloaded. Disable it to collapse completed turns to the final response only. This affects UI rendering only and is independent from ``Restore full workflow history on next request``. Default: True.
+* ``Display full agent workflow``: Keeps the complete visible sequence of persisted Agents partial responses in the chat after the workflow finishes and after the conversation is reloaded. Disable it to collapse completed turns to the final response only. This affects UI rendering only and is independent from ``Restore full workflow history on next request``. Default: True.
 
-* ``Restore full workflow history on next request``: Controls the model-facing history restored from completed Chat with Agents turns. When enabled, later requests replay the full persisted workflow, including intermediate main-agent output and worker results. This can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored, reducing token usage at the cost of less detailed workflow context. The full workflow remains stored in the database/UI. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots follow the same selection. Default: True.
+* ``Restore full workflow history on next request``: Controls the model-facing history restored from completed Agents turns. When enabled, later requests replay the full persisted workflow, including intermediate main-agent output and worker results. This can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored, reducing token usage at the cost of less detailed workflow context. The full workflow remains stored in the database/UI. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots follow the same selection. Default: True.
 
 * ``Single live status per part``: While streaming, keeps one tool/status row for the current response part and updates it in place. Previous parts keep their latest status. The shared renderer also applies to compatible Chat tool/status events. Default: True.
 
@@ -624,9 +624,9 @@ Chat with Agents
 
 * ``Max iterations (Swarm)``: Maximum number of main-agent/orchestrator iterations in Swarm mode. Set ``0`` for no application-level iteration limit. Default: ``4096``.
 
-* ``Worker max iterations``: Maximum number of iterations for each worker agent in any Chat with Agents mode. Set ``0`` for no application-level iteration limit. Default: ``24``.
+* ``Worker max iterations``: Maximum number of iterations for each worker agent in any Agents mode. Set ``0`` for no application-level iteration limit. Default: ``24``.
 
-Use ``Config -> Agent Workflows...`` (or the settings icon in the Chat with Agents toolbox) to edit built-in Chat/Orchestrator/Swarm prompts and create custom workflows. Older custom profiles without a runtime setting continue to use **Orchestrator**. See :doc:`modes` -> **Chat with Agents / Agent Workflows** for details.
+Use ``Config -> Agent Workflows...`` (or the settings icon in the Agents toolbox) to edit built-in Chat/Orchestrator/Swarm prompts and create custom workflows. Older custom profiles without a runtime setting continue to use **Orchestrator**. See :doc:`modes` -> **Agents / Agent Workflows** for details.
 
 An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling iteration limits can increase latency, token/API usage, and tool execution. The Chat/Orchestrator worker limit controls the number of workers created in those workflows; ``0`` removes that limit. Swarm is not constrained by this setting and uses its separately declared worker count.
 
@@ -655,9 +655,9 @@ Autonomous
 Options
 ^^^^^^^
 
-* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Chat with Agents tool-chain display. Default: True.
+* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents tool-chain display. Default: True.
 
-* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Chat with Agents workflow status or tool-chain rendering. Default: False.
+* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Agents workflow status or tool-chain rendering. Default: False.
 
 Accessibility
 ~~~~~~~~~~~~~
@@ -772,11 +772,11 @@ Debug
 
 * ``Log attachments usage to console``: Prints attachment-processing decisions and related activity to the console, helping diagnose upload, extraction, RAG, or native-attachment handling. Default: False.
 
-* ``Log Agents usage to console``: Prints general agent execution diagnostics to the console, including activity from agent workflows not covered by the more specialized Chat with Agents logging options. Default: False.
+* ``Log Agents usage to console``: Prints general agent execution diagnostics to the console, including activity from agent workflows not covered by the more specialized Agents logging options. Default: False.
 
-* ``Log Chat with Agents workflow``: Logs a concise Chat with Agents workflow trace, including orchestration events, tool names, statuses, waits, and response previews without full prompts or large payloads. Default: False.
+* ``Log Agents workflow``: Logs a concise Agents workflow trace, including orchestration events, tool names, statuses, waits, and response previews without full prompts or large payloads. Default: False.
 
-* ``Log Chat with Agents (verbose mode, full output)``: Logs the complete Chat with Agents orchestration flow, including system prompts, tool availability and calls, worker operations/state, inputs, outputs, RAG context, and workflow lifecycle. This may contain sensitive data. Default: False.
+* ``Log Agents (verbose mode, full output)``: Logs the complete Agents orchestration flow, including system prompts, tool availability and calls, worker operations/state, inputs, outputs, RAG context, and workflow lifecycle. This may contain sensitive data. Default: False.
 
 * ``Log LlamaIndex usage to console``: Prints LlamaIndex indexing, retrieval, and query-flow diagnostics to the console. Enable it when troubleshooting RAG or vector-store behavior. Default: False.
 
