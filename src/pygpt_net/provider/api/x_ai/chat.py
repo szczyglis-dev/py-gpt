@@ -1248,6 +1248,7 @@ class Chat:
                         save_path = self.window.core.image.gen_unique_path(ctx, ext=ext)
                         with open(save_path, "wb") as f:
                             f.write(base64.b64decode(b64))
+                        self.window.core.filesystem.materialize_runtime_artifact(save_path, ctx=ctx)
                         if not isinstance(ctx.images, list):
                             ctx.images = []
                         ctx.images.append(save_path)

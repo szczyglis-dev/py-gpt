@@ -226,22 +226,30 @@ class BuiltinBackend(ExecutionBackend):
         return self.runtime.resolve_data_path(path, ctx=ctx)
 
     def get_tool_instruction(self, cmd: str, data_dir: str) -> str:
+        runtime_artifacts = self.plugin.window.core.filesystem.get_runtime_artifacts_dir(create=False)
+        suffix = (
+            f" Provider/tool generated or downloaded files are automatically copied under {runtime_artifacts}. "
+            "If an exact host/runtime path was not returned, inspect that directory recursively before using the file."
+        )
         if cmd in {"python_sys_exec", "ipython_sys_exec"}:
             return (
                 "\nThe command runs in PyGPT's built-in uv-managed Python sandbox. "
                 f"Its CWD is {data_dir}; the sandbox virtual environment is {self.runtime.venv_root}. "
                 "Use pip or python -m pip from this environment for packages needed by executed code."
+                + suffix
             )
         if cmd.startswith("ipython_"):
             return (
                 "\nIPython runs as a persistent kernel inside PyGPT's built-in uv-managed sandbox. "
                 f"Use {data_dir} as the working directory and save user files there. "
                 "Kernel state is preserved between executions until the kernel is restarted."
+                + suffix
             )
         if cmd.startswith("python_"):
             return (
                 "\nPython runs as a separate process in PyGPT's built-in uv-managed sandbox. "
                 f"Use {data_dir} as the working directory and save user files there."
+                + suffix
             )
         return ""
 

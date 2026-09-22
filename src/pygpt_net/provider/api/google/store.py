@@ -223,6 +223,8 @@ class Store:
 
         path = self._ensure_unique_path(dir_path, filename)
         if self.download(file, path):
+            if ctx is not None:
+                self.window.core.filesystem.materialize_runtime_artifact(path, ctx=ctx)
             return path
         return None
 

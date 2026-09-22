@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.22 17:55:00                  #
 # ================================================== #
 
+import hashlib
 import os
 import shutil
 
+from datetime import date
 from pathlib import PurePath
 from typing import Tuple, Any, Union, List, Optional
 from urllib.parse import unquote
@@ -95,6 +97,195 @@ class Filesystem:
             except OSError:
                 pass
         return path
+
+
+    def get_runtime_artifacts_dir(self, create: bool = True) -> str:
+        """Return the global ephemeral directory shared with local runtimes.
+
+        Runtime artifacts are deliberately kept below the profile ``tmp`` tree
+        instead of the current project/data directory. Docker execution backends
+        mount this directory at ``/mnt/tmp`` while Built-in/host backends use
+        the native host path directly.
+        """
+        root = os.path.join(
+            self.window.core.config.get_user_dir("tmp"),
+            "runtime_artifacts",
+        )
+        if create:
+            os.makedirs(root, exist_ok=True)
+        return root
+
+    def _runtime_artifact_active_paths(self, host_path: str, ctx=None) -> dict:
+        """Return paths for the execution backends currently exposed to the model."""
+        paths = {}
+        for plugin_id, key in (
+                ("cmd_code_interpreter", "code_interpreter"),
+                ("cmd_system", "system"),
+        ):
+            try:
+                if not self.window.controller.plugins.is_enabled(plugin_id):
+                    continue
+                plugin = self.window.core.plugins.get(plugin_id)
+                if plugin is None:
+                    continue
+                paths[key] = plugin.map_host_path_to_runtime(host_path, ctx=ctx)
+            except Exception as exc:
+                try:
+                    self.window.core.debug.log(exc)
+                except Exception:
+                    pass
+        return paths
+
+    def materialize_runtime_artifact(
+            self,
+            path: str,
+            ctx=None,
+            name: Optional[str] = None,
+    ) -> Optional[dict]:
+        """Best-effort wrapper preparing one file for local execution backends.
+
+        Runtime materialization must never make the original provider/tool output
+        fail. If temporary storage is unavailable, keep the durable artifact and
+        simply return ``None``.
+        """
+        try:
+            return self._materialize_runtime_artifact(path, ctx=ctx, name=name)
+        except Exception as exc:
+            try:
+                self.window.core.debug.log(exc)
+            except Exception:
+                pass
+            return None
+
+    def _materialize_runtime_artifact(
+            self,
+            path: str,
+            ctx=None,
+            name: Optional[str] = None,
+    ) -> Optional[dict]:
+        """Copy one local artifact to the shared ephemeral runtime directory.
+
+        Copies are grouped in ``YYYY-MM-DD`` directories. Existing filenames
+        receive a random five-character MD5 prefix. The returned record contains
+        both the native host path and the Docker-visible ``/mnt/tmp``
+        path, plus backend-specific paths for the tools that are currently
+        enabled. ``path`` is the preferred path for the active execution surface.
+        """
+        if isinstance(path, dict):
+            path = (
+                path.get("host_path")
+                or path.get("path")
+                or path.get("file")
+                or path.get("filename")
+                or ""
+            )
+        if not path:
+            return None
+
+        raw = str(path).strip()
+        if not raw:
+            return None
+
+        # Accept paths returned previously by this API as well as portable
+        # %workdir% paths stored in CtxItem.images/files.
+        normalized = raw.replace("\\", "/")
+        if normalized == "/mnt/tmp" or normalized.startswith("/mnt/tmp/"):
+            source = self.resolve_sandbox_path("sandbox:" + normalized, ctx=ctx)
+        else:
+            source = self.normalize_local_path(raw, auto_prefix=True, ctx=ctx)
+        source = os.path.realpath(source)
+        if not os.path.isfile(source):
+            return None
+
+        root = os.path.realpath(self.get_runtime_artifacts_dir(create=True))
+        if self._is_path_in(source, root):
+            target = source
+        else:
+            filename = os.path.basename(str(name or source)) or "artifact"
+            target_dir = os.path.join(root, date.today().isoformat())
+            os.makedirs(target_dir, exist_ok=True)
+
+            # Keep the original filename for the first artifact of the day. If
+            # it already exists, add a short random MD5 prefix instead of
+            # creating opaque UUID/hash directories. Reserve the destination
+            # atomically so concurrent tool calls cannot overwrite each other.
+            candidate = filename
+            while True:
+                target = os.path.join(target_dir, candidate)
+                try:
+                    fd = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                    os.close(fd)
+                    break
+                except FileExistsError:
+                    prefix = hashlib.md5(os.urandom(16)).hexdigest()[:5]
+                    candidate = f"{prefix}_{filename}"
+
+            try:
+                shutil.copy2(source, target)
+            except Exception:
+                try:
+                    os.remove(target)
+                except OSError:
+                    pass
+                raise
+
+        target = os.path.realpath(target)
+        tmp_root = os.path.realpath(self.window.core.config.get_user_dir("tmp"))
+        rel = os.path.relpath(target, tmp_root).replace(os.sep, "/")
+        sandbox_path = "/mnt/tmp" if rel == "." else f"/mnt/tmp/{rel}"
+        active_paths = self._runtime_artifact_active_paths(target, ctx=ctx)
+
+        preferred = active_paths.get("code_interpreter")
+        if not preferred:
+            preferred = active_paths.get("system")
+        if not preferred:
+            preferred = target
+
+        artifact = {
+            "name": os.path.basename(target),
+            "path": preferred,
+            "host_path": target,
+            "sandbox_path": sandbox_path,
+            "runtime_paths": active_paths,
+        }
+
+        # Keep only a process-local registry on the active CtxItem. It lets the
+        # runtime_artifacts tool resolve the newly produced outputs without
+        # mixing them with user input attachments already present in ctx.images.
+        if ctx is not None and hasattr(ctx, "runtime_artifacts"):
+            registry = getattr(ctx, "runtime_artifacts", None)
+            if not isinstance(registry, list):
+                registry = []
+                ctx.runtime_artifacts = registry
+            replaced = False
+            for index, current in enumerate(registry):
+                if isinstance(current, dict) and current.get("host_path") == target:
+                    registry[index] = artifact
+                    replaced = True
+                    break
+            if not replaced:
+                registry.append(artifact)
+
+        return artifact
+
+    def materialize_runtime_artifacts(self, paths, ctx=None) -> list:
+        """Materialize and de-duplicate a collection of local runtime artifacts."""
+        if paths is None:
+            return []
+        if isinstance(paths, (str, dict)):
+            paths = [paths]
+        result = []
+        seen = set()
+        for value in paths:
+            artifact = self.materialize_runtime_artifact(value, ctx=ctx)
+            if not artifact:
+                continue
+            host_path = artifact.get("host_path")
+            if host_path in seen:
+                continue
+            seen.add(host_path)
+            result.append(artifact)
+        return result
 
     def _global_profile_roots(self) -> List[str]:
         """Return top-level profile directories that must never be remapped.
@@ -294,7 +485,7 @@ class Filesystem:
         """Resolve a model-facing ``sandbox:`` path to a host path.
 
         ``/mnt/data`` is the canonical sandbox root that follows the active project; ``/data`` is accepted for backward compatibility.
-        ``/pygpt_tmp`` and all ordinary profile directories (notably ``tmp``)
+        ``/mnt/tmp`` and all ordinary profile directories (notably ``tmp``)
         stay rooted in the base profile.  Absolute host paths emitted by a
         tool are preserved when they already point inside the base profile or
         the active project data root.
@@ -327,8 +518,8 @@ class Filesystem:
             return self.from_sandbox_data_path(normalized, ctx=ctx)
 
         # Internal interpreter temporary namespace is always global/base.
-        if normalized == "/pygpt_tmp" or normalized.startswith("/pygpt_tmp/"):
-            tail = normalized[len("/pygpt_tmp"):].lstrip("/")
+        if normalized == "/mnt/tmp" or normalized.startswith("/mnt/tmp/"):
+            tail = normalized[len("/mnt/tmp"):].lstrip("/")
             root = self.window.core.config.get_user_dir("tmp")
             return root if not tail else os.path.join(
                 root, *[part for part in tail.split("/") if part]

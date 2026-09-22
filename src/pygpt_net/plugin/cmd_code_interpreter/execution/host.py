@@ -164,24 +164,33 @@ class HostBackend(ExecutionBackend):
         )
 
     def get_tool_instruction(self, cmd: str, data_dir: str) -> str:
+        runtime_artifacts = self.plugin.window.core.filesystem.get_runtime_artifacts_dir(create=False)
+        suffix = (
+            f" Provider/tool generated or downloaded files are automatically copied under {runtime_artifacts}. "
+            "If an exact path was not returned, inspect that directory recursively before using the file."
+        )
         if cmd == "ipython_sys_exec":
             return (
                 "\nThe command runs on the host system, in the same host environment used by the "
-                "local IPython interpreter. The application data directory is: {}"
-            ).format(data_dir)
+                "local IPython interpreter. The application data directory is: {}".format(data_dir)
+                + suffix
+            )
         if cmd.startswith("ipython_"):
             return (
                 "\nIPython works in the local environment. Directory {} is the workdir; "
-                "use it by default to save files."
-            ).format(data_dir)
+                "use it by default to save files.".format(data_dir)
+                + suffix
+            )
         if cmd == "python_sys_exec":
             return (
                 "\nThe command runs on the host system, in the same host environment used by the "
-                "standard Python interpreter. The application data directory is: {}"
-            ).format(data_dir)
+                "standard Python interpreter. The application data directory is: {}".format(data_dir)
+                + suffix
+            )
         if cmd.startswith("python_"):
             return (
                 "\nPython works in the local environment. Directory {} is the workdir; "
-                "use it by default to save files."
-            ).format(data_dir)
+                "use it by default to save files.".format(data_dir)
+                + suffix
+            )
         return ""

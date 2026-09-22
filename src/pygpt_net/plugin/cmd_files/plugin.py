@@ -51,6 +51,7 @@ class Plugin(BasePlugin):
             "send_file",
             "deliver_file_to_user",
             "attach_runtime_file",
+            "runtime_artifacts",
             "cwd",
             "file_index",
             "pack_archive",
@@ -130,7 +131,20 @@ class Plugin(BasePlugin):
     def build_runtime_filesystem_context(self, ctx: CtxItem = None) -> str:
         """Build host/sandbox filesystem guidance for the current runtime."""
         host_data_dir = self.window.core.filesystem.get_data_dir(ctx=ctx)
-        parts = ["CURRENT WORKING DIRECTORY: " + host_data_dir]
+        parts = [
+            "CURRENT WORKING DIRECTORY: " + host_data_dir,
+            (
+                "RUNTIME ARTIFACTS: files/images produced by provider-native remote tools or by PyGPT tools may "
+                "be stored outside the current data directory. Before using such an artifact with local Python, "
+                "IPython or System/OS tools, call the Files I/O `runtime_artifacts` tool (omit path to resolve "
+                "artifacts already present in the current tool context). PyGPT copies them to ephemeral shared "
+                "temporary storage. For a specific local tool, prefer `runtime_paths.code_interpreter` for "
+                "Python/IPython and `runtime_paths.system` for System/OS. `path` is only the preferred default; "
+                "`sandbox_path` is the Docker-visible path and `host_path` is the Built-in/host path. These are "
+                "internal runtime paths; do not expose them in a user-facing reply unless the user explicitly asks "
+                "for a path."
+            ),
+        ]
 
         plugin_id = "cmd_code_interpreter"
         try:

@@ -63,3 +63,33 @@ class Docker(BaseDocker):
         :return: Local data directory.
         """
         return self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
+
+    def get_volumes(self, ctx=None) -> dict:
+        """Return data volume plus the application's shared temporary directory."""
+        volumes = super().get_volumes(ctx=ctx)
+        tmp_dir = self.plugin.window.core.config.get_user_dir("tmp")
+        volumes[tmp_dir] = {
+            "bind": "/mnt/tmp",
+            "mode": "rw",
+        }
+        return volumes
+
+    def create_container(self, name: str, ctx=None):
+        """Recreate legacy containers that do not expose /mnt/tmp yet."""
+        try:
+            client = self.get_docker_client()
+            container = client.containers.get(name)
+            container.reload()
+            has_tmp_mount = any(
+                mount.get("Destination") == "/mnt/tmp"
+                for mount in container.attrs.get("Mounts", [])
+            )
+            if not has_tmp_mount:
+                if container.status == "running":
+                    container.stop()
+                    container.wait()
+                container.remove()
+        except Exception:
+            pass
+        return super().create_container(name, ctx=ctx)
+

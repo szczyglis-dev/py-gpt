@@ -250,6 +250,15 @@ class Image:
             i += 1
 
         local_urls = core.filesystem.make_local_list(paths, ctx=ctx)
+        runtime_artifacts = core.filesystem.materialize_runtime_artifacts(paths, ctx=ctx)
+        runtime_attachments = [
+            {
+                "path": artifact["host_path"],
+                "name": artifact["name"],
+            }
+            for artifact in runtime_artifacts
+            if artifact.get("host_path")
+        ]
 
         # Do not replace images already attached to this context. In particular,
         # the Image generation plugin stores the user's reference image in
@@ -290,23 +299,31 @@ class Image:
                     pending_image_task = True
                     break
 
-        # Send a compact structured tool result back to the model, but do not
-        # expose local/sandbox file paths there. The generated images are
-        # already persisted in ctx.images and rendered in the UI separately.
-        # Raw paths here caused the model to echo sandbox:/... markdown links.
-        # Return generated image paths to the model as workdir-local paths
-        # ("%workdir%/..."), not sandbox/file URLs. This keeps the result useful
-        # for follow-up tool calls without leaking bridge/sandbox link prefixes.
+        # Return ephemeral runtime paths to the model so a follow-up local tool
+        # can open the generated image even when the durable image lives in the
+        # global profile img directory outside the active project /mnt/data. The
+        # original image remains in ctx.images for UI/history; the tmp copy is
+        # runtime-only. The private attachment marker additionally makes the image
+        # available natively to the immediate continuation and is stripped before
+        # model-visible tool JSON is built.
         tool_response = {
             "cmd": "image",
             "request": {
                 "cmd": "image",
             },
             "result": (
-                "OK. Generated {} image(s). The generated image is attached to the chat automatically; "
-                "do not include sandbox:, file://, or local filesystem paths in the user-facing reply."
+                "OK. Generated {} image(s). Runtime copies are available for follow-up local tools. "
+                "For Python/IPython prefer runtime_paths.code_interpreter and for System/OS prefer "
+                "runtime_paths.system; path is only the preferred default. Use sandbox_path inside Docker or "
+                "host_path with Built-in/host execution. The generated image is attached to the chat automatically; "
+                "do not include these internal filesystem paths in the user-facing reply unless explicitly asked."
             ).format(len(paths)),
-            "paths": list(local_urls),
+            "paths": (
+                [artifact.get("path") for artifact in runtime_artifacts if artifact.get("path")]
+                or list(local_urls)
+            ),
+            "runtime_artifacts": runtime_artifacts,
+            "agent_runtime_attachments": runtime_attachments,
             "meta": {
                 "images_count": len(paths),
                 "images_attached": True,

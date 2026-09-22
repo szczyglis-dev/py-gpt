@@ -1186,6 +1186,7 @@ class Chat:
                                     img_path = self.window.core.image.gen_unique_path(ctx)
                                     with open(img_path, "wb") as f:
                                         f.write(img_bytes)
+                                    self.window.core.filesystem.materialize_runtime_artifact(img_path, ctx=ctx)
                                     images.append(img_path)
 
                     fdata = getattr(p, "file_data", None)

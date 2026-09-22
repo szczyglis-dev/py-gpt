@@ -573,6 +573,12 @@ class AgentsV2Runtime:
     def _provider_id(self) -> str:
         return self.artifact_api._provider_id()
 
+    def register_provider_image_base64(self, data: str, actor_id: Optional[str] = None):
+        return self.artifact_api.register_provider_image_base64(data, actor_id=actor_id)
+
+    def register_provider_container_files(self, files, actor_id: Optional[str] = None):
+        return self.artifact_api.register_provider_container_files(files, actor_id=actor_id)
+
     def collect_llm_artifacts(
             self,
             llm=None,

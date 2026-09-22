@@ -40,6 +40,7 @@ class AgentOpenAIResponses(OpenAIResponses):
     _pygpt_runtime: Any = PrivateAttr(default=None)
     _pygpt_actor_id: str = PrivateAttr(default="orchestrator")
     _pygpt_remote_call_keys: set[str] = PrivateAttr(default_factory=set)
+    _pygpt_remote_artifact_keys: set[str] = PrivateAttr(default_factory=set)
 
     def bind_computer_runtime(self, runtime):
         """Bind a PyGPT runtime that can execute provider-native Computer Use."""
@@ -207,6 +208,78 @@ class AgentOpenAIResponses(OpenAIResponses):
                     call_id=key,
                 )
 
+    @classmethod
+    def _container_file_refs_from_item(cls, item: Any) -> list[dict]:
+        refs = []
+        if item is None or str(cls._get(item, "type", "") or "") != "message":
+            return refs
+        for content in cls._get(item, "content", []) or []:
+            for annotation in cls._get(content, "annotations", []) or []:
+                if str(cls._get(annotation, "type", "") or "") != "container_file_citation":
+                    continue
+                container_id = cls._get(annotation, "container_id", "")
+                file_id = cls._get(annotation, "file_id", "")
+                if container_id and file_id:
+                    refs.append({
+                        "container_id": str(container_id),
+                        "file_id": str(file_id),
+                    })
+        return refs
+
+    def _capture_provider_artifacts(self, response: ChatResponse) -> None:
+        """Persist hosted image/file outputs before a local follow-up tool executes."""
+        runtime = self._pygpt_runtime
+        if runtime is None:
+            return
+
+        candidates = []
+        raw = getattr(response, "raw", None)
+        raw_item = self._get(raw, "item", None)
+        if raw_item is not None:
+            candidates.append(raw_item)
+        candidates.extend(self._raw_output_items(response))
+        for value in (getattr(response, "additional_kwargs", None) or {}).get(
+                "built_in_tool_calls", []
+        ) or []:
+            candidates.append(self._get(value, "item", value))
+
+        container_files = []
+        container_seen = set()
+        for item in candidates:
+            item_type = str(self._get(item, "type", "") or "")
+            if item_type == "image_generation_call":
+                data = self._get(item, "result", "")
+                if data:
+                    item_id = str(
+                        self._get(item, "call_id", "")
+                        or self._get(item, "id", "")
+                        or len(str(data))
+                    )
+                    key = f"image_generation:{item_id}"
+                    if key not in self._pygpt_remote_artifact_keys:
+                        callback = getattr(runtime, "register_provider_image_base64", None)
+                        if callable(callback):
+                            registered = callback(data, actor_id=self._pygpt_actor_id)
+                            if registered:
+                                self._pygpt_remote_artifact_keys.add(key)
+
+            for ref in self._container_file_refs_from_item(item):
+                key = f"container:{ref['container_id']}:{ref['file_id']}"
+                if key in self._pygpt_remote_artifact_keys or key in container_seen:
+                    continue
+                container_seen.add(key)
+                container_files.append(ref)
+
+        if container_files:
+            callback = getattr(runtime, "register_provider_container_files", None)
+            if callable(callback):
+                downloaded = callback(container_files, actor_id=self._pygpt_actor_id)
+                if downloaded:
+                    for ref in container_files:
+                        self._pygpt_remote_artifact_keys.add(
+                            f"container:{ref['container_id']}:{ref['file_id']}"
+                        )
+
     def _capture_response_urls(self, response: ChatResponse) -> None:
         """Capture provider URLs without changing the LlamaIndex response object."""
         raw = getattr(response, "raw", None)
@@ -220,6 +293,7 @@ class AgentOpenAIResponses(OpenAIResponses):
         raw = getattr(response, "raw", None)
         self._capture_response_urls(response)
         self._capture_provider_tool_boundary(response)
+        self._capture_provider_artifacts(response)
 
         # Crucial: AgentWorkflow will otherwise call raw.model_dump() itself and
         # trigger Pydantic serializer warnings for hosted web-search payloads.

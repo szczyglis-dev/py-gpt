@@ -140,6 +140,9 @@ class CtxItem:
     # Computer Use screenshots). This field is intentionally omitted from
     # to_dict()/from_dict() and therefore never persisted in images_json/extra_json.
     transport_images: list = field(default_factory=list, repr=False)
+    # Ephemeral copies of provider/tool generated files prepared for local
+    # execution backends. Deliberately omitted from to_dict()/from_dict().
+    runtime_artifacts: list = field(default_factory=list, repr=False)
     # Exact fully composed system prompt used by the current Agents v2 main
     # actor. Runtime-only: intentionally omitted from to_dict()/from_dict().
     agents_v2_system_prompt: str = field(default="", repr=False)
@@ -227,6 +230,7 @@ class CtxItem:
         # Runtime-only provider/tool transport images. CtxItem defines a custom
         # __init__, so dataclass defaults are not assigned automatically.
         self.transport_images = []
+        self.runtime_artifacts = []
         # Runtime-only exact prompt passed to the Agents v2 main actor.
         self.agents_v2_system_prompt = ""
         self.index_meta = {}  # llama-index metadata ctx used

@@ -550,6 +550,7 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                             save_path = core.image.gen_unique_path(ctx)
                             with open(save_path, "wb") as f:
                                 f.write(img_bytes)
+                            core.filesystem.materialize_runtime_artifact(save_path, ctx=ctx)
                             if not isinstance(ctx.images, list):
                                 ctx.images = []
                             ctx.images.append(save_path)
@@ -718,6 +719,7 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                             save_path = core.image.gen_unique_path(ctx)
                             with open(save_path, "wb") as f:
                                 f.write(img_bytes)
+                            core.filesystem.materialize_runtime_artifact(save_path, ctx=ctx)
                             if not isinstance(ctx.images, list):
                                 ctx.images = []
                             ctx.images.append(save_path)

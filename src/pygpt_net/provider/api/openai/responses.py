@@ -613,6 +613,7 @@ class Responses:
             image_base64 = image_data[0]
             with open(img_path, "wb") as f:
                 f.write(base64.b64decode(image_base64))
+            self.window.core.filesystem.materialize_runtime_artifact(img_path, ctx=ctx)
             if not isinstance(ctx.images, list):
                 ctx.images = []
             ctx.images += [img_path]
@@ -756,6 +757,7 @@ class Responses:
                 img_path = self.window.core.image.gen_unique_path(ctx)
                 with open(img_path, "wb") as f:
                     f.write(base64.b64decode(img_result))
+                self.window.core.filesystem.materialize_runtime_artifact(img_path, ctx=ctx)
                 if not isinstance(ctx.images, list):
                     ctx.images = []
                 ctx.images += [img_path]

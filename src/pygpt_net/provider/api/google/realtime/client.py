@@ -975,6 +975,7 @@ class GoogleLiveClient:
                                             save_path = self.window.core.image.gen_unique_path(self._ctx)
                                             with open(save_path, "wb") as f:
                                                 f.write(img_bytes)
+                                            self.window.core.filesystem.materialize_runtime_artifact(save_path, ctx=self._ctx)
                                             self._rt_state["image_paths"].append(save_path)
                                             if not isinstance(self._ctx.images, list):
                                                 self._ctx.images = []

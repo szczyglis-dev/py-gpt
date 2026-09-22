@@ -97,14 +97,23 @@ class DockerBackend(ExecutionBackend):
         return "Linux (Docker container)"
 
     def map_host_path_to_runtime(self, path: str, ctx=None) -> str:
-        data_dir = os.path.realpath(self.plugin.window.core.filesystem.get_data_dir(ctx=ctx))
         real = os.path.realpath(path)
+        tmp_dir = os.path.realpath(self.plugin.window.core.config.get_user_dir("tmp"))
+        try:
+            rel = os.path.relpath(real, tmp_dir)
+        except ValueError:
+            rel = None
+        if rel is not None and rel != os.pardir and not rel.startswith(os.pardir + os.sep):
+            rel = rel.replace(os.sep, "/")
+            return "/mnt/tmp" if rel == "." else f"/mnt/tmp/{rel}"
+
+        data_dir = os.path.realpath(self.plugin.window.core.filesystem.get_data_dir(ctx=ctx))
         try:
             rel = os.path.relpath(real, data_dir)
         except ValueError:
-            return path
+            return real.replace(os.sep, "/")
         if rel == os.pardir or rel.startswith(os.pardir + os.sep):
-            return path
+            return real.replace(os.sep, "/")
         rel = rel.replace(os.sep, "/")
         return self.sandbox_workdir if rel == "." else f"{self.sandbox_workdir}/{rel}"
 
@@ -113,6 +122,12 @@ class DockerBackend(ExecutionBackend):
             return path
 
         if on_host:
+            normalized = str(path).replace("\\", "/")
+            if normalized == "/mnt/tmp" or normalized.startswith("/mnt/tmp/"):
+                return self.plugin.window.core.filesystem.resolve_sandbox_path(
+                    "sandbox:" + normalized,
+                    ctx=ctx,
+                )
             mapped = self.plugin.window.core.filesystem.from_sandbox_data_path(path, ctx=ctx)
             if mapped != path:
                 return mapped
@@ -132,7 +147,10 @@ class DockerBackend(ExecutionBackend):
     def get_tool_instruction(self, ctx=None) -> str:
         message = (
             "\nThe command is executed inside the Docker sandbox. "
-            f"Use {self.sandbox_workdir} as the sandbox working directory; it is mapped to the current host data directory."
+            f"Use {self.sandbox_workdir} as the sandbox working directory; it is mapped to the current host data directory. "
+            "Provider/tool generated or downloaded files are automatically copied below "
+            "/mnt/tmp/runtime_artifacts; if an exact sandbox_path was not returned, inspect that directory "
+            "recursively before using the file."
         )
         if self.plugin.get_option_value("docker_run_as_root"):
             message += " The Docker sandbox is configured to run as root; sudo is not required."
@@ -147,5 +165,8 @@ class DockerBackend(ExecutionBackend):
         return (
             "The System/OS Docker sandbox has a separate filesystem namespace. "
             f"Use {self.sandbox_workdir} as the working directory inside the sandbox. "
-            f"It is mapped to the host directory: {host_data_dir}"
+            f"It is mapped to the host directory: {host_data_dir}. "
+            "PyGPT temporary runtime artifacts are mounted below /mnt/tmp/runtime_artifacts; use the returned "
+            "sandbox_path for those artifacts inside Docker. If no exact path was returned, inspect that directory "
+            "recursively before using the artifact."
         )

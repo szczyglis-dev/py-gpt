@@ -345,6 +345,7 @@ del _pygpt_make_system_noninteractive
             print("Running container {}...".format(name))
             self.prepare_conn()
             local_data_dir = self.get_local_data_dir(ctx=ctx)
+            local_tmp_dir = self.plugin.window.core.config.get_user_dir("tmp")
             kwargs = {
                 "image": self.get_image_name(),
                 "name": name,
@@ -360,7 +361,11 @@ del _pygpt_make_system_noninteractive
                     local_data_dir: {
                         'bind': '/mnt/data',
                         'mode': 'rw',
-                    }
+                    },
+                    local_tmp_dir: {
+                        'bind': '/mnt/tmp',
+                        'mode': 'rw',
+                    },
                 },
                 "labels": self.get_container_labels(ctx=ctx),
                 "working_dir": "/mnt/data",
@@ -467,6 +472,10 @@ del _pygpt_make_system_noninteractive
             "pygpt.run_as_root": "true" if self.get_run_as_root() else "false",
             "pygpt.data_dir": os.path.normcase(os.path.realpath(self.get_local_data_dir(ctx=ctx))),
             "pygpt.data_mount": "/mnt/data",
+            "pygpt.tmp_dir": os.path.normcase(os.path.realpath(
+                self.plugin.window.core.config.get_user_dir("tmp")
+            )),
+            "pygpt.tmp_mount": "/mnt/tmp",
         }
 
     def get_bind_address(self) -> str:

@@ -106,10 +106,13 @@ class BuiltinBackend(ExecutionBackend):
 
     def get_tool_instruction(self, ctx=None) -> str:
         data_dir = self.runtime.get_data_dir(ctx=ctx)
+        runtime_artifacts = self.plugin.window.core.filesystem.get_runtime_artifacts_dir(create=False)
         return (
             "\nThe command is executed as a separate process in PyGPT's built-in sandbox. "
             f"Its CWD is {data_dir}; its dedicated virtual environment is {self.runtime.venv_root}. "
-            f"Isolation: {self.runtime.isolation_name()}."
+            f"Isolation: {self.runtime.isolation_name()}. "
+            f"Provider/tool generated or downloaded files are automatically copied under {runtime_artifacts}; "
+            "if an exact host/runtime path was not returned, inspect that directory recursively before using the file."
         )
 
     def get_filesystem_context(self, host_data_dir: str) -> str:

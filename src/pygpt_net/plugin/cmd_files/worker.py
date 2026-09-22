@@ -148,6 +148,10 @@ class Worker(BaseWorker):
                         elif item["cmd"] == "attach_runtime_file":
                             response = self.cmd_attach_runtime_file(item)
 
+                        # materialize provider/tool artifacts in shared runtime tmp
+                        elif item["cmd"] == "runtime_artifacts":
+                            response = self.cmd_runtime_artifacts(item)
+
                         # index file or directory
                         elif item["cmd"] == "file_index":
                             response = self.cmd_file_index(item)
@@ -195,7 +199,7 @@ class Worker(BaseWorker):
         read_path = {
             "read_file", "query_file", "list_dir", "tree", "is_dir", "is_file",
             "file_exists", "file_size", "file_info", "send_file", "deliver_file_to_user",
-            "attach_runtime_file", "file_index", "find",
+            "attach_runtime_file", "runtime_artifacts", "file_index", "find",
         }
         write_path = {"save_file", "append_file", "delete_file", "mkdir", "rmdir"}
 
@@ -1169,6 +1173,52 @@ class Worker(BaseWorker):
         except Exception as e:
             return self.make_response(item, self.throw_error(e))
 
+    def cmd_runtime_artifacts(self, item: dict) -> dict:
+        """Expose generated/downloaded local artifacts through shared runtime tmp."""
+        try:
+            params = item.get("params") or {}
+            values = params.get("path")
+            if values in (None, "", []):
+                values = []
+                if self.ctx is not None:
+                    values.extend(list(getattr(self.ctx, "runtime_artifacts", None) or []))
+                    # Compatibility fallback for providers that populated
+                    # images/files before runtime artifact registration existed.
+                    if not values:
+                        values.extend(list(getattr(self.ctx, "images", None) or []))
+                        values.extend(list(getattr(self.ctx, "files", None) or []))
+            elif not isinstance(values, (list, tuple, set)):
+                values = [values]
+
+            artifacts = self.plugin.window.core.filesystem.materialize_runtime_artifacts(
+                values,
+                ctx=self.ctx,
+            )
+            if not artifacts:
+                return self.make_response(
+                    item,
+                    {
+                        "count": 0,
+                        "artifacts": [],
+                        "message": "No local runtime artifacts were found.",
+                    },
+                )
+
+            result = {
+                "count": len(artifacts),
+                "artifacts": artifacts,
+                "message": (
+                    "Runtime copies are ready. For Python/IPython prefer artifact.runtime_paths.code_interpreter; "
+                    "for System/OS prefer artifact.runtime_paths.system. artifact.path is the preferred default, "
+                    "artifact.sandbox_path is Docker-visible, and artifact.host_path is for Built-in/host execution."
+                ),
+            }
+            self.msg = "Prepared {} runtime artifact(s)".format(len(artifacts))
+            self.log(self.msg)
+            return self.make_response(item, result)
+        except Exception as e:
+            return self.make_response(item, self.throw_error(e))
+
     def cmd_file_index(self, item: dict) -> dict:
         """
         Index file or directory
@@ -1305,13 +1355,26 @@ class Worker(BaseWorker):
         if path in [".", "./"]:
             return self.get_workdir()
 
-        if self.is_absolute_path(path):
-            return path
-        else:
-            return os.path.join(
-                self.get_workdir(),
-                path,
+        value = str(path)
+        normalized = value.replace("\\", "/")
+        if (normalized.startswith("%workdir%")
+                or normalized.lower().startswith("sandbox:")
+                or normalized == "/mnt/tmp"
+                or normalized.startswith("/mnt/tmp/")):
+            if normalized == "/mnt/tmp" or normalized.startswith("/mnt/tmp/"):
+                value = "sandbox:" + normalized
+            return self.plugin.window.core.filesystem.normalize_local_path(
+                value,
+                auto_prefix=True,
+                ctx=self.ctx,
             )
+
+        if self.is_absolute_path(value):
+            return value
+        return os.path.join(
+            self.get_workdir(),
+            value,
+        )
 
     def read_files(self, paths: List[str]) -> Tuple[List[Dict], List[str]]:
         """

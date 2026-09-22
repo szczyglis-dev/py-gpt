@@ -248,6 +248,7 @@ class SupervisorStreamHandler(StreamHandler):
                     image_bytes = base64.b64decode(image_base64)
                     with open(img_path, "wb") as f:
                         f.write(image_bytes)
+                    self.window.core.filesystem.materialize_runtime_artifact(img_path, ctx=ctx)
                     self.window.core.debug.info("[chat] Image generation call found")
                     ctx.images = [img_path]
                 return self.buffer, self.response_id

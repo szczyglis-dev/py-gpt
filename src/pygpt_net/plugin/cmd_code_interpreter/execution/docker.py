@@ -247,8 +247,21 @@ class DockerBackend(ExecutionBackend):
         return self.sandbox_workdir
 
     def map_host_path_to_runtime(self, path: str, ctx=None) -> str:
-        data_dir = os.path.realpath(self.plugin.window.core.filesystem.get_data_dir(ctx=ctx))
         real = os.path.realpath(path)
+
+        # The profile tmp directory is mounted independently of the active
+        # project/data directory so ephemeral artifacts remain available even
+        # when img/video/download storage lives outside /mnt/data.
+        tmp_dir = os.path.realpath(self.plugin.window.core.config.get_user_dir("tmp"))
+        try:
+            rel = os.path.relpath(real, tmp_dir)
+        except ValueError:
+            rel = None
+        if rel is not None and rel != os.pardir and not rel.startswith(os.pardir + os.sep):
+            rel = rel.replace(os.sep, "/")
+            return "/mnt/tmp" if rel == "." else f"/mnt/tmp/{rel}"
+
+        data_dir = os.path.realpath(self.plugin.window.core.filesystem.get_data_dir(ctx=ctx))
         try:
             rel = os.path.relpath(real, data_dir)
         except ValueError:
@@ -275,7 +288,10 @@ class DockerBackend(ExecutionBackend):
             "or sandbox shell/system commands. "
             f"For the {interpreter} Docker sandbox, use {self.sandbox_workdir} as the working directory "
             f"inside {tools}. "
-            f"The sandbox path {self.sandbox_workdir} is mapped to the same host directory: {host_data_dir}"
+            f"The sandbox path {self.sandbox_workdir} is mapped to the same host directory: {host_data_dir}. "
+            "PyGPT temporary runtime artifacts are available inside Docker below /mnt/tmp/runtime_artifacts; "
+            "when a tool returns a sandbox_path for an artifact, use that path inside Docker. If no exact path "
+            "was returned, inspect /mnt/tmp/runtime_artifacts recursively before using the artifact."
         )
 
     def get_tool_instruction(self, cmd: str, data_dir: str) -> str:
@@ -302,6 +318,12 @@ class DockerBackend(ExecutionBackend):
         else:
             return ""
 
+        message += (
+            "\nProvider/tool generated or downloaded files are automatically copied below "
+            "/mnt/tmp/runtime_artifacts. If an exact sandbox_path was not returned, inspect that directory "
+            "recursively and use the matching file from there."
+        )
+
         if cmd.startswith("ipython_"):
             if self.plugin.get_option_value("ipython_run_as_root"):
                 message += "\nThe IPython Docker sandbox is configured to run as root. sudo is not required."
@@ -324,6 +346,12 @@ class DockerBackend(ExecutionBackend):
 
     def prepare_path(self, path: str, on_host: bool = True, ctx=None) -> str:
         if on_host:
+            normalized = str(path).replace("\\", "/")
+            if normalized == "/mnt/tmp" or normalized.startswith("/mnt/tmp/"):
+                return self.plugin.window.core.filesystem.resolve_sandbox_path(
+                    "sandbox:" + normalized,
+                    ctx=ctx,
+                )
             mapped = self.plugin.window.core.filesystem.from_sandbox_data_path(path, ctx=ctx)
             if mapped != path:
                 return mapped
@@ -337,7 +365,7 @@ class DockerBackend(ExecutionBackend):
                     self.plugin.window.core.config.get_user_dir("tmp"),
                     path,
                 )
-            return "/pygpt_tmp/{}".format(path.replace("\\", "/"))
+            return "/mnt/tmp/{}".format(path.replace("\\", "/"))
 
         if on_host:
             return os.path.join(

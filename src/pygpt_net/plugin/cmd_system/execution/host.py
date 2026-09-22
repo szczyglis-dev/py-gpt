@@ -52,4 +52,9 @@ class HostBackend(ExecutionBackend):
         }
 
     def get_tool_instruction(self, ctx=None) -> str:
-        return "\nThe command is executed directly on the host system."
+        runtime_artifacts = self.plugin.window.core.filesystem.get_runtime_artifacts_dir(create=False)
+        return (
+            "\nThe command is executed directly on the host system. "
+            f"Provider/tool generated or downloaded files are automatically copied under {runtime_artifacts}; "
+            "if an exact path was not returned, inspect that directory recursively before using the file."
+        )

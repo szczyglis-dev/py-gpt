@@ -360,11 +360,13 @@ class StreamWorker(QRunnable):
         # OpenAI: partial image assembly
         if state.is_image and state.img_path:
             core.debug.info("[chat] OpenAI partial image assembled")
+            core.filesystem.materialize_runtime_artifact(state.img_path, ctx=ctx)
             ctx.images = [state.img_path]
 
         # Google: inline images
         if state.image_paths:
             core.debug.info("[chat] Google inline images found")
+            core.filesystem.materialize_runtime_artifacts(state.image_paths, ctx=ctx)
             if not isinstance(ctx.images, list) or not ctx.images:
                 ctx.images = list(state.image_paths)
             else:

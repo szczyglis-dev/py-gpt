@@ -110,8 +110,11 @@ class Container:
                 print(f"Unexpected error downloading file {file_id}: {e}")
                 continue
 
-        # append to ctx
+        # Keep an ephemeral shared-runtime copy before converting durable paths
+        # to %workdir% placeholders. This makes provider container outputs
+        # immediately available to Docker (/mnt/tmp) and Built-in/host tools.
         if downloaded_files:
+            self.window.core.filesystem.materialize_runtime_artifacts(downloaded_files, ctx=ctx)
             downloaded_files = self.window.core.filesystem.make_local_list(downloaded_files, ctx=ctx)
             if not isinstance(ctx.files, list):
                 ctx.files = []

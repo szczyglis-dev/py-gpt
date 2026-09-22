@@ -740,10 +740,16 @@ class BuiltinSandboxRuntime:
         return "separate-process isolation"
 
     def filesystem_context(self, data_dir: str) -> str:
+        runtime_artifacts = os.path.join(
+            self.window.core.config.get_user_dir("tmp"),
+            "runtime_artifacts",
+        )
         return (
             "The built-in runtime uses a separate uv-managed virtual environment at "
             f"{self.venv_root}. Its working directory is {data_dir}. Relative paths "
             "are resolved from that directory. The process can access the host "
             "filesystem according to the permissions of the PyGPT process; the "
-            "built-in backend does not enforce filesystem access restrictions."
+            "built-in backend does not enforce filesystem access restrictions. "
+            f"Provider/tool generated runtime artifacts are copied under {runtime_artifacts}; "
+            "if an exact artifact path was not returned, inspect that directory recursively before using it."
         )

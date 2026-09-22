@@ -149,6 +149,28 @@ class Config(BaseConfig):
             description="Enable: Attach runtime file for model analysis",
         )
         plugin.add_cmd(
+            "runtime_artifacts",
+            instruction=(
+                "resolve files/images created or downloaded by provider-native remote tools or other PyGPT tools "
+                "into shared temporary runtime storage before using them with local Python/IPython/System tools; "
+                "omit path to resolve artifacts already present in the current tool context, or provide explicit "
+                "path(s). The result returns path, host_path, sandbox_path and runtime_paths. When invoking a "
+                "specific local tool, prefer runtime_paths.code_interpreter for Python/IPython and "
+                "runtime_paths.system for System/OS. Use sandbox_path inside Docker and host_path for Built-in/host "
+                "execution; do not show these internal paths to the user unless asked"
+            ),
+            params=[
+                {
+                    "name": "path",
+                    "type": "list",
+                    "description": "optional local artifact path(s); omit to use current generated/downloaded artifacts",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="Enable: Prepare generated/downloaded files for local runtime tools",
+        )
+        plugin.add_cmd(
             "read_file",
             instruction=("read data from files; when a local image should be visually inspected by the active "
                          "multimodal model, use attach_runtime_file instead of read_file"),
