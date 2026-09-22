@@ -334,17 +334,27 @@ Here, you can add or manage API keys for any supported provider.
 **Example**
 
 - **OpenAI:** Obtain your API key by registering on the OpenAI website: https://platform.openai.com and navigating to https://platform.openai.com/account/api-keys.
-- **Anthropic, Google, etc.:** Follow similar steps on their respective platforms.
+- **Anthropic, Google, xAPI, Perplexity, OpenRouter, etc.:** Follow similar steps on their respective platforms.
+
+For a local or other OpenAI-compatible model, you can configure credentials per model in
+   ``Config -> Models -> Editor`` using ``API base`` and ``API key``. This avoids having to
+   reuse the global OpenAI endpoint/API key for that model.
 
 **Note:** The ability to use models or services depends on your access level with the respective provider. If you wish to use custom API endpoints or local APIs that do not require API keys, simply enter any value into the API key field to bypass prompts about an empty key.
 
-# Work modes
+**Adding a custom OpenAI-compatible provider**
+
+PyGPT includes built-in support for many popular model providers. If the provider you want to use is not available in the default provider list, you can add it manually under `Settings -> Custom providers`. The only requirement is that it exposes an OpenAI-compatible API.
+
+# Modes
 
 ## Chat
 
-In **PyGPT**, this mode lets you chat with models such as `GPT-6 Astra`, `GPT-5.6`, `Claude`, `Gemini`, `Grok`, `Sonar (Perplexity)`, `DeepSeek`, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible `ChatCompletions API` endpoints where supported.
+In **PyGPT**, this mode lets you chat with models such as `GPT-6 Astra`, `GPT-5.6`, `Claude`, `Gemini`, `Grok`, `Sonar (Perplexity)`, `DeepSeek`, and many others, including local models running through `Ollama`.
 
-**Tip:** This mode uses the provider SDK directly. If there's no native client built into the app, models like Sonar or local Ollama models such as Qwen 3.6 and Gemma 4 are supported in Chat mode via LlamaIndex or OpenAI-compatible API endpoints. The app automatically switches to these endpoints when using non-OpenAI models. You can enable or disable the use of the native API SDK (per provider) in `Settings -> API Keys`. If the native SDK is disabled, the OpenAI SDK will be used via the compatible ChatCompletions API endpoint. Local `Ollama` models and models from other configured providers are also supported.
+The Chat mode supports regular conversations as well as more advanced tasks, including calling tools, executing Python code, using external integrations through MCP, searching the web, uploading and analyzing attachments, working with images, and generating new images. Depending on the selected model and enabled tools, it can also perform multi-step tasks that combine several of these capabilities in a single conversation.
+
+PyGPT, in this and other modes, can use native SDKs provided by popular AI providers such as OpenAI, Google, Anthropic, and xAI. It also supports OpenAI-compatible `Chat Completions API` endpoints, custom providers, and providers available through LlamaIndex integrations. Both cloud-based and locally hosted models are supported, allowing PyGPT to work with a wide range of commercial, self-hosted, and local AI backends.
 
 Currently built-in native clients:
 
@@ -353,11 +363,11 @@ Currently built-in native clients:
 - Google GenAI SDK
 - xAI SDK
 
-The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
+The main window is divided into several sections: tabs at the top, the main chat area in the center, the user input at the bottom, conversation history on the left, and the Toolbox with additional tools and options on the right. PyGPT also supports split-screen mode, allowing you to work with multiple conversations side by side.
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat.png)
 
-Above the message input, PyGPT shows an estimated token count for the text you type.
+At the bottom of the chat window, PyGPT also shows an estimated number of tokens that will be sent to the model, as well as the number of tokens used for each generated response.
 
 **Attachments:** You can attach and upload files from the input area. See [Files and Attachments](#files-and-attachments) for supported formats and attachment modes.
 
@@ -368,9 +378,9 @@ Above the message input, PyGPT shows an estimated token count for the text you t
 
 ![rag](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/rag.png)
 
-**Vision:** Models with native image input support vision directly in every Chat, without the `Vision (inline)` plugin. Enable `Vision (inline)` only when the selected model does not support image input; image turns are then routed through the separately configured image-capable Chat model.
+**Vision:** If the selected model is multimodal and supports image input, vision is available natively by default. For models without native vision support, enable the `Vision (inline)` plugin to automatically route image analysis through a configured vision-capable model.
 
-When vision is available, you can attach images or capture them with the camera for analysis. Camera controls are available from the main `Audio / Video` menu under the **Video** section. Use `Enable camera` to start the live preview. Enable `Auto capture` to use the current frame automatically for compatible vision turns; with auto capture disabled, click the live camera preview to take a snapshot. Camera device, resolution, and JPEG quality are configured in `Settings -> Vision and camera -> Camera`:
+Images can be analyzed in real time from attachments, the camera enabled from the `Audio / Video` menu, or screenshots captured directly from the application. You can also use the built-in drawing tool to quickly sketch, annotate images, add arrows and markings, and send the result directly for analysis.
 
 ![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
@@ -479,13 +489,11 @@ The audio toolbox provides two options for controlling voice turns:
 
 ## Research
 
-**Research** is a provider-aware mode for models designed for web research and deep-research workflows. Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**.
+**Research** is a provider-aware mode designed for models and APIs specialized in web research, information gathering, and deep-research workflows. It is intended for tasks that require searching multiple sources, collecting and comparing information, and producing more comprehensive, source-grounded answers.
+
+Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**. The exact workflow, available tools, and research capabilities depend on the selected provider and model.
 
 > **Current limitation:** Regular tool calls are temporarily disabled in **Research** mode. RAG can still be selected, but support is provider/model-dependent and may not work correctly with some research models or provider-specific research APIs. Verify the response when indexed RAG context is required.
-
-Configure the API key for the provider you want to use in `Config -> Settings -> API Keys`. For Perplexity models, see https://perplexity.ai.
-
-**Google Remote MCP:** Google Remote MCP can be enabled in `Config -> Settings -> Remote Tools -> Google`. In the current PyGPT implementation it is available in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
 
 ## Completion
 
@@ -498,19 +506,17 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 
 ## Image and video generation
 
-**PyGPT** enables quick and easy image creation with image-generation models such as `gpt-image`, `Imagen`, `Gemini`, `Nano Banana`, and `Grok`, as well as video generation using models such as `Veo` and `Sora`.
-Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in `Image generation` mode or ask the model for the best prompt.
+**PyGPT** enables quick and easy image and video generation using models such as `gpt-image`, `Imagen`, `Gemini`, `Nano Banana`, and `Grok` for images, as well as `Veo` and `Sora` for video.
+
+Generating images and videos works similarly to a chat conversation: you provide a prompt, the selected model generates the requested media, and PyGPT downloads, saves, and displays the result in the application. In `Image and video` mode, you can either send a raw prompt directly to the model or ask PyGPT to prepare and optimize the prompt for you.
 
 ![v3_img](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img.png)
 
-
-To generate images directly inside a chat, enable **Image generation (inline)** in the Plugins menu:
-
-![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
+To generate images directly inside a chat, enable **Image generation (inline)** in the Plugins menu.
 
 For supported models/providers, you can also enable remote image generation in `Config -> Settings -> Remote Tools`. If enabled, image generation is available natively in supported work modes without the inline plugin.
 
-To use `Imagen` models you must enable `Use Vertex AI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
+**Tip:** To use `Imagen` models you must enable `Use Vertex AI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
 
 ### Remix, Edit, or Extend
 
@@ -525,17 +531,9 @@ If **Raw Mode** is disabled, a model will generate the best prompt for you based
 
 ### Image storage
 
-Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
-You also have the options to delete it or view it in full size in your web browser.
+Generated images and videos are automatically saved to the working directory, under the `img` or `video` folder depending on the media type. You can also quickly save generated media to another location, open a preview, view it in full size, or remove it when it is no longer needed.
 
-**Tip:** Use presets to save your prepared prompts. 
-This lets you quickly use them again for generating new images later on.
-
-The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
-prompts for creating new images.
-
-Images are stored in the base-profile `img` directory by default. If **Store images, captures, and uploads in the workdir data directory** is enabled, generated images are stored under the active `data` workdir instead, including a custom project data workdir when one is active.
-
+By default, images are stored in the base-profile `img` directory. If **Store images, captures, and uploads in the workdir data directory** is enabled, generated images are stored under the active `data` workdir instead, including a custom project data workdir when one is active.
 
 ## Computer use
 

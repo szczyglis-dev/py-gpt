@@ -26,17 +26,17 @@ Here, you can add or manage API keys for any supported provider.
 **Example**
 
 - **OpenAI:** Obtain your API key by registering on the OpenAI website: https://platform.openai.com and navigating to https://platform.openai.com/account/api-keys.
-- **Anthropic, Google, etc.:** Follow similar steps on their respective platforms.
+- **Anthropic, Google, xAPI, Perplexity, OpenRouter, etc.:** Follow similar steps on their respective platforms.
+
+For a local or other OpenAI-compatible model, you can configure credentials per model in
+   ``Config -> Models -> Editor`` using ``API base`` and ``API key``. This avoids having to
+   reuse the global OpenAI endpoint/API key for that model.
 
 .. note::
    The ability to use models or services depends on your access level with the respective provider.
 
-   For a local or other OpenAI-compatible model, you can configure credentials per model in
-   ``Config -> Models -> Edit -> Advanced`` using ``API base`` and ``API key``. This avoids having to
-   reuse the global OpenAI endpoint/key for that model. If a compatible server expects a placeholder
-   token even though it does not authenticate requests, set that placeholder only on the model.
-
 **Adding a custom OpenAI-compatible provider**
 
-For an OpenAI Chat Completions-compatible service, open ``Config -> Settings -> Custom providers`` and add its provider name, API base URL, and API key. Save Settings, then open ``Config -> Models -> Import`` and select the new provider to fetch its available models. Custom providers are registered immediately; no application restart is required.
+PyGPT includes built-in support for many popular model providers. If the provider you want to use is not available in the default provider list, you can add it manually under ``Settings -> Custom providers``. The only requirement is that it exposes an OpenAI-compatible API.
+
 
