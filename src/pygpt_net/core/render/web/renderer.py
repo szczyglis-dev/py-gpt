@@ -850,7 +850,7 @@ class Renderer(BaseRenderer):
             return None
 
     def _format_history_date_label(self, timestamp) -> Optional[str]:
-        """Format a history-only day separator shown above user messages."""
+        """Format a day separator shown above user messages."""
         if timestamp is None:
             return None
         try:
@@ -886,6 +886,72 @@ class Renderer(BaseRenderer):
         if day.year == today.year:
             return f"{prefix}{dt.day} {month} {clock}"
         return f"{prefix}{dt.day} {month} {dt.year}"
+
+    def _get_live_input_date_label(self, meta: CtxMeta, ctx: CtxItem) -> Optional[str]:
+        """Return the day separator for an input rendered before history rebuild.
+
+        History rendering tracks the previous visible user-input day while it
+        walks the whole context. Live INPUT_APPEND normally happens before the
+        new item is stored, so reproduce the same decision from the currently
+        loaded items. This reserves the separator's final layout space before
+        response streaming starts.
+        """
+        current_day = self._history_input_day(ctx)
+        if current_day is None:
+            return None
+
+        target_meta_id = getattr(meta, "id", None)
+        current_id = getattr(ctx, "id", None)
+        previous_user_day = None
+
+        try:
+            core_ctx = self.window.core.ctx
+            if target_meta_id is not None and core_ctx.get_current() != target_meta_id:
+                items = list(core_ctx.all(target_meta_id) or [])
+            else:
+                items = list(core_ctx.get_items() or [])
+        except Exception:
+            items = []
+
+        for i, item in enumerate(items):
+            # Standard chat stores the item after INPUT_APPEND, while some
+            # modes store it before. In the latter case stop at the current row.
+            if item is ctx:
+                break
+            item_id = getattr(item, "id", None)
+            if current_id is not None and item_id == current_id:
+                break
+
+            if getattr(item, "hidden", False):
+                continue
+
+            item_meta_id = getattr(item, "meta_id", None)
+            if item_meta_id is None:
+                item_meta = getattr(item, "meta", None)
+                item_meta_id = getattr(item_meta, "id", None) if item_meta is not None else None
+            if (target_meta_id is not None
+                    and item_meta_id is not None
+                    and item_meta_id != target_meta_id):
+                continue
+
+            raw_input = getattr(item, "input", None)
+            if raw_input is None or str(raw_input).strip() == "":
+                continue
+
+            # Match prepare_input() visibility rules. append_context_* marks
+            # list index 0 as the first item before evaluating these rules.
+            if getattr(item, "internal", False) and i != 0:
+                stripped = str(raw_input).strip()
+                if not stripped.startswith("user: ") and not stripped.startswith("@"):
+                    continue
+
+            item_day = self._history_input_day(item)
+            if item_day is not None:
+                previous_user_day = item_day
+
+        if previous_user_day == current_day:
+            return None
+        return self._format_history_date_label(getattr(ctx, "input_timestamp", None))
 
     def prepare_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False) -> Optional[str]:
         """
@@ -939,13 +1005,26 @@ class Renderer(BaseRenderer):
         self.update_names(meta, ctx)
         text = self.prepare_input(meta, ctx, flush, append)
         if text:
+            date_label = self._get_live_input_date_label(meta, ctx)
             if flush:
                 if self.is_stream() and not append:
                     # legacy streaming input (leave as-is)
                     content = self.prepare_node(meta, ctx, text, self.NODE_INPUT)
-                    self.append_chunk_input(meta, ctx, content, begin=False)
+                    self.append_chunk_input(
+                        meta,
+                        ctx,
+                        content,
+                        begin=False,
+                        date_label=date_label,
+                    )
                     return
-            block = self._build_render_block(meta, ctx, input_text=text, output_text=None)
+            block = self._build_render_block(
+                meta,
+                ctx,
+                input_text=text,
+                output_text=None,
+                history_date_label=date_label,
+            )
             if block:
                 self.append(pid, block.to_json(wrap=True))
 
@@ -1284,22 +1363,34 @@ class Renderer(BaseRenderer):
         except Exception:
             self.pids[pid].header = ""
 
-    def append_chunk_input(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False,
+            date_label: Optional[str] = None,
+    ):
         """
-        Append output chunk to input area (legacy)
+        Append user input payload to the live input area (legacy bridge path)
 
         :param meta: context meta
         :param ctx: context item
         :param text_chunk: text chunk to append
         :param begin: True if begin of stream
+        :param date_label: optional day separator rendered before the user row
         """
         if not text_chunk:
             return
         if ctx.hidden:
             return
         try:
+            payload = "__PYGPT_INPUT_V1__" + json.dumps({
+                "text": self.sanitize_html(text_chunk),
+                "date_label": date_label,
+            }, ensure_ascii=False, separators=(",", ":"))
             self.get_output_node(meta).page().bridge.nodeInput.emit(
-                self.sanitize_html(text_chunk)
+                payload
             )
         except Exception:
             pass
@@ -4192,7 +4283,7 @@ class Renderer(BaseRenderer):
                 "text": str(input_text),
                 "timestamp": ctx.input_timestamp if hasattr(ctx, "input_timestamp") else None,
             }
-            if rebuild and history_date_label:
+            if history_date_label:
                 block.input["date_label"] = history_date_label
 
         # output
