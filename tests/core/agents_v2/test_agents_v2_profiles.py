@@ -75,7 +75,7 @@ def test_agents_v2_profiles_runtime_name_and_description_use_custom_definition()
     runtime.strategy = get_agent_strategy(AgentMode.ORCHESTRATOR)
 
     assert runtime.main_agent_name == "My workflow"
-    assert runtime.main_agent_description == "Custom Chat with Agents workflow"
+    assert runtime.main_agent_description == "Custom Agents workflow"
 
     runtime.agent_definition = {"name": ""}
     assert runtime.main_agent_name == "Custom Agent"

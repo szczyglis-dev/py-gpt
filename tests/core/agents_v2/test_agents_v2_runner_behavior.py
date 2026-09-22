@@ -78,7 +78,7 @@ def test_agents_v2_runner_call_logs_error_and_finishes_visible_response(monkeypa
     assert isinstance(runner.get_error(), RuntimeError)
     window.core.debug.log.assert_called_once()
     assert emitter.clear_count == 1
-    assert emitter.finished == ["Chat with Agents: boom"]
+    assert emitter.finished == ["Agents: boom"]
 
 
 @pytest.mark.parametrize("checkpoint", [False, True])

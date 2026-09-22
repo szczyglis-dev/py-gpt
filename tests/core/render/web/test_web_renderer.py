@@ -315,7 +315,7 @@ class TestRenderer:
         renderer.update_names.assert_called_once_with(meta, ctx)
         renderer.prepare_input.assert_called_once_with(meta, ctx, True, False)
         renderer._build_render_block.assert_called_once_with(
-            meta, ctx, input_text="prepared input", output_text=None
+            meta, ctx, input_text="prepared input", output_text=None, history_date_label=None
         )
         block.to_json.assert_called_once_with(wrap=True)
         renderer.append.assert_called_once_with(1, "render-block-json")

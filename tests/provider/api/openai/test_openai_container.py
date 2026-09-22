@@ -53,6 +53,9 @@ class FakeFilesystem:
     def get_data_dir(self, ctx=None):
         return self.data_dir
 
+    def materialize_runtime_artifacts(self, paths, ctx=None):
+        return list(paths)
+
     def make_local_list(self, lst, ctx=None):
         return lst
 

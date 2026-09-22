@@ -117,8 +117,7 @@ def test_execute_agent_continue(dummy_window):
         "force": True,
         "internal": True,
         "agent_continue": True,
-        "agent_judge": False,
-        "agent_judge_text": "",
+        "inline_message": None,
     }
     assert event.data.get("extra") == expected_extra
     bridge_context = event.data.get("context")

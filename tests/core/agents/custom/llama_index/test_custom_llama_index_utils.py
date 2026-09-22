@@ -41,6 +41,7 @@ def test_resolve_node_runtime_applies_option_schema_and_extra_prompt():
     window = SimpleNamespace(core=SimpleNamespace(models=SimpleNamespace(get=MagicMock(return_value=selected_model))))
     node = SimpleNamespace(id="agent_1", instruction="node prompt", role="schema role")
     values = {
+        ("agent_1", "model_overwrite"): True,
         ("agent_1", "model"): "model-id",
         ("agent_1", "prompt"): "custom prompt",
         ("agent_1", "role"): "custom role",

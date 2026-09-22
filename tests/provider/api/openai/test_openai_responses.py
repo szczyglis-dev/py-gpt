@@ -82,6 +82,8 @@ def dummy_window():
     window.core.command.unpack_tool_calls_chunks = MagicMock()
     window.core.image = SimpleNamespace()
     window.core.image.gen_unique_path = MagicMock(return_value="dummy_image.png")
+    window.core.filesystem = SimpleNamespace()
+    window.core.filesystem.materialize_runtime_artifact = MagicMock()
     window.core.debug = SimpleNamespace()
     window.core.debug.info = MagicMock()
     window.core.debug.error = MagicMock()
