@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 14:35:00                  #
+# Updated Date: 2026.09.22 18:00:00                  #
 # ================================================== #
 
 import os
@@ -182,27 +182,38 @@ class DockerBackend(ExecutionBackend):
     def python_exec(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         runner = self.runner
         data = item["params"]["code"]
-        if not all:
-            path = self.plugin.window.tools.get("interpreter").file_current
-            if "path" in item["params"]:
-                path = item["params"]["path"]
-            runner.log("Saving temporary Python file: {}".format(path), sandbox=True)
-            with open(self.prepare_path(path, on_host=True, ctx=ctx), "w", encoding="utf-8") as file:
-                file.write(data)
+        if all:
+            requested_path = self.plugin.window.tools.get("interpreter").file_input
         else:
-            path = self.plugin.window.tools.get("interpreter").file_input
+            requested_path = item["params"].get(
+                "path",
+                self.plugin.window.tools.get("interpreter").file_current,
+            )
 
-        runner.append_input(data, ctx=ctx)
-        runner.send_interpreter_input(data)
+        with self.plugin.reserve_interpreter_current_file(requested_path) as (path, fallback):
+            if not all:
+                host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+                if fallback:
+                    runner.log(
+                        "Shared interpreter file busy; using isolated temporary Python file: {}".format(path),
+                        sandbox=True,
+                    )
+                runner.log("Saving temporary Python file: {}".format(path), sandbox=True)
+                with open(host_path, "w", encoding="utf-8") as file:
+                    file.write(data)
 
-        path = self.prepare_path(path, on_host=False, ctx=ctx)
-        runner.log("Executing Python code: {}".format(item["params"]["code"]), sandbox=True)
-        cmd = self.plugin.get_option_value("python_cmd_tpl").format(filename=path)
-        runner.log("Running command: {}".format(cmd), sandbox=True)
-        runner.send_interpreter_output_begin("stdout")
-        response = self._run(cmd, ctx=ctx)
-        result = runner.handle_result_sandbox(response)
-        runner.send_interpreter_output_end("stdout")
+            runner.append_input(data, ctx=ctx)
+            runner.send_interpreter_input(data)
+
+            runtime_path = self.prepare_path(path, on_host=False, ctx=ctx)
+            runner.log("Executing Python code: {}".format(item["params"]["code"]), sandbox=True)
+            cmd = self.plugin.get_option_value("python_cmd_tpl").format(filename=runtime_path)
+            runner.log("Running command: {}".format(cmd), sandbox=True)
+            runner.send_interpreter_output_begin("stdout")
+            response = self._run(cmd, ctx=ctx)
+            result = runner.handle_result_sandbox(response)
+            runner.send_interpreter_output_end("stdout")
+
         return {
             "request": request,
             "result": str(result),

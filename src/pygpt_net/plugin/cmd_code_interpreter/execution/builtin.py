@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 12:00:00                  #
+# Updated Date: 2026.09.22 18:00:00                  #
 # ================================================== #
 
 import os
@@ -135,36 +135,43 @@ class BuiltinBackend(ExecutionBackend):
             return self._preparing_response(request)
         runner = self.runner
         data = item["params"]["code"]
-        if not all:
-            path = self.plugin.window.tools.get("interpreter").file_current
-            if "path" in item["params"]:
-                path = item["params"]["path"]
-            path = self.prepare_path(path, on_host=True, ctx=ctx)
-            self.plugin.window.core.security.ensure_write(path, sandbox=True, ctx=ctx)
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            runner.log(f"Saving temporary Python file: {path}", sandbox=True)
-            with open(path, "w", encoding="utf-8") as handle:
-                handle.write(data)
+        if all:
+            requested_path = self.plugin.window.tools.get("interpreter").file_input
         else:
-            path = self.prepare_path(
-                self.plugin.window.tools.get("interpreter").file_input,
-                on_host=True,
-                ctx=ctx,
+            requested_path = item["params"].get(
+                "path",
+                self.plugin.window.tools.get("interpreter").file_current,
             )
-            self.plugin.window.core.security.ensure_read(path, sandbox=True, ctx=ctx)
 
-        runner.append_input(data, ctx=ctx)
-        runner.send_interpreter_input(data)
-        runner.log(f"Running built-in Python: {path}", sandbox=True)
-        runner.send_interpreter_output_begin("stdout")
-        try:
-            stdout, stderr = self.runtime.run_python(path, ctx=ctx)
-        except Exception as exc:
-            runner.error(exc)
-            stdout = None
-            stderr = str(exc).encode("utf-8")
-        result = runner.handle_result(stdout, stderr)
-        runner.send_interpreter_output_end("stdout")
+        with self.plugin.reserve_interpreter_current_file(requested_path) as (path, fallback):
+            host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+            if not all:
+                self.plugin.window.core.security.ensure_write(host_path, sandbox=True, ctx=ctx)
+                os.makedirs(os.path.dirname(host_path), exist_ok=True)
+                if fallback:
+                    runner.log(
+                        f"Shared interpreter file busy; using isolated temporary Python file: {path}",
+                        sandbox=True,
+                    )
+                runner.log(f"Saving temporary Python file: {host_path}", sandbox=True)
+                with open(host_path, "w", encoding="utf-8") as handle:
+                    handle.write(data)
+            else:
+                self.plugin.window.core.security.ensure_read(host_path, sandbox=True, ctx=ctx)
+
+            runner.append_input(data, ctx=ctx)
+            runner.send_interpreter_input(data)
+            runner.log(f"Running built-in Python: {host_path}", sandbox=True)
+            runner.send_interpreter_output_begin("stdout")
+            try:
+                stdout, stderr = self.runtime.run_python(host_path, ctx=ctx)
+            except Exception as exc:
+                runner.error(exc)
+                stdout = None
+                stderr = str(exc).encode("utf-8")
+            result = runner.handle_result(stdout, stderr)
+            runner.send_interpreter_output_end("stdout")
+
         return {
             "request": request,
             "result": str(result),

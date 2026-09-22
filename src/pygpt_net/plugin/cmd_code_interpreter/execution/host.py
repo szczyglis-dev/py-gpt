@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:35:00                  #
+# Updated Date: 2026.09.22 18:00:00                  #
 # ================================================== #
 
 import os.path
@@ -104,43 +104,47 @@ class HostBackend(ExecutionBackend):
     def python_exec(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         runner = self.runner
         data = item["params"]["code"]
-        if not all:
-            path = self.plugin.window.tools.get("interpreter").file_current
-            if "path" in item["params"]:
-                path = item["params"]["path"]
-            path = self.prepare_path(path, on_host=True, ctx=ctx)
-            self.plugin.window.core.security.ensure_write(path, sandbox=False, ctx=ctx)
-            runner.log("Saving temporary Python file: {}".format(path))
-            with open(path, "w", encoding="utf-8") as file:
-                file.write(data)
+        if all:
+            requested_path = self.plugin.window.tools.get("interpreter").file_input
         else:
-            path = self.prepare_path(
-                self.plugin.window.tools.get("interpreter").file_input,
-                on_host=True,
-                ctx=ctx,
+            requested_path = item["params"].get(
+                "path",
+                self.plugin.window.tools.get("interpreter").file_current,
             )
-            self.plugin.window.core.security.ensure_read(path, sandbox=False, ctx=ctx)
 
-        runner.append_input(data, ctx=ctx)
-        runner.send_interpreter_input(data)
+        with self.plugin.reserve_interpreter_current_file(requested_path) as (path, fallback):
+            host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+            if not all:
+                self.plugin.window.core.security.ensure_write(host_path, sandbox=False, ctx=ctx)
+                if fallback:
+                    runner.log("Shared interpreter file busy; using isolated temporary Python file: {}".format(path))
+                runner.log("Saving temporary Python file: {}".format(host_path))
+                with open(host_path, "w", encoding="utf-8") as file:
+                    file.write(data)
+            else:
+                self.plugin.window.core.security.ensure_read(host_path, sandbox=False, ctx=ctx)
 
-        cmd = self.plugin.get_option_value("python_cmd_tpl").format(filename=path)
-        self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
-        runner.log("Running command: {}".format(cmd))
-        try:
-            runner.send_interpreter_output_begin("stdout")
-            stdout, stderr = self._communicate_subprocess(
-                cmd,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except Exception as e:
-            runner.error(e)
-            stdout = None
-            stderr = str(e).encode("utf-8")
-        result = runner.handle_result(stdout, stderr)
-        runner.send_interpreter_output_end("stdout")
+            runner.append_input(data, ctx=ctx)
+            runner.send_interpreter_input(data)
+
+            cmd = self.plugin.get_option_value("python_cmd_tpl").format(filename=host_path)
+            self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
+            runner.log("Running command: {}".format(cmd))
+            try:
+                runner.send_interpreter_output_begin("stdout")
+                stdout, stderr = self._communicate_subprocess(
+                    cmd,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+            except Exception as e:
+                runner.error(e)
+                stdout = None
+                stderr = str(e).encode("utf-8")
+            result = runner.handle_result(stdout, stderr)
+            runner.send_interpreter_output_end("stdout")
+
         return {
             "request": request,
             "result": str(result),

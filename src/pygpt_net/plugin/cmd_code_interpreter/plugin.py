@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 15:10:00                  #
+# Updated Date: 2026.09.22 18:00:00                  #
 # ================================================== #
 
+import hashlib
 import os
+import threading
 import time
 import uuid
+from contextlib import contextmanager
 
 from PySide6.QtCore import Slot
 
@@ -66,6 +69,12 @@ class Plugin(BasePlugin):
         self.init_options()
         self.execution = ExecutionManager(self)
         self.builtin_preparer = BuiltinSandboxPreparer(self, "Python")
+
+        # Protect the shared .interpreter.current.py used by concurrent code runs.
+        # Short executions reuse the stable file; concurrent/long-running calls
+        # fall back to an isolated temporary file instead of blocking agents.
+        self._current_file_lock = threading.Lock()
+        self._current_file_lock_timeout = 0.25
 
     def init_options(self):
         """Initialize options"""
@@ -176,6 +185,71 @@ class Plugin(BasePlugin):
         name = uuid.uuid4().hex + f".{extension}"
         tmp_dir = self.window.core.config.get_user_dir("tmp")
         return os.path.join(tmp_dir, name)
+
+    def _make_interpreter_current_fallback(self) -> str:
+        """Reserve an isolated fallback filename for a concurrent code run."""
+        tmp_dir = self.window.core.config.get_user_dir("tmp")
+        os.makedirs(tmp_dir, exist_ok=True)
+        while True:
+            suffix = hashlib.md5(os.urandom(16)).hexdigest()[:5]
+            name = f".interpreter.current.{suffix}.py"
+            path = os.path.join(tmp_dir, name)
+            try:
+                fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                continue
+            else:
+                os.close(fd)
+                return name
+
+    @contextmanager
+    def reserve_interpreter_current_file(self, requested_path: str | None = None):
+        """Reserve the shared current-code file or an isolated fallback.
+
+        The normal path remains ``.interpreter.current.py``. A concurrent run
+        waits briefly for it; if it is still busy, a unique file in the same
+        tmp directory is used and removed automatically after the caller exits.
+
+        Yields ``(path, fallback)`` where ``path`` is the interpreter-relative
+        temporary filename and ``fallback`` tells whether an isolated file was
+        allocated. Explicit non-current paths are passed through unchanged.
+        """
+        interpreter = self.window.tools.get("interpreter")
+        current = interpreter.file_current
+        requested = requested_path or current
+        normalized = os.path.normpath(str(requested)).replace("\\", "/")
+        current_normalized = os.path.normpath(current).replace("\\", "/")
+
+        # Only the internal shared current file needs arbitration.
+        if normalized != current_normalized:
+            yield requested, False
+            return
+
+        acquired = self._current_file_lock.acquire(
+            timeout=self._current_file_lock_timeout,
+        )
+        fallback = None
+        try:
+            if acquired:
+                yield current, False
+                return
+
+            fallback = self._make_interpreter_current_fallback()
+            yield fallback, True
+        finally:
+            if acquired:
+                self._current_file_lock.release()
+            elif fallback:
+                path = os.path.join(
+                    self.window.core.config.get_user_dir("tmp"),
+                    fallback,
+                )
+                try:
+                    os.remove(path)
+                except FileNotFoundError:
+                    pass
+                except OSError as exc:
+                    self.window.core.debug.log(exc)
 
     def handle(self, event: Event, *args, **kwargs):
         """

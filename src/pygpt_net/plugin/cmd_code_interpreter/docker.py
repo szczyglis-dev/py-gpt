@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:55:00                  #
+# Updated Date: 2026.09.22 18:15:00                  #
 # ================================================== #
+
+import os
 
 from pygpt_net.core.docker import Docker as BaseDocker
 from pygpt_net.core.docker.builder import Builder
@@ -69,20 +71,33 @@ class Docker(BaseDocker):
         """Return data volume plus the application's temporary directory."""
         volumes = super().get_volumes(ctx=ctx)
         tmp_dir = self.plugin.window.core.config.get_user_dir("tmp")
+        os.makedirs(tmp_dir, exist_ok=True)
         volumes[tmp_dir] = {
-            "bind": "/pygpt_tmp",
+            "bind": "/mnt/tmp",
             "mode": "rw",
         }
         return volumes
 
+    def get_container_labels(self, ctx=None) -> dict:
+        """Return runtime labels, including the temporary mount contract.
+
+        The base Docker helper recreates an existing container whenever one of
+        these labels changes.  Keeping the tmp mount in the label set makes an
+        upgrade from older containers deterministic even when they are already
+        running.
+        """
+        labels = super().get_container_labels(ctx=ctx)
+        labels["pygpt.tmp_mount"] = "/mnt/tmp"
+        return labels
+
     def create_container(self, name: str, ctx=None):
-        """Recreate an old container once if it does not have the tmp mount yet."""
+        """Recreate an old container once if it does not expose /mnt/tmp yet."""
         try:
             client = self.get_docker_client()
             container = client.containers.get(name)
             container.reload()
             has_tmp_mount = any(
-                mount.get("Destination") == "/pygpt_tmp"
+                mount.get("Destination") == "/mnt/tmp"
                 for mount in container.attrs.get("Mounts", [])
             )
             if not has_tmp_mount:

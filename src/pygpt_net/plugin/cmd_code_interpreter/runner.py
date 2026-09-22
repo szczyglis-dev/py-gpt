@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 02:20:00                  #
+# Updated Date: 2026.09.22 18:00:00                  #
 # ================================================== #
 
 import locale
@@ -264,23 +264,32 @@ class Runner:
         if data.strip().startswith("/restart"):
             return self.ipython_kernel_restart(ctx, item, request, all)
 
-        if not all:
-            path = self.plugin.window.tools.get("interpreter").file_current
-            if "path" in item["params"]:
-                path = item["params"]['path']
-            msg = "Saving Python file: {}".format(path)
-            self.log(msg, sandbox=sandbox)
-            host_path = self.prepare_path(path, on_host=True, ctx=ctx)
-            self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox, ctx=ctx)
-            with open(host_path, 'w', encoding="utf-8") as file:
-                file.write(data)
+        if all:
+            requested_path = self.plugin.window.tools.get("interpreter").file_input
         else:
-            path = self.plugin.window.tools.get("interpreter").file_input
+            requested_path = item["params"].get(
+                "path",
+                self.plugin.window.tools.get("interpreter").file_current,
+            )
 
-        host_path = self.prepare_path(path, on_host=True, ctx=ctx)
-        self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox, ctx=ctx)
-        with open(host_path, 'r', encoding="utf-8") as file:
-            data = file.read()
+        # IPython executes the code string, not the file itself, so the shared
+        # file only needs protection until it has been written and read back.
+        with self.plugin.reserve_interpreter_current_file(requested_path) as (path, fallback):
+            host_path = self.prepare_path(path, on_host=True, ctx=ctx)
+            if not all:
+                if fallback:
+                    self.log(
+                        "Shared interpreter file busy; using isolated temporary Python file: {}".format(path),
+                        sandbox=sandbox,
+                    )
+                self.log("Saving Python file: {}".format(path), sandbox=sandbox)
+                self.plugin.window.core.security.ensure_write(host_path, sandbox=sandbox, ctx=ctx)
+                with open(host_path, 'w', encoding="utf-8") as file:
+                    file.write(data)
+
+            self.plugin.window.core.security.ensure_read(host_path, sandbox=sandbox, ctx=ctx)
+            with open(host_path, 'r', encoding="utf-8") as file:
+                data = file.read()
 
         self.append_input(data, ctx=ctx)
         self.send_interpreter_input(data)  # send input to interpreter tool

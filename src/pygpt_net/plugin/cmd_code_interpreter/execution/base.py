@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.09.22 18:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
 
 import os
+import re
 
 from ..sandbox import SandboxMode
 
@@ -114,9 +115,11 @@ class ExecutionBackend:
             return False
         name = os.path.normpath(path).replace("\\", "/")
         interpreter = self.plugin.window.tools.get("interpreter")
-        return name in {
+        if name in {
             interpreter.file_current,
             interpreter.file_input,
             interpreter.file_output,
             interpreter.file_output_json,
-        }
+        }:
+            return True
+        return re.fullmatch(r"\.interpreter\.current\.[0-9a-f]{5}\.py", name) is not None
