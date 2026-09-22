@@ -133,8 +133,12 @@ class Tools:
         :param verbose: verbose mode
         :return: OpenAIFunctionTool instance
         """
-        async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
-            name = run_ctx.tool_name
+        async def run_function(_run_ctx: RunContextWrapper[Any], args: str) -> str:
+            # openai-agents 0.18.x passes a plain RunContextWrapper when the
+            # callback explicitly declares that type; tool_name lives only on
+            # ToolContext. This tool has a fixed name, so do not depend on the
+            # SDK-specific richer context here.
+            name = TOOL_QUERY_ENGINE_NAME
             print(f"[Plugin] Tool call: {name} with args: {args}")
             cmd = {
                 "cmd": name,
@@ -258,15 +262,20 @@ class Tools:
                     continue
                 description = item['desc']
 
-                async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
-                    name = run_ctx.tool_name
-                    print(f"[Plugin] Tool call: {name} with args: {args}")
-                    cmd = {
-                        "cmd": name,
-                        "params": json.loads(args)  # args should be a JSON string
-                    }
-                    return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+                def make_run_function(tool_name: str):
+                    async def run_function(_run_ctx: RunContextWrapper[Any], args: str) -> str:
+                        # Capture the tool name explicitly. In openai-agents
+                        # 0.18.x RunContextWrapper itself has no ``tool_name``
+                        # attribute; that metadata belongs to ToolContext.
+                        print(f"[Plugin] Tool call: {tool_name} with args: {args}")
+                        cmd = {
+                            "cmd": tool_name,
+                            "params": json.loads(args)  # args should be a JSON string
+                        }
+                        return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+                    return run_function
 
+                run_function = make_run_function(name)
                 schema = json.loads(item['params'])  # from JSON to dict
                 extra = ""
                 # fix schema for OpenAI FunctionTool

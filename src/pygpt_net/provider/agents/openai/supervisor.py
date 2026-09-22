@@ -319,9 +319,21 @@ class Agent(BaseAgent):
         preset = context.preset
         agent_name = "Worker"  # Default worker name
         tools = kwargs.get("function_tools", [])
-        model = window.core.models.get(
-            self.get_option(preset, "worker", "model")
-        )
+        worker_model_id = self.get_option(preset, "worker", "model")
+        model = window.core.models.get(worker_model_id) if worker_model_id else None
+
+        # Worker presets can outlive model-registry changes.  If the configured
+        # worker model no longer exists, use the Supervisor's current model
+        # instead of passing None into remote-tools / the Agents SDK.
+        if model is None:
+            model = kwargs.get("model")
+            if isinstance(model, str):
+                model = window.core.models.get(model)
+
+        if model is None or not getattr(model, "id", None):
+            current_model_id = window.core.config.get("model")
+            model = window.core.models.get(current_model_id) if current_model_id else None
+
         handoffs = kwargs.get("handoffs", [])
         instructions = self.append_system_prompt_extra(
             self.get_option(preset, "worker", "prompt"),

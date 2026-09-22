@@ -11,9 +11,10 @@
 # Updated Date: 2026.09.05 14:45:00                  #
 # ================================================== #
 
+import json
 import re
 from typing import Optional, Literal, List, Callable, Any
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, field_validator
 from llama_index.core.workflow import Workflow, Context, StartEvent, StopEvent, Event, step
 from llama_index.core.agent.workflow import FunctionAgent, AgentStream
 from llama_index.core.memory import Memory
@@ -34,7 +35,7 @@ Always return only ONE JSON object:
   "final_answer": "<final answer or ''>",
   "question": "<user question or ''>",
   "reasoning": "<brief reasoning and quality control>",
-  "done_criteria": "<list/text of DoD criteria>"
+  "done_criteria": "<short text describing the DoD criteria>"
 }
 Ensure proper JSON (no comments, no trailing commas). Respond in the user's language.
 """
@@ -58,38 +59,187 @@ class SupervisorDirective(BaseModel):
     reasoning: str = ""
     done_criteria: str = ""
 
-JSON_RE = re.compile(r"\{[\s\S]*\}$", re.MULTILINE)
+    @field_validator("action", mode="before")
+    @classmethod
+    def normalize_action(cls, value: Any) -> str:
+        return str(value or "").strip().lower()
 
-def parse_supervisor_json(text: str) -> SupervisorDirective:
-    """
-    Parse the Supervisor's JSON response from text.
+    @field_validator(
+        "instruction",
+        "final_answer",
+        "question",
+        "reasoning",
+        "done_criteria",
+        mode="before",
+    )
+    @classmethod
+    def normalize_text_fields(cls, value: Any) -> str:
+        """Accept common model variants while keeping one stable string schema."""
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            return value
+        if isinstance(value, (list, tuple)):
+            return "\n".join(str(item) for item in value if item is not None)
+        if isinstance(value, dict):
+            return json.dumps(value, ensure_ascii=False)
+        return str(value)
 
-    :param text: The text response from the Supervisor.
-    :return: SupervisorDirective: Parsed directive from the Supervisor.
+
+def response_to_text(value: Any) -> str:
+    """Extract plain assistant text from LlamaIndex agent/workflow return types.
+
+    Depending on the LlamaIndex version, ``FunctionAgent.run()`` may resolve to
+    a string, ChatMessage/ChatResponse-like object, or AgentOutput whose actual
+    message is stored under ``response``.  ``str(value)`` is not safe for
+    structured output because it can produce an object repr rather than the JSON
+    emitted by the model.
     """
-    try:
-        return SupervisorDirective.model_validate_json(text)
-    except Exception:
-        pass
-    fence = re.search(r"```json\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
-    if fence:
+    seen = set()
+
+    def _extract(obj: Any) -> str:
+        if obj is None:
+            return ""
+        if isinstance(obj, str):
+            return obj.strip()
+
+        obj_id = id(obj)
+        if obj_id in seen:
+            return ""
+        seen.add(obj_id)
+
+        # AgentOutput -> response; ChatResponse -> message.
+        for attr in ("response", "message"):
+            nested = getattr(obj, attr, None)
+            if nested is not None and nested is not obj:
+                text = _extract(nested)
+                if text:
+                    return text
+
+        # ChatMessage and response/block variants.
+        content = getattr(obj, "content", None)
+        if isinstance(content, str):
+            return content.strip()
+        if isinstance(content, (list, tuple)):
+            parts = []
+            for block in content:
+                block_text = getattr(block, "text", None)
+                if isinstance(block_text, str):
+                    parts.append(block_text)
+                    continue
+                extracted = _extract(block)
+                if extracted:
+                    parts.append(extracted)
+            if parts:
+                return "".join(parts).strip()
+
+        text = getattr(obj, "text", None)
+        if isinstance(text, str):
+            return text.strip()
+
+        return ""
+
+    extracted = _extract(value)
+    if extracted:
+        return extracted
+    return str(value or "").strip()
+
+def _validate_supervisor_payload(payload: Any) -> SupervisorDirective:
+    """Validate one decoded Supervisor payload, unwrapping common envelopes."""
+    if isinstance(payload, SupervisorDirective):
+        return payload
+
+    if hasattr(payload, "model_dump") and not isinstance(payload, (str, bytes, dict)):
         try:
-            return SupervisorDirective.model_validate_json(fence.group(1).strip())
+            payload = payload.model_dump()
         except Exception:
             pass
-    tail = JSON_RE.findall(text)
-    for candidate in tail[::-1]:
+
+    if isinstance(payload, str):
+        payload = json.loads(payload)
+        # Some providers/models return a JSON string whose contents are another
+        # JSON object. Decode that one extra layer as well.
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+
+    if isinstance(payload, dict) and "action" not in payload:
+        for key in ("directive", "response", "output", "result"):
+            nested = payload.get(key)
+            if isinstance(nested, dict) and "action" in nested:
+                payload = nested
+                break
+
+    return SupervisorDirective.model_validate(payload)
+
+
+def parse_supervisor_json(text: Any) -> SupervisorDirective:
+    """Parse the Supervisor response robustly without accepting arbitrary code.
+
+    Handles a plain JSON object, Markdown fences, provider envelopes, and JSON
+    followed by explanatory text. Pydantic then validates/normalizes the fields.
+    """
+    if not isinstance(text, str):
         try:
-            return SupervisorDirective.model_validate_json(candidate.strip())
+            return _validate_supervisor_payload(text)
         except Exception:
+            text = response_to_text(text)
+
+    raw = str(text or "").strip()
+    if not raw:
+        raise ValueError("Supervisor returned an empty response.")
+
+    errors = []
+
+    def _try(candidate: Any):
+        try:
+            return _validate_supervisor_payload(candidate)
+        except Exception as exc:
+            errors.append(str(exc))
+            return None
+
+    # Fast path: the whole response is valid JSON.
+    parsed = _try(raw)
+    if parsed is not None:
+        return parsed
+
+    # Markdown fenced JSON (also accept a generic code fence).
+    for fence in re.finditer(r"```(?:json)?\s*([\s\S]*?)\s*```", raw, re.IGNORECASE):
+        parsed = _try(fence.group(1).strip())
+        if parsed is not None:
+            return parsed
+
+    # Decode a JSON object beginning at any opening brace. json.JSONDecoder
+    # stops exactly at the end of the object, so trailing prose is harmless and
+    # nested objects/escaped braces do not confuse a greedy regular expression.
+    decoder = json.JSONDecoder()
+    for idx, char in enumerate(raw):
+        if char != "{":
             continue
-    first = text.find("{")
-    if first != -1:
         try:
-            return SupervisorDirective.model_validate_json(text[first:])
+            candidate, _ = decoder.raw_decode(raw[idx:])
+        except json.JSONDecodeError:
+            continue
+        parsed = _try(candidate)
+        if parsed is not None:
+            return parsed
+
+    detail = errors[-1] if errors else "No JSON object could be decoded."
+    excerpt = raw[:800].replace("\x00", "")
+    raise ValueError(
+        "Failed to parse a valid JSON from the Supervisor's response. "
+        f"Validation: {detail} Response excerpt: {excerpt!r}"
+    )
+
+
+def parse_supervisor_response(value: Any) -> SupervisorDirective:
+    """Prefer LlamaIndex structured output, then fall back to assistant text."""
+    structured = getattr(value, "structured_response", None)
+    if structured:
+        try:
+            return _validate_supervisor_payload(structured)
         except Exception:
             pass
-    raise ValueError("Failed to parse a valid JSON from the Supervisor's response.")
+    return parse_supervisor_json(response_to_text(value))
 
 # ==== Workflow Events ====
 class InputEvent(StartEvent):
@@ -257,13 +407,14 @@ class SupervisorWorkflow(Workflow):
 
         # Run Supervisor with stream muted to avoid leaking its internal JSON.
         sup_resp = await self._run_muted(ctx, self._supervisor.run(user_msg=sup_input, memory=self._supervisor_memory))
-        directive = parse_supervisor_json(str(sup_resp))
+        sup_text = response_to_text(sup_resp)
+        directive = parse_supervisor_response(sup_resp)
 
         # Final/ask_user/max_rounds -> emit text into the already announced
         # Supervisor block and stop.
         if directive.action == "final":
-            await self._emit_text(ctx, f"\n\n{directive.final_answer or str(sup_resp)}", agent_name=self._supervisor.name)
-            return OutputEvent(status="final", final_answer=directive.final_answer or str(sup_resp), rounds_used=ev.round_idx)
+            await self._emit_text(ctx, f"\n\n{directive.final_answer or sup_text}", agent_name=self._supervisor.name)
+            return OutputEvent(status="final", final_answer=directive.final_answer or sup_text, rounds_used=ev.round_idx)
 
         if directive.action == "ask_user" and ev.stop_on_ask_user:
             q = directive.question or "I need more information, please clarify."
@@ -309,13 +460,14 @@ class SupervisorWorkflow(Workflow):
         # Run Worker with stream muted; we will emit a single block with the final text.
         worker_input = f"Instruction from Supervisor:\n{ev.instruction}\n"
         worker_resp = await self._run_muted(ctx, self._worker.run(user_msg=worker_input, memory=self._worker_memory))
+        worker_text = response_to_text(worker_resp)
 
         # Emit the response into the Worker block announced above.
-        await self._emit_text(ctx, f"\n\n{str(worker_resp)}", agent_name=self._worker.name)
+        await self._emit_text(ctx, f"\n\n{worker_text}", agent_name=self._worker.name)
 
         return InputEvent(
             user_msg="",
-            last_worker_output=str(worker_resp),
+            last_worker_output=worker_text,
             round_idx=ev.round_idx + 1,
             max_rounds=ev.max_rounds,
             external_context=ev.external_context,

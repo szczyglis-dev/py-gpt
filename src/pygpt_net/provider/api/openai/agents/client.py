@@ -46,7 +46,7 @@ def append_reasoning_model_settings(
 ) -> None:
     """Merge the current runtime reasoning effort into Agent ModelSettings.
 
-    openai-agents==0.6.9 forwards ``ModelSettings.reasoning.effort`` to
+    openai-agents==0.18.3 forwards ``ModelSettings.reasoning.effort`` to
     Chat Completions as ``reasoning_effort``.  Merge instead of replacing so
     helper-agent settings such as ``tool_choice="required"`` remain intact.
     """

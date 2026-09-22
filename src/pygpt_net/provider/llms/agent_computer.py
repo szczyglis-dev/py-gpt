@@ -79,6 +79,22 @@ class ComputerRuntime:
         self.local_tool_lock = _AsyncThreadLock()
         self.verbose = _ComputerRuntimeVerbose(window)
 
+    def __copy__(self):
+        """Keep the live UI/runtime bridge shared when SDK objects are copied."""
+        return self
+
+    def __deepcopy__(self, memo):
+        """Prevent deepcopy from descending into the Qt MainWindow graph.
+
+        LlamaIndex/Pydantic and some legacy agent flows may deep-copy LLM/tool
+        configuration objects.  This runtime is intentionally a live, shared
+        bridge (window, context and desktop lock), not serializable state, so a
+        deep copy must retain the same runtime instance instead of trying to
+        pickle/copy ``MainWindow``.
+        """
+        memo[id(self)] = self
+        return self
+
     def for_model(self, model):
         """Return a lightweight child runtime for another model, sharing the desktop lock."""
         child = ComputerRuntime(self.window, self.context)

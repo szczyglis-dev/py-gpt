@@ -9,7 +9,6 @@
 # Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
-import copy
 from typing import Dict, Any, Tuple, Union, Optional
 
 from agents import (
@@ -235,8 +234,11 @@ class Agent(BaseAgent):
         )
 
         bot_1_name = self.get_option(preset, "bot_1", "name")
-        bot_1_kwargs = copy.deepcopy(agent_kwargs)
-        bot_2_kwargs = copy.deepcopy(agent_kwargs)
+        # Only top-level values are changed below (bot_id/model/handoffs).  A
+        # recursive copy is both unnecessary and unsafe because agent_kwargs can
+        # contain live runtime bridges (ComputerRuntime -> Qt MainWindow).
+        bot_1_kwargs = dict(agent_kwargs)
+        bot_2_kwargs = dict(agent_kwargs)
 
         bot_1_kwargs["bot_id"] = 1
         if experts:
