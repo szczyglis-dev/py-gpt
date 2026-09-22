@@ -1345,7 +1345,7 @@
         "slider": false,
         "label": "settings.ctx.sources",
         "description": "settings.ctx.sources.desc",
-        "value": true,
+        "value": false,
         "min": null,
         "max": null,
         "multiplier": null,

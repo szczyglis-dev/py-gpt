@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.8.28 (2026-09-22)
+
+- Integrated **Chat with Files** into the standard **Chat** mode. RAG is now available across all supported modes.
+- Added a **Judge** mode to **Autonomous**, providing improved response evaluation and continuation guidance after each step.
+- Added support for defining preinstalled packages in the built-in **Python Interpreter** and **System / OS** sandboxes.
+- Added an option to manually rebuild the built-in sandbox virtual environment.
+- Optimized Python command execution.
+- Other fixes and improvements.
+
 ## 2.8.27 (2026-09-20)
 
 - Added a built-in sandboxed Python interpreter running in its own virtual environment, managed by `uv`, available as the default third sandbox option in the Python Interpreter and System / OS plugins. It allows Python code to be executed without requiring Python to be installed on the host system and without using Docker, as the interpreter is bundled and managed directly by PyGPT. See the documentation: Plugins -> Python Interpreter.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.27** | build: **2026-09-20** | Python: **>=3.10, <3.14**
+Release: **2.8.28** | build: **2026-09-22** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2470,6 +2470,15 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.28 (2026-09-22)**
+
+- Integrated **Chat with Files** into the standard **Chat** mode. RAG is now available across all supported modes.
+- Added a **Judge** mode to **Autonomous**, providing improved response evaluation and continuation guidance after each step.
+- Added support for defining preinstalled packages in the built-in **Python Interpreter** and **System / OS** sandboxes.
+- Added an option to manually rebuild the built-in sandbox virtual environment.
+- Optimized Python command execution.
+- Other fixes and improvements.
 
 **2.8.27 (2026-09-20)**
 
