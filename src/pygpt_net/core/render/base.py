@@ -13,6 +13,7 @@ from typing import Optional, List
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.utils import trans
 
 
 class BaseRenderer:
@@ -24,6 +25,38 @@ class BaseRenderer:
         """
         self.window = window
         self.tab = None
+
+    @staticmethod
+    def get_inline_messages(extra) -> list:
+        """Return normalized UI-only inline messages from part extra data."""
+        if not isinstance(extra, dict):
+            return []
+
+        messages = extra.get("inline_messages")
+        if not isinstance(messages, list):
+            return []
+
+        normalized = []
+        for message in messages:
+            if not isinstance(message, dict):
+                continue
+            msg_type = str(message.get("type") or "").strip()
+            text = str(message.get("text") or "").strip()
+            if not text:
+                continue
+            normalized.append({
+                "type": msg_type or "message",
+                "text": text,
+            })
+        return normalized
+
+    @staticmethod
+    def get_inline_message_label(msg_type: str) -> str:
+        """Return the UI label for a normalized inline message type."""
+        msg_type = str(msg_type or "message").strip() or "message"
+        if msg_type == "agent_judge":
+            return trans("agent.judge")
+        return msg_type.replace("_", " ").strip().title()
 
     def set_tab(self, tab: Tab):
         """

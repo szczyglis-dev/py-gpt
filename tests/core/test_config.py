@@ -166,6 +166,17 @@ def test_prepare_workdir_creates_and_reads_path_cfg_without_process_env(monkeypa
     assert Config.prepare_workdir() == str(alternate)
 
 
+def test_prepare_workdir_test_mode_does_not_touch_user_config(monkeypatch, tmp_path):
+    base = tmp_path / "missing-base"
+    fake_os = SimpleNamespace(environ={"ENV_TEST": "1"}, path=os.path)
+    monkeypatch.setattr(config_module, "os", fake_os)
+    monkeypatch.setattr(Config, "get_base_workdir", staticmethod(lambda: str(base)))
+
+    assert Config.prepare_workdir() == str(base)
+    assert not base.exists()
+    assert not (base / "path.cfg").exists()
+
+
 def test_set_workdir_and_patch_delegate_to_provider():
     cfg = _bare_config()
     cfg.initialized = True

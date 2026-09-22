@@ -96,8 +96,7 @@ class Stack:
                     # separate from tool replies (reply=True), so other internal
                     # INPUT_SYSTEM callers keep their existing behaviour.
                     "agent_continue": True,
-                    "agent_judge": bool(getattr(context, "extra", {}).get("agent_judge")),
-                    "agent_judge_text": str(getattr(context, "extra", {}).get("agent_judge_text") or ""),
+                    "inline_message": getattr(context, "extra", {}).get("inline_message"),
                 },
             }))
 

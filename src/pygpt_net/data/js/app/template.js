@@ -478,14 +478,14 @@ class NodeTemplateEngine {
 				continue;
 			}
 
-			if (segment.judge_input === true) {
-				const label = this._escapeHtml(String(segment.judge_label || 'Judge'));
+			if (segment.inline_message === true) {
+				const label = this._escapeHtml(String(segment.inline_message_label || 'Message'));
 				const content = this._escapeHtml(String(segment.text || '')).replace(/\r?\n/g, '<br>');
 				if (content) {
 					const partId = this._esc(segment.part_uuid || segment.part_id || i);
 					parts.push(
-						`<div class='msg-part msg-part-judge' data-part-id='${partId}'>` +
-						`<div class='msg-box msg-user msg-judge'><div class='msg'>` +
+						`<div class='msg-part msg-part-inline' data-part-id='${partId}'>` +
+						`<div class='msg-box msg-user msg-inline'><div class='msg'>` +
 						`<p style='margin:0'><strong>${label}:</strong> ${content}</p>` +
 						`</div></div></div>`
 					);

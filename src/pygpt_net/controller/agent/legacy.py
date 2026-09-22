@@ -597,8 +597,11 @@ If you say or imply that the run is finished, waiting, paused, or failed, invoke
             return
 
         prompt = str(data.get("output") or "").strip()
-        from_judge = bool(prompt)
-        judge_text = prompt if from_judge else ""
+        has_inline_message = bool(prompt)
+        inline_message = (
+            {"type": "agent_judge", "text": prompt}
+            if has_inline_message else None
+        )
         if not prompt:
             error = data.get("error")
             if error:
@@ -612,7 +615,7 @@ If you say or imply that the run is finished, waiting, paused, or failed, invoke
             prompt = self.get_continue_prompt()
 
         prompt = self.apply_iteration_budget(prompt, state.get("iterations", 0))
-        self._queue_continue(ctx, prompt, judge=from_judge, judge_text=judge_text)
+        self._queue_continue(ctx, prompt, inline_message=inline_message)
         # Normal synchronous continuation is added before handle_end() drains the
         # reply stack. The dynamic judge completes later, so explicitly drain the
         # newly queued continuation now from the main-thread signal handler.
@@ -738,8 +741,7 @@ If you say or imply that the run is finished, waiting, paused, or failed, invoke
             self,
             ctx: CtxItem,
             prompt: str,
-            judge: bool = False,
-            judge_text: Optional[str] = None,
+            inline_message: Optional[dict] = None,
     ):
         """Queue one explicit autonomous continuation against the durable root turn."""
         if not prompt or self.stop or not self.is_ctx_current_run(ctx):
@@ -751,9 +753,14 @@ If you say or imply that the run is finished, waiting, paused, or failed, invoke
         reply.type = ReplyContext.AGENT_CONTINUE
         reply.ctx = ctx
         reply.input = prompt
-        if judge:
-            reply.extra["agent_judge"] = True
-            reply.extra["agent_judge_text"] = str(judge_text or prompt)
+        if isinstance(inline_message, dict):
+            msg_type = str(inline_message.get("type") or "").strip()
+            msg_text = str(inline_message.get("text") or "").strip()
+            if msg_text:
+                reply.extra["inline_message"] = {
+                    "type": msg_type or "message",
+                    "text": msg_text,
+                }
 
         context = BridgeContext()
         context.ctx = ctx

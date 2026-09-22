@@ -450,29 +450,31 @@ class Renderer(BaseRenderer):
         :param item: context item
         """
         self.append_input(meta, item)
-        if not self.append_autonomous_judge_timeline(meta, item):
+        if not self.append_inline_messages_timeline(meta, item):
             self.append_output(meta, item)
         self.append_extra(meta, item)
 
 
-    def append_autonomous_judge_timeline(self, meta: CtxMeta, item: CtxItem) -> bool:
-        """Render runtime Autonomous parts with judge prompts interleaved."""
+    def append_inline_messages_timeline(self, meta: CtxMeta, item: CtxItem) -> bool:
+        """Render partial outputs with UI-only inline messages interleaved."""
         parts = list(getattr(item, "parts", None) or [])
-        has_judge = any(
-            isinstance(getattr(part, "extra", None), dict)
-            and part.extra.get("agent_judge") is True
-            and part.extra.get("judge_input") not in (None, "")
+        has_inline_messages = any(
+            bool(self.get_inline_messages(
+                part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            ))
             for part in parts
         )
-        if not has_judge:
+        if not has_inline_messages:
             return False
 
         for part in parts:
             extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
-            if extra.get("agent_judge") is True and extra.get("judge_input") not in (None, ""):
+            for message in self.get_inline_messages(extra):
+                msg_type = str(message.get("type") or "message")
+                label = self.get_inline_message_label(msg_type)
                 self.append_raw(
                     meta, item,
-                    f"> {trans('agent.judge')}: {str(extra.get('judge_input')).strip()}",
+                    f"> {label}: {str(message.get('text') or '').strip()}",
                 )
             output = str(getattr(part, "output", None) or "").strip()
             if output:

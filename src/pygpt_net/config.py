@@ -149,11 +149,19 @@ class Config:
         """
         is_test = os.environ.get('ENV_TEST') == '1'
         path = Path(Config.get_base_workdir())
-        if not path.exists() and not is_test:
+
+        # Tests must not depend on, create, or read a real user path.cfg.
+        # On a clean CI runner the base directory usually does not exist at all,
+        # so trying to read path.cfg here would raise FileNotFoundError.
+        if is_test:
+            return str(path)
+
+        if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
+
         path_file = "path.cfg"
         p = os.path.join(str(path), path_file)
-        if not os.path.exists(p) and not is_test:
+        if not os.path.exists(p):
             with open(p, 'w', encoding='utf-8') as f:
                 f.write("")
         else:

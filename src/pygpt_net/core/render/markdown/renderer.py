@@ -519,28 +519,33 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         """
         self.append_input(meta, ctx)
-        if not self.append_autonomous_judge_timeline(meta, ctx):
+        if not self.append_inline_messages_timeline(meta, ctx):
             self.append_output(meta, ctx)
         self.append_extra(meta, ctx, footer=True)
 
 
-    def append_autonomous_judge_timeline(self, meta: CtxMeta, ctx: CtxItem) -> bool:
-        """Render runtime Autonomous parts with judge prompts interleaved."""
+    def append_inline_messages_timeline(self, meta: CtxMeta, ctx: CtxItem) -> bool:
+        """Render partial outputs with UI-only inline messages interleaved."""
         parts = list(getattr(ctx, "parts", None) or [])
-        has_judge = any(
-            isinstance(getattr(part, "extra", None), dict)
-            and part.extra.get("agent_judge") is True
-            and part.extra.get("judge_input") not in (None, "")
+        has_inline_messages = any(
+            bool(self.get_inline_messages(
+                part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            ))
             for part in parts
         )
-        if not has_judge:
+        if not has_inline_messages:
             return False
 
         for part in parts:
             extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
-            if extra.get("agent_judge") is True and extra.get("judge_input") not in (None, ""):
-                label = trans("agent.judge")
-                self.append_raw(meta, ctx, f"{label}: {str(extra.get('judge_input')).strip()}", "msg-user")
+            for message in self.get_inline_messages(extra):
+                msg_type = str(message.get("type") or "message")
+                label = self.get_inline_message_label(msg_type)
+                self.append_raw(
+                    meta, ctx,
+                    f"{label}: {str(message.get('text') or '').strip()}",
+                    "msg-user",
+                )
             output = str(getattr(part, "output", None) or "").strip()
             if output:
                 self.append_raw(meta, ctx, output, "msg-bot")

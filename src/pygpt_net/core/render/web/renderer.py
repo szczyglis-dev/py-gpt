@@ -3891,13 +3891,10 @@ class Renderer(BaseRenderer):
                     ctx.get_part_tool_calls(visible_only=True, part=part)
                 )
             )
-            has_judge_input = bool(
-                part_extra.get("agent_judge") is True
-                and part_extra.get("judge_input") not in (None, "")
-            )
+            has_inline_messages = bool(self.get_inline_messages(part_extra))
             if (getattr(part, "output", None) not in (None, "")
                     or visible_part_tools
-                    or has_judge_input
+                    or has_inline_messages
                     or part_uuid in anchored_uuids):
                 parts.append(part)
 
@@ -3910,16 +3907,16 @@ class Renderer(BaseRenderer):
             ))
             for part in parts
         )
-        has_judge_inputs = any(
-            isinstance(getattr(part, "extra", None), dict)
-            and part.extra.get("agent_judge") is True
-            and part.extra.get("judge_input") not in (None, "")
+        has_inline_messages = any(
+            bool(self.get_inline_messages(
+                part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            ))
             for part in parts
         )
-        # A single plain text part needs no sub-timeline. Any status, tool, judge
-        # pseudo-input or multiple partials do, because relative ordering matters.
+        # A single plain text part needs no sub-timeline. Any status, tool, inline
+        # message or multiple partials do, because relative ordering matters.
         if (len(parts) == 1 and not has_visible_structured_tools
-                and not has_judge_inputs and not workflow_statuses):
+                and not has_inline_messages and not workflow_statuses):
             return []
 
         timeline = []
@@ -3964,12 +3961,16 @@ class Renderer(BaseRenderer):
                 "status_active": bool(record.get("active")),
             })
 
-        def append_judge_input(part, text):
-            """Add a UI-only pseudo-input for a dynamic Autonomous judge instruction."""
+        def append_inline_message(part, message):
+            """Add one UI-only inline message associated with a durable partial."""
             nonlocal seq
-            value = str(text or "").strip()
+            if not isinstance(message, dict):
+                return
+            value = str(message.get("text") or "").strip()
             if not value:
                 return
+            msg_type = str(message.get("type") or "message").strip() or "message"
+            label = self.get_inline_message_label(msg_type)
             seq += 1
             timeline.append({
                 "part_id": getattr(part, "id", None),
@@ -3977,8 +3978,9 @@ class Renderer(BaseRenderer):
                 "render_id": -(base_id * 10000 + seq),
                 "text": value,
                 "tool_calls": [],
-                "judge_input": True,
-                "judge_label": trans("agent.judge"),
+                "inline_message": True,
+                "inline_message_type": msg_type,
+                "inline_message_label": label,
             })
 
         part_by_uuid = {
@@ -4037,8 +4039,8 @@ class Renderer(BaseRenderer):
             append_part_statuses(before_by_part.get(part_uuid, []), part)
 
             part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
-            if part_extra.get("agent_judge") is True:
-                append_judge_input(part, part_extra.get("judge_input"))
+            for inline_message in self.get_inline_messages(part_extra):
+                append_inline_message(part, inline_message)
             source_text = str(getattr(part, "output", None) or "")
             if final_only_text:
                 if part_extra.get("agents_v2_final") is True:
@@ -4124,7 +4126,7 @@ class Renderer(BaseRenderer):
             calls = list(segment.get("tool_calls") or [])
             is_tool_only = bool(calls) and not segment.get("text") \
                 and not segment.get("status_id") and not segment.get("status_kind") \
-                and not segment.get("judge_input")
+                and not segment.get("inline_message")
 
             if is_tool_only and grouped_timeline:
                 previous = grouped_timeline[-1]
@@ -4133,7 +4135,7 @@ class Renderer(BaseRenderer):
                     and not previous.get("text") \
                     and not previous.get("status_id") \
                     and not previous.get("status_kind") \
-                    and not previous.get("judge_input")
+                    and not previous.get("inline_message")
                 if previous_is_tool_only:
                     previous["tool_calls"] = previous_calls + calls
                     continue
