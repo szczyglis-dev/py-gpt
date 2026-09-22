@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.8.29 (2026-09-22)
+
+- Renamed **Chat with Agents** mode to **Agents**.
+- Updated default agent preset models to `gpt-5.6-luna`.
+- Fixed compatibility errors in legacy Agent modes.
+- Simplified LlamaIndex fallback for models without native tools to standard LLM.
+- Added support for passing a reference image directly from a chat attachment to the image generation tool.
+- Added and unified **local/remote tool permissions** across more agent workflow roles.
+- Improved runtime artifact sharing between host, Docker Python/IPython, System/OS tools, and agent workflows.
+- Google GenAI SDK upgraded to v2.25.0, OpenAI Agents upgraded to v0.18.3.
+
 ## 2.8.28 (2026-09-22)
 
 - Integrated **Chat with Files** into the standard **Chat** mode. RAG is now available across all supported modes.

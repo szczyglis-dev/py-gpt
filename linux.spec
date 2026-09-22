@@ -118,6 +118,24 @@ try:
 except Exception:
     pass
 
+# OpenAI Agents SDK 0.18.x ships runtime resources (for example sandbox
+# memory prompts) that are loaded from the filesystem via pathlib. Keep these
+# files as physical data in the frozen distribution.
+try:
+    datas += collect_data_files(
+        'agents',
+        include_py_files=False,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
+
+# Preserve distribution metadata used by importlib.metadata/version checks.
+try:
+    datas += copy_metadata('openai-agents')
+except Exception:
+    pass
+
 # CSS themes use a recursive directory layout (data/css/<theme-id>/...).
 # Preserve the complete tree in the frozen application.
 add_data_tree(
@@ -218,6 +236,8 @@ for pkg in [
     'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert', 'aiosqlite',
+    # OpenAI Agents SDK imports parts of the sandbox/runtime stack lazily.
+    'agents',
     # Kernel modules are partly imported lazily/dynamically at runtime.
     'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
     'debugpy', 'zmq.backend.cython',

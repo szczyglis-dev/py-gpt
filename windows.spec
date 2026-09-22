@@ -97,6 +97,8 @@ for pkg in [
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert',
     'win32com', 'aiosqlite',
+    # OpenAI Agents SDK imports parts of the sandbox/runtime stack lazily.
+    'agents',
     # Kernel modules are partly imported lazily/dynamically at runtime.
     'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
     'debugpy', 'zmq.backend.cython',
@@ -119,6 +121,26 @@ except Exception:
     pass
 
 datas = []
+
+# OpenAI Agents SDK ships runtime prompt/template files (for example
+# agents/sandbox/memory/prompts/*.md) that are read with pathlib at runtime.
+# They must exist as physical files in the frozen distribution, not only as
+# Python modules inside PyInstaller's PYZ archive.
+try:
+    datas += collect_data_files(
+        'agents',
+        include_py_files=False,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
+
+# Preserve distribution metadata used by importlib.metadata/version checks.
+try:
+    datas += copy_metadata('openai-agents')
+except Exception:
+    pass
+
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')

@@ -28,8 +28,10 @@ class Config(BaseConfig):
             "Write the image query in English as a clear, detailed prompt that preserves the user's intent. "
             "The image tool accepts an optional resolution and an optional reference_image path. "
             "When the user asks to edit, transform, extend, remix, refine, or otherwise modify a referenced image, "
-            "pass that image path in reference_image. If the user explicitly requests image dimensions, pass them "
-            "in resolution; it overrides the configured image resolution for that tool call when supported by the "
+            "pass that image path in reference_image. If the current user turn includes an attached image and the "
+            "tool call omits reference_image, the app will automatically reuse that attached image as the runtime "
+            "reference for the image backend. If the user explicitly requests image dimensions, pass them in "
+            "resolution; it overrides the configured image resolution for that tool call when supported by the "
             "selected image model/provider. "
             "Generated images are attached to the chat automatically. Return the path to the generated image to the user. "
             "After the image is generated, continue the conversation normally."
@@ -38,8 +40,10 @@ class Config(BaseConfig):
             "Generate an image requested by the user. Put a clear, detailed English image-generation prompt "
             "in the query parameter and preserve the user's intent. Optionally pass resolution to override the "
             "configured image size for this call. Optionally pass reference_image when editing/remixing an existing "
-            "image; use the exact path supplied in the runtime image context. The generated image is attached to "
-            "the chat automatically; return the path to the generated image to the user."
+            "image; use the exact path supplied in the runtime image context. If the current user turn already has "
+            "an attached image and reference_image is omitted, the app will automatically use that attachment as the "
+            "runtime reference image. The generated image is attached to the chat automatically; return the path to "
+            "the generated image to the user."
         )
         plugin.add_option(
             "model",
