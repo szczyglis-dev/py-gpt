@@ -362,6 +362,12 @@ def test_load_config_base_and_from_base_copy():
     cfg.load_config(all=False)
     assert list(cfg.data) == ["a", "z"]
 
+    cfg.provider.load.return_value = None
+    cfg.load_config(all=False)
+    assert cfg.data == {}
+    assert cfg.has("lang") is False
+    assert cfg.get("lang", "en") == "en"
+
     cfg.provider.load_base.return_value = {"z": {"v": 1}, "a": 2}
     cfg.load_base_config()
     assert list(cfg.data_base) == ["a", "z"]

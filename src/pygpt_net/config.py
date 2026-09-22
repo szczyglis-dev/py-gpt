@@ -527,9 +527,14 @@ class Config:
 
         :param all: load all configs
         """
-        self.data = self.provider.load(all)
-        if self.data is not None:
-            self.data = dict(sorted(self.data.items(), key=itemgetter(0)))
+        data = self.provider.load(all)
+        if data is None:
+            # A clean/test environment may not have config.json yet. Keep the
+            # Config object usable so callers such as Locale/trans() can safely
+            # fall back to defaults instead of failing on self.data == None.
+            self.data = {}
+            return
+        self.data = dict(sorted(data.items(), key=itemgetter(0)))
 
     def load_base_config(self):
         """
