@@ -53,8 +53,14 @@ class PyGPTGoogleGenAI(GoogleGenAI):
 
     @staticmethod
     def _is_vertex_runtime() -> bool:
-        value = str(os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "")).strip().lower()
-        return value not in ("", "0", "false", "no", "off")
+        # google-genai 2.x prefers GOOGLE_GENAI_USE_ENTERPRISE while keeping
+        # GOOGLE_GENAI_USE_VERTEXAI as a legacy alias. Accept both so this
+        # adapter remains compatible with old and new SDK/runtime setups.
+        for key in ("GOOGLE_GENAI_USE_ENTERPRISE", "GOOGLE_GENAI_USE_VERTEXAI"):
+            value = str(os.getenv(key, "")).strip().lower()
+            if value not in ("", "0", "false", "no", "off"):
+                return True
+        return False
 
     @staticmethod
     def _with_server_side_tool_invocations(tool_config):

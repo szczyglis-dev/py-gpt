@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 09:30:00                  #
+# Updated Date: 2026.09.22 12:58:00                  #
 # ================================================== #
 
 import base64
@@ -274,9 +274,12 @@ class MusicWorker(QRunnable):
     # ---------- helpers ----------
 
     def _using_vertex(self) -> bool:
-        """Check if Vertex AI is active via env variable set by ApiGoogle.setup_env()."""
-        val = os.getenv("GOOGLE_GENAI_USE_VERTEXAI") or ""
-        return str(val).lower() in ("1", "true", "yes", "y")
+        """Check if Enterprise/legacy Vertex backend is active via env vars."""
+        for key in ("GOOGLE_GENAI_USE_ENTERPRISE", "GOOGLE_GENAI_USE_VERTEXAI"):
+            val = os.getenv(key) or ""
+            if str(val).lower() in ("1", "true", "yes", "y"):
+                return True
+        return False
 
     def _normalize_model_id(self, model_id: str) -> str:
         """

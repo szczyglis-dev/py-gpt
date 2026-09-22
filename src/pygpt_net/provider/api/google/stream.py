@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 00:30:00                  #
+# Updated Date: 2026.09.22 12:52:00                  #
 # ================================================== #
 
 import base64
@@ -80,6 +80,12 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
             return {k: _to_plain_dict(v) for k, v in obj.items()}
         if isinstance(obj, (list, tuple)):
             return [_to_plain_dict(x) for x in obj]
+        try:
+            values = vars(obj)
+            if isinstance(values, dict):
+                return {k: _to_plain_dict(v) for k, v in values.items() if not str(k).startswith("_")}
+        except Exception:
+            pass
         return obj
 
     def _get(obj: Any, name: str, default: Any = None) -> Any:
@@ -273,79 +279,193 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
             except Exception:
                 pass
 
-    # Interactions API / Deep Research: collect streaming deltas and metadata
+    # Interactions API / Deep Research: collect streaming deltas and metadata.
+    # google-genai 2.x migrated from content.* to step.* events and from outputs
+    # to steps. Keep the legacy aliases so 1.75-era streams remain readable.
     try:
-        event_type = _get(chunk, "event_type", None)
+        event_type = _get(chunk, "event_type", None) or _get(chunk, "type", None)
+        event_type = str(event_type or "").strip().lower()
+
+        def _ensure_extra():
+            if not hasattr(ctx, "extra") or not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            return ctx.extra
+
+        def _normalize_scalar(value):
+            try:
+                return getattr(value, "value", value)
+            except Exception:
+                return value
+
+        def _append_ctx_url(url):
+            if not isinstance(url, str):
+                return
+            url = url.strip()
+            if not url.startswith(("http://", "https://")):
+                return
+            if not isinstance(getattr(ctx, "urls", None), list):
+                ctx.urls = []
+            if url not in ctx.urls:
+                ctx.urls.append(url)
+
+        def _collect_urls(node, depth=0):
+            if node is None or depth > 6:
+                return
+            plain = _to_plain_dict(node)
+            if isinstance(plain, dict):
+                for key, value in plain.items():
+                    normalized = str(key).lower().replace("-", "_")
+                    if normalized in ("url", "uri", "source_url", "source_uri"):
+                        _append_ctx_url(value)
+                    if isinstance(value, (dict, list, tuple)):
+                        _collect_urls(value, depth + 1)
+            elif isinstance(plain, (list, tuple)):
+                for value in plain:
+                    _collect_urls(value, depth + 1)
+
+        def _capture_interaction(interaction, fallback_status=None, fallback_id=None):
+            if interaction is None and fallback_status is None and fallback_id is None:
+                return
+            interaction_id = (
+                _get(interaction, "id", None) if interaction is not None else None
+            ) or fallback_id
+            status = _get(interaction, "status", None) if interaction is not None else None
+            status = status or fallback_status
+            if interaction_id:
+                interaction_id = str(_normalize_scalar(interaction_id))
+                try:
+                    state.google_interaction_id = interaction_id
+                except Exception:
+                    pass
+                extra_ctx = _ensure_extra()
+                extra_ctx["google_interaction_id"] = interaction_id
+                extra_ctx["google_last_interaction_id"] = interaction_id
+            if status:
+                status = str(_normalize_scalar(status))
+                try:
+                    state.google_interaction_status = status
+                except Exception:
+                    pass
+                _ensure_extra()["google_interaction_status"] = status
+            usage = _get(interaction, "usage", None) if interaction is not None else None
+            if usage:
+                capture_google_usage(state, usage)
+            _collect_urls(interaction)
+
+        def _pending_calls():
+            pending = getattr(state, "google_interaction_pending_calls", None)
+            if not isinstance(pending, dict):
+                pending = {}
+                try:
+                    state.google_interaction_pending_calls = pending
+                except Exception:
+                    pass
+            return pending
+
+        def _flush_pending_call(index):
+            pending = _pending_calls()
+            item = pending.pop(index, None)
+            if not item:
+                return
+            arguments = item.get("arguments", "")
+            if isinstance(arguments, dict):
+                arguments = json.dumps(arguments, ensure_ascii=False)
+            elif arguments is None:
+                arguments = ""
+            else:
+                arguments = str(arguments)
+            if not arguments.strip():
+                arguments = "{}"
+            new_calls.append({
+                "id": item.get("id", "") or "",
+                "type": "function",
+                "function": {
+                    "name": item.get("name", "") or "",
+                    "arguments": arguments,
+                },
+            })
+
         if event_type:
-            # Track last event id for reconnection
+            # Track last event id for reconnection/resume.
             event_id = _get(chunk, "event_id", None)
             if event_id:
                 try:
                     state.google_last_event_id = event_id
                 except Exception:
                     pass
-                try:
-                    if not hasattr(ctx, "extra") or ctx.extra is None:
-                        ctx.extra = {}
-                    ctx.extra["google_last_event_id"] = event_id
-                except Exception:
-                    pass
+                _ensure_extra()["google_last_event_id"] = event_id
 
-            # Interaction lifecycle events
-            if event_type == "interaction.start":
-                interaction = _get(chunk, "interaction", None)
-                interaction_id = _get(interaction, "id", None)
-                if interaction_id:
-                    try:
-                        state.google_interaction_id = interaction_id
-                    except Exception:
-                        pass
-                    try:
-                        if not hasattr(ctx, "extra") or ctx.extra is None:
-                            ctx.extra = {}
-                        ctx.extra["google_interaction_id"] = interaction_id
-                    except Exception:
-                        pass
-
+            # Interaction lifecycle.
+            if event_type in ("interaction.start", "interaction.created"):
+                _capture_interaction(_get(chunk, "interaction", None) or chunk)
             elif event_type == "interaction.status_update":
                 status = _get(chunk, "status", None)
-                if status:
-                    try:
-                        state.google_interaction_status = status
-                    except Exception:
-                        pass
-                    try:
-                        if not hasattr(ctx, "extra") or ctx.extra is None:
-                            ctx.extra = {}
-                        ctx.extra["google_interaction_status"] = status
-                    except Exception:
-                        pass
-
-            elif event_type == "interaction.complete":
-                # Capture usage from the final interaction if available
                 interaction = _get(chunk, "interaction", None)
-                usage = _get(interaction, "usage", None)
-                if usage:
-                    try:
-                        capture_google_usage(state, usage)
-                    except Exception:
-                        pass
+                _capture_interaction(
+                    interaction,
+                    fallback_status=status,
+                    fallback_id=_get(chunk, "interaction_id", None),
+                )
+            elif event_type in ("interaction.in_progress", "interaction.requires_action"):
+                _capture_interaction(
+                    _get(chunk, "interaction", None),
+                    fallback_status=event_type.split(".", 1)[1],
+                    fallback_id=_get(chunk, "interaction_id", None),
+                )
+            elif event_type in ("interaction.complete", "interaction.completed"):
+                # Flush any function call whose step.stop was omitted by an old
+                # or interrupted stream implementation before storing final usage.
+                for index in list(_pending_calls().keys()):
+                    _flush_pending_call(index)
+                _capture_interaction(_get(chunk, "interaction", None) or chunk)
+            elif event_type in ("error", "interaction.error", "interaction.failed"):
+                err = _get(chunk, "error", None) or _get(_get(chunk, "interaction", None), "error", None) or {}
+                _ensure_extra()["google_interactions_error"] = _to_plain_dict(err)
+                _capture_interaction(_get(chunk, "interaction", None), fallback_status="failed")
 
-            elif event_type == "error":
-                err = _get(chunk, "error", {}) or {}
-                try:
-                    if not hasattr(ctx, "extra") or ctx.extra is None:
-                        ctx.extra = {}
-                    ctx.extra["google_interactions_error"] = _to_plain_dict(err)
-                except Exception:
-                    pass
+            # New 2.x function-call metadata arrives in step.start; argument JSON
+            # then arrives incrementally as arguments_delta events.
+            if event_type == "step.start":
+                step = _get(chunk, "step", {}) or {}
+                index = _get(chunk, "index", 0)
+                step_type = str(_normalize_scalar(_get(step, "type", "")) or "").lower()
+                if step_type == "function_call":
+                    initial_args = _get(step, "arguments", "")
+                    if isinstance(initial_args, dict):
+                        initial_args = json.dumps(initial_args, ensure_ascii=False) if initial_args else ""
+                    _pending_calls()[index] = {
+                        "id": _get(step, "id", "") or "",
+                        "name": _get(step, "name", "") or "",
+                        "arguments": initial_args or "",
+                    }
+                elif step_type:
+                    _ensure_list_attr(state, "google_interaction_steps")
+                    state.google_interaction_steps.append(_to_plain_dict(step))
+                    _collect_urls(step)
 
-            # Content deltas
-            if event_type == "content.delta":
+            elif event_type == "step.stop":
+                index = _get(chunk, "index", 0)
+                if index in _pending_calls():
+                    _flush_pending_call(index)
+                # 2.x may report cumulative interaction usage on step.stop
+                # (and step_usage separately). Prefer the cumulative value so
+                # the token counter remains correct before interaction.completed.
+                stop_usage = _get(chunk, "usage", None)
+                if stop_usage:
+                    capture_google_usage(state, stop_usage)
+
+            # Legacy 1.x used content.delta; 2.x uses step.delta.
+            if event_type in ("content.delta", "step.delta"):
                 delta = _get(chunk, "delta", {}) or {}
-                delta_type = (_get(delta, "type", "") or "").lower()
+                delta_type = str(_normalize_scalar(_get(delta, "type", "")) or "").lower()
 
-                # Text delta
+                # Step metadata can carry cumulative usage before final completion.
+                metadata = _get(chunk, "metadata", None) or _get(delta, "metadata", None)
+                total_usage = _get(metadata, "total_usage", None) if metadata else None
+                if total_usage:
+                    capture_google_usage(state, total_usage)
+
+                # Text delta.
                 if delta_type == "text":
                     txt = _get(delta, "text", None)
                     if txt:
@@ -354,14 +474,11 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                         if rendered:
                             response_parts.append(rendered)
 
-                # Thought summaries (Deep Research thinking summaries)
+                # Thought summaries. Old schemas may expose type=thought/text.
                 elif delta_type in ("thought", "thought_summary"):
                     content_obj = _get(delta, "content", None)
-                    thought_txt = None
-                    if content_obj is not None:
-                        thought_txt = _get(content_obj, "text", None)
-                    if thought_txt is None:
-                        thought_txt = _get(delta, "thought", None)
+                    thought_txt = _get(content_obj, "text", None) if content_obj is not None else None
+                    thought_txt = thought_txt or _get(delta, "text", None) or _get(delta, "thought", None)
                     if thought_txt:
                         rendered = stream_reasoning_delta(
                             state, thought_txt, provider="google",
@@ -371,46 +488,46 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                             response_parts.append(rendered)
                         if bool(getattr(state, "reasoning_enabled", True)):
                             _ensure_list_attr(state, "google_thought_summaries")
-                            try:
-                                state.google_thought_summaries.append(thought_txt)
-                            except Exception:
-                                pass
-                            try:
-                                if not hasattr(ctx, "extra") or ctx.extra is None:
-                                    ctx.extra = {}
-                                if "google_thought_summaries" not in ctx.extra or not isinstance(ctx.extra["google_thought_summaries"], list):
-                                    ctx.extra["google_thought_summaries"] = []
-                                ctx.extra["google_thought_summaries"].append(thought_txt)
-                            except Exception:
-                                pass
+                            state.google_thought_summaries.append(thought_txt)
+                            extra_ctx = _ensure_extra()
+                            if not isinstance(extra_ctx.get("google_thought_summaries"), list):
+                                extra_ctx["google_thought_summaries"] = []
+                            extra_ctx["google_thought_summaries"].append(thought_txt)
 
-                # Function call delta (Interactions API tool/function calling)
+                # 2.x streams function arguments as JSON string fragments.
+                elif delta_type in ("arguments_delta", "arguments"):
+                    index = _get(chunk, "index", 0)
+                    pending = _pending_calls().get(index)
+                    if pending is not None:
+                        fragment = _get(delta, "arguments", None)
+                        if fragment is None:
+                            fragment = _get(delta, "partial_arguments", "")
+                        pending["arguments"] = str(pending.get("arguments", "") or "") + str(fragment or "")
+
+                # Legacy Interactions function-call delta.
                 elif delta_type == "function_call":
                     fname = _get(delta, "name", "") or ""
                     fargs_obj = _get(delta, "arguments", {}) or {}
                     call_id = _get(delta, "id", "") or ""
-                    fargs_dict = _to_plain_dict(fargs_obj) or {}
+                    fargs = _to_plain_dict(fargs_obj) or {}
+                    if not isinstance(fargs, str):
+                        fargs = json.dumps(fargs, ensure_ascii=False)
                     new_calls.append({
                         "id": call_id,
                         "type": "function",
-                        "function": {
-                            "name": fname,
-                            "arguments": json.dumps(fargs_dict, ensure_ascii=False),
-                        }
+                        "function": {"name": fname, "arguments": fargs},
                     })
 
-                # Function result delta (optional store)
                 elif delta_type == "function_result":
                     _ensure_list_attr(state, "google_function_results")
-                    try:
-                        state.google_function_results.append(_to_plain_dict(delta))
-                    except Exception:
-                        pass
+                    state.google_function_results.append(_to_plain_dict(delta))
 
-                # Code execution: code + result
+                # Code execution.
                 elif delta_type == "code_execution_call":
-                    lang = (_get(delta, "language", None) or "python").strip() or "python"
-                    code_txt = _get(delta, "code", "") or ""
+                    arguments = _get(delta, "arguments", None)
+                    lang = (_get(delta, "language", None) or _get(arguments, "language", None) or "python")
+                    lang = str(lang).strip() or "python"
+                    code_txt = _get(delta, "code", None) or _get(arguments, "code", None) or ""
                     if not state.is_code:
                         response_parts.append(f"\n\n**Code interpreter**\n```{lang.lower()}\n{code_txt}")
                         state.is_code = True
@@ -421,20 +538,15 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                         response_parts.append("\n\n```\n-----------\n")
                         state.is_code = False
                     _ensure_list_attr(state, "google_code_results")
-                    try:
-                        state.google_code_results.append(_to_plain_dict(delta))
-                    except Exception:
-                        pass
+                    state.google_code_results.append(_to_plain_dict(delta))
 
-                # Images in stream
+                # Images in stream.
                 elif delta_type == "image":
-                    # ImageDelta may contain base64 data or uri
-                    mime = _get(delta, "mime_type", None)
                     data_b64 = _get(delta, "data", None)
                     uri = _get(delta, "uri", None)
                     if data_b64:
                         try:
-                            img_bytes = base64.b64decode(data_b64)
+                            img_bytes = bytes(data_b64) if isinstance(data_b64, (bytes, bytearray)) else base64.b64decode(data_b64)
                             save_path = core.image.gen_unique_path(ctx)
                             with open(save_path, "wb") as f:
                                 f.write(img_bytes)
@@ -446,88 +558,82 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                         except Exception:
                             pass
                     elif uri:
-                        # Try to download Files API content when URI is a file ref
                         save = _try_download_uri(uri)
                         if save:
                             _append_downloaded([save])
                         else:
-                            try:
-                                if not hasattr(ctx, "urls") or ctx.urls is None:
-                                    ctx.urls = []
-                                ctx.urls.append(uri)
-                            except Exception:
-                                pass
+                            _append_ctx_url(uri)
 
-                # URL context call/result (Deep Research tool)
+                # URL Context server tool. 2.x nests call args under arguments
+                # and returns result arrays; 1.x exposed direct fields.
                 elif delta_type == "url_context_call":
-                    urls = _get(delta, "urls", []) or []
+                    args_obj = _get(delta, "arguments", None)
+                    urls = _get(args_obj, "urls", None) or _get(delta, "urls", []) or []
+                    if isinstance(urls, str):
+                        urls = [urls]
                     _ensure_list_attr(state, "google_url_context_calls")
-                    try:
-                        state.google_url_context_calls.append({"urls": list(urls)})
-                    except Exception:
-                        pass
+                    state.google_url_context_calls.append({"urls": list(urls), "raw": _to_plain_dict(delta)})
+                    for url in urls:
+                        _append_ctx_url(url)
                 elif delta_type == "url_context_result":
-                    url = _get(delta, "url", None)
-                    status = _get(delta, "status", None)
+                    results = _get(delta, "result", None)
+                    if results is None:
+                        results = [delta]
+                    elif not isinstance(results, (list, tuple)):
+                        results = [results]
                     _ensure_list_attr(state, "google_url_context_results")
-                    try:
-                        state.google_url_context_results.append({"url": url, "status": status, "raw": _to_plain_dict(delta)})
-                    except Exception:
-                        pass
-                    if url:
-                        try:
-                            if not hasattr(ctx, "urls") or ctx.urls is None:
-                                ctx.urls = []
-                            ctx.urls.append(url)
-                        except Exception:
-                            pass
+                    for result in results:
+                        state.google_url_context_results.append(_to_plain_dict(result))
+                        _collect_urls(result)
 
-                # Google Search call/result (Deep Research tool)
+                # Google Search server tool.
                 elif delta_type == "google_search_call":
-                    queries = _get(delta, "queries", []) or []
+                    args_obj = _get(delta, "arguments", None)
+                    queries = _get(args_obj, "queries", None) or _get(delta, "queries", []) or []
+                    if isinstance(queries, str):
+                        queries = [queries]
                     _ensure_list_attr(state, "google_research_queries")
-                    try:
-                        state.google_research_queries.extend(list(queries))
-                    except Exception:
-                        pass
+                    state.google_research_queries.extend(list(queries))
                 elif delta_type == "google_search_result":
-                    url = _get(delta, "url", None)
-                    title = _get(delta, "title", None)
-                    rendered = _get(delta, "rendered_content", None)
                     _ensure_list_attr(state, "google_search_results")
-                    try:
-                        state.google_search_results.append({
-                            "url": url,
-                            "title": title,
-                            "rendered_content": rendered,
-                            "raw": _to_plain_dict(delta),
-                        })
-                    except Exception:
-                        pass
-                    if url:
-                        try:
-                            if not hasattr(ctx, "urls") or ctx.urls is None:
-                                ctx.urls = []
-                            ctx.urls.append(url)
-                        except Exception:
-                            pass
+                    state.google_search_results.append(_to_plain_dict(delta))
+                    _collect_urls(delta)
 
-                # File search results (optional)
-                elif delta_type == "file_search_result":
-                    _ensure_list_attr(state, "google_file_search_results")
-                    try:
-                        state.google_file_search_results.append(_to_plain_dict(delta))
-                    except Exception:
-                        pass
+                # File Search and 2.24 retrieval steps.
+                elif delta_type in ("file_search_call", "file_search_result"):
+                    attr = "google_file_search_calls" if delta_type.endswith("_call") else "google_file_search_results"
+                    _ensure_list_attr(state, attr)
+                    getattr(state, attr).append(_to_plain_dict(delta))
+                    _collect_urls(delta)
+                elif delta_type in ("retrieval_call", "retrieval_result"):
+                    attr = "google_retrieval_calls" if delta_type.endswith("_call") else "google_retrieval_results"
+                    _ensure_list_attr(state, attr)
+                    getattr(state, attr).append(_to_plain_dict(delta))
+                    _collect_urls(delta)
+
+                # Other server-side tools introduced across 2.x. Preserve the
+                # raw payload even when PyGPT has no dedicated renderer yet.
+                elif delta_type in (
+                    "processing_call", "processing_result",
+                    "google_maps_call", "google_maps_result",
+                    "mcp_server_tool_call", "mcp_server_tool_result",
+                ):
+                    _ensure_list_attr(state, "google_server_tool_events")
+                    state.google_server_tool_events.append(_to_plain_dict(delta))
+                    _collect_urls(delta)
 
                 elif delta_type == "thought_signature":
                     _ensure_list_attr(state, "google_thought_signatures")
-                    try:
-                        state.google_thought_signatures.append(_to_plain_dict(delta))
-                    except Exception:
-                        pass
+                    state.google_thought_signatures.append(_to_plain_dict(delta))
 
-                # Other modalities: audio/video/document (store URIs if available)
+                # 2.x may stream annotations separately from text. Preserve the
+                # full annotation delta and collect any source URLs it carries.
+                elif delta_type == "text_annotation_delta":
+                    _ensure_list_attr(state, "google_annotations")
+                    state.google_annotations.append(_to_plain_dict(delta))
+                    _collect_urls(delta)
+
+                # Other modalities: audio/video/document.
                 elif delta_type in ("audio", "video", "document"):
                     uri = _get(delta, "uri", None)
                     if uri:
@@ -535,12 +641,9 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
                         if save:
                             _append_downloaded([save])
                         else:
-                            try:
-                                if not hasattr(ctx, "urls") or ctx.urls is None:
-                                    ctx.urls = []
-                                ctx.urls.append(uri)
-                            except Exception:
-                                pass
+                            _append_ctx_url(uri)
+
+                _collect_urls(delta)
 
     except Exception:
         pass
@@ -647,7 +750,7 @@ def process_google_chunk(ctx, core, state, chunk) -> Optional[str]:
 
     # Interactions API citations: try to collect from delta.annotations if present
     try:
-        if _get(chunk, "event_type", None) == "content.delta":
+        if (_get(chunk, "event_type", None) or _get(chunk, "type", None)) in ("content.delta", "step.delta"):
             delta = _get(chunk, "delta", {}) or {}
             annotations = _get(delta, "annotations", None)
             if annotations:

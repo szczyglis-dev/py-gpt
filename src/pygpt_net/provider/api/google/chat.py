@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 13:40:00                  #
+# Updated Date: 2026.09.22 12:40:00                  #
 # ================================================== #
 
 import base64
+import json
 import os
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -25,6 +26,7 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.api.reasoning import (
     ensure_reasoning_metadata, is_realtime_reasoning_enabled, store_reasoning,
 )
+from .utils import extract_google_urls
 
 
 class Chat:
@@ -404,6 +406,35 @@ class Chat:
         if calls:
             ctx.tool_calls = calls
 
+        # Interactions API 2.x stores the final resource state directly on the
+        # Interaction object. Persist it for Deep Research continuation and
+        # reconnect/resume handling. Legacy responses are harmless here.
+        if mode == MODE_RESEARCH:
+            try:
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                interaction_id = getattr(response, "id", None)
+                status = getattr(response, "status", None)
+                if interaction_id:
+                    ctx.extra["google_interaction_id"] = str(interaction_id)
+                    ctx.extra["google_last_interaction_id"] = str(interaction_id)
+                if status:
+                    status_value = getattr(status, "value", None) or status
+                    ctx.extra["google_interaction_status"] = str(status_value)
+            except Exception:
+                pass
+
+            try:
+                urls = extract_google_urls(response)
+                if urls:
+                    if not isinstance(ctx.urls, list):
+                        ctx.urls = []
+                    for url in urls:
+                        if url not in ctx.urls:
+                            ctx.urls.append(url)
+            except Exception:
+                pass
+
         # 2) For Computer Use (dedicated mode or Remote Tool): capture raw model
         #    parts for the next FunctionResponse turn and translate actions now.
         computer_use_active = mode == MODE_COMPUTER or bool(
@@ -451,13 +482,26 @@ class Chat:
 
         # Usage if available
         try:
-            usage = getattr(response, "usage_metadata", None)
+            usage = getattr(response, "usage_metadata", None) or getattr(response, "usage", None)
             if usage:
-                p = getattr(usage, "prompt_token_count", 0) or 0
-                c = getattr(usage, "candidates_token_count", 0) or 0
+                p = (
+                    getattr(usage, "total_input_tokens", None)
+                    or getattr(usage, "prompt_token_count", None)
+                    or getattr(usage, "prompt_tokens", None)
+                    or getattr(usage, "input_tokens", 0)
+                    or 0
+                )
+                c = (
+                    getattr(usage, "total_output_tokens", None)
+                    or getattr(usage, "candidates_token_count", None)
+                    or getattr(usage, "completion_tokens", None)
+                    or getattr(usage, "output_tokens", 0)
+                    or 0
+                )
                 ctx.set_tokens(p, c)
                 reasoning_tokens = (
-                    getattr(usage, "thoughts_token_count", None)
+                    getattr(usage, "total_thought_tokens", None)
+                    or getattr(usage, "thoughts_token_count", None)
                     or getattr(usage, "candidates_reasoning_token_count", None)
                     or getattr(usage, "reasoning_tokens", 0)
                     or 0
@@ -502,7 +546,45 @@ class Chat:
         except Exception:
             pass
 
-        txt = getattr(response, "text", None) or getattr(response, "output_text", None)
+        # Interactions API 2.x exposes a convenience output_text and the raw
+        # response as typed steps (``outputs`` in the old schema).
+        try:
+            txt = getattr(response, "output_text", None)
+            if txt:
+                return str(txt).strip()
+        except Exception:
+            pass
+
+        out: List[str] = []
+        try:
+            for step in self._get_interaction_steps(response):
+                step_type = self._step_type(step)
+                # Interactions API 1.x returned final text as a flat output
+                # item (type=text). In 2.x the text lives under a
+                # model_output step's content list. Accept both schemas.
+                if step_type == "text":
+                    text = self._get_value(step, "text", None)
+                    if text:
+                        out.append(str(text))
+                    continue
+                if step_type != "model_output":
+                    continue
+                content = self._get_value(step, "content", []) or []
+                if not isinstance(content, (list, tuple)):
+                    content = [content]
+                for part in content:
+                    part_type = self._step_type(part)
+                    if part_type and part_type != "text":
+                        continue
+                    text = self._get_value(part, "text", None)
+                    if text:
+                        out.append(str(text))
+            if out:
+                return "".join(out).strip()
+        except Exception:
+            pass
+
+        txt = getattr(response, "text", None)
         return str(txt).strip() if txt else ""
 
     def extract_reasoning(self, response) -> str:
@@ -516,6 +598,21 @@ class Chat:
                     if not bool(getattr(p, "thought", False)):
                         continue
                     text = getattr(p, "text", None)
+                    if text:
+                        out.append(str(text))
+        except Exception:
+            pass
+        # Interactions API 2.x thought steps expose a summary array rather than
+        # GenerateContent parts carrying thought=True.
+        try:
+            for step in self._get_interaction_steps(response):
+                if self._step_type(step) != "thought":
+                    continue
+                summary = self._get_value(step, "summary", []) or []
+                if not isinstance(summary, (list, tuple)):
+                    summary = [summary]
+                for part in summary:
+                    text = self._get_value(part, "text", None)
                     if text:
                         out.append(str(text))
         except Exception:
@@ -602,7 +699,64 @@ class Chat:
         except Exception:
             pass
 
+        if out:
+            return out
+
+        # 3) Interactions API 2.x: function calls are standalone steps.
+        try:
+            for step in self._get_interaction_steps(response):
+                if self._step_type(step) != "function_call":
+                    continue
+                name = self._get_value(step, "name", "") or ""
+                args_obj = self._get_value(step, "arguments", {}) or {}
+                args_dict = _to_plain_dict(args_obj) or {}
+                if isinstance(args_dict, str):
+                    try:
+                        args_dict = json.loads(args_dict)
+                    except Exception:
+                        args_dict = {}
+                out.append({
+                    "id": self._get_value(step, "id", "") or "",
+                    "type": "function",
+                    "function": {
+                        "name": name,
+                        "arguments": args_dict,
+                    }
+                })
+        except Exception:
+            pass
+
         return out
+
+    @staticmethod
+    def _get_value(obj: Any, name: str, default: Any = None) -> Any:
+        """Read a field from an SDK model or a plain dict."""
+        if isinstance(obj, dict):
+            return obj.get(name, default)
+        try:
+            value = getattr(obj, name, default)
+            return default if value is None else value
+        except Exception:
+            return default
+
+    @classmethod
+    def _step_type(cls, obj: Any) -> str:
+        value = cls._get_value(obj, "type", "") or ""
+        try:
+            value = getattr(value, "value", value)
+        except Exception:
+            pass
+        return str(value).strip().lower().replace("-", "_")
+
+    @classmethod
+    def _get_interaction_steps(cls, response) -> List[Any]:
+        """Return Interactions steps, with the pre-2.0 outputs fallback."""
+        steps = cls._get_value(response, "steps", None)
+        if steps is None:
+            steps = cls._get_value(response, "outputs", None)
+        if not steps:
+            return []
+        return list(steps) if isinstance(steps, (list, tuple)) else [steps]
 
     def build_input(
             self,
@@ -1223,6 +1377,11 @@ class Chat:
             return "audio"
         if m.startswith("video/"):
             return "video"
+        if m == "application/pdf" or m.startswith("text/") or m in (
+            "application/json",
+            "application/xml",
+        ):
+            return "document"
         return None
 
     @staticmethod
@@ -1275,7 +1434,7 @@ class Chat:
                 mime = (getattr(fdata, "mime_type", "") or "").lower()
                 typ = self._mime_to_interactions_type(mime)
                 if typ and uri:
-                    out.append({"type": typ, "uri": uri})
+                    out.append({"type": typ, "uri": uri, "mime_type": mime})
                 continue
 
         return out

@@ -2061,14 +2061,14 @@ grpc = ["grpcio (>=1.41.0,<2.0.0)", "grpcio (>=1.49.1,<2.0.0) ; python_version >
 
 [[package]]
 name = "google-api-python-client"
-version = "2.187.0"
+version = "2.200.0"
 description = "Google API Client Library for Python"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "google_api_python_client-2.187.0-py3-none-any.whl", hash = "sha256:d8d0f6d85d7d1d10bdab32e642312ed572bdc98919f72f831b44b9a9cebba32f"},
-    {file = "google_api_python_client-2.187.0.tar.gz", hash = "sha256:e98e8e8f49e1b5048c2f8276473d6485febc76c9c47892a8b4d1afa2c9ec8278"},
+    {file = "google_api_python_client-2.200.0-py3-none-any.whl", hash = "sha256:c0c2c4072a110b7fcc30ac151744d4410cddaba99c53cb4e815463308952b638"},
+    {file = "google_api_python_client-2.200.0.tar.gz", hash = "sha256:82aa18b851328ea04867fd51c5a0c8da2e1b86ec45ce08487e902e7726d4ee50"},
 ]
 
 [package.dependencies]
@@ -2145,22 +2145,22 @@ tool = ["click (>=6.0.0)"]
 
 [[package]]
 name = "google-genai"
-version = "1.75.0"
+version = "2.24.0"
 description = "GenAI Python SDK"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "google_genai-1.75.0-py3-none-any.whl", hash = "sha256:8dc4c096e7d6288c3087f6893f582fe52468932464781edb8193bd92b9fefb2c"},
-    {file = "google_genai-1.75.0.tar.gz", hash = "sha256:56bac3991b311c93f980c0a2abcd287b672146905df1fbd71c92ed633d5a07cf"},
+    {file = "google_genai-2.24.0-py3-none-any.whl", hash = "sha256:59e5f2d88bc2d6ed04aa1aa14cb5629090cfe9458401745e620b24d1fe9893d7"},
+    {file = "google_genai-2.24.0.tar.gz", hash = "sha256:814b63d05dca4776c5a322699eb30c565040cf8d5fd77c38714076535fb2e019"},
 ]
 
 [package.dependencies]
 anyio = ">=4.8.0,<5.0.0"
 distro = ">=1.7.0,<2"
-google-auth = {version = ">=2.48.1,<3.0.0", extras = ["requests"]}
+google-auth = {version = ">=2.56.0,<3.0.0", extras = ["requests"]}
 httpx = ">=0.28.1,<1.0.0"
-pydantic = ">=2.9.0,<3.0.0"
+pydantic = ">=2.12.5,<3.0.0"
 requests = ">=2.28.1,<3.0.0"
 sniffio = "*"
 tenacity = ">=8.2.3,<9.2.0"
@@ -2169,7 +2169,7 @@ websockets = ">=13.0.0,<17.0"
 
 [package.extras]
 aiohttp = ["aiohttp (>=3.10.11,<4.0.0)"]
-local-tokenizer = ["protobuf", "sentencepiece (>=0.2.0)"]
+local-tokenizer = ["pillow", "protobuf", "sentencepiece (>=0.2.0)", "torch", "torchvision", "transformers"]
 pyopenssl = ["pyopenssl"]
 
 [[package]]
@@ -2314,6 +2314,21 @@ files = [
 
 [package.dependencies]
 colorama = ">=0.4"
+
+[package.extras]
+pypi = ["pip (>=24.0)", "platformdirs (>=4.2)", "wheel (>=0.42)"]
+
+[[package]]
+name = "griffelib"
+version = "2.3.0"
+description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "griffelib-2.3.0-py3-none-any.whl", hash = "sha256:1b8f9cd525681c26b1d6d574faa1371651e8459ca51d209684f50b8096ae06e0"},
+    {file = "griffelib-2.3.0.tar.gz", hash = "sha256:7b0952caf5bca6afa4bb5ee8c6a2d183fe3f21b62efc5f6c7243cb2b26d2d115"},
+]
 
 [package.extras]
 pypi = ["pip (>=24.0)", "platformdirs (>=4.2)", "wheel (>=0.42)"]
@@ -3709,14 +3724,14 @@ llama-index-llms-openai = ">=0.7.0,<0.8"
 
 [[package]]
 name = "llama-index-llms-google-genai"
-version = "0.11.1"
+version = "0.11.2"
 description = "llama-index llms google genai integration"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "llama_index_llms_google_genai-0.11.1-py3-none-any.whl", hash = "sha256:728a140b4d44e8f1f126a76e6dbc8163c9fa08bc5782c3ceeb02ed32ab9b0940"},
-    {file = "llama_index_llms_google_genai-0.11.1.tar.gz", hash = "sha256:656516e7c9b2bb9fa822befb740c34e0f8509ba603d71e838a358f426b45f694"},
+    {file = "llama_index_llms_google_genai-0.11.2-py3-none-any.whl", hash = "sha256:61c4517f3d5799cad50cf84d14be6236510de4a8f501288d21237baf23252269"},
+    {file = "llama_index_llms_google_genai-0.11.2.tar.gz", hash = "sha256:939d99030b0fa45c0f11ec8b0c3a2f44ce68b347818073c6d39086794e37b308"},
 ]
 
 [package.dependencies]
@@ -5408,34 +5423,46 @@ voice-helpers = ["numpy (>=2.0.2)", "sounddevice (>=0.5.1)"]
 
 [[package]]
 name = "openai-agents"
-version = "0.6.9"
+version = "0.18.3"
 description = "OpenAI Agents SDK"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "openai_agents-0.6.9-py3-none-any.whl", hash = "sha256:9e05a96b7610a7a89d6fd9ba379ff840a1aebca150eebcc4d505743ee458f50b"},
-    {file = "openai_agents-0.6.9.tar.gz", hash = "sha256:e55623827b4a1b11d66ec0084bd2b9ea2c6d60f233e04547803af433967e2fdb"},
+    {file = "openai_agents-0.18.3-py3-none-any.whl", hash = "sha256:c6ed971fdeb34d39a9931787bd3960c1e84dc5d7345705794cc5cab8a1158d07"},
+    {file = "openai_agents-0.18.3.tar.gz", hash = "sha256:e637f5f5a50692ccbedb0e4f7f2e4f8e2facfcddd41142f35faf90c89b700fc3"},
 ]
 
 [package.dependencies]
-griffe = ">=1.5.6,<2"
-mcp = {version = ">=1.11.0,<2", markers = "python_version >= \"3.10\""}
-openai = ">=2.9.0,<3"
-pydantic = ">=2.12.3,<3"
+griffelib = ">=2,<3"
+mcp = {version = ">=1.19.0,<2", markers = "python_version >= \"3.10\""}
+openai = ">=2.45.0,<3"
+pydantic = ">=2.12.2,<3"
 requests = ">=2.0,<3"
-types-requests = ">=2.0,<3"
 typing-extensions = ">=4.12.2,<5"
+websockets = ">=15.0,<17"
 
 [package.extras]
+any-llm = ["any-llm-sdk (>=1.11.0,<2) ; python_version >= \"3.11\""]
+blaxel = ["aiohttp (>=3.12,<4)", "blaxel (>=0.2.50)"]
+cloudflare = ["aiohttp (>=3.12,<4)"]
 dapr = ["dapr (>=1.16.0)", "grpcio (>=1.60.0)"]
+daytona = ["daytona (>=0.155.0)"]
+docker = ["docker (>=6.1)"]
+e2b = ["e2b (==2.20.0)", "e2b-code-interpreter (==2.4.1)"]
 encrypt = ["cryptography (>=45.0,<46)"]
-litellm = ["litellm (>=1.81.0,<2)"]
-realtime = ["websockets (>=15.0,<16)"]
+litellm = ["litellm (>=1.83.0)"]
+modal = ["modal (==1.4.3)"]
+mongodb = ["pymongo (>=4.14)"]
+realtime = ["websockets (>=15.0,<17)"]
 redis = ["redis (>=7)"]
+runloop = ["runloop-api-client (>=1.16.0,<2.0.0)"]
+s3 = ["boto3 (>=1.34)"]
 sqlalchemy = ["asyncpg (>=0.29.0)", "sqlalchemy (>=2.0)"]
+temporal = ["temporalio (==1.26.0)", "textual (>=8.2.3,<8.3)"]
+vercel = ["vercel (>=0.5.6,<0.6)"]
 viz = ["graphviz (>=0.17)"]
-voice = ["numpy (>=2.2.0,<3) ; python_version >= \"3.10\"", "websockets (>=15.0,<16)"]
+voice = ["numpy (>=2.2.0,<3) ; python_version >= \"3.10\"", "websockets (>=15.0,<17)"]
 
 [[package]]
 name = "opencv-python"
@@ -9742,21 +9769,6 @@ rich = ">=13.8.0"
 shellingham = ">=1.3.0"
 
 [[package]]
-name = "types-requests"
-version = "2.33.0.20260712"
-description = "Typing stubs for requests"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "types_requests-2.33.0.20260712-py3-none-any.whl", hash = "sha256:de027e28c171d3da529689cbfa023b0b4eab188c8dfa22fd834eebd2cee6e7bb"},
-    {file = "types_requests-2.33.0.20260712.tar.gz", hash = "sha256:2141b67ab534a5c5cd2dac5034f2a35f42e699c5bf185eee608c5246a069d7fb"},
-]
-
-[package.dependencies]
-urllib3 = ">=2"
-
-[[package]]
 name = "typing-extensions"
 version = "4.16.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -11031,4 +11043,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "d5adf3d8f7d13fc48e987c35735ac879e0df1334a613c42ecc66a71f4bec277a"
+content-hash = "18fbc833570990582b943a2eda4e16b7b8ff7df26e1bfc6d6442b4d783f4820b"

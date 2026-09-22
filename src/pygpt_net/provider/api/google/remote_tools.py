@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 16:40:00                  #
+# Updated Date: 2026.09.22 12:20:00                  #
 # ================================================== #
 
 import json
@@ -159,7 +159,7 @@ class RemoteTools:
         # Code Execution tool
         if cfg.get("remote_tools.google.code_interpreter") and "image" not in model.id:
             try:
-                tools.append(gtypes.Tool(code_execution=gtypes.ToolCodeExecution))
+                tools.append(gtypes.Tool(code_execution=gtypes.ToolCodeExecution()))
             except Exception as e:
                 self.window.core.debug.log(e)
 
@@ -168,7 +168,7 @@ class RemoteTools:
             try:
                 # Supported on Gemini 2.x+ models (not on 1.5)
                 if not model_id.startswith("gemini-1.5") and not model_id.startswith("models/gemini-1.5"):
-                    tools.append(gtypes.Tool(url_context=gtypes.UrlContext))
+                    tools.append(gtypes.Tool(url_context=gtypes.UrlContext()))
             except Exception as e:
                 self.window.core.debug.log(e)
 

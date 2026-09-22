@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:55:00                  #
+# Updated Date: 2026.09.22 12:58:00                  #
 # ================================================== #
 
 import mimetypes
@@ -392,10 +392,13 @@ class ImageWorker(QRunnable):
 
     def _using_vertex(self) -> bool:
         """
-        Detect if Vertex AI is configured via env vars.
+        Detect if Enterprise/legacy Vertex backend is configured via env vars.
         """
-        val = os.getenv("GOOGLE_GENAI_USE_VERTEXAI") or ""
-        return str(val).lower() in ("1", "true", "yes", "y")
+        for key in ("GOOGLE_GENAI_USE_ENTERPRISE", "GOOGLE_GENAI_USE_VERTEXAI"):
+            val = os.getenv(key) or ""
+            if str(val).lower() in ("1", "true", "yes", "y"):
+                return True
+        return False
 
     def _is_imagen_generate(self, model_id: str) -> bool:
         """True for Imagen generate models."""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.22 13:11:00                  #
 # ================================================== #
 
 import asyncio
@@ -989,9 +989,36 @@ class GoogleLiveClient:
                         except Exception:
                             pass
 
-                    # Turn complete signal
+                    # Turn completion follows google-genai 2.23+ semantics:
+                    # when interaction_status is set to a concrete value, IDLE is
+                    # authoritative. For older SDKs (or UNSPECIFIED status), keep
+                    # the historical turn_complete fallback.
                     try:
-                        if bool(getattr(sc, "turn_complete", None) or getattr(sc, "turnComplete", None)):
+                        turn_complete = bool(
+                            getattr(sc, "turn_complete", None)
+                            or getattr(sc, "turnComplete", None)
+                        )
+                        interaction_status = (
+                            getattr(sc, "interaction_status", None)
+                            or getattr(sc, "interactionStatus", None)
+                        )
+                        if interaction_status is not None:
+                            status_value = (
+                                getattr(interaction_status, "value", None)
+                                or getattr(interaction_status, "name", None)
+                                or interaction_status
+                            )
+                            status_name = str(status_value).rsplit(".", 1)[-1].upper()
+                            if status_name not in (
+                                "UNSPECIFIED",
+                                "INTERACTION_STATUS_UNSPECIFIED",
+                                "NONE",
+                                "",
+                            ):
+                                turn_finished = status_name == "IDLE"
+                            elif turn_complete:
+                                turn_finished = True
+                        elif turn_complete:
                             turn_finished = True
                     except Exception:
                         pass
@@ -1451,28 +1478,52 @@ class GoogleLiveClient:
                 except Exception:
                     return None
 
-        prompt = (getattr(um_obj, "prompt_token_count", None)
+        prompt = (getattr(um_obj, "total_input_tokens", None)
+                  or getattr(um_obj, "prompt_token_count", None)
                   or getattr(um_obj, "promptTokenCount", None)
                   or getattr(um_obj, "prompt_tokens", None)
+                  or getattr(um_obj, "input_tokens", None)
                   or None)
-        total = (getattr(um_obj, "total_token_count", None)
+        total = (getattr(um_obj, "total_tokens", None)
+                 or getattr(um_obj, "total_token_count", None)
                  or getattr(um_obj, "totalTokenCount", None)
-                 or getattr(um_obj, "total_tokens", None)
                  or None)
-        candidates = (getattr(um_obj, "candidates_token_count", None)
+        explicit_output = getattr(um_obj, "total_output_tokens", None)
+        candidates = (explicit_output
+                      if explicit_output is not None else
+                      getattr(um_obj, "candidates_token_count", None)
                       or getattr(um_obj, "candidatesTokenCount", None)
+                      or getattr(um_obj, "completion_tokens", None)
                       or getattr(um_obj, "output_tokens", None)
                       or None)
-        reasoning = (getattr(um_obj, "candidates_reasoning_token_count", None)
+        reasoning = (getattr(um_obj, "total_thought_tokens", None)
+                     or getattr(um_obj, "thoughts_token_count", None)
+                     or getattr(um_obj, "candidates_reasoning_token_count", None)
                      or getattr(um_obj, "candidatesReasoningTokenCount", None)
                      or getattr(um_obj, "reasoning_tokens", None)
                      or 0)
+        cached = (getattr(um_obj, "total_cached_tokens", None)
+                  or getattr(um_obj, "cached_content_token_count", None)
+                  or 0)
+        tool_use = (getattr(um_obj, "total_tool_use_tokens", None) or 0)
         p = as_int(prompt)
         t = as_int(total)
         c = as_int(candidates)
         r = as_int(reasoning) or 0
-        out_total = max(0, (t or 0) - (p or 0)) if (t is not None and p is not None) else c
-        self._rt_state["usage_payload"] = {"in": p, "out": out_total, "reasoning": r, "total": t}
+        explicit_out = as_int(explicit_output)
+        out_total = (
+            explicit_out
+            if explicit_out is not None
+            else max(0, (t or 0) - (p or 0)) if (t is not None and p is not None) else c
+        )
+        self._rt_state["usage_payload"] = {
+            "in": p,
+            "out": out_total,
+            "reasoning": r,
+            "cached": as_int(cached) or 0,
+            "tool_use": as_int(tool_use) or 0,
+            "total": t,
+        }
 
     def _collect_google_citations_from_server_content(self, sc: Any):
         """

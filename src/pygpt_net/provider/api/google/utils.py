@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 20:00:00                  #
+# Updated Date: 2026.09.22 12:32:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -66,6 +66,7 @@ def capture_google_usage(state, um_obj: Any):
         return
     state.usage_vendor = "google"
     prompt = (
+        as_int(safe_get(um_obj, "total_input_tokens")) or
         as_int(safe_get(um_obj, "prompt_token_count")) or
         as_int(safe_get(um_obj, "prompt_tokens")) or
         as_int(safe_get(um_obj, "input_tokens"))
@@ -74,20 +75,37 @@ def capture_google_usage(state, um_obj: Any):
         as_int(safe_get(um_obj, "total_token_count")) or
         as_int(safe_get(um_obj, "total_tokens"))
     )
+    explicit_output = as_int(safe_get(um_obj, "total_output_tokens"))
     candidates = (
+        explicit_output if explicit_output is not None else
         as_int(safe_get(um_obj, "candidates_token_count")) or
+        as_int(safe_get(um_obj, "completion_tokens")) or
         as_int(safe_get(um_obj, "output_tokens"))
     )
     reasoning = (
+        as_int(safe_get(um_obj, "total_thought_tokens")) or
         as_int(safe_get(um_obj, "thoughts_token_count")) or
         as_int(safe_get(um_obj, "candidates_reasoning_token_count")) or
         as_int(safe_get(um_obj, "reasoning_tokens")) or 0
     )
-    if total is not None and prompt is not None:
+    cached = as_int(safe_get(um_obj, "total_cached_tokens")) or 0
+    tool_use = as_int(safe_get(um_obj, "total_tool_use_tokens")) or 0
+    if explicit_output is not None:
+        # Interactions API 2.x reports this explicitly; prefer it because
+        # total_tokens may also include thought/tool-use accounting.
+        out_total = explicit_output
+    elif total is not None and prompt is not None:
         out_total = max(0, total - prompt)
     else:
         out_total = candidates
-    state.usage_payload = {"in": prompt, "out": out_total, "reasoning": reasoning or 0, "total": total}
+    state.usage_payload = {
+        "in": prompt,
+        "out": out_total,
+        "reasoning": reasoning or 0,
+        "cached": cached,
+        "tool_use": tool_use,
+        "total": total,
+    }
 
 
 def extract_google_urls(payload: Any) -> list[str]:
@@ -208,6 +226,30 @@ def extract_google_urls(payload: Any) -> list[str]:
         except Exception:
             pass
 
+    def scan_interaction_urls(node, depth: int = 0):
+        """Collect URL-like values from Interactions API step/result models."""
+        if node is None or depth > 6:
+            return
+        try:
+            if hasattr(node, "model_dump"):
+                node = node.model_dump(exclude_none=True)
+            elif hasattr(node, "to_json_dict"):
+                node = node.to_json_dict()
+            elif hasattr(node, "to_dict"):
+                node = node.to_dict()
+        except Exception:
+            pass
+        if isinstance(node, dict):
+            for key, value in node.items():
+                normalized = str(key).lower().replace("-", "_")
+                if normalized in ("url", "uri", "source_url", "source_uri"):
+                    add(value)
+                if isinstance(value, (dict, list, tuple)):
+                    scan_interaction_urls(value, depth + 1)
+        elif isinstance(node, (list, tuple)):
+            for item in node:
+                scan_interaction_urls(item, depth + 1)
+
     output = safe_get(payload, "output") or []
     try:
         for item in output or []:
@@ -215,6 +257,22 @@ def extract_google_urls(payload: Any) -> list[str]:
             content = safe_get(item, "content") or []
             for part in content or []:
                 scan_annotations(part)
+    except Exception:
+        pass
+
+    # Interactions API 2.x renamed ``outputs`` to ``steps``. Scan both so
+    # citations from Deep Research and server-side tools survive SDK upgrades.
+    interaction_steps = safe_get(payload, "steps") or safe_get(payload, "outputs") or []
+    try:
+        for step in interaction_steps or []:
+            scan_annotations(step)
+            for field in ("content", "summary", "result", "results"):
+                values = safe_get(step, field) or []
+                if not isinstance(values, (list, tuple)):
+                    values = [values]
+                for value in values:
+                    scan_annotations(value)
+            scan_interaction_urls(step)
     except Exception:
         pass
     scan_annotations(payload)

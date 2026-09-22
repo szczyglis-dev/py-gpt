@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 16:20:00
+# Updated Date: 2026.09.22 13:18:00
 # ================================================== #
 
 import io
@@ -72,7 +72,32 @@ class WorkerState:
     generator: Any = None
     usage_vendor: Optional[str] = None
     usage_payload: dict = field(default_factory=dict)
+
+    # --- Google GenAI streaming / Interactions API ---
+    # WorkerState is slotted, therefore Google-specific state used across
+    # streaming chunks must be declared explicitly instead of attached lazily.
     google_stream_ref: Any = None
+    google_last_event_id: Optional[str] = None
+    google_interaction_id: Optional[str] = None
+    google_interaction_status: Optional[str] = None
+    google_interaction_pending_calls: dict = field(default_factory=dict)
+    google_interaction_steps: list = field(default_factory=list)
+    google_annotations: list = field(default_factory=list)
+    google_thought_summaries: list = field(default_factory=list)
+    google_function_results: list = field(default_factory=list)
+    google_code_results: list = field(default_factory=list)
+    google_url_context_calls: list = field(default_factory=list)
+    google_url_context_results: list = field(default_factory=list)
+    google_research_queries: list = field(default_factory=list)
+    google_search_results: list = field(default_factory=list)
+    google_file_search_calls: list = field(default_factory=list)
+    google_file_search_results: list = field(default_factory=list)
+    google_retrieval_calls: list = field(default_factory=list)
+    google_retrieval_results: list = field(default_factory=list)
+    google_server_tool_events: list = field(default_factory=list)
+    google_thought_signatures: list = field(default_factory=list)
+    google_downloaded_uris: set = field(default_factory=set)
+
     tool_calls: list[dict] = field(default_factory=list)
     chunk_count: int = 0
     chunk_types: dict[str, int] = field(default_factory=dict)

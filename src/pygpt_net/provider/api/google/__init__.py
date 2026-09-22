@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.09.22 12:22:00                  #
 # ================================================== #
 
 import os
@@ -89,7 +89,10 @@ class ApiGoogle:
             )
             filtered["http_options"] = http_options
 
-        # setup VertexAI if enabled
+        # Setup Gemini Enterprise Agent Platform / Vertex backend. Keep the
+        # legacy ``vertexai`` client flag here because google-genai 2.x still
+        # supports it as an alias and this also preserves compatibility with
+        # older SDK releases used by existing PyGPT installations.
         use_vertex = self.setup_env()
         if use_vertex:
             filtered["vertexai"] = True
@@ -302,8 +305,9 @@ class ApiGoogle:
 
     def setup_env(self) -> bool:
         """
-        Setup environment variables for VertexAI via Google GenAI API
+        Setup environment variables for Google GenAI Enterprise/Vertex backend.
 
+        - GOOGLE_GENAI_USE_ENTERPRISE
         - GOOGLE_GENAI_USE_VERTEXAI
         - GOOGLE_CLOUD_PROJECT
         - GOOGLE_CLOUD_LOCATION
@@ -315,12 +319,17 @@ class ApiGoogle:
         use_vertex = False
         if config.get("api_native_google.use_vertex", False):
             use_vertex = True
+            # 2.x prefers the Enterprise name. Keep the legacy alias in sync
+            # for google-genai 1.x and integrations which still inspect it.
+            os.environ["GOOGLE_GENAI_USE_ENTERPRISE"] = "1"
             os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
             os.environ["GOOGLE_CLOUD_PROJECT"] = config.get("api_native_google.cloud_project", "")
             os.environ["GOOGLE_CLOUD_LOCATION"] = config.get("api_native_google.cloud_location", "us-central1")
             if config.get("api_native_google.app_credentials", ""):
                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.get("api_native_google.app_credentials", "")
         else:
+            if os.environ.get("GOOGLE_GENAI_USE_ENTERPRISE"):
+                del os.environ["GOOGLE_GENAI_USE_ENTERPRISE"]
             if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
                 del os.environ["GOOGLE_GENAI_USE_VERTEXAI"]
             if os.environ.get("GOOGLE_CLOUD_PROJECT"):
