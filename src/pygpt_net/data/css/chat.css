@@ -737,6 +737,24 @@ body.display-timestamp .ts {{
    text-align: center;
    margin-top: 2rem;
    margin-bottom: 2rem;
+   opacity: 0;
+   visibility: hidden;
+   transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+   will-change: opacity;
+}}
+.loader-global.visible {{
+   opacity: 1;
+   visibility: visible;
+   transition: opacity 0.25s ease, visibility 0s linear 0s;
+}}
+.loader-global.reserved {{
+   opacity: 0;
+   visibility: hidden;
+}}
+@media (prefers-reduced-motion: reduce) {{
+   .loader-global {{
+      transition: none;
+   }}
 }}
 .lds-ring {{
    opacity: 0.75;

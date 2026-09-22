@@ -7,32 +7,103 @@ class Loading {
 	// Loading indicator spinner
 	constructor(dom) {
 		this.dom = dom;
+		this._showFrame = null;
+		this._hideTimer = null;
+		this._hideHandler = null;
+		this._transitionToken = 0;
 	}
 
-	// Show loader element (and hide tips if visible).
+	// Cancel any pending visibility transition callbacks.
+	_cancelPending(el) {
+		this._transitionToken += 1;
+		if (this._showFrame !== null) {
+			try { cancelAnimationFrame(this._showFrame); } catch (_) {}
+			this._showFrame = null;
+		}
+		if (this._hideTimer !== null) {
+			try { clearTimeout(this._hideTimer); } catch (_) {}
+			this._hideTimer = null;
+		}
+		if (el && this._hideHandler) {
+			try { el.removeEventListener('transitionend', this._hideHandler); } catch (_) {}
+		}
+		this._hideHandler = null;
+	}
+
+	// Show loader with a CSS fade-in. The intermediate reserved state keeps
+	// the element in layout at opacity 0 so the browser has a real start
+	// value to animate from instead of switching directly from display:none.
 	show() {
 		if (typeof window.hideTips === 'function') {
 			window.hideTips();
 		}
 		const el = this.dom.get('_loader_');
 		if (!el) return;
-		el.classList.remove('hidden', 'reserved');
-		el.classList.add('visible');
+		if (el.classList.contains('visible')) return;
+
+		this._cancelPending(el);
+		const token = this._transitionToken;
+		el.classList.remove('hidden', 'visible');
+		el.classList.add('reserved');
+
+		// Force the opacity:0 state to be committed before enabling .visible.
+		void el.offsetWidth;
+		this._showFrame = requestAnimationFrame(() => {
+			this._showFrame = null;
+			if (token !== this._transitionToken) return;
+			el.classList.remove('reserved');
+			el.classList.add('visible');
+		});
 	}
 
-	// Hide loader. When reserveSpace is true, keep its layout box so transient
-	// agent/tool activity cannot change document height and move the viewport.
+	// Hide loader with a CSS fade-out. When reserveSpace is true, keep the
+	// invisible layout slot after the fade; otherwise switch to display:none
+	// only after the opacity transition has completed.
 	hide(reserveSpace = false) {
 		const el = this.dom.get('_loader_');
 		if (!el) return;
-		el.classList.remove('visible');
-		if (reserveSpace) {
-			el.classList.remove('hidden');
-			el.classList.add('reserved');
-		} else {
-			el.classList.remove('reserved');
-			el.classList.add('hidden');
+
+		const wasVisible = el.classList.contains('visible');
+		const wasReserved = el.classList.contains('reserved');
+		this._cancelPending(el);
+		const token = this._transitionToken;
+
+		if (el.classList.contains('hidden')) return;
+
+		el.classList.remove('visible', 'hidden');
+		el.classList.add('reserved');
+
+		if (reserveSpace) return;
+
+		const finish = () => {
+			if (token !== this._transitionToken) return;
+			if (this._hideTimer !== null) {
+				try { clearTimeout(this._hideTimer); } catch (_) {}
+				this._hideTimer = null;
+			}
+			if (this._hideHandler) {
+				try { el.removeEventListener('transitionend', this._hideHandler); } catch (_) {}
+				this._hideHandler = null;
+			}
+			if (!el.classList.contains('visible')) {
+				el.classList.remove('reserved');
+				el.classList.add('hidden');
+			}
+		};
+
+		// If it is already fully transparent, there is nothing left to animate.
+		if (!wasVisible && wasReserved) {
+			finish();
+			return;
 		}
+
+		this._hideHandler = (event) => {
+			if (event.target !== el || event.propertyName !== 'opacity') return;
+			finish();
+		};
+		el.addEventListener('transitionend', this._hideHandler);
+		// Fallback for WebEngine cases where transitionend is skipped.
+		this._hideTimer = setTimeout(finish, 400);
 	}
 }
 

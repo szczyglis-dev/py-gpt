@@ -34,9 +34,9 @@ class UIManager {
 			'.code-wrapper pre { overflow: visible; margin-top: 0; }',
 			'.code-wrapper pre code { display: block; white-space: pre; max-height: 100dvh; overflow: auto;',
 			'  overscroll-behavior: contain; -webkit-overflow-scrolling: touch; overflow-anchor: none; scrollbar-gutter: stable both-edges; scroll-behavior: auto; }',
-			'#_loader_.hidden { display: none !important; visibility: hidden !important; }',
-			'#_loader_.reserved { display: block !important; visibility: hidden !important; pointer-events: none !important; }',
-			'#_loader_.visible { display: block; visibility: visible; }',
+			'#_loader_.hidden { display: none !important; opacity: 0; visibility: hidden !important; pointer-events: none !important; }',
+			'#_loader_.reserved { display: block !important; opacity: 0; visibility: hidden !important; pointer-events: none !important; }',
+			'#_loader_.visible { display: block; opacity: 1; visibility: visible; pointer-events: auto; }',
 
 			/* User message collapse (uc-*)
 			   Collapsed content now fades out towards the bottom using a CSS mask.
