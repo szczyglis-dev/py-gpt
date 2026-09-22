@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 20:45:00                  #
+# Updated Date: 2026.09.04 14:20:00                  #
 # ================================================== #
 
 import os
@@ -35,7 +35,6 @@ def resolve_local_image_path(core, value: Optional[str], ctx: Optional[CtxItem] 
     if not path or path.startswith(("http://", "https://", "gs://")):
         return None
 
-    raw_path = path
     try:
         path = core.filesystem.normalize_local_path(path, ctx=ctx)
     except Exception:
@@ -43,27 +42,6 @@ def resolve_local_image_path(core, value: Optional[str], ctx: Optional[CtxItem] 
             path = core.filesystem.to_workdir(path, auto_prefix=False, ctx=ctx)
         except Exception:
             return None
-
-    # ``runtime_artifacts`` exposes Docker-visible paths such as
-    # /mnt/tmp/runtime_artifacts/... to the model.  The Image generation tool
-    # itself runs in the main/host process, so a reference returned from a
-    # previous tool call must be translated back to its host-side path before
-    # it is passed to an image provider.  Keep a real host /mnt path intact
-    # when it actually exists; only use the sandbox mapping as a fallback.
-    if not os.path.isfile(path):
-        normalized = raw_path.replace("\\", "/")
-        sandbox_roots = ("/mnt/tmp", "/mnt/data", "/data")
-        if any(
-                normalized == root or normalized.startswith(root + "/")
-                for root in sandbox_roots
-        ):
-            try:
-                path = core.filesystem.resolve_sandbox_path(
-                    "sandbox:" + normalized,
-                    ctx=ctx,
-                )
-            except Exception:
-                return None
 
     if not os.path.isfile(path):
         return None
@@ -254,4 +232,24 @@ def get_current_user_image_path(core, mode: str, ctx: Optional[CtxItem] = None) 
         path = make_portable_image_path(core, getattr(attachment, "path", None), ctx=ctx)
         if path:
             return path
+    return None
+
+
+def get_current_turn_user_reference_image_path(core, mode: str, ctx: Optional[CtxItem] = None) -> Optional[str]:
+    """
+    Return a reusable image reference for the active turn only.
+
+    First prefer the currently attached image from the live attachment queue.
+    If it has already been cached in the current ctx item earlier in the same
+    turn (for example after prompt preparation), reuse that cached value.
+    Unlike ``get_last_user_reference_image_path()``, this helper never falls
+    back to an older conversation turn.
+    """
+    path = get_current_user_image_path(core, mode, ctx=ctx)
+    if path:
+        return path
+
+    has_reference, path = _get_user_reference_path_from_ctx(core, ctx)
+    if has_reference:
+        return path
     return None

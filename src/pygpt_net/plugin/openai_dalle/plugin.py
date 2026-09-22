@@ -11,6 +11,7 @@
 
 from pygpt_net.core.agents_v2.tool_bridge import mark_pending
 from pygpt_net.core.image.state import (
+    get_current_turn_user_reference_image_path,
     get_current_user_image_path,
     get_last_generated_image_path,
     get_last_user_reference_image_path,
@@ -214,6 +215,23 @@ class Plugin(BasePlugin):
                     query = params["query"]
                     resolution = str(params.get("resolution") or "").strip() or None
                     reference_image = str(params.get("reference_image") or "").strip() or None
+
+                    mode = self.window.core.config.get("mode")
+                    current_turn_reference = get_current_turn_user_reference_image_path(
+                        self.window.core,
+                        mode,
+                        ctx=ctx,
+                    )
+                    if current_turn_reference:
+                        remember_user_reference_image_path(self.window.core, ctx, current_turn_reference)
+
+                    if not reference_image and current_turn_reference:
+                        # When the current user turn contains an attached image,
+                        # automatically pass it to the image backend as the
+                        # active edit/reference image. This keeps same-turn image
+                        # attachments available to native image-edit workflows
+                        # even if the model omitted the optional parameter.
+                        reference_image = current_turn_reference
 
                     if reference_image:
                         resolved_reference = resolve_local_image_path(
