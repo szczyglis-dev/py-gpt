@@ -340,7 +340,7 @@ For a local or other OpenAI-compatible model, you can configure credentials per 
    ``Config -> Models -> Editor`` using ``API base`` and ``API key``. This avoids having to
    reuse the global OpenAI endpoint/API key for that model.
 
-**Note:** The ability to use models or services depends on your access level with the respective provider. If you wish to use custom API endpoints or local APIs that do not require API keys, simply enter any value into the API key field to bypass prompts about an empty key.
+**Note:** The ability to use models or services depends on your access level with the respective provider.
 
 **Adding a custom OpenAI-compatible provider**
 
