@@ -245,11 +245,8 @@ class Agent(BaseAgent):
             bot_1_kwargs["handoffs"] = experts
         bot_1 = self.get_agent(window, bot_1_kwargs)
 
-        model_2 = model
-        model_name_2 = self.get_option(preset, "bot_2", "model")
-        if model_name_2:
-            model_2 = window.core.models.get(model_name_2)
-            bot_2_kwargs["model"] = model_2
+        model_2 = self.resolve_model_option(window, preset, "bot_2", model)
+        bot_2_kwargs["model"] = model_2
         bot_2_name = self.get_option(preset, "bot_2", "name")
         bot_2_kwargs["bot_id"] = 2
         if experts:
@@ -481,6 +478,11 @@ class Agent(BaseAgent):
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",

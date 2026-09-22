@@ -65,15 +65,17 @@ def resolve_node_runtime(
     default_allow_local: bool,
     default_allow_remote: bool,
 ) -> NodeRuntime:
-    model_name = option_get(node.id, "model", None)
+    # Per-node model selection is opt-in; by default inherit the active model.
     model_item: ModelItem = default_model
-    try:
-        if model_name:
-            cand = window.core.models.get(model_name)
-            if cand:
-                model_item = cand
-    except Exception:
-        model_item = default_model
+    if bool(option_get(node.id, "model_overwrite", False)):
+        model_name = option_get(node.id, "model", None)
+        try:
+            if model_name:
+                cand = window.core.models.get(model_name)
+                if cand:
+                    model_item = cand
+        except Exception:
+            model_item = default_model
 
     prompt_opt = option_get(node.id, "prompt", None)
     instructions = (prompt_opt or getattr(node, "instruction", None) or base_prompt or "").strip()

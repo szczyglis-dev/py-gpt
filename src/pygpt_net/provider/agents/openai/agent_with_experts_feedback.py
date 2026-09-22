@@ -193,7 +193,7 @@ class Agent(BaseAgent):
             self.get_option(preset, "feedback", "prompt"),
             agent_kwargs,
         )
-        feedback_model = self.get_option(preset, "feedback", "model")
+        feedback_model = self.resolve_model_option(window, preset, "feedback", model)
         feedback_allow_local_tools = self.get_option(preset, "feedback", "allow_local_tools")
         feedback_allow_remote_tools = self.get_option(preset, "feedback", "allow_remote_tools")
 
@@ -205,10 +205,9 @@ class Agent(BaseAgent):
             if previous_response_id:
                 kwargs["previous_response_id"] = previous_response_id
 
-        model_eval = window.core.models.get(feedback_model)
         evaluator = self.get_evaluator(
             window=window,
-            model=model_eval,
+            model=feedback_model,
             instructions=feedback_instructions,
             preset=preset,
             tools=tools,
@@ -371,6 +370,11 @@ class Agent(BaseAgent):
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",

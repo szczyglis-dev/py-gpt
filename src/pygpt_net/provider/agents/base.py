@@ -200,6 +200,39 @@ class BaseAgent:
             base = f"{base}\n\n{extra}" if base else extra
         return self.append_security_rule(base)
 
+    def resolve_model_option(
+            self,
+            window,
+            preset: PresetItem,
+            section: str,
+            default_model: Any,
+    ) -> Any:
+        """Resolve an optional per-agent model override.
+
+        Agent sub-sections inherit the currently active/global model unless the
+        section explicitly enables ``model_overwrite``.  Missing/invalid model
+        IDs also fall back to the active model, which keeps old presets safe
+        after model-registry changes.
+        """
+        model = default_model
+        if isinstance(model, str):
+            try:
+                model = window.core.models.get(model) or default_model
+            except Exception:
+                model = default_model
+
+        if not bool(self.get_option(preset, section, "model_overwrite")):
+            return model
+
+        model_id = self.get_option(preset, section, "model")
+        if not model_id:
+            return model
+        try:
+            candidate = window.core.models.get(model_id)
+        except Exception:
+            candidate = None
+        return candidate or model
+
     def get_default(self, section: str, key: str) -> Any:
         """
         Get default option value

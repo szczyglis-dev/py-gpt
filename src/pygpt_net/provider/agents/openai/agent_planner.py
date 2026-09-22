@@ -548,14 +548,12 @@ Overall Task: {task}
         agent = self.get_agent(window, agent_exec_kwargs)
 
         # options
-        planner_model_name = self.get_option(preset, "planner", "model")
-        planner_model = window.core.models.get(planner_model_name) if planner_model_name else agent_kwargs.get("model",
-                                                                                                               ModelItem())
+        planner_model = self.resolve_model_option(window, preset, "planner", model)
         planner_allow_local_tools = bool(self.get_option(preset, "planner", "allow_local_tools"))
         planner_allow_remote_tools = bool(self.get_option(preset, "planner", "allow_remote_tools"))
         planner_prompt_tpl = self.get_option(preset, "planner", "initial_prompt") or self.DEFAULT_INITIAL_PLAN_PROMPT
 
-        refine_model_name = self.get_option(preset, "refine", "model") or planner_model_name
+        refine_model = self.resolve_model_option(window, preset, "refine", model)
         refine_allow_local_tools = bool(self.get_option(preset, "refine", "allow_local_tools"))
         refine_allow_remote_tools = bool(self.get_option(preset, "refine", "allow_remote_tools"))
         refine_prompt_tpl = self.get_option(preset, "refine", "prompt") or self.DEFAULT_PLAN_REFINE_PROMPT
@@ -777,10 +775,9 @@ Overall Task: {task}
                     remaining_sub_tasks=remaining_text,
                     task=query,
                 )
-                model_refiner = window.core.models.get(refine_model_name) if refine_model_name else planner_model
                 refiner = self.get_refiner(
                     window=window,
-                    model=model_refiner,
+                    model=refine_model,
                     preset=preset,
                     tools=tools,
                     allow_local_tools=refine_allow_local_tools,
@@ -906,6 +903,11 @@ Overall Task: {task}
                         "use": "models",
                         "default": "gpt-4o",
                     },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
+                    },
                     "initial_prompt": {
                         "type": "textarea",
                         "label": trans("agent.option.prompt"),
@@ -934,6 +936,11 @@ Overall Task: {task}
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",

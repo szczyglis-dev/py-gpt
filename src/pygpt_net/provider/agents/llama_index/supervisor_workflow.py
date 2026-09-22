@@ -60,9 +60,12 @@ class SupervisorAgent(BaseAgent):
         prompt_supervisor = self.append_system_prompt_extra(prompt_supervisor, kwargs)
         prompt_worker = self.append_system_prompt_extra(prompt_worker, kwargs)
 
-        # get worker LLM from options
-        model_worker = window.core.models.get(
-            self.get_option(preset, "worker", "model")
+        # Worker inherits the active model unless its preset explicitly overwrites it.
+        model_worker = self.resolve_model_option(
+            window,
+            preset,
+            "worker",
+            kwargs.get("model"),
         )
         llm_worker = window.core.idx.llm.get_agent(
             model_worker,
@@ -112,6 +115,11 @@ class SupervisorAgent(BaseAgent):
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",

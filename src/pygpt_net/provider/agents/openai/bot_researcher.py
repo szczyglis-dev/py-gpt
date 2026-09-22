@@ -149,12 +149,8 @@ class Agent(BaseAgent):
         )
         prompt = self.append_system_prompt_extra(prompt, agent_kwargs)
 
-        model_planner = window.core.models.get(
-            self.get_option(preset, "planner", "model")
-        )
-        model_search = window.core.models.get(
-            self.get_option(preset, "search", "model")
-        )
+        model_planner = self.resolve_model_option(window, preset, "planner", model)
+        model_search = self.resolve_model_option(window, preset, "search", model)
 
         # prepare provider config
         model_kwargs = {}
@@ -246,6 +242,11 @@ class Agent(BaseAgent):
                         "use": "models",
                         "default": "gpt-4o",
                     },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
+                    },
                     "prompt": {
                         "type": "textarea",
                         "label": trans("agent.option.prompt"),
@@ -274,6 +275,11 @@ class Agent(BaseAgent):
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",

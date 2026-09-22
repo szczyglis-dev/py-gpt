@@ -319,16 +319,12 @@ class Agent(BaseAgent):
         preset = context.preset
         agent_name = "Worker"  # Default worker name
         tools = kwargs.get("function_tools", [])
-        worker_model_id = self.get_option(preset, "worker", "model")
-        model = window.core.models.get(worker_model_id) if worker_model_id else None
-
-        # Worker presets can outlive model-registry changes.  If the configured
-        # worker model no longer exists, use the Supervisor's current model
-        # instead of passing None into remote-tools / the Agents SDK.
-        if model is None:
-            model = kwargs.get("model")
-            if isinstance(model, str):
-                model = window.core.models.get(model)
+        model = self.resolve_model_option(
+            window,
+            preset,
+            "worker",
+            kwargs.get("model"),
+        )
 
         if model is None or not getattr(model, "id", None):
             current_model_id = window.core.config.get("model")
@@ -610,6 +606,11 @@ class Agent(BaseAgent):
                         "type": "combo",
                         "use": "models",
                         "default": "gpt-4o",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",

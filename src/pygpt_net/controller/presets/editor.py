@@ -709,6 +709,37 @@ class Editor:
             preset.extra = {}
         preset.extra[id] = data_dict
 
+    def _build_agent_options_layout(self, schema_options: dict, options_layouts: dict) -> QVBoxLayout:
+        """Compose an agent option tab, keeping model override controls inline."""
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 10, 0, 10)
+
+        consumed = set()
+        if "model" in options_layouts and "model_overwrite" in options_layouts:
+            model_row = QHBoxLayout()
+            model_row.addLayout(options_layouts["model"], 1)
+            model_row.addLayout(options_layouts["model_overwrite"], 0)
+            model_row.setStretch(0, 1)
+            layout.addLayout(model_row)
+            consumed.update({"model", "model_overwrite"})
+
+        checkbox_layout = QHBoxLayout()
+        has_checkboxes = False
+        for key, opt_layout in options_layouts.items():
+            if key in consumed:
+                continue
+            opt_schema = schema_options.get(key, {})
+            if opt_schema.get("type") == "bool":
+                checkbox_layout.addLayout(opt_layout)
+                has_checkboxes = True
+            else:
+                layout.addLayout(opt_layout)
+
+        layout.addStretch(1)
+        if has_checkboxes:
+            layout.addLayout(checkbox_layout)
+        return layout
+
     def append_extra_config(self):
         """Build extra configuration for the preset editor dialog"""
         if self.built:
@@ -737,18 +768,7 @@ class Editor:
                 title = option.get('label', '')
                 config_id = "agent." + id + "." + option_tab_id
                 widgets, options = build_option_widgets(config_id, option['options'])
-                layout = QVBoxLayout()
-                layout.setContentsMargins(0, 10, 0, 10)
-
-                checkbox_layout = QHBoxLayout()
-                for key in options:
-                    opt_layout = options[key]
-                    if option['options'][key]['type'] == 'bool':
-                        checkbox_layout.addLayout(opt_layout)   # checkbox
-                    else:
-                        layout.addLayout(opt_layout)
-                layout.addStretch(1)
-                layout.addLayout(checkbox_layout)
+                layout = self._build_agent_options_layout(option['options'], options)
 
                 # wrap the tab content in a scroll area to avoid vertical overlaps
                 tab_content = QWidget()
@@ -960,19 +980,8 @@ class Editor:
             # Build new option widgets into UI config under config_id.
             widgets, options_layouts = build_option_widgets(config_id, schema_options)
 
-            # Create layouts similar to initial build (checkboxes at bottom row).
-            layout = QVBoxLayout()
-            layout.setContentsMargins(0, 10, 0, 10)
-
-            checkbox_layout = QHBoxLayout()
-            for key, opt_layout in options_layouts.items():
-                opt_schema = schema_options.get(key, {})
-                if opt_schema.get('type') == 'bool':
-                    checkbox_layout.addLayout(opt_layout)
-                else:
-                    layout.addLayout(opt_layout)
-            layout.addStretch(1)
-            layout.addLayout(checkbox_layout)
+            # Keep model + overwrite toggle in one row; group other bools below.
+            layout = self._build_agent_options_layout(schema_options, options_layouts)
 
             # Assemble tab widget wrapped into a scroll area.
             tab_content = QWidget()
@@ -2042,18 +2051,8 @@ class Editor:
                     # Build UI widgets for this option group
                     widgets, options_layouts = build_option_widgets(config_id, schema_options)
 
-                    # Layout: non-bool vertically, bools grouped in bottom row
-                    layout = QVBoxLayout()
-                    layout.setContentsMargins(0, 10, 0, 10)
-                    checkbox_layout = QHBoxLayout()
-                    for key, opt_layout in options_layouts.items():
-                        opt_schema = schema_options.get(key, {})
-                        if opt_schema.get('type') == 'bool':
-                            checkbox_layout.addLayout(opt_layout)
-                        else:
-                            layout.addLayout(opt_layout)
-                    layout.addStretch(1)
-                    layout.addLayout(checkbox_layout)
+                    # Keep model + overwrite toggle in one row; group other bools below.
+                    layout = self._build_agent_options_layout(schema_options, options_layouts)
 
                     # Create tab widget wrapped in a scroll area and tag with metadata
                     tab_content = QWidget()
