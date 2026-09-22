@@ -142,6 +142,7 @@ class PlannerWorkflow(Workflow):
         self,
         tools: List[BaseTool],
         llm: LLM,
+        executor_llm: Optional[LLM] = None,
         system_prompt: Optional[str] = None,
         initial_plan_prompt: str = DEFAULT_INITIAL_PLAN_PROMPT,
         plan_refine_prompt: str = DEFAULT_PLAN_REFINE_PROMPT,
@@ -153,6 +154,9 @@ class PlannerWorkflow(Workflow):
         on_stop: Optional[Callable] = None,
         refine_after_each_subtask: bool = True,
     ):
+        # ``executor_llm`` lets the wrapper apply an independent remote-tool
+        # policy to the tool-calling executor while planner/refiner structured
+        # calls continue to use ``llm``.
         super().__init__(timeout=None, verbose=verbose)
         self._planner_llm = llm
         self._initial_plan_prompt = PromptTemplate(initial_plan_prompt)
@@ -172,7 +176,7 @@ class PlannerWorkflow(Workflow):
             name="PlannerExecutor",
             description="Executes planner sub-tasks using available tools.",
             tools=tools,
-            llm=llm,
+            llm=executor_llm or llm,
             system_prompt=system_prompt or DEFAULT_EXECUTE_PROMPT,
         )
 

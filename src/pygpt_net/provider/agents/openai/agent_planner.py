@@ -532,14 +532,15 @@ Overall Task: {task}
         if experts:
             agent_kwargs["handoffs"] = experts
 
-        # Executor must have access to the same tool set as planner/refiner.
-        # If not explicitly provided, inherit allow_* flags from planner options.
+        # Executor/step has its own tool policy. Explicit runtime overrides still
+        # win, otherwise use the dedicated preset flags instead of inheriting the
+        # planner agent's tool permissions.
         exec_allow_local_tools = agent_kwargs.get("allow_local_tools")
         exec_allow_remote_tools = agent_kwargs.get("allow_remote_tools")
         if exec_allow_local_tools is None:
-            exec_allow_local_tools = bool(self.get_option(preset, "planner", "allow_local_tools"))
+            exec_allow_local_tools = bool(self.get_option(preset, "step", "allow_local_tools"))
         if exec_allow_remote_tools is None:
-            exec_allow_remote_tools = bool(self.get_option(preset, "planner", "allow_remote_tools"))
+            exec_allow_remote_tools = bool(self.get_option(preset, "step", "allow_remote_tools"))
 
         # executor agent (FunctionAgent equivalent)
         agent_exec_kwargs = dict(agent_kwargs)
@@ -891,6 +892,18 @@ Overall Task: {task}
                         "label": trans("agent.option.prompt"),
                         "description": trans("agent.planner.step.prompt.desc"),
                         "default": self.PROMPT,
+                    },
+                    "allow_local_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
+                        "default": True,
+                    },
+                    "allow_remote_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
+                        "default": True,
                     },
                 }
             },

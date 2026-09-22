@@ -50,6 +50,18 @@ class PlannerAgent(BaseAgent):
         tools: List[BaseTool] = kwargs.get("tools", []) or []
         llm: LLM = kwargs.get("llm", None)
         verbose: bool = kwargs.get("verbose", False)
+        step_allow_local_tools = bool(self.get_option(preset, "step", "allow_local_tools"))
+        step_allow_remote_tools = bool(self.get_option(preset, "step", "allow_remote_tools"))
+        executor_llm: LLM = llm
+        if kwargs.get("model") is not None:
+            executor_llm = window.core.idx.llm.get_agent(
+                kwargs.get("model"),
+                stream=False,
+                allow_remote_tools=step_allow_remote_tools,
+                computer_runtime=(
+                    kwargs.get("computer_runtime") if step_allow_remote_tools else None
+                ),
+            )
         max_steps: int = int(kwargs.get("max_iterations", kwargs.get("max_steps", 12)))
 
         # get prompts from options or use defaults
@@ -84,8 +96,9 @@ class PlannerAgent(BaseAgent):
 
 
         return PlannerWorkflow(
-            tools=tools,
+            tools=tools if step_allow_local_tools else [],
             llm=llm,
+            executor_llm=executor_llm,
             verbose=verbose,
             max_steps=max_steps,
             system_prompt=prompt_step,
@@ -110,6 +123,18 @@ class PlannerAgent(BaseAgent):
                         "label": trans("agent.option.prompt"),
                         "description": trans("agent.planner.step.prompt.desc"),
                         "default": DEFAULT_EXECUTE_PROMPT,
+                    },
+                    "allow_local_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
+                        "default": True,
+                    },
+                    "allow_remote_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
+                        "default": True,
                     },
                 }
             },

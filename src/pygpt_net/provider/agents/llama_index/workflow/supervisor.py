@@ -21,7 +21,7 @@ from llama_index.core.memory import Memory
 
 # ==== Prompts ====
 SUPERVISOR_PROMPT = """
-You are the “Supervisor” – the main orchestrator. Do not use tools directly.
+You are the “Supervisor” – the main orchestrator. You may use enabled tools directly when useful, while still delegating execution to the Worker when appropriate.
 Your tasks:
 - Break down the user's task into steps and create precise instructions for the “Worker” agent.
 - Do not pass your history/memory to the Worker. Only pass minimal, self-sufficient instructions.
@@ -479,6 +479,8 @@ def get_workflow(
     tools,
     llm_supervisor,
     llm_worker,
+    supervisor_tools=None,
+    worker_tools=None,
     verbose: bool = False,
     prompt_supervisor: str = SUPERVISOR_PROMPT,
     prompt_worker: str = WORKER_PROMPT,
@@ -491,6 +493,8 @@ def get_workflow(
     :param tools: List of tools for the Worker agent.
     :param llm_supervisor: LLM instance for the Supervisor agent.
     :param llm_worker: LLM instance for the Worker agent.
+    :param supervisor_tools: Optional local tools exposed to the Supervisor.
+    :param worker_tools: Optional local tools exposed to the Worker.
     :param verbose: Verbose output flag.
     :param prompt_supervisor: Prompt for the Supervisor agent.
     :param prompt_worker: Prompt for the Worker agent.
@@ -498,17 +502,25 @@ def get_workflow(
     :param worker_memory_session_id: Session ID for the Worker agent's memory.
     :return: SupervisorWorkflow instance
     """
+    # Keep backwards compatibility for direct callers: historically the Worker
+    # received ``tools`` and the Supervisor received none. New callers can pass
+    # per-role tool lists explicitly.
+    if supervisor_tools is None:
+        supervisor_tools = []
+    if worker_tools is None:
+        worker_tools = tools or []
+
     supervisor = FunctionAgent(
         name="Supervisor",
         llm=llm_supervisor,
         system_prompt=prompt_supervisor,
-        tools=[],
+        tools=supervisor_tools,
     )
     worker = FunctionAgent(
         name="Worker",
         llm=llm_worker,
         system_prompt=prompt_worker,
-        tools=tools,
+        tools=worker_tools,
     )
 
     # separate memory for the worker

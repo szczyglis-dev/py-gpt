@@ -53,7 +53,7 @@ from openai.types.responses import (
 JSON_RE = re.compile(r"\{[\s\S]*\}$", re.MULTILINE)
 
 SUPERVISOR_PROMPT = """
-    You are the “Supervisor” (orchestrator). You never use tools directly except the tool that runs the Worker.
+    You are the “Supervisor” (orchestrator). You may use your own enabled tools when useful, and you can delegate execution to the Worker through the run_worker tool.
     Process:
     - Decompose the user's task into actionable instructions for the Worker.
     - Do NOT pass your conversation history to the Worker. Pass ONLY a concise, self-contained instruction.
@@ -293,6 +293,7 @@ class Agent(BaseAgent):
         agent_name = "Supervisor"  # hard-coded UI name
 
         worker_tool = kwargs.get("worker_tool", None)
+        tools = kwargs.get("function_tools", [])
         instructions = self.append_system_prompt_extra(
             self.get_option(preset, "supervisor", "prompt"),
             kwargs,
@@ -302,8 +303,23 @@ class Agent(BaseAgent):
             "instructions": instructions,
             "model": window.core.agents.provider.get_openai_model(model)
         }
+
+        # Supervisor may optionally use the same local/provider-native tools as
+        # other agents. The internal run_worker tool is orchestration plumbing,
+        # not a user tool, so it is always appended independently of these flags.
+        tool_kwargs = append_tools(
+            tools=tools,
+            window=window,
+            model=model,
+            preset=preset,
+            allow_local_tools=bool(self.get_option(preset, "supervisor", "allow_local_tools")),
+            allow_remote_tools=bool(self.get_option(preset, "supervisor", "allow_remote_tools")),
+        )
+        kwargs.update(tool_kwargs)
         if worker_tool:
-            kwargs["tools"] = [worker_tool]
+            kwargs.setdefault("tools", [])
+            kwargs["tools"] = list(kwargs["tools"]) + [worker_tool]
+
         append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
@@ -595,6 +611,18 @@ class Agent(BaseAgent):
                         "label": trans("agent.option.prompt"),
                         "description": trans("agent.option.prompt.supervisor.desc"),
                         "default": SUPERVISOR_PROMPT,
+                    },
+                    "allow_local_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
+                        "default": False,
+                    },
+                    "allow_remote_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
+                        "default": False,
                     },
                 }
             },
