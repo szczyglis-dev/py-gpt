@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 22:00:00                  #
+# Updated Date: 2026.09.22 12:20:00                  #
 # ================================================== #
 
 import copy
@@ -1315,6 +1315,20 @@ class Patch:
                     if normalized_modes != value:
                         data[key] = normalized_modes
                         updated = True
+
+            # < 2.8.29
+            if old < parse_version("2.8.29"):
+                print("Migrating config from < 2.8.29...")
+
+                # Clarify prompt-injection protection semantics: external/RAG
+                # content may be used as factual reference material, while only
+                # embedded instructions/commands are treated as untrusted. Reset
+                # the annotation so existing profiles receive the corrected rule.
+                key = "security.prompt_injection.prompt"
+                new_value = cfg_get_base(key)
+                if data.get(key) != new_value:
+                    data[key] = new_value
+                    updated = True
 
         # update file
         migrated = False

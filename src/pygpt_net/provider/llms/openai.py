@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 17:35:00                  #
+# Updated Date: 2026.09.22 11:45:00                  #
 # ================================================== #
 
 from typing import Optional, List, Dict
@@ -141,10 +141,16 @@ class OpenAILLM(BaseLLM):
                 args["context_window"] = ctx_size
 
         # A model configured for Chat in PyGPT uses /v1/chat/completions even
-        # though the UI mode is Completion. Legacy instruct-only models stay on
-        # /v1/completions. This also bypasses LlamaIndex model-name detection.
-        args.setdefault("is_chat_model", model.has_mode(MODE_CHAT))
-        args.setdefault("is_function_calling_model", False)
+        # though the UI mode is Completion. OpenAI's legacy instruct model is
+        # completion-only and must always use /v1/completions. Force this value
+        # instead of using setdefault(), because old/user LlamaIndex overrides or
+        # runtime mode normalization may otherwise leave is_chat_model=True.
+        if model_id == "gpt-3.5-turbo-instruct":
+            args["is_chat_model"] = False
+            args["is_function_calling_model"] = False
+        else:
+            args.setdefault("is_chat_model", model.has_mode(MODE_CHAT))
+            args.setdefault("is_function_calling_model", False)
 
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         self.log_llama_create(window, model, args, "OpenAICompletion")

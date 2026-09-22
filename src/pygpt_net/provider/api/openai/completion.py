@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2026.09.22 11:22:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any, List
@@ -64,13 +64,6 @@ class Completion:
             user_name=user_name,
         )
 
-        # check if max tokens not exceeded
-        if model.ctx > 0:
-            available_tokens = model.ctx - self.input_tokens
-            if max_tokens > 0:
-                if available_tokens < max_tokens:
-                    max_tokens = available_tokens
-
         # prepare stop word if user_name is set
         stop = ""
         if user_name is not None and user_name != '':
@@ -81,6 +74,19 @@ class Completion:
         # fix for deprecated OpenAI davinci models
         if model_id.startswith('text-davinci'):
             model_id = 'gpt-3.5-turbo-instruct'
+
+        # Respect an explicit app-side output limit for every model. If the
+        # limit is unset (0), normally omit max_tokens and let the API/model
+        # choose its own output limit. The legacy gpt-3.5-turbo-instruct
+        # Completions endpoint is the only exception: omitting max_tokens there
+        # falls back to 16 generated tokens, so use the remaining context
+        # budget for that model only.
+        if model.ctx > 0:
+            available_tokens = max(0, int(model.ctx) - self.input_tokens)
+            if max_tokens > 0:
+                max_tokens = min(max_tokens, available_tokens)
+            elif model_id == 'gpt-3.5-turbo-instruct':
+                max_tokens = available_tokens
 
         # extra API kwargs
         response_kwargs = {}
