@@ -334,7 +334,7 @@ Here, you can add or manage API keys for any supported provider.
 **Example**
 
 - **OpenAI:** Obtain your API key by registering on the OpenAI website: https://platform.openai.com and navigating to https://platform.openai.com/account/api-keys.
-- **Anthropic, Google, xAPI, Perplexity, OpenRouter, etc.:** Follow similar steps on their respective platforms.
+- **Anthropic, Google, xAI, Perplexity, OpenRouter, etc.:** Follow similar steps on their respective platforms.
 
 For a local or other OpenAI-compatible model, you can configure credentials per model in
    ``Config -> Models -> Editor`` using ``API base`` and ``API key``. This avoids having to
