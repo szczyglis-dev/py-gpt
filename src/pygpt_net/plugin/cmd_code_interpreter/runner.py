@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 15:10:00                  #
+# Updated Date: 2026.09.22 02:20:00                  #
 # ================================================== #
 
+import locale
 import os.path
 import re
 import threading
@@ -102,6 +103,83 @@ class Runner:
             "base_dir": base_dir,
         })
 
+    @staticmethod
+    def decode_subprocess_output(data) -> str:
+        """Decode subprocess output without assuming UTF-8 on Windows.
+
+        Windows console programs commonly emit the active OEM code page when
+        stdout/stderr are redirected (for example ``dir``/``tree``), while some
+        utilities emit UTF-16.  Always prefer Unicode encodings when they are
+        detectable, then fall back to the Windows OEM/system code pages.
+        """
+        if data is None:
+            return ""
+        if isinstance(data, str):
+            return data
+        if not isinstance(data, (bytes, bytearray)):
+            return str(data)
+
+        raw = bytes(data)
+        if not raw:
+            return ""
+
+        # Explicit BOMs are authoritative.  ``utf-16`` consumes either endian
+        # BOM and avoids leaving U+FEFF in the returned text.
+        if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+            try:
+                return raw.decode("utf-16")
+            except UnicodeDecodeError:
+                pass
+        if raw.startswith(b"\xef\xbb\xbf"):
+            try:
+                return raw.decode("utf-8-sig")
+            except UnicodeDecodeError:
+                pass
+
+        encodings = ["utf-8"]
+
+        if os.name == "nt":
+            # cmd.exe and many classic Windows utilities write using the OEM
+            # console code page (e.g. cp852 on a Polish Windows installation).
+            try:
+                import ctypes
+                oem_cp = int(ctypes.windll.kernel32.GetOEMCP())
+                if oem_cp > 0:
+                    encodings.append(f"cp{oem_cp}")
+            except Exception:
+                pass
+
+        try:
+            preferred = locale.getpreferredencoding(False)
+            if preferred:
+                encodings.append(preferred)
+        except Exception:
+            pass
+
+        if os.name == "nt":
+            encodings.append("mbcs")
+
+        # UTF-16 output without a BOM is uncommon but does occur in some
+        # Windows command-line utilities.  Try it only when NUL density makes
+        # UTF-16 plausible, so normal single-byte output is not misdetected.
+        if raw.count(b"\x00") >= max(2, len(raw) // 5):
+            encodings.extend(("utf-16-le", "utf-16-be"))
+
+        seen = set()
+        for encoding in encodings:
+            key = str(encoding).lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                return raw.decode(encoding)
+            except (LookupError, UnicodeDecodeError):
+                continue
+
+        # Output shown to the user/model must never crash the tool solely due
+        # to an unknown process encoding.
+        return raw.decode("utf-8", errors="replace")
+
     def handle_result(self, stdout, stderr, log_category: str = "code"):
         """
         Handle result from subprocess
@@ -112,11 +190,11 @@ class Runner:
         """
         result = None
         if stdout:
-            result = stdout.decode("utf-8")
+            result = self.decode_subprocess_output(stdout)
             self.send_interpreter_output(result, "stdout")
             self.log("STDOUT: {}".format(result), category=log_category)
         if stderr:
-            result = stderr.decode("utf-8")
+            result = self.decode_subprocess_output(stderr)
             self.send_interpreter_output(result, "stderr")
             self.log("STDERR: {}".format(result), category=log_category)
         if result is None:
@@ -133,7 +211,7 @@ class Runner:
         """
         result = None
         if response:
-            result = response.decode('utf-8')
+            result = self.decode_subprocess_output(response)
         self.send_interpreter_output(result, "stdout")
         self.log(
             "Result: {}".format(result),

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:50:00                  #
+# Updated Date: 2026.09.22 02:20:00                  #
 # ================================================== #
 
 from pygpt_net.core.qt import safe_emit
@@ -37,19 +37,88 @@ class LocalKernel:
     RESTART_COOLDOWN = 10.0
     NONINTERACTIVE_SHELL_BOOTSTRAP = r"""
 def _pygpt_make_system_noninteractive():
+    import locale
     import os
     import subprocess
+    import sys
+
+    def _decode_output(data):
+        if not data:
+            return ""
+        if isinstance(data, str):
+            return data
+        raw = bytes(data)
+
+        if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+            try:
+                return raw.decode("utf-16")
+            except UnicodeDecodeError:
+                pass
+        if raw.startswith(b"\xef\xbb\xbf"):
+            try:
+                return raw.decode("utf-8-sig")
+            except UnicodeDecodeError:
+                pass
+
+        encodings = ["utf-8"]
+        if os.name == "nt":
+            try:
+                import ctypes
+                oem_cp = int(ctypes.windll.kernel32.GetOEMCP())
+                if oem_cp > 0:
+                    encodings.append("cp{}".format(oem_cp))
+            except Exception:
+                pass
+
+        try:
+            preferred = locale.getpreferredencoding(False)
+            if preferred:
+                encodings.append(preferred)
+        except Exception:
+            pass
+
+        if os.name == "nt":
+            encodings.append("mbcs")
+        if raw.count(b"\x00") >= max(2, len(raw) // 5):
+            encodings.extend(("utf-16-le", "utf-16-be"))
+
+        seen = set()
+        for encoding in encodings:
+            key = str(encoding).lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                return raw.decode(encoding)
+            except (LookupError, UnicodeDecodeError):
+                continue
+        return raw.decode("utf-8", errors="replace")
 
     def _system(cmd):
         _ip = get_ipython()
         _expanded = _ip.var_expand(cmd, depth=1)
         _executable = None if os.name == "nt" else os.environ.get("SHELL")
-        _exit_code = subprocess.call(
+        _completed = subprocess.run(
             _expanded,
             shell=True,
             executable=_executable,
             stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
+
+        if _completed.stdout:
+            _stdout = _decode_output(_completed.stdout)
+            if _stdout:
+                sys.stdout.write(_stdout)
+                sys.stdout.flush()
+        if _completed.stderr:
+            _stderr = _decode_output(_completed.stderr)
+            if _stderr:
+                sys.stderr.write(_stderr)
+                sys.stderr.flush()
+
+        _exit_code = _completed.returncode
         if os.name != "nt" and _exit_code > 128:
             _exit_code = -(_exit_code - 128)
         _ip.user_ns["_exit_code"] = _exit_code
