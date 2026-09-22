@@ -80,7 +80,7 @@ class PyaudioBackend:
         self._file_thread: Optional[_FilePlaybackThread] = None
         self._file_check_timer: Optional[QTimer] = None
 
-        # Logarithmic input meter (dBFS) with attack/release smoothing.
+        # Immediate speech-band input meter.
         self._input_meter = InputLevelMeter()
 
     def init(self):
@@ -335,9 +335,13 @@ class PyaudioBackend:
         if samples.size == 0:
             return None, pyaudio.paContinue
 
-        rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
         normalization_factor = self.get_normalization_factor(self.format)
-        level_percent = self._input_meter.update(rms, normalization_factor)
+        level_percent = self._input_meter.update(
+            samples,
+            sample_rate=self._in_rate,
+            full_scale=normalization_factor,
+            channels=self._in_channels,
+        )
 
         # Update UI on the main thread only when recording is active
         if self._input_active:

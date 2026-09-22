@@ -63,7 +63,7 @@ class PygameBackend:
         self.initialized = False
         self.mode = "input"  # input|control
 
-        # Logarithmic input meter (dBFS) with attack/release smoothing.
+        # Immediate speech-band input meter.
         self._input_meter = InputLevelMeter()
 
         # --- REALTIME INPUT (mic -> dispatcher) ---
@@ -370,12 +370,14 @@ class PygameBackend:
         if samples.size == 0:
             return
 
-        # Compute RMS
-        rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
-
-        # Float32 capture uses full scale 1.0. Map RMS logarithmically to
-        # dBFS so normal speech uses the available bar width effectively.
-        level_percent = self._input_meter.update(rms, 1.0)
+        # Float32 capture uses full scale 1.0. Meter only the current
+        # chunk's speech-band energy; no smoothing or adaptive noise logic.
+        level_percent = self._input_meter.update(
+            samples,
+            sample_rate=self.rate,
+            full_scale=1.0,
+            channels=self.channels,
+        )
 
         QTimer.singleShot(0, lambda: self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode))
 

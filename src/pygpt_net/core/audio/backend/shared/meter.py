@@ -6,66 +6,105 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 17:32:00                  #
+# Updated Date: 2026.09.22 14:40:00                  #
 # ================================================== #
 
 import math
 
+import numpy as np
+
 
 class InputLevelMeter:
-    """Convert normalized audio RMS to a responsive 0-100 dBFS meter."""
+    """Convert microphone energy in the speech band to an immediate 0-100 level."""
 
-    # An RMS meter mapped all the way to 0 dBFS rarely reaches the end during
-    # normal speech. -6 dBFS is a practical upper reference for an input/VU
-    # indicator, while values below -55 dBFS are treated as silence/noise.
-    FLOOR_DBFS = -55.0
-    CEILING_DBFS = -6.0
+    # Keep the meter focused on the frequency range carrying most speech
+    # intelligibility. This naturally suppresses low-frequency rumble/hum and
+    # high-frequency hiss without calibration, adaptive noise floors or gates.
+    SPEECH_LOW_HZ = 250.0
+    SPEECH_HIGH_HZ = 4000.0
 
-    # Faster attack and slower release make speech responsive without making
-    # the bar flicker between consecutive audio chunks.
-    ATTACK = 0.72
-    RELEASE = 0.20
-
-    def __init__(self):
-        self._value = 0.0
+    # Map speech-band RMS directly to the visible range. There is deliberately
+    # no attack/release smoothing: every update represents the current chunk.
+    FLOOR_DBFS = -42.0
+    CEILING_DBFS = -18.0
 
     def reset(self):
-        """Reset the smoothed meter value."""
-        self._value = 0.0
+        """Compatibility no-op; the meter intentionally keeps no state."""
+        return None
 
-    def update(self, rms: float, full_scale: float = 1.0) -> int:
+    def update(
+            self,
+            samples,
+            sample_rate: float,
+            full_scale: float = 1.0,
+            channels: int = 1,
+    ) -> int:
         """
-        Convert RMS amplitude to a smoothed 0-100 dBFS display value.
+        Return an immediate 0-100 level based only on speech-band energy.
 
-        ``full_scale`` is the maximum representable amplitude of the current
-        sample format. This makes the result relative to the actual audio
-        format instead of treating raw RMS values as linear percentages.
+        The input chunk is normalized to full scale, transformed to the
+        frequency domain, restricted to ``SPEECH_LOW_HZ..SPEECH_HIGH_HZ`` and
+        converted back to RMS. No calibration, noise estimation, gating,
+        hysteresis, attack or release is applied.
         """
         try:
-            rms = abs(float(rms))
+            sample_rate = float(sample_rate)
             full_scale = abs(float(full_scale))
+            channels = max(1, int(channels))
         except (TypeError, ValueError):
-            return int(round(self._value))
+            return 0
 
-        if (not math.isfinite(rms) or not math.isfinite(full_scale)
-                or full_scale <= 0.0 or rms <= 0.0):
-            target = 0.0
-        else:
-            normalized = min(rms / full_scale, 1.0)
-            dbfs = 20.0 * math.log10(max(normalized, 1e-12))
+        if (not math.isfinite(sample_rate) or sample_rate <= 0.0
+                or not math.isfinite(full_scale) or full_scale <= 0.0):
+            return 0
 
-            if dbfs <= self.FLOOR_DBFS:
-                target = 0.0
-            else:
-                span = self.CEILING_DBFS - self.FLOOR_DBFS
-                target = ((dbfs - self.FLOOR_DBFS) / span) * 100.0
-                target = min(max(target, 0.0), 100.0)
+        try:
+            audio = np.asarray(samples, dtype=np.float64).reshape(-1)
+        except (TypeError, ValueError):
+            return 0
 
-        factor = self.ATTACK if target > self._value else self.RELEASE
-        self._value += (target - self._value) * factor
+        if audio.size < 8:
+            return 0
 
-        # Let the bar fully settle at zero instead of leaving a tiny pixel.
-        if target == 0.0 and self._value < 0.5:
-            self._value = 0.0
+        # Preserve channel separation so opposite-polarity stereo channels do
+        # not cancel each other before metering.
+        usable = audio.size - (audio.size % channels)
+        if usable < channels * 8:
+            return 0
+        audio = audio[:usable].reshape(-1, channels) / full_scale
+        audio -= np.mean(audio, axis=0, keepdims=True)
 
-        return int(round(min(max(self._value, 0.0), 100.0)))
+        frame_count = audio.shape[0]
+        nyquist = sample_rate * 0.5
+        high_hz = min(self.SPEECH_HIGH_HZ, nyquist)
+        if high_hz <= self.SPEECH_LOW_HZ:
+            return 0
+
+        # A Hann window limits leakage from strong frequencies just outside the
+        # speech band. Compensate its RMS loss so in-band levels stay natural.
+        window = np.hanning(frame_count)
+        window_rms = float(np.sqrt(np.mean(window * window)))
+        if window_rms <= 0.0:
+            return 0
+
+        spectrum = np.fft.rfft(audio * window[:, None], axis=0)
+        freqs = np.fft.rfftfreq(frame_count, d=1.0 / sample_rate)
+        mask = (freqs >= self.SPEECH_LOW_HZ) & (freqs <= high_hz)
+        if not np.any(mask):
+            return 0
+
+        spectrum[~mask, :] = 0.0
+        filtered = np.fft.irfft(spectrum, n=frame_count, axis=0)
+        rms = float(np.sqrt(np.mean(filtered * filtered))) / window_rms
+
+        if not math.isfinite(rms) or rms <= 0.0:
+            return 0
+
+        dbfs = 20.0 * math.log10(max(rms, 1e-12))
+        if dbfs <= self.FLOOR_DBFS:
+            return 0
+        if dbfs >= self.CEILING_DBFS:
+            return 100
+
+        value = (dbfs - self.FLOOR_DBFS) / (self.CEILING_DBFS - self.FLOOR_DBFS)
+        return int(round(value * 100.0))

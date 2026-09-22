@@ -86,7 +86,7 @@ class NativeBackend(QObject):
         self._dtype = None
         self._norm = None
 
-        # Logarithmic input meter (dBFS) with attack/release smoothing.
+        # Immediate speech-band input meter.
         self._input_meter = InputLevelMeter()
 
         self._rt_session: Optional[RealtimeSession] = None
@@ -442,12 +442,13 @@ class NativeBackend(QObject):
             samples = samples.astype(np.int16)
             samples -= 128
 
-        # Compute RMS of the audio samples as float64 for precision
-        rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
-
-        # Map RMS to a logarithmic dBFS scale relative to the maximum
-        # representable amplitude of the active sample format.
-        level_percent = self._input_meter.update(rms, normalization_factor)
+        # Meter only the current chunk's speech-band energy.
+        level_percent = self._input_meter.update(
+            samples,
+            sample_rate=self.actual_audio_format.sampleRate(),
+            full_scale=normalization_factor,
+            channels=self.actual_audio_format.channelCount(),
+        )
 
         # Update the level bar widget
         self.update_audio_level(level_percent)
