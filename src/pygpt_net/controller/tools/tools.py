@@ -114,8 +114,8 @@ class Tools:
             if not tool.has_tab:
                 continue
             # Do not offer an action that cannot create anything. Single-instance
-            # tools (currently Canvas) disappear from Add tool as soon
-            # as their one application-wide tab already exists.
+            # tools (e.g. Canvas, Agent Workflow and Python/OS) disappear from
+            # Add tool as soon as their application-wide tab already exists.
             if getattr(tool, "single_instance", False):
                 existing = self.window.controller.ui.tabs.get_first_tab_by_tool(id)
                 if existing is not None:

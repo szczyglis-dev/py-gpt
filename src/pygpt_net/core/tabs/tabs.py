@@ -27,6 +27,15 @@ class Tabs:
     # number of columns
     NUM_COLS = 2
 
+    # These tools are application-wide singletons. Keep the invariant even
+    # during early profile restore, before the tool registry is guaranteed to
+    # be fully available.
+    EARLY_SINGLE_INSTANCE_TOOL_IDS = {
+        "web_browser",
+        "agent_workflow",
+        "interpreter",
+    }
+
     def __init__(self, window=None):
         """
         Tabs core
@@ -64,9 +73,11 @@ class Tabs:
             return None
         tools = getattr(self.window, "tools", None)
         tool = tools.get(tool_id) if tools is not None else None
-        # web_browser is an application-wide singleton even during very early
-        # profile restore, before the tool registry is guaranteed to be ready.
-        if tool_id != "web_browser" and (tool is None or not getattr(tool, "single_instance", False)):
+        # Selected application-wide tools are known singletons even during very
+        # early profile restore, before the tool registry is guaranteed to be
+        # ready. Other tools opt in through ``single_instance``.
+        if (tool_id not in self.EARLY_SINGLE_INSTANCE_TOOL_IDS
+                and (tool is None or not getattr(tool, "single_instance", False))):
             return None
         for tab in self.pids.values():
             if tab.type == Tab.TAB_TOOL and tab.tool_id == tool_id:

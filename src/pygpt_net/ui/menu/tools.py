@@ -54,6 +54,12 @@ class Tools:
         ui_menu['menu.tools'] = window.menuBar().addMenu(trans("menu.tools"))
         menu_tools = ui_menu['menu.tools']
 
+        # Canvas is a first-class visual tool, so keep it next to Painter
+        # instead of grouping it with the remaining dynamically registered
+        # tool actions below the separator.
+        actions = window.tools.setup_menu_actions()
+        canvas_action = actions.pop("tools.web_browser", None)
+
         for key, val in tab_tools.items():
             label_key, icon_name, type_ = val[0], val[1], val[2]
             action = QAction(QIcon(f":/icons/{icon_name}.svg"), trans(f"output.tab.{label_key}"), window)
@@ -62,15 +68,16 @@ class Tools:
             ui_menu[key] = action
             menu_tools.addAction(action)
 
-        actions = window.tools.setup_menu_actions()
-        if len(actions) == 0:
-            return
+            if key == 'tools.painter' and canvas_action is not None:
+                ui_menu['tools.web_browser'] = canvas_action
+                menu_tools.addAction(canvas_action)
 
-        menu_tools.addSeparator()
+        if actions:
+            menu_tools.addSeparator()
 
-        for key, action in actions.items():
-            ui_menu[key] = action
-            menu_tools.addAction(action)
+            for key, action in actions.items():
+                ui_menu[key] = action
+                menu_tools.addAction(action)
 
         # ------------------------------------------------- #
 

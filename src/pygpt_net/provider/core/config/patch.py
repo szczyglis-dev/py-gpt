@@ -1334,17 +1334,23 @@ class Patch:
                 # HTML/JS Canvas moved to the persistent browser runtime.
                 tabs = data.get("tabs.data")
                 if isinstance(tabs, dict):
-                    browser_keys = []
+                    singleton_keys = {
+                        "web_browser": [],
+                        "agent_workflow": [],
+                        "interpreter": [],
+                    }
                     for key, item in list(tabs.items()):
                         if not isinstance(item, dict):
                             continue
                         if item.get("tool_id") == "html_canvas":
                             item["tool_id"] = "web_browser"
                             updated = True
-                        if item.get("tool_id") != "web_browser":
-                            continue
+                        tool_id = item.get("tool_id")
+                        if tool_id in singleton_keys:
+                            singleton_keys[tool_id].append(key)
 
-                        browser_keys.append(key)
+                        if tool_id != "web_browser":
+                            continue
                         # Preserve an explicit user rename, but replace old/default and
                         # document-derived automatic titles from the first implementation.
                         is_custom = bool(item.get("custom_name")) or item.get("title_source") == "custom"
@@ -1362,19 +1368,19 @@ class Patch:
                                 item["custom_name"] = False
                                 updated = True
 
-                    # Keep the oldest persisted browser tab as the canonical instance.
-                    # Sort explicitly instead of relying on JSON/dict insertion order.
-                    # All later duplicates disappear before any QWebEngine widget is
-                    # constructed, so a single runtime surface can never get two hosts.
-                    browser_keys.sort(key=lambda key: (
-                        tabs[key].get("pid", 10 ** 9),
-                        tabs[key].get("idx", 10 ** 9),
-                        str(key),
-                    ))
-                    for key in browser_keys[1:]:
-                        if key in tabs:
-                            del tabs[key]
-                            updated = True
+                    # Canvas, Agent Workflow and Python/OS are application-wide
+                    # singleton tools. Keep the oldest persisted tab for each tool.
+                    # This removes legacy duplicates before any tool widget is built.
+                    for tool_id, keys in singleton_keys.items():
+                        keys.sort(key=lambda key: (
+                            tabs[key].get("pid", 10 ** 9),
+                            tabs[key].get("idx", 10 ** 9),
+                            str(key),
+                        ))
+                        for key in keys[1:]:
+                            if key in tabs:
+                                del tabs[key]
+                                updated = True
 
                 plugins_enabled = data.get("plugins_enabled")
                 if isinstance(plugins_enabled, dict) and "canvas_web" not in plugins_enabled:

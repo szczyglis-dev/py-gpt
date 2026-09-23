@@ -39,6 +39,7 @@ class CodeInterpreter(BaseTool):
         super(CodeInterpreter, self).__init__(*args, **kwargs)
         self.id = "interpreter"
         self.has_tab = True
+        self.single_instance = True
         self.tab_title = "menu.tools.interpreter"
         self.tab_icon = ":/icons/code.svg"
         self.opened = False

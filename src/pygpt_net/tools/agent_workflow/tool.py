@@ -34,6 +34,7 @@ class AgentWorkflow(BaseTool):
         super().__init__(*args, **kwargs)
         self.id = "agent_workflow"
         self.has_tab = True
+        self.single_instance = True
         self.tab_title = "menu.tools.agent_workflow"
         self.tab_icon = ":/icons/router.svg"
         self.opened = False
