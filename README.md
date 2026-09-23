@@ -18,7 +18,7 @@ Release: **2.8.29** | build: **2026-09-22** | Python: **>=3.10, <3.14**
 
 Beyond chat, PyGPT includes **Agents** with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
 
-**Screenshots** (version `2.8.23`, build `2026-09-17`):
+**Screenshots** (version `2.8.29`, build `2026-09-22`):
 
 Dark theme:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
