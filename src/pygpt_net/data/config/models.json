@@ -2,36 +2,9 @@
     "__meta__": {
         "version": "2.8.29",
         "app.version": "2.8.29",
-        "updated_at": "2026-09-22T13:00:00"
+        "updated_at": "2026-09-24T00:30:00"
     },
     "items": {
-        "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
-            "id": "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M",
-            "name": "bielik-11b-v3.0",
-            "mode": [
-                "chat",
-                "agent_v2",
-                "agent_llama",
-                "agent_openai",
-                "agent",
-                "expert",
-                "completion"
-            ],
-            "ctx": 32768,
-            "tokens": 4096,
-            "default": false,
-            "input": [
-                "text"
-            ],
-            "output": [
-                "text"
-            ],
-            "extra": {},
-            "imported": false,
-            "provider": "ollama",
-            "reasoning_effort": false,
-            "tool_calls": true
-        },
         "claude-fable-5": {
             "id": "claude-fable-5",
             "name": "claude-fable-5",
@@ -151,6 +124,35 @@
         "claude-opus-5": {
             "id": "claude-opus-5",
             "name": "claude-opus-5",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "agent",
+                "agent_llama",
+                "agent_openai",
+                "expert",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1000000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "anthropic",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "claude-opus-5-5": {
+            "id": "claude-opus-5-5",
+            "name": "claude-opus-5-5",
             "mode": [
                 "chat",
                 "agent_v2",
@@ -1105,6 +1107,66 @@
         "gpt-6-astra": {
             "id": "gpt-6-astra",
             "name": "gpt-6-astra",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1050000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "gpt-6-luna": {
+            "id": "gpt-6-luna",
+            "name": "gpt-6-luna",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1050000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "gpt-6-sol": {
+            "id": "gpt-6-sol",
+            "name": "gpt-6-sol",
             "mode": [
                 "chat",
                 "agent_v2",
@@ -2231,6 +2293,33 @@
             "extra": {},
             "imported": false,
             "provider": "openai",
+            "reasoning_effort": false,
+            "tool_calls": true
+        },
+        "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M": {
+            "id": "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M",
+            "name": "bielik-11b-v3.0",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "agent_llama",
+                "agent_openai",
+                "agent",
+                "expert",
+                "completion"
+            ],
+            "ctx": 32768,
+            "tokens": 4096,
+            "default": false,
+            "input": [
+                "text"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "ollama",
             "reasoning_effort": false,
             "tool_calls": true
         },

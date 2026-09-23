@@ -4,13 +4,14 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2026-09-11):
+PyGPT has a preconfigured list of models (as of 2026-09-24):
 
 - ``claude-fable-5`` (Anthropic)
 - ``claude-fable-5-1`` (Anthropic)
 - ``claude-haiku-4-5`` (Anthropic)
 - ``claude-opus-4-5`` (Anthropic)
 - ``claude-opus-5`` (Anthropic)
+- ``claude-opus-5-5`` (Anthropic)
 - ``claude-sonnet-4-5`` (Anthropic)
 - ``claude-sonnet-5`` (Anthropic)
 - ``deepseek-v4-flash`` (DeepSeek)
@@ -62,6 +63,8 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - ``gpt-5.6-sol`` (OpenAI)
 - ``gpt-5.6-terra`` (OpenAI)
 - ``gpt-6-astra`` (OpenAI)
+- ``gpt-6-luna`` (OpenAI)
+- ``gpt-6-sol`` (OpenAI)
 - ``gpt-image-1.5`` (OpenAI)
 - ``gpt-image-2`` (OpenAI)
 - ``gpt-image-2.5-flare`` (OpenAI)

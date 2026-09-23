@@ -822,6 +822,21 @@ class Patch:
                     model.mode = [item for item in modes if item != MODE_LLAMA_INDEX]
                     updated = True
 
+            # < 2.8.30 <--- add new Claude/OpenAI models
+            if old < parse_version("2.8.30"):
+                print("Migrating models from < 2.8.30...")
+                models_to_add = [
+                    "claude-opus-5-5",
+                    "gpt-6-luna",
+                    "gpt-6-sol",
+                ]
+                for model in models_to_add:
+                    if model not in data:
+                        base_model = from_base(model)
+                        if base_model:
+                            data[model] = base_model
+                updated = True
+
         # update file
         if updated:
             # fix empty/broken data
