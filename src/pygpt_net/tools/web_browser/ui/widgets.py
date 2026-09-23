@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.23 20:30:00                  #
+# Updated Date: 2026.09.24 01:35:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer
+from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
 from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QWidget, QSizePolicy,
-    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout,
+    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout, QLabel,
 )
 from PySide6.QtWebEngineCore import QWebEnginePage
 
@@ -39,15 +39,22 @@ class ToolWidget:
         self.btn_go = None
         self.scroll = None
         self._layout = None
+        self.viewport_badge = None
+        self._viewport_filter = None
+        self._viewport_sync_timer = None
+        self._columns_splitter = None
+        self._app_ready_connected = False
 
     def on_open(self):
         self.tool.attach_surface(self)
         self._sync_from_runtime()
+        self.request_viewport_sync(immediate=True)
 
     def on_close(self):
         self.tool.detach_surface(self)
 
     def on_delete(self):
+        self._disconnect_viewport_hooks()
         self.tool.detach_surface(self)
 
     def _take_surface(self):
@@ -66,11 +73,13 @@ class ToolWidget:
                 old.setParent(None)
             self.scroll.setWidget(surface)
             surface.show()
+            self.request_viewport_sync(immediate=True)
 
     def set_tab(self, tab):
         self.tab = tab
         if self.output is not None:
             self.output.set_tab(tab)
+        self.request_viewport_sync(immediate=True)
 
     def setup(self, all: bool = True) -> QVBoxLayout:
         self.nav_bar = QWidget()
@@ -120,13 +129,39 @@ class ToolWidget:
         self.scroll.setAlignment(Qt.AlignCenter)
         self.scroll.setFrameShape(QFrame.NoFrame)
 
+        self.viewport_badge = QLabel("", self.scroll.viewport())
+        self.viewport_badge.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.viewport_badge.setStyleSheet(
+            "QLabel {"
+            " background: rgba(24, 24, 24, 175);"
+            " color: white;"
+            " border-radius: 5px;"
+            " padding: 3px 7px;"
+            " font-size: 11px;"
+            "}"
+        )
+        self.viewport_badge.setText("0 × 0")
+        self.viewport_badge.adjustSize()
+        self.viewport_badge.show()
+
+        self._viewport_filter = ViewportEventFilter(self.scroll)
+        self._viewport_filter.changed.connect(self._on_viewport_geometry_changed)
+        self.scroll.viewport().installEventFilter(self._viewport_filter)
+
+        self._viewport_sync_timer = QTimer(self.scroll)
+        self._viewport_sync_timer.setSingleShot(True)
+        self._viewport_sync_timer.timeout.connect(self._sync_runtime_viewport)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.nav_bar, 0)
         layout.addWidget(self.scroll, 1)
         self._layout = layout
+        self._connect_viewport_hooks()
         if self.surface_kind == "tab":
             self.tool.attach_surface(self)
+        QTimer.singleShot(0, lambda: self.request_viewport_sync(immediate=True))
+        QTimer.singleShot(80, lambda: self.request_viewport_sync(immediate=True))
         return layout
 
     @Slot(str)
@@ -153,6 +188,7 @@ class ToolWidget:
 
     def on_runtime_state(self, state: dict):
         self._sync_from_runtime()
+        self._update_viewport_badge(state)
         # The application has one canonical Canvas tab, but its title
         # may still follow the currently rendered document.  This is only a
         # label update; it must never be used as tab identity.
@@ -162,6 +198,118 @@ class ToolWidget:
                 self.window.controller.ui.tabs.update_title_by_tab(self.tab, title)
             except Exception:
                 pass
+
+    def _connect_viewport_hooks(self):
+        """Observe all geometry changes that can alter the visible Canvas area."""
+        if self.window is None:
+            return
+        splitter = self.window.ui.splitters.get("columns")
+        if splitter is not None and splitter is not self._columns_splitter:
+            if self._columns_splitter is not None:
+                try:
+                    self._columns_splitter.splitterMoved.disconnect(self._on_columns_splitter_moved)
+                except Exception:
+                    pass
+            self._columns_splitter = splitter
+            try:
+                splitter.splitterMoved.connect(self._on_columns_splitter_moved)
+            except Exception:
+                pass
+        if not self._app_ready_connected:
+            try:
+                self.window.appReady.connect(self._on_app_ready)
+                self._app_ready_connected = True
+            except Exception:
+                pass
+
+    def _disconnect_viewport_hooks(self):
+        if self.scroll is not None and self._viewport_filter is not None:
+            try:
+                self.scroll.viewport().removeEventFilter(self._viewport_filter)
+            except Exception:
+                pass
+        if self._columns_splitter is not None:
+            try:
+                self._columns_splitter.splitterMoved.disconnect(self._on_columns_splitter_moved)
+            except Exception:
+                pass
+            self._columns_splitter = None
+        if self.window is not None and self._app_ready_connected:
+            try:
+                self.window.appReady.disconnect(self._on_app_ready)
+            except Exception:
+                pass
+            self._app_ready_connected = False
+
+    def _on_app_ready(self):
+        self.request_viewport_sync(immediate=True)
+
+    def _on_columns_splitter_moved(self, _pos, _index):
+        # Let QSplitter finish assigning child geometries before reading the
+        # QScrollArea viewport. Coalesce the high-frequency drag events.
+        self.request_viewport_sync(immediate=False)
+
+    def _on_viewport_geometry_changed(self):
+        self._position_viewport_badge()
+        self.request_viewport_sync(immediate=False)
+
+    def request_viewport_sync(self, immediate: bool = False):
+        """Schedule runtime viewport synchronization with the Canvas column."""
+        if self._viewport_sync_timer is None:
+            return
+        self._connect_viewport_hooks()
+        self._viewport_sync_timer.start(0 if immediate else 30)
+
+    def _column_visible(self) -> bool:
+        """Return False only when the Canvas output column is fully collapsed."""
+        if self.tab is None:
+            return False
+        try:
+            column_idx = int(self.tab.column_idx)
+        except Exception:
+            return False
+        splitter = self.window.ui.splitters.get("columns") if self.window is not None else None
+        if splitter is None or splitter.count() <= column_idx:
+            return True
+        try:
+            sizes = splitter.sizes()
+            return column_idx < len(sizes) and int(sizes[column_idx]) > 0
+        except Exception:
+            return True
+
+    def _sync_runtime_viewport(self):
+        if self.tool is None or self.scroll is None or self.tab is None:
+            return
+        visible = self._column_visible()
+        if not visible:
+            self.tool.request_viewport_policy(visible=False, delay=0)
+            return
+
+        viewport = self.scroll.viewport()
+        width = int(viewport.width())
+        height = int(viewport.height())
+        if width <= 0 or height <= 0:
+            return
+        self.tool.request_viewport_policy(width, height, visible=True, delay=0)
+
+    def _update_viewport_badge(self, state: dict):
+        if self.viewport_badge is None:
+            return
+        width = int(state.get("width") or 0)
+        height = int(state.get("height") or 0)
+        self.viewport_badge.setText(f"{width} × {height}")
+        self.viewport_badge.adjustSize()
+        self._position_viewport_badge()
+
+    def _position_viewport_badge(self):
+        if self.viewport_badge is None or self.scroll is None:
+            return
+        viewport = self.scroll.viewport()
+        margin = 8
+        x = max(margin, viewport.width() - self.viewport_badge.width() - margin)
+        y = max(margin, viewport.height() - self.viewport_badge.height() - margin)
+        self.viewport_badge.move(x, y)
+        self.viewport_badge.raise_()
 
 
 class BrowserPage(QWebEnginePage):
@@ -473,8 +621,12 @@ class BrowserViewport(QWidget):
                 pass
 
     def set_resolution(self, width: int, height: int):
-        width = max(240, int(width))
-        height = max(180, int(height))
+        # Model/API resolution limits are enforced by WebBrowser._set_resolution.
+        # The UI fitter may legitimately need a narrower pane while the user is
+        # dragging the split-screen handle, so the QWidget itself must accept the
+        # real available size all the way down to 1 px.
+        width = max(1, int(width))
+        height = max(1, int(height))
         self.setFixedSize(width, height)
         self.web.setFixedSize(width, height)
         self.sandbox.setFixedSize(width, height)
@@ -491,6 +643,17 @@ class BrowserViewport(QWidget):
             self.web.on_delete()
         except Exception:
             pass
+
+
+class ViewportEventFilter(QObject):
+    """Emit a compact signal whenever the QScrollArea viewport geometry changes."""
+
+    changed = Signal()
+
+    def eventFilter(self, source, event):
+        if event.type() in (QEvent.Resize, QEvent.Show):
+            self.changed.emit()
+        return super().eventFilter(source, event)
 
 
 class AddressLineEdit(QLineEdit):

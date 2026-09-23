@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.23 21:05:00                  #
+# Updated Date: 2026.09.24 01:35:00                  #
 # ================================================== #
 
 import json
@@ -188,6 +188,15 @@ body {
         self.width = 1280
         self.height = 800
         self.orientation = "landscape"
+        # The visible Canvas tab follows the actual Qt viewport size. Keep the
+        # model-requested resolution separately so UI fitting never destroys the
+        # resolution the agent expects when the split-screen column is hidden.
+        self.model_resolution = None
+        self.ui_viewport_target = None
+        self.ui_viewport_visible = False
+        self.viewport_policy_timer = QTimer(self)
+        self.viewport_policy_timer.setSingleShot(True)
+        self.viewport_policy_timer.timeout.connect(self._apply_viewport_policy)
         self.cursor_x = 0
         self.cursor_y = 0
         self.virtual_url = "about:blank"
@@ -302,6 +311,10 @@ body {
         if getattr(owner, "tab", None) is not None:
             surface.set_tab(owner.tab)
         self._notify_state()
+        try:
+            owner.request_viewport_sync(immediate=True)
+        except Exception:
+            pass
 
     def detach_surface(self, owner=None):
         if self.surface is None:
@@ -317,7 +330,67 @@ body {
         if self.hidden_layout is not None:
             self.surface.setParent(self.hidden_host)
             self.hidden_layout.addWidget(self.surface)
+        self.request_viewport_policy(visible=False, delay=0)
         self._notify_state()
+
+    def _app_busy(self) -> bool:
+        """Return True while the application/model request is actively running."""
+        try:
+            kernel = getattr(self.window.controller, "kernel", None)
+            if kernel is not None:
+                return bool(getattr(kernel, "busy", False))
+        except Exception:
+            pass
+        try:
+            return getattr(self.window, "state", None) == getattr(self.window, "STATE_BUSY", "busy")
+        except Exception:
+            return False
+
+    def request_viewport_policy(self, width=None, height=None, visible=True, delay: int = 0):
+        """Queue Canvas viewport synchronization with the current UI geometry.
+
+        Visible Canvas uses the real available column area. A fully hidden
+        Canvas uses the last model-requested resolution, or plugin defaults when
+        the model has not selected a resolution yet. While the app is BUSY the
+        request is retained and applied only after it returns to IDLE.
+        """
+        self.ui_viewport_visible = bool(visible)
+        if visible and width is not None and height is not None:
+            width = int(width)
+            height = int(height)
+            if width > 0 and height > 0:
+                self.ui_viewport_target = (width, height)
+        if self.viewport_policy_timer is None:
+            return
+        self.viewport_policy_timer.start(max(0, int(delay)))
+
+    def _hidden_resolution(self):
+        """Return the runtime size used while the Canvas column is fully hidden."""
+        if self.model_resolution is not None:
+            return self.model_resolution
+        width = int(self._opt("default_width", 1280) or 1280)
+        height = int(self._opt("default_height", 800) or 800)
+        return max(240, min(width, 7680)), max(180, min(height, 4320))
+
+    def _apply_viewport_policy(self):
+        """Apply a queued UI/background viewport transition when it is safe."""
+        if self.surface is None:
+            return
+        if self._app_busy():
+            # Do not compete with canvas_change_resolution while the model is
+            # using the runtime. Keep retrying until the application is IDLE.
+            self.viewport_policy_timer.start(120)
+            return
+
+        if self.ui_viewport_visible and self.ui_viewport_target is not None:
+            width, height = self.ui_viewport_target
+            changed = self._set_resolution(width, height, "auto", clamp_min=False)
+        else:
+            width, height = self._hidden_resolution()
+            changed = self._set_resolution(width, height, "auto", clamp_min=True)
+
+        if changed:
+            self._notify_state()
 
     def get_dialog_id(self) -> str:
         return self.dialog_id
@@ -578,6 +651,11 @@ body {
         if resolution:
             width, height = self._parse_resolution(resolution)
             self._set_resolution(width, height, "auto")
+            if p.get("__agent"):
+                self.model_resolution = (self.width, self.height)
+                # The model owns the viewport for the duration of BUSY. Once it
+                # becomes IDLE, re-apply the visible UI fit (or hidden fallback).
+                self.viewport_policy_timer.start(120)
         mode = "playwright" if bool(sandbox) else "qt"
         self._set_backend(mode)
         if p.get("__agent"):
@@ -608,6 +686,9 @@ body {
         height = int(p.get("height") or self.height)
         orientation = str(p.get("orientation") or "auto").lower()
         self._set_resolution(width, height, orientation)
+        if p.get("__agent"):
+            self.model_resolution = (self.width, self.height)
+            self.viewport_policy_timer.start(120)
         return self.current_state()
 
     def _cmd_set_html(self, p):
@@ -1379,14 +1460,18 @@ c.style.left='{x-7}px'; c.style.top='{y-7}px'; return true; }})()"""
         if self.surface is not None and self.backend == "playwright":
             self.surface.sandbox.update()
 
-    def _set_resolution(self, width, height, orientation="auto"):
-        width = max(240, min(int(width), 7680))
-        height = max(180, min(int(height), 4320))
+    def _set_resolution(self, width, height, orientation="auto", clamp_min: bool = True):
+        min_width = 240 if clamp_min else 1
+        min_height = 180 if clamp_min else 1
+        width = max(min_width, min(int(width), 7680))
+        height = max(min_height, min(int(height), 4320))
         orientation = str(orientation or "auto").lower()
         if orientation == "portrait" and width > height:
             width, height = height, width
         elif orientation == "landscape" and height > width:
             width, height = height, width
+        if width == self.width and height == self.height:
+            return False
         self.width, self.height = width, height
         self.orientation = "landscape" if width >= height else "portrait"
         self.surface.set_resolution(width, height)
@@ -1396,6 +1481,7 @@ c.style.left='{x-7}px'; c.style.top='{y-7}px'; return true; }})()"""
         self.cursor_x = min(self.cursor_x, width - 1)
         self.cursor_y = min(self.cursor_y, height - 1)
         self._update_qt_virtual_cursor()
+        return True
 
     @staticmethod
     def _parse_resolution(value):
