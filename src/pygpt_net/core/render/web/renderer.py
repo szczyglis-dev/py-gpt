@@ -1914,7 +1914,12 @@ class Renderer(BaseRenderer):
         :param replace: True if replace whole output (legacy HTML path)
         """
         if self.pids[pid].loaded and not self.pids[pid].use_buffer:
-            self.clear_chunks(pid)
+            # A full history replacement must be one browser-side transaction.
+            # Clearing input/output here uses separate runJavaScript calls and can
+            # expose an empty frame before nodeReplace reaches QWebEngine, which is
+            # especially visible after the first streamed turn in a new meta.
+            if not replace:
+                self.clear_chunks(pid)
             if payload:
                 self.flush_output(pid, payload, replace)
             self.pids[pid].clear()
@@ -2311,7 +2316,9 @@ class Renderer(BaseRenderer):
                 br = getattr(node.page(), "bridge", None)
                 if br is not None:
                     if replace and hasattr(br, "nodeReplace"):
-                        self.clear_nodes(pid)
+                        # nodeReplace performs the stream/input/node cleanup and
+                        # replacement atomically in JS. Do not clear nodes first:
+                        # that separate browser call can be painted as a blank frame.
                         br.nodeReplace.emit(payload)
                         return
                     if not replace and hasattr(br, "node"):
@@ -2887,7 +2894,8 @@ class Renderer(BaseRenderer):
             replace, payload = q.pop(0)
             try:
                 if replace and hasattr(br, "nodeReplace"):
-                    self.clear_nodes(pid)
+                    # Keep queued full replacements atomic for the same reason as
+                    # flush_output(): JS owns cleanup + replacement in one task.
                     br.nodeReplace.emit(payload)
                 elif not replace and hasattr(br, "node"):
                     br.node.emit(payload)
