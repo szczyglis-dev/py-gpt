@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 14:35:00                  #
+# Updated Date: 2026.09.23 21:05:00                  #
 # ================================================== #
 
 import copy
@@ -610,20 +610,51 @@ class Command:
         """
         tmp_calls = []
         for tool_call in tool_calls:
-            try:
-                if "function" not in tool_call:
-                    continue
-                if "arguments" not in tool_call["function"]:
-                    continue
-                if not isinstance(tool_call["function"]["arguments"], str):
-                    continue
-                tool_call["function"]["arguments"] = json.loads(
-                    tool_call["function"]["arguments"]
-                )
+            function = tool_call.get("function") if isinstance(tool_call, dict) else None
+            if not isinstance(function, dict) or "arguments" not in function:
+                continue
+
+            arguments = function.get("arguments")
+            if isinstance(arguments, dict):
                 tmp_calls.append(tool_call)
-            except Exception as e:
-                self.window.core.debug.log(e)
-                print("Error parsing tool call JSON arguments: ", tool_call["function"]["arguments"])
+                continue
+
+            if arguments is None:
+                function["arguments"] = {}
+                tmp_calls.append(tool_call)
+                continue
+
+            if not isinstance(arguments, str):
+                self.window.core.debug.warning(
+                    "Skipping tool call with unsupported arguments type: "
+                    + type(arguments).__name__
+                )
+                continue
+
+            raw_arguments = arguments.strip()
+            if not raw_arguments:
+                function["arguments"] = {}
+                tmp_calls.append(tool_call)
+                continue
+
+            try:
+                parsed_arguments = json.loads(raw_arguments)
+            except json.JSONDecodeError as e:
+                self.window.core.debug.warning(
+                    f"Skipping tool call with invalid JSON arguments: {e}"
+                )
+                continue
+
+            if parsed_arguments is None:
+                parsed_arguments = {}
+            if not isinstance(parsed_arguments, dict):
+                self.window.core.debug.warning(
+                    "Skipping tool call because JSON arguments are not an object."
+                )
+                continue
+
+            function["arguments"] = parsed_arguments
+            tmp_calls.append(tool_call)
         ctx.tool_calls = tmp_calls
 
         if append_output:
