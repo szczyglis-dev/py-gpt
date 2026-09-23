@@ -200,9 +200,19 @@ class Plugins:
 
                 for tab_id in content_tabs:
                     tab_name = tab_id
-                    global_tab_key = f"plugin.tab.{tab_id}"
-                    translated_tab_name = trans(global_tab_key)
-                    if translated_tab_name != global_tab_key:
+                    translated_tab_name = None
+                    if plugin.use_locale:
+                        domain = f"plugin.{plugin.id}"
+                        plugin_tab_key = f"tab.{tab_id}"
+                        translated = trans(plugin_tab_key, False, domain)
+                        if translated != plugin_tab_key:
+                            translated_tab_name = translated
+                    if translated_tab_name is None:
+                        global_tab_key = f"plugin.tab.{tab_id}"
+                        translated = trans(global_tab_key)
+                        if translated != global_tab_key:
+                            translated_tab_name = translated
+                    if translated_tab_name is not None:
                         tab_name = translated_tab_name
                     elif tab_id in plugin.tabs:
                         tab_name = plugin.tabs[tab_id]

@@ -630,8 +630,8 @@ Use ``Config -> Agent Workflows...`` (or the settings icon in the Agents toolbox
 
 An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling iteration limits can increase latency, token/API usage, and tool execution. The Chat/Orchestrator worker limit controls the number of workers created in those workflows; ``0`` removes that limit. Swarm is not constrained by this setting and uses its separately declared worker count.
 
-Agents
-^^^^^^
+Legacy agents
+^^^^^^^^^^^^^
 
 * ``Max steps (per iteration)``: Limits how many action/reasoning steps a legacy LlamaIndex agent may perform within one iteration while working toward its goal. Raising it allows more work per iteration but can increase latency and API usage. Default: 10.
 

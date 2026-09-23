@@ -53,6 +53,26 @@ class Tabs:
             Tab.TAB_TOOL: "output.tab.tool",
         }
 
+    def _get_existing_single_instance_tool(self, type: int, tool_id: Optional[str]) -> Optional[Tab]:
+        """Return an existing tab when the target tool is single-instance.
+
+        This is the hard invariant below the UI controller. It protects direct
+        core tab creation, profile restore and any future caller that bypasses
+        ``controller.ui.tabs.append``.
+        """
+        if type != Tab.TAB_TOOL or not tool_id:
+            return None
+        tools = getattr(self.window, "tools", None)
+        tool = tools.get(tool_id) if tools is not None else None
+        # web_browser is an application-wide singleton even during very early
+        # profile restore, before the tool registry is guaranteed to be ready.
+        if tool_id != "web_browser" and (tool is None or not getattr(tool, "single_instance", False)):
+            return None
+        for tab in self.pids.values():
+            if tab.type == Tab.TAB_TOOL and tab.tool_id == tool_id:
+                return tab
+        return None
+
     def get_tab_by_index(
             self,
             idx: int,
@@ -160,6 +180,10 @@ class Tabs:
         :param tool_id: Tool ID
         :return: Tab
         """
+        existing = self._get_existing_single_instance_tool(type, tool_id)
+        if existing is not None:
+            return existing
+
         self.last_pid += 1  # PID++, start from 0
 
         tab = Tab()
@@ -206,6 +230,10 @@ class Tabs:
         :param column_idx: index of the column in which the tab will be added
         :return: Tab
         """
+        existing = self._get_existing_single_instance_tool(type, tool_id)
+        if existing is not None:
+            return existing
+
         self.last_pid += 1  # PID++, start from 0
         title = ""
         icon = self.icons[type]
@@ -256,6 +284,10 @@ class Tabs:
 
         :param data: Tab data
         """
+        existing = self._get_existing_single_instance_tool(data.get("type"), data.get("tool_id"))
+        if existing is not None:
+            return existing
+
         tab = Tab()
         tab.uuid = data["uuid"]
         tab.pid = data["pid"]

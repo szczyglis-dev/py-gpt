@@ -122,6 +122,19 @@ class Tabs:
         :param idx: Tab index
         :param column_idx: Column index
         """
+        if type == Tab.TAB_TOOL and tool_id:
+            tool = self.window.tools.get(tool_id)
+            if tool is not None and getattr(tool, "single_instance", False):
+                existing = self.get_first_tab_by_tool(tool_id)
+                if existing is not None:
+                    # Never create a second UI host for a single-instance tool.
+                    # If its right column was explicitly collapsed by the user,
+                    # keep it hidden; the tool decides when a first auto-reveal
+                    # is appropriate. Selecting an already visible instance is OK.
+                    if existing.column_idx != 1 or self.is_split_screen_enabled():
+                        self.switch_tab_by_idx(existing.idx, existing.column_idx)
+                    return existing
+
         self.appended = True
         self.column_idx = column_idx
         tab = self.window.core.tabs.append(
@@ -130,8 +143,11 @@ class Tabs:
             column_idx=column_idx,
             tool_id=tool_id
         )
-        self.switch_tab_by_idx(tab.idx, column_idx)
+        # Core Tabs also enforces single-instance tools. If it returns an
+        # existing tab from another column, switch using the tab's real owner.
+        self.switch_tab_by_idx(tab.idx, tab.column_idx)
         self.debug()
+        return tab
 
     def reload_titles(self):
         """Reload tab titles"""
@@ -1533,34 +1549,28 @@ class Tabs:
         self.switch_tab_by_idx(tab.idx, tab.column_idx)
         return True
 
-    def is_tool(self, tool_id: str) -> bool:
-        """
-        Check if one of any tabs is of given tool ID
+    def get_tabs_by_tool(self, tool_id: str) -> list:
+        """Return every loaded tab for a tool, independent of column focus state.
 
-        :param tool_id: tool ID
-        :return: True if one of tab is of given tool ID
+        ``self.col`` only tracks columns that have participated in focus changes,
+        so it must not be used as a registry. The core PID registry is the source
+        of truth and also sees tabs in a currently hidden split-screen column.
         """
-        for col in self.col:
-            tabs = self.window.ui.layout.get_tabs_by_idx(col)
-            for i in range(tabs.count()):
-                tab = self.window.core.tabs.get_tab_by_index(i, col)
-                if tab is not None and tab.tool_id == tool_id:
-                    return True
-        return False
+        tabs = [
+            tab for tab in self.window.core.tabs.pids.values()
+            if tab is not None and tab.type == Tab.TAB_TOOL and tab.tool_id == tool_id
+        ]
+        return sorted(tabs, key=lambda tab: (tab.pid if tab.pid is not None else 10**9))
+
+    def is_tool(self, tool_id: str) -> bool:
+        """Check if any loaded tab belongs to the given tool ID."""
+        return bool(self.get_tabs_by_tool(tool_id))
 
     def get_first_tab_by_tool(self, tool_id: str) -> Tab:
-        """
-        Get first tab index by tool ID
-
-        :param tool_id: tool ID
-        :return: tab index if one of tab is of given tool ID, None otherwise
-        """
-        for col in self.col:
-            tabs = self.window.ui.layout.get_tabs_by_idx(col)
-            for i in range(tabs.count()):
-                tab = self.window.core.tabs.get_tab_by_index(i, col)
-                if tab is not None and tab.tool_id == tool_id:
-                    return tab
+        """Return the canonical (oldest) loaded tab for a tool."""
+        tabs = self.get_tabs_by_tool(tool_id)
+        if tabs:
+            return tabs[0]
 
     def switch_to_first_tab_by_tool(self, tool_id: str):
         """

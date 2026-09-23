@@ -662,7 +662,7 @@ You can choose between two methods of evaluation:
 - By the percentage of tasks completed
 - By the accuracy (score) of the final response
 
-You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Agents -> Max evaluation steps in loop`. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
+You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Legacy agents -> Max evaluation steps in loop`. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
 
 You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
 
@@ -770,6 +770,27 @@ Below is a pattern for how different types of agents work. You can use these pat
 - When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
 
 
+# Canvas and HTML (BETA)
+
+> **BETA:** Canvas and HTML is an experimental feature and will be expanded in future PyGPT releases.
+
+**Canvas and HTML** gives PyGPT an interactive browser and rendering workspace that the model can use directly while you chat. It is designed for much more than displaying static HTML: the model can build and update complete HTML/CSS/JavaScript interfaces, render interactive elements live, inspect the result, click and type inside it, execute page JavaScript, take screenshots, read console errors, and iteratively improve the page without leaving the conversation.
+
+Canvas is useful for prototypes, widgets, dashboards, animations, small browser applications, visualizations, interactive demos, games, forms, UI experiments, and other tasks where seeing and manipulating a live result is more useful than receiving source code alone. You can also leave **annotations** directly on selected content or page elements. The model can read these annotations as precise feedback and apply requested changes to the current page.
+
+For example, enable the **Canvas and HTML** plugin and ask:
+
+```text
+Create an animated cat in the canvas.
+```
+
+The model can generate the HTML/CSS/JavaScript, open the Canvas, render the animation, inspect the live result, and continue editing it from your next instructions.
+
+![v3_canvas](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/canvas.png)
+
+Canvas can also work as a browser workspace. It can open external websites, navigate pages, inspect and interact with DOM elements, and use either the built-in Chromium/QWebEngine runtime or the optional Playwright sandbox. For local web projects, the plugin can start a lightweight loopback-only HTML server, open the served site in Canvas, and then test or modify it interactively.
+
+To use this functionality, enable the **Canvas and HTML** plugin in the Plugins menu. Because this is currently a **BETA** feature, behavior and available tools may change or expand in future versions.
 
 # Indexing and RAG
 
@@ -1353,6 +1374,8 @@ The following plugins are currently available:
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
+- `Canvas and HTML` **(BETA)** - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers.
+
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
 - `Chat history (inline)` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
@@ -1735,7 +1758,7 @@ The **Use IPython** option selects which Python tool set is exposed to the model
 - with **Use IPython** enabled, the model receives only `ipython_exec`, `ipython_sys_exec`, and `ipython_kernel_restart`;
 - with **Use IPython** disabled, the model receives only `python_exec`, `python_exec_file`, and `python_sys_exec`.
 
-The two execution tool sets are never exposed together. The HTML Canvas tools `html_render_output` and `html_get_output` are independent of this selection.
+The two execution tool sets are never exposed together.
 
 **IPython:** IPython is the recommended execution mode because it keeps kernel state between calls and supports iterative workflows, data analysis, and IPython magic/shell syntax such as `!pip install <package_name>`. Use `ipython_exec` for Python code and `ipython_sys_exec` for shell/system commands in the same runtime environment.
 
@@ -1974,7 +1997,7 @@ PyGPT features several useful tools, including:
 - Python/OS
 - HTML/JS Canvas (built-in HTML renderer)
 - Translator
-- Web Browser (Chromium)
+- Canvas and HTML (BETA)
 - Agent Workflow
 - Agent Builder (Legacy)
 
@@ -2056,9 +2079,11 @@ Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromiu
 
 Enables translation between multiple languages using an AI model.
 
-## Web Browser
+## Canvas and HTML (BETA)
 
-A built-in web browser based on Chromium, allowing you to open webpages directly within the app. **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.
+The **Canvas and HTML** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas and HTML** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas and HTML** plugin to expose its model-callable tools. See the [Canvas and HTML](#canvas-and-html-beta) section above for an overview.
+
+**BETA:** This tool and its plugin integration will be expanded in future releases. Treat untrusted webpages and scripts with the same caution as other browser content.
 
 ## Agent Workflow
 
@@ -2286,7 +2311,7 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Vision and camera:** Camera
 - **Audio:** Devices, Options, Cache
 - **Indexes / RAG:** General, Vector Store, Chat, Embeddings, File indexing, Context indexing, Data loaders, Clear and truncate
-- **Agents and experts:** Agents, Agents, Autonomous, Options
+- **Agents and experts:** Agents, Legacy agents, Autonomous, Options
 - **Security:** General, Computer use, Linux, Windows, macOS
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:

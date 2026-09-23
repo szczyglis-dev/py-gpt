@@ -382,6 +382,7 @@
     "audio_input": true,
     "audio_output": false,
     "bitbucket": false,
+    "canvas_web": false,
     "cmd_api": false,
     "cmd_code_interpreter": false,
     "cmd_custom": false,
@@ -564,12 +565,12 @@
       "data_id": null,
       "idx": 0,
       "pid": 5,
-      "title": "Python/OS",
+      "title": "Canvas and HTML",
       "title_source": "default",
-      "tool_id": "interpreter",
+      "tool_id": "web_browser",
       "tooltip": "",
       "type": 100,
-      "uuid": "4e90829a-a2c9-4006-a46e-e18460673948"
+      "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9"
     },
     "6": {
       "column_idx": 1,
@@ -577,12 +578,12 @@
       "data_id": null,
       "idx": 1,
       "pid": 6,
-      "title": "HTML/JS Canvas",
+      "title": "Python/OS",
       "title_source": "default",
-      "tool_id": "html_canvas",
+      "tool_id": "interpreter",
       "tooltip": "",
       "type": 100,
-      "uuid": "738ea1d1-4b2f-495b-89c7-7bc3ef7e29f9"
+      "uuid": "4e90829a-a2c9-4006-a46e-e18460673948"
     },
     "7": {
       "column_idx": 1,

@@ -110,10 +110,6 @@ class Confirm:
         elif type == 'interpreter.clear':
             self.window.tools.get("interpreter").clear(True)
 
-        # html canvas
-        elif type == 'html_canvas.clear':
-            self.window.tools.get("html_canvas").clear(True)
-
         # translator
         elif type == 'translator.clear':
             self.window.tools.get("translator").clear(True)

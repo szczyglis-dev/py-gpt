@@ -365,26 +365,3 @@ class Config(BaseConfig):
             description="Allows system command execution in the standard Python environment. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="python_legacy",
         )
-        plugin.add_cmd(
-            "html_render_output",
-            instruction="send HTML/JS code to HTML built-in browser (HTML Canvas) and render it",
-            params=[
-                {
-                    "name": "html",
-                    "type": "str",
-                    "description": "HTML/JS code",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="Allows to render HTML/JS code in HTML Canvas",
-            tab="html_canvas",
-        )
-        plugin.add_cmd(
-            "html_get_output",
-            instruction="get current output from HTML Canvas",
-            params=[],
-            enabled=True,
-            description="Allows to get current output from HTML Canvas",
-            tab="html_canvas",
-        )

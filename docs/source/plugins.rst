@@ -12,6 +12,7 @@ The following plugins are currently available:
 * ``Audio input`` - adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
 * ``Audio output`` - enables speech synthesis for every received response using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
 * ``Autonomous mode`` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
+* ``Canvas and HTML`` **(BETA)** - interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and a local preview server.
 * ``Bitbucket`` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 * ``Chat history (inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 * ``Crontab / Task scheduler`` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
@@ -335,6 +336,273 @@ You can adjust the number of Autonomous loop iterations in the ``Plugins / Setti
 - **Responses to judge** *dynamic_continue_messages* - Number of the most recent Autonomous Assistant responses included in each hidden judge request. The original user input is always included. Set ``0`` to include all Assistant responses produced since that input. Multiple tool/text fragments belonging to the same Autonomous provider pass are grouped as one response for this limit. *Default:* ``3``
 
 - **Reverse roles between iterations** *reverse_roles* - Only for Completion mode. If enabled, this option reverses the roles (AI <> user) with each iteration. For example, if in the previous iteration the response was generated for "Batman," the next iteration will use that response to generate an input for "Joker." *Default:* ``True``
+
+
+.. _plugin-canvas-web-html:
+
+Canvas and HTML (BETA)
+---------------------------
+
+.. warning::
+   **BETA:** This plugin is experimental and will be expanded in future PyGPT releases. Tool behavior and configuration may evolve.
+
+The **Canvas and HTML** plugin provides a persistent browser/canvas runtime that the model can control as a local tool. It is intended for interactive HTML/CSS/JavaScript prototyping, live UI work, browser-based demos, external webpages, visual verification, annotations, and local web-project previews.
+
+The runtime is scoped to its own viewport. Canvas mouse and keyboard actions do not use the global desktop pointer or keyboard. The model should prefer DOM inspection and stable selectors over raw coordinates whenever possible, and use screenshots when visual verification matters.
+
+Backends and runtime rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* **QWebEngine is the default backend.** It uses the Chromium-based browser embedded in PyGPT and requires no separate browser automation setup.
+* **Playwright is opt-in.** Enable **Use sandbox (Playwright)** in the plugin settings before a tool can request the Playwright backend. If the setting is disabled, requests for ``sandbox=true`` are ignored and QWebEngine is used.
+* The Canvas runtime is persistent. Closing the visible Canvas tab does not destroy the background browser session.
+* Browser input is scoped to the Canvas viewport and uses a virtual model cursor. Global OS mouse/keyboard control should not be used for work that can be completed inside Canvas.
+* Prefer ``canvas_inspect`` and its ``data-pygpt-ref`` selectors before coordinate-based clicking. DOM selectors are generally more stable than visual coordinates.
+* Use ``canvas_screenshot`` when appearance matters or after a visual change that should be verified.
+* ``canvas_set_html`` can render a complete HTML/CSS/JavaScript document directly. Relative assets are resolved from ``base_url`` or, when omitted, from the current PyGPT data/work directory.
+* User annotations are explicit feedback about the current page. Read and apply them before making further UI changes when annotations are present.
+* The local preview server listens on loopback only. It is intended for previewing local projects rather than exposing a public web service.
+
+Options
+~~~~~~~
+
+**Use sandbox (Playwright)**
+   Enables the isolated Playwright browser backend. When disabled, Canvas always uses the built-in QWebEngine browser and does not try to launch Playwright. *Default:* ``False``.
+
+**Playwright engine**
+   Selects the Playwright browser engine: ``chromium``, ``firefox``, or ``webkit``. *Default:* ``chromium``.
+
+**Playwright browsers directory**
+   Optional ``PLAYWRIGHT_BROWSERS_PATH`` override. Leave empty to use the Playwright default. *Default:* empty.
+
+**Playwright browser args**
+   Optional comma-separated launch arguments passed to Chromium/Playwright. This is an advanced option. *Default:* empty.
+
+**Default viewport width**
+   Default Canvas viewport width in pixels. *Default:* ``1280``. *Range:* ``320`` to ``7680``.
+
+**Default viewport height**
+   Default Canvas viewport height in pixels. *Default:* ``800``. *Range:* ``240`` to ``4320``.
+
+**Auto-open browser in split screen**
+   On the first model-driven browser open in an application session, creates/focuses the Canvas tab in the second column and reveals split screen. If the user later collapses split screen, it is not forced open again in that session. *Default:* ``True``.
+
+**Expose user annotations to the model**
+   Appends pending Canvas/browser annotations to the runtime system prompt. *Default:* ``True``.
+
+**Maximum annotations**
+   Maximum number of annotations retained in the current browser session. *Default:* ``30``. *Range:* ``1`` to ``200``.
+
+**Console log limit**
+   Maximum number of browser console entries retained in memory. This is an advanced option. *Default:* ``200``. *Range:* ``10`` to ``2000``.
+
+Canvas tools
+~~~~~~~~~~~~
+
+``canvas_open``
+   Open or navigate the canvas/web browser runtime. Input is scoped to this canvas viewport only. The plugin setting 'Use sandbox (Playwright)' is the master switch for Playwright; when it is disabled, this command always uses QWebEngine even if sandbox=true is requested. resolution may be '1280x800', '390x844', or omitted.
+
+   Parameters:
+   * ``url`` (``str``, optional) - URL, file path or relative path to open.
+   * ``resolution`` (``str``, optional) - Optional WIDTHxHEIGHT, e.g. 1280x800 or 390x844.
+   * ``sandbox`` (``bool``, optional) - Request the isolated Playwright backend when the plugin setting 'Use sandbox (Playwright)' is enabled. Otherwise this is ignored and QWebEngine is used.
+
+``canvas_change_resolution``
+   Change the canvas/web browser viewport. orientation=portrait keeps the shorter edge as width; landscape keeps the longer edge as width.
+
+   Parameters:
+   * ``width`` (``int``, required) - Viewport width.
+   * ``height`` (``int``, required) - Viewport height.
+   * ``orientation`` (``str``, optional) - auto|portrait|landscape.
+
+``canvas_set_html``
+   Render arbitrary HTML/CSS/JavaScript in the current canvas/web browser runtime. Relative assets resolve against base_url; when omitted, the current PyGPT data/work directory is used.
+
+   Parameters:
+   * ``html`` (``str``, required) - HTML/CSS/JS document.
+   * ``base_url`` (``str``, optional) - Optional base URL or local directory.
+
+``canvas_get_html``
+   Get the current canvas/web browser URL and serialized HTML document.
+
+   Parameters: none.
+
+``canvas_current``
+   Get the current canvas/web browser runtime state: URL, title, backend, viewport, history, virtual cursor, UI surface, server and annotations.
+
+   Parameters: none.
+
+``canvas_close``
+   Close the canvas tab in the PyGPT application. This closes the visible canvas UI only; it does not destroy the background canvas/web browser runtime session.
+
+   Parameters: none.
+
+``canvas_prev``
+   Navigate the canvas/web browser to the previous history entry.
+
+   Parameters: none.
+
+``canvas_next``
+   Navigate the canvas/web browser to the next history entry.
+
+   Parameters: none.
+
+``canvas_reload``
+   Reload the current canvas/web browser document.
+
+   Parameters: none.
+
+``canvas_screenshot``
+   Capture the current canvas/web browser viewport including the model's virtual cursor. The screenshot is attached to the current tool context so vision-capable models can inspect it.
+
+   Parameters:
+   * ``path`` (``str``, optional) - Optional output path.
+   * ``full_page`` (``bool``, optional) - Full page when Playwright backend is active.
+
+``canvas_inspect``
+   Inspect the canvas/web browser DOM. By default returns visible interactive elements with stable data-pygpt-ref selectors, labels, text and bounding boxes. Use before coordinate clicking whenever possible.
+
+   Parameters:
+   * ``selector`` (``str``, optional) - Optional CSS selector; omit for interactive elements.
+   * ``limit`` (``int``, optional) - Maximum elements.
+
+``canvas_click``
+   Click inside the canvas/web browser only. Prefer selector/ref from canvas_inspect; coordinates are viewport pixels.
+
+   Parameters:
+   * ``selector`` (``str``, optional) - CSS selector or [data-pygpt-ref=...].
+   * ``x`` (``int``, optional) - Viewport X.
+   * ``y`` (``int``, optional) - Viewport Y.
+   * ``button`` (``str``, optional) - left|middle|right.
+   * ``count`` (``int``, optional) - Click count.
+
+``canvas_hover``
+   Move the model's virtual cursor/hover inside the canvas/web browser viewport.
+
+   Parameters:
+   * ``selector`` (``str``, optional) - Optional CSS selector.
+   * ``x`` (``int``, optional) - Viewport X.
+   * ``y`` (``int``, optional) - Viewport Y.
+
+``canvas_type``
+   Focus an element and type text in the canvas/web browser.
+
+   Parameters:
+   * ``selector`` (``str``, optional) - Optional CSS selector; otherwise currently focused element.
+   * ``text`` (``str``, required) - Text to type.
+   * ``clear`` (``bool``, optional) - Clear existing value first.
+   * ``press_enter`` (``bool``, optional) - Press Enter after typing.
+
+``canvas_key``
+   Send a keyboard key/chord to the canvas/web browser only, e.g. Enter, Escape, Tab, Control+A.
+
+   Parameters:
+   * ``key`` (``str``, required) - Key or Playwright-style chord.
+
+``canvas_scroll``
+   Scroll the canvas/web browser. dx/dy are CSS/viewport pixels; positive dy scrolls down.
+
+   Parameters:
+   * ``dx`` (``int``, optional) - Horizontal delta.
+   * ``dy`` (``int``, optional) - Vertical delta.
+   * ``x`` (``int``, optional) - Optional pointer X before scroll.
+   * ``y`` (``int``, optional) - Optional pointer Y before scroll.
+
+``canvas_drag``
+   Drag inside the canvas/web browser from one viewport point to another.
+
+   Parameters:
+   * ``x1`` (``int``, required) - Start X.
+   * ``y1`` (``int``, required) - Start Y.
+   * ``x2`` (``int``, required) - End X.
+   * ``y2`` (``int``, required) - End Y.
+
+``canvas_wait``
+   Wait for a selector or a short amount of time inside the canvas/web browser runtime.
+
+   Parameters:
+   * ``seconds`` (``float``, optional) - Seconds to wait when selector is omitted.
+   * ``selector`` (``str``, optional) - Optional CSS selector to wait for.
+   * ``timeout`` (``float``, optional) - Selector timeout in seconds.
+
+``canvas_eval``
+   Evaluate JavaScript in the current canvas/web browser page and return a JSON-serializable result. Execution is scoped to that page.
+
+   Parameters:
+   * ``javascript`` (``str``, required) - JavaScript expression or function body.
+
+``canvas_select``
+   Select an option in a <select> element in the canvas/web browser and dispatch normal input/change events.
+
+   Parameters:
+   * ``selector`` (``str``, required) - CSS selector for the select element.
+   * ``value`` (``str``, optional) - Option value.
+   * ``label`` (``str``, optional) - Visible option label.
+   * ``index`` (``int``, optional) - Zero-based option index.
+
+``canvas_check``
+   Set a checkbox/radio state in the canvas/web browser.
+
+   Parameters:
+   * ``selector`` (``str``, required) - CSS selector.
+   * ``checked`` (``bool``, optional) - Desired checked state; defaults to true.
+
+``canvas_upload``
+   Upload a host file into an <input type=file> in the canvas/web browser. This is Playwright-only and the path is validated by PyGPT file security before use.
+
+   Parameters:
+   * ``selector`` (``str``, required) - CSS selector for input[type=file].
+   * ``path`` (``str``, required) - File path.
+
+``canvas_console``
+   Get recent JavaScript console messages and page errors from the canvas/web browser.
+
+   Parameters:
+   * ``clear`` (``bool``, optional) - Clear stored console after reading.
+   * ``limit`` (``int``, optional) - Maximum entries returned.
+
+Annotations
+~~~~~~~~~~~
+
+``canvas_annotations``
+   Get annotations/selections explicitly left by the user on the current canvas/web browser session.
+
+   Parameters:
+   * ``clear`` (``bool``, optional) - Clear annotations after reading.
+
+``canvas_clear_annotations``
+   Clear all canvas/web browser annotations.
+
+   Parameters: none.
+
+Local preview server
+~~~~~~~~~~~~~~~~~~~~
+
+``web_server_start``
+   Start a lightweight loopback-only static HTTP server rooted in a directory. Use it to preview websites/apps from the PyGPT working directory in the canvas/web browser without adding another package.
+
+   Parameters:
+   * ``path`` (``str``, optional) - Directory to serve; defaults to current PyGPT data/work directory.
+   * ``port`` (``int``, optional) - Loopback port, 0 chooses a free port.
+   * ``open`` (``bool``, optional) - Open the server root in the canvas/web browser.
+   * ``sandbox`` (``bool``, optional) - Use Playwright if opening the server.
+
+``web_server_current``
+   Get current lightweight preview server state and base URL.
+
+   Parameters: none.
+
+``web_server_stop``
+   Stop the lightweight preview server.
+
+   Parameters: none.
+
+Security and practical notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Canvas can execute JavaScript and interact with webpages. Treat untrusted pages and scripts with the same caution as other browser content. Playwright provides a separate browser automation backend but does not make arbitrary web content trustworthy. The preview server is intentionally loopback-only.
+
+For an overview and usage examples, see :doc:`canvas`.
 
 Bitbucket
 ---------
@@ -1509,7 +1777,7 @@ The ``Use IPython`` option selects which Python tool set is exposed to the model
 * when enabled (default), only the IPython tools are exposed: ``ipython_exec``, ``ipython_sys_exec`` and ``ipython_kernel_restart``;
 * when disabled, only the standard Python tools are exposed: ``python_exec``, ``python_exec_file`` and ``python_sys_exec``.
 
-The two execution tool sets are never exposed together. HTML Canvas tools are independent of this selection.
+The two execution tool sets are never exposed together.
 
 **IPython:** IPython is the recommended execution mode and keeps kernel state between calls, which is useful for iterative development and data analysis. It also supports IPython magic/shell syntax such as ``!pip install <package_name>``. Use ``ipython_exec`` for Python code and ``ipython_sys_exec`` for operating-system commands in the same runtime environment.
 
@@ -1717,8 +1985,6 @@ To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemo
 - **Docker ports** *docker_ports* - Optional host-to-container port mappings. The default list is empty.
 
 
-**HTML Canvas**
-
 **Tools**
 
 - ``ipython_exec`` - Execute Python code in the current IPython kernel. The tool accepts one required ``code`` parameter.
@@ -1727,8 +1993,6 @@ To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemo
 - ``python_exec`` - Execute Python code directly. The public tool accepts only the required ``code`` parameter; PyGPT manages the temporary script path internally.
 - ``python_exec_file`` - Execute an existing Python file. The tool accepts the required ``path`` parameter.
 - ``python_sys_exec`` - Execute a shell/system command in the standard Python runtime. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in Python venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker backend and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment.
-- ``html_render_output`` - Render HTML/JS code in the built-in HTML Canvas.
-- ``html_get_output`` - Return the current output from HTML Canvas.
 
 RAG (inline)
 ------------

@@ -18,7 +18,6 @@ class WorkerSignals(BaseSignals):
     output = Signal(object, str)
     output_begin = Signal(str)
     output_end = Signal(str)
-    html_output = Signal(object)
     ipython_output = Signal(object)
     build_finished = Signal()
     clear = Signal()
@@ -99,12 +98,6 @@ class Worker(BaseWorker):
                             if "silent" in item and not self._is_builtin_preparing(response):
                                 self.ctx.bag = response  # store tmp response
                                 response = None
-
-                        elif item["cmd"] == "html_render_output":
-                            response = self.cmd_html_render_output(item)
-
-                        elif item["cmd"] == "html_get_output":
-                            response = self.cmd_html_get_output(item)
 
                         if response:
                             responses.append(response)
@@ -236,36 +229,6 @@ class Worker(BaseWorker):
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_html_render_output(self, item: dict) -> dict:
-        """
-        Show output in HTML canvas
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            if self.has_param(item, "html"):
-                self.plugin.runner.send_html_output(self.get_param(item, "html"), ctx=self.ctx)  # handle in main thread
-            result = "OK"
-        except Exception as e:
-            result = self.throw_error(e)
-        return self.make_response(item, result)
-
-    def cmd_html_get_output(self, item: dict) -> dict:
-        """
-        Get HTML canvas output
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            result = self.plugin.window.tools.get("html_canvas").get_output()
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
     def prepare_extra(self, item: dict, result) -> dict:
         """
         Prepare extra data for response
@@ -281,9 +244,7 @@ class Worker(BaseWorker):
             'code': {}
         }
         lang = "python"
-        if cmd in ["html_render_output", "html_get_output"]:
-            lang = "html"
-        elif cmd in ["ipython_sys_exec", "python_sys_exec", "sys_exec"]:
+        if cmd in ["ipython_sys_exec", "python_sys_exec", "sys_exec"]:
             lang = "bash"
         if "params" in item and "code" in item["params"]:
             extra["code"]["input"] = {}

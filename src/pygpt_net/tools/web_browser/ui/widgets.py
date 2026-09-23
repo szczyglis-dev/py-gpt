@@ -6,38 +6,30 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 19:20:00                  #
+# Updated Date: 2026.09.23 20:30:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer
+from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
-    QVBoxLayout,
-    QHBoxLayout,
-    QLineEdit,
-    QPushButton,
-    QWidget,
-    QSizePolicy,
+    QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QWidget, QSizePolicy,
+    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout,
 )
+from PySide6.QtWebEngineCore import QWebEnginePage
 
-from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.html import HtmlOutput
 from pygpt_net.utils import trans
 
 
 class ToolWidget:
-    def __init__(self, window=None, tool=None):
-        """
-        HTML/JS canvas widget
+    """A UI owner for the single persistent browser runtime surface."""
 
-        :param window: Window instance
-        :param tool: Tool instance
-        """
+    def __init__(self, window=None, tool=None, surface_kind="tab"):
         self.window = window
-        self.tool = tool  # tool instance
-        self.output = None  # output
-
-        # --- Navigation bar state ---
+        self.tool = tool
+        self.surface_kind = surface_kind
+        self.output = None
+        self.tab = None
         self.nav_bar = None
         self.nav_layout = None
         self.address_bar = None
@@ -45,326 +37,469 @@ class ToolWidget:
         self.btn_next = None
         self.btn_reload = None
         self.btn_go = None
+        self.scroll = None
+        self._layout = None
 
     def on_open(self):
-        """Restore the reusable browser view when the dialog is opened again."""
-        if self.output is None:
-            return
-        try:
-            self.output.show()
-            self.output.raise_()
-        except RuntimeError:
-            # The destructive on_delete() path is reserved for real widget/tab
-            # teardown. A normal dialog close must never delete BrowserOutput.
-            pass
+        self.tool.attach_surface(self)
+        self._sync_from_runtime()
 
     def on_close(self):
-        """Soft-close the browser dialog without destroying its WebEngine view.
-
-        Tool dialogs are persistent and are shown again on the next open. Deleting
-        BrowserOutput here leaves the navigation controls alive with a stale Python
-        wrapper around an already deleted C++ object, so the second open is blank
-        and navigation actions raise RuntimeError. Stop the current page and clear
-        it, but keep the view and all signal connections reusable.
-        """
-        if self.output is None:
-            return
-        try:
-            self.output.stop()
-            self.output.setUrl(QUrl("about:blank"))
-        except RuntimeError:
-            # Defensive only: older sessions may already contain a deleted view.
-            pass
+        self.tool.detach_surface(self)
 
     def on_delete(self):
-        """On delete"""
-        if self.tool:
-            self.tool.signals.url.disconnect(self.open_url)  # keep connections clean
+        self.tool.detach_surface(self)
+
+    def _take_surface(self):
+        if self.scroll is None:
+            return None
         try:
-            if hasattr(self.output, 'titleChanged'):
-                self.output.titleChanged.disconnect(self.on_update_title)
-            elif hasattr(self.output, 'page') and self.output.page() and hasattr(self.output.page(), 'titleChanged'):
-                self.output.page().titleChanged.disconnect(self.on_update_title)
+            return self.scroll.takeWidget()
         except Exception:
-            pass
-        if self.output:
-            self.output.on_delete()
+            return None
+
+    def attach_runtime_surface(self, surface):
+        self.output = surface
+        if self.scroll is not None:
+            old = self.scroll.takeWidget()
+            if old is not None and old is not surface:
+                old.setParent(None)
+            self.scroll.setWidget(surface)
+            surface.show()
 
     def set_tab(self, tab):
-        """
-        Set tab
-
-        :param tab: Tab
-        """
-        self.output.set_tab(tab)
+        self.tab = tab
+        if self.output is not None:
+            self.output.set_tab(tab)
 
     def setup(self, all: bool = True) -> QVBoxLayout:
-        """
-        Setup widget body
-
-        :param all: If True, setup all widgets
-        :return: QVBoxLayout
-        """
-        self.output = BrowserOutput(self.window)
-        if hasattr(self.output, 'titleChanged'):
-            try:
-                self.output.titleChanged.connect(self.on_update_title)
-            except TypeError:
-                pass
-        elif hasattr(self.output, 'page') and self.output.page() and hasattr(self.output.page(), 'titleChanged'):
-            try:
-                self.output.page().titleChanged.connect(self.on_update_title)
-            except TypeError:
-                pass
-        else:
-            def _emit_title_from_load(ok: bool):
-                if not ok:
-                    return
-                title = ""
-                try:
-                    if hasattr(self.output, 'title'):
-                        title = self.output.title()
-                    elif hasattr(self.output, 'page') and self.output.page():
-                        title = self.output.page().title()
-                except Exception:
-                    title = ""
-                if title and title.strip() and title != "about:blank":
-                    self.on_update_title(title)
-
-        # ---- Navigation bar ----
         self.nav_bar = QWidget()
         self.nav_layout = QHBoxLayout(self.nav_bar)
-        self.nav_layout.setContentsMargins(6, 4, 6, 4)  # small margins for compact look
+        self.nav_layout.setContentsMargins(6, 4, 6, 4)
         self.nav_layout.setSpacing(6)
         self.nav_bar.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-
-        # Icon size and fixed navbar height (to prevent taking too much space)
-        icon_size_px = 20  # base icon size for QPushButtons
-        nav_height = max(32, min(44, icon_size_px + 16))  # compact, never half-screen
+        icon_size_px = 20
+        nav_height = 36
         self.nav_bar.setFixedHeight(nav_height)
 
-        # Buttons
-        self.btn_back = QPushButton()
-        self.btn_back.setToolTip("Back")
-        self.btn_back.setIcon(QIcon(":/icons/back.svg"))
-        self.btn_back.setIconSize(QSize(icon_size_px, icon_size_px))
-        self.btn_back.setFixedHeight(nav_height - 8)
-        self.btn_back.setEnabled(False)
-        self.btn_back.setAutoDefault(False)  # prevent Enter from triggering this
-        try:
-            self.btn_back.setDefault(False)
-        except Exception:
-            pass
+        def button(icon, tip):
+            btn = QPushButton()
+            btn.setToolTip(tip)
+            btn.setIcon(QIcon(icon))
+            btn.setIconSize(QSize(icon_size_px, icon_size_px))
+            btn.setFixedHeight(nav_height - 8)
+            btn.setAutoDefault(False)
+            try:
+                btn.setDefault(False)
+            except Exception:
+                pass
+            return btn
 
-        self.btn_next = QPushButton()
-        self.btn_next.setToolTip("Next")
-        self.btn_next.setIcon(QIcon(":/icons/forward.svg"))
-        self.btn_next.setIconSize(QSize(icon_size_px, icon_size_px))
-        self.btn_next.setFixedHeight(nav_height - 8)
-        self.btn_next.setEnabled(False)
-        self.btn_next.setAutoDefault(False)
-        try:
-            self.btn_next.setDefault(False)
-        except Exception:
-            pass
-
-        self.btn_reload = QPushButton()
-        self.btn_reload.setToolTip("Reload")
-        self.btn_reload.setIcon(QIcon(":/icons/reload.svg"))
-        self.btn_reload.setIconSize(QSize(icon_size_px, icon_size_px))
-        self.btn_reload.setFixedHeight(nav_height - 8)
-        self.btn_reload.setAutoDefault(False)
-        try:
-            self.btn_reload.setDefault(False)
-        except Exception:
-            pass
-
-        # "Go" button
-        self.btn_go = QPushButton()
-        self.btn_go.setToolTip("Open URL")
-        self.btn_go.setIcon(QIcon(":/icons/redo.svg"))
-        self.btn_go.setIconSize(QSize(icon_size_px, icon_size_px))
-        self.btn_go.setFixedHeight(nav_height - 8)
-        self.btn_go.setAutoDefault(False)  # avoid stealing Enter
-        try:
-            self.btn_go.setDefault(False)
-        except Exception:
-            pass
-
-        # Address bar (custom line edit to capture Enter and avoid default button reload)
+        self.btn_back = button(":/icons/back.svg", trans("ui.back", domain="plugin.canvas_web"))
+        self.btn_next = button(":/icons/forward.svg", trans("ui.next", domain="plugin.canvas_web"))
+        self.btn_reload = button(":/icons/reload.svg", trans("ui.reload", domain="plugin.canvas_web"))
+        self.btn_go = button(":/icons/redo.svg", trans("ui.open_url", domain="plugin.canvas_web"))
         self.address_bar = AddressLineEdit(on_return_callback=self._on_address_enter)
-        self.address_bar.setPlaceholderText("Enter URL and press Enter")
+        self.address_bar.setPlaceholderText(trans("ui.address_placeholder", domain="plugin.canvas_web"))
         self.address_bar.setFixedHeight(nav_height - 8)
-        # Still keep the Qt signal for completeness (won't fire because we intercept the key)
         self.address_bar.returnPressed.connect(self._on_address_enter)
 
-        # Hook up button actions
-        self.btn_back.clicked.connect(lambda: self._navigate('back'))
-        self.btn_next.clicked.connect(lambda: self._navigate('forward'))
-        self.btn_reload.clicked.connect(lambda: self._navigate('reload'))
-        self.btn_go.clicked.connect(self._on_address_enter)  # "Go" triggers address open
+        self.btn_back.clicked.connect(lambda: self.tool.runtime_call("canvas_prev", {"__ui": True}))
+        self.btn_next.clicked.connect(lambda: self.tool.runtime_call("canvas_next", {"__ui": True}))
+        self.btn_reload.clicked.connect(lambda: self.tool.runtime_call("canvas_reload", {"__ui": True}))
+        self.btn_go.clicked.connect(self._on_address_enter)
 
-        # Build nav layout
         self.nav_layout.addWidget(self.btn_back)
         self.nav_layout.addWidget(self.btn_next)
         self.nav_layout.addWidget(self.btn_reload)
         self.nav_layout.addWidget(self.address_bar, 1)
         self.nav_layout.addWidget(self.btn_go)
 
-        sec_label = HelpLabel(trans("tool.web_browser.security.footer"))
-        sec_label.setAlignment(Qt.AlignCenter)
-
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(sec_label)
-
-        output_layout = QVBoxLayout()
-        # put navigation bar above the web output
-        output_layout.addWidget(self.nav_bar)
-        output_layout.addWidget(self.output, 1)
-        output_layout.setContentsMargins(0, 0, 0, 0)
-
-        # connect signals
-        self.output.signals.save_as.connect(
-            self.tool.handle_save_as)
-        self.output.signals.audio_read.connect(
-            self.window.controller.chat.render.handle_audio_read)
-
-        # Keep nav bar in sync with the underlying view if signals are available
-        # (urlChanged/loadStarted/loadFinished are part of QWebEngineView)
-        if hasattr(self.output, 'urlChanged'):
-            self.output.urlChanged.connect(self._on_url_changed)
-        if hasattr(self.output, 'loadStarted'):
-            try:
-                self.output.loadStarted.connect(lambda: self._update_nav_controls())
-            except TypeError:
-                pass
-        if hasattr(self.output, 'loadFinished'):
-            try:
-                self.output.loadFinished.connect(lambda ok: self._update_nav_controls())
-            except TypeError:
-                pass
-
-        self.tool.signals.url.connect(self.open_url)
-        self.tool.signals.closed.connect(self.on_close)
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(False)
+        self.scroll.setAlignment(Qt.AlignCenter)
+        self.scroll.setFrameShape(QFrame.NoFrame)
 
         layout = QVBoxLayout()
-        layout.addLayout(output_layout, 1)
-        layout.addLayout(bottom_layout, 0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.nav_bar, 0)
+        layout.addWidget(self.scroll, 1)
+        self._layout = layout
+        if self.surface_kind == "tab":
+            self.tool.attach_surface(self)
         return layout
 
     @Slot(str)
     def open_url(self, url: str):
-        """
-        Open URL in output
-
-        :param url: URL
-        """
-        print("Opening URL:", url)
-        if self.address_bar:
-            self.address_bar.setText(url)
-        self.output.setUrl(QUrl(url))
-        self._update_nav_controls()
-
-    # ------------------
-    # Navigation helpers
-    # ------------------
-    def _show_navbar(self, show: bool):
-        """Show/hide the navigation bar."""
-        if self.nav_bar:
-            self.nav_bar.setVisible(show)
-        # Keep controls state up-to-date
-        self._update_nav_controls()
-
-    def _navigate(self, action: str):
-        """Perform navigation action on the output view."""
-        if not self.output:
-            return
-        try:
-            if action == 'back' and hasattr(self.output, 'back'):
-                self.output.back()
-            elif action == 'forward' and hasattr(self.output, 'forward'):
-                self.output.forward()
-            elif action == 'reload' and hasattr(self.output, 'reload'):
-                self.output.reload()
-        finally:
-            self._update_nav_controls()
+        self.tool.runtime_call("canvas_open", {"url": url, "__ui": True})
 
     def _on_address_enter(self):
-        """Handle Enter pressed in the address bar or clicking GO."""
-        if not self.output or not self.address_bar:
+        if self.address_bar is None:
             return
         text = self.address_bar.text().strip()
-        if not text:
-            return
-        url = QUrl.fromUserInput(text)
-        if url.isValid():
-            self._show_navbar(True)
-            self.output.setUrl(url)
-            self._update_nav_controls()
+        if text:
+            self.tool.runtime_call("canvas_open", {"url": text, "__ui": True})
 
-    def _on_url_changed(self, url: QUrl):
-        """Keep address bar in sync with the view URL."""
-        if self.address_bar:
-            self.address_bar.setText(url.toString())
-        self._update_nav_controls()
-
-    def _update_nav_controls(self):
-        """Enable/disable back/forward buttons based on history."""
-        if not self.output:
-            return
-        # Reload is generally available when navbar is visible
-        if self.btn_reload:
+    def _sync_from_runtime(self):
+        state = self.tool.current_state()
+        if self.address_bar is not None:
+            self.address_bar.setText(state.get("url", ""))
+        if self.btn_back is not None:
+            self.btn_back.setEnabled(bool(state.get("can_go_back")))
+        if self.btn_next is not None:
+            self.btn_next.setEnabled(bool(state.get("can_go_forward")))
+        if self.btn_reload is not None:
             self.btn_reload.setEnabled(True)
-        # Back/forward depend on history if available
-        if self.btn_back and self.btn_next:
-            try:
-                hist = self.output.history()
-                self.btn_back.setEnabled(bool(hist and hist.canGoBack()))
-                self.btn_next.setEnabled(bool(hist and hist.canGoForward()))
-            except Exception:
-                # If history is not available, keep safe defaults
-                self.btn_back.setEnabled(False)
-                self.btn_next.setEnabled(False)
 
-    @Slot(str)
-    def on_update_title(self, title: str):
-        """Update tab title when the page title changes."""
-        if not self.output:
-            return
-        tab = self.output.tab
-        if tab is None:
-            return
-        if self.window and title and title.strip() and title != "about:blank":
+    def on_runtime_state(self, state: dict):
+        self._sync_from_runtime()
+        # The application has one canonical Canvas and HTML tab, but its title
+        # may still follow the currently rendered document.  This is only a
+        # label update; it must never be used as tab identity.
+        title = state.get("title") or ""
+        if self.tab is not None and title and title != "about:blank":
             try:
-                self.window.controller.ui.tabs.update_title_by_tab(tab, title)
+                self.window.controller.ui.tabs.update_title_by_tab(self.tab, title)
             except Exception:
                 pass
 
 
+class BrowserPage(QWebEnginePage):
+    """QWebEngine page that forwards console/errors to the shared browser runtime."""
+
+    def __init__(self, tool=None, parent=None):
+        super().__init__(parent)
+        self.tool = tool
+
+    def javaScriptConsoleMessage(self, level, message, line_number, source_id):
+        if self.tool is not None:
+            if self.tool.handle_annotation_console(message):
+                return
+            self.tool.append_qt_console(level, message, line_number, source_id)
+        super().javaScriptConsoleMessage(level, message, line_number, source_id)
+
+
 class BrowserOutput(HtmlOutput):
-    def __init__(self, window=None):
-        """
-        HTML canvas output
+    """QWebEngine backend used when Playwright sandbox mode is disabled."""
 
-        :param window: main window
-        """
-        super(BrowserOutput, self).__init__(window)
+    def __init__(self, window=None, tool=None):
+        self.tool = tool
+        super().__init__(window)
         self.window = window
+        self.setPage(BrowserPage(tool=tool, parent=self))
+        if tool is not None:
+            self.signals.save_as.connect(tool.handle_save_as)
+        if window is not None:
+            self.signals.audio_read.connect(window.controller.chat.render.handle_audio_read)
+
+    def _detach_gl_event_filter(self):
+        """Detach WebEngine's transient GL child without logging stale Qt wrappers.
+
+        QWebEngine may destroy/recreate its internal render widget while the
+        persistent canvas surface is reparented.  In that case the Python wrapper
+        can still be truthy even though the underlying C++ QWidget is already
+        gone.  Treat that as normal teardown rather than an application error.
+        """
+        glwidget = getattr(self, "_glwidget", None)
+        installed = bool(getattr(self, "_glwidget_filter_installed", False))
+        if glwidget is not None and installed:
+            try:
+                glwidget.removeEventFilter(self)
+            except RuntimeError as exc:
+                if "already deleted" not in str(exc).lower():
+                    try:
+                        self._on_delete_failed(exc)
+                    except Exception:
+                        pass
+            except Exception as exc:
+                try:
+                    self._on_delete_failed(exc)
+                except Exception:
+                    pass
+        self._glwidget = None
+        self._glwidget_filter_installed = False
+
+    def on_page_loaded(self, success):
+        if self.tool is not None:
+            self.tool.on_qt_load_finished(bool(success))
+
+    def on_context_menu(self, position):
+        menu = QMenu(self)
+        selected = self.page().selectedText() if self.page().hasSelection() else ""
+        if selected:
+            copy_action = QAction(QIcon(":/icons/copy.svg"), trans("ui.copy", domain="plugin.canvas_web"), self)
+            copy_action.triggered.connect(self.copy_selected_text)
+            menu.addAction(copy_action)
+            annotate = QAction(trans("ui.annotate_selection", domain="plugin.canvas_web"), self)
+            annotate.triggered.connect(lambda: self.tool.annotate_selection(selected, position, backend="qt"))
+            menu.addAction(annotate)
+        else:
+            annotate = QAction(trans("ui.annotate_element", domain="plugin.canvas_web"), self)
+            annotate.triggered.connect(lambda: self.tool.annotate_at(position.x(), position.y(), backend="qt"))
+            menu.addAction(annotate)
+            select_all = QAction(trans("ui.select_all", domain="plugin.canvas_web"), self)
+            select_all.triggered.connect(self.select_all_text)
+            menu.addAction(select_all)
+        menu.addSeparator()
+        show_source = QAction(trans("ui.show_source", domain="plugin.canvas_web"), self)
+        show_source.triggered.connect(self.tool.show_source)
+        menu.addAction(show_source)
+        menu.addSeparator()
+        back = QAction(trans("ui.back", domain="plugin.canvas_web"), self)
+        back.triggered.connect(lambda: self.tool.runtime_call("canvas_prev", {"__ui": True}))
+        menu.addAction(back)
+        forward = QAction(trans("ui.next", domain="plugin.canvas_web"), self)
+        forward.triggered.connect(lambda: self.tool.runtime_call("canvas_next", {"__ui": True}))
+        menu.addAction(forward)
+        reload_action = QAction(trans("ui.reload", domain="plugin.canvas_web"), self)
+        reload_action.triggered.connect(lambda: self.tool.runtime_call("canvas_reload", {"__ui": True}))
+        menu.addAction(reload_action)
+        menu.exec_(self.mapToGlobal(position))
 
 
-# --- Address bar input widget ---
+class SandboxView(QWidget):
+    """Remote framebuffer-like frontend for the headless Playwright page."""
+
+    def __init__(self, tool=None, parent=None):
+        super().__init__(parent)
+        self.tool = tool
+        self._pixmap = QPixmap()
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setMouseTracking(True)
+
+    def set_frame(self, data: bytes):
+        pix = QPixmap()
+        if data and pix.loadFromData(data):
+            self._pixmap = pix
+            self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        if not self._pixmap.isNull():
+            painter.drawPixmap(self.rect(), self._pixmap)
+        else:
+            painter.fillRect(self.rect(), self.palette().base())
+        if self.tool is not None:
+            x, y = self.tool.cursor_x, self.tool.cursor_y
+            pen = QPen(self.palette().highlight().color())
+            pen.setWidth(2)
+            painter.setPen(pen)
+            painter.drawEllipse(QPoint(int(x), int(y)), 7, 7)
+            painter.drawLine(int(x) - 11, int(y), int(x) + 11, int(y))
+            painter.drawLine(int(x), int(y) - 11, int(x), int(y) + 11)
+            painter.drawText(int(x) + 10, int(y) - 10, "AI")
+
+    def mouseMoveEvent(self, event):
+        if self.tool is not None:
+            p = event.position()
+            self.tool.user_playwright_action("hover", {"x": int(p.x()), "y": int(p.y())})
+        super().mouseMoveEvent(event)
+
+    def mousePressEvent(self, event):
+        self.setFocus(Qt.MouseFocusReason)
+        if self.tool is not None:
+            p = event.position()
+            if event.button() == Qt.RightButton:
+                self.tool.user_playwright_action("hover", {"x": int(p.x()), "y": int(p.y())})
+                event.accept()
+                return
+            buttons = {Qt.LeftButton: "left", Qt.MiddleButton: "middle"}
+            self.tool.user_playwright_action("mouse_down", {
+                "x": int(p.x()), "y": int(p.y()), "button": buttons.get(event.button(), "left")})
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.RightButton:
+            event.accept()
+            return
+        if self.tool is not None:
+            p = event.position()
+            buttons = {Qt.LeftButton: "left", Qt.MiddleButton: "middle"}
+            self.tool.user_playwright_action("mouse_up", {
+                "x": int(p.x()), "y": int(p.y()), "button": buttons.get(event.button(), "left")})
+        super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if self.tool is not None and event.button() == Qt.LeftButton:
+            p = event.position()
+            self.tool.user_playwright_action("click", {"x": int(p.x()), "y": int(p.y()), "count": 2})
+        super().mouseDoubleClickEvent(event)
+
+    def wheelEvent(self, event):
+        if self.tool is not None:
+            delta = event.angleDelta()
+            self.tool.user_playwright_action("scroll", {"dx": -delta.x(), "dy": -delta.y()})
+        event.accept()
+
+    def keyPressEvent(self, event):
+        if self.tool is not None:
+            special_keys = {
+                Qt.Key_Return, Qt.Key_Enter, Qt.Key_Escape, Qt.Key_Tab,
+                Qt.Key_Backspace, Qt.Key_Delete, Qt.Key_Left, Qt.Key_Right,
+                Qt.Key_Up, Qt.Key_Down, Qt.Key_Home, Qt.Key_End,
+                Qt.Key_PageUp, Qt.Key_PageDown,
+            }
+            text = event.text()
+            has_command_modifier = bool(event.modifiers() & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
+            if event.key() in special_keys or has_command_modifier or not text:
+                key = self.tool.qt_key_to_playwright(event)
+                if key:
+                    self.tool.user_playwright_action("key", {"key": key})
+            else:
+                self.tool.user_playwright_action("type_raw", {"text": text})
+        event.accept()
+
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        p = event.pos()
+        # Keep the menu instant. Selection detection is performed inside the
+        # page when the action is invoked, so opening RMB never waits on
+        # synchronous Playwright evaluation.
+        annotate_selection = QAction(trans("ui.annotate_selection", domain="plugin.canvas_web"), self)
+        annotate_selection.triggered.connect(lambda: self.tool.annotate_selection("", p, backend="playwright"))
+        menu.addAction(annotate_selection)
+        annotate = QAction(trans("ui.annotate_element", domain="plugin.canvas_web"), self)
+        annotate.triggered.connect(lambda: self.tool.annotate_at(p.x(), p.y(), backend="playwright"))
+        menu.addAction(annotate)
+        menu.addSeparator()
+        show_source = QAction(trans("ui.show_source", domain="plugin.canvas_web"), self)
+        show_source.triggered.connect(self.tool.show_source)
+        menu.addAction(show_source)
+        menu.exec_(event.globalPos())
+
+
+class SourceEditor(QPlainTextEdit):
+    """Plain-text HTML source editor for the current browser document."""
+
+    def __init__(self, tool=None, parent=None):
+        super().__init__(parent)
+        self.tool = tool
+        self.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.setTabChangesFocus(False)
+
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu()
+        if menu.actions():
+            menu.addSeparator()
+        back = QAction(trans("ui.back_to_canvas", domain="plugin.canvas_web"), self)
+        back.triggered.connect(self.tool.show_canvas)
+        menu.addAction(back)
+        menu.exec_(event.globalPos())
+
+
+class BrowserViewport(QWidget):
+    """Persistent browser viewport with rendered and editable-source modes."""
+
+    SOURCE_DEBOUNCE_MS = 450
+
+    def __init__(self, window=None, tool=None):
+        super().__init__()
+        self.window = window
+        self.tool = tool
+        self.tab = None
+        self.web = BrowserOutput(window, tool)
+        self.sandbox = SandboxView(tool)
+        self.source = SourceEditor(tool, self)
+        self._mode = "qt"
+        self._source_visible = False
+        self._source_loading = False
+        self._source_base_url = ""
+        self._source_timer = QTimer(self)
+        self._source_timer.setSingleShot(True)
+        self._source_timer.setInterval(self.SOURCE_DEBOUNCE_MS)
+        self._source_timer.timeout.connect(self._apply_source)
+        self.source.textChanged.connect(self._on_source_changed)
+
+        # A real stack is more reliable than hide/show for QWebEngineView. In
+        # particular it avoids Chromium keeping its compositor surface above the
+        # source editor on some Linux/Wayland/X11 combinations.
+        self.layout = QStackedLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.addWidget(self.web)
+        self.layout.addWidget(self.sandbox)
+        self.layout.addWidget(self.source)
+        self.layout.setCurrentWidget(self.web)
+        self.set_resolution(1280, 800)
+
+    def set_tab(self, tab):
+        self.tab = tab
+        self.web.set_tab(tab)
+
+    def set_mode(self, mode: str):
+        self._mode = mode
+        if self._source_visible:
+            self.layout.setCurrentWidget(self.source)
+            return
+        self.layout.setCurrentWidget(self.sandbox if mode == "playwright" else self.web)
+
+    def show_source(self, html: str, base_url: str = ""):
+        self._source_timer.stop()
+        self._source_loading = True
+        try:
+            self.source.setPlainText(str(html or ""))
+            self.source.document().setModified(False)
+            self._source_base_url = str(base_url or "")
+            self._source_visible = True
+            self.layout.setCurrentWidget(self.source)
+            self.source.setFocus(Qt.OtherFocusReason)
+        finally:
+            self._source_loading = False
+
+    def show_canvas(self):
+        # Flush the last pending edit before revealing the rendered result.
+        if self._source_visible and self._source_timer.isActive():
+            self._source_timer.stop()
+            self._apply_source()
+        self._source_visible = False
+        self.set_mode(self._mode)
+        self.active_view().setFocus(Qt.OtherFocusReason)
+
+    def _on_source_changed(self):
+        if self._source_loading or not self._source_visible:
+            return
+        self._source_timer.start()
+
+    def _apply_source(self):
+        if self._source_loading or not self._source_visible or self.tool is None:
+            return
+        html = self.source.toPlainText()
+        try:
+            self.tool.apply_source_html(html, self._source_base_url)
+            self.source.document().setModified(False)
+        except Exception as exc:
+            try:
+                self.tool._append_console("source", "error", str(exc))
+            except Exception:
+                pass
+
+    def set_resolution(self, width: int, height: int):
+        width = max(240, int(width))
+        height = max(180, int(height))
+        self.setFixedSize(width, height)
+        self.web.setFixedSize(width, height)
+        self.sandbox.setFixedSize(width, height)
+        self.source.setFixedSize(width, height)
+
+    def active_view(self):
+        if self._source_visible:
+            return self.source
+        return self.sandbox if self._mode == "playwright" else self.web
+
+    def shutdown(self):
+        self._source_timer.stop()
+        try:
+            self.web.on_delete()
+        except Exception:
+            pass
+
+
 class AddressLineEdit(QLineEdit):
-    """
-    Custom QLineEdit that ensures Enter triggers opening the typed URL
-    and prevents default buttons (e.g., Reload) from consuming the key.
-    """
     def __init__(self, on_return_callback=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._on_return_callback = on_return_callback
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            # Call the assigned handler and stop propagation so default buttons won't trigger.
             if callable(self._on_return_callback):
                 self._on_return_callback()
             event.accept()
@@ -373,5 +508,6 @@ class AddressLineEdit(QLineEdit):
 
 
 class ToolSignals(QObject):
-    url = Signal(str)  # url
-    closed = Signal()  # dialog closed
+    url = Signal(str)
+    closed = Signal()
+    state = Signal(dict)

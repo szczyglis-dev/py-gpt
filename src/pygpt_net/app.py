@@ -253,6 +253,7 @@ def run(**kwargs):
         from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
         from pygpt_net.plugin.cmd_system import Plugin as CmdSystemPlugin
         from pygpt_net.plugin.cmd_web import Plugin as CmdWebPlugin
+        from pygpt_net.plugin.canvas_web import Plugin as CanvasWebPlugin
         from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
         from pygpt_net.plugin.extra_prompt import Plugin as ExtraPromptPlugin
         from pygpt_net.plugin.experts import Plugin as ExpertsPlugin
@@ -383,7 +384,6 @@ def run(**kwargs):
         from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
         from pygpt_net.tools.media_player import MediaPlayer as MediaPlayerTool
         from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
-        from pygpt_net.tools.html_canvas import HtmlCanvas as HtmlCanvasTool
         from pygpt_net.tools.translator import Translator as TranslatorTool
         from pygpt_net.tools.web_browser import WebBrowser as WebBrowserTool
         from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
@@ -475,6 +475,7 @@ def run(**kwargs):
         launcher.add_plugin(AudioInputPlugin())
         launcher.add_plugin(AudioOutputPlugin())
         launcher.add_plugin(CmdWebPlugin())
+        launcher.add_plugin(CanvasWebPlugin())
         launcher.add_plugin(CmdFilesPlugin())
         launcher.add_plugin(CmdCodeInterpreterPlugin())
         launcher.add_plugin(CmdSystemPlugin())
@@ -585,7 +586,6 @@ def run(**kwargs):
         launcher.add_tool(TextEditorTool())
         launcher.add_tool(AudioTranscriberTool())
         launcher.add_tool(CodeInterpreterTool())
-        launcher.add_tool(HtmlCanvasTool())
         launcher.add_tool(TranslatorTool())
         launcher.add_tool(WebBrowserTool())
         launcher.add_tool(AgentBuilderTool())

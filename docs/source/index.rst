@@ -26,6 +26,7 @@ Contents
    requirements
    quick_start
    modes
+   canvas
    skills
    context
    attachments

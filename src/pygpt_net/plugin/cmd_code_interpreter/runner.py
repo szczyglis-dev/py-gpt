@@ -95,14 +95,6 @@ class Runner:
         """
         self._emit_signal("output_end", type)
 
-    def send_html_output(self, data: str, ctx=None):
-        """Send HTML output to canvas with its host-side asset base directory."""
-        base_dir = self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
-        self._emit_signal("html_output", {
-            "html": data,
-            "base_dir": base_dir,
-        })
-
     @staticmethod
     def decode_subprocess_output(data) -> str:
         """Decode subprocess output without assuming UTF-8 on Windows.

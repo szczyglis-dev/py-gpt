@@ -41,7 +41,7 @@ class Plugin(BasePlugin):
         self.id = "cmd_code_interpreter"
         self.is_common_plugin = True
         self.name = "Python interpreter"
-        self.description = "Provides Python/HTML/JS code execution"
+        self.description = "Provides Python code execution"
         self.prefix = "Python -> code"
         self.type = [
             'interpreter',
@@ -54,8 +54,6 @@ class Plugin(BasePlugin):
             "python_exec",
             "python_exec_file",
             "python_sys_exec",
-            "html_render_output",
-            "html_get_output",
         ]
         self.use_locale = True
         self.docker = Docker(self)
@@ -357,7 +355,6 @@ class Plugin(BasePlugin):
             worker.signals.output_begin.connect(self.handle_interpreter_output_begin)
             worker.signals.output_end.connect(self.handle_interpreter_output_end)
             worker.signals.clear.connect(self.handle_interpreter_clear)
-            worker.signals.html_output.connect(self.handle_html_output)
             worker.signals.ipython_output.connect(self.handle_ipython_output)
             # Runner/kernel signals are bound inside Worker.run() on the actual
             # worker thread. Keeping a single shared signal pointer here causes
@@ -429,17 +426,6 @@ class Plugin(BasePlugin):
             return
         self.window.tools.get("interpreter").clear_output()
 
-    @Slot(object)
-    def handle_html_output(self, data):
-        """Handle HTML/JS canvas output and preserve its execution workdir."""
-        base_dir = None
-        html = data
-        if isinstance(data, dict):
-            html = data.get("html", "")
-            base_dir = data.get("base_dir")
-        canvas = self.window.tools.get("html_canvas")
-        canvas.set_output(str(html), base_dir=base_dir)
-        canvas.auto_open()
 
     @Slot(str)
     def handle_python_run(self, code: str):

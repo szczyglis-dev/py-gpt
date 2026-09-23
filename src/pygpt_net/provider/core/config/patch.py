@@ -1169,8 +1169,6 @@ class Patch:
                     "cmd.code_execute": "cmd.python_exec",
                     "cmd.code_execute_file": "cmd.python_exec_file",
                     "cmd.ipython_execute": "cmd.ipython_exec",
-                    "cmd.render_html_output": "cmd.html_render_output",
-                    "cmd.get_html_output": "cmd.html_get_output",
                 }
                 for old_key, new_key in command_renames.items():
                     if old_key in interpreter:
@@ -1328,6 +1326,79 @@ class Patch:
                 if data.get(key) != new_value:
                     data[key] = new_value
                     updated = True
+
+            # < 2.8.30
+            if old < parse_version("2.8.30"):
+                print("Migrating config from < 2.8.30...")
+
+                # HTML/JS Canvas moved to the persistent browser runtime.
+                tabs = data.get("tabs.data")
+                if isinstance(tabs, dict):
+                    browser_keys = []
+                    for key, item in list(tabs.items()):
+                        if not isinstance(item, dict):
+                            continue
+                        if item.get("tool_id") == "html_canvas":
+                            item["tool_id"] = "web_browser"
+                            updated = True
+                        if item.get("tool_id") != "web_browser":
+                            continue
+
+                        browser_keys.append(key)
+                        # Preserve an explicit user rename, but replace old/default and
+                        # document-derived automatic titles from the first implementation.
+                        is_custom = bool(item.get("custom_name")) or item.get("title_source") == "custom"
+                        if not is_custom:
+                            if item.get("title") != "Canvas and HTML":
+                                item["title"] = "Canvas and HTML"
+                                updated = True
+                            if item.get("tooltip") != "Canvas and HTML":
+                                item["tooltip"] = "Canvas and HTML"
+                                updated = True
+                            if item.get("title_source") != "default":
+                                item["title_source"] = "default"
+                                updated = True
+                            if item.get("custom_name"):
+                                item["custom_name"] = False
+                                updated = True
+
+                    # Keep the oldest persisted browser tab as the canonical instance.
+                    # Sort explicitly instead of relying on JSON/dict insertion order.
+                    # All later duplicates disappear before any QWebEngine widget is
+                    # constructed, so a single runtime surface can never get two hosts.
+                    browser_keys.sort(key=lambda key: (
+                        tabs[key].get("pid", 10 ** 9),
+                        tabs[key].get("idx", 10 ** 9),
+                        str(key),
+                    ))
+                    for key in browser_keys[1:]:
+                        if key in tabs:
+                            del tabs[key]
+                            updated = True
+
+                plugins_enabled = data.get("plugins_enabled")
+                if isinstance(plugins_enabled, dict) and "canvas_web" not in plugins_enabled:
+                    base_plugins_enabled = cfg_get_base("plugins_enabled") or {}
+                    plugins_enabled["canvas_web"] = bool(base_plugins_enabled.get("canvas_web", False))
+                    updated = True
+
+                plugins = data.get("plugins")
+                interpreter = plugins.get("cmd_code_interpreter") if isinstance(plugins, dict) else None
+                if isinstance(interpreter, dict):
+                    for key in (
+                            "cmd.html_render_output", "cmd.html_get_output",
+                            "cmd.render_html_output", "cmd.get_html_output",
+                    ):
+                        if key in interpreter:
+                            interpreter.pop(key)
+                            updated = True
+
+                for key in (
+                        "cmd.html_render_output", "cmd.html_get_output",
+                        "cmd.render_html_output", "cmd.get_html_output",
+                ):
+                    if self.window.core.plugins.remove_plugin_param_from_presets("cmd_code_interpreter", key):
+                        updated = True
 
         # update file
         migrated = False
