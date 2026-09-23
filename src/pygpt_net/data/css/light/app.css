@@ -12,15 +12,15 @@ QWidget {{
 QListView, 
 QTreeView {{
   color: #000;
-  background-color: #fff;
+  background-color: #f4f6f8;
   border: 1px solid #c0c0c0;
 }}
-QListView::item:selected, 
+QListView::item:selected,
 QTreeView::item:selected {{
   color: #fff;
   selection-color: #000000;
 }}
-QListView::item:selected:focus, 
+QListView::item:selected:focus,
 QTreeView::item:selected:focus {{
   color: #fff;
   selection-color: #000;
@@ -49,30 +49,30 @@ QPushButton:hover {{
   background-color: rgba(0, 0, 0, 25);
 }}
 QLineEdit {{
-  color: #000000; 
+  color: #000000;
   border: 1px solid #e7e7e7;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
 QLineEdit::focus {{
-  color: #000000; 
+  color: #000000;
   border: 1px solid #e7e7e7;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
 QTextEdit {{
-  color: #000000; 
+  color: #000000;
   border: 1px solid #e7e7e7;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
-QMenu {{ 
-  background-color: #fff; 
+QMenu {{
+  background-color: #f4f6f8;
   border: none;
-}} 
-QMenu::item {{ 
+}}
+QMenu::item {{
   color: #0e0e0e;
-}} 
+}}
 QComboBox,
 QComboBox::focus {{
-  background-color: #fff;
+  background-color: #f4f6f8;
   color: #000000;
 }}
 
@@ -128,7 +128,7 @@ QTreeView::item:hover:!selected {{
 }}
 
 QCalendarWidget QWidget {{
-  background: #fff;
+  background: #f4f6f8;
 }}
 QScrollBar::handle {{
   background: {QTMATERIAL_PRIMARYCOLOR};
@@ -157,26 +157,26 @@ QCheckBox::indicator:checked,
 QGroupBox::indicator:checked {{
   image: none;
   background-color: #c1c2c2;
-  selection-background-color: #fff; 
+  selection-background-color: #fff;
 }}
 
 QCheckBox::indicator:unchecked,
 QGroupBox::indicator:unchecked {{
   image: none;
-  background-color: #fff;
+  background-color: #f4f6f8;
   border: 1px solid #828282 !important;
 }}
 
 QRadioButton::indicator:checked {{
   image: none;
   background-color: #c1c2c2;
-  selection-background-color: #fff; 
+  selection-background-color: #fff;
   border-radius: 8px;
 }}
 QRadioButton::indicator:unchecked {{
   image: none;
   border: 1px solid #828282 !important;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
 QHeaderView::section {{
   text-transform: none;
@@ -191,11 +191,11 @@ QMenu::indicator {{
 }}
 QMenu::indicator:non-exclusive:unchecked {{
   image: none;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
 QMenu::indicator:non-exclusive:unchecked:selected {{
   image: none;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
 QMenu::indicator:non-exclusive:checked {{
   image: none;
@@ -207,11 +207,11 @@ QMenu::indicator:non-exclusive:checked:selected {{
 }}
 QMenu::indicator:exclusive:unchecked {{
   image: none;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
 QMenu::indicator:exclusive:unchecked:selected {{
   image: none;
-  background-color: #fff;
+  background-color: #f4f6f8;
 }}
 QMenu::indicator:exclusive:checked {{
   image: none;
@@ -239,7 +239,7 @@ QPushButton {{
 .interpreter-output,
 .code-editor {{
   font-family: 'Monaspace Neon';
-  background: #fff; 
+  background: #f4f6f8;
   color: #000;
 }}
 
@@ -318,7 +318,7 @@ QCalendarWidget QToolButton:hover {{
 .file-explorer QScrollBar::sub-line:horizontal,
 .file-explorer QScrollBar::corner {{
   background: #fcfcfc;
-}} 
+}}
 QMenu::indicator {{
     border: 1px solid gray;
 }}
@@ -346,7 +346,7 @@ QCalendarWidget QAbstractItemView::item:selected {{
 
 /* Node editor */
 NodeEditor {{
-  qproperty-gridBackColor: #ffffff;
+  qproperty-gridBackColor: #f4f6f8;
   qproperty-gridPenColor: #eaeaea;
 
   qproperty-nodeBackgroundColor: #2d2f34;
@@ -411,7 +411,7 @@ QWidget#ComboPopupWindow {{
   border: 0;
 }}
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
-  background: #ffffff;
+  background: #f4f6f8;
   border-radius: 10px;
 }}
 /* Canonical Light palette (2.8.18) */
@@ -521,7 +521,7 @@ QComboBox::item:selected {{
 QComboBox::item:disabled {{
   color: #818282;
 }}
-QListView::item:selected:focus, 
+QListView::item:selected:focus,
 QComboBox::item:selected:focus,
 QTreeView::item:selected:focus {{
   color: #000000;
@@ -532,12 +532,12 @@ QListView::item::disabled {{
    color: #959595;
    font-weight: bold;
 }}
-QMenuBar::item:selected {{ 
+QMenuBar::item:selected {{
   color: #000000;
-}} 
-QMenu::item:selected {{ 
+}}
+QMenu::item:selected {{
   color: #000000;
-}} 
+}}
 QWidget,
 .layout-notepad {{
   background-color: #fcfcfc;
@@ -550,13 +550,13 @@ QWidget,
 QPushButton,
 QToolButton,
 QTextEdit,
-QLineEdit, 
-QListView, 
+QLineEdit,
+QListView,
 QComboBox,
 QTreeView {{
   background-color: #efefef;
 }}
-QMenu {{ 
+QMenu {{
   background-color: #efefef;
 }}
 .layout-output-web {{
@@ -712,12 +712,12 @@ QMenuBar::item:disabled {{
   placeholder-text-color: #a4a4a4;
 }}
 .mention-popup {{
-  background: #ffffff;
+  background: #f4f6f8;
   border: 1px solid #d5d5d5;
   border-radius: 10px;
 }}
 .mention-popup-list {{
-  background: #ffffff;
+  background: #f4f6f8;
   border: none;
   padding: 2px;
 }}
@@ -821,12 +821,12 @@ QListView#ComboPopupList::item:selected:focus {{
 }}
 
 /* Current model highlight in runtime model menu */
-QMenu#chatInputModelMenu::item:checked {
+QMenu#chatInputModelMenu::item:checked {{
   background-color: #f6f6f6;
   color: #000000;
-}
-QMenu#chatInputModelMenu::item:checked:selected {
+}}
+QMenu#chatInputModelMenu::item:checked:selected {{
   background-color: #f6f6f6;
   color: #000000;
-}
+}}
 
