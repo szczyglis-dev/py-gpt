@@ -37,7 +37,7 @@ def test_options(mock_window):
 
 
 def test_handle_cmd_syntax(mock_window):
-    """Default config exposes IPython commands plus HTML tools."""
+    """Default config exposes only commands owned by Code Interpreter."""
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
@@ -54,8 +54,6 @@ def test_handle_cmd_syntax(mock_window):
         "ipython_exec",
         "ipython_sys_exec",
         "ipython_kernel_restart",
-        "html_render_output",
-        "html_get_output",
     ]
 
 

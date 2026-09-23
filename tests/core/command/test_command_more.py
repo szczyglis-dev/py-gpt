@@ -39,7 +39,7 @@ def make_window():
     models.get = lambda key: None
     models.is_tool_call_allowed = lambda mode, model_data: True
     experts = SimpleNamespace(get_functions=lambda: [])
-    debug = SimpleNamespace(log=Mock())
+    debug = SimpleNamespace(log=Mock(), warning=Mock())
     core = SimpleNamespace(prompt=prompt, config=config, ctx=ctx, models=models, experts=experts, debug=debug)
     presets = SimpleNamespace(get_current_functions=lambda: [])
     plugins = SimpleNamespace(is_type_enabled=lambda t: False)
@@ -151,20 +151,24 @@ def test_unpack_tool_calls_responses_parses_and_skips_missing_name():
 
 def test_unpack_tool_calls_chunks_with_append_output_and_error():
     window = make_window()
-    window.core.debug.log.reset_mock()
+    window.core.debug.warning.reset_mock()
     ctx = SimpleNamespace(tool_calls=None, extra={}, input=None, output=None)
     tool_calls = [
         {"id": "1", "function": {"name": "f", "arguments": json.dumps({"a": 1})}},
         {"id": "2", "function": {"name": "f2", "arguments": {"not": "str"}}},
         {"id": "3", "function": {"name": "f3", "arguments": "badjson"}},
     ]
+
     command = Command(window)
     command.unpack_tool_calls_chunks(ctx, tool_calls, append_output=True)
-    assert isinstance(ctx.tool_calls, list)
-    assert len(ctx.tool_calls) == 1
+
+    assert [call["id"] for call in ctx.tool_calls] == ["1", "2"]
+    assert ctx.tool_calls[0]["function"]["arguments"] == {"a": 1}
+    assert ctx.tool_calls[1]["function"]["arguments"] == {"not": "str"}
     assert ctx.extra["tool_calls"] == ctx.tool_calls
     assert ctx.extra["tool_output"] == []
-    assert window.core.debug.log.called
+    window.core.debug.warning.assert_called_once()
+    assert "invalid JSON arguments" in window.core.debug.warning.call_args.args[0]
 
 
 def test_unpack_tool_calls_from_llama_parses_and_logs_on_error():

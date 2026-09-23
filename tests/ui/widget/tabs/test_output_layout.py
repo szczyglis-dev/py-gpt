@@ -28,9 +28,13 @@ def test_output_column_focus_does_not_refocus_already_focused_widget():
 
 
 def test_output_column_accessors():
-    widget = SimpleNamespace(idx=-1, tabs="old")
+    input_host = MagicMock()
+    widget = SimpleNamespace(idx=-1, tabs="old", input_host=input_host)
+
     OutputColumn.set_idx(widget, 4)
+
     assert OutputColumn.get_idx(widget) == 4
+    input_host.setObjectName.assert_called_once_with("chatInputHost4")
     OutputColumn.set_tabs(widget, "new")
     assert OutputColumn.get_tabs(widget) == "new"
 

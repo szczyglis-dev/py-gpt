@@ -44,25 +44,31 @@ def _window(tab_tools, menu_actions):
     ), menu
 
 
-def test_tools_setup_adds_tab_actions_and_returns_early_without_plugin_actions():
+def test_tools_setup_adds_tab_and_builtin_actions_without_plugin_actions():
     window, menu = _window({"tool.calendar": ("calendar", "calendar", "calendar")}, {})
-    widget = SimpleNamespace(window=window)
-    created = []
+    widget = SimpleNamespace(
+        window=window,
+        _toggle_remote_store=MagicMock(),
+        _rebuild_ipython=MagicMock(),
+        _rebuild_python_legacy=MagicMock(),
+        _rebuild_system=MagicMock(),
+        _rebuild_python_builtin=MagicMock(),
+        _rebuild_system_builtin=MagicMock(),
+    )
 
-    def make_action(*args, **kwargs):
-        action = MagicMock()
-        created.append(action)
-        return action
-
-    with patch("pygpt_net.ui.menu.tools.QAction", side_effect=make_action), \
+    with patch("pygpt_net.ui.menu.tools.QAction", side_effect=lambda *args, **kwargs: MagicMock()), \
             patch("pygpt_net.ui.menu.tools.QIcon"), \
             patch("pygpt_net.ui.menu.tools.trans", side_effect=lambda key: key):
         Tools.setup(widget)
 
     assert "menu.tools" in window.ui.menu
     assert "tool.calendar" in window.ui.menu
-    menu.addAction.assert_called_once_with(window.ui.menu["tool.calendar"])
-    menu.addSeparator.assert_not_called()
+    assert "menu.tools.remote_store" in window.ui.menu
+    assert "menu.tools.docker" in window.ui.menu
+    added = [call.args[0] for call in menu.addAction.call_args_list]
+    assert window.ui.menu["tool.calendar"] in added
+    assert window.ui.menu["menu.tools.remote_store"] in added
+    assert menu.addSeparator.call_count == 2
 
 
 def test_tools_setup_adds_plugin_remote_store_and_docker_actions():

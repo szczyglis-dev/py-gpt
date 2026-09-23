@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from PySide6.QtCore import Qt
 
@@ -7,115 +7,140 @@ from pygpt_net.tools.web_browser.ui.widgets import AddressLineEdit, ToolWidget
 
 
 def _widget():
-    history = SimpleNamespace(
-        canGoBack=MagicMock(return_value=False),
-        canGoForward=MagicMock(return_value=True),
-    )
     output = MagicMock()
-    output.history.return_value = history
-    output.tab = SimpleNamespace(idx=4)
+    viewport = MagicMock()
+    viewport.width.return_value = 900
+    viewport.height.return_value = 600
+    scroll = MagicMock()
+    scroll.viewport.return_value = viewport
+
     tool = SimpleNamespace(
-        signals=SimpleNamespace(
-            url=SimpleNamespace(disconnect=MagicMock()),
-        )
+        detach_surface=MagicMock(),
+        runtime_call=MagicMock(),
+        current_state=MagicMock(return_value={
+            "url": "https://example.com",
+            "can_go_back": False,
+            "can_go_forward": True,
+        }),
+        request_viewport_policy=MagicMock(),
     )
     window = SimpleNamespace(
         controller=SimpleNamespace(
             ui=SimpleNamespace(tabs=MagicMock()),
-        )
+        ),
+        ui=SimpleNamespace(splitters={}),
     )
     return SimpleNamespace(
         tool=tool,
         window=window,
         output=output,
+        tab=SimpleNamespace(idx=4, column_idx=1),
         nav_bar=MagicMock(),
         address_bar=MagicMock(),
         btn_back=MagicMock(),
         btn_next=MagicMock(),
         btn_reload=MagicMock(),
-        _update_nav_controls=MagicMock(),
-        _show_navbar=MagicMock(),
-        open_url=MagicMock(),
-        on_update_title=MagicMock(),
+        scroll=scroll,
+        viewport_badge=MagicMock(),
+        _disconnect_viewport_hooks=MagicMock(),
+        request_viewport_sync=MagicMock(),
+        _sync_from_runtime=MagicMock(),
+        _update_viewport_badge=MagicMock(),
+        _column_visible=MagicMock(return_value=True),
     )
 
 
-def test_web_browser_widget_on_delete_disconnects_url_title_and_output():
+def test_web_browser_widget_on_delete_disconnects_hooks_and_detaches_surface():
     obj = _widget()
-    obj.output.titleChanged = SimpleNamespace(disconnect=MagicMock())
 
     ToolWidget.on_delete(obj)
 
-    obj.tool.signals.url.disconnect.assert_called_once_with(obj.open_url)
-    obj.output.titleChanged.disconnect.assert_called_once_with(obj.on_update_title)
-    obj.output.on_delete.assert_called_once_with()
+    obj._disconnect_viewport_hooks.assert_called_once_with()
+    obj.tool.detach_surface.assert_called_once_with(obj)
 
 
-def test_web_browser_widget_set_tab_and_open_url():
+def test_web_browser_widget_set_tab_and_open_url_use_persistent_runtime():
     obj = _widget()
-    tab = object()
+    tab = SimpleNamespace(idx=7, column_idx=1)
+
     ToolWidget.set_tab(obj, tab)
+
+    assert obj.tab is tab
     obj.output.set_tab.assert_called_once_with(tab)
+    obj.request_viewport_sync.assert_called_once_with(immediate=True)
 
-    qurl = object()
-    with patch("pygpt_net.tools.web_browser.ui.widgets.QUrl", return_value=qurl):
-        ToolWidget.open_url(obj, "https://example.com")
-    obj.address_bar.setText.assert_called_once_with("https://example.com")
-    obj.output.setUrl.assert_called_once_with(qurl)
-    obj._update_nav_controls.assert_called_once_with()
+    ToolWidget.open_url(obj, "https://example.com")
+    obj.tool.runtime_call.assert_called_once_with(
+        "canvas_open",
+        {"url": "https://example.com", "__ui": True},
+    )
 
 
-def test_web_browser_widget_navbar_navigation_and_history_controls():
+def test_web_browser_widget_sync_from_runtime_updates_address_and_history_controls():
     obj = _widget()
-    ToolWidget._show_navbar(obj, False)
-    obj.nav_bar.setVisible.assert_called_once_with(False)
-    obj._update_nav_controls.assert_called_once_with()
+    obj._sync_from_runtime = ToolWidget._sync_from_runtime.__get__(obj, ToolWidget)
 
-    obj._update_nav_controls.reset_mock()
-    ToolWidget._navigate(obj, "back")
-    obj.output.back.assert_called_once_with()
-    ToolWidget._navigate(obj, "forward")
-    obj.output.forward.assert_called_once_with()
-    ToolWidget._navigate(obj, "reload")
-    obj.output.reload.assert_called_once_with()
-    assert obj._update_nav_controls.call_count == 3
+    ToolWidget._sync_from_runtime(obj)
 
-    obj._update_nav_controls = ToolWidget._update_nav_controls.__get__(obj, ToolWidget)
-    ToolWidget._update_nav_controls(obj)
-    obj.btn_reload.setEnabled.assert_called_once_with(True)
+    obj.address_bar.setText.assert_called_once_with("https://example.com")
     obj.btn_back.setEnabled.assert_called_once_with(False)
     obj.btn_next.setEnabled.assert_called_once_with(True)
+    obj.btn_reload.setEnabled.assert_called_once_with(True)
 
 
-def test_web_browser_widget_address_enter_and_url_change():
+def test_web_browser_widget_address_enter_routes_raw_user_input_to_runtime():
     obj = _widget()
     obj.address_bar.text.return_value = "example.com"
-    fake_url = SimpleNamespace(isValid=MagicMock(return_value=True))
-    with patch("pygpt_net.tools.web_browser.ui.widgets.QUrl.fromUserInput", return_value=fake_url):
-        ToolWidget._on_address_enter(obj)
-    obj._show_navbar.assert_called_once_with(True)
-    obj.output.setUrl.assert_called_once_with(fake_url)
 
-    obj._update_nav_controls.reset_mock()
-    changed = SimpleNamespace(toString=MagicMock(return_value="https://changed.example"))
-    ToolWidget._on_url_changed(obj, changed)
-    obj.address_bar.setText.assert_called_with("https://changed.example")
-    obj._update_nav_controls.assert_called_once_with()
+    ToolWidget._on_address_enter(obj)
+
+    obj.tool.runtime_call.assert_called_once_with(
+        "canvas_open",
+        {"url": "example.com", "__ui": True},
+    )
 
 
-def test_web_browser_widget_update_title_requires_output_tab_and_real_title():
+def test_web_browser_widget_runtime_state_updates_view_and_real_tab_title():
     obj = _widget()
-    ToolWidget.on_update_title(obj, "Example")
-    obj.window.controller.ui.tabs.update_title_by_tab.assert_called_once_with(obj.output.tab, "Example")
+
+    ToolWidget.on_runtime_state(obj, {"title": "Example", "width": 900, "height": 600})
+
+    obj._sync_from_runtime.assert_called_once_with()
+    obj._update_viewport_badge.assert_called_once_with(
+        {"title": "Example", "width": 900, "height": 600}
+    )
+    obj.window.controller.ui.tabs.update_title_by_tab.assert_called_once_with(obj.tab, "Example")
 
     obj.window.controller.ui.tabs.update_title_by_tab.reset_mock()
-    ToolWidget.on_update_title(obj, "about:blank")
-    ToolWidget.on_update_title(obj, "   ")
+    ToolWidget.on_runtime_state(obj, {"title": "about:blank"})
+    ToolWidget.on_runtime_state(obj, {"title": ""})
     obj.window.controller.ui.tabs.update_title_by_tab.assert_not_called()
 
-    obj.output.tab = None
-    ToolWidget.on_update_title(obj, "Ignored")
+    obj.tab = None
+    ToolWidget.on_runtime_state(obj, {"title": "Ignored"})
     obj.window.controller.ui.tabs.update_title_by_tab.assert_not_called()
+
+
+def test_web_browser_widget_viewport_sync_tracks_visible_runtime_area():
+    obj = _widget()
+
+    ToolWidget._sync_runtime_viewport(obj)
+
+    obj.tool.request_viewport_policy.assert_called_once_with(
+        900,
+        600,
+        visible=True,
+        delay=0,
+    )
+
+
+def test_web_browser_widget_viewport_sync_uses_hidden_policy_for_collapsed_column():
+    obj = _widget()
+    obj._column_visible.return_value = False
+
+    ToolWidget._sync_runtime_viewport(obj)
+
+    obj.tool.request_viewport_policy.assert_called_once_with(visible=False, delay=0)
 
 
 def test_web_browser_address_line_edit_enter_invokes_callback_and_accepts_event():

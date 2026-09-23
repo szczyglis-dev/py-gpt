@@ -161,12 +161,14 @@ def test_reload_after(tabs, dummy_window):
     dummy_window.ui.nodes['output'][1].setVisible.assert_called_with(False)
 
 def test_on_tab_changed_not_found(tabs, dummy_window):
+    tabs.initialized = True
     dummy_window.core.tabs.get_tab_by_index.return_value = None
     tabs.appended = True
     tabs.on_tab_changed(1, 0)
     assert tabs.appended is False
 
 def test_on_tab_changed_chat(tabs, dummy_window):
+    tabs.initialized = True
     dummy_tab = MagicMock()
     dummy_tab.type = Tab.TAB_CHAT
     dummy_tab.data_id = None
@@ -183,6 +185,7 @@ def test_on_tab_changed_chat(tabs, dummy_window):
     dummy_window.controller.ctx.new.assert_called_once()
 
 def test_on_tab_changed_notepad(tabs, dummy_window):
+    tabs.initialized = True
     dummy_tab = MagicMock()
     dummy_tab.type = Tab.TAB_NOTEPAD
     dummy_window.core.tabs.get_tab_by_index.return_value = dummy_tab
@@ -282,6 +285,7 @@ def test_on_column_focus(tabs, dummy_window):
     assert tabs.column_idx == 0
 
 def test_on_tab_dbl_clicked(tabs, dummy_window):
+    tabs.initialized = True
     dummy_window.core.tabs.get_tab_by_index.return_value = MagicMock()
     tabs.on_tab_dbl_clicked(3, 0)
     assert tabs.current == 3
@@ -560,13 +564,17 @@ def test_is_tool(tabs, dummy_window):
     assert isinstance(tabs.is_tool("tool1"), bool)
 
 def test_get_first_tab_by_tool(tabs, dummy_window):
-    dummy_tab = MagicMock(tool_id="tool2", idx=7, column_idx=0)
-    dummy_window.core.tabs.get_tab_by_index.return_value = dummy_tab
-    tabs.col = {0: None}
-    fake_tabs = MagicMock()
-    fake_tabs.count.return_value = 1
-    dummy_window.ui.layout.get_tabs_by_idx = MagicMock(return_value=fake_tabs)
+    dummy_tab = MagicMock(
+        type=Tab.TAB_TOOL,
+        tool_id="tool2",
+        idx=7,
+        column_idx=0,
+        pid=11,
+    )
+    dummy_window.core.tabs.pids = {11: dummy_tab}
+
     result = tabs.get_first_tab_by_tool("tool2")
+
     assert result == dummy_tab
 
 def test_switch_to_first_tab_by_tool(tabs, dummy_window):

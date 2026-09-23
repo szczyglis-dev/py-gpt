@@ -27,7 +27,7 @@ from pygpt_net.tools.web_browser.tool import WebBrowser
         ("pygpt_net.tools.media_player.tool", MediaPlayer, "media.player", "toggle"),
         ("pygpt_net.tools.text_editor.tool", TextEditor, "text.editor", "open"),
         ("pygpt_net.tools.translator.tool", Translator, "translator", "toggle"),
-        ("pygpt_net.tools.web_browser.tool", WebBrowser, "web_browser", "toggle"),
+        ("pygpt_net.tools.web_browser.tool", WebBrowser, "web_browser", "open"),
     ],
 )
 def test_tool_setup_menu_builds_action_and_routes_trigger(module_name, cls, action_key, callback_name):
