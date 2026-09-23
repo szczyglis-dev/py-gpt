@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 19:05:00
+# Updated Date: 2026.09.24 00:25:00
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -44,6 +44,15 @@ class Tabs:
         self._focus_sync_scheduled = False  # column-focus sync to keep focus stable
         self._pending_focus_idx: Optional[int] = None
 
+        # QTabWidget emits currentChanged while persisted tabs are being inserted.
+        # At that point startup has not reached controller.ctx.setup() yet (and
+        # during a profile reload the new profile context has not been loaded).
+        # A saved Chat tab can already carry a data_id, so handling that signal
+        # would resolve/load the conversation and touch renderer/WebEngine widgets
+        # while the tab/widget tree is still under construction.  On QtWebEngine
+        # this can terminate the process at C++ level instead of raising Python.
+        self._tab_widgets_loading = False
+
         # Chat composer is shown only for chat output tabs. Keep the exact
         # splitter geometry from before it is hidden so returning to Chat does
         # not change the user's manually selected input height.
@@ -53,10 +62,18 @@ class Tabs:
     def setup(self, reload: bool = False):
         """Setup tabs"""
         w = self.window
-        w.core.tabs.load()
-        w.controller.notepad.load()
-        if not reload:
-            self.setup_options()
+
+        # Suppress QTabWidget.currentChanged side effects while core Tabs is
+        # rebuilding the saved widgets.  Active-tab/context restoration is done
+        # deliberately later by restore_data(), after Ctx is ready.
+        self._tab_widgets_loading = True
+        try:
+            w.core.tabs.load()
+            w.controller.notepad.load()
+            if not reload:
+                self.setup_options()
+        finally:
+            self._tab_widgets_loading = False
         self.initialized = True
 
     def setup_options(self):
@@ -165,20 +182,92 @@ class Tabs:
         self._update_chat_input_visibility(curr_tab)
         self.debug()
 
-    def _update_chat_input_visibility(self, tab: Optional[Tab]):
-        """Show the Chat composer only while the logically active tab is Chat."""
-        if tab is None:
-            return
+    def _get_column_current_tab(self, column_idx: int) -> Optional[Tab]:
+        """Return the tab currently selected in ``column_idx``."""
+        layout = getattr(self.window.ui, 'layout', None)
+        if layout is None:
+            return None
+        tabs = layout.get_tabs_by_idx(column_idx)
+        if tabs is None:
+            return None
+        idx = tabs.currentIndex()
+        if idx < 0:
+            return None
+        return self.window.core.tabs.get_tab_by_index(idx, column_idx)
 
+    def get_chat_input_column_idx(self) -> Optional[int]:
+        """Return the visible column currently intended to host Chat input."""
+        return self._get_chat_input_target_column()
+
+    def is_chat_input_visible(self) -> bool:
+        """Return True when the shared Chat input belongs to a visible Chat tab."""
+        return self._get_chat_input_target_column() is not None
+
+    def _get_chat_input_target_column(self) -> Optional[int]:
+        """Return the visible column that should own the single Chat composer.
+
+        With one visible Chat tab, keep the composer attached to that Chat even
+        while the other column has focus (for example a Tool or Notepad tab).
+        When both visible columns currently show Chat tabs, the composer follows
+        the logically active/focused column.  If no visible column shows Chat,
+        the composer is hidden.
+        """
+        visible_columns = [0]
+        if self.is_split_screen_enabled():
+            visible_columns.append(1)
+
+        chat_columns = []
+        for column_idx in visible_columns:
+            current = self._get_column_current_tab(column_idx)
+            if current is not None and current.type == Tab.TAB_CHAT:
+                chat_columns.append(column_idx)
+
+        if not chat_columns:
+            return None
+        if len(chat_columns) == 1:
+            return chat_columns[0]
+
+        active_column = self.get_current_column_idx()
+        if active_column in chat_columns:
+            return active_column
+
+        # Defensive fallback for a transient/stale column focus event. With two
+        # visible Chat tabs this should normally be unreachable.
+        return chat_columns[0]
+
+    def _update_chat_input_visibility(self, tab: Optional[Tab]):
+        """Place the shared Chat composer according to visible Chat columns."""
         nodes = self.window.ui.nodes
         composer = nodes.get('input.container')
         root = nodes.get('input.root')
-        splitter = self.window.ui.splitters.get('main.output')
         if composer is None or root is None:
             return
 
-        show = tab.type == Tab.TAB_CHAT
+        target_column = self._get_chat_input_target_column()
+        show = target_column is not None
+        layout = getattr(self.window.ui, 'layout', None)
+        splitter = self.window.ui.splitters.get('main.output')
+        live_saved = None
+
+        # Capture the current chat geometry before moving the shared input to
+        # another column. Once the old host is hidden its splitter naturally
+        # reports a collapsed lower pane, so the snapshot must happen first.
+        if splitter is not None:
+            try:
+                sizes = list(splitter.sizes())
+                if self._is_expanded_chat_input_sizes(sizes):
+                    live_saved = sizes
+                    self.window.controller.ui.splitter_output_size_input = list(sizes)
+            except Exception:
+                pass
+
         if show:
+            if layout is not None and hasattr(layout, 'mount_chat_input'):
+                mounted = layout.mount_chat_input(root, target_column)
+                if mounted is not None:
+                    splitter = mounted
+
+            root.show()
             composer.show()
             self._chat_input_suppressed = False
             composer.updateGeometry()
@@ -186,7 +275,11 @@ class Tabs:
             if hasattr(composer, 'sync_width'):
                 QTimer.singleShot(0, composer.sync_width)
 
-            saved = self._chat_input_splitter_sizes
+            saved = live_saved or self._chat_input_splitter_sizes
+            if not self._is_expanded_chat_input_sizes(saved):
+                cached = self.window.controller.ui.splitter_output_size_input
+                if self._is_expanded_chat_input_sizes(cached):
+                    saved = list(cached)
             if self._is_expanded_chat_input_sizes(saved):
                 self._restore_chat_input_splitter_sizes(list(saved))
                 QTimer.singleShot(0, lambda sizes=list(saved): self._restore_chat_input_splitter_sizes(sizes))
@@ -201,41 +294,45 @@ class Tabs:
             self._chat_input_splitter_sizes = None
             return
 
-        # Files, Notepad, Calendar, Painter and every custom Tool tab use the
-        # output area without the Chat composer. The full-width global status
-        # footer remains visible. Capture only a real, expanded Chat geometry;
-        # startup may reach this branch before layout.splitters has been restored.
-        if not self._chat_input_suppressed and splitter is not None:
-            try:
-                sizes = list(splitter.sizes())
-                if self._is_expanded_chat_input_sizes(sizes):
-                    self._chat_input_splitter_sizes = sizes
-            except Exception:
-                pass
+        # Files, Notepad, Calendar, Painter and every custom Tool tab use their
+        # full column height. The application-wide status/footer remains outside
+        # the per-column splitters, while only the shared Chat input is collapsed.
+        if live_saved is not None:
+            self._chat_input_splitter_sizes = list(live_saved)
 
         self._chat_input_suppressed = True
         composer.hide()
+        root.hide()
         composer.updateGeometry()
         root.updateGeometry()
-        QTimer.singleShot(0, self._collapse_chat_input_splitter)
+        if layout is not None and hasattr(layout, 'hide_chat_input'):
+            layout.hide_chat_input(root)
+        else:
+            QTimer.singleShot(0, self._collapse_chat_input_splitter)
 
     def _input_root_index(self, splitter, root) -> int:
         if splitter is None or root is None:
             return -1
         try:
-            return int(splitter.indexOf(root))
+            direct = int(splitter.indexOf(root))
+            if direct >= 0:
+                return direct
+            for idx in range(splitter.count()):
+                widget = splitter.widget(idx)
+                if widget is not None and widget.isAncestorOf(root):
+                    return idx
         except Exception:
-            return -1
+            pass
+        return -1
 
     def _chat_input_footer_height(self) -> int:
-        """Return the lower-pane height used when only the global footer is visible."""
-        footer = self.window.ui.nodes.get('input.footer.container')
-        if footer is None:
-            return 0
-        try:
-            return max(0, int(footer.minimumSizeHint().height()), int(footer.sizeHint().height())) + 5
-        except Exception:
-            return 0
+        """Return legacy footer-only height for local input-pane detection.
+
+        The application-wide bottom status is no longer a child of input.root,
+        so a hidden local input pane now collapses fully to zero. Keep this
+        compatibility helper at zero for old splitter-geometry checks.
+        """
+        return 0
 
     def _is_expanded_chat_input_sizes(self, sizes) -> bool:
         """Return True when sizes represent a real Chat composer, not footer-only suppression."""
@@ -336,13 +433,12 @@ class Tabs:
             pass
 
     def _collapse_chat_input_splitter(self):
-        """Shrink the lower pane to the application status footer only."""
+        """Collapse the local Chat input pane completely."""
         if not self._chat_input_suppressed:
             return
 
         splitter = self.window.ui.splitters.get('main.output')
         root = self.window.ui.nodes.get('input.root')
-        footer = self.window.ui.nodes.get('input.footer.container')
         if splitter is None or root is None:
             return
 
@@ -359,12 +455,8 @@ class Tabs:
             if self._chat_input_splitter_sizes is None and self._is_expanded_chat_input_sizes(current):
                 self._chat_input_splitter_sizes = list(current)
 
-            target = max(0, int(root.minimumSizeHint().height()), int(root.sizeHint().height()))
-            if footer is not None:
-                target = max(target, int(footer.sizeHint().height()) + 5)
-
             total = sum(current)
-            target = min(target, total)
+            target = 0
             if current[input_idx] <= target + 1:
                 return
 
@@ -632,6 +724,15 @@ class Tabs:
         :param column_idx: column index
         """
         if idx == -1:
+            return
+
+        # addTab()/insertTab() emits currentChanged immediately when the first
+        # widget is inserted into a column.  Ignore those construction-time
+        # signals.  In particular, do not load a persisted Chat data_id before
+        # controller.ctx.setup() (startup) / ctx.reload() (profile reload).
+        # restore_data() will call this handler explicitly once restoration is
+        # safe, so no user-visible tab state is lost.
+        if not self.initialized or self._tab_widgets_loading:
             return
 
         # Both output columns exist even when split-screen is disabled. During
@@ -1760,6 +1861,7 @@ class Tabs:
                 # This path also handles revealing the second column by
                 # dragging the splitter instead of using the toolbar switch.
                 self._schedule_revealed_split_chat_restore()
+            self.update_current()
         self._sync_chat_input_width()
 
     def enable_split_screen(self, update_switch: bool = False):
@@ -1775,6 +1877,7 @@ class Tabs:
         self.window.core.config.set("layout.split", True)
         self.window.core.config.save()
         self._schedule_revealed_split_chat_restore()
+        self.update_current()
         self._sync_chat_input_width()
 
         if update_switch:
@@ -1789,6 +1892,7 @@ class Tabs:
         self.on_column_changed()
         self.window.core.config.set("layout.split", False)
         self.window.core.config.save()
+        self.update_current()
         self._sync_chat_input_width()
 
     def toggle_split_screen(self, state):

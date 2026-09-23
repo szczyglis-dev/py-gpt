@@ -92,7 +92,7 @@ class _PreviewHandler(SimpleHTTPRequestHandler):
 
 
 class WebBrowser(BaseTool):
-    """Single persistent browser runtime exposed through one Canvas and HTML tab."""
+    """Single persistent browser runtime exposed through one Canvas tab."""
 
     BLANK_CANVAS_HTML = """<!doctype html>
 <html>
@@ -173,7 +173,7 @@ body {
         self.has_tab = True
         self.single_instance = True
         self.tab_title = "menu.tools.canvas_html"
-        self.tab_icon = ":/icons/web_on.svg"
+        self.tab_icon = ":/icons/grid.svg"
         self.opened = False
         self.dialog = None
         self.signals = ToolSignals()
@@ -326,7 +326,7 @@ body {
         self.runtime_call("canvas_open", {"url": url, "__ui": True})
 
     def open(self, load: bool = True):
-        """Open/focus the single Canvas and HTML tab in the second column."""
+        """Open/focus the single Canvas tab in the second column."""
         self._ensure_surface()
         tabs = self.window.controller.ui.tabs
         tab = tabs.get_first_tab_by_tool(self.id)
@@ -338,7 +338,7 @@ body {
             tabs.append(type=Tab.TAB_TOOL, tool_id=self.id, idx=idx, column_idx=1)
             tab = tabs.get_first_tab_by_tool(self.id)
 
-        # Canvas and HTML is tab-only. Manual opening must reveal column 2 even
+        # Canvas is tab-only. Manual opening must reveal column 2 even
         # if an earlier automatic reveal was already consumed in this session.
         if tab is not None and tab.column_idx == 1 and not tabs.is_split_screen_enabled():
             tabs.enable_split_screen(update_switch=True)
@@ -355,7 +355,7 @@ body {
         Agent/tool operations must never switch the active tab merely because the
         canvas runtime is being used.  The only automatic UI action allowed here
         is creating the missing singleton tab and revealing column 2 once per app
-        session.  Manual Tools -> Canvas and HTML still uses ``open()`` and may
+        session.  Manual Tools -> Canvas still uses ``open()`` and may
         explicitly focus the canvas tab.
         """
         self._ensure_surface()
@@ -386,7 +386,7 @@ body {
         return "tab"
 
     def close(self):
-        """Hide/close the Canvas and HTML tab UI while preserving browser runtime."""
+        """Hide/close the Canvas tab UI while preserving browser runtime."""
         return self.close_surface()
 
     def toggle(self):
@@ -418,7 +418,7 @@ body {
     def setup_menu(self) -> Dict[str, QAction]:
         actions = {}
         actions["web_browser"] = QAction(
-            QIcon(":/icons/web_on.svg"),
+            QIcon(":/icons/grid.svg"),
             trans("menu.tools.canvas_html"),
             self.window,
             checkable=False,
@@ -455,7 +455,7 @@ body {
         return widget
 
     def setup_dialogs(self):
-        # Canvas and HTML is intentionally tab-only. Do not register a dialog
+        # Canvas is intentionally tab-only. Do not register a dialog
         # frontend; the runtime itself may continue living in the hidden host.
         self.dialog = None
 
@@ -1084,7 +1084,7 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
         elif os.environ.get("APPIMAGE"):
             raise RuntimeError(
                 "Playwright browsers directory is required in AppImage mode. Install the browser on the host "
-                f"with `playwright install {engine}` and set it in Canvas and HTML plugin settings."
+                f"with `playwright install {engine}` and set it in Canvas plugin settings."
             )
         args = [x.strip() for x in str(self._opt("playwright_args", "") or "").split(",") if x.strip()]
         try:

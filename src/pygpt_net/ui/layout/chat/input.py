@@ -192,25 +192,17 @@ class ChatInputContainer(QWidget):
 
 
 class ChatInputRootContainer(QWidget):
-    """Full-width input area with a centered composer and global status footer."""
+    """Column-local input pane containing only the shared chat composer."""
 
-    def __init__(self, composer_widget, footer_widget):
+    def __init__(self, composer_widget):
         super().__init__()
         self.composer_widget = composer_widget
-        self.footer_widget = footer_widget
-
-        # Only the global status footer spans the whole available panel width,
-        # independently from the 800 px / zoom-constrained composer above it.
-        # Ignore its horizontal hint so it cannot increase the main window's
-        # minimum width.
-        self.footer_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 5)
         layout.setSpacing(0)
         layout.addWidget(self.composer_widget, 1)
-        layout.addWidget(self.footer_widget, 0)
 
     def sizeHint(self) -> QSize:
         hint = super().sizeHint()
@@ -304,14 +296,14 @@ class Input:
         composer = ChatInputContainer(self.window, content)
         self.window.ui.nodes['input.container'] = composer
 
-        # Only the application-wide status row is full width. This lets the
-        # clock / Ready status sit at the far-left edge without pulling the
-        # chat metadata out of the centered composer.
+        # The application-wide bottom status remains outside both chat columns.
+        # Only the composer-local metadata row (Plugins / MCP / Skills / ctx),
+        # already embedded in ``content`` above, follows the shared input.
         footer = QWidget()
         footer.setLayout(self.setup_bottom())
         self.window.ui.nodes['input.footer.container'] = footer
 
-        widget = ChatInputRootContainer(composer, footer)
+        widget = ChatInputRootContainer(composer)
         self.window.ui.nodes['input.root'] = widget
 
         # main.output is created around this input later in the UI setup. Keep

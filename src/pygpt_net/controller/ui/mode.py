@@ -328,11 +328,16 @@ class Mode:
         self.toggle_chat_footer()
 
     def toggle_chat_footer(self):
-        """Toggle chat footer"""
-        if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_CHAT:
-            self.hide_chat_footer()
-        else:
+        """Toggle chat-only footer controls together with the shared Chat input."""
+        tabs = self.window.controller.ui.tabs
+        if hasattr(tabs, 'is_chat_input_visible') and tabs.is_chat_input_visible():
             self.show_chat_footer()
+        elif tabs.get_current_type() == Tab.TAB_CHAT:
+            # Startup/backward-compatible fallback before the per-column input
+            # layout has finished resolving its visible host.
+            self.show_chat_footer()
+        else:
+            self.hide_chat_footer()
 
     def is_vision(self, mode: str) -> bool:
         """
@@ -395,7 +400,15 @@ class Mode:
             self.window.controller.chat.common.sync_send_stop_buttons()
 
     def hide_chat_footer(self):
-        """Hide only chat-only controls on non-chat tabs."""
+        """Hide chat-only controls only when the shared Chat input is hidden."""
+        tabs = self.window.controller.ui.tabs
+        if hasattr(tabs, 'is_chat_input_visible') and tabs.is_chat_input_visible():
+            # A non-chat tab may have focus in the other split column while a
+            # single visible Chat keeps owning the shared input. Its Plugins /
+            # MCP / Skills / ctx row must stay attached to that input.
+            self.show_chat_footer()
+            return
+
         nodes = self.window.ui.nodes
 
         # Status/footer, audio UI and capability/tool icons are application-wide

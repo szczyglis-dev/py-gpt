@@ -153,7 +153,7 @@ class ToolWidget:
 
     def on_runtime_state(self, state: dict):
         self._sync_from_runtime()
-        # The application has one canonical Canvas and HTML tab, but its title
+        # The application has one canonical Canvas tab, but its title
         # may still follow the currently rendered document.  This is only a
         # label update; it must never be used as tab identity.
         title = state.get("title") or ""

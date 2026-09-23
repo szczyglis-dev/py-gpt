@@ -770,15 +770,15 @@ Below is a pattern for how different types of agents work. You can use these pat
 - When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
 
 
-# Canvas and HTML (BETA)
+# Canvas (BETA)
 
-> **BETA:** Canvas and HTML is an experimental feature and will be expanded in future PyGPT releases.
+> **BETA:** Canvas is an experimental feature and will be expanded in future PyGPT releases.
 
-**Canvas and HTML** gives PyGPT an interactive browser and rendering workspace that the model can use directly while you chat. It is designed for much more than displaying static HTML: the model can build and update complete HTML/CSS/JavaScript interfaces, render interactive elements live, inspect the result, click and type inside it, execute page JavaScript, take screenshots, read console errors, and iteratively improve the page without leaving the conversation.
+**Canvas** gives PyGPT an interactive browser and rendering workspace that the model can use directly while you chat. It is designed for much more than displaying static HTML: the model can build and update complete HTML/CSS/JavaScript interfaces, render interactive elements live, inspect the result, click and type inside it, execute page JavaScript, take screenshots, read console errors, and iteratively improve the page without leaving the conversation.
 
 Canvas is useful for prototypes, widgets, dashboards, animations, small browser applications, visualizations, interactive demos, games, forms, UI experiments, and other tasks where seeing and manipulating a live result is more useful than receiving source code alone. You can also leave **annotations** directly on selected content or page elements. The model can read these annotations as precise feedback and apply requested changes to the current page.
 
-For example, enable the **Canvas and HTML** plugin and ask:
+For example, enable the **Canvas** plugin and ask:
 
 ```text
 Create an animated cat in the canvas.
@@ -790,7 +790,7 @@ The model can generate the HTML/CSS/JavaScript, open the Canvas, render the anim
 
 Canvas can also work as a browser workspace. It can open external websites, navigate pages, inspect and interact with DOM elements, and use either the built-in Chromium/QWebEngine runtime or the optional Playwright sandbox. For local web projects, the plugin can start a lightweight loopback-only HTML server, open the served site in Canvas, and then test or modify it interactively.
 
-To use this functionality, enable the **Canvas and HTML** plugin in the Plugins menu. Because this is currently a **BETA** feature, behavior and available tools may change or expand in future versions.
+To use this functionality, enable the **Canvas** plugin in the Plugins menu. Because this is currently a **BETA** feature, behavior and available tools may change or expand in future versions.
 
 # Indexing and RAG
 
@@ -1374,7 +1374,7 @@ The following plugins are currently available:
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
-- `Canvas and HTML` **(BETA)** - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers.
+- `Canvas` **(BETA)** - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers.
 
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
@@ -1997,7 +1997,7 @@ PyGPT features several useful tools, including:
 - Python/OS
 - HTML/JS Canvas (built-in HTML renderer)
 - Translator
-- Canvas and HTML (BETA)
+- Canvas (BETA)
 - Agent Workflow
 - Agent Builder (Legacy)
 
@@ -2079,9 +2079,9 @@ Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromiu
 
 Enables translation between multiple languages using an AI model.
 
-## Canvas and HTML (BETA)
+## Canvas (BETA)
 
-The **Canvas and HTML** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas and HTML** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas and HTML** plugin to expose its model-callable tools. See the [Canvas and HTML](#canvas-and-html-beta) section above for an overview.
+The **Canvas** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas** plugin to expose its model-callable tools. See the [Canvas](#canvas-beta) section above for an overview.
 
 **BETA:** This tool and its plugin integration will be expanded in future releases. Treat untrusted webpages and scripts with the same caution as other browser content.
 

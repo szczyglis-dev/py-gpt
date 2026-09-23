@@ -185,7 +185,7 @@ class ChatInput(QTextEdit):
         self._auto_debounce_ms = 0  # coalesce updates in next event loop turn
         self._auto_updating = False  # reentrancy guard
         self._splitter_resize_in_progress = False
-        self._splitter_connected = False
+        self._splitter_connections = set()
         self._user_adjusting_splitter = False
         self._auto_pause_ms_after_user_drag = 350
         self._last_target_container_h = None
@@ -219,6 +219,30 @@ class ChatInput(QTextEdit):
         self._history_index = -1     # -1 when not navigating; otherwise index of current history item
         self._history_active = False
         self._history_saved_current = ""  # snapshot of the current typed text before entering history nav
+
+    def _activate_owner_column(self):
+        """Mark the column hosting the shared composer as logically active.
+
+        tabs.on_column_focus() is deferred/coalesced, so this is safe to call
+        from input focus and button press handlers.  send_input() also observes
+        the pending column, which keeps an immediate Send click routed to the
+        chat that visibly owns this composer.
+        """
+        try:
+            tabs = self.window.controller.ui.tabs
+            if hasattr(tabs, 'get_chat_input_column_idx'):
+                column_idx = tabs.get_chat_input_column_idx()
+            else:
+                column_idx = tabs.get_current_column_idx()
+            if column_idx is not None:
+                tabs.on_column_focus(int(column_idx))
+        except (AttributeError, RuntimeError, TypeError, ValueError):
+            pass
+
+    def focusInEvent(self, event):
+        """Activate the owning chat column when the text editor gains focus."""
+        super().focusInEvent(event)
+        self._activate_owner_column()
 
     def _get_mention_color(self):
         return self._mention_color
@@ -1226,6 +1250,7 @@ class ChatInput(QTextEdit):
         btn.setFixedHeight(self._btn_size_right.height())
         btn.setMinimumWidth(self._btn_size_right.width())
         btn.setToolTip(trans("reasoning_effort.tooltip"))
+        btn.pressed.connect(self._activate_owner_column)
         btn.clicked.connect(self.action_reasoning_effort)
         btn.setHidden(True)
 
@@ -1471,6 +1496,7 @@ class ChatInput(QTextEdit):
         # optional: no text
         btn.setText("")
 
+        btn.pressed.connect(self._activate_owner_column)
         if callback is not None:
             btn.clicked.connect(callback)
 
@@ -1603,6 +1629,7 @@ class ChatInput(QTextEdit):
         btn.setFlat(True)
         btn.setText("")
 
+        btn.pressed.connect(self._activate_owner_column)
         if callback is not None:
             btn.clicked.connect(callback)
 
@@ -1662,6 +1689,7 @@ class ChatInput(QTextEdit):
         btn.setToolTip(tooltip)
         btn.setFixedHeight(self._btn_size_right.height())
 
+        btn.pressed.connect(self._activate_owner_column)
         if callback is not None:
             btn.clicked.connect(callback)
 
@@ -2341,13 +2369,14 @@ class ChatInput(QTextEdit):
 
     def _ensure_splitter_hook(self):
         """Lazy-connect to main splitter to detect manual drags."""
-        if self._splitter_connected:
-            return
         splitter = self._get_main_splitter()
         if splitter is not None:
+            key = id(splitter)
+            if key in self._splitter_connections:
+                return
             try:
                 splitter.splitterMoved.connect(self._on_splitter_moved_by_user)
-                self._splitter_connected = True
+                self._splitter_connections.add(key)
             except Exception:
                 pass
 

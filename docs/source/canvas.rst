@@ -1,10 +1,10 @@
-Canvas and HTML (BETA)
+Canvas (BETA)
 ===========================
 
 .. warning::
-   **BETA:** Canvas and HTML is experimental and will be expanded in future PyGPT releases. Its behavior, tools, and integration may change as the feature evolves.
+   **BETA:** Canvas is experimental and will be expanded in future PyGPT releases. Its behavior, tools, and integration may change as the feature evolves.
 
-**Canvas and HTML** gives PyGPT an interactive browser and rendering workspace that can be controlled by the model directly from a conversation. It is not limited to displaying static HTML. The model can create and update complete HTML/CSS/JavaScript documents, render interactive elements live, inspect the page, click and type inside it, run JavaScript, capture screenshots, read console output, and iteratively refine the result.
+**Canvas** gives PyGPT an interactive browser and rendering workspace that can be controlled by the model directly from a conversation. It is not limited to displaying static HTML. The model can create and update complete HTML/CSS/JavaScript documents, render interactive elements live, inspect the page, click and type inside it, run JavaScript, capture screenshots, read console output, and iteratively refine the result.
 
 Typical uses include UI and website prototypes, widgets, dashboards, animations, data visualizations, interactive demos, forms, games, small browser applications, and other tasks where a live visual result is useful. The same runtime can also be used as an interactive browser workspace for opening and working with external webpages.
 
@@ -23,7 +23,7 @@ Canvas can render complete HTML/CSS/JavaScript content in the persistent built-i
 Example
 -------
 
-Enable the **Canvas and HTML** plugin and ask, for example:
+Enable the **Canvas** plugin and ask, for example:
 
 .. code-block:: text
 
@@ -44,6 +44,6 @@ For local websites and web applications, the plugin also provides a lightweight 
 Enabling Canvas
 ---------------
 
-To use these capabilities, enable the **Canvas and HTML** plugin from the **Plugins** menu. The normal ``Tools`` switch must also allow plugin tools in workflows where local tool execution is controlled by that switch.
+To use these capabilities, enable the **Canvas** plugin from the **Plugins** menu. The normal ``Tools`` switch must also allow plugin tools in workflows where local tool execution is controlled by that switch.
 
 For the complete configuration reference, runtime rules, backend behavior, security notes, annotations, preview server, and a description of every available command, see :ref:`plugin-canvas-web-html` in :doc:`plugins`.

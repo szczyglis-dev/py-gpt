@@ -23,7 +23,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "canvas_web"
         self.is_common_plugin = True
-        self.name = "Canvas and HTML"
+        self.name = "Canvas"
         self.description = (
             "BETA. Provides an internal browser/canvas runtime for HTML, JavaScript, website prototyping, "
             "scoped browser computer-use, Playwright sandbox automation, annotations and a lightweight preview server. "

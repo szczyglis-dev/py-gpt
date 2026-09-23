@@ -16,7 +16,7 @@ PyGPT features several useful tools, including:
 * Python/OS
 * HTML/JS Canvas (built-in HTML renderer)
 * Translator
-* Canvas and HTML (BETA)
+* Canvas (BETA)
 * Agent Workflow
 * Agent Builder (Legacy)
 
@@ -121,16 +121,16 @@ Translator
 
 Enables translation between multiple languages using an AI model.
 
-Canvas and HTML (BETA)
+Canvas (BETA)
 ----------------------
 
-The **Canvas and HTML** tool is a persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas and HTML** plugin. It can render generated HTML/CSS/JavaScript, open external webpages, support scoped interaction, annotations, screenshots, DOM inspection, and iterative live editing. Enable the plugin to expose the model-callable Canvas tools.
+The **Canvas** tool is a persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas** plugin. It can render generated HTML/CSS/JavaScript, open external webpages, support scoped interaction, annotations, screenshots, DOM inspection, and iterative live editing. Enable the plugin to expose the model-callable Canvas tools.
 
 See :doc:`canvas` for the feature overview and :ref:`plugin-canvas-web-html` for the complete tool and configuration reference.
 
 .. warning::
 
-   **BETA:** Canvas and HTML will be expanded in future releases. Treat untrusted webpages and scripts with the same caution as other browser content.
+   **BETA:** Canvas will be expanded in future releases. Treat untrusted webpages and scripts with the same caution as other browser content.
 
 Agent Workflow
 --------------

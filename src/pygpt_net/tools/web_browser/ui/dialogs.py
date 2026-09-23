@@ -17,7 +17,7 @@ from .widgets import ToolWidget
 
 
 class Tool:
-    """Tab-only UI wrapper for the persistent Canvas and HTML runtime."""
+    """Tab-only UI wrapper for the persistent Canvas runtime."""
 
     def __init__(self, window=None, tool=None, surface_kind="tab"):
         self.window = window
@@ -33,7 +33,7 @@ class Tool:
         self.widget.set_tab(tab)
 
     def setup(self):
-        """Build tab contents only; Canvas and HTML has no dialog frontend."""
+        """Build tab contents only; Canvas has no dialog frontend."""
         self.layout = self.widget.setup()
         return self.layout
 

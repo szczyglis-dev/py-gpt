@@ -1349,11 +1349,11 @@ class Patch:
                         # document-derived automatic titles from the first implementation.
                         is_custom = bool(item.get("custom_name")) or item.get("title_source") == "custom"
                         if not is_custom:
-                            if item.get("title") != "Canvas and HTML":
-                                item["title"] = "Canvas and HTML"
+                            if item.get("title") != "Canvas":
+                                item["title"] = "Canvas"
                                 updated = True
-                            if item.get("tooltip") != "Canvas and HTML":
-                                item["tooltip"] = "Canvas and HTML"
+                            if item.get("tooltip") != "Canvas":
+                                item["tooltip"] = "Canvas"
                                 updated = True
                             if item.get("title_source") != "default":
                                 item["title_source"] = "default"

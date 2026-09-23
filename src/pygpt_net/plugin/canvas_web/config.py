@@ -21,7 +21,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "use_sandbox", type="bool", value=False,
             label="Use sandbox (Playwright)",
-            description="Enable the isolated Playwright browser backend. When disabled, Canvas and HTML always uses the built-in QWebEngine browser and does not try to launch Playwright.",
+            description="Enable the isolated Playwright browser backend. When disabled, Canvas always uses the built-in QWebEngine browser and does not try to launch Playwright.",
             tab="sandbox")
         plugin.add_option(
             "playwright_engine", type="combo", value="chromium",
@@ -43,7 +43,7 @@ class Config(BaseConfig):
             description="Default browser viewport height in pixels.", min=240, max=4320, tab="browser")
         plugin.add_option(
             "auto_open_split", type="bool", value=True, label="Auto-open browser in split screen",
-            description="On the first agent browser open in an application session, create/focus the Canvas and HTML tab in the second column and reveal split screen. If the user hides split screen afterwards, it is not forced open again in the same app session.", tab="browser")
+            description="On the first agent browser open in an application session, create/focus the Canvas tab in the second column and reveal split screen. If the user hides split screen afterwards, it is not forced open again in the same app session.", tab="browser")
         plugin.add_option(
             "annotation_prompt", type="bool", value=True, label="Expose user annotations to the model",
             description="Append pending browser/canvas annotations to the runtime system prompt.", tab="annotations")

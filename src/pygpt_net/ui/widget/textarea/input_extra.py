@@ -54,7 +54,7 @@ class ExtraInput(QTextEdit):
         self._auto_debounce_ms = 0  # coalesce updates in next event loop turn
         self._auto_updating = False  # reentrancy guard
         self._splitter_resize_in_progress = False
-        self._splitter_connected = False
+        self._splitter_connections = set()
         self._user_adjusting_splitter = False
         self._auto_pause_ms_after_user_drag = 350
         self._last_target_container_h = None
@@ -427,13 +427,14 @@ class ExtraInput(QTextEdit):
 
     def _ensure_splitter_hook(self):
         """Lazy-connect to main splitter to detect manual drags."""
-        if self._splitter_connected:
-            return
         splitter = self._get_main_splitter()
         if splitter is not None:
+            key = id(splitter)
+            if key in self._splitter_connections:
+                return
             try:
                 splitter.splitterMoved.connect(self._on_splitter_moved_by_user)
-                self._splitter_connected = True
+                self._splitter_connections.add(key)
             except Exception:
                 pass
 

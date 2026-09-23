@@ -12,7 +12,7 @@ The following plugins are currently available:
 * ``Audio input`` - adds speech recognition and microphone input using providers such as OpenAI Whisper, local Whisper, Google, Bing, and xAI Grok Voice.
 * ``Audio output`` - enables speech synthesis for every received response using providers such as OpenAI, Microsoft Azure, Google, Eleven Labs, and xAI.
 * ``Autonomous mode`` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
-* ``Canvas and HTML`` **(BETA)** - interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and a local preview server.
+* ``Canvas`` **(BETA)** - interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and a local preview server.
 * ``Bitbucket`` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 * ``Chat history (inline)`` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
 * ``Crontab / Task scheduler`` - lets models create and manage scheduled prompts and tasks using cron-based schedules.
@@ -340,13 +340,13 @@ You can adjust the number of Autonomous loop iterations in the ``Plugins / Setti
 
 .. _plugin-canvas-web-html:
 
-Canvas and HTML (BETA)
+Canvas (BETA)
 ---------------------------
 
 .. warning::
    **BETA:** This plugin is experimental and will be expanded in future PyGPT releases. Tool behavior and configuration may evolve.
 
-The **Canvas and HTML** plugin provides a persistent browser/canvas runtime that the model can control as a local tool. It is intended for interactive HTML/CSS/JavaScript prototyping, live UI work, browser-based demos, external webpages, visual verification, annotations, and local web-project previews.
+The **Canvas** plugin provides a persistent browser/canvas runtime that the model can control as a local tool. It is intended for interactive HTML/CSS/JavaScript prototyping, live UI work, browser-based demos, external webpages, visual verification, annotations, and local web-project previews.
 
 The runtime is scoped to its own viewport. Canvas mouse and keyboard actions do not use the global desktop pointer or keyboard. The model should prefer DOM inspection and stable selectors over raw coordinates whenever possible, and use screenshots when visual verification matters.
 

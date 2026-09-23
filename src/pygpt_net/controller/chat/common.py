@@ -177,14 +177,19 @@ class Common:
         chat_input = self.window.controller.chat.input
         busy = bool(chat_input.locked or chat_input.generating)
         editing = self.window.controller.ctx.extra.is_editing()
-        is_chat_tab = self.window.controller.ui.tabs.get_current_type() == Tab.TAB_CHAT
+        tabs = self.window.controller.ui.tabs
+        if hasattr(tabs, 'is_chat_input_visible'):
+            chat_input_visible = tabs.is_chat_input_visible()
+        else:
+            chat_input_visible = tabs.get_current_type() == Tab.TAB_CHAT
 
-        # Send and Stop share the same compact slot semantically: while a
-        # request is active only Stop is visible; when idle, Send is restored
-        # only for a normal (non-editing) chat tab.
+        # Send and Stop belong to the shared composer. A Tool/Notepad tab in
+        # the other split column may own global focus while the only visible
+        # Chat still owns that composer, so button visibility must follow the
+        # composer host rather than get_current_type().
         send_btn.setEnabled(not busy)
-        input_node.set_icon_visible('send', is_chat_tab and not editing and not busy)
-        input_node.set_icon_visible('stop', busy)
+        input_node.set_icon_visible('send', chat_input_visible and not editing and not busy)
+        input_node.set_icon_visible('stop', chat_input_visible and busy)
 
     def lock_input(self):
         """Lock input."""
