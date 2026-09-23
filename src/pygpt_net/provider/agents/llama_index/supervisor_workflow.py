@@ -9,22 +9,22 @@
 # Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
-from typing import Dict, Any, List
+from __future__ import annotations
+
+from typing import Dict, Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.tools.types import BaseTool
+    from llama_index.core.llms.llm import LLM
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     AGENT_TYPE_LLAMA,
     AGENT_MODE_WORKFLOW,
 )
-from llama_index.core.llms.llm import LLM
-from llama_index.core.tools.types import BaseTool
 
 from pygpt_net.utils import trans
-from .workflow.supervisor import (
-    get_workflow,
-    SUPERVISOR_PROMPT,
-    WORKER_PROMPT,
-)
+from .workflow.supervisor_prompts import SUPERVISOR_PROMPT, WORKER_PROMPT
 from ..base import BaseAgent
 
 class SupervisorAgent(BaseAgent):
@@ -43,6 +43,8 @@ class SupervisorAgent(BaseAgent):
         :param kwargs: Agent parameters
         :return: PlannerWorkflow instance
         """
+        from .workflow.supervisor import get_workflow
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         tools: List[BaseTool] = kwargs.get("tools", []) or []

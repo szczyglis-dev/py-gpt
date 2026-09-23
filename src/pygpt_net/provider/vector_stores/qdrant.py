@@ -9,12 +9,14 @@
 # Updated Date: 2025.09.30 13:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
+
 import datetime
 import os.path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core import StorageContext
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
 
 from pygpt_net.utils import parse_args
 from .base import BaseStore
@@ -84,6 +86,8 @@ class QdrantProvider(BaseStore):
         :param embed_model: Embedding model instance
         :return: index instance
         """
+        from llama_index.core import StorageContext
+
         if not self.exists(id):
             self.create(id)
         vector_store = self.get_qdrant_store(id)

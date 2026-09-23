@@ -14,7 +14,6 @@ from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event, KernelEvent
 
 from datetime import datetime
-from croniter import croniter
 
 from pygpt_net.utils import trans
 
@@ -131,6 +130,8 @@ class Plugin(BasePlugin):
 
     def schedule_tasks(self):
         """Schedule tasks based on crontab"""
+        from croniter import croniter
+
         crontab = self.get_option_value("crontab")
         # remove unused or inactive items
         for timer in self.timers:

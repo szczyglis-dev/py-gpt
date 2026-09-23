@@ -9,13 +9,11 @@
 # Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any, Tuple, Union, Optional
+from __future__ import annotations
+from typing import Dict, Any, Tuple, Union, Optional, TYPE_CHECKING
 
-from agents import (
-    Agent as OpenAIAgent,
-    Runner,
-    TResponseInputItem,
-)
+if TYPE_CHECKING:
+    from agents import TResponseInputItem
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
@@ -28,10 +26,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
-from pygpt_net.provider.api.openai.agents.response import StreamHandler
-from pygpt_net.provider.api.openai.agents.experts import get_experts
 from pygpt_net.utils import trans
 
 from ..base import BaseAgent
@@ -66,6 +60,10 @@ class Agent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         model = kwargs.get("model", ModelItem())
@@ -215,6 +213,10 @@ class Agent(BaseAgent):
         :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
+        from agents import Runner
+        from pygpt_net.provider.api.openai.agents.response import StreamHandler
+        from pygpt_net.provider.api.openai.agents.experts import get_experts
+
         final_output = ""
         response_id = None
         reverse_verbose = False

@@ -9,13 +9,10 @@
 # Updated Date: 2026.09.11 14:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import os.path
-from typing import Optional, Union, List, Dict
+from typing import TYPE_CHECKING, Optional, Union, List, Dict
 
-from llama_index.core.llms.llm import BaseLLM
-from llama_index.core.multi_modal_llms import MultiModalLLM
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.llms.openai import OpenAI
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -24,6 +21,10 @@ from pygpt_net.core.types import (
 from pygpt_net.item.model import ModelItem
 from pygpt_net.core.provider.llm import LlamaIndexLLMProxy
 
+if TYPE_CHECKING:
+    from llama_index.core.llms.llm import BaseLLM
+    from llama_index.core.multi_modal_llms import MultiModalLLM
+    from llama_index.core.base.embeddings.base import BaseEmbedding
 
 class Llm:
     def __init__(self, window=None):
@@ -116,6 +117,7 @@ class Llm:
                 kwargs=fallback_args, model=self.default_model,
                 path="llama_index.llms.openai.OpenAI",
             )
+            from llama_index.llms.openai import OpenAI
             llm = OpenAI(**fallback_args)
         return llm
 
@@ -209,6 +211,7 @@ class Llm:
                 kwargs=fallback_args, model=self.default_model,
                 path="llama_index.llms.openai.OpenAI",
             )
+            from llama_index.llms.openai import OpenAI
             llm = OpenAI(**fallback_args)
 
         # Provider agent adapters (OpenAI Responses, Google GenAI, Anthropic)

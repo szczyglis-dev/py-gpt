@@ -17,7 +17,6 @@ from PySide6.QtCore import QTimer, Slot, QObject
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.plugin.audio_input.worker import ControlWorker
 from pygpt_net.core.events import ControlEvent, AppEvent
 from pygpt_net.utils import trans
 
@@ -317,6 +316,7 @@ class Voice(QObject):
 
         try:
             # worker
+            from pygpt_net.plugin.audio_input.worker import ControlWorker
             worker = ControlWorker()
             worker.window = self.window
             worker.path = self.get_input_path()

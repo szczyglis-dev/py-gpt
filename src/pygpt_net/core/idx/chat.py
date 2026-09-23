@@ -9,13 +9,10 @@
 # Updated Date: 2026.09.22 20:05:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import json
-from typing import Optional, Dict, Any, List
+from typing import TYPE_CHECKING, Optional, Dict, Any, List
 
-from llama_index.core.llms import ChatMessage, MessageRole
-from llama_index.core.prompts import ChatPromptTemplate
-from llama_index.core.memory import ChatMemoryBuffer
-from llama_index.core.tools import BaseTool
 
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
@@ -25,13 +22,15 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.provider.llms.agent_computer import ComputerRuntime
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
-from .context import Context
-from .rag_context import RAGContextPreparer
-from .response import Response
+
+if TYPE_CHECKING:
+    from llama_index.core.llms import ChatMessage
+    from llama_index.core.prompts import ChatPromptTemplate
+    from llama_index.core.memory import ChatMemoryBuffer
+    from llama_index.core.tools import BaseTool
 
 class Chat:
     # Retrieval scores are backend/model dependent and are not a portable
@@ -49,13 +48,34 @@ class Chat:
         """
         self.window = window
         self.storage = storage
-        self.context = Context(window)
-        self.response = Response(window)
-        self.rag_context = RAGContextPreparer(
-            top_k=self.RETRIEVAL_TOP_K,
-            logger=self.log,
-        )
+        self._context = None
+        self._response = None
+        self._rag_context = None
         self.prev_message = None  # previous message, used in chat mode
+
+    @property
+    def context(self):
+        if self._context is None:
+            from .context import Context
+            self._context = Context(self.window)
+        return self._context
+
+    @property
+    def response(self):
+        if self._response is None:
+            from .response import Response
+            self._response = Response(self.window)
+        return self._response
+
+    @property
+    def rag_context(self):
+        if self._rag_context is None:
+            from .rag_context import RAGContextPreparer
+            self._rag_context = RAGContextPreparer(
+                top_k=self.RETRIEVAL_TOP_K,
+                logger=self.log,
+            )
+        return self._rag_context
 
     def call(
             self,
@@ -251,6 +271,8 @@ class Chat:
         :param disable_cmd: Disable tools
         :param signals: Bridge signals
         """
+        from llama_index.core.llms import MessageRole
+
         idx = context.idx
         model = context.model
         system_prompt = context.system_prompt  # get final system prompt
@@ -291,6 +313,8 @@ class Chat:
         # Provider-native Computer Use is a client-side continuation protocol.
         # Chat with Files is synchronous LlamaIndex code, so bind a tiny runtime
         # adapter that reuses the same provider adapters/executor as Agents v2.
+        from pygpt_net.provider.llms.agent_computer import ComputerRuntime
+
         computer_runtime = ComputerRuntime(self.window, context)
         force_computer_use = context.parent_mode == MODE_COMPUTER
 
@@ -976,6 +1000,8 @@ class Chat:
         :param llm: LLM model
         :return: memory buffer with chat history
         """
+        from llama_index.core.memory import ChatMemoryBuffer
+
         return ChatMemoryBuffer.from_defaults(
             chat_history=history,
             llm=llm,
@@ -991,6 +1017,9 @@ class Chat:
         :param prompt: system prompt (optional)
         :return: ChatPromptTemplate or None if prompt is empty
         """
+        from llama_index.core.llms import ChatMessage, MessageRole
+        from llama_index.core.prompts import ChatPromptTemplate
+
         if prompt is None or prompt.strip() == "":
             return None
 

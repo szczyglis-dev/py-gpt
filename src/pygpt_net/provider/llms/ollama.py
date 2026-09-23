@@ -9,13 +9,17 @@
 # Updated Date: 2026.09.13 19:42:00                  #
 # ================================================== #
 
+from __future__ import annotations
+
 import os
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 # from langchain_community.chat_models import ChatOllama
 
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-from llama_index.core.base.embeddings.base import BaseEmbedding
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,

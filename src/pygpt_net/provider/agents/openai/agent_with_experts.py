@@ -9,14 +9,9 @@
 # Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 from typing import Dict, Any, Tuple, Optional
 
-from agents import (
-    Agent as OpenAIAgent,
-    Runner,
-    RunConfig,
-    ModelSettings,
-)
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
@@ -29,14 +24,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.api.openai.agents.client import (
-    append_reasoning_model_settings,
-    get_custom_model_provider,
-    set_openai_env,
-)
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
-from pygpt_net.provider.api.openai.agents.response import StreamHandler
-from pygpt_net.provider.api.openai.agents.experts import get_experts
 
 from ..base import BaseAgent
 
@@ -57,6 +44,10 @@ class Agent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         system_prompt = kwargs.get("system_prompt", "")
@@ -108,6 +99,10 @@ class Agent(BaseAgent):
         :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
+        from agents import Runner
+        from pygpt_net.provider.api.openai.agents.response import StreamHandler
+        from pygpt_net.provider.api.openai.agents.experts import get_experts
+
         final_output = ""
         response_id = None
         model = agent_kwargs.get("model", ModelItem())

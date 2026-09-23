@@ -9,11 +9,9 @@
 # Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 from typing import Dict, Any, Tuple, Union, Optional
 
-from agents import (
-    Agent as OpenAIAgent,
-)
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
@@ -25,13 +23,9 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
-from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
-from pygpt_net.provider.api.openai.agents.experts import get_experts
 from pygpt_net.utils import trans
 
 from ..base import BaseAgent
-from .bots.research_bot.manager import ResearchManager
 
 
 class Agent(BaseAgent):
@@ -75,6 +69,10 @@ class Agent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         system_prompt = kwargs.get("system_prompt", "")
@@ -124,6 +122,9 @@ class Agent(BaseAgent):
         :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
+        from pygpt_net.provider.api.openai.agents.experts import get_experts
+        from .bots.research_bot.manager import ResearchManager
+
         response_id = None
         model = agent_kwargs.get("model", ModelItem())
         verbose = agent_kwargs.get("verbose", False)

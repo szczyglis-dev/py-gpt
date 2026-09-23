@@ -18,9 +18,6 @@ from packaging.version import parse as parse_version, Version
 from pygpt_net.core.types.reasoning import legacy_key_parts
 from pygpt_net.plugin.agent.prompts import get_inline_plugin_prompts
 
-# old patches moved here
-from .patches.patch_before_2_6_42 import Patch as PatchBefore2_6_42
-
 
 class Patch:
     def __init__(self, window=None):
@@ -66,6 +63,8 @@ class Patch:
             # --------------------------------------------
             # previous patches for versions before 2.6.42
             if old < parse_version("2.6.42"):
+                # old patches moved here
+                from .patches.patch_before_2_6_42 import Patch as PatchBefore2_6_42
                 patcher = PatchBefore2_6_42(self.window)
                 data, updated, _ = patcher.execute(version)
             # --------------------------------------------

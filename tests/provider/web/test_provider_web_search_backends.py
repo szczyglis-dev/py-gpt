@@ -131,7 +131,7 @@ def test_bing_init_credentials_configuration_and_search_are_network_mocked():
 
     response = MagicMock(status_code=200)
     response.json.return_value = {"webPages": {"value": [{"url": "https://a"}, {"url": "https://b"}]}}
-    with patch("pygpt_net.provider.web.microsoft_bing.requests.get", return_value=response) as get:
+    with patch("requests.get", return_value=response) as get:
         assert provider.search("a b", limit=99, offset=3) == ["https://a", "https://b"]
     url = get.call_args.args[0]
     assert "q=a%20b" in url and "count=10" in url and "offset=3" in url
@@ -144,6 +144,6 @@ def test_bing_search_error_response_and_missing_key(capsys):
     assert provider.is_configured([{"cmd": "web_urls"}]) is False
     assert "Microsoft Bing Search API key" in provider.get_config_message()
     response = MagicMock(status_code=500, text="error")
-    with patch("pygpt_net.provider.web.microsoft_bing.requests.get", return_value=response):
+    with patch("requests.get", return_value=response):
         assert provider.search("q", limit=0) == []
     assert "500" in capsys.readouterr().out

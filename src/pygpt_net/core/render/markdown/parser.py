@@ -10,9 +10,6 @@
 # ================================================== #
 
 import markdown
-from bs4 import BeautifulSoup
-from bs4.element import NavigableString
-
 from pygpt_net.utils import trans
 
 
@@ -61,6 +58,7 @@ class Parser:
         self.init()
         try:
             html = self.md.convert(text.strip())
+            from bs4 import BeautifulSoup
             soup = BeautifulSoup(html, 'html.parser')
             self.strip_whitespace_lists(soup)  # strip whitespace from codeblocks
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
@@ -77,6 +75,8 @@ class Parser:
 
         :param soup: BeautifulSoup instance
         """
+        from bs4.element import NavigableString
+
         for li in soup.find_all('li'):
             for item in li.contents:
                 if isinstance(item, NavigableString) and item.strip() == '':

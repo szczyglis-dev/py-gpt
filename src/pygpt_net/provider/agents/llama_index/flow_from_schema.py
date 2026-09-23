@@ -10,19 +10,18 @@
 # ================================================== #
 
 from __future__ import annotations
-from typing import Any, Dict, Optional, List, Tuple
+from typing import Any, Dict, Optional, List, Tuple, TYPE_CHECKING
 
-from pygpt_net.core.agents.custom.logging import StdLogger, NullLogger
+if TYPE_CHECKING:
+    from agents import TResponseInputItem
+
 from pygpt_net.core.types import AGENT_MODE_WORKFLOW, AGENT_TYPE_LLAMA
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.core.bridge import BridgeContext
 
-from agents import TResponseInputItem
 
 from ..base import BaseAgent
-from pygpt_net.core.agents.custom.llama_index.runner import DynamicFlowWorkflowLI
-from pygpt_net.core.agents.custom.llama_index.utils import make_option_getter
 
 
 class Agent(BaseAgent):
@@ -48,6 +47,10 @@ class Agent(BaseAgent):
           - context: BridgeContext (preset do get_option)
           - router_stream_mode / max_iterations / stream / logger / model (default ModelItem)
         """
+        from pygpt_net.core.agents.custom.logging import StdLogger, NullLogger
+        from pygpt_net.core.agents.custom.llama_index.runner import DynamicFlowWorkflowLI
+        from pygpt_net.core.agents.custom.llama_index.utils import make_option_getter
+
         schema: List[Dict[str, Any]] = kwargs.get("schema") or []
         llm = kwargs.get("llm")
         tools = kwargs.get("tools", []) or []

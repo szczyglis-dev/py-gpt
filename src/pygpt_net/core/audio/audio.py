@@ -14,8 +14,6 @@ import os
 import re
 from typing import Union, Optional, Tuple, List
 
-from bs4 import BeautifulSoup
-
 from pygpt_net.provider.audio_input.base import BaseProvider as InputBaseProvider
 from pygpt_net.provider.audio_output.base import BaseProvider as OutputBaseProvider
 
@@ -241,6 +239,7 @@ class Audio:
 
         # Remove HTML/XML tags while preserving their visible text.
         try:
+            from bs4 import BeautifulSoup
             soup = BeautifulSoup(value, 'html.parser')
             for node in soup.find_all(['img', 'script', 'style']):
                 node.decompose()

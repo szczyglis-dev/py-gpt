@@ -11,10 +11,6 @@
 
 from typing import List, Tuple
 
-from .backend.native import NativeBackend
-from .backend.pyaudio import PyaudioBackend
-from .backend.pygame import PygameBackend
-
 class Output:
 
     def __init__(self, window=None):
@@ -24,28 +20,41 @@ class Output:
         :param window: Window instance
         """
         self.window = window
-        self.backends = {
-            "native": NativeBackend(self.window),
-            "pyaudio": PyaudioBackend(self.window),
-            "pygame": PygameBackend(self.window)
-        }
+        self.backends = {}
+        self._rt_signals = None
 
     def get_backend(self):
         """
-        Get audio backend instance based on configuration
+        Get audio backend instance based on configuration.
 
-        :return: backend instance
+        Backends are imported and instantiated lazily so optional/native audio
+        stacks do not increase startup time and RAM when audio is unused.
         """
         backend = self.window.core.config.get("audio.output.backend", "native")
-        if backend not in self.backends:
+        if backend not in ("native", "pyaudio", "pygame"):
             print("Invalid audio backend specified, falling back to 'native'")
             backend = "native"
+
+        if backend not in self.backends:
+            if backend == "native":
+                from .backend.native import NativeBackend
+                instance = NativeBackend(self.window)
+            elif backend == "pyaudio":
+                from .backend.pyaudio import PyaudioBackend
+                instance = PyaudioBackend(self.window)
+            else:
+                from .backend.pygame import PygameBackend
+                instance = PygameBackend(self.window)
+            if self._rt_signals is not None:
+                instance.set_rt_signals(self._rt_signals)
+            self.backends[backend] = instance
         return self.backends[backend]
 
     def setup(self):
-        """Setup audio input backend"""
-        for b in self.backends.values():
-            b.set_rt_signals(self.window.controller.realtime.signals)
+        """Setup realtime signals for initialized and future audio backends."""
+        self._rt_signals = self.window.controller.realtime.signals
+        for backend in self.backends.values():
+            backend.set_rt_signals(self._rt_signals)
 
     def play(
             self,

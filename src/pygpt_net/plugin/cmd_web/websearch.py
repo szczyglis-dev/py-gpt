@@ -12,8 +12,6 @@
 import re
 from typing import Optional, Tuple, Any, List
 
-from bs4 import BeautifulSoup
-
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.bridge.context import BridgeContext
@@ -86,6 +84,7 @@ class WebSearch:
                 pass
 
             if html:
+                from bs4 import BeautifulSoup
                 soup = BeautifulSoup(html, "html.parser")
                 for element in soup.find_all('html'):
                     text += element.text

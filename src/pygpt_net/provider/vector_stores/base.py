@@ -11,13 +11,11 @@
 
 import os
 import shutil
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core import StorageContext
-from llama_index.core.indices.vector_store.base import VectorStoreIndex
-from llama_index.core.embeddings.mock_embed_model import MockEmbedding
-
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
+    from llama_index.core import StorageContext
 
 class BaseStore:
     def __init__(self, *args, **kwargs):
@@ -35,7 +33,7 @@ class BaseStore:
     def index_from_store(
             self,
             vector_store,
-            storage_context: StorageContext,
+            storage_context: "StorageContext",
             llm: Optional = None,
             embed_model: Optional = None,
     ):
@@ -48,6 +46,8 @@ class BaseStore:
         :param embed_model: Embedding model instance
         :return: index instance
         """
+        from llama_index.core.indices.vector_store.base import VectorStoreIndex
+
         return VectorStoreIndex.from_vector_store(
             vector_store,
             storage_context=storage_context,
@@ -63,6 +63,8 @@ class BaseStore:
 
         :return: index instance
         """
+        from llama_index.core.indices.vector_store.base import VectorStoreIndex
+
         return VectorStoreIndex(
             [],
             embed_model=embed_model,
@@ -116,7 +118,7 @@ class BaseStore:
             id: str,
             llm: Optional = None,
             embed_model: Optional = None,
-    ) -> BaseIndex:
+    ) -> "BaseIndex":
         """
         Get index instance
 
@@ -130,7 +132,7 @@ class BaseStore:
     def store(
             self,
             id: str,
-            index: Optional[BaseIndex] = None
+            index: Optional["BaseIndex"] = None
     ):
         """
         Store/persist index
@@ -186,6 +188,8 @@ class BaseStore:
         # model when ``embed_model`` is omitted, which can make a pure delete
         # operation fail when no OpenAI API key is configured. A mock model is
         # sufficient here because ``delete_ref_doc`` never embeds content.
+        from llama_index.core.embeddings.mock_embed_model import MockEmbedding
+
         index = self.get(
             id,
             embed_model=MockEmbedding(embed_dim=1),

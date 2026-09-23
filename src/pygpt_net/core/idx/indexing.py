@@ -9,23 +9,24 @@
 # Updated Date: 2026.09.04 20:10:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import datetime
 import os
 import time
 
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict, Any
+from typing import TYPE_CHECKING, Optional, Tuple, List, Dict, Any
 
 from sqlalchemy import text
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core.schema import Document
-from llama_index.core import SimpleDirectoryReader
 
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.utils import parse_args, pack_arg
 
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
+    from llama_index.core.schema import Document
 
 class Indexing:
     def __init__(self, window=None):
@@ -307,6 +308,8 @@ class Indexing:
         :param loader_kwargs: additional keyword arguments for loader
         :return: list of documents
         """
+        from llama_index.core import SimpleDirectoryReader
+
         # TODO: if .zip then unpack here, and return path to /tmp
         if not silent:
             self.window.core.idx.log(f"Reading documents from path: {path}")
@@ -629,6 +632,8 @@ class Indexing:
         :param updated_ts: timestamp
         :return: list of documents
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -701,6 +706,8 @@ class Indexing:
         :param updated_ts: timestamp from which to get data
         :return: list of documents
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -744,6 +751,8 @@ class Indexing:
         prevents a later project-wide incremental update from inserting the
         manually indexed conversation a second time.
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         store = self.window.core.idx.get_current_store()

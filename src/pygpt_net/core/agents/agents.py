@@ -11,10 +11,8 @@
 
 from .custom import Custom
 from .legacy import Legacy
-from .memory import Memory
 from .observer import Observer
 from .provider import Provider
-from .runner import Runner
 from .tools import Tools
 
 class Agents:
@@ -27,8 +25,24 @@ class Agents:
         self.window = window
         self.custom = Custom(window)
         self.legacy = Legacy(window)
-        self.memory = Memory(window)
+        self._memory = None
         self.observer = Observer(window)
         self.provider = Provider(window)
-        self.runner = Runner(window)
+        self._runner = None
         self.tools = Tools(window)
+
+    @property
+    def memory(self):
+        """Create LlamaIndex-backed legacy agent memory only when used."""
+        if self._memory is None:
+            from .memory import Memory
+            self._memory = Memory(self.window)
+        return self._memory
+
+    @property
+    def runner(self):
+        """Create legacy agent runners only for an actual legacy agent request."""
+        if self._runner is None:
+            from .runner import Runner
+            self._runner = Runner(self.window)
+        return self._runner

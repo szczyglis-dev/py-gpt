@@ -29,7 +29,7 @@ def patch_openai(monkeypatch):
             self.kwargs = kwargs
             instances.append(self)
 
-    monkeypatch.setattr("pygpt_net.core.idx.llm.OpenAI", DummyOpenAI)
+    monkeypatch.setattr("llama_index.llms.openai.OpenAI", DummyOpenAI)
     return DummyOpenAI, instances
 
 @pytest.fixture

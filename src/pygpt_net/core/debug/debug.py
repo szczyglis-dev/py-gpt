@@ -20,7 +20,6 @@ import logging
 from pathlib import Path
 from typing import Any, Tuple
 
-import psutil
 from PySide6.QtCore import QObject
 from PySide6.QtWidgets import QApplication
 
@@ -39,7 +38,7 @@ class Debug:
         self.window = window
         self.console = Console(window)
         self.pause_idx = 1
-        self._process = psutil.Process(os.getpid())
+        self._process = None
 
     @staticmethod
     def init(level: int = logging.ERROR):
@@ -338,6 +337,10 @@ class Debug:
         :param label: label for memory usage
         :return: formatted memory usage string
         """
+        if self._process is None:
+            import psutil
+            self._process = psutil.Process(os.getpid())
+
         rss_mb = self._process.memory_info().rss / (1024 * 1024)
         uss_mb = getattr(self._process.memory_full_info(), "uss", 0) / 1024 / 1024
         data =  f"RSS={rss_mb:.0f} MB  USS={uss_mb:.0f} MB"

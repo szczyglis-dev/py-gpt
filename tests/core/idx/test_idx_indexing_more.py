@@ -19,6 +19,8 @@ from types import SimpleNamespace
 FIXED_TS = 1735689600
 
 module = importlib.import_module("pygpt_net.core.idx.indexing")
+llama_core_mod = importlib.import_module("llama_index.core")
+llama_schema_mod = importlib.import_module("llama_index.core.schema")
 Indexing = module.Indexing
 class DocumentFake:
     def __init__(self, text='', metadata=None):
@@ -106,8 +108,8 @@ def window():
 
 @pytest.fixture(autouse=True)
 def patch_module(monkeypatch):
-    monkeypatch.setattr(module, 'Document', DocumentFake)
-    monkeypatch.setattr(module, 'SimpleDirectoryReader', FakeDirectoryReader)
+    monkeypatch.setattr(llama_schema_mod, 'Document', DocumentFake)
+    monkeypatch.setattr(llama_core_mod, 'SimpleDirectoryReader', FakeDirectoryReader)
     return None
 
 @pytest.fixture
@@ -223,7 +225,7 @@ def test_get_documents_dir_and_file_and_custom(monkeypatch, indexing, tmp_path, 
     d = tmp_path / 'folder'
     d.mkdir()
     docs = [DocumentFake(text='a', metadata={})]
-    monkeypatch.setattr(module, 'SimpleDirectoryReader', lambda *args, **kwargs: SimpleNamespace(load_data=Mock(return_value=docs)))
+    monkeypatch.setattr(llama_core_mod, 'SimpleDirectoryReader', lambda *args, **kwargs: SimpleNamespace(load_data=Mock(return_value=docs)))
     res = indexing.get_documents(str(d))
     assert isinstance(res, list) and res[0].text == 'a'
     f = tmp_path / 'file.md'

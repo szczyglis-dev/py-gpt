@@ -9,11 +9,14 @@
 # Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
-import os.path
-from typing import Optional
+from __future__ import annotations
 
-from llama_index.core import StorageContext, load_index_from_storage
-from llama_index.core.indices.base import BaseIndex
+
+import os.path
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
 
 from .base import BaseStore
 
@@ -89,6 +92,8 @@ class CtxAttachmentProvider(BaseStore):
         :param embed_model: Embedding model instance
         :return: index instance
         """
+        from llama_index.core import StorageContext, load_index_from_storage
+
         if not self.exists():
             self.create(id, embed_model)
         path = self.get_path(id)

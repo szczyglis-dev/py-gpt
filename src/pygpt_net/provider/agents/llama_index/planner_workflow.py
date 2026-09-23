@@ -9,21 +9,25 @@
 # Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any, List
+from __future__ import annotations
+
+from typing import Dict, Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.tools.types import BaseTool
+    from llama_index.core.llms.llm import LLM
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     AGENT_TYPE_LLAMA,
     AGENT_MODE_WORKFLOW,
 )
-from llama_index.core.llms.llm import LLM
-from llama_index.core.tools.types import BaseTool
 
 from pygpt_net.utils import trans
-from .workflow.planner import (
+from .workflow.planner_prompts import (
     DEFAULT_INITIAL_PLAN_PROMPT,
     DEFAULT_PLAN_REFINE_PROMPT,
-    DEFAULT_EXECUTE_PROMPT
+    DEFAULT_EXECUTE_PROMPT,
 )
 from ..base import BaseAgent
 

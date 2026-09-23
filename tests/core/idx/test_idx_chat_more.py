@@ -19,6 +19,11 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 chat_mod = importlib.import_module("pygpt_net.core.idx.chat")
+context_mod = importlib.import_module("pygpt_net.core.idx.context")
+response_mod = importlib.import_module("pygpt_net.core.idx.response")
+llama_memory_mod = importlib.import_module("llama_index.core.memory")
+llama_llms_mod = importlib.import_module("llama_index.core.llms")
+llama_prompts_mod = importlib.import_module("llama_index.core.prompts")
 Chat = chat_mod.Chat
 
 class FakeModelItem:
@@ -124,15 +129,15 @@ def make_window(config_map=None):
     return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents, api=api), idx_logger_message=Mock())
 
 def make_chat(monkeypatch, config_map=None, storage=None):
-    monkeypatch.setattr(chat_mod, "Context", FakeContextClass)
-    monkeypatch.setattr(chat_mod, "Response", FakeResponseClass)
+    monkeypatch.setattr(context_mod, "Context", FakeContextClass)
+    monkeypatch.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window(config_map=config_map)
     storage = storage or Mock()
     return Chat(window=win, storage=storage)
 
 def test_init_creates_components(monkeypatch):
-    monkeypatch.setattr(chat_mod, "Context", FakeContextClass)
-    monkeypatch.setattr(chat_mod, "Response", FakeResponseClass)
+    monkeypatch.setattr(context_mod, "Context", FakeContextClass)
+    monkeypatch.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window()
     storage = Mock()
     c = Chat(window=win, storage=storage)
@@ -342,15 +347,15 @@ def test_query_retrieval_returns_text_when_found(monkeypatch):
 
 def test_get_memory_buffer_uses_chat_memory(monkeypatch):
     chat = make_chat(monkeypatch)
-    monkeypatch.setattr(chat_mod, "ChatMemoryBuffer", SimpleNamespace(from_defaults=Mock(return_value="MEMBUF")))
+    monkeypatch.setattr(llama_memory_mod, "ChatMemoryBuffer", SimpleNamespace(from_defaults=Mock(return_value="MEMBUF")))
     res = chat.get_memory_buffer(history=["a"], llm="LLM")
     assert res == "MEMBUF"
 
 def test_get_custom_prompt_none_and_nonempty(monkeypatch):
     chat = make_chat(monkeypatch)
-    monkeypatch.setattr(chat_mod, "ChatPromptTemplate", lambda msgs: {"msgs": msgs})
-    monkeypatch.setattr(chat_mod, "ChatMessage", lambda role, content: {"role": role, "content": content})
-    monkeypatch.setattr(chat_mod, "MessageRole", SimpleNamespace(SYSTEM="system", USER="user"))
+    monkeypatch.setattr(llama_prompts_mod, "ChatPromptTemplate", lambda msgs: {"msgs": msgs})
+    monkeypatch.setattr(llama_llms_mod, "ChatMessage", lambda role, content: {"role": role, "content": content})
+    monkeypatch.setattr(llama_llms_mod, "MessageRole", SimpleNamespace(SYSTEM="system", USER="user"))
     assert chat.get_custom_prompt(None) is None
     res = chat.get_custom_prompt("SYS_PROMPT")
     assert isinstance(res, dict)
@@ -393,8 +398,8 @@ def test_get_metadata_filters_and_limits():
     chat = make_chat(__import__("pytest").MonkeyPatch().context()) if False else make_chat
     # Use a Chat instance created by monkeypatch fixture for method access
     mp = pytest.MonkeyPatch()
-    mp.setattr(chat_mod, "Context", FakeContextClass)
-    mp.setattr(chat_mod, "Response", FakeResponseClass)
+    mp.setattr(context_mod, "Context", FakeContextClass)
+    mp.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window()
     storage = Mock()
     c = Chat(window=win, storage=storage)

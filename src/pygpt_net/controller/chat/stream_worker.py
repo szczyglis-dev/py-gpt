@@ -15,7 +15,6 @@ from dataclasses import dataclass, field
 from typing import Optional, Any
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
-from openai.types.chat import ChatCompletionChunk
 
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.types import MODE_AGENT
@@ -30,12 +29,6 @@ from pygpt_net.provider.api.reasoning import (
 )
 
 # Import provider-specific stream processors
-from pygpt_net.provider.api.openai import stream as openai_stream
-from pygpt_net.provider.api.google import stream as google_stream
-from pygpt_net.provider.api.anthropic import stream as anthropic_stream
-from pygpt_net.provider.api.x_ai import stream as xai_stream
-from pygpt_net.provider.api.llama_index import stream as llamaindex_stream
-from pygpt_net.provider.api.langchain import stream as langchain_stream
 
 class WorkerSignals(QObject):
     """
@@ -304,9 +297,14 @@ class StreamWorker(QRunnable):
             if not hasattr(chunk, "type") and not hasattr(chunk, "candidates"):
                 return ChunkType.LLAMA_CHAT
 
-        # fallback: OpenAI ChatCompletionChunk not caught above
-        if isinstance(chunk, ChatCompletionChunk):
-            return ChunkType.API_CHAT
+        # fallback: OpenAI ChatCompletionChunk not caught above. Import the
+        # SDK type only when structural detection did not identify the chunk.
+        try:
+            from openai.types.chat import ChatCompletionChunk
+            if isinstance(chunk, ChatCompletionChunk):
+                return ChunkType.API_CHAT
+        except ImportError:
+            pass
 
         return ChunkType.RAW
 
@@ -379,6 +377,7 @@ class StreamWorker(QRunnable):
         # xAI: extract tool calls from final response if not already present
         if (not state.tool_calls) and (state.xai_last_response is not None):
             try:
+                from pygpt_net.provider.api.x_ai import stream as xai_stream
                 calls = xai_stream.xai_extract_tool_calls(state.xai_last_response)
                 if calls:
                     state.tool_calls = calls
@@ -388,6 +387,7 @@ class StreamWorker(QRunnable):
         # xAI: collect citations (final response) -> ctx.urls
         if state.xai_last_response is not None:
             try:
+                from pygpt_net.provider.api.x_ai import stream as xai_stream
                 cites = xai_stream.xai_extract_citations(state.xai_last_response) or []
                 if cites:
                     if ctx.urls is None:
@@ -458,6 +458,7 @@ class StreamWorker(QRunnable):
         # xAI: usage from final response if still missing
         if (not state.usage_payload) and (state.xai_last_response is not None):
             try:
+                from pygpt_net.provider.api.x_ai import stream as xai_stream
                 up = xai_stream.xai_extract_usage(state.xai_last_response)
                 if up:
                     state.usage_payload = up
@@ -620,27 +621,35 @@ class StreamWorker(QRunnable):
         return self._process_raw(chunk)
 
     def _process_api_chat(self, ctx, state, chunk):
+        from pygpt_net.provider.api.openai import stream as openai_stream
         return openai_stream.process_api_chat(ctx, state, chunk)
 
     def _process_api_chat_responses(self, ctx, core, state, chunk, etype):
+        from pygpt_net.provider.api.openai import stream as openai_stream
         return openai_stream.process_api_chat_responses(ctx, core, state, chunk, etype)
 
     def _process_api_completion(self, chunk):
+        from pygpt_net.provider.api.openai import stream as openai_stream
         return openai_stream.process_api_completion(chunk)
 
     def _process_langchain_chat(self, chunk):
+        from pygpt_net.provider.api.langchain import stream as langchain_stream
         return langchain_stream.process_langchain_chat(chunk)
 
     def _process_llama_chat(self, state, chunk):
+        from pygpt_net.provider.api.llama_index import stream as llamaindex_stream
         return llamaindex_stream.process_llama_chat(state, chunk)
 
     def _process_google_chunk(self, ctx, core, state, chunk):
+        from pygpt_net.provider.api.google import stream as google_stream
         return google_stream.process_google_chunk(ctx, core, state, chunk)
 
     def _process_anthropic_chunk(self, ctx, core, state, chunk):
+        from pygpt_net.provider.api.anthropic import stream as anthropic_stream
         return anthropic_stream.process_anthropic_chunk(ctx, core, state, chunk)
 
     def _process_xai_sdk_chunk(self, ctx, core, state, item):
+        from pygpt_net.provider.api.x_ai import stream as xai_stream
         return xai_stream.process_xai_sdk_chunk(ctx, core, state, item)
 
     def _process_raw(self, chunk) -> Optional[str]:

@@ -9,15 +9,15 @@
 # Updated Date: 2026.09.08 19:15:00                  #
 # ================================================== #
 
+from __future__ import annotations
+
 import datetime
 import math
 import os
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 
-import mss
-import mss.tools
-from PIL import Image, ImageDraw
-from pynput.mouse import Controller
+if TYPE_CHECKING:
+    from PIL import Image
 
 from PySide6.QtCore import QRect
 from PySide6.QtGui import QImage
@@ -57,7 +57,8 @@ class Capture:
             self.window.ui.tray.show_capture_flash()
         return True
 
-    def _overlay_custom_cursor(self, img: Image.Image, cursor_x: float, cursor_y: float) -> Image.Image:
+    def _overlay_custom_cursor(self, img: "Image.Image", cursor_x: float, cursor_y: float) -> "Image.Image":
+        from PIL import Image
         """Overlay the bundled cursor with its click hotspot at (cursor_x, cursor_y)."""
         x = int(round(cursor_x))
         y = int(round(cursor_y))
@@ -94,6 +95,10 @@ class Capture:
         :param save_path: Save path
         :return: Save path
         """
+        import mss
+        from PIL import Image
+        from pynput.mouse import Controller
+
         mouse = Controller()
 
         with mss.mss(with_cursor=False) as sct:
@@ -152,6 +157,9 @@ class Capture:
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
 
             # capture screenshot
+            import mss
+            import mss.tools
+
             if attach_cursor:
                 if not self.capture_screen_with_custom_cursor(path):  # capture with custom cursor
                     return False
@@ -213,6 +221,9 @@ class Capture:
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+
+            import mss
+            import mss.tools
 
             with mss.mss(with_cursor=False) as sct:
                 monitors = sct.monitors[1:]
@@ -300,6 +311,7 @@ class Capture:
                 return False
 
             if attach_cursor and cursor_position is not None:
+                from PIL import Image
                 with Image.open(path) as source:
                     img = source.convert('RGBA')
 

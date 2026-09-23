@@ -9,10 +9,13 @@
 # Updated Date: 2026.09.10 12:48:00
 # ================================================== #
 
-from typing import List, Dict, Optional
+from __future__ import annotations
 
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+from typing import List, Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX, MODE_CHAT,
@@ -63,6 +66,7 @@ class AnthropicLLM(BaseLLM):
         :param window: window instance
         :param model: model instance
         :param stream: stream mode
+        :param remote_tools: whether to enable remote tools (e.g., web search, computer use)
         :return: LLM provider instance
         """
         from llama_index.core.bridge.pydantic import PrivateAttr

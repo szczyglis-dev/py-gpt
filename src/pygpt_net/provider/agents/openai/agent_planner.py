@@ -9,17 +9,13 @@
 # Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import re
-from typing import Dict, Any, Tuple, Optional, List
+from typing import Dict, Any, Tuple, Optional, List, TYPE_CHECKING
 
-from pydantic import BaseModel, Field
-
-from agents import (
-    Agent as OpenAIAgent,
-    Runner,
-    RunConfig,
-    TResponseInputItem,
-)
+if TYPE_CHECKING:
+    from agents import Agent as OpenAIAgent, TResponseInputItem
+    from .agent_planner_models import Plan, PlanRefinement, SubTask
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
@@ -32,14 +28,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.api.openai.agents.client import (
-    append_reasoning_model_settings,
-    get_custom_model_provider,
-    set_openai_env,
-)
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
-from pygpt_net.provider.api.openai.agents.response import StreamHandler
-from pygpt_net.provider.api.openai.agents.experts import get_experts
 from pygpt_net.utils import trans
 
 from ..base import BaseAgent
@@ -50,28 +38,13 @@ from ..base import BaseAgent
 # dataclasses are wrapped under a top-level ``response`` key by AgentOutputSchema,
 # while BaseModel subclasses are emitted as the JSON object directly. Keeping the
 # schema shape identical to the prompt avoids a conflicting structured-output contract.
-class SubTask(BaseModel):
-    name: str = Field(..., description="The name of the sub-task.")
-    input: str = Field(..., description="The input prompt for the sub-task.")
-    expected_output: str = Field(..., description="The expected output of the sub-task.")
-    dependencies: List[str] = Field(
-        ...,
-        description="Names of sub-tasks that must be completed before this sub-task.",
-    )
 
 
-class Plan(BaseModel):
-    sub_tasks: List[SubTask] = Field(..., description="The sub-tasks in the plan.")
 
 
-class PlanRefinement(BaseModel):
-    is_done: bool = Field(..., description="Whether the overall task is already satisfied.")
-    reason: Optional[str] = Field(..., description="Why the plan is complete or needs an update.")
-    plan: Optional[Plan] = Field(
-        ...,
-        description="Replacement for the remaining plan, or null when no update is required.",
-    )
 
+
+__all__ = ["Agent", "SubTask", "Plan", "PlanRefinement"]
 
 class Agent(BaseAgent):
     # System prompts used as templates, exposed in options (planner.initial_prompt, refine.prompt).
@@ -364,6 +337,10 @@ Overall Task: {task}
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         # Keep a stable display name; fallback to translated 'Executor' if no preset
@@ -431,6 +408,12 @@ Overall Task: {task}
         """
         Return Agent provider instance producing a structured Plan.
         """
+        from .agent_planner_models import Plan
+
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         kwargs = {
             "name": "StructuredPlanner",
             # Minimal instructions; the full template is injected as user content.
@@ -466,6 +449,12 @@ Overall Task: {task}
         """
         Return Agent provider instance producing a structured PlanRefinement.
         """
+        from .agent_planner_models import PlanRefinement
+
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         kwargs = {
             "name": "PlanRefiner",
             "instructions": self.append_system_prompt_extra(
@@ -511,6 +500,13 @@ Overall Task: {task}
         :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
+        from .agent_planner_models import Plan, PlanRefinement, SubTask
+
+        from agents import Runner, RunConfig
+        from pygpt_net.provider.api.openai.agents.client import get_custom_model_provider, set_openai_env
+        from pygpt_net.provider.api.openai.agents.response import StreamHandler
+        from pygpt_net.provider.api.openai.agents.experts import get_experts
+
         final_output = ""
         response_id = None
         model = agent_kwargs.get("model", ModelItem())
@@ -982,3 +978,16 @@ Overall Task: {task}
                 }
             },
         }
+
+def __getattr__(name):
+    # Preserve the previous module-level schema imports without loading Pydantic
+    # during provider registration.
+    if name in {"SubTask", "Plan", "PlanRefinement"}:
+        from .agent_planner_models import Plan, PlanRefinement, SubTask
+        return {
+            "SubTask": SubTask,
+            "Plan": Plan,
+            "PlanRefinement": PlanRefinement,
+        }[name]
+    raise AttributeError(name)
+

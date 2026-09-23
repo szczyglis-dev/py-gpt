@@ -9,12 +9,14 @@
 # Updated Date: 2025.08.24 02:00:00                  #
 # ================================================== #
 
-from typing import List
+from __future__ import annotations
+from typing import TYPE_CHECKING, List
 
-from llama_index.core.tools import FunctionTool
 
 from pygpt_net.item.ctx import CtxItem
 
+if TYPE_CHECKING:
+    from llama_index.core.tools import FunctionTool
 
 class Evaluation:
     def __init__(self, window=None):
@@ -238,6 +240,8 @@ class Evaluation:
 
         :return: list of tools
         """
+        from llama_index.core.tools import FunctionTool
+
         def send_feedback(instructions: str, rating_percent: int) -> str:
             """Send feedback with evaluation result"""
             self.handle_evaluation(instructions, rating_percent)

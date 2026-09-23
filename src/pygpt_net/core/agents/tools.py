@@ -9,18 +9,12 @@
 # Updated Date: 2026.09.05 14:45:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import json
-from typing import List, Dict, Any
+from typing import TYPE_CHECKING, List, Dict, Any
 
-from agents import (
-    FunctionTool as OpenAIFunctionTool,
-    RunContextWrapper,
-)
-from llama_index.core.chat_engine.types import AgentChatResponse
-from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
 from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
@@ -28,6 +22,11 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.item.ctx import CtxItem
 
+if TYPE_CHECKING:
+    from agents import FunctionTool as OpenAIFunctionTool
+    from llama_index.core.chat_engine.types import AgentChatResponse
+    from llama_index.core.tools import BaseTool
+    from agents import RunContextWrapper
 
 class Tools:
 
@@ -91,6 +90,8 @@ class Tools:
         :param verbose: verbose mode
         :return: list of tools
         """
+        from llama_index.core.tools import QueryEngineTool, ToolMetadata
+
         tool = None
 
         # add query engine tool if idx is provided. Resolve the virtual
@@ -133,6 +134,8 @@ class Tools:
         :param verbose: verbose mode
         :return: OpenAIFunctionTool instance
         """
+        from agents import FunctionTool as OpenAIFunctionTool, RunContextWrapper
+
         async def run_function(_run_ctx: RunContextWrapper[Any], args: str) -> str:
             # openai-agents 0.18.x passes a plain RunContextWrapper when the
             # callback explicitly declares that type; tool_name lives only on
@@ -174,6 +177,9 @@ class Tools:
         :param force: force to get functions even if not needed
         :return: List of BaseTool instances
         """
+        from llama_index.core.tools import FunctionTool
+        from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
+
         tools = []
         functions = self.window.core.command.get_functions(force=force)
         for item in functions:
@@ -224,7 +230,7 @@ class Tools:
                     return func
 
                 func = make_func(name, description, schema)
-                metadata = PluginToolMetadata(
+                metadata = JsonSchemaToolMetadata(
                     name=name,
                     description=description,
                     schema=schema,
@@ -252,6 +258,8 @@ class Tools:
         :param force: force to get functions even if not needed
         :return: List of OpenAIFunctionTool instances
         """
+        from agents import FunctionTool as OpenAIFunctionTool, RunContextWrapper
+
         tools = []
         functions = self.window.core.command.get_functions(force=force)
         blacklist = []
@@ -517,8 +525,3 @@ class Tools:
         if self.verbose:
             print(msg)
             self.window.core.debug.add(msg)
-
-class PluginToolMetadata(JsonSchemaToolMetadata):
-    """Legacy/Chat-with-Files plugin metadata using the real plugin JSON schema."""
-
-    pass

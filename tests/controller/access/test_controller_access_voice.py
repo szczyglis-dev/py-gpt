@@ -152,7 +152,7 @@ def test_voice_handle_thread_uses_control_worker_mock_not_real_audio_backend():
     window.core.config.get_user_dir.return_value = '/tmp'
     worker = MagicMock()
     worker.signals = MagicMock()
-    with patch('pygpt_net.controller.access.voice.ControlWorker', return_value=worker):
+    with patch('pygpt_net.plugin.audio_input.worker.ControlWorker', return_value=worker):
         ctrl.handle_thread(True)
     assert worker.window is window
     assert worker.path == '/tmp/voice_control.wav'

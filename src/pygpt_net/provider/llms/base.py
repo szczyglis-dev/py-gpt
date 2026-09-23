@@ -10,12 +10,12 @@
 # ================================================== #
 
 import os
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, TYPE_CHECKING
 
-import httpx
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+    from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 
 from pygpt_net.core.types import (
     MODE_LANGCHAIN,
@@ -272,7 +272,7 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False
-    ) -> LlamaBaseLLM:
+    ) -> "LlamaBaseLLM":
         """
         Return LlamaIndex LLM instance for plain-text completion.
 
@@ -293,7 +293,7 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False
-    ) -> LlamaBaseLLM:
+    ) -> "LlamaBaseLLM":
         """
         Return LLM provider instance for llama index query and chat
 
@@ -311,7 +311,7 @@ class BaseLLM:
             stream: bool = False,
             computer_runtime=None,
             force_computer_use: bool = False,
-    ) -> LlamaBaseLLM:
+    ) -> "LlamaBaseLLM":
         """Return a LlamaIndex LLM with the Chat with Files Computer Use bridge.
 
         Kept as the provider override point for backward compatibility. New
@@ -326,7 +326,7 @@ class BaseLLM:
             stream: bool = False,
             computer_runtime=None,
             force_computer_use: bool = False,
-    ) -> LlamaBaseLLM:
+    ) -> "LlamaBaseLLM":
         """Return a LlamaIndex LLM bound to the shared Computer Use runtime.
 
         Existing provider implementations already expose their native Computer
@@ -349,7 +349,7 @@ class BaseLLM:
             stream: bool = False,
             allow_remote_tools: bool = True,
             force_computer_use: bool = False,
-    ) -> LlamaBaseLLM:
+    ) -> "LlamaBaseLLM":
         """
         Return LlamaIndex LLM instance for Agents v2.
 
@@ -371,7 +371,7 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False
-    ) -> LlamaMultiModalLLM:
+    ) -> "LlamaMultiModalLLM":
         """
         Return multimodal LLM provider instance for llama
 
@@ -386,7 +386,7 @@ class BaseLLM:
             self,
             window,
             config: Optional[List[Dict]] = None
-    ) -> BaseEmbedding:
+    ) -> "BaseEmbedding":
         """
         Return provider instance for embeddings
 

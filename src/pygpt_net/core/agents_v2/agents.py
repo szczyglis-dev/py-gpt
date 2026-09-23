@@ -11,12 +11,8 @@
 
 from types import SimpleNamespace
 
-from .context import RuntimeContext
 from .editor import AgentEditor
-from .memory import AgentsV2MemoryStore
 from .mode import AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
-from .prompt_builder import RuntimePromptBuilder
-from .runner import Runner
 from .strategy import get_agent_strategy
 
 
@@ -40,6 +36,9 @@ class _PromptPreviewRuntime:
             index_id,
             bridge_system_prompt: str,
     ):
+        from .context import RuntimeContext
+        from .prompt_builder import RuntimePromptBuilder
+
         self.window = window
         self.model = model
         self.preset = preset
@@ -118,12 +117,25 @@ class _PromptPreviewRuntime:
 class AgentsV2:
     def __init__(self, window=None):
         self.window = window
-        self.runner = Runner(window)
+        self._runner = None
+        self._memory_store = None
         self.editor = AgentEditor(window)
-        # Stateless helper shared by the live UI token estimator. Runtime turns
-        # may still instantiate/use their own facade; both read the same hidden
-        # DB-backed Primary Agent memory.
-        self.memory_store = AgentsV2MemoryStore(window)
+
+    @property
+    def runner(self):
+        """Create the Agents v2 runner only when an Agents v2 request is executed."""
+        if self._runner is None:
+            from .runner import Runner
+            self._runner = Runner(self.window)
+        return self._runner
+
+    @property
+    def memory_store(self):
+        """Create the Agents v2 memory adapter only when history is queried."""
+        if self._memory_store is None:
+            from .memory import AgentsV2MemoryStore
+            self._memory_store = AgentsV2MemoryStore(self.window)
+        return self._memory_store
 
     def build_main_system_prompt_preview(
             self,

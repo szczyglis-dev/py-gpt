@@ -13,7 +13,6 @@ import json
 from typing import List, Dict
 from urllib.parse import quote
 
-import requests
 
 from .base import BaseProvider
 
@@ -75,6 +74,8 @@ class MicrosoftBingSearch(BaseProvider):
         :param offset: offset
         :return: list of urls
         """
+        import requests
+
         key = self.get_key()
         urls = []
 

@@ -21,7 +21,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 from .config import Config
-from .worker import Worker
 from .simple import Simple
 from ...core.types import MODE_AUDIO
 
@@ -170,6 +169,7 @@ class Plugin(BasePlugin):
         self.set_status(msg)
         self.window.update_status(msg)
 
+        from .worker import Worker
         worker = Worker()
         worker.from_defaults(self)
         worker.prepare_model = True
@@ -413,6 +413,7 @@ class Plugin(BasePlugin):
         :param path: audio file path
         """
         try:
+            from .worker import Worker
             worker = Worker()
             worker.from_defaults(self)
             worker.path = path
@@ -440,6 +441,7 @@ class Plugin(BasePlugin):
             return
 
         try:
+            from .worker import Worker
             worker = Worker()
             worker.from_defaults(self)
             worker.path = self.get_input_path()

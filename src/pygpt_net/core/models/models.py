@@ -13,8 +13,6 @@ import copy
 import os
 from typing import Optional, List, Dict, Tuple
 
-from httpx_socks import SyncProxyTransport
-from openai import DefaultHttpxClient
 from packaging.version import Version
 
 from pygpt_net.core.types import (
@@ -557,6 +555,9 @@ class Models:
             proxy = cfg.get('api_proxy')
             if proxy and cfg.get('api_proxy.enabled', False):
                 args["api_proxy"] = proxy
+                from httpx_socks import SyncProxyTransport
+                from openai import DefaultHttpxClient
+
                 transport = SyncProxyTransport.from_url(proxy)
                 args["http_client"] = DefaultHttpxClient(transport=transport)
 

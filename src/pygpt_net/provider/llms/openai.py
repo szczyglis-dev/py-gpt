@@ -9,14 +9,18 @@
 # Updated Date: 2026.09.22 11:45:00                  #
 # ================================================== #
 
-from typing import Optional, List, Dict
+from __future__ import annotations
+
+from typing import Optional, List, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+    from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 
 # from langchain_openai import OpenAI
 # from langchain_openai import ChatOpenAI
 
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
-from llama_index.core.base.embeddings.base import BaseEmbedding
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,

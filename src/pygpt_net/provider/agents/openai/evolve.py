@@ -9,15 +9,14 @@
 # Updated Date: 2025.09.26 17:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import copy
-from dataclasses import dataclass
-from typing import Dict, Any, Tuple, Literal, Optional
 
-from agents import (
-    Agent as OpenAIAgent,
-    Runner,
-    TResponseInputItem,
-)
+from dataclasses import dataclass
+from typing import Dict, Any, Tuple, Literal, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from agents import Agent as OpenAIAgent, TResponseInputItem
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
@@ -30,10 +29,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
-from pygpt_net.provider.api.openai.agents.response import StreamHandler
-from pygpt_net.provider.api.openai.agents.experts import get_experts
 from pygpt_net.utils import trans
 
 from ..base import BaseAgent
@@ -84,6 +79,10 @@ class Agent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         agent_name = preset.name if preset else "Agent"
@@ -136,6 +135,10 @@ class Agent(BaseAgent):
         :param allow_remote_tools: Whether to allow remote tools
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         kwargs = {
             "name": "Evaluator",
             "instructions": instructions,
@@ -176,6 +179,10 @@ class Agent(BaseAgent):
         :param allow_remote_tools: Whether to allow remote tools
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         kwargs = {
             "name": "chooser",
             "instructions": instructions,
@@ -246,6 +253,10 @@ class Agent(BaseAgent):
         :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
+        from agents import Runner
+        from pygpt_net.provider.api.openai.agents.response import StreamHandler
+        from pygpt_net.provider.api.openai.agents.experts import get_experts
+
         final_output = ""
         response_id = None
         model = agent_kwargs.get("model", ModelItem())

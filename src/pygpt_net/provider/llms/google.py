@@ -9,11 +9,13 @@
 # Updated Date: 2026.09.10 12:48:00
 # ================================================== #
 
-from typing import Optional, List, Dict
+from __future__ import annotations
 
-from google.genai import types as gtypes
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-from llama_index.core.base.embeddings.base import BaseEmbedding
+from typing import Optional, List, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -22,6 +24,11 @@ from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 from pygpt_net.core.types.reasoning import get_google_thinking_kwargs
 
+
+
+def _get_google_types():
+    from google.genai import types as gtypes
+    return gtypes
 
 class GoogleLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
@@ -59,8 +66,8 @@ class GoogleLLM(BaseLLM):
         generation_config = self._generation_config_dict(args.get("generation_config"))
         # llama-index-llms-google-genai 0.11.1 expects a typed
         # GenerateContentConfig here and calls .model_dump() on it internally.
-        generation_config["thinking_config"] = gtypes.ThinkingConfig(**thinking)
-        args["generation_config"] = gtypes.GenerateContentConfig(**generation_config)
+        generation_config["thinking_config"] = _get_google_types().ThinkingConfig(**thinking)
+        args["generation_config"] = _get_google_types().GenerateContentConfig(**generation_config)
 
     def llama_completion(
             self,
@@ -139,12 +146,12 @@ class GoogleLLM(BaseLLM):
                 generation_config = self._generation_config_dict(args.get("generation_config"))
                 if not generation_config.get("tools"):
                     generation_config["tools"] = built_tools
-                    args["generation_config"] = gtypes.GenerateContentConfig(**generation_config)
+                    args["generation_config"] = _get_google_types().GenerateContentConfig(**generation_config)
 
         # The pinned llama-index Google integration treats generation_config as
         # a pydantic model, not a plain dict. Normalize user/model args too.
         if isinstance(args.get("generation_config"), dict):
-            args["generation_config"] = gtypes.GenerateContentConfig(**args["generation_config"])
+            args["generation_config"] = _get_google_types().GenerateContentConfig(**args["generation_config"])
 
         self.log_llama_create(window, model, args, "PyGPTGoogleGenAI", {"pygpt_remote_tools": built_tools})
         return PyGPTGoogleGenAI(**args, pygpt_remote_tools=built_tools)
@@ -227,7 +234,7 @@ class GoogleLLM(BaseLLM):
                 window.core.debug.log(e)
 
         if isinstance(args.get("generation_config"), dict):
-            args["generation_config"] = gtypes.GenerateContentConfig(**args["generation_config"])
+            args["generation_config"] = _get_google_types().GenerateContentConfig(**args["generation_config"])
 
         self.log_llama_create(window, model, args, "AgentGoogleGenAI", {"pygpt_remote_tools": remote})
         return AgentGoogleGenAI(
@@ -298,7 +305,7 @@ class GoogleLLM(BaseLLM):
         if not cfg.get("api_proxy.enabled", False):
             proxy = ""
         if proxy:
-            http_options = gtypes.HttpOptions(
+            http_options = _get_google_types().HttpOptions(
                 client_args={"proxy": proxy},
                 async_client_args={"proxy": proxy},
             )
@@ -317,5 +324,5 @@ class GoogleLLM(BaseLLM):
         if proxy:
             options["client_args"] = {"proxy": proxy}
             options["async_client_args"] = {"proxy": proxy}
-        args["http_options"] = gtypes.HttpOptions(**options)
+        args["http_options"] = _get_google_types().HttpOptions(**options)
         return args

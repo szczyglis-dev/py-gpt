@@ -14,7 +14,6 @@ import platform
 import shutil
 import sys
 
-import psutil
 from PySide6 import QtCore, __version__ as pyside_version
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot, Qt
 from PySide6.QtGui import QGuiApplication, QIcon
@@ -267,6 +266,8 @@ class SystemInfo(QObject):
 
     @staticmethod
     def _get_cpu_string() -> str:
+        import psutil
+
         physical = psutil.cpu_count(logical=False)
         logical = psutil.cpu_count(logical=True)
         if physical and logical:
@@ -277,6 +278,8 @@ class SystemInfo(QObject):
 
     @staticmethod
     def _get_ram_string(fs) -> str:
+        import psutil
+
         try:
             process = psutil.Process(os.getpid())
             used = process.memory_info().rss

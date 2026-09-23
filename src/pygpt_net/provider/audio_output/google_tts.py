@@ -9,7 +9,6 @@
 # Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
 import json
-import requests
 
 from .base import BaseProvider
 
@@ -77,6 +76,8 @@ class GoogleTextToSpeech(BaseProvider):
         :param text: text to speech
         :return: path to generated audio file or None if audio playback is handled here
         """
+        import requests
+
         api_key = self.plugin.get_option_value("google_api_key")
         lang = self.plugin.get_option_value("google_lang")
         voice = self.plugin.get_option_value("google_voice")

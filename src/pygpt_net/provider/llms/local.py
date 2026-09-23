@@ -8,10 +8,14 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
-from typing import Optional, Dict, List
+from __future__ import annotations
 
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+from typing import TYPE_CHECKING, Optional, Dict, List
+
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,

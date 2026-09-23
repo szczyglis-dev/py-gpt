@@ -13,7 +13,6 @@ import os
 import uuid
 from typing import Optional, List, Dict, Tuple, Union
 
-import requests
 
 from urllib.parse import urljoin
 
@@ -61,6 +60,8 @@ class Helpers:
         :param user_agent: User agent
         :return: status code, response text
         """
+        import requests
+
         upload = {}
         try:
             method = method.upper()
@@ -123,6 +124,8 @@ class Helpers:
         :param url: URL to get image from
         :return: image URL
         """
+        import requests
+
         from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -173,6 +176,8 @@ class Helpers:
         :param url: URL to get links from
         :return: links list
         """
+        import requests
+
         from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -205,6 +210,8 @@ class Helpers:
         :param url: URL to get images from
         :return: images list
         """
+        import requests
+
         from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -227,6 +234,8 @@ class Helpers:
         :param img: URL to download image from
         :return: local path to image
         """
+        import requests
+
         dir = self.window.core.filesystem.get_runtime_dir("img", ctx=ctx)
         response = requests.get(img, stream=True)
         name = img.replace("http://", "").replace("https://", "").replace("/", "_")

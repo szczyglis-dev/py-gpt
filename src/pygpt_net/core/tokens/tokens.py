@@ -9,13 +9,11 @@
 # Updated Date: 2026.09.15 16:45:00                  #
 # ================================================== #
 
-from typing import Tuple, List
+from typing import Tuple, List, TYPE_CHECKING
 from functools import lru_cache
 
-import tiktoken
-
-# from langchain_core.messages import ChatMessage as ChatMessageLangchain
-from llama_index.core.base.llms.types import ChatMessage as ChatMessageLlama
+if TYPE_CHECKING:
+    from llama_index.core.base.llms.types import ChatMessage as ChatMessageLlama
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -61,6 +59,8 @@ class Tokens:
     @staticmethod
     @lru_cache(maxsize=128)
     def _encoding_name_for_model(model: str | None) -> str:
+        import tiktoken
+
         if model:
             try:
                 return tiktoken.encoding_for_model(model).name
@@ -73,6 +73,8 @@ class Tokens:
     @staticmethod
     @lru_cache(maxsize=64)
     def _get_encoding(encoding_name: str):
+        import tiktoken
+
         try:
             return tiktoken.get_encoding(encoding_name)
         except Exception:
@@ -192,7 +194,7 @@ class Tokens:
     @staticmethod
     def from_llama_messages(
             query: str,
-            messages: List[ChatMessageLlama],
+            messages: List["ChatMessageLlama"],
             model: str = "gpt-4"
     ) -> int:
         model, per_message, per_name = Tokens.get_config(model)
