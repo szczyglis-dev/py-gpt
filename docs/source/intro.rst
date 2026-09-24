@@ -6,7 +6,7 @@ Overview
 
 **PyGPT** is an open-source desktop AI assistant for ``Linux``, ``Windows`` and ``macOS``. It supports models from ``OpenAI`` (``GPT-6 Astra``, ``GPT-5.6``, ``GPT-4``, etc.), ``Google Gemini``, ``Anthropic Claude``, ``xAI Grok``, ``Perplexity / Sonar``, ``DeepSeek``, plus models available through ``HuggingFace``, ``LlamaIndex``, OpenAI-compatible APIs, and local ``Ollama`` installations such as ``DeepSeek``, ``Qwen``, ``gpt-oss``, ``Gemma``, ``Mistral``, ``Llama``, and others.
 
-Beyond chat, PyGPT includes **Agents** with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
+Beyond chat, PyGPT includes Agents with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
 
 *Dark theme*
 
@@ -34,11 +34,11 @@ Features
 * Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing``, and ``xAI Grok Voice``.
 * Extensible plugin system with ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and more.
 * Model Context Protocol (MCP) support.
-* Built-in **MCP Connectors** manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
-* **Agents** multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
+* Built-in ``MCP Connectors`` manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
+* Agents multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
 * Project-specific ``AGENTS.md`` rules for the main Agents agent.
-* Portable ``SKILL.md``-based **Agent Skills** with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
-* Built-in **Python/OS** tool for real-time Python, IPython, and system command execution.
+* Portable ``SKILL.md``-based ``Agent Skills`` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
+* Built-in ``Python/OS`` tool for real-time Python, IPython, and system command execution.
 * Camera capture for real-time image input in Chat and other supported modes.
 * Image analysis with vision-capable models.
 * Accessibility features including keyboard shortcuts, voice control, and spoken descriptions of on-screen actions.
