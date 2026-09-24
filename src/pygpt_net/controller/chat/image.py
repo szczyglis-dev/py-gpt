@@ -116,7 +116,7 @@ class Image:
         }))
 
         # render: append input
-        dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
+        dispatch(RenderEvent(RenderEvent.APPEND_INPUT, {
             "meta": ctx.meta,
             "ctx": ctx,
         }))

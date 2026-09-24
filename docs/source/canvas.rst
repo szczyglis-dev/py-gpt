@@ -43,7 +43,7 @@ The model can generate the page, open Canvas, render the animation, inspect the 
 
 You can also combine Canvas with live drawing in Painter to create a seamless end-to-end workflow. For example, you can sketch a reference image in Painter, ask the model to retrieve it directly from Painter and use it as input for the task, and then have the final interactive result displayed in Canvas — as shown in the video below:
 
-https://github.com/user-attachments/assets/d1ca0b51-a27a-4bef-bdc8-1fe96fd669ae
+https://github.com/user-attachments/assets/d954c4e6-9ad9-4bbb-8065-dc0a0a2f9f36
 
 Websites and local HTML server
 ------------------------------

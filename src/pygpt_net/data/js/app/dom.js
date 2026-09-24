@@ -258,49 +258,57 @@ class DOMRefs {
     return timeline;
   }
 
-  // Reserve the exact footer footprint while a response is streaming.
-  // Final message actions are rendered only after stream completion; without
-  // this placeholder the extra/action row appears late and shifts the message.
+  // Keep a stable action-footer footprint for the whole lifetime of a response.
+  // The slot itself never disappears: while a turn is active it is either an
+  // invisible placeholder or contains invisible real actions. END/STOP only
+  // changes visibility, so finalization cannot change message height.
   _ensureStreamFooterPlaceholder(msg) {
-    if (!msg) return;
+    if (!msg) return null;
 
-    let extra = null;
-    try { extra = msg.querySelector(':scope > .msg-extra[data-stream-footer-placeholder="1"]'); }
-    catch (_) { extra = msg.querySelector('.msg-extra[data-stream-footer-placeholder="1"]'); }
-    if (!extra) {
-      extra = document.createElement('div');
-      extra.className = 'msg-extra';
-      extra.dataset.streamFooterPlaceholder = '1';
-      extra.setAttribute('aria-hidden', 'true');
-      msg.appendChild(extra);
-    }
+    // An older implementation also created an empty .msg-extra placeholder.
+    // It reserves unrelated padding and is not needed for action buttons, so
+    // remove it opportunistically when touching the message.
+    try {
+      for (const extra of Array.from(msg.querySelectorAll(':scope > .msg-extra[data-stream-footer-placeholder="1"]'))) {
+        extra.remove();
+      }
+    } catch (_) {}
 
     let actions = null;
-    try { actions = msg.querySelector(':scope > .action-icons[data-stream-footer-placeholder="1"]'); }
-    catch (_) { actions = msg.querySelector('.action-icons[data-stream-footer-placeholder="1"]'); }
+    try { actions = msg.querySelector(':scope > .action-icons'); }
+    catch (_) { actions = msg.querySelector('.action-icons'); }
     if (!actions) {
       actions = document.createElement('div');
       actions.className = 'action-icons';
-      actions.dataset.streamFooterPlaceholder = '1';
-      actions.setAttribute('aria-hidden', 'true');
-      actions.style.visibility = 'hidden';
-      actions.style.pointerEvents = 'none';
-
-      // Match the real footer line box exactly: .action-icons > a > .cmd > img.action-img.
-      // One icon is enough because all real actions are inline and share one row.
-      const link = document.createElement('a');
-      link.className = 'action-icon';
-      link.tabIndex = -1;
-      const cmd = document.createElement('span');
-      cmd.className = 'cmd';
-      const icon = document.createElement('img');
-      icon.className = 'action-img';
-      icon.alt = '';
-      cmd.appendChild(icon);
-      link.appendChild(cmd);
-      actions.appendChild(link);
       msg.appendChild(actions);
     }
+
+    actions.dataset.footerSlot = '1';
+    if (!actions.children.length) this._setActionFooterPlaceholder(actions);
+    return actions;
+  }
+
+  // Fill an existing action slot with one invisible icon-shaped placeholder.
+  // It has exactly the same vertical footprint as the real action row.
+  _setActionFooterPlaceholder(actions) {
+    if (!actions) return null;
+    actions.replaceChildren();
+    actions.dataset.footerSlot = '1';
+    actions.dataset.streamFooterPlaceholder = '1';
+    actions.setAttribute('aria-hidden', 'true');
+
+    const link = document.createElement('a');
+    link.className = 'action-icon';
+    link.tabIndex = -1;
+    const cmd = document.createElement('span');
+    cmd.className = 'cmd';
+    const icon = document.createElement('img');
+    icon.className = 'action-img';
+    icon.alt = '';
+    cmd.appendChild(icon);
+    link.appendChild(cmd);
+    actions.appendChild(link);
+    return actions;
   }
 
   // Get or create current streaming message container

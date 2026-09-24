@@ -1105,7 +1105,9 @@ class MarkdownRenderer {
 		return frag;
 	}
 
-	// Restore collapse/expand state of code blocks after DOM updates.
+	// Restore collapse/expand state of code blocks after DOM updates. Collapse
+	// state is represented by a wrapper class so the CSS slide transition can be
+	// used without removing the code element from layout via display:none.
     restoreCollapsedCode(root) {
         const scope = root || document;
         const wrappers = scope.querySelectorAll('.code-wrapper');
@@ -1116,21 +1118,15 @@ class MarkdownRenderer {
             const source = wrapper.querySelector('code');
             const isCollapsed = (window.__collapsed_idx || []).includes(index);
             if (!source) return;
+            try { source.style.removeProperty('display'); } catch (_) {}
+            wrapper.classList.toggle('code-collapsed', isCollapsed);
+            wrapper.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
             const btn = wrapper.querySelector('.code-header-collapse');
-            if (isCollapsed) {
-                source.style.display = 'none';
-                if (btn) {
-                    const span = btn.querySelector('span');
-                    if (span) span.textContent = localeExpand;
-                    btn.setAttribute('title', localeExpand || 'Expand');
-                }
-            } else {
-                source.style.display = 'block';
-                if (btn) {
-                    const span = btn.querySelector('span');
-                    if (span) span.textContent = localeCollapse;
-                    btn.setAttribute('title', localeCollapse || 'Collapse');
-                }
+            if (btn) {
+                const span = btn.querySelector('span');
+                if (span) span.textContent = isCollapsed ? localeExpand : localeCollapse;
+                btn.setAttribute('title', (isCollapsed ? localeExpand : localeCollapse) || (isCollapsed ? 'Expand' : 'Collapse'));
+                btn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
             }
         });
     }

@@ -277,13 +277,33 @@ think {{
   width: 100%;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  overflow: hidden;
+  transition:
+    grid-template-rows 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.16s ease;
 }}
 .code-wrapper pre code {{
  max-height: 1000px;
+ min-height: 0;
  border-bottom-left-radius: 10px;
  border-bottom-right-radius: 10px;
  overflow-y: auto;
  padding: 1.5rem;
+ transition:
+   padding-top 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+   padding-bottom 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}}
+.code-wrapper.code-collapsed pre {{
+  grid-template-rows: 0fr;
+  opacity: 0;
+}}
+.code-wrapper.code-collapsed pre code {{
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
 }}
 .highlight span {{
   font-family: 'Monaspace Neon';
@@ -292,6 +312,27 @@ think {{
 /* action icons */
 .action-icons {{
   margin-top: 5px;
+  /* Permanent footer footprint: real actions and the streaming placeholder use
+     the same row, so END/STOP changes visibility without changing geometry. */
+  min-height: 25px;
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  transition:
+    opacity 0.20s ease,
+    transform 0.20s ease,
+    visibility 0s linear 0s;
+}}
+.action-icons[data-runtime-pending="1"],
+.action-icons[data-stream-footer-placeholder="1"] {{
+  visibility: hidden !important;
+  opacity: 0;
+  transform: translateY(2px);
+  pointer-events: none !important;
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease,
+    visibility 0s linear 0.14s;
 }}
 .action-icons a {{
   text-decoration: none;
@@ -439,12 +480,62 @@ body.display-timestamp .ts {{
 }}
 .tool-output .content {{
   font-family: 'Monaspace Neon';
-  padding: 10px;
+  padding: 0;
   color: #4d4d4d !important;
   font-size: 0.75rem;
 }}
 .tool-output .tool-output-content {{
+  padding: 0;
+}}
+
+/* Smooth Tool / Tools / Processed workflow accordions.
+   A single inner row allows true auto-height animation in CSS without JS
+   measurements or arbitrary max-height values. */
+.tool-output .tool-output-content,
+.tool-output .content,
+.tool-output-group > .tool-group-content {{
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.16s ease,
+    visibility 0s linear 0.22s;
+}}
+.tool-output .tool-output-content.is-expanded,
+.tool-output .content.is-expanded,
+.tool-output-group > .tool-group-content.is-expanded {{
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.18s ease,
+    visibility 0s linear 0s;
+}}
+.tool-output .tool-output-content > .tool-collapse-inner,
+.tool-output .content > .tool-collapse-inner,
+.tool-output-group > .tool-group-content > .tool-collapse-inner {{
+  min-height: 0;
+  overflow: hidden;
+}}
+.tool-output .tool-output-content > .tool-collapse-inner > .tool-collapse-body,
+.tool-output .content > .tool-collapse-inner > .tool-collapse-body {{
   padding: 10px;
+}}
+
+@media (prefers-reduced-motion: reduce) {{
+  .tool-output .tool-output-content,
+  .tool-output .content,
+  .tool-output-group > .tool-group-content,
+  .code-wrapper pre,
+  .code-wrapper pre code,
+  .extra-src-img-box img,
+  .extra-src-img-box .img-wrapper,
+  .action-icons {{
+    transition: none;
+  }}
 }}
 .tool-output .toggle-cmd-output {{
   cursor: pointer;
@@ -495,6 +586,7 @@ body.display-timestamp .ts {{
   width: 25px;
   height: 25px;
   flex: 0 0 auto;
+  transition: transform 0.18s ease;
 }}
 
 .tool-output .tool-output-title {{
@@ -531,10 +623,14 @@ body.display-timestamp .ts {{
   white-space: nowrap;
 }}
 .tool-output-group > .tool-group-content {{
+  margin-top: 0;
+  padding-left: 0;
+}}
+.tool-output-group > .tool-group-content > .tool-collapse-inner > .tool-collapse-body {{
   margin-top: 2px;
   padding-left: 14px;
 }}
-.tool-output-group > .tool-group-content > .msg-box.msg-bot {{
+.tool-output-group > .tool-group-content > .tool-collapse-inner > .tool-collapse-body > .msg-box.msg-bot {{
   max-width: 100%;
   width: auto;
   margin: 0 !important;
@@ -544,14 +640,14 @@ body.display-timestamp .ts {{
   border-radius: 0 !important;
   box-shadow: none !important;
 }}
-.tool-output-group > .tool-group-content > .msg-box.msg-bot > .name-header {{
+.tool-output-group > .tool-group-content > .tool-collapse-inner > .tool-collapse-body > .msg-box.msg-bot > .name-header {{
   display: none !important;
 }}
-.tool-output-group > .tool-group-content > .msg-box.msg-bot > .msg {{
+.tool-output-group > .tool-group-content > .tool-collapse-inner > .tool-collapse-body > .msg-box.msg-bot > .msg {{
   margin: 0 !important;
   padding: 0 !important;
 }}
-.tool-output-group > .tool-group-content > .msg-box.msg-bot .tool-output-toggle {{
+.tool-output-group > .tool-group-content > .tool-collapse-inner > .tool-collapse-body > .msg-box.msg-bot .tool-output-toggle {{
   margin-top: 2px;
 }}
 
@@ -654,6 +750,7 @@ body.display-timestamp .ts {{
   margin-bottom: 0px !important;
   border-radius: 10px;
   width: auto;
+  transition: filter 0.22s ease;
 }}
 .extra-src-img-box .img-wrapper:hover {{
   cursor: pointer;
@@ -667,6 +764,12 @@ body.display-timestamp .ts {{
   width: 100%;
   height: 100%;
   object-fit: contain;
+  transform: scale(1);
+  transform-origin: center center;
+  transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}}
+.extra-src-img-box .img-wrapper:hover img {{
+  transform: scale(1.035);
 }}
 .extra-src-video-box,
 .video-player {{

@@ -315,7 +315,7 @@ See [Debugging and Logging](#debugging-and-logging) for logging and diagnostic o
 
 ## Setting-up API Key(s)
 
-You can configure API keys for various providers, such as OpenAI, Anthropic, Google, xAI, Perplexity, OpenRouter, and more. This flexibility allows you to use different providers based on your needs.
+You can configure API keys for various providers and integrations, such as OpenAI, Anthropic, Google, xAI, Perplexity, OpenRouter, and more. This flexibility allows you to use different providers and API-backed integrations based on your needs.
 
 During the initial setup, configure your API keys within the application.
 
@@ -791,7 +791,7 @@ The model can generate the HTML/CSS/JavaScript, open the Canvas, render the anim
 
 You can also combine Canvas with live drawing in Painter to create a seamless end-to-end workflow. For example, you can sketch a reference image in Painter, ask the model to retrieve it directly from Painter and use it as input for the task, and then have the final interactive result displayed in Canvas — as shown in the video below:
 
-https://github.com/user-attachments/assets/d1ca0b51-a27a-4bef-bdc8-1fe96fd669ae
+https://github.com/user-attachments/assets/d954c4e6-9ad9-4bbb-8065-dc0a0a2f9f36
 
 Canvas can also work as a browser workspace. It can open external websites, navigate pages, inspect and interact with DOM elements, and use either the built-in Chromium/QWebEngine runtime or the optional Playwright sandbox. For local web projects, the plugin can start a lightweight loopback-only HTML server, open the served site in Canvas, and then test or modify it interactively.
 
@@ -1406,6 +1406,8 @@ The following plugins are currently available:
 
 - `Image generation (inline)` - adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
 
+- `Jev / System One (inline)` - integrates TypeSafe AI Jev for fast, typed semantic decisions over structured state, including classification, routing, selection, verification, and scoring.
+
 - `Mailer` - provides email access through configured mail services, including sending and reading messages where supported.
 
 - `MCP` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
@@ -1691,6 +1693,75 @@ The Image generation (inline) plugin adds an `image` tool to chats so the curren
 By default, the plugin appends a short image-generation instruction to the system prompt so the current model knows when and how to use the `image` tool. You can disable this behavior with `Append image prompt to system prompt` while keeping the image tool available.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#image-generation-inline
+
+## Jev / System One (inline)
+
+The **Jev / System One (inline)** plugin integrates [TypeSafe AI Jev](https://typesafe.ai/), the first public **System One Model**. Jev is not a chat or text-generation model. Instead, it evaluates structured state and returns typed, machine-readable decisions that the current model or a larger tool workflow can use directly.
+
+Jev is designed for bounded semantic decisions where the possible output is known in advance but the decision still requires AI judgment. Typical uses include classification and routing, selecting from known candidates, verifying conditions or model output, assigning ordered scores or severity levels, and evaluating several independent decisions over the same state.
+
+Jev exposes three decision primitives:
+
+- **Choice** - selects one value from a predefined set and returns a typed choice with probability/confidence information.
+- **Score** - evaluates an item against an ordered scale and returns a structured score with distribution/confidence information.
+- **Noul** - evaluates a yes/no condition and returns its probability instead of generating prose.
+
+Because the output space is declared before the request, Jev is intended for structured automation rather than open-ended writing, chat responses, or free-form reasoning. As an inline plugin, it works independently of the global **Tools** switch.
+
+### Configuration
+
+Configure the TypeSafe credentials in:
+
+`Config -> Settings -> API Keys -> Jev`
+
+- **Jev API key** - TypeSafe API key used to authenticate requests. You can also set `TYPESAFE_API_KEY`.
+- **API base** - TypeSafe API base URL. Default: `https://api.typesafe.ai`. You can override it with `TYPESAFE_BASE_URL`.
+
+Configure the Jev model separately in:
+
+`Plugins -> Settings -> Jev / System One`
+
+- **Model** - Jev model ID used for System One requests. Default: `jev-latest`.
+
+### Tool
+
+The plugin exposes one tool: `jev_evaluate(state, questions)`. The current model supplies a shared structured `state` plus one or more named `questions`; PyGPT sends them to TypeSafe's `/v1/systemone` endpoint and returns the typed JSON result to the model.
+
+- `state` - structured JSON object containing the data to evaluate. Source text can be placed in fields such as `text`, `message`, or `document`.
+- `questions` - object keyed by stable question IDs. Each question defines `type` (`choice`, `score`, or `noul`), `instructions`, and the criteria required by that primitive.
+
+For `choice`, `criteria` is an option-to-description object. For `score`, it is an ordered list of 2-10 levels. For `noul`, optional criteria can describe the `true` and `false` outcomes. Multiple independent questions over the same state should normally be grouped into one request.
+
+Example request shape:
+
+```json
+{
+  "state": {
+    "message": "Refund never arrived.",
+    "customer_tier": "pro"
+  },
+  "questions": {
+    "intent": {
+      "type": "choice",
+      "instructions": "Classify the support intent.",
+      "criteria": {
+        "refund": "Refund issue",
+        "other": "Other"
+      }
+    },
+    "needs_attention": {
+      "type": "noul",
+      "instructions": "Does this request require support attention?"
+    }
+  }
+}
+```
+
+You normally do not need to construct the tool payload manually. Once the plugin is enabled, you can ask the current model to use Jev for a bounded decision, for example:
+
+`Use Jev to classify this support message as billing, refund, technical, or other, and estimate whether it needs urgent attention.`
+
+API reference: https://docs.typesafe.ai/api
 
 ## Mailer
 
@@ -2309,7 +2380,7 @@ Config -> Settings...
 
 The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
 
-- **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI
+- **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI, Jev
 - **Layout:** General, Code syntax
 - **Files and attachments:** General, RAG
 - **Chats:** List, Render, Options

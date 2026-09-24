@@ -2682,11 +2682,12 @@ class StreamEngine {
 	}
 
 	// Start a new stream: clear output, reset state, and scroll to bottom.
-	beginStream(chunk = false) {
+	beginStream(chunk = false, clearOutput = true) {
 		this.isStreaming = true;
 		// DEBUG
 		this._d('stream.begin', {
-			chunk
+			chunk,
+			clearOutput
 		});
 		const follow = this.scrollMgr.shouldFollowOnStreamStart();
 		// A visible final stream replaces the reserved request-loader slot. Hidden
@@ -2696,7 +2697,9 @@ class StreamEngine {
 				runtime.loading.hide(false);
 			} catch (_) {}
 		}
-		this.dom.clearOutput();
+		// Tool-only continuations reuse one id-bound workflow host. Reset the
+		// stream engine, but do not destroy/recreate that DOM subtree between calls.
+		if (clearOutput) this.dom.clearOutput();
 		this.reset();
 
 		if (follow) {

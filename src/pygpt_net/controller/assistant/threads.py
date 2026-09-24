@@ -107,7 +107,7 @@ class Threads(QObject):
             "meta": ctx.meta,
             "ctx": ctx,
             "stream": True,
-        })  # extra reload for stream markdown needed here
+        })  # stream lifecycle end; durable content is synchronized separately
         self.window.dispatch(event)
 
         ctx.clear_reply()  # reset results
@@ -406,7 +406,7 @@ class Threads(QObject):
             "meta": ctx.meta,
             "ctx": ctx,
             "stream": stream,
-        })  # extra reload for stream markdown needed here
+        })  # stream lifecycle end; durable content is synchronized separately
         self.window.dispatch(event)
         self.window.core.ctx.update_item(ctx)
         self.window.controller.ctx.update()
@@ -483,9 +483,10 @@ class Threads(QObject):
             'msg': trans('assistant.run.completed'),
         })
         self.window.dispatch(event)
-        event = RenderEvent(RenderEvent.RELOAD, {
+        event = RenderEvent(RenderEvent.SYNC_OUTPUT, {
             "meta": ctx.meta,
             "ctx": ctx,
+            "reason": "assistant_stream_end",
         })
         self.window.dispatch(event)
         self.window.controller.chat.common.show_response_tokens(ctx)  # update tokens

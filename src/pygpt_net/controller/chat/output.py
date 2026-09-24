@@ -127,6 +127,15 @@ class Output:
                 core.ctx.update_part(ctx, part, sync_item=True)
             else:
                 ctx.output = core.command.strip_cmds(ctx.output)
+            # Only streamed legacy protocol text needs a DOM text correction.
+            # Do it here, at the normalization boundary; native tool calls never
+            # rebuild the message just before TOOL_BEGIN.
+            if stream:
+                dispatch(RenderEvent(RenderEvent.REPLACE_OUTPUT, {
+                    "meta": ctx.meta,
+                    "ctx": ctx,
+                    "reason": "tool_protocol_normalize",
+                }))
 
         if ctx.tool_calls:
             if not isinstance(ctx.extra, dict):
@@ -145,7 +154,16 @@ class Output:
         # emitting legacy <tool> markup). Recover only a trailing standalone line
         # and strip it from visible output before applying run control.
         if mode == MODE_AGENT:
-            self.window.controller.agent.legacy.consume_text_control_fallback(ctx)
+            text_control_normalized = self.window.controller.agent.legacy.consume_text_control_fallback(ctx)
+            if text_control_normalized and stream:
+                # The provider printed a control pseudo-call as visible prose and
+                # normalization removed it after STREAM_END. This is a real
+                # authoritative text change, so explicitly replace this row.
+                dispatch(RenderEvent(RenderEvent.REPLACE_OUTPUT, {
+                    "meta": ctx.meta,
+                    "ctx": ctx,
+                    "reason": "agent_text_control_normalize",
+                }))
 
         has_tool_request = bool(ctx.tool_calls or ctx.cmds_before)
         part = ctx.get_active_part()
@@ -169,16 +187,16 @@ class Output:
         log("Appending output to chat window...")
 
         # only append output if not in stream mode. Continuation responses are
-        # rebuilt in-place from the parent item, so they suppress incremental
-        # node creation and use RELOAD instead.
+        # updated in-place from the parent item, so they suppress duplicate
+        # node creation and use targeted message mutations instead.
         stream_global = core.config.get('stream', False)
         if render and not stream:
             if stream_global:
-                dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
+                dispatch(RenderEvent(RenderEvent.APPEND_INPUT, {
                     "meta": ctx.meta, "ctx": ctx, "flush": True, "append": True,
                 }))
             if ctx.get_display_output():
-                dispatch(RenderEvent(RenderEvent.OUTPUT_APPEND, {"meta": ctx.meta, "ctx": ctx}))
+                dispatch(RenderEvent(RenderEvent.APPEND_OUTPUT, {"meta": ctx.meta, "ctx": ctx}))
                 dispatch(RenderEvent(RenderEvent.EXTRA_APPEND, {
                     "meta": ctx.meta, "ctx": ctx, "footer": True,
                 }))
@@ -317,7 +335,7 @@ class Output:
         except Exception as exc:
             self.window.core.debug.log(exc)
 
-        # RenderEvent.END may drop the render pin before the final RELOAD below.
+        # Keep the renderer route pinned through the final targeted sync.
         # Restore it while the request is still marked as generating so the
         # owning chat cannot be remapped to another focused chat tab.
         render_output = self.window.core.ctx.output
@@ -335,10 +353,17 @@ class Output:
             dispatch(KernelEvent(KernelEvent.STATE_IDLE, state))
 
         if mode != MODE_ASSISTANT:
+            # Commit the finished row before a queued continuation can start a new
+            # transient stream/input in the same WebView. This keeps mutations
+            # strictly ordered by turn ownership.
+            dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "reason": "ctx_end",
+            }))
             controller.kernel.stack.handle()  # handle reply
-            dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))  # reload owning chat
 
-        # Keep ownership through the final reload. If stack.handle()
+        # Keep ownership through the final sync. If stack.handle()
         # synchronously started a continuation, it is still the same top-level
         # request and ownership must survive. Otherwise release now and only then
         # synchronize core.ctx with whichever chat the user focused meanwhile.

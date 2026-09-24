@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:45:00                  #
+# Updated Date: 2026.09.24 19:05:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -55,14 +55,30 @@ class Render:
         self.web_renderer.prepare()
 
     def handle(self, event: RenderEvent) -> None:
-        """
-        Handle render event
-
-        :param event: RenderEvent
-        """
+        """Route a render event to one small semantic transport group."""
         name = event.name
         data = event.data or {}
 
+        if name in self._STATE_EVENTS:
+            meta = data.get("meta") or self.window.core.ctx.get_current_meta()
+            self.on_state_changed(name, meta)
+            return
+
+        handlers = (
+            self._handle_lifecycle_event,
+            self._handle_stream_event,
+            self._handle_message_event,
+            self._handle_tool_event,
+            self._handle_view_event,
+            self._handle_live_event,
+            self._handle_action_event,
+        )
+        for handler in handlers:
+            if handler(name, data):
+                return
+
+    def _handle_lifecycle_event(self, name: str, data: dict) -> bool:
+        """Handle renderer/page lifecycle events."""
         if name == RenderEvent.BEGIN:
             self.begin(data.get("meta"), data.get("ctx"), data.get("stream", False))
         elif name == RenderEvent.END:
@@ -73,8 +89,13 @@ class Render:
             self.reset(data.get("meta"))
         elif name == RenderEvent.PREPARE:
             self.prepare()
+        else:
+            return False
+        return True
 
-        elif name == RenderEvent.STREAM_BEGIN:
+    def _handle_stream_event(self, name: str, data: dict) -> bool:
+        """Handle the high-frequency text stream transport."""
+        if name == RenderEvent.STREAM_BEGIN:
             self.stream_begin(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_APPEND:
             if data.get("partial", False):
@@ -96,8 +117,87 @@ class Render:
             self.next_chunk(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_END:
             self.stream_end(data.get("meta"), data.get("ctx"))
+        else:
+            return False
+        return True
 
-        elif name == RenderEvent.ON_PAGE_LOAD:
+    def _handle_message_event(self, name: str, data: dict) -> bool:
+        """Handle addressable durable-message and artifact mutations."""
+        if name == RenderEvent.CTX_APPEND:
+            self.append_context(data.get("meta"), data.get("items"), data.get("clear", True))
+        elif name == RenderEvent.APPEND_INPUT:
+            self.append_input(
+                data.get("meta"),
+                data.get("ctx"),
+                data.get("flush", True),
+                data.get("append", False),
+            )
+        elif name == RenderEvent.APPEND_OUTPUT:
+            self.append_output(data.get("meta"), data.get("ctx"))
+        elif name == RenderEvent.REPLACE_INPUT:
+            self.replace_input(
+                data.get("meta"), data.get("ctx"), reason=data.get("reason"),
+            )
+        elif name == RenderEvent.REPLACE_OUTPUT:
+            self.replace_output(
+                data.get("meta"), data.get("ctx"), reason=data.get("reason"),
+            )
+        elif name == RenderEvent.SYNC_OUTPUT:
+            self.sync_output(
+                data.get("meta"),
+                data.get("ctx"),
+                replace_text=bool(data.get("replace_text", False)),
+                reason=data.get("reason"),
+            )
+        elif name == RenderEvent.FINALIZE_OUTPUT:
+            self.finalize_output(
+                data.get("meta"),
+                data.get("ctx"),
+                replace_text=bool(data.get("replace_text", False)),
+                reason=data.get("reason"),
+            )
+        elif name in (RenderEvent.APPEND_ARTIFACT, RenderEvent.APPEND_ARTIFACTS):
+            # Runtime artifacts use their own delta transport so images/files can
+            # appear immediately without touching the message timeline.
+            self.append_extra(data.get("meta"), data.get("ctx"), data.get("footer", False))
+        elif name == RenderEvent.REPLACE_ARTIFACTS:
+            # Replacement is a structural snapshot of the current durable row.
+            self.sync_output(
+                data.get("meta"), data.get("ctx"),
+                replace_text=False, reason=data.get("reason") or name,
+            )
+        elif name == RenderEvent.EXTRA_APPEND:
+            # Compatibility alias for older plugins/controllers.
+            self.append_extra(data.get("meta"), data.get("ctx"), data.get("footer", False))
+        elif name == RenderEvent.EXTRA_END:
+            self.end_extra(data.get("meta"), data.get("ctx"))
+        else:
+            return False
+        return True
+
+    def _handle_tool_event(self, name: str, data: dict) -> bool:
+        """Handle transient tool status/output controls."""
+        if name == RenderEvent.TOOL_UPDATE:
+            self.tool_output_update(data.get("meta"), data.get("tool_data"))
+        elif name == RenderEvent.TOOL_CLEAR:
+            self.tool_output_clear(
+                data.get("meta"),
+                data.get("ctx"),
+                immediate=bool(data.get("immediate", False)),
+            )
+        elif name == RenderEvent.TOOL_BEGIN:
+            self.tool_output_begin(
+                data.get("meta"), data.get("tool_names") or [], data.get("ctx"),
+            )
+        elif name == RenderEvent.TOOL_END:
+            self.tool_output_end()
+        else:
+            return False
+        return True
+
+    def _handle_view_event(self, name: str, data: dict) -> bool:
+        """Handle page/view configuration and clear operations."""
+        if name == RenderEvent.ON_PAGE_LOAD:
             self.on_page_loaded(data.get("meta"), data.get("tab"))
         elif name == RenderEvent.ON_THEME_CHANGE:
             self.on_theme_change()
@@ -115,7 +215,6 @@ class Render:
             self.on_disable_edit(live=data.get("initialized", False))
         elif name == RenderEvent.ON_SWITCH:
             self.switch()
-
         elif name == RenderEvent.CLEAR_INPUT:
             self.clear_input()
         elif name == RenderEvent.CLEAR_OUTPUT:
@@ -124,69 +223,40 @@ class Render:
             self.clear_all()
         elif name == RenderEvent.CLEAR:
             self.clear(data.get("meta"))
+        else:
+            return False
+        return True
 
-        elif name == RenderEvent.TOOL_UPDATE:
-            self.tool_output_update(data.get("meta"), data.get("tool_data"))
-        elif name == RenderEvent.TOOL_CLEAR:
-            self.tool_output_clear(
-                data.get("meta"),
-                data.get("ctx"),
-                immediate=bool(data.get("immediate", False)),
-            )
-        elif name == RenderEvent.TOOL_BEGIN:
-            self.tool_output_begin(
-                data.get("meta"),
-                data.get("tool_names") or [],
-                data.get("ctx"),
-            )
-        elif name == RenderEvent.TOOL_END:
-            self.tool_output_end()
-
-        elif name == RenderEvent.CTX_APPEND:
-            self.append_context(data.get("meta"), data.get("items"), data.get("clear", True))
-        elif name == RenderEvent.INPUT_APPEND:
-            self.append_input(
-                data.get("meta"),
-                data.get("ctx"),
-                data.get("flush", True),
-                data.get("append", False),
-            )
-        elif name == RenderEvent.OUTPUT_APPEND:
-            self.append_output(data.get("meta"), data.get("ctx"))
-
-        elif name == RenderEvent.EXTRA_APPEND:
-            self.append_extra(data.get("meta"), data.get("ctx"), data.get("footer", False))
-        elif name == RenderEvent.EXTRA_END:
-            self.end_extra(data.get("meta"), data.get("ctx"))
-
-        elif name == RenderEvent.LIVE_APPEND:
+    def _handle_live_event(self, name: str, data: dict) -> bool:
+        """Handle transient live/realtime and agent-status rows."""
+        if name == RenderEvent.LIVE_APPEND:
             self.append_live(
-                data.get("meta"),
-                data.get("ctx"),
-                data.get("chunk", ""),
-                data.get("begin", False),
+                data.get("meta"), data.get("ctx"),
+                data.get("chunk", ""), data.get("begin", False),
             )
         elif name == RenderEvent.LIVE_CLEAR:
             self.clear_live(data.get("meta"), data.get("ctx"))
-
         elif name == RenderEvent.AGENT_STATUS:
             self.agent_status(data.get("meta"), data.get("ctx"), data.get("status", ""))
         elif name == RenderEvent.AGENT_STATUS_CLEAR:
             self.agent_status_clear(data.get("meta"), data.get("ctx"))
+        else:
+            return False
+        return True
 
-        elif name == RenderEvent.ACTION_REGEN_SUBMIT:
+    def _handle_action_event(self, name: str, data: dict) -> bool:
+        """Handle message UI actions and removals."""
+        if name == RenderEvent.ACTION_REGEN_SUBMIT:
             self.on_reply_submit(data.get("ctx"))
         elif name == RenderEvent.ACTION_EDIT_SUBMIT:
             self.on_edit_submit(data.get("ctx"))
-
-        elif name in self._STATE_EVENTS:
-            meta = data.get("meta") or self.window.core.ctx.get_current_meta()
-            self.on_state_changed(name, meta)
-
         elif name == RenderEvent.ITEM_DELETE_ID:
             self.remove_item(data.get("ctx"))
         elif name == RenderEvent.ITEM_DELETE_FROM_ID:
             self.remove_items_from(data.get("ctx"))
+        else:
+            return False
+        return True
 
     def on_state_changed(self, state: str, meta: Optional[CtxMeta] = None) -> None:
         """
@@ -263,7 +333,7 @@ class Render:
         # A top-level request owns one chat for its whole lifetime, including
         # tool/agent continuation segments. Do not create a routing gap between
         # END and the next BEGIN just because keyboard focus moved elsewhere.
-        # finish_request() drops the pin after the final owning-chat reload.
+        # finish_request() drops the pin after the final owning-chat mutation.
         output = self.window.core.ctx.output
         if not output.has_request():
             output.unpin_render_pid(meta=meta)
@@ -408,6 +478,68 @@ class Render:
         if meta is None and ctx is not None:
             meta = getattr(ctx, "meta", None)
         self.instance().reload(meta)
+        self.update()
+
+    def sync_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Synchronize one durable assistant row in place."""
+        if meta is None and ctx is not None:
+            meta = getattr(ctx, "meta", None)
+        if meta is None or ctx is None:
+            return
+        self.instance().sync_output(
+            meta, ctx, replace_text=replace_text, reason=reason,
+        )
+        self.update()
+
+    def finalize_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Promote/finalize one live output without replacing streamed text."""
+        if meta is None and ctx is not None:
+            meta = getattr(ctx, "meta", None)
+        if meta is None or ctx is None:
+            return
+        self.instance().finalize_output(
+            meta, ctx, replace_text=replace_text, reason=reason,
+        )
+        self.update()
+
+    def replace_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Explicitly replace one assistant row's authoritative text."""
+        if meta is None and ctx is not None:
+            meta = getattr(ctx, "meta", None)
+        if meta is None or ctx is None:
+            return
+        self.instance().replace_output(meta, ctx, reason=reason)
+        self.update()
+
+    def replace_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Explicitly replace one durable input row."""
+        if meta is None and ctx is not None:
+            meta = getattr(ctx, "meta", None)
+        if meta is None or ctx is None:
+            return
+        self.instance().replace_input(meta, ctx, reason=reason)
         self.update()
 
     def append_context(self, meta: CtxMeta, items: List[CtxItem], clear: bool = True) -> None:

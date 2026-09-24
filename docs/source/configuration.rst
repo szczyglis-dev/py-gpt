@@ -152,6 +152,15 @@ Eden AI
 
 * ``API Endpoint``: Sets the Eden AI base URL used for requests. Change it only when your deployment requires another compatible endpoint. Default: ``https://api.edenai.run/v3``.
 
+Jev
+^^^
+
+* ``Jev API key``: Supplies the TypeSafe AI credential used by the **Jev / System One (inline)** plugin. The ``TYPESAFE_API_KEY`` environment variable takes precedence when set.
+
+* ``API base``: Sets the TypeSafe API base URL used by the Jev plugin. Default: ``https://api.typesafe.ai``. The ``TYPESAFE_BASE_URL`` environment variable takes precedence when set.
+
+Jev is exposed in PyGPT as an API configuration tab for the plugin, not as a normal chat-model provider. The Jev model ID is configured separately in ``Plugins -> Settings -> Jev / System One`` and defaults to ``jev-latest``.
+
 Layout
 ~~~~~~
 

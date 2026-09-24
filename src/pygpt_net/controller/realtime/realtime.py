@@ -251,6 +251,10 @@ class Realtime:
         source_ctx = ctx
         self._continuation_text_started.discard(id(source_ctx))
         is_continuation = getattr(source_ctx, "turn_parent", None) is not None
+        closes_tool_series = bool(
+            is_continuation
+            and self.window.core.ctx.continuation_closes_tool_series(source_ctx)
+        )
         if is_continuation:
             ctx = self.window.core.ctx.merge_continuation(source_ctx)
 
@@ -265,12 +269,14 @@ class Realtime:
             stream=True,
         )
 
-        if is_continuation:
-            # Replace the transient waiting row with the now-completed durable tool
-            # block before a potential next tool status is created by post_handle().
-            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {
+        if is_continuation and closes_tool_series:
+            # Match normal chat semantics: consecutive tool-only realtime rounds
+            # keep one animated Tool row alive. Materialize/clear it only when the
+            # provider emits visible non-tool output or ends the tool series.
+            self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
                 "meta": ctx.meta,
                 "ctx": ctx,
+                "reason": "realtime_tool_series_boundary",
             }))
             self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
                 "meta": ctx.meta,
@@ -284,7 +290,7 @@ class Realtime:
         )
         if not finished:
             # command.handle() has started the tool and emitted TOOL_BEGIN. Keep the
-            # turn/request open; handle_end() would immediately reload the view and
+            # turn/request open; handle_end() would close the lifecycle and can
             # wipe that status before the tool result arrives.
             self.set_busy()
             return False

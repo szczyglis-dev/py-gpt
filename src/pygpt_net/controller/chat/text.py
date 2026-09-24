@@ -181,9 +181,10 @@ class Text:
                     # Paint inline UI messages before the next provider stream.
                     # They live only in partial metadata, so they stay visible
                     # without becoming another user CtxItem/turn.
-                    dispatch(RenderEvent(RenderEvent.RELOAD, {
+                    dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
                         "meta": continuation_parent.meta,
                         "ctx": continuation_parent,
+                        "reason": "inline_message",
                     }))
             else:
                 # Do not allocate a new partial for every tool round. A partial is
@@ -240,7 +241,7 @@ class Text:
                 "ctx": ctx,
                 "stream": stream,
             }))
-            dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
+            dispatch(RenderEvent(RenderEvent.APPEND_INPUT, {
                 "meta": ctx.meta,
                 "ctx": ctx,
             }))

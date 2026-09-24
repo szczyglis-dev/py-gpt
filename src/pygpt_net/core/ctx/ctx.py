@@ -1198,6 +1198,28 @@ class Ctx:
                 self.update_part_task(task)
                 self._set_ctx_tool_history_ui_ready(item, task, ready)
 
+    def continuation_closes_tool_series(self, continuation: CtxItem) -> bool:
+        """Return True when a provider continuation ends the transient tool series.
+
+        Consecutive tool-only responses keep completed calls hidden from the
+        durable Tool/Tools control so the live UI can reuse one animated status
+        row.  Visible assistant text, or a tool-free response (including an empty
+        final response), is the boundary at which the completed calls may be
+        materialized.
+        """
+        if continuation is None:
+            return True
+        raw_output = str(getattr(continuation, "output", None) or "")
+        legacy_cmds = self.window.core.command.extract_cmds(raw_output)
+        visible_output = self.window.core.command.strip_cmds(raw_output) or ""
+        has_text = bool(visible_output.strip())
+        has_tool_request = bool(
+            getattr(continuation, "tool_calls", None)
+            or getattr(continuation, "cmds_before", None)
+            or legacy_cmds
+        )
+        return has_text or not has_tool_request
+
     def merge_continuation(self, continuation: CtxItem) -> CtxItem:
         """Merge a post-tool model response into the same durable user turn.
 
@@ -1259,9 +1281,12 @@ class Ctx:
             if value not in parent.transport_images:
                 parent.transport_images.append(value)
 
-        # Promote only tasks that existed before this provider call. New calls
-        # from the response are recorded afterwards, so they remain pending.
-        self.mark_part_tasks_ui_ready(continuation.turn_previous_part, True, item=parent)
+        # Keep consecutive tool-only rounds transient.  Promote the previous
+        # completed calls only once the model emits visible prose or returns a
+        # tool-free response (including an empty final response). New calls from
+        # the current response are recorded afterwards and therefore stay pending.
+        if self.continuation_closes_tool_series(continuation):
+            self.mark_part_tasks_ui_ready(continuation.turn_previous_part, True, item=parent)
 
         for attr in ("urls", "images", "files", "attachments", "results", "doc_ids"):
             target = getattr(parent, attr, None)

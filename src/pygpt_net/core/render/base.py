@@ -202,6 +202,48 @@ class BaseRenderer:
         """Reload all outputs, called externally only on theme change to redraw content"""
         pass
 
+    def sync_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None
+    ):
+        """Synchronize one output message.
+
+        Renderers without addressable message nodes may fall back to a full
+        redraw. Web renderer overrides this with an in-place mutation.
+        """
+        self.reload(meta)
+
+    def finalize_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None
+    ):
+        """Finalize a live output row without changing its text by default."""
+        self.sync_output(meta, ctx, replace_text=replace_text, reason=reason)
+
+    def replace_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            reason: Optional[str] = None
+    ):
+        """Explicitly replace the authoritative output text."""
+        self.sync_output(meta, ctx, replace_text=True, reason=reason)
+
+    def replace_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            reason: Optional[str] = None
+    ):
+        """Explicitly replace one durable input row."""
+        self.reload(meta)
+
     def append_context(
             self,
             meta: CtxMeta,

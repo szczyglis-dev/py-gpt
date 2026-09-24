@@ -79,15 +79,25 @@ class ToolOutput {
 		}
 
 		const msg = this._directChild(box, '.msg');
-		const output = this._directChild(msg, '.tool-output:not(.tool-output-group)');
-		if (!msg || !output) return null;
+		if (!msg) return null;
+		// Tool wrappers live inside .msg-timeline in the current renderer. Keep
+		// the fallback to .msg for older/special render paths so grouping works
+		// identically for history rebuilds and incremental mutations.
+		const timeline = this._directChild(msg, '.msg-timeline') || msg;
+		const output = this._directChild(timeline, '.tool-output:not(.tool-output-group)');
+		if (!output) return null;
 
 		let toolOnly = box.getAttribute('data-tool-only');
 		if (toolOnly == null) {
-			// Backward/alternate render-path fallback.  A named tool-output with no
+			// Backward/alternate render-path fallback. A named tool-output with no
 			// markdown response is the same "tool-only" shape used by the template.
 			const hasNamedTool = !!output.getAttribute('data-tool-names');
-			const hasAssistantText = !!this._directChild(msg, '.md-block');
+			let hasAssistantText = false;
+			try {
+				hasAssistantText = !!timeline.querySelector(':scope > .md-block, :scope > .msg-part .md-block');
+			} catch (_) {
+				hasAssistantText = !!timeline.querySelector('.md-block');
+			}
 			toolOnly = (hasNamedTool && !hasAssistantText) ? '1' : '0';
 		}
 		if (toolOnly !== '1') return null;
@@ -164,7 +174,9 @@ class ToolOutput {
 		if (!groupCandidate || !groupCandidate.group || !next || !next.box) return groupCandidate;
 		const content = this._directChild(groupCandidate.group, '.tool-group-content');
 		if (!content) return groupCandidate;
-		content.appendChild(next.box);
+		const inner = this._directChild(content, '.tool-collapse-inner');
+		const body = inner ? this._directChild(inner, '.tool-collapse-body') : null;
+		(body || inner || content).appendChild(next.box);
 		this._groupSummary(groupCandidate.group);
 		return groupCandidate;
 	}
@@ -203,14 +215,53 @@ class ToolOutput {
 		}
 	}
 
+	// Prepare a collapsible body for CSS-only height animation. A single inner
+	// wrapper lets CSS interpolate grid-template-rows from 0fr to 1fr without
+	// measuring dynamic tool/workflow content in JavaScript.
+	_prepareCollapsible(contentEl) {
+		if (!contentEl) return null;
+		let inner = this._directChild(contentEl, '.tool-collapse-inner');
+		let body = inner ? this._directChild(inner, '.tool-collapse-body') : null;
+		if (!inner) {
+			inner = document.createElement('div');
+			inner.className = 'tool-collapse-inner';
+			body = document.createElement('div');
+			body.className = 'tool-collapse-body';
+			while (contentEl.firstChild) body.appendChild(contentEl.firstChild);
+			inner.appendChild(body);
+			contentEl.appendChild(inner);
+		} else if (!body) {
+			body = document.createElement('div');
+			body.className = 'tool-collapse-body';
+			while (inner.firstChild) body.appendChild(inner.firstChild);
+			inner.appendChild(body);
+		}
+
+		// Templates historically used inline display:none. Remove it once, then
+		// let the CSS grid state own visibility for all subsequent toggles.
+		if (contentEl.style && contentEl.style.display === 'none') {
+			contentEl.style.removeProperty('display');
+			// Commit the collapsed 0fr state before adding is-expanded so the very
+			// first opening animates as well.
+			void contentEl.offsetHeight;
+		}
+		return body;
+	}
+
+	_setExpanded(contentEl, expanded) {
+		if (!contentEl) return;
+		this._prepareCollapsible(contentEl);
+		contentEl.classList.toggle('is-expanded', !!expanded);
+	}
+
 	// Toggle a parent tool group. Individual tools remain independently collapsed.
 	toggleGroup(id) {
 		const groupEl = document.getElementById(String(id || ''));
 		if (!groupEl) return;
 		const content = this._directChild(groupEl, '.tool-group-content');
 		if (!content) return;
-		const expanded = content.style.display === 'none';
-		content.style.display = expanded ? 'block' : 'none';
+		const expanded = !content.classList.contains('is-expanded');
+		this._setExpanded(content, expanded);
 
 		const header = this._directChild(groupEl, '.tool-output-toggle.tool-group-toggle');
 		if (header) header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
@@ -223,6 +274,12 @@ class ToolOutput {
 	_content(outputEl) {
 		if (!outputEl) return null;
 		return outputEl.querySelector('.tool-output-content, .content');
+	}
+
+	_contentBody(contentEl) {
+		if (!contentEl) return null;
+		const inner = this._directChild(contentEl, '.tool-collapse-inner');
+		return (inner && this._directChild(inner, '.tool-collapse-body')) || inner || contentEl;
 	}
 
 	// Pretty-print valid JSON, preserving arbitrary non-JSON tool output as text.
@@ -351,7 +408,7 @@ class ToolOutput {
 				const next = this._resultRaw(resultEl) + (content == null ? '' : String(content));
 				this._renderStructuredResult(resultEl, next);
 			} else {
-				contentEl.insertAdjacentHTML('beforeend', content == null ? '' : String(content));
+				this._contentBody(contentEl).insertAdjacentHTML('beforeend', content == null ? '' : String(content));
 			}
 		}
 	}
@@ -369,7 +426,7 @@ class ToolOutput {
 			if (resultEl) {
 				this._renderStructuredResult(resultEl, content);
 			} else {
-				contentEl.innerHTML = content == null ? '' : String(content);
+				this._contentBody(contentEl).innerHTML = content == null ? '' : String(content);
 			}
 		}
 	}
@@ -386,7 +443,7 @@ class ToolOutput {
 			if (!contentEl) return;
 			const resultEl = contentEl.querySelector('.tool-output-result-data');
 			if (resultEl) this._renderStructuredResult(resultEl, '');
-			else contentEl.replaceChildren();
+			else this._contentBody(contentEl).replaceChildren();
 		}
 	}
 	
@@ -402,8 +459,8 @@ class ToolOutput {
 		const contentEl = this._content(outputEl);
 		if (!contentEl) return;
 
-		const expanded = contentEl.style.display === 'none';
-		contentEl.style.display = expanded ? 'block' : 'none';
+		const expanded = !contentEl.classList.contains('is-expanded');
+		this._setExpanded(contentEl, expanded);
 
 		const headerEl = outputEl.querySelector('.tool-output-toggle');
 		if (headerEl) headerEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');

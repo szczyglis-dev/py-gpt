@@ -161,7 +161,24 @@ class Stream(QObject):
             and source_ctx.extra.get("agent_continue")
         )
         durable_ctx = source_ctx
+        closes_tool_series = False
+        tool_boundary_already_materialized = False
+        streamed_legacy_protocol = False
         if is_continuation:
+            closes_tool_series = self.window.core.ctx.continuation_closes_tool_series(source_ctx)
+            streamed_legacy_protocol = bool(
+                self.window.core.command.extract_cmds(str(source_ctx.output or ""))
+            )
+            previous_part = getattr(source_ctx, "turn_previous_part", None)
+            if previous_part is not None:
+                completed_tasks = [
+                    task for task in list(getattr(previous_part, "tasks", None) or [])
+                    if isinstance(getattr(task, "extra", None), dict)
+                    and task.extra.get("status") == "completed"
+                ]
+                tool_boundary_already_materialized = bool(completed_tasks) and all(
+                    task.is_ui_ready() for task in completed_tasks
+                )
             # The stream worker has now consumed the provider generator and
             # populated source_ctx.output/tool_calls. Only now is it safe to fold
             # the ephemeral continuation into the durable user turn.
@@ -177,23 +194,37 @@ class Stream(QObject):
         }
         event = RenderEvent(RenderEvent.STREAM_END, data)
         self.window.dispatch(event)
+        if is_continuation and streamed_legacy_protocol:
+            # merge_continuation() removed the streamed legacy <tool> markup.
+            # This is an intentional authoritative text correction and is kept
+            # separate from normal native tool-call rendering.
+            self.window.dispatch(RenderEvent(RenderEvent.REPLACE_OUTPUT, {
+                "meta": durable_ctx.meta,
+                "ctx": durable_ctx,
+                "reason": "tool_protocol_normalize",
+            }))
         controller.chat.output.handle_after(
             ctx=durable_ctx,
             mode=mode,
             stream=True,
         )
 
-        if is_continuation:
-            # Materialize the completed continuation in the durable parent before
-            # post_handle(). Autonomous iterations are plain assistant partials,
-            # not post-tool hand-offs, so they must not clear a tool status that
-            # belongs to an unrelated/previous round.
-            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": durable_ctx.meta, "ctx": durable_ctx}))
-            if not is_agent_continue:
-                self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
-                    "meta": durable_ctx.meta,
-                    "ctx": durable_ctx,
-                }))
+        if (is_continuation
+                and not is_agent_continue
+                and closes_tool_series
+                and not tool_boundary_already_materialized):
+            # A streamed tool-only continuation deliberately keeps the same
+            # transient Tool row for the next call.  Materialize and retire it
+            # only when the provider emits non-tool output or ends the series.
+            # If handleChunk() already did this on the first visible token, avoid
+            # a redundant structural sync at stream end.
+            self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                "meta": durable_ctx.meta, "ctx": durable_ctx, "reason": "tool_series_boundary",
+            }))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": durable_ctx.meta,
+                "ctx": durable_ctx,
+            }))
 
         if mode == MODE_ASSISTANT:
             controller.assistant.threads.handle_output_message_after_stream(durable_ctx)
@@ -254,14 +285,16 @@ class Stream(QObject):
                     self.window.core.ctx.update_part(parent, previous_part, sync_item=True)
                 if hasattr(renderer, "discard_part_streams"):
                     renderer.discard_part_streams(parent.meta)
-                self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": parent.meta, "ctx": parent}))
+                self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                    "meta": parent.meta, "ctx": parent, "reason": "tool_round_ready",
+                }))
                 self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
                     "meta": parent.meta, "ctx": parent,
                 }))
 
             # Autonomous continuation already owns a freshly persisted empty
             # CtxItemPart. Stream directly into that part under the existing
-            # durable message; a tool-style RELOAD on the first token races the
+            # durable message; rebuilding the whole view on the first token races the
             # live partial and makes the iteration appear non-streaming. Use the
             # part UUID as a stable stream key so batching never changes identity.
             part = getattr(ctx, "turn_part", None)

@@ -24,6 +24,7 @@ The following plugins are currently available:
 * ``GitHub`` - connects to GitHub for repository, file, issue, pull request, code search, and account operations.
 * ``Google`` - integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
 * ``Image generation (inline)`` - adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
+* ``Jev / System One (inline)`` - integrates TypeSafe AI Jev for fast, typed semantic decisions over structured state, including classification, routing, selection, verification, and scoring.
 * ``Mailer`` - provides email access through configured mail services, including sending and reading messages where supported.
 * ``MCP`` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
 * ``Memory (inline)`` - maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
@@ -1334,6 +1335,101 @@ The Image generation (inline) plugin adds an ``image`` tool to chats so the curr
 **Tools**
 
 - ``image`` - Generate or edit an image using the image-generation model configured in the plugin.
+
+Jev / System One (inline)
+-------------------------
+
+The **Jev / System One (inline)** plugin integrates `TypeSafe AI Jev <https://typesafe.ai/>`_, the first public **System One Model**. Jev is not a chat or text-generation model. Instead, it evaluates structured state and returns typed, machine-readable decisions that can be used directly by the current model or by a larger tool workflow.
+
+Jev is useful when the possible output is constrained in advance but the decision itself requires semantic judgment, for example:
+
+- classifying or routing a message into one of several known categories,
+- selecting one value from a defined set of candidates,
+- deciding whether a condition is likely true or false,
+- verifying or judging model/tool output,
+- assigning an ordered score, severity, priority, or rubric level,
+- evaluating several independent decisions over the same input state in one request.
+
+Jev exposes three System One decision primitives:
+
+- **Choice** - selects one option from a predefined set and returns a typed choice together with probability/confidence information.
+- **Score** - evaluates an item against an ordered scale and returns a structured score with distribution/confidence information.
+- **Noul** - evaluates a yes/no condition and returns its probability rather than generating prose.
+
+Because the output space is declared before the request, Jev is intended for bounded decisions and automation rather than open-ended writing, conversational responses, or free-form reasoning. The plugin is inline, so once enabled it works independently of the global **Tools** switch.
+
+Configuration
+^^^^^^^^^^^^^
+
+Before using the plugin, configure the TypeSafe credentials in:
+
+.. code-block:: ini
+
+   Config -> Settings -> API Keys -> Jev
+
+The available API settings are:
+
+- **Jev API key** - TypeSafe API key used to authenticate requests. The ``TYPESAFE_API_KEY`` environment variable can be used instead.
+- **API base** - Base URL for the TypeSafe API. *Default:* ``https://api.typesafe.ai``. The ``TYPESAFE_BASE_URL`` environment variable can override it.
+
+The model used by the plugin is configured separately in:
+
+.. code-block:: ini
+
+   Plugins -> Settings -> Jev / System One
+
+**Options**
+
+- **Model** *model* - Jev model ID used for System One requests. *Default:* ``jev-latest``
+
+How it works
+^^^^^^^^^^^^
+
+The plugin exposes one tool, ``jev_evaluate``. The current model supplies a shared ``state`` object plus one or more named ``questions``. PyGPT sends them to TypeSafe's ``/v1/systemone`` endpoint and returns the raw typed JSON result to the model.
+
+Multiple independent questions should be grouped into one request when they evaluate the same state. This lets Jev make several bounded decisions without requiring separate chat-model calls.
+
+**Tool**
+
+- ``jev_evaluate`` - Evaluate structured data with Jev / System One.
+
+  - ``state`` - structured JSON object containing the data to evaluate. Unstructured source text can be placed in fields such as ``text``, ``message``, or ``document``.
+  - ``questions`` - object keyed by stable question IDs. Each question defines ``type`` (``choice``, ``score``, or ``noul``), ``instructions``, and the criteria required by that primitive.
+
+For ``choice``, ``criteria`` is an option-to-description object. For ``score``, ``criteria`` is an ordered list of 2-10 levels. For ``noul``, optional ``criteria`` can describe the ``true`` and ``false`` outcomes.
+
+Example request shape:
+
+.. code-block:: json
+
+   {
+     "state": {
+       "message": "Refund never arrived.",
+       "customer_tier": "pro"
+     },
+     "questions": {
+       "intent": {
+         "type": "choice",
+         "instructions": "Classify the support intent.",
+         "criteria": {
+           "refund": "Refund issue",
+           "other": "Other"
+         }
+       },
+       "needs_attention": {
+         "type": "noul",
+         "instructions": "Does this request require support attention?"
+       }
+     }
+   }
+
+You normally do not need to construct this JSON manually. Enable the plugin and ask the current model to use Jev when a task benefits from a bounded semantic decision, for example:
+
+.. code-block:: text
+
+   Use Jev to classify this support message as billing, refund, technical, or other, and estimate whether it needs urgent attention.
+
+API reference: https://docs.typesafe.ai/api
 
 Mailer
 -------

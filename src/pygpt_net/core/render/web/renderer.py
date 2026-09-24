@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 15:00:00                  #
+# Updated Date: 2026.09.24 18:55:00                  #
 # ================================================== #
 
 import json
@@ -23,6 +23,7 @@ from io import StringIO
 from PySide6.QtCore import QLocale, QTimer
 
 from pygpt_net.core.render.base import BaseRenderer
+from pygpt_net.core.render.protocol import RenderMutation, RenderOp
 from pygpt_net.core.types import MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
@@ -480,7 +481,11 @@ class Renderer(BaseRenderer):
             pass
 
         try:
-            self.get_output_node(meta).page().runJavaScript("if (typeof window.begin !== 'undefined') begin();")
+            msg_id = json.dumps(str(getattr(ctx, "id", "") or ""), ensure_ascii=False)
+            self.get_output_node(meta).page().runJavaScript(
+                "if (typeof window.begin !== 'undefined') "
+                f"begin({msg_id});"
+            )
         except Exception:
             pass
 
@@ -495,14 +500,16 @@ class Renderer(BaseRenderer):
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
-        if self.pids[pid].item is not None and stream:
-            self.append_context_item(meta, self.pids[pid].item)
-            self.pids[pid].item = None
-        else:
-            self.reload(meta)
+        # END is a lifecycle boundary only. Durable DOM changes are explicit
+        # SYNC/REPLACE mutations; a live row is promoted by STREAM_END.
+        self.pids[pid].item = None
 
         try:
-            self.get_output_node(meta).page().runJavaScript("if (typeof window.end !== 'undefined') end();")
+            msg_id = json.dumps(str(getattr(ctx, "id", "") or ""), ensure_ascii=False)
+            self.get_output_node(meta).page().runJavaScript(
+                "if (typeof window.end !== 'undefined') "
+                f"end({msg_id});"
+            )
         except Exception:
             pass
 
@@ -542,6 +549,10 @@ class Renderer(BaseRenderer):
         # status remains visible for the whole provider TTFT window.
         parent_ctx = getattr(ctx, "turn_parent", None)
         try:
+            stream_owner = parent_ctx if parent_ctx is not None else ctx
+            stream_owner_id = json.dumps(
+                str(getattr(stream_owner, "id", "") or ""), ensure_ascii=False
+            )
             if parent_ctx is not None:
                 header = self.get_name_header(ctx, stream=True)
                 parent_id = json.dumps(
@@ -560,17 +571,17 @@ class Renderer(BaseRenderer):
                 )
                 if status_records:
                     self.get_output_node(meta).page().runJavaScript(
-                        "if (typeof window.beginStream !== 'undefined') beginStream();"
+                        f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
                         "if (typeof window.bindWorkflowStream !== 'undefined') "
                         f"bindWorkflowStream({parent_id}, {header_json}, {records_json});"
                     )
                 else:
                     self.get_output_node(meta).page().runJavaScript(
-                        "if (typeof window.beginStream !== 'undefined') beginStream();"
+                        f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
                     )
             else:
                 self.get_output_node(meta).page().runJavaScript(
-                    "if (typeof window.beginStream !== 'undefined') beginStream();"
+                    f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
                 )
         except Exception:
             pass
@@ -595,27 +606,20 @@ class Renderer(BaseRenderer):
 
         self._stream_flush(pid, force=True)
         # Flush the last inline partial delta before teardown. The durable parent
-        # is authoritative and will be rebuilt by RELOAD immediately afterwards,
-        # but flushing first avoids a visible tail truncation between STREAM_END
-        # and that replacement.
+        # is authoritative, but the streamed DOM itself is preserved; flushing
+        # here guarantees the final tail is present before STREAM_END promotes it.
         self.flush_part_streams(meta)
         self._partial_stream_reset(pid)
-        # Historical autonomous mode used one CtxItem per iteration and needed
-        # STREAM_END to append that whole item. New autonomous continuations are
-        # nested CtxItemPart streams of one durable parent; appending the parent
-        # here duplicates/replaces the live partial and makes it look as if no
-        # streaming occurred. Keep the legacy materialization only for a top-level
-        # stream; partial continuations are finalized by Stream.handleEnd().
-        if (self.window.controller.agent.legacy.enabled()
-                and not (getattr(ctx, "parts", None) or [])):
-            if self.pids[pid].item is not None:
-                self.append_context_item(meta, self.pids[pid].item)
-                self.pids[pid].item = None
+        # Stream finalization is mode-agnostic. Historical agent modes used to
+        # append a newly rendered CtxItem here, which discarded the DOM that had
+        # just received the stream. Always promote/synchronize the existing live
+        # node instead; producers that truly changed authoritative text must emit
+        # REPLACE_OUTPUT explicitly.
+        # Promote the exact DOM node that received the stream into durable history.
+        # Do not replace its text at normal stream completion. Any exceptional
+        # correction must be requested explicitly via REPLACE_OUTPUT/SYNC_OUTPUT.
+        self.finalize_output(meta, ctx, replace_text=False, reason="stream_end")
         self.pids[pid].clear()
-        try:
-            self.get_output_node(meta).page().runJavaScript("if (typeof window.endStream !== 'undefined') endStream();")
-        except Exception:
-            pass
         self._stream_reset(pid)
         self._partial_stream_reset(pid)
         self.auto_cleanup(meta)
@@ -1026,7 +1030,11 @@ class Renderer(BaseRenderer):
                 history_date_label=date_label,
             )
             if block:
-                self.append(pid, block.to_json(wrap=True))
+                self._emit_mutation(meta, RenderMutation(
+                    op=RenderOp.APPEND_INPUT,
+                    msg_id=getattr(ctx, "id", None),
+                    block=block.to_dict(),
+                ))
 
     def prepare_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True,
                        prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None) -> Optional[str]:
@@ -1083,11 +1091,19 @@ class Renderer(BaseRenderer):
         )
         if output or visible_part_tools:
             self._hide_previous_agent_action_icons(meta, ctx)
-            block = self._build_render_block(meta, ctx, input_text=None, output_text=output,
-                                             prev_ctx=prev_ctx, next_ctx=next_ctx)
+            input_text = self.prepare_input(meta, ctx, flush=False, append=True)
+            block = self._build_render_block(
+                meta, ctx, input_text=input_text, output_text=output,
+                prev_ctx=prev_ctx, next_ctx=next_ctx,
+                history_date_label=self._get_live_input_date_label(meta, ctx),
+            )
             if block:
-                pid = self.get_or_create_pid(meta)
-                self.append(pid, block.to_json(wrap=True))
+                self._emit_mutation(meta, RenderMutation(
+                    op=RenderOp.APPEND_OUTPUT,
+                    msg_id=getattr(ctx, "id", None),
+                    block=block.to_dict(),
+                    replace_text=True,
+                ))
 
     def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -1112,6 +1128,10 @@ class Renderer(BaseRenderer):
         if is_new_item:
             self._hide_previous_agent_action_icons(meta, ctx)
         pctx.item = ctx
+        if begin:
+            pctx.buffer = ""
+        if text_chunk:
+            pctx.append_buffer(str(text_chunk))
 
         if begin:
             # Clear the previous turn's batching/reasoning state before looking
@@ -1155,7 +1175,7 @@ class Renderer(BaseRenderer):
                     "if (typeof window.freezeWorkflowStatus !== 'undefined') "
                     f"freezeWorkflowStatus({parent_json});"
                     "if (typeof window.beginStream !== 'undefined') "
-                    f"beginStream({chunk_js});"
+                    f"beginStream({chunk_js}, {parent_json});"
                     "if (typeof window.bindWorkflowStream !== 'undefined') "
                     f"bindWorkflowStream({parent_json}, {header_json}, {records_json});"
                 )
@@ -1179,10 +1199,10 @@ class Renderer(BaseRenderer):
         """Stream a chronological partial inside one existing bot message.
 
         This is used after a tool boundary. The durable parent CtxItem has
-        already been materialized by RELOAD; the new text is appended as a
+        already been materialized/synchronized; the new text is appended as a
         ``.msg-part`` under ``msg-bot-<parent id>``. No additional CtxItem /
-        msg-box is created. The final RELOAD replaces this transient part with
-        the persisted CtxItemPart.
+        msg-box is created. Finalization keeps this streamed DOM and synchronizes
+        only structural metadata around it.
         """
         pid = self.get_or_create_pid(meta)
         parent_id = getattr(parent_ctx, "id", None)
@@ -1296,8 +1316,8 @@ class Renderer(BaseRenderer):
     def _partial_stream_reset(self, pid: Optional[int] = None, keep: Optional[tuple] = None):
         """Stop/discard Python buffers for transient inline partials.
 
-        The durable CtxItemPart is authoritative across a RELOAD, therefore
-        pending inline chunks must never fire afterwards and recreate stale UI.
+        The durable CtxItemPart is authoritative across structural boundaries,
+        therefore pending inline chunks must never fire afterwards and recreate stale UI.
         """
         keys = set(self._partial_stream_acc) | set(self._partial_stream_timer) | set(self._partial_stream_started)
         for key in list(keys):
@@ -1334,7 +1354,7 @@ class Renderer(BaseRenderer):
                 self._partial_stream_flush(key, force=True)
 
     def discard_part_streams(self, meta: Optional[CtxMeta] = None):
-        """Discard transient inline buffers before a durable RELOAD boundary."""
+        """Discard transient inline buffers before a durable sync boundary."""
         pid = self.get_pid(meta) if meta is not None else None
         self._partial_stream_reset(pid)
 
@@ -1388,6 +1408,7 @@ class Renderer(BaseRenderer):
             payload = "__PYGPT_INPUT_V1__" + json.dumps({
                 "text": self.sanitize_html(text_chunk),
                 "date_label": date_label,
+                "msg_id": getattr(ctx, "id", None),
             }, ensure_ascii=False, separators=(",", ":"))
             self.get_output_node(meta).page().bridge.nodeInput.emit(
                 payload
@@ -2027,17 +2048,19 @@ class Renderer(BaseRenderer):
 
         html = "".join(html_parts)
         if render and html != "":
-            if footer:
-                self.append(pid, html)
-            else:
-                try:
-                    self.get_output_node(meta).page().runJavaScript(
-                        f"""appendExtra('{ctx.id}',{self.to_json(
-                            self.sanitize_html(html)
-                        )});"""
-                    )
-                except Exception:
-                    pass
+            # Extras are a message mutation too. Keep them on the same ordered
+            # transport as text/finalization instead of issuing an unrelated
+            # runJavaScript call that can race a stream boundary. ``html`` is a
+            # delta here (append_* tracking above filters already-rendered rows).
+            self._emit_mutation(meta, RenderMutation(
+                op=RenderOp.APPEND_ARTIFACTS,
+                msg_id=getattr(ctx, "id", None),
+                extra={
+                    "html": self.sanitize_html(html),
+                    "footer": bool(footer),
+                },
+                reason="runtime_extra",
+            ))
 
         return html
 
@@ -2295,6 +2318,123 @@ class Renderer(BaseRenderer):
         else:
             return f"<div class=\"name-header name-bot\">{avatar_html}{output_name}</div>"
 
+    def _emit_mutation(self, meta: CtxMeta, mutation: RenderMutation) -> None:
+        """Send one renderer mutation through the existing ordered node channel."""
+        pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
+        self.flush_output(pid, mutation.to_json(), replace=False)
+
+    def _build_input_block(self, meta: CtxMeta, ctx: CtxItem) -> Optional[RenderBlock]:
+        """Build one durable user block without touching the DOM."""
+        if ctx is None or getattr(ctx, "id", None) is None:
+            return None
+        input_text = self.prepare_input(meta, ctx, flush=False, append=True)
+        if not input_text:
+            return None
+        return self._build_render_block(
+            meta,
+            ctx,
+            input_text=input_text,
+            output_text=None,
+            history_date_label=self._get_live_input_date_label(meta, ctx),
+        )
+
+    def _build_output_block(self, meta: CtxMeta, ctx: CtxItem) -> Optional[RenderBlock]:
+        """Build the current assistant block without touching the DOM."""
+        if ctx is None or getattr(ctx, "id", None) is None:
+            return None
+        input_text = self.prepare_input(meta, ctx, flush=False, append=True)
+        output = self.prepare_output(meta=meta, ctx=ctx, flush=False)
+        visible_part_tools = self.helpers.extract_extra_tool_calls(
+            ctx.get_part_tool_calls(visible_only=True)
+        )
+        if not output and not visible_part_tools and not getattr(ctx, "parts", None):
+            # Still allow input-only/structure-only snapshots.
+            output = ""
+        return self._build_render_block(
+            meta,
+            ctx,
+            input_text=input_text,
+            output_text=output,
+            history_date_label=self._get_live_input_date_label(meta, ctx),
+        )
+
+    def replace_input(self, meta: CtxMeta, ctx: CtxItem, reason: Optional[str] = None) -> None:
+        """Explicitly replace one durable user message."""
+        block = self._build_input_block(meta, ctx)
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.REPLACE_INPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            reason=reason,
+        ))
+
+    def sync_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Synchronize one durable assistant message in place.
+
+        By default the existing text/timeline is preserved. This is the normal
+        post-stream/post-tool path and replaces the historical full-chat RELOAD.
+        """
+        block = self._build_output_block(meta, ctx)
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.SYNC_OUTPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            replace_text=replace_text,
+            reason=reason,
+        ))
+
+    def finalize_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Finalize a live assistant stream without rebuilding or replacing it."""
+        input_text = self.prepare_input(meta, ctx, flush=False, append=False)
+        output_text = self.prepare_output(meta=meta, ctx=ctx, flush=False)
+        block = self._build_render_block(
+            meta,
+            ctx,
+            input_text=input_text,
+            output_text=output_text,
+            history_date_label=self._get_live_input_date_label(meta, ctx),
+        )
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.FINALIZE_OUTPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            replace_text=replace_text,
+            reason=reason,
+        ))
+
+    def replace_output(self, meta: CtxMeta, ctx: CtxItem, reason: Optional[str] = None) -> None:
+        """Explicitly replace assistant text when the authoritative text changed."""
+        block = self._build_output_block(meta, ctx)
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.REPLACE_OUTPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            replace_text=True,
+            reason=reason,
+        ))
+
     def flush_output(self, pid: int, payload: str, replace: bool = False):
         """
         Send content via QWebChannel (JSON or HTML string).
@@ -2461,12 +2601,10 @@ class Renderer(BaseRenderer):
 
         :param ctx: context item
         """
-        try:
-            self.get_output_node(ctx.meta).page().runJavaScript(
-                f"if (typeof window.removeNode !== 'undefined') removeNode({self.to_json(ctx.id)});"
-            )
-        except Exception:
-            pass
+        self._emit_mutation(ctx.meta, RenderMutation(
+            op=RenderOp.REMOVE_MESSAGE,
+            msg_id=getattr(ctx, "id", None),
+        ))
 
     def remove_items_from(self, ctx: CtxItem):
         """
@@ -2474,12 +2612,10 @@ class Renderer(BaseRenderer):
 
         :param ctx: context item
         """
-        try:
-            self.get_output_node(ctx.meta).page().runJavaScript(
-                f"if (typeof window.removeNodesFromId !== 'undefined') removeNodesFromId({self.to_json(ctx.id)});"
-            )
-        except Exception:
-            pass
+        self._emit_mutation(ctx.meta, RenderMutation(
+            op=RenderOp.REMOVE_FROM,
+            msg_id=getattr(ctx, "id", None),
+        ))
 
     def reset_names(self, meta: CtxMeta):
         """
@@ -2694,16 +2830,23 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem] = None,
             immediate: bool = False,
     ):
-        """Retire or freeze the transient tool status after tool completion.
+        """Retire the transient tool-series status at a real series boundary.
 
-        With expandable tool JSON enabled, the runtime row is removed because a
-        durable Tool/Tools block replaces it. In compact status mode the row is
-        kept and frozen so later tool calls in the same turn can reactivate and
-        aggregate it. STOP/error paths request ``immediate=True`` and remove the
-        painted row at once in both modes.
+        During a consecutive tool round the row stays active and animated; this
+        method is intentionally not called after individual tool results. With
+        expandable tool JSON enabled, the durable Tool/Tools block is rendered
+        first and this removes its transient predecessor. In compact status mode
+        the row is frozen only here, after the series has ended. STOP/error paths
+        request ``immediate=True`` and remove it at once.
         """
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
-        if immediate or self._display_tool_calls_json():
+        durable_tool_ui = (
+            self._show_tool_chain_for_ctx(resolved_ctx)
+            if resolved_ctx is not None
+            else self._display_tool_calls_json()
+        )
+        remove_status = bool(immediate or durable_tool_ui)
+        if remove_status:
             self._workflow_status_remove(meta, resolved_ctx, kind="tool")
         else:
             # Without the durable JSON accordion the status itself is the only
@@ -2714,10 +2857,10 @@ class Renderer(BaseRenderer):
             parent_id = json.dumps(
                 str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
             )
-            immediate_js = "true" if immediate else "false"
+            remove_js = "true" if remove_status else "false"
             self.get_output_node(meta).page().runJavaScript(
                 "if (typeof window.clearToolStatus !== 'undefined') "
-                f"clearToolStatus({parent_id}, {immediate_js});"
+                f"clearToolStatus({parent_id}, {remove_js});"
                 "else if (typeof window.freezeWorkflowStatus !== 'undefined') "
                 f"freezeWorkflowStatus({parent_id}, 'tool');"
                 "if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
@@ -2742,31 +2885,19 @@ class Renderer(BaseRenderer):
         if not names_list:
             return
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
-        compact_status = not self._display_tool_calls_json()
-        if compact_status and resolved_ctx is not None:
-            merged_names = []
-            seen = set()
-            for record in self._workflow_status_records(resolved_ctx):
-                if record.get("kind") != "tool":
-                    continue
-                for name in list(record.get("tool_names") or []):
-                    value = str(name)
-                    if value and value not in seen:
-                        seen.add(value)
-                        merged_names.append(value)
-            for name in names_list:
-                value = str(name)
-                if value and value not in seen:
-                    seen.add(value)
-                    merged_names.append(value)
-            names_list = merged_names
 
+        # Consecutive tool calls share one transient row regardless of whether
+        # the durable JSON Tool/Tools accordion is enabled. Each TOOL_BEGIN only
+        # replaces the label with the current call/batch; the shimmer remains
+        # active across tool results and between provider continuations. Completed
+        # calls are accumulated in ctx partial tasks and become durable controls
+        # only at the next non-tool/final boundary.
         status_id = self._workflow_status_add(
             meta,
             resolved_ctx,
             kind="tool",
             tool_names=names_list,
-            aggregate=compact_status,
+            aggregate=True,
         ) if resolved_ctx is not None else None
         try:
             names = json.dumps(names_list, ensure_ascii=False)
@@ -3908,6 +4039,46 @@ class Renderer(BaseRenderer):
                 count += 1
         return count
 
+    @staticmethod
+    def _agent_v2_collapsed_workflow_step_count(timeline: list) -> int:
+        """Count meaningful pre-final workflow segments for the collapsed UI.
+
+        Runtime worker progress is represented by workflow-status/tool segments
+        attached to the durable parent rather than by worker-owned partial rows.
+        Counting only orchestrator CtxItemPart objects therefore hid the
+        ``Processed for...`` accordion whenever the visible work happened in a
+        worker. Count the rendered chronological segments instead.
+        """
+        count = 0
+        for segment in list(timeline or []):
+            if not isinstance(segment, dict):
+                continue
+            calls = list(segment.get("tool_calls") or [])
+            if calls:
+                count += max(1, len(calls))
+                continue
+            if (segment.get("text")
+                    or segment.get("status_id")
+                    or segment.get("status_kind")
+                    or segment.get("inline_message")):
+                count += 1
+        return count
+
+    @staticmethod
+    def _agent_v2_final_part_key(ctx: CtxItem) -> str:
+        """Return the durable key of the authoritative final partial."""
+        for part in reversed(list(getattr(ctx, "parts", None) or [])):
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("agents_v2_final") is not True:
+                continue
+            value = str(getattr(part, "uuid", "") or "")
+            if value:
+                return value
+            part_id = getattr(part, "id", None)
+            if part_id is not None:
+                return str(part_id)
+        return ""
+
     def _format_agent_v2_processing_label(self, ctx: CtxItem) -> str:
         """Build the localized collapsed-workflow label."""
         seconds = self._agent_v2_processing_seconds(ctx)
@@ -4331,13 +4502,18 @@ class Renderer(BaseRenderer):
             include_workflow_statuses=replay_statuses,
             include_tool_calls=show_tool_chain,
             compact_workflow_statuses=bool(
-                rebuild
-                and replay_statuses
-                and self._workflow_single_status_history()
+                replay_statuses
+                and (
+                    self._workflow_single_status_history()
+                    if rebuild
+                    else self._workflow_single_status_live()
+                )
             ),
         )
         collapsed_workflow = None
+        compact_agents_v2_final = None
         if completed_agents_v2_output is not None and not full_workflow:
+            final_part_key = self._agent_v2_final_part_key(ctx)
             workflow_timeline = self._build_partial_timeline(
                 ctx,
                 final_only_text=False,
@@ -4348,14 +4524,28 @@ class Renderer(BaseRenderer):
                 ctx,
                 workflow_timeline,
             )
-            if (workflow_timeline
-                    and self._agent_v2_collapsed_workflow_part_count(
-                        ctx,
-                        include_tool_calls=show_tool_chain,
-                    ) > 1):
+            workflow_step_count = self._agent_v2_collapsed_workflow_step_count(
+                workflow_timeline
+            )
+            # ``agents_v2_compact_final`` is an instruction to the incremental
+            # frontend that there is *pre-final workflow DOM to fold away*.  Do
+            # not emit it for a plain one-shot final response.  Previously every
+            # completed Agents v2 turn carried this marker, so the JS collapse
+            # path could run even when the final response was the only timeline
+            # segment.
+            if workflow_step_count > 0:
+                compact_agents_v2_final = {
+                    "final_part_id": final_part_key,
+                    "workflow_steps": workflow_step_count,
+                }
+            if workflow_step_count > 1:
                 collapsed_workflow = {
                     "label": self._format_agent_v2_processing_label(ctx),
                     "timeline": workflow_timeline,
+                    # Runtime finalization uses this key to preserve the exact
+                    # streamed final DOM node while collapsing all preceding
+                    # workflow partials around it.
+                    "final_part_id": final_part_key,
                 }
             # Keep the authoritative final answer as the normal message body.
             # The preceding workflow is carried separately and starts collapsed.
@@ -4501,6 +4691,7 @@ class Renderer(BaseRenderer):
                 "tool_calls": tool_calls,
                 "partial_timeline": partial_timeline,
                 "collapsed_workflow": collapsed_workflow,
+                "agents_v2_compact_final": compact_agents_v2_final,
                 "tool_result": tool_result_display,
                 "tool_output": tool_output,
                 "tool_output_visible": tool_output_visible,
