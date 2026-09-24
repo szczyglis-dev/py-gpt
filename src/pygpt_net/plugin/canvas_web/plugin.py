@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 02:05:00                  #
+# Updated Date: 2026.09.24 17:40:00                  #
 # ================================================== #
+
+import os
 
 from PySide6.QtCore import Slot
 
@@ -44,8 +46,8 @@ class Plugin(BasePlugin):
             "canvas_open", "canvas_change_resolution", "canvas_set_html",
             "canvas_get_html", "canvas_current", "canvas_close",
             "canvas_prev", "canvas_next", "canvas_reload", "canvas_screenshot",
-            "canvas_inspect", "canvas_click", "canvas_hover", "canvas_type",
-            "canvas_key", "canvas_scroll", "canvas_drag", "canvas_wait",
+            "get_user_painter_image", "canvas_inspect", "canvas_click", "canvas_hover",
+            "canvas_type", "canvas_key", "canvas_scroll", "canvas_drag", "canvas_wait",
             "canvas_eval", "canvas_select", "canvas_check", "canvas_upload",
             "canvas_console", "canvas_annotations",
             "canvas_clear_annotations", "web_server_start", "web_server_current", "web_server_stop",
@@ -148,6 +150,10 @@ class Plugin(BasePlugin):
     @Slot(str, dict, object, object)
     def on_browser_call(self, cmd: str, params: dict, ret: dict, done):
         try:
+            if cmd == "get_user_painter_image":
+                ret["result"] = self.capture_user_painter_image()
+                return
+
             tool = self.window.tools.get("web_browser")
             if tool is None:
                 raise RuntimeError("Canvas/web browser tool is not registered")
@@ -157,6 +163,35 @@ class Plugin(BasePlugin):
             self.report_runtime_error(exc)
         finally:
             done.set()
+
+    def capture_user_painter_image(self) -> dict:
+        """Capture the current PyGPT Painter canvas for immediate model inspection."""
+        controller = getattr(getattr(self.window, "controller", None), "painter", None)
+        capture = getattr(controller, "capture", None)
+        if capture is None:
+            raise RuntimeError("Painter capture controller is not available")
+
+        path = capture.save_current_runtime_image()
+        if not path:
+            raise RuntimeError("The current Painter image could not be captured")
+
+        painter = getattr(getattr(self.window, "ui", None), "painter", None)
+        width = 0
+        height = 0
+        if painter is not None:
+            try:
+                size = painter.get_canvas_size() if hasattr(painter, "get_canvas_size") else painter.image.size()
+                width = int(size.width())
+                height = int(size.height())
+            except Exception:
+                pass
+
+        return {
+            "path": path,
+            "name": os.path.basename(path),
+            "width": width,
+            "height": height,
+        }
 
     def attach_screenshot_to_ctx(self, ctx: CtxItem, path: str):
         if ctx is None or not path:
@@ -183,6 +218,8 @@ Use `canvas_inspect` before coordinate clicking when possible; returned `data-py
 For local websites use `web_server_start`; it serves only on loopback and defaults to the current PyGPT work/data directory. Open or inspect that local site through the `canvas_*` tools.
 
 User annotations made from the canvas/web browser context menu are authoritative feedback about the displayed prototype/page. Read and apply them before making further UI changes.
+
+The `get_user_painter_image` tool is different from `canvas_screenshot`: it retrieves the current drawing/sketch that the user created or edited in this PyGPT application's Painter tab and stores it in PyGPT runtime temporary storage. Use it when the user refers to their Painter drawing, sketch, markup or image and you need to inspect that content. If the tool result contains `path`, the image has deliberately not been auto-attached: in Agents use that path with the normal agent file-attachment flow; outside Agents, when Files I/O is enabled, call `attach_runtime_file` with that path before inspecting the image. Only when Files I/O is unavailable outside Agents does PyGPT automatically use the same runtime-only attachment transport as `attach_runtime_file`. The Painter image is never added to the persistent chat attachment list.
 """.strip()
         if prompt and prompt.strip():
             return prompt.rstrip() + "\n\n" + text

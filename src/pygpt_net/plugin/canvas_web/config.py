@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.23 18:35:00                  #
+# Updated Date: 2026.09.24 17:40:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -89,6 +89,15 @@ class Config(BaseConfig):
                 {"name": "path", "type": "str", "description": "Optional output path", "required": False},
                 {"name": "full_page", "type": "bool", "description": "Full page when Playwright backend is active", "required": False},
             ])
+        cmd("get_user_painter_image",
+            "Get the current drawing/sketch made by the user in the Painter tab of this PyGPT application. "
+            "Use this when the user refers to a drawing, sketch, markup or image they created or edited in Painter. "
+            "The tool captures the full logical Painter canvas into PyGPT runtime temporary storage. If the result "
+            "contains a path, the image is not attached yet: in Agents use that path with the agent's normal file "
+            "attachment flow; in other modes with Files I/O enabled call attach_runtime_file with that path. If Files "
+            "I/O is unavailable outside Agents, PyGPT falls back automatically to the same runtime-only transport as "
+            "attach_runtime_file. This is not a canvas/web-browser screenshot and never creates a persistent chat "
+            "attachment.", [])
         cmd("canvas_inspect",
             "Inspect the canvas/web browser DOM. By default returns visible interactive elements with stable data-pygpt-ref selectors, labels, text and bounding boxes. Use before coordinate clicking whenever possible.", [
                 {"name": "selector", "type": "str", "description": "Optional CSS selector; omit for interactive elements", "required": False},

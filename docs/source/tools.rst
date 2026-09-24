@@ -36,6 +36,8 @@ Painter
 
 Using the ``Painter`` tool, you can create quick sketches and submit them to the model for analysis. You can also edit open or camera-captured images, for example, by adding elements like arrows or outlines to objects. Additionally, you can capture screenshots from the system - the captured image is placed in the drawing tool and attached to the query being sent.
 
+When the **Canvas (inline)** plugin is enabled, the model can also request the current Painter content itself with ``get_user_painter_image``. The command captures the full logical drawing canvas into shared ``tmp/runtime_artifacts`` storage without creating a persistent chat attachment. In Agents it returns the path for the agent to attach through its normal file flow. In other modes with **Files I/O** enabled it also returns the path, allowing the model to call ``attach_runtime_file`` explicitly. If Files I/O is unavailable outside Agents, PyGPT automatically falls back to the same runtime-only attachment mechanism.
+
 .. image:: images/v2_draw.png
    :width: 800
 
@@ -124,7 +126,7 @@ Enables translation between multiple languages using an AI model.
 Canvas
 ------
 
-The **Canvas** tool is a persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can render generated HTML/CSS/JavaScript, open external webpages, support scoped interaction, annotations, screenshots, DOM inspection, and iterative live editing. Enable the plugin to expose the model-callable Canvas tools; the global ``Tools`` switch is not required.
+The **Canvas** tool is a persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can render generated HTML/CSS/JavaScript, open external webpages, support scoped interaction, annotations, screenshots, DOM inspection, iterative live editing, and retrieve the user's current Painter drawing as runtime model input through ``get_user_painter_image``. Enable the plugin to expose the model-callable Canvas tools; the global ``Tools`` switch is not required.
 
 See :doc:`canvas` for the feature overview and :ref:`plugin-canvas-web-html` for the complete tool and configuration reference.
 

@@ -357,6 +357,7 @@ Backends and runtime rules
 * Browser input is scoped to the Canvas viewport and uses a virtual model cursor. Global OS mouse/keyboard control should not be used for work that can be completed inside Canvas.
 * Prefer ``canvas_inspect`` and its ``data-pygpt-ref`` selectors before coordinate-based clicking. DOM selectors are generally more stable than visual coordinates.
 * Use ``canvas_screenshot`` when appearance matters or after a visual change that should be verified.
+* Use ``get_user_painter_image`` when the user refers to a drawing, sketch, markup, or image created or edited in PyGPT's Painter tab. It captures Painter, not the Canvas browser, into shared runtime temporary storage. In Agents it returns only the path. Outside Agents it also returns only the path when Files I/O is enabled, so the model can call ``attach_runtime_file`` explicitly; without Files I/O it falls back to the same automatic runtime-only attachment transport.
 * ``canvas_set_html`` can render a complete HTML/CSS/JavaScript document directly. Relative assets are resolved from ``base_url`` or, when omitted, from the current PyGPT data/work directory.
 * User annotations are explicit feedback about the current page. Read and apply them before making further UI changes when annotations are present.
 * The local preview server listens on loopback only. It is intended for previewing local projects rather than exposing a public web service.
@@ -456,6 +457,11 @@ Canvas tools
    Parameters:
    * ``path`` (``str``, optional) - Optional output path.
    * ``full_page`` (``bool``, optional) - Full page when Playwright backend is active.
+
+``get_user_painter_image``
+   Capture the current drawing/sketch made by the user in the PyGPT **Painter** tab. The full logical Painter canvas is saved independently of the current Painter zoom level in the shared runtime temporary directory. In Agents the tool returns only the runtime path. Outside Agents it returns only the path when Files I/O is enabled; use ``attach_runtime_file`` with that path for native vision inspection. If Files I/O is unavailable outside Agents, PyGPT automatically uses the same runtime-only attachment transport as ``attach_runtime_file``. The image is never added to the persistent chat attachment list. This is separate from ``canvas_screenshot``, which captures the Canvas/web-browser viewport.
+
+   Parameters: none.
 
 ``canvas_inspect``
    Inspect the canvas/web browser DOM. By default returns visible interactive elements with stable data-pygpt-ref selectors, labels, text and bounding boxes. Use before coordinate clicking whenever possible.

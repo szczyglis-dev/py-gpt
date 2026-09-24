@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.23 18:40:00                  #
+# Updated Date: 2026.09.24 17:30:00                  #
 # ================================================== #
 
 import os
@@ -18,6 +18,12 @@ from pathlib import Path
 from PySide6.QtCore import Signal, Slot
 
 from pygpt_net.core.qt import safe_emit
+from pygpt_net.core.types import (
+    MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
+)
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -91,6 +97,38 @@ class Worker(BaseWorker):
             raise RuntimeError(str(ret["error"]))
         return ret.get("result")
 
+    def _is_agents_mode(self) -> bool:
+        """Return True when the application is currently in an agent mode."""
+        try:
+            mode = self.plugin.window.core.config.get("mode")
+            return mode in (MODE_AGENT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2)
+        except Exception:
+            return False
+
+    def _is_files_io_enabled(self) -> bool:
+        """Return the live Files I/O plugin state without assuming UI availability."""
+        try:
+            controller = self.plugin.window.controller.plugins
+            return bool(controller.is_enabled("cmd_files"))
+        except Exception:
+            return False
+
+    def _prepare_painter_runtime_artifact(self, result: dict) -> dict:
+        """Normalize a Painter snapshot through the shared runtime tmp mapping."""
+        path = str(result.get("path") or "").strip()
+        if not path:
+            raise RuntimeError("Painter image capture returned no file")
+
+        name = str(result.get("name") or os.path.basename(path))
+        artifact = self.plugin.window.core.filesystem.materialize_runtime_artifact(
+            path,
+            ctx=self.ctx,
+            name=name,
+        )
+        if not artifact:
+            raise RuntimeError("Painter image could not be prepared in runtime temporary storage")
+        return artifact
+
     @Slot()
     def run(self):
         try:
@@ -105,7 +143,43 @@ class Worker(BaseWorker):
                     continue
                 try:
                     result = self._call(cmd, item.get("params") or {})
-                    response = self.make_response(item, result, extra={"plugin": self.plugin.id, "cmd": cmd})
+                    if cmd == "get_user_painter_image" and isinstance(result, dict):
+                        artifact = self._prepare_painter_runtime_artifact(result)
+                        model_path = str(artifact.get("path") or artifact.get("host_path") or "")
+                        host_path = str(artifact.get("host_path") or model_path)
+                        name = str(artifact.get("name") or os.path.basename(host_path))
+
+                        # Agents own their file/tool loop, so never inject an
+                        # automatic image continuation there.  Likewise, when
+                        # Files I/O is enabled in a normal mode, return the tmp
+                        # path and let the model explicitly call
+                        # attach_runtime_file, exactly like any other local file.
+                        if self._is_agents_mode() or self._is_files_io_enabled():
+                            response = self.make_response(
+                                item,
+                                {"path": model_path},
+                                extra={"plugin": self.plugin.id, "cmd": cmd},
+                            )
+                        else:
+                            # Files I/O is unavailable, so fall back to the same
+                            # runtime-only transport contract used by
+                            # cmd_files.attach_runtime_file.  This keeps normal
+                            # Chat usable without introducing a second image
+                            # attachment protocol.
+                            attached = f"Attached for native analysis in the next model request: {name}"
+                            response = self.make_response(
+                                item,
+                                attached,
+                                extra={
+                                    "plugin": self.plugin.id,
+                                    "cmd": cmd,
+                                    "agent_runtime_attachments": [
+                                        {"path": host_path, "name": name},
+                                    ],
+                                },
+                            )
+                    else:
+                        response = self.make_response(item, result, extra={"plugin": self.plugin.id, "cmd": cmd})
                     responses.append(response)
                     if cmd == "canvas_screenshot" and isinstance(result, dict):
                         self.plugin.attach_screenshot_to_ctx(self.ctx, result.get("path"))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 19:15:00                  #
+# Updated Date: 2026.09.24 17:30:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -345,6 +345,48 @@ class Capture:
         except Exception as e:
             print("Screenshot capture exception", e)
             self.window.core.debug.log(e)
+
+    def save_current_runtime_image(self) -> Optional[str]:
+        """
+        Save the current full logical Painter canvas for a runtime-only model attachment.
+
+        This does not modify the normal chat attachment registry or Painter UI.
+
+        :return: Saved PNG path, or None on failure
+        """
+        try:
+            painter = getattr(self.window.ui, "painter", None)
+            if painter is None:
+                return None
+
+            # Painter keeps a composited export cache separate from the live
+            # drawing/base layers. Make sure the exported image includes the
+            # latest strokes regardless of the current zoom/display size.
+            ensure = getattr(painter, "_ensure_composited_image", None)
+            if callable(ensure):
+                ensure()
+
+            image = getattr(painter, "image", None)
+            if image is None or image.isNull():
+                return None
+
+            # Runtime-only Painter snapshots belong to the shared ephemeral
+            # runtime tree.  Local execution backends expose this tree through
+            # their normal runtime mapping (for example /mnt/tmp in Docker).
+            root = self.window.core.filesystem.get_runtime_artifacts_dir(create=True)
+            now = datetime.datetime.now()
+            directory = os.path.join(root, now.date().isoformat())
+            os.makedirs(directory, exist_ok=True)
+            stamp = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
+            path = os.path.join(directory, f"painter-user-{stamp}.png")
+
+            if not image.save(path, "PNG"):
+                return None
+            return path
+        except Exception as e:
+            print("Painter runtime image capture exception", e)
+            self.window.core.debug.log(e)
+            return None
 
     def use(self):
         """Use current image"""

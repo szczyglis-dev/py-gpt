@@ -20,6 +20,13 @@ Live interactive rendering
 
 Canvas can render complete HTML/CSS/JavaScript content in the persistent built-in browser runtime. The model can inspect interactive DOM elements, use stable selectors, click, hover, type, scroll, drag, select values, toggle controls, execute JavaScript, inspect the console, and capture screenshots for visual verification. This makes it possible to work on an interface iteratively instead of only generating source code once.
 
+Using a Painter drawing as model input
+--------------------------------------
+
+Canvas can also retrieve the current image from PyGPT's separate **Painter** tab. The ``get_user_painter_image`` tool captures the full logical Painter canvas into PyGPT's shared runtime temporary directory (``tmp/runtime_artifacts``). This is useful when the user sketches a layout, marks up an image, draws a diagram, or otherwise refers to content they created or edited in Painter.
+
+This command is intentionally different from ``canvas_screenshot``. ``canvas_screenshot`` captures the Canvas/web-browser viewport, while ``get_user_painter_image`` reads the user's current Painter drawing. In **Agents**, the command returns the runtime path only and leaves attachment handling to the agent. In other modes, if **Files I/O** is enabled, it also returns the runtime path only and the model should call ``attach_runtime_file`` when native image inspection is required. If Files I/O is unavailable outside Agents, PyGPT automatically falls back to the same runtime-only attachment mechanism used by ``attach_runtime_file``. The image is never added to the persistent chat attachment list.
+
 Example
 -------
 
