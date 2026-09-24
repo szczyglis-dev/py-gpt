@@ -208,7 +208,7 @@ class TestRenderer:
         node = fake_window.core.ctx.output.get_by_pid(1)
         node.page().runJavaScript = MagicMock()
         renderer.state_changed("render.state.busy", meta)
-        node.page().runJavaScript.assert_called_with("if (typeof window.showLoading !== 'undefined') showLoading();")
+        node.page().runJavaScript.assert_called_with("if (typeof window.showLoading !== 'undefined') showLoading(0, false);")
 
     def test_state_changed_idle(self, renderer, fake_window):
         renderer.pids = {1: MagicMock()}
@@ -375,6 +375,9 @@ class TestRenderer:
         renderer._stream_reset.assert_called_once_with(1)
         renderer.update_names.assert_called_once_with(meta, ctx)
         assert node.page().runJavaScript.call_args_list == [
+            call(
+                "if (typeof window.bindStreamOwner !== 'undefined') bindStreamOwner(\"2\");"
+            ),
             call("if (typeof window.hideLoading !== 'undefined') hideLoading(false);"),
             call(
                 "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"

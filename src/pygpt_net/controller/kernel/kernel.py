@@ -12,7 +12,7 @@
 import threading
 from typing import Any, Dict, Optional, Union, List
 
-from PySide6.QtCore import QEventLoop, QTimer, Slot
+from PySide6.QtCore import QEventLoop, Slot
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.types import (
@@ -190,16 +190,22 @@ class Kernel:
             "id": data.get("id", "chat"),
             "msg": data.get("msg", trans("status.sending")),
             "meta": meta,
+            # The chat output loader belongs visually *after* the user row.
+            # Arm it now, but do not let it enter layout before APPEND_INPUT has
+            # materialized the row.  A short delay also avoids flashing the
+            # loader for very fast requests while the Send/Stop state still
+            # changes immediately.
+            "loading_delay_ms": 100,
+            "loading_wait_for_input": True,
         }))
 
         if data.get("clear", False):
             w.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
 
-        # PRE-SEND must become visible before any following work starts.
-        # WebEngine's runJavaScript(showLoading()) is asynchronous and crosses
-        # the Chromium process boundary, so the processEvents() performed by
-        # set_status() can finish before the DOM change is actually executed.
-        # Give Qt one real event-loop turn here, at the PRE-SEND boundary only.
+        # PRE-SEND button/status state must become visible before any following
+        # work starts.  The WebView loader itself is intentionally delayed until
+        # the input row is materialized, so there is no reason to wait for a
+        # Chromium paint here.
         self.flush_send_init_ui()
         return True
 
@@ -214,18 +220,7 @@ class Kernel:
             QApplication.sendPostedEvents()
             QApplication.processEvents(QEventLoop.AllEvents)
 
-            # QWebEngine executes runJavaScript asynchronously in Chromium. A
-            # plain processEvents() may return while that IPC is still in flight.
-            # Keep the Qt loop alive for roughly one frame so showLoading() can
-            # execute and the compositor can publish the PRE-SEND state. This is
-            # intentionally limited to SEND_INIT, not every STATE_BUSY update.
-            is_web = not self.window.core.config.get("render.plain")
-            if is_web:
-                loop = QEventLoop()
-                QTimer.singleShot(20, loop.quit)
-                loop.exec()
-
-            # Drain updates produced during the WebEngine turn as well.
+            # Drain updates produced during the first UI turn as well.
             QApplication.sendPostedEvents()
             QApplication.processEvents(QEventLoop.AllEvents)
         except RuntimeError:
@@ -423,6 +418,10 @@ class Kernel:
         if state_meta is None:
             state_meta = w.core.ctx.output.get_request_meta()
         render_data = {"meta": state_meta} if state_meta is not None else {}
+        if "loading_delay_ms" in event.data:
+            render_data["loading_delay_ms"] = event.data.get("loading_delay_ms")
+        if "loading_wait_for_input" in event.data:
+            render_data["loading_wait_for_input"] = event.data.get("loading_wait_for_input")
 
         if name == KernelEvent.STATE_BUSY:
             self.busy = True

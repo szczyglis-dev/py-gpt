@@ -277,7 +277,7 @@ class Mapping:
         nodes['idx.db.settings.legend.head'] = 'settings.llama.extra.btn.idx_head'
 
         # dialog: changelog
-        nodes['dialog.changelog.label'] = 'dialog.changelog.title'
+        #nodes['dialog.changelog.label'] = 'dialog.changelog.title'
 
         # dialog: license
         nodes['dialog.license.label'] = 'dialog.license.label'

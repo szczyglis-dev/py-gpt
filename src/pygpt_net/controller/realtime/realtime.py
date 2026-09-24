@@ -135,7 +135,15 @@ class Realtime:
                 if getattr(ctx, "turn_parent", None) is not None:
                     key = id(ctx)
                     begin = key not in self._continuation_text_started
-                    self.window.controller.chat.stream.handleChunk(ctx, chunk, begin)
+                    # Realtime owns a different worker lifecycle than Chat, so it
+                    # must not call Stream.handleChunk(): that slot intentionally
+                    # rejects chunks without an active chat StreamWorker/PID. Use
+                    # the shared continuation renderer directly instead.
+                    self.window.controller.chat.stream.append_continuation_chunk(
+                        ctx,
+                        chunk,
+                        begin,
+                    )
                     self._continuation_text_started.add(key)
                 else:
                     self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {

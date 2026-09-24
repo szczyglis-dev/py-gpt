@@ -527,12 +527,16 @@ class BaseRenderer:
             self,
             state: str,
             meta: CtxMeta,
+            loading_delay_ms: int = 0,
+            loading_wait_for_input: bool = False,
     ):
         """
         Render end
 
         :param state: state name
         :param meta: context meta
+        :param loading_delay_ms: optional loader visibility delay
+        :param loading_wait_for_input: wait until the user row is materialized
         """
         pass
 

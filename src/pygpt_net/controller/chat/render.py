@@ -61,7 +61,12 @@ class Render:
 
         if name in self._STATE_EVENTS:
             meta = data.get("meta") or self.window.core.ctx.get_current_meta()
-            self.on_state_changed(name, meta)
+            self.on_state_changed(
+                name,
+                meta,
+                loading_delay_ms=data.get("loading_delay_ms", 0),
+                loading_wait_for_input=bool(data.get("loading_wait_for_input", False)),
+            )
             return
 
         handlers = (
@@ -258,14 +263,27 @@ class Render:
             return False
         return True
 
-    def on_state_changed(self, state: str, meta: Optional[CtxMeta] = None) -> None:
+    def on_state_changed(
+            self,
+            state: str,
+            meta: Optional[CtxMeta] = None,
+            loading_delay_ms: int = 0,
+            loading_wait_for_input: bool = False,
+    ) -> None:
         """
         Handle state change event
 
         :param state: State name
         :param meta: Context meta
+        :param loading_delay_ms: optional loader visibility delay
+        :param loading_wait_for_input: wait until the user row is materialized
         """
-        self.instance().state_changed(state, meta)
+        self.instance().state_changed(
+            state,
+            meta,
+            loading_delay_ms=loading_delay_ms,
+            loading_wait_for_input=loading_wait_for_input,
+        )
 
     def append_live(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False) -> None:
         """

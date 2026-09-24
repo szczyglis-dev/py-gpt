@@ -184,6 +184,23 @@ class Runtime {
 			forceHeavy: !preserveWorkflowHost
 		});
 		this.stream.beginStream(chunk, !preserveWorkflowHost);
+		// beginStream() may clear/reset the transient containers, so install the
+		// owner hint only afterwards. The actual box is usually created by the first
+		// text delta and will claim this id lazily in DOMRefs.getStreamMsg().
+		if (this.dom && typeof this.dom.setStreamOwnerHint === 'function') {
+			this.dom.setStreamOwnerHint(parentKey);
+		}
+	};
+
+	// Bind/refresh ownership when Python learns the durable ctx id after STREAM_BEGIN.
+	// This is intentionally idempotent and refuses to steal a live box owned by
+	// another turn.
+	api_bindStreamOwner = (msgId) => {
+		const id = String(msgId || '');
+		if (!id) return false;
+		this._markTurnActive(id);
+		if (!this.dom || typeof this.dom.setStreamOwnerHint !== 'function') return false;
+		return !!this.dom.setStreamOwnerHint(id);
 	};
 
 	// API: end stream.
@@ -693,7 +710,11 @@ class Runtime {
 	_appendDurableInput = (block) => {
 		if (!block || !block.input || !block.input.text) return;
 		const id = String(block.id == null ? '' : block.id);
-		if (!id || document.getElementById(`msg-user-${id}`)) return;
+		if (!id) return;
+		if (document.getElementById(`msg-user-${id}`)) {
+			try { this.loading.inputReady(); } catch (_) {}
+			return;
+		}
 		const nodes = this.dom.get('_nodes_');
 		if (!nodes) return;
 		try {
@@ -704,6 +725,9 @@ class Runtime {
 			this.nodes._materializeUserMdAsPlainText(nodes);
 			this.nodes._userCollapse.apply(nodes);
 			this.nodes._ensureUserCopyIcons(nodes);
+			// SEND_INIT may have armed a delayed loader that is gated on the
+			// user row. Reserve/show it only now, after the input is in DOM.
+			try { this.loading.inputReady(); } catch (_) {}
 		} catch (_) {}
 
 		// Input is transient too. Never let a late sync for an older turn clear
@@ -1373,6 +1397,10 @@ class Runtime {
 			}
 		} catch (_) {}
 		this.nodes.appendToInput(payload);
+		// The transient input row is now materialized. If SEND_INIT armed the
+		// loader, this reserves its footprint after the input (never before it)
+		// and lets the 500 ms visibility gate complete independently.
+		try { this.loading.inputReady(); } catch (_) {}
 
 		// A newly sent turn explicitly returns ownership to FOLLOW. Enable the
 		// permanent bottom anchor now; the forced non-live snap below establishes it.
@@ -1535,7 +1563,7 @@ class Runtime {
 	};
 
 	// API: show/hide loading overlay.
-	api_showLoading = () => this.loading.show();
+	api_showLoading = (delayMs = 0, waitForInput = false) => this.loading.show(delayMs, waitForInput);
 	api_hideLoading = (reserveSpace = false) => this.loading.hide(reserveSpace);
 
 	// API: restore collapsed state of codes in a given root.
@@ -1666,6 +1694,7 @@ Object.defineProperty(window, 'SE', {
 });
 
 window.beginStream = (chunk, preserveParentId = null) => runtime.api_beginStream(chunk, preserveParentId);
+window.bindStreamOwner = (msgId) => runtime.api_bindStreamOwner(msgId);
 window.endStream = () => runtime.api_endStream();
 window.applyStream = (name, chunk) => runtime.api_applyStream(name, chunk);
 window.appendStream = (name, chunk) => runtime.api_appendStream(name, chunk);
@@ -1721,7 +1750,7 @@ window.updateCSS = (s) => runtime.api_updateCSS(s);
 window.getScrollPosition = () => runtime.api_getScrollPosition();
 window.setScrollPosition = (pos) => runtime.api_setScrollPosition(pos);
 
-window.showLoading = () => runtime.api_showLoading();
+window.showLoading = (delayMs = 0, waitForInput = false) => runtime.api_showLoading(delayMs, waitForInput);
 window.hideLoading = (reserveSpace = false) => runtime.api_hideLoading(reserveSpace);
 
 window.restoreCollapsedCode = (root) => runtime.api_restoreCollapsedCode(root);

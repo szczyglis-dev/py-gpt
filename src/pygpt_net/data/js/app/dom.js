@@ -13,6 +13,7 @@ class DOMRefs {
     this._domOutputStreamRef = null; // WeakRef<HTMLDivElement> for '_append_output_'
     this._domStreamMsgRef = null;    // WeakRef<HTMLDivElement> for current '.msg'
     this._domStreamBoxRef = null;    // WeakRef<HTMLDivElement> for current '.msg-box'
+    this._streamOwnerHint = '';       // Durable msg id to claim when a live stream box is created.
   }
 
   // Cache frequently used elements by id (strong refs to fixed layout nodes).
@@ -41,6 +42,38 @@ class DOMRefs {
   resetEphemeral() {
     this._domStreamMsgRef = null;
     this._domStreamBoxRef = null;
+    this._streamOwnerHint = '';
+  }
+
+  // Remember the durable owner for a transient stream box. The box may not
+  // exist yet (Realtime starts its stream before the first text delta), so the
+  // hint is also applied lazily by getStreamMsg() when the box is created.
+  setStreamOwnerHint(ownerId) {
+    const value = String(ownerId || '');
+    this._streamOwnerHint = value;
+    if (!value) return false;
+    const box = this._deref(this._domStreamBoxRef);
+    return box ? this._applyStreamOwnerHint(box) : false;
+  }
+
+  _applyStreamOwnerHint(box) {
+    if (!box) return false;
+    const value = String(this._streamOwnerHint || '');
+    if (!value) return false;
+
+    const explicit = String((box.dataset && box.dataset.workflowParentId) || '');
+    const boxId = String(box.id || '');
+    const current = explicit || (boxId.startsWith('msg-bot-') ? boxId.slice('msg-bot-'.length) : '');
+    // Never steal a box that is already owned by another turn.
+    if (current && current !== value) return false;
+
+    box.dataset.workflowParentId = value;
+    const wantedId = `msg-bot-${value}`;
+    const existing = document.getElementById(wantedId);
+    // A continuation may already have a durable bot node with this id. In that
+    // case dataset ownership is enough; avoid creating duplicate DOM ids.
+    if (!existing || existing === box) box.id = wantedId;
+    return true;
   }
 
   // Release refs and restore default scroll behavior.
@@ -320,6 +353,7 @@ class DOMRefs {
     // Fast path: return cached current message if still connected.
     let msg = this._deref(this._domStreamMsgRef);
     if (msg) {
+      try { this._applyStreamOwnerHint(msg.closest('.msg-box.msg-bot')); } catch (_) {}
       this._ensureStreamFooterPlaceholder(msg);
       return msg;
     }
@@ -338,6 +372,7 @@ class DOMRefs {
 
       const newBox = document.createElement('div');
       newBox.classList.add('msg-box', 'msg-bot');
+      this._applyStreamOwnerHint(newBox);
 
       if (name_header) {
         const name = document.createElement('div');
@@ -368,6 +403,7 @@ class DOMRefs {
 
     // If a box exists but has no .msg or .md-snapshot-root, ensure it.
     if (box) {
+      this._applyStreamOwnerHint(box);
       try { msg = box.querySelector('.msg'); } catch (_) { msg = null; }
       if (!msg) {
         msg = document.createElement('div');

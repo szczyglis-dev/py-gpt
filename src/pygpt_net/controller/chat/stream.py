@@ -244,6 +244,80 @@ class Stream(QObject):
             pid_data["worker"] = None  # release worker reference
             del self.pids[pid]  # remove PID tracking
 
+    def _renderer_instance(self):
+        """Return the active chat renderer, caching its accessor lazily.
+
+        Realtime continuations can arrive without ever starting a regular chat
+        StreamWorker, so ``self.instance`` may still be unset here.
+        """
+        if self.instance is None:
+            self.instance = self.window.controller.chat.render.instance
+        return self.instance()
+
+    def append_continuation_chunk(
+            self,
+            ctx: CtxItem,
+            chunk: str,
+            begin: bool = False,
+    ) -> bool:
+        """Append a post-tool/autonomous continuation to its durable parent.
+
+        Unlike :meth:`handleChunk`, this helper deliberately has no chat-worker
+        PID guard. Realtime owns its provider worker in ``controller.realtime``
+        but still needs the exact same chronological partial rendering path.
+
+        :return: True when *ctx* was a continuation and the chunk was handled.
+        """
+        parent = getattr(ctx, "turn_parent", None)
+        if parent is None:
+            return False
+
+        renderer = self._renderer_instance()
+        is_agent_continue = bool(
+            isinstance(getattr(ctx, "extra", None), dict)
+            and ctx.extra.get("agent_continue")
+        )
+        if begin and not is_agent_continue:
+            # Tool-result continuation: promote the finished tool round into
+            # the durable timeline before prose starts streaming. This ordering
+            # guarantees Tool/Tools exists before the transient Tool row clears.
+            previous_part = getattr(ctx, "turn_previous_part", None)
+            if previous_part is not None:
+                self.window.core.ctx.mark_part_tasks_ui_ready(previous_part, True, item=parent)
+                self.window.core.ctx.update_part(parent, previous_part, sync_item=True)
+            if hasattr(renderer, "discard_part_streams"):
+                renderer.discard_part_streams(parent.meta)
+            self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                "meta": parent.meta, "ctx": parent, "reason": "tool_round_ready",
+            }))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": parent.meta, "ctx": parent,
+            }))
+
+        # Autonomous continuation already owns a freshly persisted empty
+        # CtxItemPart. Tool-result continuations normally reuse the active part
+        # until merge_continuation() allocates the final text part. In both cases
+        # the runtime chunk belongs under the existing durable msg-box.
+        part = getattr(ctx, "turn_part", None)
+        part_key = getattr(part, "uuid", None) or f"chat-{getattr(ctx, 'pid', id(ctx))}"
+        if hasattr(renderer, "append_part_chunk"):
+            renderer.append_part_chunk(
+                parent.meta,
+                parent,
+                part_key,
+                chunk,
+                begin,
+            )
+        else:
+            # Non-Web renderers do not implement nested partial streaming.
+            renderer.append_chunk(
+                parent.meta,
+                parent,
+                chunk,
+                begin,
+            )
+        return True
+
     @Slot(object, str, bool)
     def handleChunk(
             self,
@@ -265,62 +339,14 @@ class Stream(QObject):
             return  # signal from a worker superseded on the same chat PID
 
         # Tool feedback is an ephemeral provider call, but its visible prose
-        # belongs to the same durable user turn. Once text appears after a tool,
-        # materialize the completed tool round and stream the new text into a
-        # nested partial of the *parent* msg-box. Never open another live msg-box
-        # for the continuation, because that looks like a new CtxItem.
-        parent = getattr(ctx, "turn_parent", None)
-        if parent is not None:
-            renderer = self.instance()
-            is_agent_continue = bool(
-                isinstance(getattr(ctx, "extra", None), dict)
-                and ctx.extra.get("agent_continue")
-            )
-            if begin and not is_agent_continue:
-                # Tool-result continuation: promote the finished tool round into
-                # the durable timeline before prose starts streaming.
-                previous_part = getattr(ctx, "turn_previous_part", None)
-                if previous_part is not None:
-                    self.window.core.ctx.mark_part_tasks_ui_ready(previous_part, True, item=parent)
-                    self.window.core.ctx.update_part(parent, previous_part, sync_item=True)
-                if hasattr(renderer, "discard_part_streams"):
-                    renderer.discard_part_streams(parent.meta)
-                self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
-                    "meta": parent.meta, "ctx": parent, "reason": "tool_round_ready",
-                }))
-                self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
-                    "meta": parent.meta, "ctx": parent,
-                }))
-
-            # Autonomous continuation already owns a freshly persisted empty
-            # CtxItemPart. Stream directly into that part under the existing
-            # durable message; rebuilding the whole view on the first token races the
-            # live partial and makes the iteration appear non-streaming. Use the
-            # part UUID as a stable stream key so batching never changes identity.
-            part = getattr(ctx, "turn_part", None)
-            part_key = getattr(part, "uuid", None) or f"chat-{getattr(ctx, 'pid', id(ctx))}"
-            if hasattr(renderer, "append_part_chunk"):
-                renderer.append_part_chunk(
-                    parent.meta,
-                    parent,
-                    part_key,
-                    chunk,
-                    begin,
-                )
-            else:
-                # Non-Web renderers do not implement nested partial streaming.
-                # Fall back to their ordinary stream path instead of dropping
-                # autonomous deltas or raising from the GUI slot.
-                renderer.append_chunk(
-                    parent.meta,
-                    parent,
-                    chunk,
-                    begin,
-                )
+        # belongs to the same durable user turn. Route it through the shared
+        # continuation renderer after the worker-ownership guard above. Realtime
+        # uses the same helper directly because it has no chat StreamWorker/PID.
+        if self.append_continuation_chunk(ctx, chunk, begin):
             return
 
         # direct call to the renderer to avoid overhead of event queue
-        self.instance().append_chunk(
+        self._renderer_instance().append_chunk(
             ctx.meta,
             ctx,
             chunk,

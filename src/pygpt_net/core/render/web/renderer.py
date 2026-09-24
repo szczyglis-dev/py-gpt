@@ -190,6 +190,7 @@ class Renderer(BaseRenderer):
         self._stream_acc: dict[int, Renderer._AppendBuffer] = {}
         self._stream_timer: dict[int, QTimer] = {}
         self._stream_header: dict[int, str] = {}
+        self._stream_owner_id: dict[int, str] = {}
         self._stream_last_flush: dict[int, float] = {}
         self._stream_last_cleanup: float = 0.0
 
@@ -215,6 +216,7 @@ class Renderer(BaseRenderer):
         # not count as visible activity when live reasoning is disabled.
         self._loading_visible: dict[int, bool] = {}
         self._loading_reserved: dict[int, bool] = {}
+        self._loading_show_options: dict[int, tuple[int, bool]] = {}
 
         # Track <think> boundaries independently for every live stream so the
         # request spinner can stay visible while hidden reasoning is arriving.
@@ -242,6 +244,7 @@ class Renderer(BaseRenderer):
         self.pids = {}
         self._loading_visible = {}
         self._loading_reserved = {}
+        self._loading_show_options = {}
         self._reasoning_activity_state = {}
         self._workflow_statuses = {}
         self._workflow_status_seq = 0
@@ -301,8 +304,11 @@ class Renderer(BaseRenderer):
         # intentionally leave the spinner hidden.
         if self._loading_visible.get(pid, False):
             try:
+                delay_ms, wait_for_input = self._loading_show_options.get(pid, (0, False))
+                wait_js = "true" if wait_for_input else "false"
                 node.page().runJavaScript(
-                    "if (typeof window.showLoading !== 'undefined') showLoading();"
+                    "if (typeof window.showLoading !== 'undefined') "
+                    f"showLoading({int(delay_ms)}, {wait_js});"
                 )
             except Exception:
                 pass
@@ -406,23 +412,41 @@ class Renderer(BaseRenderer):
             self,
             state: str,
             meta: CtxMeta,
+            loading_delay_ms: int = 0,
+            loading_wait_for_input: bool = False,
     ):
         """
         On kernel state changed event
 
         :param state: new state
         :param meta: context meta
+        :param loading_delay_ms: optional loader visibility delay
+        :param loading_wait_for_input: wait until the user row is materialized
         """
         if state == RenderEvent.STATE_BUSY:
             if meta:
                 pid = self.get_pid(meta)
                 if pid is not None:
+                    # Repeated BUSY events are common when a mode finishes input
+                    # materialization and reasserts ownership (Agents v2).  The
+                    # loader may already be armed with a delayed/input-gated show;
+                    # do not restart that pending gate after the inputReady event.
+                    if self._loading_visible.get(pid, False):
+                        return
+                    try:
+                        delay_ms = max(0, int(loading_delay_ms or 0))
+                    except (TypeError, ValueError):
+                        delay_ms = 0
+                    wait_for_input = bool(loading_wait_for_input)
                     self._loading_visible[pid] = True
                     self._loading_reserved[pid] = False
+                    self._loading_show_options[pid] = (delay_ms, wait_for_input)
                     node = self.get_output_node_by_pid(pid)
                     try:
+                        wait_js = "true" if wait_for_input else "false"
                         node.page().runJavaScript(
-                            "if (typeof window.showLoading !== 'undefined') showLoading();"
+                            "if (typeof window.showLoading !== 'undefined') "
+                            f"showLoading({delay_ms}, {wait_js});"
                         )
                     except Exception:
                         pass
@@ -440,6 +464,7 @@ class Renderer(BaseRenderer):
             for pid in target_pids:
                 self._loading_visible[pid] = False
                 self._loading_reserved[pid] = False
+                self._loading_show_options.pop(pid, None)
                 if state == RenderEvent.STATE_ERROR:
                     # Error/interruption history may intentionally retain the
                     # last workflow row. Stop its shimmer when the request is no
@@ -538,6 +563,7 @@ class Renderer(BaseRenderer):
             pctx = self.pids[pid]
             pctx.clear()
             self._stream_reset(pid)
+            self._stream_owner_id[pid] = str(getattr(ctx, "id", "") or "")
         self.prev_chunk_replace = False
 
         # A provider continuation starts after a tool result has been returned to
@@ -620,6 +646,7 @@ class Renderer(BaseRenderer):
         # correction must be requested explicitly via REPLACE_OUTPUT/SYNC_OUTPUT.
         self.finalize_output(meta, ctx, replace_text=False, reason="stream_end")
         self.pids[pid].clear()
+        self._stream_owner_id.pop(pid, None)
         self._stream_reset(pid)
         self._partial_stream_reset(pid)
         self.auto_cleanup(meta)
@@ -1122,6 +1149,17 @@ class Renderer(BaseRenderer):
         previous_item = pctx.item
         previous_id = getattr(previous_item, "id", None)
         current_id = getattr(ctx, "id", None)
+        current_owner = str(current_id or "")
+        if current_owner and self._stream_owner_id.get(pid, "") != current_owner:
+            try:
+                owner_json = json.dumps(current_owner, ensure_ascii=False)
+                self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.bindStreamOwner !== 'undefined') "
+                    f"bindStreamOwner({owner_json});"
+                )
+                self._stream_owner_id[pid] = current_owner
+            except Exception:
+                pass
         is_new_item = previous_item is not ctx and (
             previous_id is None or current_id is None or previous_id != current_id
         )
@@ -1496,6 +1534,7 @@ class Renderer(BaseRenderer):
             return
         self._loading_visible[pid] = False
         self._loading_reserved[pid] = bool(reserve_space)
+        self._loading_show_options.pop(pid, None)
         node = self.get_output_node_by_pid(pid)
         if node is None:
             return
@@ -2995,6 +3034,7 @@ class Renderer(BaseRenderer):
         self._stream_last_flush.pop(pid, None)
         self._loading_visible.pop(pid, None)
         self._loading_reserved.pop(pid, None)
+        self._loading_show_options.pop(pid, None)
 
     def on_js_ready(self, pid: int) -> None:
         """
