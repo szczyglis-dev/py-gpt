@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.8.31 (2026-09-25)
+
+- Refactored and improved tab management.
+- Refactored and improved message rendering and event flow.
+- Improved the Canvas plugin.
+- Added the ability to send sketches and images directly from Painter to the model in real time via the Canvas plugin.
+- Improved and fixed runtime attachment and image handling.
+- Optimized memory usage and Python module initialization.
+- Added a new Jev / System One plugin - see the documentation for more information.
+- Various UI fixes and improvements.
+- Other fixes and improvements.
+
 ## 2.8.30 (2026-09-24)
 
 - Added a new **Canvas** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. See the new **Canvas** section in the documentation for details.

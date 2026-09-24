@@ -17,6 +17,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, call
 import pytest
 
+from pygpt_net.core.render.protocol import RenderOp
 from pygpt_net.core.render.web.pid import PidData
 from pygpt_net.core.render.web.renderer import Renderer
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -240,12 +241,18 @@ class TestRenderer:
     def test_end(self, renderer):
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        pctx = PidData(1, meta)
+        pctx.item = "item"
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(item="item")}
-        renderer.append_context_item = MagicMock()
+        renderer.pids = {1: pctx}
+        renderer.auto_cleanup = MagicMock()
+
         renderer.end(meta, ctx, True)
-        renderer.append_context_item.assert_called_with(meta, "item")
-        assert renderer.pids[1].item is None
+
+        renderer.get_or_create_pid.assert_called_once_with(meta)
+        assert pctx.item is None
+        assert pctx.buffer == ""
+        renderer.auto_cleanup.assert_called_once_with(meta)
 
     def test_end_extra(self, renderer):
         ctx = DummyCtxItem()
@@ -267,16 +274,30 @@ class TestRenderer:
     def test_stream_end(self, renderer, fake_window):
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        pctx = PidData(1, meta)
+        pctx.item = "item"
+        pctx.buffer = "pending"
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(item="item")}
-        renderer.window.controller.agent.legacy.enabled = MagicMock(return_value=True)
-        renderer.append_context_item = MagicMock()
-        node = fake_window.core.ctx.output.get_current(meta)
-        node.page().runJavaScript = MagicMock()
+        renderer.pids = {1: pctx}
+        renderer._stream_flush = MagicMock()
+        renderer.flush_part_streams = MagicMock()
+        renderer._partial_stream_reset = MagicMock()
+        renderer.finalize_output = MagicMock()
+        renderer._stream_reset = MagicMock()
+        renderer.auto_cleanup = MagicMock()
+
         renderer.stream_end(meta, ctx)
-        renderer.append_context_item.assert_called_with(meta, "item")
-        assert renderer.pids[1].item is None
-        node.page().runJavaScript.assert_called()
+
+        renderer._stream_flush.assert_called_once_with(1, force=True)
+        renderer.flush_part_streams.assert_called_once_with(meta)
+        renderer.finalize_output.assert_called_once_with(
+            meta, ctx, replace_text=False, reason="stream_end"
+        )
+        assert pctx.item == "item"
+        assert pctx.buffer == ""
+        assert renderer._partial_stream_reset.call_count == 2
+        renderer._stream_reset.assert_called_once_with(1)
+        renderer.auto_cleanup.assert_called_once_with(meta)
 
     def test_append_context(self, renderer):
         meta = DummyCtxMeta()
@@ -303,9 +324,9 @@ class TestRenderer:
         renderer.tool_output_end = MagicMock()
         renderer.prepare_input = MagicMock(return_value="prepared input")
         block = MagicMock()
-        block.to_json.return_value = "render-block-json"
+        block.to_dict.return_value = {"id": 1, "input": {"text": "prepared input"}}
         renderer._build_render_block = MagicMock(return_value=block)
-        renderer.append = MagicMock()
+        renderer._emit_mutation = MagicMock()
         renderer.pids = {1: MagicMock()}
 
         renderer.append_input(meta, ctx, flush=True, append=False)
@@ -317,8 +338,13 @@ class TestRenderer:
         renderer._build_render_block.assert_called_once_with(
             meta, ctx, input_text="prepared input", output_text=None, history_date_label=None
         )
-        block.to_json.assert_called_once_with(wrap=True)
-        renderer.append.assert_called_once_with(1, "render-block-json")
+        block.to_dict.assert_called_once_with()
+        renderer._emit_mutation.assert_called_once()
+        mutation_meta, mutation = renderer._emit_mutation.call_args.args
+        assert mutation_meta is meta
+        assert mutation.op == RenderOp.APPEND_INPUT
+        assert mutation.msg_id == ctx.id
+        assert mutation.block == block.to_dict.return_value
 
     def test_append_chunk(self, renderer, fake_window):
         meta = DummyCtxMeta()
@@ -326,7 +352,9 @@ class TestRenderer:
         ctx.id = 2
         previous = DummyCtxItem()
         previous.id = 1
-        pctx = SimpleNamespace(item=previous, header="")
+        pctx = PidData(1, meta)
+        pctx.item = previous
+        pctx.header = ""
         renderer.get_or_create_pid = MagicMock(return_value=1)
         renderer.pids = {1: pctx}
         renderer._hide_previous_agent_action_icons = MagicMock()
@@ -350,7 +378,7 @@ class TestRenderer:
             call("if (typeof window.hideLoading !== 'undefined') hideLoading(false);"),
             call(
                 "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
-                "if (typeof window.beginStream !== 'undefined') beginStream(true);"
+                "if (typeof window.beginStream !== 'undefined') beginStream(true, \"2\");"
                 "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", []);"
             ),
         ]

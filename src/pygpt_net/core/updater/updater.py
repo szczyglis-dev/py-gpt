@@ -130,11 +130,7 @@ class Updater(QObject):
         if not bool(config.get("app_updated", False)):
             return False
 
-        self.window.controller.dialogs.info.toggle(
-            "changelog",
-            width=700,
-            height=600,
-        )
+        self.window.controller.dialogs.info.toggle("changelog")
 
         # Clear only after the dialog was opened successfully. The QLabel keeps
         # its startup visibility state for the current session, while the next

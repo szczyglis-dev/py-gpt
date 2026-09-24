@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.30** | build: **2026-09-24** | Python: **>=3.10, <3.14**
+Release: **2.8.31** | build: **2026-09-25** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -2572,6 +2572,18 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.31 (2026-09-25)**
+
+- Refactored and improved tab management.
+- Refactored and improved message rendering and event flow.
+- Improved the Canvas plugin.
+- Added the ability to send sketches and images directly from Painter to the model in real time via the Canvas plugin.
+- Improved and fixed runtime attachment and image handling.
+- Optimized memory usage and Python module initialization.
+- Added a new Jev / System One plugin - see the documentation for more information.
+- Various UI fixes and improvements.
+- Other fixes and improvements.
 
 **2.8.30 (2026-09-24)**
 

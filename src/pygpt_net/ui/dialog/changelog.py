@@ -51,7 +51,7 @@ class Changelog:
         )
         updated.setAlignment(Qt.AlignCenter)
         updated.setWordWrap(True)
-        updated.setContentsMargins(12, 10, 12, 10)
+        updated.setContentsMargins(6, 5, 6, 5)
         font = updated.font()
         font.setBold(True)
         updated.setFont(font)
