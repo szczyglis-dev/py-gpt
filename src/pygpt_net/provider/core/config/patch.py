@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 12:20:00                  #
+# Updated Date: 2026.09.24 01:55:00                  #
 # ================================================== #
 
 import copy
@@ -1351,22 +1351,19 @@ class Patch:
 
                         if tool_id != "web_browser":
                             continue
-                        # Preserve an explicit user rename, but replace old/default and
-                        # document-derived automatic titles from the first implementation.
-                        is_custom = bool(item.get("custom_name")) or item.get("title_source") == "custom"
-                        if not is_custom:
-                            if item.get("title") != "Canvas":
-                                item["title"] = "Canvas"
-                                updated = True
-                            if item.get("tooltip") != "Canvas":
-                                item["tooltip"] = "Canvas"
-                                updated = True
-                            if item.get("title_source") != "default":
-                                item["title_source"] = "default"
-                                updated = True
-                            if item.get("custom_name"):
-                                item["custom_name"] = False
-                                updated = True
+
+                        if item.get("title") != "Canvas":
+                            item["title"] = "Canvas"
+                            updated = True
+                        if item.get("tooltip") != "Canvas":
+                            item["tooltip"] = "Canvas"
+                            updated = True
+                        if item.get("title_source") != "default":
+                            item["title_source"] = "default"
+                            updated = True
+                        if item.get("custom_name") is not False:
+                            item["custom_name"] = False
+                            updated = True
 
                     # Canvas, Agent Workflow and Python/OS are application-wide
                     # singleton tools. Keep the oldest persisted tab for each tool.
@@ -1381,6 +1378,65 @@ class Patch:
                             if key in tabs:
                                 del tabs[key]
                                 updated = True
+
+                    # add Canvas at first place
+                    has_canvas = any(
+                        isinstance(item, dict) and item.get("tool_id") == "web_browser"
+                        for item in tabs.values()
+                    )
+                    if not has_canvas:
+                        second_column_items = [
+                            item for item in tabs.values()
+                            if isinstance(item, dict) and item.get("column_idx") == 1
+                        ]
+                        for item in second_column_items:
+                            try:
+                                item["idx"] = int(item.get("idx", 0)) + 1
+                            except (TypeError, ValueError):
+                                item["idx"] = 1
+
+                        opened = data.get("tabs.opened")
+                        if second_column_items and isinstance(opened, dict):
+                            opened_key = 1 if 1 in opened else "1" if "1" in opened else None
+                            if opened_key is not None:
+                                try:
+                                    opened_idx = int(opened[opened_key])
+                                    if opened_idx >= 0:
+                                        opened[opened_key] = opened_idx + 1
+                                except (TypeError, ValueError):
+                                    opened[opened_key] = 1
+
+                        existing_pids = []
+                        for item in tabs.values():
+                            if not isinstance(item, dict):
+                                continue
+                            try:
+                                existing_pids.append(int(item.get("pid")))
+                            except (TypeError, ValueError):
+                                pass
+                        next_pid = max(existing_pids, default=-1) + 1
+
+                        keys_are_strings = any(isinstance(key, str) for key in tabs)
+                        serialized_keys = {str(key) for key in tabs}
+                        new_key = str(next_pid) if keys_are_strings else next_pid
+                        while str(new_key) in serialized_keys:
+                            next_pid += 1
+                            new_key = str(next_pid) if keys_are_strings else next_pid
+
+                        tabs[new_key] = {
+                            "uuid": str(uuid.uuid4()),
+                            "pid": next_pid,
+                            "idx": 0,
+                            "type": 100,
+                            "data_id": None,
+                            "title": "Canvas",
+                            "tooltip": "Canvas",
+                            "custom_name": False,
+                            "title_source": "default",
+                            "column_idx": 1,
+                            "tool_id": "web_browser",
+                        }
+                        updated = True
 
                 plugins_enabled = data.get("plugins_enabled")
                 if isinstance(plugins_enabled, dict) and "canvas_web" not in plugins_enabled:

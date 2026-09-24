@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.23 18:40:00                  #
+# Updated Date: 2026.09.24 02:05:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -23,13 +23,14 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "canvas_web"
         self.is_common_plugin = True
-        self.name = "Canvas"
+        self.name = "Canvas (inline)"
         self.description = (
             "BETA. Provides an internal browser/canvas runtime for HTML, JavaScript, website prototyping, "
             "scoped browser computer-use, Playwright sandbox automation, annotations and a lightweight preview server. "
             "This feature will be expanded in future releases."
         )
         self.prefix = "Canvas/Web"
+        self.type = ["cmd.inline"]
         self.order = 100
         self.use_locale = True
         self.tabs = {
@@ -59,17 +60,19 @@ class Plugin(BasePlugin):
         name = event.name
         data = event.data
         ctx = event.ctx
-        if name == Event.CMD_SYNTAX:
+        if name in (Event.CMD_SYNTAX, Event.CMD_SYNTAX_INLINE):
             self.cmd_syntax(data)
-        elif name == Event.CMD_EXECUTE:
+        elif name in (Event.CMD_EXECUTE, Event.CMD_INLINE):
             self.cmd(ctx, data.get("commands", []))
         elif name == Event.SYSTEM_PROMPT:
-            if self.cmd_exe():
-                data["value"] = self.on_system_prompt(data.get("value", ""))
+            # Canvas is an inline plugin: enabling the plugin is sufficient to
+            # expose its runtime and prompt context. The global Tools switch is
+            # intentionally not required.
+            data["value"] = self.on_system_prompt(data.get("value", ""))
         elif name == Event.POST_PROMPT_END:
             if ctx is not None and (ctx.reply or data.get("reply")):
                 return
-            if self.cmd_exe() and self.get_option_value("annotation_prompt"):
+            if self.get_option_value("annotation_prompt"):
                 data["value"] = self.append_runtime_context(data.get("value", ""))
 
     def cmd_syntax(self, data: dict):

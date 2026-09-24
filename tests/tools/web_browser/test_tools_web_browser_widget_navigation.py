@@ -46,6 +46,7 @@ def _widget():
         request_viewport_sync=MagicMock(),
         _sync_from_runtime=MagicMock(),
         _update_viewport_badge=MagicMock(),
+        _update_plugin_hint=MagicMock(),
         _column_visible=MagicMock(return_value=True),
     )
 
@@ -109,6 +110,7 @@ def test_web_browser_widget_runtime_state_updates_view_and_real_tab_title():
     obj._update_viewport_badge.assert_called_once_with(
         {"title": "Example", "width": 900, "height": 600}
     )
+    obj._update_plugin_hint.assert_called_once_with()
     obj.window.controller.ui.tabs.update_title_by_tab.assert_called_once_with(obj.tab, "Example")
 
     obj.window.controller.ui.tabs.update_title_by_tab.reset_mock()

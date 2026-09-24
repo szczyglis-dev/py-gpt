@@ -23,7 +23,7 @@ Canvas can render complete HTML/CSS/JavaScript content in the persistent built-i
 Example
 -------
 
-Enable the **Canvas** plugin and ask, for example:
+Enable the **Canvas (inline)** plugin and ask, for example:
 
 .. code-block:: text
 
@@ -44,6 +44,6 @@ For local websites and web applications, the plugin also provides a lightweight 
 Enabling Canvas
 ---------------
 
-To use these capabilities, enable the **Canvas** plugin from the **Plugins** menu. The normal ``Tools`` switch must also allow plugin tools in workflows where local tool execution is controlled by that switch.
+To use these capabilities, enable the **Canvas (inline)** plugin from the **Plugins** menu. As an inline plugin, Canvas works independently of the global ``Tools`` switch, so ``Tools`` does not need to be enabled.
 
 For the complete configuration reference, runtime rules, backend behavior, security notes, annotations, preview server, and a description of every available command, see :ref:`plugin-canvas-web-html` in :doc:`plugins`.

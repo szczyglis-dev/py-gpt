@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 01:35:00                  #
+# Updated Date: 2026.09.24 02:05:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
@@ -40,6 +40,8 @@ class ToolWidget:
         self.scroll = None
         self._layout = None
         self.viewport_badge = None
+        self.plugin_hint = None
+        self._plugin_action = None
         self._viewport_filter = None
         self._viewport_sync_timer = None
         self._columns_splitter = None
@@ -144,6 +146,24 @@ class ToolWidget:
         self.viewport_badge.adjustSize()
         self.viewport_badge.show()
 
+        self.plugin_hint = QLabel(
+            trans("ui.enable_hint", domain="plugin.canvas_web"),
+            self.scroll.viewport(),
+        )
+        self.plugin_hint.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.plugin_hint.setStyleSheet(
+            "QLabel {"
+            " background: rgba(24, 24, 24, 175);"
+            " color: white;"
+            " border-radius: 5px;"
+            " padding: 3px 7px;"
+            " font-size: 11px;"
+            "}"
+        )
+        self.plugin_hint.adjustSize()
+        self._update_plugin_hint()
+        self._connect_plugin_hint_hook()
+
         self._viewport_filter = ViewportEventFilter(self.scroll)
         self._viewport_filter.changed.connect(self._on_viewport_geometry_changed)
         self.scroll.viewport().installEventFilter(self._viewport_filter)
@@ -189,6 +209,7 @@ class ToolWidget:
     def on_runtime_state(self, state: dict):
         self._sync_from_runtime()
         self._update_viewport_badge(state)
+        self._update_plugin_hint()
         # The application has one canonical Canvas tab, but its title
         # may still follow the currently rendered document.  This is only a
         # label update; it must never be used as tab identity.
@@ -223,6 +244,12 @@ class ToolWidget:
                 pass
 
     def _disconnect_viewport_hooks(self):
+        if self._plugin_action is not None:
+            try:
+                self._plugin_action.toggled.disconnect(self._on_canvas_plugin_toggled)
+            except Exception:
+                pass
+            self._plugin_action = None
         if self.scroll is not None and self._viewport_filter is not None:
             try:
                 self.scroll.viewport().removeEventFilter(self._viewport_filter)
@@ -242,6 +269,8 @@ class ToolWidget:
             self._app_ready_connected = False
 
     def _on_app_ready(self):
+        self._connect_plugin_hint_hook()
+        self._update_plugin_hint()
         self.request_viewport_sync(immediate=True)
 
     def _on_columns_splitter_moved(self, _pos, _index):
@@ -250,7 +279,7 @@ class ToolWidget:
         self.request_viewport_sync(immediate=False)
 
     def _on_viewport_geometry_changed(self):
-        self._position_viewport_badge()
+        self._position_viewport_overlays()
         self.request_viewport_sync(immediate=False)
 
     def request_viewport_sync(self, immediate: bool = False):
@@ -299,17 +328,61 @@ class ToolWidget:
         height = int(state.get("height") or 0)
         self.viewport_badge.setText(f"{width} × {height}")
         self.viewport_badge.adjustSize()
-        self._position_viewport_badge()
+        self._position_viewport_overlays()
 
-    def _position_viewport_badge(self):
-        if self.viewport_badge is None or self.scroll is None:
+    def _is_canvas_plugin_enabled(self) -> bool:
+        if self.window is None:
+            return False
+        try:
+            return bool(self.window.controller.plugins.is_enabled("canvas_web"))
+        except Exception:
+            pass
+        try:
+            plugin = self.window.core.plugins.get("canvas_web")
+            return bool(plugin is not None and getattr(plugin, "enabled", False))
+        except Exception:
+            return False
+
+    def _update_plugin_hint(self):
+        if self.plugin_hint is None:
+            return
+        self.plugin_hint.setVisible(not self._is_canvas_plugin_enabled())
+        self._position_viewport_overlays()
+
+    def _connect_plugin_hint_hook(self):
+        if self.window is None or self._plugin_action is not None:
+            return
+        try:
+            action = self.window.ui.menu.get("plugins", {}).get("canvas_web")
+        except Exception:
+            action = None
+        if action is None:
+            return
+        try:
+            action.toggled.connect(self._on_canvas_plugin_toggled)
+            self._plugin_action = action
+        except Exception:
+            self._plugin_action = None
+
+    def _on_canvas_plugin_toggled(self, _checked=False):
+        # Controller state is updated by the action handler in the same event
+        # cycle. Defer one turn so the hint always reflects the final state.
+        QTimer.singleShot(0, self._update_plugin_hint)
+
+    def _position_viewport_overlays(self):
+        if self.scroll is None:
             return
         viewport = self.scroll.viewport()
         margin = 8
-        x = max(margin, viewport.width() - self.viewport_badge.width() - margin)
-        y = max(margin, viewport.height() - self.viewport_badge.height() - margin)
-        self.viewport_badge.move(x, y)
-        self.viewport_badge.raise_()
+        if self.viewport_badge is not None:
+            x = max(margin, viewport.width() - self.viewport_badge.width() - margin)
+            y = max(margin, viewport.height() - self.viewport_badge.height() - margin)
+            self.viewport_badge.move(x, y)
+            self.viewport_badge.raise_()
+        if self.plugin_hint is not None:
+            y = max(margin, viewport.height() - self.plugin_hint.height() - margin)
+            self.plugin_hint.move(margin, y)
+            self.plugin_hint.raise_()
 
 
 class BrowserPage(QWebEnginePage):
