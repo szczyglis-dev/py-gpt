@@ -902,6 +902,13 @@ class CustomWebEnginePage(QWebEnginePage):
         return super().acceptNavigationRequest(url, _type, isMainFrame)
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
+        # Chromium may emit this benign diagnostic while a complex page is
+        # settling after a batch of ResizeObserver notifications. The renderer
+        # already defers observer-driven DOM/layout writes to rAF; keep this one
+        # browser-internal message out of the application logger if Chromium
+        # still reports it sporadically. Do not suppress other JS messages.
+        if str(message).strip() == "ResizeObserver loop completed with undelivered notifications.":
+            return
         print("[JS CONSOLE] Line", line_number, ":", message)
         safe_emit(self.signals, "js_message", line_number, message, source_id)  # handled in debug controller
 
