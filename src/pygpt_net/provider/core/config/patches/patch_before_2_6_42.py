@@ -1291,14 +1291,8 @@ class Patch:
                     data["render.code_syntax"] = "github-dark"
                 if 'zoom' not in data:
                     data["zoom"] = 1.0
-                if 'render.engine' not in data:
-                    data["render.engine"] = "web"
                 if 'render.open_gl' not in data:
                     data["render.open_gl"] = False
-
-                # in snap, leave legacy render engine by default
-                # if self.window.core.platforms.is_snap():
-                    # data["render.engine"] = "legacy"
 
                 # css upgrade
                 updated = True

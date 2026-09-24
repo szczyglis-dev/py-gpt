@@ -704,24 +704,6 @@
         "step": 1,
         "advanced": false
     },
-    "render.engine": {
-        "section": "general",
-        "type": "combo",
-        "slider": false,
-        "label": "settings.render.engine",
-        "description": "settings.restart.required",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "keys": [
-            {
-                "web": "WebEngine / Chromium"
-            }
-        ]
-    },
     "render.open_gl": {
         "section": "general",
         "type": "bool",

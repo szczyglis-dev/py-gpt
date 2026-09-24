@@ -219,12 +219,7 @@ class Kernel:
             # Keep the Qt loop alive for roughly one frame so showLoading() can
             # execute and the compositor can publish the PRE-SEND state. This is
             # intentionally limited to SEND_INIT, not every STATE_BUSY update.
-            render = getattr(self.window.controller.chat, "render", None)
-            is_web = (
-                render is not None
-                and getattr(render, "engine", None) == "web"
-                and not self.window.core.config.get("render.plain")
-            )
+            is_web = not self.window.core.config.get("render.plain")
             if is_web:
                 loop = QEventLoop()
                 QTimer.singleShot(20, loop.quit)

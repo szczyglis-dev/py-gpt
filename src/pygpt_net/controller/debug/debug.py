@@ -161,9 +161,6 @@ class Debug(QObject):
 
     def connect_signals(self):
         """Connect debug signals for all existing WebEngine output pages."""
-        if self.window.controller.chat.render.get_engine() != "web":
-            return
-
         # A chat can have more than one WebEngine page (split screen), and
         # renderer recycling replaces pages at runtime.  Do not bind only the
         # page that happened to be current during post-setup.

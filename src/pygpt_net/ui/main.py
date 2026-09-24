@@ -129,8 +129,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         if self.args is not None:
             if "debug" in self.args and (self.args["debug"] == "1" or self.args["debug"] == "2"):
                 render_debug = True
-            if "legacy" in self.args and self.args["legacy"] == "1":
-                self.core.config.set("render.engine", "legacy")
             if "disable-gpu" in self.args and self.args["disable-gpu"] == "1":
                 self.core.config.set("render.open_gl", False)
 

@@ -118,10 +118,7 @@ class Console:
             self.log(self.emods())
         elif msg.startswith("js(") and msg.endswith(")"):
             expr = msg[3:-1].strip()
-            if self.window.controller.chat.render.get_engine() == "web":
-                self.window.controller.chat.render.web_renderer.eval_js(expr)  # async result
-            else:
-                self.log("JS eval is only available in web rendering engine")
+            self.window.controller.chat.render.web_renderer.eval_js(expr)  # async result
         else:
             self.log(f"Unknown command: {msg}. Type 'help' for available commands.")
 

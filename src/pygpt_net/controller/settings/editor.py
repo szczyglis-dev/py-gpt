@@ -203,7 +203,7 @@ class Editor:
 
         # Response timestamps are now configured in Chats -> Render and apply
         # only to the plain-text renderer. Refresh them immediately when that
-        # renderer is active; normal Web/Markdown output intentionally ignores
+        # renderer is active; normal WebEngine output intentionally ignores
         # this setting.
         if (self.config_changed('output_timestamp')
                 and self.window.core.config.get('render.plain')):

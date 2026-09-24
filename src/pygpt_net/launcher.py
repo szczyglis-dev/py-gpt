@@ -62,7 +62,6 @@ class Launcher:
         self.loop = None
         self.window = None
         self.debug = False
-        self.force_legacy = False
         self.force_disable_gpu = False
         self.shortcut_filter = None
         self.workdir = None
@@ -108,12 +107,6 @@ class Launcher:
                 help="debug mode (0=disabled, 1=info, 2=debug)",
             )
             parser.add_argument(
-                "-l",
-                "--legacy",
-                required=False,
-                help="force enable legacy mode (0=disabled, 1=enable)",
-            )
-            parser.add_argument(
                 "-n",
                 "--disable-gpu",
                 required=False,
@@ -140,11 +133,6 @@ class Launcher:
                 self.debug = True
             else:
                 Debug.init(ERROR)  # default log level
-
-            # force legacy mode
-            if "legacy" in args and args["legacy"] == "1":
-                print("** Force legacy mode enabled")
-                self.force_legacy = True
 
             # force disable GPU
             if "disable_gpu" in args and args["disable_gpu"] == "1":

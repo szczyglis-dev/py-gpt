@@ -1462,6 +1462,15 @@ class Patch:
                     if self.window.core.plugins.remove_plugin_param_from_presets("cmd_code_interpreter", key):
                         updated = True
 
+            # < 2.8.31
+            if old < parse_version("2.8.31"):
+                print("Migrating config from < 2.8.31...")
+                # The legacy Markdown renderer has been removed. Drop its selector even
+                # when the stored profile already reports the current application version.
+                if "render.engine" in data:
+                    del data["render.engine"]
+                    updated = True
+
         # update file
         migrated = False
         if updated:

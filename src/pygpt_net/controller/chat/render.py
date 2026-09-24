@@ -15,7 +15,6 @@ from PySide6.QtCore import Slot, QTimer
 
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.core.render.base import BaseRenderer
-from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
 from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
 from pygpt_net.core.render.web.renderer import Renderer as WebRenderer
 from pygpt_net.core.tabs.tab import Tab
@@ -38,24 +37,20 @@ class Render:
         :param window: Window instance
         """
         self.window = window
-        self.markdown_renderer = MarkdownRenderer(window)
         self.plaintext_renderer = PlainTextRenderer(window)
         self.web_renderer = WebRenderer(window)
-        self.engine = None
         self.scroll = 0
         self.renderer = None
 
     def setup(self) -> None:
-        """Setup render"""
-        self.engine = self.window.core.config.get("render.engine")
+        """Select the active renderer."""
         if self.window.core.config.get('render.plain'):
             self.renderer = self.plaintext_renderer
         else:
-            self.renderer = self.web_renderer if self.engine == "web" else self.markdown_renderer
+            self.renderer = self.web_renderer
 
     def prepare(self) -> None:
         """Prepare render"""
-        self.markdown_renderer.prepare()
         self.plaintext_renderer.prepare()
         self.web_renderer.prepare()
 
@@ -314,8 +309,7 @@ class Render:
         plain_node = output.get_by_pid_plain(pid)
 
         # Web output must keep its loaded application shell; clear only runtime
-        # message/chunk nodes. Markdown output is a QTextBrowser and can use the
-        # normal clear() path.
+        # message/chunk nodes.
         if node is not None:
             reset_content = getattr(node, "reset_current_content", None)
             page_getter = getattr(node, "page", None)
@@ -352,7 +346,6 @@ class Render:
         # Do not leave old per-PID caches behind. If this tab is reused for a
         # fresh context each renderer must rebuild its state from scratch.
         self.plaintext_renderer.remove_pid(pid)
-        self.markdown_renderer.remove_pid(pid)
         self.web_renderer.remove_pid(pid)
         self.update()
 
@@ -574,11 +567,8 @@ class Render:
         self.update()
 
     def on_theme_change(self) -> None:
-        """On theme change - global"""
-        if self.get_engine() == "web":
-            self.web_renderer.on_theme_change()
-        elif self.get_engine() == "legacy":
-            self.markdown_renderer.on_theme_change()
+        """Apply theme changes to the WebEngine renderer."""
+        self.web_renderer.on_theme_change()
         self.update()
 
     def get_scroll_position(self) -> int:
@@ -630,7 +620,6 @@ class Render:
         :param pid: PID to remove
         """
         self.plaintext_renderer.remove_pid(pid)
-        self.markdown_renderer.remove_pid(pid)
         self.web_renderer.remove_pid(pid)
 
     def tool_output_append(self, meta: CtxMeta, content: str) -> None:
@@ -696,15 +685,14 @@ class Render:
 
         :param pid: PID
         """
-        if self.get_engine() == "web":
-            self.web_renderer.on_js_ready(pid)
-            # If this page finished initializing after its tab was selected,
-            # perform the visible-layout correction now as well.
-            QTimer.singleShot(0, lambda pid=pid: self.remeasure_user_messages(pid))
+        self.web_renderer.on_js_ready(pid)
+        # If this page finished initializing after its tab was selected,
+        # perform the visible-layout correction now as well.
+        QTimer.singleShot(0, lambda pid=pid: self.remeasure_user_messages(pid))
 
     def remeasure_user_messages(self, pid: int) -> None:
         """Re-evaluate user-message collapse for the currently visible chat tab."""
-        if self.window.core.config.get('render.plain') or self.get_engine() != "web":
+        if self.window.core.config.get('render.plain'):
             return
 
         tab = self.window.controller.tabs.get_current_tab()
@@ -713,29 +701,13 @@ class Render:
 
         self.web_renderer.remeasure_user_messages(pid)
 
-    def get_engine(self) -> str:
-        """
-        Get current render engine ID
-
-        :return: engine name
-        """
-        return self.engine
-
     def switch(self) -> None:
         """
-        Switch renderer (markdown/web <==> plain text) - active, TODO: remove from settings, leave only checkbox.
+        Switch between WebEngine and plain-text output.
 
-        Renderer selection must happen *before* any renderer/theme operation.
-        In particular, switching to plain text used to call
-        ``theme.markdown.clear()`` while the Web renderer was still active.
-        That cleared every WebView, including chats hidden behind other tabs,
-        while only the currently visible chats were rebuilt afterwards.  Those
-        hidden WebViews still reported ``loaded=True`` and therefore remained
-        empty when their tab was selected later.
-
-        Plain text has its own output widgets, so there is no reason to destroy
-        the Web/Markdown contents when switching to it.  Keep those views intact
-        and rebuild only the chats currently visible in each output column.
+        Plain text has its own output widgets, so switching views does not destroy
+        WebEngine contents. Only the chats currently visible in each output column
+        are rebuilt for the newly selected renderer.
         """
         plain = self.window.core.config.get('render.plain')
         nodes = self.window.ui.nodes
@@ -745,10 +717,8 @@ class Render:
         # one we are leaving.
         if plain:
             self.renderer = self.plaintext_renderer
-        elif self.engine == "web":
-            self.renderer = self.web_renderer
         else:
-            self.renderer = self.markdown_renderer
+            self.renderer = self.web_renderer
 
         if plain:
             outputs = nodes.get('output', {})
@@ -836,11 +806,7 @@ class Render:
             return self.renderer
         if self.window.core.config.get('render.plain'):
             return self.plaintext_renderer
-        else:
-            if self.engine == "web":
-                return self.web_renderer
-            else:
-                return self.markdown_renderer
+        return self.web_renderer
 
     @Slot(str, str)
     def handle_save_as(self, text: str, type: str = 'txt') -> None:

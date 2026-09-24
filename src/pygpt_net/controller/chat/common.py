@@ -463,7 +463,7 @@ class Common:
             node.setToolTip(trans('icon.plain.switch_to_plain'))
 
     def toggle_plain_view(self):
-        """Switch between normal Web/Markdown output and plain-text output."""
+        """Switch between normal WebEngine output and plain-text output."""
         value = not bool(self.window.core.config.get('render.plain'))
         self.toggle_raw(value)
 
