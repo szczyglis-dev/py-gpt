@@ -13,15 +13,12 @@ from typing import List, Tuple, Optional
 
 import time
 import wave
-import numpy as np
 
 from PySide6.QtCore import QTimer, QObject
 
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 
-from .realtime import RealtimeSessionPyAudio
-from .playback import _FilePlaybackThread
 from ..shared import (
     pyaudio_to_s16le,
     convert_s16_pcm,
@@ -66,7 +63,7 @@ class PyaudioBackend:
         self.selected_device = None
 
         # realtime members (compatible with native backend)
-        self._rt_session: Optional[RealtimeSessionPyAudio] = None
+        self._rt_session = None
         self._rt_signals = None  # set by set_rt_signals()
 
         # input state guard (prevents races on stop)
@@ -77,7 +74,7 @@ class PyaudioBackend:
         self._in_channels: int = self.channels
 
         # file playback worker + guard timer
-        self._file_thread: Optional[_FilePlaybackThread] = None
+        self._file_thread = None
         self._file_check_timer: Optional[QTimer] = None
 
         # Immediate speech-band input meter.
@@ -330,6 +327,7 @@ class PyaudioBackend:
         self.frames.append(in_data)
 
         # Compute input metering
+        import numpy as np
         dtype = self.get_dtype_from_format(self.format)
         samples = np.frombuffer(in_data, dtype=dtype)
         if samples.size == 0:
@@ -399,6 +397,7 @@ class PyaudioBackend:
         :return: NumPy dtype
         """
         import pyaudio
+        import numpy as np
         if fmt == pyaudio.paInt16:
             return np.int16
         elif fmt == pyaudio.paInt8:
@@ -518,6 +517,7 @@ class PyaudioBackend:
 
         # select device and start worker
         dev_idx = self._select_output_device()
+        from .playback import _FilePlaybackThread
         t = _FilePlaybackThread(
             device_index=dev_idx,
             audio_file=audio_file,
@@ -758,7 +758,7 @@ class PyaudioBackend:
         pa.terminate()
         return int(rate), int(channels), 2
 
-    def _ensure_rt_session(self, rate: int, channels: int) -> RealtimeSessionPyAudio:
+    def _ensure_rt_session(self, rate: int, channels: int):
         """
         Ensure a realtime output session exists with a supported device format.
         Reuse only if still active and not finalized; otherwise recreate.
@@ -788,6 +788,7 @@ class PyaudioBackend:
                 pass
             self._rt_session = None
 
+        from .realtime import RealtimeSessionPyAudio
         session = RealtimeSessionPyAudio(
             device_index=dev_idx,
             rate=out_rate,

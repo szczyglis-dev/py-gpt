@@ -9,7 +9,7 @@
 # Updated Date: 2026.01.21 13:00:00                  #
 # ================================================== #
 
-from openai import OpenAI
+from functools import cached_property
 
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
@@ -25,23 +25,6 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
-from .audio import Audio
-from .assistants import Assistants
-from .chat import Chat
-from .completion import Completion
-from .computer import Computer
-from .container import Container
-from .image import Image
-from .remote_tools import RemoteTools
-from .responses import Responses
-from .realtime import Realtime
-from .store import Store
-from .summarizer import Summarizer
-from .tools import Tools
-from .vision import Vision
-from .video import Video
-
-
 class ApiOpenAI:
 
     def __init__(self, window=None):
@@ -51,30 +34,90 @@ class ApiOpenAI:
         :param window: Window instance
         """
         self.window = window
-        self.assistants = Assistants(window)
-        self.audio = Audio(window)
-        self.chat = Chat(window)
-        self.completion = Completion(window)
-        self.container = Container(window)
-        self.computer = Computer(window)
-        self.image = Image(window)
-        self.remote_tools = RemoteTools(window)
-        self.responses = Responses(window)
-        self.realtime = Realtime(window)
-        self.store = Store(window)
-        self.summarizer = Summarizer(window)
-        self.tools = Tools(window)
-        self.vision = Vision(window)
-        self.video = Video(window)
         self.client = None
         self.locked = False
         self.last_client_args = None  # last client args used, for debug purposes
+
+    @cached_property
+    def assistants(self):
+        from .assistants import Assistants
+        return Assistants(self.window)
+
+    @cached_property
+    def audio(self):
+        from .audio import Audio
+        return Audio(self.window)
+
+    @cached_property
+    def chat(self):
+        from .chat import Chat
+        return Chat(self.window)
+
+    @cached_property
+    def completion(self):
+        from .completion import Completion
+        return Completion(self.window)
+
+    @cached_property
+    def container(self):
+        from .container import Container
+        return Container(self.window)
+
+    @cached_property
+    def computer(self):
+        from .computer import Computer
+        return Computer(self.window)
+
+    @cached_property
+    def image(self):
+        from .image import Image
+        return Image(self.window)
+
+    @cached_property
+    def remote_tools(self):
+        from .remote_tools import RemoteTools
+        return RemoteTools(self.window)
+
+    @cached_property
+    def responses(self):
+        from .responses import Responses
+        return Responses(self.window)
+
+    @cached_property
+    def realtime(self):
+        from .realtime import Realtime
+        return Realtime(self.window)
+
+    @cached_property
+    def store(self):
+        from .store import Store
+        return Store(self.window)
+
+    @cached_property
+    def summarizer(self):
+        from .summarizer import Summarizer
+        return Summarizer(self.window)
+
+    @cached_property
+    def tools(self):
+        from .tools import Tools
+        return Tools(self.window)
+
+    @cached_property
+    def vision(self):
+        from .vision import Vision
+        return Vision(self.window)
+
+    @cached_property
+    def video(self):
+        from .video import Video
+        return Video(self.window)
 
     def get_client(
             self,
             mode: str = MODE_CHAT,
             model: ModelItem = None
-    ) -> OpenAI:
+    ):
         """
         Return OpenAI client
 
@@ -82,6 +125,8 @@ class ApiOpenAI:
         :param model: Model
         :return: OpenAI client
         """
+        from openai import OpenAI
+
         # prepare client args by mode and model provider
         args = self.window.core.models.prepare_client_args(mode, model)
         self.window.core.api.logger.log_input(

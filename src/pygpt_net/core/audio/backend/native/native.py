@@ -15,7 +15,6 @@ from typing import List, Tuple
 from bs4 import UnicodeDammit
 
 import time
-import numpy as np
 import wave
 
 from PySide6.QtMultimedia import QMediaDevices, QAudioFormat, QAudioSource, QAudio
@@ -24,7 +23,6 @@ from PySide6.QtCore import QTimer, QObject, QLoggingCategory
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 
-from .realtime import RealtimeSession
 from ..shared import (
     qaudio_dtype,
     qaudio_norm_factor,
@@ -34,7 +32,6 @@ from ..shared import (
     build_output_volume_event,
     InputLevelMeter,
 )
-from .player import NativePlayer
 
 class NativeBackend(QObject):
 
@@ -89,11 +86,11 @@ class NativeBackend(QObject):
         # Immediate speech-band input meter.
         self._input_meter = InputLevelMeter()
 
-        self._rt_session: Optional[RealtimeSession] = None
+        self._rt_session = None
         self._rt_signals = None  # set by core.audio.output on initialize()
 
         # dedicated player wrapper (file playback + envelope metering)
-        self._player = NativePlayer(window=self.window, chunk_ms=self.chunk_ms)
+        self._player = None
 
         # Reduce WASAPI debug spam on Windows-like backends (non-invasive).
         try:
@@ -433,6 +430,7 @@ class NativeBackend(QObject):
         normalization_factor = self._norm if self._norm is not None else qaudio_norm_factor(sample_format)
 
         # Convert bytes to NumPy array of the appropriate type
+        import numpy as np
         samples = np.frombuffer(data_bytes, dtype=dtype)
         if samples.size == 0:
             return
@@ -500,16 +498,19 @@ class NativeBackend(QObject):
             out_bytes = raw
             sample_size = 2
         elif sample_format == QAudioFormat.SampleFormat.UInt8:
+            import numpy as np
             arr = np.frombuffer(raw, dtype=np.uint8).astype(np.int16)
             arr = (arr - 128) << 8
             out_bytes = arr.tobytes()
             sample_size = 2
         elif sample_format == QAudioFormat.SampleFormat.Int32:
+            import numpy as np
             arr = np.frombuffer(raw, dtype=np.int32)
             arr = (arr >> 16).astype(np.int16)
             out_bytes = arr.tobytes()
             sample_size = 2
         elif sample_format == QAudioFormat.SampleFormat.Float:
+            import numpy as np
             arr = np.frombuffer(raw, dtype=np.float32)
             arr = np.clip(arr, -1.0, 1.0)
             arr = (arr * 32767.0).astype(np.int16)
@@ -543,6 +544,13 @@ class NativeBackend(QObject):
         """
         return qaudio_norm_factor(sample_format)
 
+    def _get_player(self):
+        """Return the native file player, creating it only when playback is used."""
+        if self._player is None:
+            from .player import NativePlayer
+            self._player = NativePlayer(window=self.window, chunk_ms=self.chunk_ms)
+        return self._player
+
     def play_after(
             self,
             audio_file: str,
@@ -560,7 +568,7 @@ class NativeBackend(QObject):
         :return: True if started
         """
         # delegate to player wrapper to keep logic isolated
-        self._player.play_after(
+        self._get_player().play_after(
             audio_file=audio_file,
             event_name=event_name,
             stopped=stopped,
@@ -571,7 +579,8 @@ class NativeBackend(QObject):
 
     def stop_timers(self):
         """Stop playback timers."""
-        self._player.stop_timers()
+        if self._player is not None:
+            self._player.stop_timers()
 
     def play(
             self,
@@ -600,7 +609,8 @@ class NativeBackend(QObject):
         """
         if self._rt_session:
             self._rt_session.stop()
-        self._player.stop(signals=signals)
+        if self._player is not None:
+            self._player.stop(signals=signals)
         return False
 
     def calculate_envelope(
@@ -624,7 +634,8 @@ class NativeBackend(QObject):
 
         :param signals: Signals object to emit volume changed event.
         """
-        self._player.update_volume(signals)
+        if self._player is not None:
+            self._player.update_volume(signals)
 
     def get_input_devices(self) -> List[Tuple[int, str]]:
         """
@@ -752,7 +763,7 @@ class NativeBackend(QObject):
             mime: str,
             rate: Optional[int],
             channels: Optional[int]
-    ) -> RealtimeSession:
+    ):
         """
         Ensure a realtime audio playback session exists with the device's preferred (or nearest) format.
         Keep it simple: prefer Int16, reuse session if format unchanged.
@@ -799,6 +810,7 @@ class NativeBackend(QObject):
                 pass
             self._rt_session = None
 
+        from .realtime import RealtimeSession
         session = RealtimeSession(
             device=device,
             fmt=fmt,

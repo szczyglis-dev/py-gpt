@@ -1,7 +1,6 @@
 import threading
 from typing import Optional
 
-import numpy as np
 
 from PySide6.QtCore import QTimer, QObject, Qt
 
@@ -288,6 +287,8 @@ class RealtimeSessionPyAudio(QObject):
                 pass
             return
         try:
+            import numpy as np
+
             # decode by sample width
             if self.width == 1:
                 arr = np.frombuffer(buf, dtype=np.uint8).astype(np.int16)

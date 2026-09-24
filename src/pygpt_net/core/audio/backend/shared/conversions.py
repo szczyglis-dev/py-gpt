@@ -9,7 +9,6 @@
 # Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
-import numpy as np
 import audioop
 
 def qaudio_dtype(sample_format):
@@ -21,6 +20,8 @@ def qaudio_dtype(sample_format):
     :param sample_format: QAudioFormat.SampleFormat
     :return: numpy dtype
     """
+    import numpy as np
+
     try:
         from PySide6.QtMultimedia import QAudioFormat
     except Exception:
@@ -77,7 +78,10 @@ def qaudio_to_s16le(raw: bytes, sample_format) -> bytes:
 
     if sample_format == QAudioFormat.SampleFormat.Int16:
         return raw
-    elif sample_format == QAudioFormat.SampleFormat.UInt8:
+
+    import numpy as np
+
+    if sample_format == QAudioFormat.SampleFormat.UInt8:
         arr = np.frombuffer(raw, dtype=np.uint8).astype(np.int16)
         arr = (arr - 128) << 8
         return arr.tobytes()
@@ -112,7 +116,10 @@ def pyaudio_to_s16le(raw: bytes, fmt, pa_instance=None) -> bytes:
     try:
         if fmt == pyaudio.paInt16:
             return raw
-        elif fmt == pyaudio.paUInt8:
+
+        import numpy as np
+
+        if fmt == pyaudio.paUInt8:
             arr = np.frombuffer(raw, dtype=np.uint8).astype(np.int16)
             arr = (arr - 128) << 8
             return arr.tobytes()
@@ -144,6 +151,7 @@ def f32_to_s16le(raw: bytes) -> bytes:
     if not raw:
         return b""
     try:
+        import numpy as np
         arr = np.frombuffer(raw, dtype=np.float32)
         arr = np.clip(arr, -1.0, 1.0)
         s16 = (arr * 32767.0).astype(np.int16)
@@ -203,6 +211,7 @@ def convert_s16_pcm(
         if out_format == "u8" and out_width == 1:
             src = audioop.bias(src, 1, 128)  # center at 0x80
         elif out_format == "f32" and out_width == 4:
+            import numpy as np
             arr = np.frombuffer(src, dtype=np.int16).astype(np.float32) / 32768.0
             src = arr.tobytes()
 

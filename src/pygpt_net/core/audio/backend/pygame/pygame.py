@@ -11,7 +11,6 @@
 
 import time
 import wave
-import numpy as np
 from typing import List, Tuple
 from collections import deque
 from threading import Lock
@@ -363,6 +362,7 @@ class PygameBackend:
         # Use the last captured chunk.
         last_chunk = self.frames[-1]
         try:
+            import numpy as np
             # Interpret the bytes as float32 samples.
             samples = np.frombuffer(last_chunk, dtype=np.float32)
         except Exception:
@@ -400,6 +400,7 @@ class PygameBackend:
         """
         full_data = b"".join(self.frames)
         try:
+            import numpy as np
             data_array = np.frombuffer(full_data, dtype=np.float32)
         except Exception as e:
             print("Error converting audio data:", e)

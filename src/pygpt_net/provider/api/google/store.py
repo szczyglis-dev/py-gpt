@@ -9,6 +9,8 @@
 # Updated Date: 2026.01.06 06:00:00                  #
 # ================================================== #
 
+from functools import cached_property
+
 import os
 import time
 import mimetypes
@@ -16,7 +18,6 @@ from typing import Optional, List, Dict, Any, Union
 
 from pygpt_net.item.store import RemoteStoreItem
 
-from .worker.importer import Importer
 
 class Store:
     def __init__(self, window=None):
@@ -26,7 +27,11 @@ class Store:
         :param window: Window instance
         """
         self.window = window
-        self.importer = Importer(window)
+
+    @cached_property
+    def importer(self):
+        from .worker.importer import Importer
+        return Importer(self.window)
 
     def get_client(self):
         """

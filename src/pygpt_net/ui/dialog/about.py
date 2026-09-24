@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 19:42:00                  #
+# Updated Date: 2026.09.24 15:45:00                  #
 # ================================================== #
 
 import os
@@ -155,8 +155,7 @@ class About:
         buttons_layout.addWidget(self.window.ui.nodes['dialog.about.btn.website'])
         buttons_layout.addWidget(self.window.ui.nodes['dialog.about.btn.github'])
 
-        string = self.prepare_content()
-        content = QLabel(string)
+        content = QLabel()
         content.setTextInteractionFlags(Qt.TextSelectableByMouse)
         content.setWordWrap(True)
         content.setContentsMargins(2, 10, 2, 0)
@@ -186,6 +185,8 @@ class About:
 
     def prepare(self):
         """Update dialog content"""
+        self.window.ui.nodes['dialog.about.content'].setText(self.prepare_content())
+
         people = str(self.get_thanks())
         self.window.ui.nodes['dialog.about.thanks.content'].setPlainText(people)
         if people == "":

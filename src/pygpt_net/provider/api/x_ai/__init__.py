@@ -9,6 +9,7 @@
 # Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
+from functools import cached_property
 from typing import Optional, Dict, Any
 
 import os
@@ -26,20 +27,6 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
-import xai_sdk
-
-from .chat import Chat
-from .vision import Vision
-from .tools import Tools
-from .audio import Audio
-from .image import Image
-from .remote_tools import Remote
-from .responses import Responses
-from .store import Store
-from .realtime import Realtime
-from .video import Video
-
-
 class ApiXAI:
     def __init__(self, window=None):
         """
@@ -48,26 +35,66 @@ class ApiXAI:
         :param window: Window instance
         """
         self.window = window
-        self.chat = Chat(window)
-        self.vision = Vision(window)
-        self.tools = Tools(window)
-        self.audio = Audio(window)
-        self.image = Image(window)
-        self.remote = Remote(window)
-        self.responses = Responses(window)
-        self.store = Store(window)
-        self.realtime = Realtime(window)
-        self.video = Video(window)
-        self.client: Optional[xai_sdk.Client] = None
+        self.client = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
+
+    @cached_property
+    def chat(self):
+        from .chat import Chat
+        return Chat(self.window)
+
+    @cached_property
+    def vision(self):
+        from .vision import Vision
+        return Vision(self.window)
+
+    @cached_property
+    def tools(self):
+        from .tools import Tools
+        return Tools(self.window)
+
+    @cached_property
+    def audio(self):
+        from .audio import Audio
+        return Audio(self.window)
+
+    @cached_property
+    def image(self):
+        from .image import Image
+        return Image(self.window)
+
+    @cached_property
+    def remote(self):
+        from .remote_tools import Remote
+        return Remote(self.window)
+
+    @cached_property
+    def responses(self):
+        from .responses import Responses
+        return Responses(self.window)
+
+    @cached_property
+    def store(self):
+        from .store import Store
+        return Store(self.window)
+
+    @cached_property
+    def realtime(self):
+        from .realtime import Realtime
+        return Realtime(self.window)
+
+    @cached_property
+    def video(self):
+        from .video import Video
+        return Video(self.window)
 
     def get_client(
             self,
             mode: str = MODE_CHAT,
             model: ModelItem = None,
             management_api_key=None
-    ) -> xai_sdk.Client:
+    ):
         """
         Get or create xAI client.
 
@@ -79,6 +106,8 @@ class ApiXAI:
         :param management_api_key: Override API key (for management calls)
         :return: xai_sdk.Client
         """
+        import xai_sdk
+
         cfg = self.window.core.config
         api_key = cfg.get("api_key_xai") or os.environ.get("XAI_API_KEY") or ""
         timeout = cfg.get("api_native_xai.timeout")  # optional

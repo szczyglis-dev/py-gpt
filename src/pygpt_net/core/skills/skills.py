@@ -26,11 +26,6 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-try:
-    import yaml
-except ImportError:  # pragma: no cover - PyYAML is normally available transitively
-    yaml = None
-
 
 _SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 _TEXT_EXTENSIONS = {
@@ -124,6 +119,10 @@ class Skills:
 
     @staticmethod
     def _split_frontmatter(text: str) -> Tuple[dict, str]:
+        try:
+            import yaml
+        except ImportError:  # pragma: no cover - PyYAML is normally available transitively
+            yaml = None
         raw = str(text or "")
         lines = raw.splitlines()
         if not lines or lines[0].strip() != "---":
@@ -161,6 +160,10 @@ class Skills:
 
     @staticmethod
     def _read_yaml(path: str) -> dict:
+        try:
+            import yaml
+        except ImportError:  # pragma: no cover - PyYAML is normally available transitively
+            yaml = None
         if yaml is None or not os.path.isfile(path):
             return {}
         try:

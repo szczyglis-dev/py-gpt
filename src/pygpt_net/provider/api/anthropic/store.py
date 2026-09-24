@@ -9,12 +9,13 @@
 # Updated Date: 2026.01.05 20:00:00                  #
 # ================================================== #
 
+from functools import cached_property
+
 import os
 import mimetypes
 import time
 from typing import Optional, List, Dict, Any
 
-from .worker.importer import Importer
 
 
 class Store:
@@ -33,7 +34,11 @@ class Store:
         :param window: Window instance
         """
         self.window = window
-        self.importer = Importer(window)
+
+    @cached_property
+    def importer(self):
+        from .worker.importer import Importer
+        return Importer(self.window)
 
     def get_client(self):
         """

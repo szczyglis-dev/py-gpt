@@ -10,13 +10,12 @@
 # ================================================== #
 
 import json
+from functools import cached_property
 from typing import Optional, List, Dict
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.ctx import CtxItem
 
-from .worker.assistants import AssistantsWorker, EventHandler
-from .worker.importer_assistants import Importer
 
 
 class Assistants:
@@ -27,8 +26,16 @@ class Assistants:
         :param window: Window instance
         """
         self.window = window
-        self.worker = AssistantsWorker(window)
-        self.importer = Importer(window)
+
+    @cached_property
+    def worker(self):
+        from .worker.assistants import AssistantsWorker
+        return AssistantsWorker(self.window)
+
+    @cached_property
+    def importer(self):
+        from .worker.importer_assistants import Importer
+        return Importer(self.window)
 
     def get_client(self):
         """
@@ -289,6 +296,8 @@ class Assistants:
             additional_args['instructions'] = instructions
         if model is not None:
             additional_args['model'] = model
+
+        from .worker.assistants import EventHandler
 
         with client.beta.threads.runs.stream(
                 thread_id=thread_id,

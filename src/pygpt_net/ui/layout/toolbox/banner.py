@@ -10,7 +10,6 @@
 # ================================================== #
 
 import os
-import webbrowser
 from typing import Dict, List, Optional, Any
 
 from PySide6.QtCore import QSize, Qt, QTimer, Slot
@@ -202,6 +201,7 @@ class BannerWidget(QLabel):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton and self.current_url:
+            import webbrowser
             webbrowser.open(self.current_url, new=2)
             event.accept()
             return

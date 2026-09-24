@@ -11,7 +11,6 @@
 
 import math
 
-import numpy as np
 
 
 class InputLevelMeter:
@@ -59,6 +58,7 @@ class InputLevelMeter:
             return 0
 
         try:
+            import numpy as np
             audio = np.asarray(samples, dtype=np.float64).reshape(-1)
         except (TypeError, ValueError):
             return 0

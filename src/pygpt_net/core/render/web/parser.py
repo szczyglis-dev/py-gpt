@@ -18,8 +18,6 @@ import re
 if TYPE_CHECKING:
     from bs4 import BeautifulSoup
 
-import markdown
-from mdx_math import MathExtension
 from pygpt_net.utils import trans
 
 
@@ -70,6 +68,9 @@ class Parser:
 
     def init(self):
         """Initialize markdown parser"""
+        import markdown
+        from mdx_math import MathExtension
+        
         if self.md is None:
             self.md = markdown.Markdown(extensions=[
                 'fenced_code',

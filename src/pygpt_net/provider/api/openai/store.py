@@ -9,12 +9,13 @@
 # Updated Date: 2026.01.05 17:00:00                  #
 # ================================================== #
 
+from functools import cached_property
+
 import os
 from typing import Optional, List
 
 from pygpt_net.item.store import RemoteStoreItem
 
-from .worker.importer import Importer
 
 
 class Store:
@@ -25,7 +26,11 @@ class Store:
         :param window: Window instance
         """
         self.window = window
-        self.importer = Importer(window)
+
+    @cached_property
+    def importer(self):
+        from .worker.importer import Importer
+        return Importer(self.window)
 
     def get_client(self):
         """

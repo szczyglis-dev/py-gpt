@@ -10,10 +10,8 @@
 # ================================================== #
 
 import os
+from functools import cached_property
 from typing import Optional, Dict, Any
-
-from google.genai import types as gtypes
-from google import genai
 
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
@@ -28,18 +26,6 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
-from .chat import Chat
-from .computer import Computer
-from .vision import Vision
-from .tools import Tools
-from .audio import Audio
-from .image import Image
-from .realtime import Realtime
-from .remote_tools import RemoteTools
-from .store import Store
-from .video import Video
-from .music import Music
-
 class ApiGoogle:
     def __init__(self, window=None):
         """
@@ -48,26 +34,70 @@ class ApiGoogle:
         :param window: Window instance
         """
         self.window = window
-        self.chat = Chat(window)
-        self.vision = Vision(window)
-        self.tools = Tools(window)
-        self.audio = Audio(window)
-        self.image = Image(window)
-        self.realtime = Realtime(window)
-        self.video = Video(window)
-        self.music = Music(window)
-        self.computer = Computer(window)
-        self.remote_tools = RemoteTools(window)
-        self.store = Store(window)
-        self.client: Optional[genai.Client] = None
+        self.client = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
+
+    @cached_property
+    def chat(self):
+        from .chat import Chat
+        return Chat(self.window)
+
+    @cached_property
+    def vision(self):
+        from .vision import Vision
+        return Vision(self.window)
+
+    @cached_property
+    def tools(self):
+        from .tools import Tools
+        return Tools(self.window)
+
+    @cached_property
+    def audio(self):
+        from .audio import Audio
+        return Audio(self.window)
+
+    @cached_property
+    def image(self):
+        from .image import Image
+        return Image(self.window)
+
+    @cached_property
+    def realtime(self):
+        from .realtime import Realtime
+        return Realtime(self.window)
+
+    @cached_property
+    def video(self):
+        from .video import Video
+        return Video(self.window)
+
+    @cached_property
+    def music(self):
+        from .music import Music
+        return Music(self.window)
+
+    @cached_property
+    def computer(self):
+        from .computer import Computer
+        return Computer(self.window)
+
+    @cached_property
+    def remote_tools(self):
+        from .remote_tools import RemoteTools
+        return RemoteTools(self.window)
+
+    @cached_property
+    def store(self):
+        from .store import Store
+        return Store(self.window)
 
     def get_client(
             self,
             mode: str = MODE_CHAT,
             model: ModelItem = None
-    ) -> genai.Client:
+    ):
         """
         Get or create Google GenAI client
 
@@ -75,6 +105,9 @@ class ApiGoogle:
         :param model: ModelItem
         :return: genai.Client instance
         """
+        from google import genai
+        from google.genai import types as gtypes
+
         if not model:
             model = ModelItem()
             model.provider = "google"
@@ -272,6 +305,8 @@ class ApiGoogle:
                 attachments=context.attachments,
                 multimodal_ctx=context.multimodal_ctx,
             )
+            from google import genai
+
             cfg = genai.types.GenerateContentConfig(
                 max_output_tokens=context.max_tokens if context.max_tokens else None,
                 system_instruction=system_prompt if system_prompt else None,

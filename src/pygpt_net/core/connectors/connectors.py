@@ -22,11 +22,6 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-try:
-    import yaml
-except ImportError:  # pragma: no cover
-    yaml = None
-
 try:  # Python >= 3.11
     import tomllib  # type: ignore
 except ImportError:  # pragma: no cover - Python 3.10
@@ -562,6 +557,10 @@ class Connectors:
             return value
 
     def _decode_config(self, text: str, hint: str) -> dict:
+        try:
+            import yaml
+        except ImportError:  # pragma: no cover
+            yaml = None
         lower = str(hint).lower()
         suffix = os.path.splitext(urlparse(lower).path)[1]
         errors = []

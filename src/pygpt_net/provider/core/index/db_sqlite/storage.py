@@ -11,10 +11,9 @@
 
 import uuid
 import time
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from sqlalchemy import text
-from traitlets import Any
 
 from pygpt_net.item.index import IndexItem
 from .utils import unpack_file_item

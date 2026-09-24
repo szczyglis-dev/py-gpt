@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+from functools import cached_property
 from typing import Optional, Dict, Any
 
 from pygpt_net.core.bridge import BridgeContext
@@ -19,7 +20,6 @@ from pygpt_net.core.realtime.shared.session import extract_last_session_id
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import trans
 
-from .client import xAIIRealtimeClient
 
 class Realtime:
 
@@ -32,10 +32,14 @@ class Realtime:
         :param window: Window instance
         """
         self.window = window
-        self.handler = xAIIRealtimeClient(window)
         self.prev_auto_turn = False
         self.prev_vad_silence = 2000
         self.prev_vad_prefix = 300
+
+    @cached_property
+    def handler(self):
+        from .client import xAIIRealtimeClient
+        return xAIIRealtimeClient(self.window)
 
     def begin(
             self,

@@ -27,7 +27,6 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
-import nest_asyncio
 
 
 class OllamaLLM(BaseLLM):
@@ -147,6 +146,7 @@ class OllamaLLM(BaseLLM):
         if bool(model.tool_calls) and bool(window.core.config.get("cmd", False)):
             return self._llama_native(window, model)
 
+        import nest_asyncio
         from llama_index.llms.openai_like import OpenAILike
 
         nest_asyncio.apply()

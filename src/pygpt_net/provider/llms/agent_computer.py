@@ -19,9 +19,10 @@ import queue
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional, Sequence
+from typing import Any, Iterable, Optional, Sequence, TYPE_CHECKING
 
-from llama_index.core.base.llms.types import ChatMessage, MessageRole
+if TYPE_CHECKING:
+    from llama_index.core.base.llms.types import ChatMessage
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.llms.artifacts import drain_llm_urls
@@ -194,6 +195,8 @@ async def run_provider_computer_turn(
     """
     if window is None or context is None or model is None:
         return None
+
+    from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
     if runtime is None:
         runtime = ComputerRuntime(window, context)

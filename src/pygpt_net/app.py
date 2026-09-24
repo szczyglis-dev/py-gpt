@@ -44,6 +44,14 @@ if _run_frozen_ipykernel():
     raise SystemExit(0)
 
 
+# Optional startup import tracing. Keep this before all PyGPT/Qt imports so
+# --trace-imports can show what actually pulls heavy dependencies in.
+if "--trace-imports" in sys.argv:
+    from pygpt_net.core.import_trace import enable_from_argv
+
+    _import_tracer = enable_from_argv(sys.argv)
+
+
 import pygpt_net.icons_rc
 
 from pygpt_net.utils import set_env

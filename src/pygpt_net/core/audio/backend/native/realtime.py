@@ -9,7 +9,6 @@
 # Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
-import numpy as np
 
 from PySide6.QtCore import Qt
 from PySide6.QtMultimedia import QAudioFormat, QAudioSink
@@ -223,6 +222,8 @@ class RealtimeSession(QObject):
             if not self.vol_buffer:
                 self.volume_emitter(0)
                 return
+
+            import numpy as np
 
             sf = self._sf
             if sf == QAudioFormat.SampleFormat.UInt8:
