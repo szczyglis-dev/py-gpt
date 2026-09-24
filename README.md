@@ -48,7 +48,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Project-specific `AGENTS.md` rules for the main Agents agent.
 - Portable `SKILL.md`-based `Agent Skills` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
 - Built-in `Python/OS` tool for real-time Python, IPython, and system command execution.
-* Built-in real-time `Canvas` with annotation support and web browser integration for interactive workflows.
+- Built-in real-time `Canvas` with annotation support and web browser integration for interactive workflows.
 - Camera capture for real-time image input in Chat and other supported modes.
 - Image analysis with vision-capable models.
 - Accessibility features including keyboard shortcuts, voice control, and spoken descriptions of on-screen actions.
