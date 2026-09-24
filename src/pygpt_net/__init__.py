@@ -10,7 +10,7 @@
 # ================================================== #
 
 __author__ = "Marcin Szczygliński"
-__copyright__ = "Copyright 2026, Marcin Szczygliński"
+__copyright__ = "Copyright 2022-2026, Marcin Szczygliński"
 __credits__ = ["Marcin Szczygliński"]
 __license__ = "MIT"
 __version__ = "2.8.30"

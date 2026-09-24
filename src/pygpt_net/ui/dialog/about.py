@@ -20,7 +20,7 @@ from pygpt_net.utils import trans
 
 class About:
 
-    RELEASE_YEAR = 2026
+    COPYRIGHT_YEARS = "2022-2026"
 
     def __init__(self, window=None):
         """
@@ -120,7 +120,7 @@ class About:
                f"{label_website}: {website}\n" \
                f"{label_github}: {github}\n" \
                f"{label_docs}: {docs}\n\n" \
-               f"(c) {self.RELEASE_YEAR} {author}\n" \
+               f"(c) {self.COPYRIGHT_YEARS} {author}\n" \
                f"{email}\n"
         return data
 
