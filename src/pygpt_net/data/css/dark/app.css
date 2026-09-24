@@ -665,6 +665,17 @@ QPushButton:disabled:hover {{
   border: 1px solid #454545;
 }}
 
+
+/* Main output tabs: keep the current tab visible in an inactive split column,
+ * but use the quieter hover-style underline instead of the focused accent. */
+QTabBar#outputTabs[activeColumn="false"]::tab:selected,
+QTabBar#outputTabs[activeColumn="false"]::tab:top:selected,
+QTabBar#outputTabs[activeColumn="false"]::tab:bottom:selected,
+QTabBar#outputTabs[activeColumn="false"]::tab:left:selected,
+QTabBar#outputTabs[activeColumn="false"]::tab:right:selected {{
+  border-bottom-color: #777777;
+}}
+
 /* Chat composer tabs are icon-first; keep hover visible even when SVG tint does not change. */
 QTabBar#inputCompactTabs::tab:hover:!selected,
 QTabBar#inputCompactTabs::tab:top:hover:!selected,

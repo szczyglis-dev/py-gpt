@@ -164,6 +164,18 @@ class TabEventHandler:
         self.window.controller.audio.on_tab_changed(tab)
         self.tabs.debug()
 
+    def _sync_column_active_style(self, column_idx: int):
+        """Synchronize focused-column styling independently of tab state."""
+        column_idx = int(column_idx)
+        if not self.tabs.is_split_screen_enabled():
+            column_idx = 0
+
+        layout = self.window.ui.layout
+        for idx in (0, 1):
+            tabs_widget = layout.get_tabs_by_idx(idx)
+            if tabs_widget is not None:
+                tabs_widget.set_active(idx == column_idx)
+
     def on_column_changed(self, column_idx: Optional[int] = None):
         """Synchronize one explicit column; never infer it from focus."""
         t = self.tabs
@@ -179,10 +191,7 @@ class TabEventHandler:
         tabs_widget = layout.get_tabs_by_idx(column_idx)
         if tabs_widget is None:
             return
-        tabs_widget.set_active(True)
-        second = layout.get_tabs_by_idx(1 if column_idx == 0 else 0)
-        if second is not None:
-            second.set_active(False)
+        self._sync_column_active_style(column_idx)
 
         idx = tabs_widget.currentIndex()
         tab = self._resolve(idx, column_idx)
@@ -226,6 +235,14 @@ class TabEventHandler:
         column_idx = int(column_idx)
         if not t.is_split_screen_enabled():
             column_idx = 0
+
+        # Keep the visual focused-column state synchronous with the user's
+        # interaction.  The heavier tab/context state switch below stays
+        # deferred, but the underline must update even when the controller
+        # already considers this column current (e.g. after a missed/stale Qt
+        # focus transition).
+        self._sync_column_active_style(column_idx)
+
         if column_idx == t.get_current_column_idx():
             t.clear_pending_focus_column()
             return

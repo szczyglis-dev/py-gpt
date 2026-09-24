@@ -469,8 +469,8 @@ class OutputTabs(QTabWidget):
     def __init__(self, window=None, column=None):
         super(OutputTabs, self).__init__(window)
         self.window = window
-        self.active = True
         self.column = column
+        self.active = column is None or column.get_idx() == 0
         self.setMinimumHeight(1)
         self.owner = None
         self.setMovable(True)
@@ -495,6 +495,8 @@ class OutputTabs(QTabWidget):
             parent=self,
         )
         self.setTabBar(tab_bar)
+        tab_bar.setObjectName("outputTabs")
+        tab_bar.setProperty("activeColumn", self.active)
         self.setMovable(True)
         self.tabBar().setMovable(True)
 
@@ -525,11 +527,26 @@ class OutputTabs(QTabWidget):
 
     def set_active(self, active: bool):
         """
-        Set the active state of the tab bar.
+        Set the active/focused-column state of the tab bar.
+
+        The current tab in an inactive split-screen column remains selected in
+        Qt, so expose the column focus as a dynamic QSS property.  Themes can
+        then render that selected tab with a quieter underline instead of the
+        primary active-column accent.
 
         :param active: True to activate, False to deactivate
         """
+        active = bool(active)
         self.active = active
+        bar = self.tabBar()
+        if bar is None:
+            return
+        bar.setProperty("activeColumn", active)
+        style = bar.style()
+        if style is not None:
+            style.unpolish(bar)
+            style.polish(bar)
+        bar.update()
 
     def _refresh_plus_button(self):
         """Force the tab bar to recompute [+] placement after tab changes."""
