@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.24 12:31:00
 # ================================================== #
 
 from .access import Access
@@ -48,6 +48,8 @@ from .theme import Theme
 from .tabs import Tabs
 from .tools import Tools
 from .ui import UI
+
+from PySide6.QtCore import QTimer
 
 from pygpt_net.utils import trans, mem_clean, freeze_updates
 
@@ -159,6 +161,11 @@ class Controller:
     def after_setup(self):
         """After-setup, after all loaded"""
         self.plugins.update()
+
+        # Run after the Qt event loop starts, when the main window, dialogs,
+        # plugins and restored tabs are already fully initialized.
+        if self.window.core.config.get("app_updated", False):
+            QTimer.singleShot(0, self.window.core.updater.show_updated_changelog)
 
     def on_update(self):
         """On app main loop update"""

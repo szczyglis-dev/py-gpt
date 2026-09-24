@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2026.09.24 12:31:00
 # ================================================== #
 
 import os
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QLabel
 
 from pygpt_net.ui.widget.dialog.info import InfoDialog
@@ -44,7 +45,21 @@ class Changelog:
         textarea.setPlainText(txt)
 
         self.window.ui.nodes['dialog.changelog.label'] = QLabel(trans("dialog.changelog.title"))
+
+        updated = QLabel(
+            trans("dialog.changelog.updated").format(version=self.window.meta["version"])
+        )
+        updated.setAlignment(Qt.AlignCenter)
+        updated.setWordWrap(True)
+        updated.setContentsMargins(12, 10, 12, 10)
+        font = updated.font()
+        font.setBold(True)
+        updated.setFont(font)
+        updated.setVisible(bool(self.window.core.config.get("app_updated", False)))
+        self.window.ui.nodes['dialog.changelog.updated'] = updated
+
         layout = QVBoxLayout()
+        layout.addWidget(updated)
         layout.addWidget(self.window.ui.nodes['dialog.changelog.label'])
         layout.addWidget(textarea)
 

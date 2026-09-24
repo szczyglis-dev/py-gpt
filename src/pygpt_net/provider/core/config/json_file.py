@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 21:00:00                  #
+# Updated Date: 2026.09.24 12:31:00
 # ================================================== #
 
 import json
@@ -30,12 +30,16 @@ class JsonFileProvider(BaseProvider):
         self.config_file = 'config.json'
         self.settings_file = 'settings.json'
         self.sections_file = 'settings_section.json'
+        self.config_created = False
 
     def install(self):
         """Install provider data files"""
+        self.config_created = False
+
         # config file
         dst = os.path.join(self.path, self.config_file)
         if not os.path.exists(dst):
+            self.config_created = True
             src = os.path.join(self.path_app, 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
         else:

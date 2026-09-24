@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.09.24 12:31:00
 # ================================================== #
 
 import copy
@@ -38,9 +38,15 @@ class Updater(QObject):
         super(Updater, self).__init__()
         self.window = window
         self.thanks = None  # cache
+        # True only for the one patch pass performed during real application
+        # startup. Profile/workdir reloads call patch() again later and must not
+        # be treated as application updates.
+        self._startup_patch_pending = True
+        self._is_startup_patch = False
 
     def patch(self):
-        """Patch config data to current version"""
+        """Patch config data to current version."""
+        self._is_startup_patch = self._startup_patch_pending
         try:
             version = self.get_app_version()
 
@@ -58,6 +64,9 @@ class Updater(QObject):
         except Exception as e:
             self.window.core.debug.log(e)
             print("Failed to patch config data!")
+        finally:
+            self._startup_patch_pending = False
+            self._is_startup_patch = False
 
     def migrate_db(self):
         """Migrate database"""
@@ -69,12 +78,70 @@ class Updater(QObject):
 
     def patch_config(self, version: Version):
         """
-        Migrate config to current app version
+        Migrate config to current app version and remember a real app upgrade.
+
+        The update marker is created only during the initial startup patch.
+        Profile creation/switching also runs the patcher, but those reload passes
+        must never trigger the post-startup "What's new" dialog.
 
         :param version: current app version
         """
-        if self.window.core.config.patch(version):
+        config = self.window.core.config
+        data = config.all()
+        meta = data.get("__meta__") if isinstance(data, dict) else None
+        previous = meta.get("version") if isinstance(meta, dict) else None
+        version_changed = False
+
+        if previous:
+            try:
+                version_changed = parse_version(str(previous)) < version
+            except Exception:
+                version_changed = False
+
+        config_created = bool(getattr(config.provider, "config_created", False))
+        marker_changed = False
+        if version_changed and self._is_startup_patch and not config_created:
+            # Persist this in the profile config so a crash before the UI becomes
+            # ready does not lose the notification. It is removed after the
+            # changelog is opened successfully.
+            config.set("app_updated", True)
+            marker_changed = True
+        elif not self._is_startup_patch and "app_updated" in data:
+            # Imported/switched profiles may contain a stale transient marker. A
+            # profile reload is never an application update, so discard it.
+            config.data.pop("app_updated", None)
+            marker_changed = True
+
+        migrated = config.patch(version)
+
+        # A release may only bump the version and have no config migration. In
+        # that case save explicitly so __meta__.version (and app_updated, when
+        # applicable) still advance to the running application version. Also
+        # persist removal of stale markers during profile reloads.
+        if (version_changed or marker_changed) and not migrated:
+            config.save()
+
+        if migrated:
             print("Migrated config. [OK]")
+
+    def show_updated_changelog(self) -> bool:
+        """Show the changelog once after a real application update."""
+        config = self.window.core.config
+        if not bool(config.get("app_updated", False)):
+            return False
+
+        self.window.controller.dialogs.info.toggle(
+            "changelog",
+            width=700,
+            height=600,
+        )
+
+        # Clear only after the dialog was opened successfully. The QLabel keeps
+        # its startup visibility state for the current session, while the next
+        # launch starts cleanly.
+        config.data.pop("app_updated", None)
+        config.save()
+        return True
 
     def patch_models(self, version: Version):
         """

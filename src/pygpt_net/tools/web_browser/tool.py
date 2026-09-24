@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.24 12:31:00
 # ================================================== #
 
 import json
@@ -94,7 +94,7 @@ class _PreviewHandler(SimpleHTTPRequestHandler):
 class WebBrowser(BaseTool):
     """Single persistent browser runtime exposed through one Canvas tab."""
 
-    BLANK_CANVAS_HTML = """<!doctype html>
+    BLANK_CANVAS_HTML_LIGHT = """<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -116,6 +116,32 @@ body {
 </head>
 <body></body>
 </html>"""
+
+    BLANK_CANVAS_HTML_DARK = """<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html, body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+}
+body {
+    min-height: 100vh;
+    background-color: #1b1c1f;
+    background-image:
+        linear-gradient(#2a2c30 1px, transparent 1px),
+        linear-gradient(90deg, #2a2c30 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+</style>
+</head>
+<body></body>
+</html>"""
+
+    # Compatibility alias for callers/tests that reference the old constant.
+    BLANK_CANVAS_HTML = BLANK_CANVAS_HTML_LIGHT
 
     JS_SERIALIZE_HTML = r"""(() => {
       const root = document.documentElement.cloneNode(true);
@@ -220,6 +246,7 @@ body {
         self.server_root = None
         self.server_url = None
         self.runtime_html = ""
+        self.blank_canvas_active = False
 
     def setup(self):
         self.update()
@@ -231,6 +258,9 @@ body {
 
     def on_reload(self):
         self.update()
+        # Profile reloads can change the light/dark theme while the persistent
+        # Canvas runtime stays alive. Refresh only the synthetic empty page.
+        self.setup_theme()
 
     def on_exit(self):
         self._stop_server()
@@ -262,6 +292,30 @@ body {
         """Return whether Playwright is explicitly enabled in plugin settings."""
         return bool(self._opt("use_sandbox", False))
 
+    def _blank_canvas_html(self) -> str:
+        """Return the empty Canvas grid matching the active light/dark theme."""
+        is_dark = True
+        try:
+            is_dark = self.window.controller.theme.is_dark_theme()
+        except Exception:
+            try:
+                is_dark = str(self.window.core.config.get("theme", "dark")).lower() != "light"
+            except Exception:
+                pass
+        return self.BLANK_CANVAS_HTML_DARK if is_dark else self.BLANK_CANVAS_HTML_LIGHT
+
+    def _render_blank_canvas(self):
+        """Render the theme-aware synthetic page used by an empty Canvas."""
+        html = self._blank_canvas_html()
+        self.blank_canvas_active = True
+        self.virtual_url = "about:blank"
+        if self.backend == "playwright":
+            self._ensure_playwright()
+            self.pw_page.set_content(html, wait_until="domcontentloaded")
+            self._refresh_playwright_frame()
+        elif self.surface is not None:
+            self.surface.web.setHtml(html, QUrl("about:blank"))
+
     def _ensure_surface(self):
         if self.surface is not None:
             return self.surface
@@ -273,11 +327,10 @@ body {
         self.hidden_layout.setContentsMargins(0, 0, 0, 0)
         self.surface = BrowserViewport(self.window, self)
         self.surface.set_resolution(self.width, self.height)
-        # Give a newly created/empty canvas a subtle neutral grid instead of
-        # QWebEngine's plain white about:blank page. Any real navigation or
+        # Give a newly created/empty canvas a subtle theme-aware grid instead
+        # of QWebEngine's plain white about:blank page. Any real navigation or
         # canvas_set_html call replaces this document normally.
-        self.surface.web.setHtml(self.BLANK_CANVAS_HTML, QUrl("about:blank"))
-        self.virtual_url = "about:blank"
+        self._render_blank_canvas()
         self.hidden_layout.addWidget(self.surface)
         self.pw_frame_timer = QTimer(self)
         self.pw_frame_timer.setInterval(250)
@@ -533,7 +586,11 @@ body {
         self.dialog = None
 
     def setup_theme(self):
-        pass
+        # Never touch user/model content on a theme change. Only the synthetic
+        # empty Canvas page is regenerated so a live theme/profile switch cannot
+        # leave a bright light grid inside the dark application theme.
+        if self.surface is not None and self.blank_canvas_active:
+            self._render_blank_canvas()
 
     def show_source(self):
         """Switch the persistent viewport to editable serialized page source.
@@ -667,16 +724,16 @@ body {
             self._ensure_playwright()
             self.pw_page.goto(url, wait_until="domcontentloaded")
             if url == "about:blank":
-                self.pw_page.set_content(self.BLANK_CANVAS_HTML, wait_until="domcontentloaded")
-                self.virtual_url = "about:blank"
+                self._render_blank_canvas()
             else:
+                self.blank_canvas_active = False
                 self.virtual_url = self.pw_page.url
-            self._refresh_playwright_frame()
+                self._refresh_playwright_frame()
         else:
             if url == "about:blank":
-                self.surface.web.setHtml(self.BLANK_CANVAS_HTML, QUrl("about:blank"))
-                self.virtual_url = "about:blank"
+                self._render_blank_canvas()
             else:
+                self.blank_canvas_active = False
                 self.surface.web.setUrl(QUrl.fromUserInput(url))
                 self.virtual_url = url
         return self.current_state()
@@ -703,6 +760,7 @@ body {
         self.base_url = base_url
         if self.backend == "playwright":
             self._ensure_playwright()
+            self.blank_canvas_active = False
             qbase = QUrl(base_url) if base_url else QUrl()
             if qbase.isLocalFile():
                 server_root = qbase.toLocalFile()
@@ -721,6 +779,7 @@ body {
             self.virtual_url = self.pw_page.url
             self._refresh_playwright_frame()
         else:
+            self.blank_canvas_active = False
             self.runtime_html = html
             self.surface.web.setHtml(html, QUrl(runtime_base) if runtime_base else QUrl.fromLocalFile(str(Path(workdir).resolve()) + os.sep))
             self.virtual_url = runtime_base or "about:blank"
@@ -1182,7 +1241,8 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             self.pw_page.on("console", lambda msg: self._append_console("console", getattr(msg, "type", "log"), getattr(msg, "text", "")))
             self.pw_page.on("pageerror", lambda exc: self._append_console("pageerror", "error", str(exc)))
             self.pw_page.goto("about:blank")
-            self.pw_page.set_content(self.BLANK_CANVAS_HTML, wait_until="domcontentloaded")
+            self.pw_page.set_content(self._blank_canvas_html(), wait_until="domcontentloaded")
+            self.blank_canvas_active = True
             self.virtual_url = "about:blank"
             self.pw_page.on("framenavigated", self._on_playwright_navigated)
             if self.pw_frame_timer is not None and not self.pw_frame_timer.isActive():
