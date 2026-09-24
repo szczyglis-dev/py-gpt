@@ -1,8 +1,8 @@
-Canvas (BETA)
-===========================
+Canvas
+======
 
-.. warning::
-   **BETA:** Canvas is experimental and will be expanded in future PyGPT releases. Its behavior, tools, and integration may change as the feature evolves.
+.. note::
+   Canvas is currently in beta and will be expanded in future PyGPT releases.
 
 **Canvas** gives PyGPT an interactive browser and rendering workspace that can be controlled by the model directly from a conversation. It is not limited to displaying static HTML. The model can create and update complete HTML/CSS/JavaScript documents, render interactive elements live, inspect the page, click and type inside it, run JavaScript, capture screenshots, read console output, and iteratively refine the result.
 

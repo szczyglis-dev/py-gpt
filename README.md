@@ -770,9 +770,9 @@ Below is a pattern for how different types of agents work. You can use these pat
 - When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
 
 
-# Canvas (BETA)
+# Canvas
 
-> **BETA:** Canvas is an experimental feature and will be expanded in future PyGPT releases.
+> **Note:** Canvas is currently in beta and will be expanded in future PyGPT releases.
 
 **Canvas** gives PyGPT an interactive browser and rendering workspace that the model can use directly while you chat. It is designed for much more than displaying static HTML: the model can build and update complete HTML/CSS/JavaScript interfaces, render interactive elements live, inspect the result, click and type inside it, execute page JavaScript, take screenshots, read console errors, and iteratively improve the page without leaving the conversation.
 
@@ -790,7 +790,7 @@ The model can generate the HTML/CSS/JavaScript, open the Canvas, render the anim
 
 Canvas can also work as a browser workspace. It can open external websites, navigate pages, inspect and interact with DOM elements, and use either the built-in Chromium/QWebEngine runtime or the optional Playwright sandbox. For local web projects, the plugin can start a lightweight loopback-only HTML server, open the served site in Canvas, and then test or modify it interactively.
 
-To use this functionality, enable the **Canvas (inline)** plugin in the Plugins menu. As an inline plugin, Canvas works independently of the global **Tools** switch, so **Tools** does not need to be enabled. Because this is currently a **BETA** feature, behavior and available tools may change or expand in future versions.
+To use this functionality, enable the **Canvas (inline)** plugin in the Plugins menu. As an inline plugin, Canvas works independently of the global **Tools** switch, so **Tools** does not need to be enabled. Behavior and available tools may continue to expand in future versions.
 
 # Indexing and RAG
 
@@ -1377,7 +1377,7 @@ The following plugins are currently available:
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
-- `Canvas (inline)` **(BETA)** - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
+- `Canvas (inline)` - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
 
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
@@ -2000,7 +2000,7 @@ PyGPT features several useful tools, including:
 - Python/OS
 - HTML/JS Canvas (built-in HTML renderer)
 - Translator
-- Canvas (BETA)
+- Canvas
 - Agent Workflow
 - Agent Builder (Legacy)
 
@@ -2082,11 +2082,11 @@ Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromiu
 
 Enables translation between multiple languages using an AI model.
 
-## Canvas (BETA)
+## Canvas
 
-The **Canvas** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas (inline)** plugin to expose its model-callable tools; the global **Tools** switch is not required. See the [Canvas](#canvas-beta) section above for an overview.
+The **Canvas** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas (inline)** plugin to expose its model-callable tools; the global **Tools** switch is not required. See the [Canvas](#canvas) section above for an overview.
 
-**BETA:** This tool and its plugin integration will be expanded in future releases. Treat untrusted webpages and scripts with the same caution as other browser content.
+Treat untrusted webpages and scripts with the same caution as other browser content.
 
 ## Agent Workflow
 

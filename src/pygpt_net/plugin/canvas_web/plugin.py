@@ -25,7 +25,7 @@ class Plugin(BasePlugin):
         self.is_common_plugin = True
         self.name = "Canvas (inline)"
         self.description = (
-            "BETA. Provides an internal browser/canvas runtime for HTML, JavaScript, website prototyping, "
+            "Provides an internal browser/canvas runtime for HTML, JavaScript, website prototyping, "
             "scoped browser computer-use, Playwright sandbox automation, annotations and a lightweight preview server. "
             "This feature will be expanded in future releases."
         )
