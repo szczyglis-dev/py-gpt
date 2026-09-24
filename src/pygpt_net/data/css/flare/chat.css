@@ -125,5 +125,5 @@ code {{
 }}
 /* Align user bubbles to the same right edge as the input row. */
 .msg-box.msg-user {{
-    margin-right: 0px;
+    margin-right: 10px;
 }}
