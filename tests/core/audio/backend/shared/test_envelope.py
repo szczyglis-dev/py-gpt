@@ -1,8 +1,8 @@
-from types import SimpleNamespace
+import sys
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
-import pygpt_net.core.audio.backend.shared.envelope as envelope_module
 from pygpt_net.core.audio.backend.shared.envelope import compute_envelope_from_file
 
 
@@ -19,9 +19,15 @@ class FakeAudio:
         return SimpleNamespace(rms=self.rms_values[idx])
 
 
+def _patch_pydub(monkeypatch, audio):
+    module = ModuleType("pydub")
+    module.AudioSegment = SimpleNamespace(from_file=lambda path: audio)
+    monkeypatch.setitem(sys.modules, "pydub", module)
+
+
 def test_compute_envelope_maps_silence_and_full_scale(monkeypatch):
     audio = FakeAudio([0, 32767], 100)
-    monkeypatch.setattr(envelope_module.AudioSegment, "from_file", lambda path: audio)
+    _patch_pydub(monkeypatch, audio)
 
     result = compute_envelope_from_file("audio.wav", chunk_ms=100)
 
@@ -31,5 +37,5 @@ def test_compute_envelope_maps_silence_and_full_scale(monkeypatch):
 
 def test_compute_envelope_clamps_very_low_rms(monkeypatch):
     audio = FakeAudio([1], 100)
-    monkeypatch.setattr(envelope_module.AudioSegment, "from_file", lambda path: audio)
+    _patch_pydub(monkeypatch, audio)
     assert compute_envelope_from_file("audio.wav", 100) == [0.0]

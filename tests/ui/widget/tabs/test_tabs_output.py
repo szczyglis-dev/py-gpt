@@ -67,12 +67,27 @@ def test_refresh_plus_button_ignores_standard_tabbar():
     OutputTabs._refresh_plus_button(widget)
 
 
-def test_set_active_get_column_and_owner_are_simple_state_helpers():
+def test_set_active_updates_qss_state_and_keeps_column_owner_helpers():
     column = object()
-    widget = SimpleNamespace(active=False, column=column, owner=None)
+    style = MagicMock()
+    bar = MagicMock()
+    bar.style.return_value = style
+    widget = SimpleNamespace(
+        active=False,
+        column=column,
+        owner=None,
+        tabBar=MagicMock(return_value=bar),
+    )
+
     OutputTabs.set_active(widget, True)
+
     assert widget.active is True
+    bar.setProperty.assert_called_once_with("activeColumn", True)
+    style.unpolish.assert_called_once_with(bar)
+    style.polish.assert_called_once_with(bar)
+    bar.update.assert_called_once_with()
     assert OutputTabs.get_column(widget) is column
+
     owner = object()
     OutputTabs.setOwner(widget, owner)
     assert widget.owner is owner

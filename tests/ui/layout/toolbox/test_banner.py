@@ -179,7 +179,7 @@ def test_left_click_opens_current_url_in_browser():
     event.button.return_value = Qt.LeftButton
     widget = SimpleNamespace(current_url="https://example.test")
 
-    with patch("pygpt_net.ui.layout.toolbox.banner.webbrowser.open") as open_browser:
+    with patch("webbrowser.open") as open_browser:
         BannerWidget.mousePressEvent(widget, event)
 
     open_browser.assert_called_once_with("https://example.test", new=2)

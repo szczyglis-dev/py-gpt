@@ -128,7 +128,7 @@ def test_launcher_defaults_and_multiprocessing_argv_cleanup(launcher_module):
     assert launcher.app is None
     assert launcher.window is None
     assert launcher.debug is False
-    assert launcher.force_legacy is False
+    assert not hasattr(launcher, "force_legacy")
     assert launcher.force_disable_gpu is False
     assert launcher._preloader is None
 
@@ -145,7 +145,7 @@ def test_setup_applies_flags_without_touching_process_environment(launcher_modul
     local_env = {}
     launcher_module.os = SimpleNamespace(environ=local_env)
     launcher_module.sys = SimpleNamespace(argv=[
-        "pygpt", "--debug", debug_value, "--legacy", "1", "--disable-gpu", "1",
+        "pygpt", "--debug", debug_value, "--disable-gpu", "1",
         "--workdir", "/isolated/workdir", "--multiprocessing-fork", "parent_pid=100", "--unknown",
     ])
 
@@ -154,7 +154,6 @@ def test_setup_applies_flags_without_touching_process_environment(launcher_modul
     debug_init.assert_called_once_with(expected_level)
     assert args["debug"] == debug_value
     assert launcher.debug is True
-    assert launcher.force_legacy is True
     assert launcher.force_disable_gpu is True
     assert local_env["PYGPT_WORKDIR"] == "/isolated/workdir"
     # The real process environment is never written by this test.
@@ -169,7 +168,7 @@ def test_setup_default_and_parser_failure(launcher_module, capsys):
     launcher_module.os = SimpleNamespace(environ={})
     launcher_module.sys = SimpleNamespace(argv=["pygpt"])
 
-    assert launcher.setup() == {"debug": None, "legacy": None, "disable_gpu": None, "workdir": None}
+    assert launcher.setup() == {"debug": None, "disable_gpu": None, "workdir": None}
     debug_init.assert_called_once_with(launcher_module.ERROR)
 
     launcher_module.argparse = SimpleNamespace(ArgumentParser=MagicMock(side_effect=RuntimeError("parse failed")))

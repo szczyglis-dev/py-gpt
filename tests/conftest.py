@@ -22,6 +22,11 @@ _ENV_BEFORE = {key: os.environ.get(key, _ENV_MISSING) for key in _TEST_ENV}
 for key, value in _TEST_ENV.items():
     os.environ.setdefault(key, value)
 
+# The real application registers compiled Qt resources from pygpt_net.app.
+# Most UI tests import widgets directly, so register icons explicitly during
+# collection to keep qrc paths such as :/icons/close.svg available.
+import pygpt_net.icons_rc  # noqa: E402,F401
+
 
 def pytest_sessionfinish(session, exitstatus):
     """Restore process-level bootstrap state changed before test collection."""
