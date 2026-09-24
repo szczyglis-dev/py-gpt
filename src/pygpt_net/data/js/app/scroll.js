@@ -48,6 +48,7 @@ class ScrollManager {
 		this.messageSizeObserver = null;
 		this.messageVirtualObserved = new Set();
 		this.messageVirtualRefreshScheduled = false;
+		this.messageSizeObserverPending = new Map();
 	}
 
 	_cancelScheduledPageScroll() {
@@ -110,10 +111,16 @@ class ScrollManager {
 
 		try {
 			this.contentObserver = new ResizeObserver(() => {
-				if (this.autoFollow === true && !this.pointerScrollActive) {
-					this._syncToPhysicalBottom(false);
-				}
-				this.scheduleScrollFabUpdate();
+				// Do not mutate scroll/layout from inside the ResizeObserver delivery
+				// cycle. Chromium reports "loop completed with undelivered
+				// notifications" when observer callbacks synchronously trigger more
+				// geometry work. Coalesce the reaction into the next animation frame.
+				this.raf.schedule('SM:contentResizeObserver', () => {
+					if (this.autoFollow === true && !this.pointerScrollActive) {
+						this._syncToPhysicalBottom(false);
+					}
+					this.scheduleScrollFabUpdate();
+				}, 'ScrollManager', 0);
 			});
 			this.contentObserver.observe(host);
 			this.contentObserverTarget = host;
@@ -134,6 +141,7 @@ class ScrollManager {
 		this.contentObserver = null;
 		this.contentObserverTarget = null;
 		this.contentObserverActive = false;
+		try { this.raf.cancel('SM:contentResizeObserver'); } catch (_) {}
 	}
 
 
@@ -221,16 +229,31 @@ class ScrollManager {
 		if (this.messageSizeObserver || typeof ResizeObserver === 'undefined') return;
 		try {
 			this.messageSizeObserver = new ResizeObserver((entries) => {
+				// Read observer data now, but defer DOM/style writes until the next
+				// frame so those writes cannot recursively participate in the same
+				// ResizeObserver notification cycle.
 				for (const entry of entries || []) {
 					const box = entry && entry.target;
 					if (!box || !box.isConnected) continue;
 					if (this._isLiveMessageBox(box)) {
-						box.classList.remove('msg-virtualized');
+						this.messageSizeObserverPending.set(box, null);
 						continue;
 					}
 					const h = this._measureMessageContentHeight(box, entry);
-					if (h > 0) this._storeMessageVirtualHeight(box, h);
+					if (h > 0) this.messageSizeObserverPending.set(box, h);
 				}
+				this.raf.schedule('SM:messageSizeObserver', () => {
+					const pending = this.messageSizeObserverPending;
+					this.messageSizeObserverPending = new Map();
+					pending.forEach((height, box) => {
+						if (!box || !box.isConnected) return;
+						if (height === null || this._isLiveMessageBox(box)) {
+							box.classList.remove('msg-virtualized');
+							return;
+						}
+						this._storeMessageVirtualHeight(box, height);
+					});
+				}, 'ScrollManager', 0);
 			});
 		} catch (_) {
 			this.messageSizeObserver = null;
@@ -342,6 +365,8 @@ class ScrollManager {
 		this.messageSizeObserver = null;
 		this.messageVirtualObserved.clear();
 		this.messageVirtualRefreshScheduled = false;
+		this.messageSizeObserverPending.clear();
+		try { this.raf.cancel('SM:messageSizeObserver'); } catch (_) {}
 		try { this.raf.cancel('SM:virtualizeMessages'); } catch (_) {}
 	}
 
