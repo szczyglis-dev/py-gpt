@@ -57,11 +57,12 @@ def _tool(tmp_path):
         controller=SimpleNamespace(
             kernel=MagicMock(),
             command=MagicMock(),
-            ui=SimpleNamespace(tabs=MagicMock()),
+            ui=SimpleNamespace(),
+            tabs=MagicMock(),
         ),
         dispatch=MagicMock(),
     )
-    window.controller.ui.tabs.column_idx = 0
+    window.controller.tabs.get_current_column_idx.return_value = 0
     tool.window = window
     tool.dialog = SimpleNamespace(widget=SimpleNamespace(
         history=MagicMock(),

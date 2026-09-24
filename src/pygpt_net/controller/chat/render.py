@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 20:20:00                  #
+# Updated Date: 2026.09.24 11:45:00                  #
 # ================================================== #
 
 from typing import Optional, List
@@ -304,6 +304,58 @@ class Render:
         self.instance().stream_end(meta, ctx)
         self.update()
 
+    def clear_pid(self, pid: int) -> None:
+        """Clear one chat output and discard renderer state by stable PID."""
+        if pid is None:
+            return
+
+        output = self.window.core.ctx.output
+        node = output.get_by_pid(pid)
+        plain_node = output.get_by_pid_plain(pid)
+
+        # Web output must keep its loaded application shell; clear only runtime
+        # message/chunk nodes. Markdown output is a QTextBrowser and can use the
+        # normal clear() path.
+        if node is not None:
+            reset_content = getattr(node, "reset_current_content", None)
+            page_getter = getattr(node, "page", None)
+            if callable(page_getter) and callable(reset_content):
+                try:
+                    page = page_getter()
+                    if page is not None:
+                        page.runJavaScript(
+                            "if (typeof window.clearNodes !== 'undefined') clearNodes();"
+                            "if (typeof window.clearInput !== 'undefined') clearInput();"
+                            "if (typeof window.clearOutput !== 'undefined') clearOutput();"
+                        )
+                    reset_content()
+                    if hasattr(node, "meta"):
+                        node.meta = None
+                except Exception:
+                    pass
+            else:
+                clear = getattr(node, "clear", None)
+                if callable(clear):
+                    try:
+                        clear()
+                    except Exception:
+                        pass
+
+        if plain_node is not None and plain_node is not node:
+            clear = getattr(plain_node, "clear", None)
+            if callable(clear):
+                try:
+                    clear()
+                except Exception:
+                    pass
+
+        # Do not leave old per-PID caches behind. If this tab is reused for a
+        # fresh context each renderer must rebuild its state from scratch.
+        self.plaintext_renderer.remove_pid(pid)
+        self.markdown_renderer.remove_pid(pid)
+        self.web_renderer.remove_pid(pid)
+        self.update()
+
     def clear_output(self, meta: Optional[CtxMeta] = None) -> None:
         """
         Clear current active output
@@ -326,7 +378,7 @@ class Render:
         self.instance().on_load(meta)
         self.update()
         if meta is not None:
-            self.window.controller.ui.tabs.update_tooltip(
+            self.window.controller.tabs.update_tooltip(
                 meta.name,
                 meta_id=meta.id,
             )
@@ -655,7 +707,7 @@ class Render:
         if self.window.core.config.get('render.plain') or self.get_engine() != "web":
             return
 
-        tab = self.window.controller.ui.tabs.get_current_tab()
+        tab = self.window.controller.tabs.get_current_tab()
         if tab is None or tab.type != Tab.TAB_CHAT or tab.pid != pid:
             return
 

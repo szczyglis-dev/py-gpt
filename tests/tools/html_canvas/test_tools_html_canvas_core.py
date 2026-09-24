@@ -11,11 +11,12 @@ def _tool(tmp_path):
     (tmp_path / "tmp").mkdir(exist_ok=True)
     (tmp_path / "data").mkdir(exist_ok=True)
     tabs = MagicMock()
-    tabs.column_idx = 0
+    tabs.get_current_column_idx.return_value = 0
     window = SimpleNamespace(
         core=SimpleNamespace(config=config),
         controller=SimpleNamespace(
-            ui=SimpleNamespace(tabs=tabs),
+            ui=SimpleNamespace(),
+            tabs=tabs,
             chat=SimpleNamespace(common=MagicMock()),
         ),
         ui=SimpleNamespace(dialogs=MagicMock(), nodes={"icon.html_canvas": MagicMock()}),
@@ -164,10 +165,10 @@ def test_html_canvas_open_only_once_and_optional_load(tmp_path):
 
 def test_html_canvas_auto_open_handles_current_tab_split_screen(tmp_path):
     tool = _tool(tmp_path)
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tabs.is_current_tool.return_value = True
     tabs.get_tool_column.return_value = 1
-    tabs.column_idx = 0
+    tabs.get_current_column_idx.return_value = 0
     tool.open = MagicMock()
 
     tool.auto_open()
@@ -178,11 +179,11 @@ def test_html_canvas_auto_open_handles_current_tab_split_screen(tmp_path):
 
 def test_html_canvas_auto_open_switches_existing_tool_tab(tmp_path):
     tool = _tool(tmp_path)
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tabs.is_current_tool.return_value = False
     tabs.is_tool.return_value = True
     tabs.get_first_tab_by_tool.return_value = SimpleNamespace(idx=4, column_idx=1)
-    tabs.column_idx = 0
+    tabs.get_current_column_idx.return_value = 0
     tool.open = MagicMock()
 
     tool.auto_open(load=False)
@@ -194,7 +195,7 @@ def test_html_canvas_auto_open_switches_existing_tool_tab(tmp_path):
 
 def test_html_canvas_auto_open_opens_once_when_not_present_in_tabs(tmp_path):
     tool = _tool(tmp_path)
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tabs.is_current_tool.return_value = False
     tabs.is_tool.return_value = False
     tool.open = MagicMock()

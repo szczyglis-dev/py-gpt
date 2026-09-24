@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 19:55:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
@@ -147,7 +147,7 @@ class Lang:
         self.mapping.apply()
         self.custom.apply()
 
-        c.ui.tabs.reload_titles()
+        c.tabs.reload_titles()
         c.agent_workflow.reload()
         c.calendar.note.update_current()
         self.settings.apply()

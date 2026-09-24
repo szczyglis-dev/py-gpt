@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 14:45:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -61,7 +61,7 @@ class AgentWorkflow(BaseTool):
         if bool(cfg.get(self.ONBOARDING_KEY, False)):
             return False
 
-        tabs_controller = self.window.controller.ui.tabs
+        tabs_controller = self.window.controller.tabs
         if not getattr(tabs_controller, "initialized", False):
             return False
 

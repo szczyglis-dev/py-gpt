@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -52,7 +52,7 @@ class CalendarNote(QTextEdit):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def set_tab(self, tab: Tab):

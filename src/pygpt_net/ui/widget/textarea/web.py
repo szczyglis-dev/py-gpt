@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 00:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 import base64
 import mimetypes
@@ -130,7 +130,7 @@ class ChatWebOutput(QWebEngineView):
         """Mark the owning output column as active without stealing WebEngine focus."""
         try:
             if self.tab is not None:
-                self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+                self.window.controller.tabs.on_column_focus(self.tab.column_idx)
         except Exception:
             pass
 

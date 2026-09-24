@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 20:20:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import uuid
@@ -67,7 +67,7 @@ class Tabs:
 
         This is the hard invariant below the UI controller. It protects direct
         core tab creation, profile restore and any future caller that bypasses
-        ``controller.ui.tabs.append``.
+        ``controller.tabs.append``.
         """
         if type != Tab.TAB_TOOL or not tool_id:
             return None
@@ -164,12 +164,8 @@ class Tabs:
 
         :return: PID
         """
-        current_column_idx = self.window.controller.ui.tabs.get_current_column_idx()
-        tabs = self.window.ui.layout.get_tabs_by_idx(current_column_idx)
-        tab = self.get_tab_by_index(tabs.currentIndex(), current_column_idx)
-        if tab is None:
-            return 0
-        return tab.pid
+        pid = self.window.controller.tabs.get_current_pid()
+        return 0 if pid is None else pid
 
     def add(
             self,
@@ -1087,7 +1083,7 @@ class Tabs:
         context/browser titles should use False so they remain synchronizable.
         """
         if column_idx is None:
-            column_idx = self.window.controller.ui.tabs.get_current_column_idx()
+            column_idx = self.window.controller.tabs.get_current_column_idx()
         tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
         tab = self.get_tab_by_index(idx, column_idx)
         if tab is None:

@@ -13,7 +13,7 @@ def test_output_column_focus_updates_controller_and_focuses_widget():
 
     OutputColumn.on_focus(widget, child)
 
-    widget.window.controller.ui.tabs.on_column_focus.assert_called_once_with(2)
+    widget.window.controller.tabs.on_column_focus.assert_called_once_with(2)
     child.setFocus.assert_called_once()
 
 
@@ -47,12 +47,12 @@ def test_output_layout_splitter_notifies_only_when_visibility_state_changes():
     splitter.sizes.return_value = [500, 0]
     OutputLayout.handle_splitter_moved(widget, 0, 1)
     OutputLayout.handle_splitter_moved(widget, 0, 1)
-    widget.window.controller.ui.tabs.on_split_screen_changed.assert_called_once_with(False)
+    widget.window.controller.tabs.on_split_screen_changed.assert_called_once_with(False)
 
     splitter.sizes.return_value = [300, 200]
     OutputLayout.handle_splitter_moved(widget, 0, 1)
-    widget.window.controller.ui.tabs.on_split_screen_changed.assert_called_with(True)
-    assert widget.window.controller.ui.tabs.on_split_screen_changed.call_count == 2
+    widget.window.controller.tabs.on_split_screen_changed.assert_called_with(True)
+    assert widget.window.controller.tabs.on_split_screen_changed.call_count == 2
 
 
 def test_output_layout_column_management_and_lookup():
@@ -83,7 +83,7 @@ def test_output_layout_lookup_falls_back_to_column_idx_when_list_position_differ
 def test_output_layout_active_helpers_use_controller_current_column():
     column = SimpleNamespace(idx=3, tabs="tabs")
     window = MagicMock()
-    window.controller.ui.tabs.get_current_column_idx.return_value = 3
+    window.controller.tabs.get_current_column_idx.return_value = 3
     widget = SimpleNamespace(window=window, columns=[column])
     widget.get_column_by_idx = lambda idx: OutputLayout.get_column_by_idx(widget, idx)
 

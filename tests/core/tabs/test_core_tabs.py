@@ -99,7 +99,7 @@ def fake_window():
     tabs_ctrl = MagicMock()
     tabs_ctrl.get_current_column_idx.return_value = 0
     window.controller.ui = MagicMock()
-    window.controller.ui.tabs = tabs_ctrl
+    window.controller.tabs = tabs_ctrl
     notepad = MagicMock()
     notepad.create.return_value = (MagicMock(spec=QWidget), 0, 1)
     window.controller.notepad = notepad
@@ -163,17 +163,12 @@ def test_get_first_tab_by_type(tabs_instance):
     assert ret_none is None
 
 def test_get_active_pid(tabs_instance, fake_window):
-    fake_tab = MagicMock()
-    fake_tab.pid = 123
-    fake_widget = MagicMock(spec=QWidget)
-    fake_widget.getOwner = MagicMock(return_value=fake_tab)
-    tabs = fake_window.ui.layout.get_tabs_by_idx(0)
-    tabs._tabs.append(fake_widget)
-    fake_window.controller.ui.tabs.get_current_column_idx.return_value = 0
-    original_index = tabs.count()
-    tabs._tabs.insert(0, fake_widget)
-    ret = tabs_instance.get_active_pid()
-    assert ret == 123
+    fake_window.controller.tabs.get_current_pid.return_value = 123
+
+    assert tabs_instance.get_active_pid() == 123
+
+    fake_window.controller.tabs.get_current_pid.return_value = None
+    assert tabs_instance.get_active_pid() == 0
 
 def test_add_tabs(tabs_instance, fake_window, monkeypatch):
     monkeypatch.setattr(tabs_instance, "add_chat", lambda tab: setattr(tab, "idx", 0))
@@ -425,7 +420,7 @@ def test_update_title(tabs_instance, fake_window):
     monkey_tab = fake_tab
     monkey_tab.custom_name = False
     tabs_instance.get_tab_by_index = MagicMock(return_value=monkey_tab)
-    tabs_instance.update_title(0, "New Title", "New Tooltip")
+    tabs_instance.update_title(0, "New Title", "New Tooltip", column_idx=0)
     fake_tabs.setTabText.assert_called_with(0, "New Title")
     fake_tabs.setTabToolTip.assert_called_with(0, "New Tooltip")
     assert fake_tab.custom_name is True

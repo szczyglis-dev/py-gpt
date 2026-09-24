@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Tuple
@@ -310,7 +310,7 @@ class CalendarSelect(QCalendarWidget):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
 
         if (
             self._calendar_view is not None
@@ -509,7 +509,7 @@ class CalendarSelect(QCalendarWidget):
 
         if self.tab is not None:
             col_idx = self.tab.column_idx
-            self.window.controller.ui.tabs.on_column_focus(col_idx)
+            self.window.controller.tabs.on_column_focus(col_idx)
 
     def add_ctx(self, date: QDate, num: int):
         """

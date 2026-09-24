@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.14 20:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 class TabsDebug:
@@ -22,7 +22,7 @@ class TabsDebug:
     def update(self):
         """Update debug window."""
         debug = self.window.core.debug
-        tabs_controller = self.window.controller.ui.tabs
+        tabs_controller = self.window.controller.tabs
         tabs_core = self.window.core.tabs
         ctx_output = self.window.core.ctx.output
         ctx_container = self.window.core.ctx.container
@@ -35,8 +35,8 @@ class TabsDebug:
         debug.add(self.id, 'current Type', str(tabs_controller.get_current_type()))
         debug.add(self.id, '----', '')
         debug.add(self.id, 'last_pid', str(tabs_core.last_pid))
-        debug.add(self.id, 'locked', str(tabs_controller.locked))
-        debug.add(self.id, 'col', str(tabs_controller.col))
+        debug.add(self.id, 'locked', str(tabs_controller.is_locked()))
+        debug.add(self.id, 'col', str(tabs_controller.get_column_pids()))
         debug.add(self.id, 'count(pids)', str(len(tabs_core.pids)))
         debug.add(self.id, 'count(ctx bags)', str(len(ctx_container.bags)))
         debug.add(self.id, '----', '')

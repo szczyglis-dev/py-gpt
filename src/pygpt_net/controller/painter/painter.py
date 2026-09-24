@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 17:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import os
@@ -53,7 +53,7 @@ class Painter:
         """
         self.open(path)
         if not self.is_active():
-            self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_PAINTER)
+            self.window.controller.tabs.switch_tab(Tab.TAB_TOOL_PAINTER)
 
     def save(self):
         """Store current image"""
@@ -85,7 +85,7 @@ class Painter:
 
         :return: True if painter is current active tab
         """
-        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_TOOL_PAINTER
+        return self.window.controller.tabs.get_current_type() == Tab.TAB_TOOL_PAINTER
 
     def reload(self):
         """Reload painter"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 16:30:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import json
@@ -633,20 +633,20 @@ class CodeInterpreter(BaseTool):
 
     def auto_open(self):
         """Auto open dialog or tab"""
-        if self.window.controller.ui.tabs.is_current_tool(self.id):
-            tool_col = self.window.controller.ui.tabs.get_tool_column(self.id)
-            current_col = self.window.controller.ui.tabs.column_idx
+        if self.window.controller.tabs.is_current_tool(self.id):
+            tool_col = self.window.controller.tabs.get_tool_column(self.id)
+            current_col = self.window.controller.tabs.get_current_column_idx()
             if tool_col == 1 and tool_col != current_col:
-                self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                self.window.controller.tabs.enable_split_screen(True)  # enable split screen
             return # do not open if already opened in tab
-        elif self.window.controller.ui.tabs.is_tool(self.id):
-            tab = self.window.controller.ui.tabs.get_first_tab_by_tool(self.id)
+        elif self.window.controller.tabs.is_tool(self.id):
+            tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
             if tab:
                 tool_col = tab.column_idx
-                current_col = self.window.controller.ui.tabs.column_idx
-                self.window.controller.ui.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
+                current_col = self.window.controller.tabs.get_current_column_idx()
+                self.window.controller.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
                 if tool_col == 1 and tool_col != current_col:
-                    self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                    self.window.controller.tabs.enable_split_screen(True)  # enable split screen
                 return # do not open if already opened in tab
         if not self.auto_opened:
             self.auto_opened = True

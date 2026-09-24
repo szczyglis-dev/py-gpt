@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import os.path
@@ -104,7 +104,7 @@ class Worker(BaseWorker):
                 self.status(trans('audio.speak.wait'))
 
                 # if multimodal audio, then only return path to audio file and do not transcribe
-                tab = self.window.controller.ui.tabs.get_current_tab()
+                tab = self.window.controller.tabs.get_current_tab()
                 if tab.type == Tab.TAB_CHAT:
                     if self.plugin.window.controller.chat.audio.enabled():
                         safe_emit(self.signals, "on_realtime", self.path)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 17:34:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -344,4 +344,4 @@ class Output:
         # synchronize core.ctx with whichever chat the user focused meanwhile.
         if not controller.chat.input.generating:
             render_output.finish_request(meta=getattr(ctx, "meta", None))
-            controller.ui.tabs.sync_focused_chat_context()
+            controller.tabs.sync_focused_chat_context()

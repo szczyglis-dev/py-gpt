@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 11:05:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import os
@@ -463,7 +463,7 @@ class Audio:
             is_advanced = event.data['value']
         if is_enabled:
             # show/hide extra options
-            tab = self.window.controller.ui.tabs.get_current_tab()
+            tab = self.window.controller.tabs.get_current_tab()
             if not tab:
                 return
             if tab.type == Tab.TAB_NOTEPAD:

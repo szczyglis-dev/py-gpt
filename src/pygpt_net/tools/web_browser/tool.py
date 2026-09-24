@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 01:35:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import json
@@ -401,7 +401,7 @@ body {
     def open(self, load: bool = True):
         """Open/focus the single Canvas tab in the second column."""
         self._ensure_surface()
-        tabs = self.window.controller.ui.tabs
+        tabs = self.window.controller.tabs
         tab = tabs.get_first_tab_by_tool(self.id)
 
         if tab is None:
@@ -432,7 +432,7 @@ body {
         explicitly focus the canvas tab.
         """
         self._ensure_surface()
-        tabs = self.window.controller.ui.tabs
+        tabs = self.window.controller.tabs
         tab = tabs.get_first_tab_by_tool(self.id)
 
         if tab is not None and tab.column_idx != 1:
@@ -507,11 +507,11 @@ body {
         }
 
     def close_surface(self):
-        tab = self.window.controller.ui.tabs.get_first_tab_by_tool(self.id)
+        tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
         if tab is None:
             self.detach_surface()
             return {"closed": "none", "session_alive": True}
-        tabs = self.window.controller.ui.tabs
+        tabs = self.window.controller.tabs
         if tab.column_idx == 1 and tabs.is_split_screen_enabled():
             tabs.disable_split_screen()
             return {"closed": "split_screen", "session_alive": True}

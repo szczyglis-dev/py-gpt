@@ -65,8 +65,8 @@ def create_dummy_window():
     win.controller.ctx.handle_allowed = MagicMock()
     win.controller.ctx.update_mode_in_current = MagicMock()
     win.controller.ui = MagicMock()
-    win.controller.ui.tabs = MagicMock()
-    win.controller.ui.tabs.switch_to_first_chat = MagicMock()
+    win.controller.tabs = MagicMock()
+    win.controller.tabs.switch_to_first_chat = MagicMock()
     win.controller.ui.vision = MagicMock()
     win.controller.ui.vision.has_vision = MagicMock(return_value=False)
     win.controller.camera = MagicMock()
@@ -119,7 +119,7 @@ def create_dummy_window():
     win.core.ctx.get_meta_by_id = MagicMock(return_value=meta)
     win.core.ctx.get_current_meta = MagicMock(return_value=meta)
     win.core.ctx.get_current = MagicMock(return_value=1)
-    win.controller.ui.tabs.get_effective_current_pid = MagicMock(return_value=1)
+    win.controller.tabs.get_effective_current_pid = MagicMock(return_value=1)
     win.dispatch = MagicMock()
     return win
 
@@ -285,7 +285,7 @@ def test_send_input_attachments_error():
     assert "attachment error" in error_events[0].data.get("msg", "")
     win.controller.chat.common.sync_send_stop_buttons.assert_called_once_with()
     win.core.ctx.output.finish_request.assert_called_once_with(win.core.ctx.output.get_request_meta.return_value)
-    win.controller.ui.tabs.sync_focused_chat_context.assert_called_once_with()
+    win.controller.tabs.sync_focused_chat_context.assert_called_once_with()
 
 def test_send_calls_execute():
     win = create_dummy_window()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:45:00                  #
+# Updated Date: 2026.09.24 11:55:00                  #
 # ================================================== #
 
 from typing import Optional, List, Union
@@ -223,7 +223,7 @@ class Ctx:
         # that tab instead of loading the context into whichever chat tab is
         # currently active. This also reveals the right split-screen column
         # when the matching tab is open there but the column is hidden.
-        if meta is not None and self.window.controller.ui.tabs.focus_chat_by_data_id(id):
+        if meta is not None and self.window.controller.tabs.focus_chat_by_data_id(id):
             # The normal tab-change handler synchronizes core.ctx. Keep a safe
             # fallback for an unusual stale/unloaded tab state.
             if core_ctx.get_current() != id:
@@ -349,13 +349,15 @@ class Ctx:
     def new(
             self,
             force: bool = False,
-            group_id: Optional[Union[int, list]] = None
+            group_id: Optional[Union[int, list]] = None,
+            tab_pid: Optional[int] = None,
     ):
         """
         Create new ctx
 
         :param force: force context creation
         :param group_id: group ID
+        :param tab_pid: explicit chat tab PID that owns the new context
         """
         if not force and self.context_change_locked():
             return
@@ -381,8 +383,14 @@ class Ctx:
 
         meta = self.window.core.ctx.new(group_id)
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
-        self.update()
 
+        # Bind before the first render event. This makes a newly created context
+        # belong to the tab that requested it even if another widget receives
+        # focus while the UI is being refreshed.
+        if meta is not None and tab_pid is not None:
+            self.window.core.ctx.output.store(meta, pid=tab_pid)
+
+        self.update()
         self.fresh_output(meta)  # render reset
 
         if not force:
@@ -399,7 +407,12 @@ class Ctx:
         self.common.focus_chat(meta)
 
         if meta is not None:
-            self.window.controller.ui.tabs.update_title_current(meta.name)
+            if tab_pid is not None:
+                tab = self.window.core.tabs.get_tab_by_pid(tab_pid)
+                if tab is not None:
+                    self.window.controller.tabs.update_title_by_tab(tab, meta.name)
+            else:
+                self.window.controller.tabs.update_title_current(meta.name)
 
         self.window.dispatch(AppEvent(AppEvent.CTX_CREATED))
         self.select(meta.id)
@@ -542,7 +555,9 @@ class Ctx:
             restore_model: bool = True,
             select_idx: Optional[int] = None,
             new_tab: Optional[bool] = False,
-            no_fresh: bool = False
+            no_fresh: bool = False,
+            tab_pid: Optional[int] = None,
+            target_column_idx: Optional[int] = None,
     ):
         """
         Load ctx data
@@ -552,6 +567,8 @@ class Ctx:
         :param select_idx: select index on list after loading
         :param new_tab: open in new tab
         :param no_fresh: do not fresh output
+        :param tab_pid: explicit chat tab PID to bind/load into
+        :param target_column_idx: explicit destination column for ``new_tab``
         """
         if self.context_change_locked():
             request_meta = self.window.core.ctx.output.get_request_meta()
@@ -559,10 +576,39 @@ class Ctx:
             if request_meta_id is None or id != request_meta_id:
                 return
 
+        tabs_ctrl = self.window.controller.tabs
         if new_tab:
-            col_idx = self.window.controller.ui.tabs.column_idx
-            self.window.controller.ui.tabs.create_new_on_tab = False
-            self.window.controller.ui.tabs.new_tab(col_idx)
+            col_idx = (tabs_ctrl.get_current_column_idx()
+                       if target_column_idx is None else int(target_column_idx))
+            tab = tabs_ctrl.open_chat_context(id, col_idx)
+            if tab is not None:
+                tab_pid = tab.pid
+        elif tab_pid is None:
+            # Resolve a concrete chat before changing core.ctx or dispatching any
+            # render event. This removes focus-dependent routing from ctx.load().
+            tab = tabs_ctrl.get_preferred_chat_tab(target_column_idx)
+            if tab is None:
+                # Hard fallback: the UI normally keeps at least one chat tab,
+                # but loading a context must also be safe when that invariant is
+                # temporarily broken (restore/profile mutation/etc.). Create the
+                # destination deterministically in the first column and bind the
+                # requested context directly -- do not create an extra empty ctx.
+                tab = tabs_ctrl.open_chat_context(id, 0)
+            if tab is not None:
+                tab_pid = tab.pid
+                tabs_ctrl.bind_chat(tab, id)
+        else:
+            # Callers that already resolved the destination still go through the
+            # same binding step. The renderer must see meta -> PID before FRESH.
+            tab = self.window.core.tabs.get_tab_by_pid(tab_pid)
+            if tab is not None:
+                tabs_ctrl.bind_chat(tab, id)
+            elif tabs_ctrl.get_preferred_chat_tab(0) is None:
+                # Also recover from a stale explicit PID when no chat tab exists.
+                tab = tabs_ctrl.open_chat_context(id, 0)
+                if tab is not None:
+                    tab_pid = tab.pid
+                    tabs_ctrl.bind_chat(tab, id)
 
         self.window.core.ctx.clear_thread()
         self.window.core.ctx.select(id, restore_model=restore_model)
@@ -577,7 +623,7 @@ class Ctx:
         self.update(reload=False, all=True)
 
         if meta is not None:
-            self.window.controller.ui.tabs.on_load_ctx(meta)
+            self.window.controller.tabs.on_load_ctx(meta, pid=tab_pid)
 
         if select_idx is not None:
             self.select(id)
@@ -607,7 +653,7 @@ class Ctx:
         self.update(reload=False, all=True)
 
         if meta is not None:
-            self.window.controller.ui.tabs.on_load_ctx(meta)
+            self.window.controller.tabs.on_load_ctx(meta)
 
     def reload_config(self, all: bool = True):
         """
@@ -683,7 +729,6 @@ class Ctx:
             )
             return
         updated = False
-        updated_current = False
         ids = id if isinstance(id, list) else [id]
         for id in ids:
             try:
@@ -692,22 +737,20 @@ class Ctx:
                 self.window.core.debug.log(e)
                 print("Error deleting ctx data from indexes", e)
 
-            if self.window.core.ctx.get_current() == id:
-                updated_current = True
             self.window.core.attachments.context.delete_by_meta_id(id)
             self.window.core.ctx.remove(id)
             self.remove_selected(id)
 
             if self.window.core.ctx.get_current() == id:
                 self.window.core.ctx.clear_current()
-                event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
-                self.window.dispatch(event)
             updated = True
 
         if updated:
+            # Keep chat tabs whose contexts were deleted, but detach their
+            # bindings and clear their concrete outputs by PID. This works for
+            # single and bulk deletes without depending on active focus/column.
+            self.window.controller.tabs.detach_chat_contexts(ids)
             self.update_and_restore()
-            if updated_current:
-                self.window.controller.ui.tabs.update_title_current("...")
 
     def delete_meta_from_idx(self, id: int):
         """Delete every tracked vector document for a context meta."""
@@ -1053,7 +1096,7 @@ class Ctx:
                 continue
             meta = self.window.core.ctx.get_meta_by_id(id)
             if meta is not None:
-                if self.window.controller.ui.tabs.sync_chat_titles(meta.id):
+                if self.window.controller.tabs.sync_chat_titles(meta.id):
                     tabs_changed = True
 
         if tabs_changed:

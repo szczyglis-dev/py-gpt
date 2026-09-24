@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 10:02:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -24,7 +24,7 @@ class Confirm:
     def accept(
             self,
             type: str,
-            id: Optional[str] = None,
+            id: Optional[Any] = None,
             parent_object: Any = None
     ):
         """
@@ -193,7 +193,13 @@ class Confirm:
 
         # tab close all
         elif type == 'tab.close_all':
-            self.window.controller.ui.tabs.close_all(id, 0, True)  # by type
+            if isinstance(id, dict):
+                tab_type = id.get('type')
+                column_idx = id.get('column_idx', 0)
+            else:
+                tab_type = id
+                column_idx = 0
+            self.window.controller.tabs.close_all(tab_type, column_idx, True)
 
         # editor
         elif type == 'editor.changed.clear':
@@ -382,7 +388,9 @@ class Confirm:
                 workdir=workdir,
             )
         elif type == 'tab':
-            self.window.controller.ui.tabs.update_name(id, name, True)
+            self.window.controller.tabs.update_name(id, name, True)
+        elif type == 'tab.pid':
+            self.window.controller.tabs.update_name_by_pid(id, name, True)
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':

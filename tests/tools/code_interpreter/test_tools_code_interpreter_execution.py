@@ -18,12 +18,13 @@ def _tool():
         set_checkbox_all=_sig(),
         toggle_all_visible=_sig(),
     )
-    tabs = MagicMock(); tabs.column_idx = 0
+    tabs = MagicMock(); tabs.get_current_column_idx.return_value = 0
     window = SimpleNamespace(
         controller=SimpleNamespace(
             kernel=MagicMock(),
             command=MagicMock(),
-            ui=SimpleNamespace(tabs=tabs),
+            ui=SimpleNamespace(),
+            tabs=tabs,
         ),
         core=SimpleNamespace(config=MagicMock(), dispatcher=MagicMock()),
         ui=SimpleNamespace(dialogs=MagicMock(), nodes={"icon.interpreter": MagicMock()}),
@@ -213,17 +214,17 @@ def test_code_interpreter_open_close_toggle_and_show_hide():
 
 def test_code_interpreter_auto_open_current_or_existing_tab_vs_dialog():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tool.open = MagicMock()
 
     tabs.is_current_tool.return_value = True
     tabs.get_tool_column.return_value = 1
-    tabs.column_idx = 0
+    tabs.get_current_column_idx.return_value = 0
     tool.auto_open()
     tabs.enable_split_screen.assert_called_once_with(True)
     tool.open.assert_not_called()
 
-    tabs.reset_mock(); tabs.column_idx = 0
+    tabs.reset_mock(); tabs.get_current_column_idx.return_value = 0
     tabs.is_current_tool.return_value = False
     tabs.is_tool.return_value = True
     tabs.get_first_tab_by_tool.return_value = SimpleNamespace(idx=5, column_idx=1)

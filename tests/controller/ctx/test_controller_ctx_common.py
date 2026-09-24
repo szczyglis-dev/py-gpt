@@ -69,7 +69,7 @@ def test_ctx_common_dismiss_rename_and_focus_chat_delegate_ui_actions():
     common.focus_chat(meta)
 
     common.window.ui.dialog["rename"].close.assert_called_once_with()
-    common.window.controller.ui.tabs.focus_by_type.assert_called_once_with(
+    common.window.controller.tabs.focus_by_type.assert_called_once_with(
         Tab.TAB_CHAT,
         data_id=4,
         title="Topic",

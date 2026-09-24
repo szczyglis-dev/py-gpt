@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.22 16:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Optional, Tuple
@@ -269,7 +269,7 @@ class Notepad:
 
         :return: current notepad index
         """
-        tabs_ctrl = self.window.controller.ui.tabs
+        tabs_ctrl = self.window.controller.tabs
         if self.is_active():
             tab = tabs_ctrl.get_current_tab()
             if tab is not None:
@@ -282,13 +282,13 @@ class Notepad:
 
         :return: True if notepad tab is active
         """
-        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_NOTEPAD
+        return self.window.controller.tabs.get_current_type() == Tab.TAB_NOTEPAD
 
     def open(self):
         """Open notepad"""
         if self.get_num_notepads() == 0:
             return
-        if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_NOTEPAD:
+        if self.window.controller.tabs.get_current_type() != Tab.TAB_NOTEPAD:
             idx = self.window.core.tabs.get_min_idx_by_type(Tab.TAB_NOTEPAD)
             if idx is not None:
                 tabs = self.window.ui.layout.get_active_tabs()
@@ -374,7 +374,7 @@ class Notepad:
         :param tab_idx: current tab idx
         :param column_idx: column idx
         """
-        tab = self.window.controller.ui.tabs.get_current_tab()
+        tab = self.window.controller.tabs.get_current_tab()
         if tab is None:
             return
         if tab.type == Tab.TAB_NOTEPAD:
@@ -396,7 +396,7 @@ class Notepad:
     def focus_opened(self, tab = None):
         """Focus opened notepad"""
         if tab is None:
-            tab = self.window.controller.ui.tabs.get_current_tab()
+            tab = self.window.controller.tabs.get_current_tab()
         if tab is not None and tab.type == Tab.TAB_NOTEPAD:
             widget = self.window.ui.notepad.get(tab.data_id)
             if widget is not None:

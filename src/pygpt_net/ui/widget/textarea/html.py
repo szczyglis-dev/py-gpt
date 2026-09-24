@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import re
@@ -361,7 +361,7 @@ class HtmlOutput(QWebEngineView):
         elif (event.type() == event.Type.MouseButtonPress):
             if self.tab:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         elif event.type() == QEvent.KeyPress:
             if event.key() == Qt.Key_F and (event.modifiers() & Qt.ControlModifier):
                 self.find_open()

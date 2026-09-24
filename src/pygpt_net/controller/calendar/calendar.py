@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 11:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.tabs.tab import Tab
@@ -142,7 +142,7 @@ class Calendar:
 
         :return: True if calendar tab is active
         """
-        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_TOOL_CALENDAR
+        return self.window.controller.tabs.get_current_type() == Tab.TAB_TOOL_CALENDAR
 
     def reload(self):
         """Reload calendar"""

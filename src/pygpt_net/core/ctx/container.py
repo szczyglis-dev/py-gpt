@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 21:50:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -166,7 +166,7 @@ class Container:
                 return chat_pid
 
         # Normal idle case: the focused chat owns its own Bag.
-        pid = self.window.controller.ui.tabs.get_current_pid()
+        pid = self.window.controller.tabs.get_current_pid()
         tab = tabs.get_tab_by_pid(pid) if pid is not None else None
         if tab is not None and tab.type == Tab.TAB_CHAT:
             return pid

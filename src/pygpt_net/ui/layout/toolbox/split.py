@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.01 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget
@@ -35,7 +35,7 @@ class Split:
                                                            icon=":/icons/split_screen.svg",
                                                            parent=self.window)
         self.window.ui.nodes['layout.split'].box.toggled.connect(
-            self.window.controller.ui.tabs.toggle_split_screen
+            self.window.controller.tabs.toggle_split_screen
         )
         split_widget = QWidget(self.window)
         split_layout = QHBoxLayout(split_widget)

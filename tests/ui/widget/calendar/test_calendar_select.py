@@ -55,7 +55,7 @@ def test_day_click_updates_date_and_dispatches_both_calendar_actions_and_focus()
     assert (widget.currentYear, widget.currentMonth, widget.currentDay) == (2026, 9, 7)
     window.controller.calendar.on_day_select.assert_called_once_with(2026, 9, 7)
     window.controller.calendar.on_ctx_select.assert_called_once_with(2026, 9, 7)
-    window.controller.ui.tabs.on_column_focus.assert_called_once_with(3)
+    window.controller.tabs.on_column_focus.assert_called_once_with(3)
 
 
 def test_add_ctx_stores_string_counter_and_updates_only_cell():

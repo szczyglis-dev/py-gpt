@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 12:30:00
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -79,14 +79,14 @@ class Input:
         """Release request routing and apply any chat focus chosen meanwhile."""
         output = self.window.core.ctx.output
         output.finish_request(meta)
-        self.window.controller.ui.tabs.sync_focused_chat_context()
+        self.window.controller.tabs.sync_focused_chat_context()
 
     def _pin_user_chat(self, pid: Optional[int] = None):
         """Bind a manual send to the chat tab that actually invoked it."""
         core = self.window.core
-        tabs_ui = self.window.controller.ui.tabs
+        tabs_ui = self.window.controller.tabs
 
-        # ``pid`` is normally snapshotted at the very beginning of send_input(),
+        # ``pid`` is normally snapshoted at the very beginning of send_input(),
         # before USER_SEND/plugins can mutate focus. Keep a local fallback for
         # direct callers/tests.
         if pid is None:
@@ -237,7 +237,7 @@ class Input:
         # Snapshot the invoker before any input/plugin event can move focus.
         # get_effective_current_pid() also sees the latest deferred column-focus
         # request, so a click+immediate Send is routed to the clicked chat.
-        source_pid = self.window.controller.ui.tabs.get_effective_current_pid()
+        source_pid = self.window.controller.tabs.get_effective_current_pid()
         mode = self.window.core.config.get('mode')
         event = Event(Event.INPUT_BEGIN, {
             'mode': mode,

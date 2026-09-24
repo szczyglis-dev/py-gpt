@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 18:05:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ class WorkflowView(QWebEngineView):
         if self.tab is None:
             return
         try:
-            self.window.controller.ui.tabs.on_column_focus(self.tab.column_idx)
+            self.window.controller.tabs.on_column_focus(self.tab.column_idx)
         except Exception:
             pass
 

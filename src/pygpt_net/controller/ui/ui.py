@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 16:30:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -19,7 +19,6 @@ from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.utils import trans, short_num
 
 from .mode import Mode
-from .tabs import Tabs
 from .vision import Vision
 
 class UI:
@@ -31,7 +30,6 @@ class UI:
         """
         self.window = window
         self.mode = Mode(window)
-        self.tabs = Tabs(window)
         self.vision = Vision(window)
         self.colors = {
             0: {'label': 'label.color.default', 'color': QColor(100, 100, 100), 'font': QColor(255, 255, 255)},
@@ -83,7 +81,7 @@ class UI:
 
         # on input begin
         if name == Event.INPUT_BEGIN:
-            self.tabs.switch_to_first_chat()  # switch to first active chat tab
+            self.window.controller.tabs.switch_to_first_chat()  # switch to first active chat tab
         elif name == Event.CTX_END:
             self.update_tokens()  # update UI
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Dict, List
@@ -87,7 +87,7 @@ class Tools:
         """
         idx = self.window.core.tabs.get_min_idx_by_type(type)
         if idx is not None:
-            self.window.controller.ui.tabs.switch_tab_by_idx(idx)
+            self.window.controller.tabs.switch_tab_by_idx(idx)
 
     def append_tab_menu(
             self,
@@ -117,7 +117,7 @@ class Tools:
             # tools (e.g. Canvas, Agent Workflow and Python/OS) disappear from
             # Add tool as soon as their application-wide tab already exists.
             if getattr(tool, "single_instance", False):
-                existing = self.window.controller.ui.tabs.get_first_tab_by_tool(id)
+                existing = self.window.controller.tabs.get_first_tab_by_tool(id)
                 if existing is not None:
                     continue
             icon = tool.tab_icon

@@ -18,7 +18,7 @@ def _bare_controller():
     ):
         setattr(controller, name, MagicMock())
 
-    controller.ui.tabs = MagicMock()
+    controller.tabs = MagicMock()
     controller.plugins.settings = MagicMock()
     controller.model.editor = MagicMock()
     controller.dialogs.info = MagicMock()
@@ -40,7 +40,7 @@ def test_controller_setup_calls_all_primary_components():
     controller.chat.init.assert_called_once_with()
     controller.layout.setup.assert_called_once_with()
     controller.ui.setup.assert_called_once_with()
-    controller.ui.tabs.setup.assert_called_once_with()
+    controller.tabs.setup.assert_called_once_with()
     controller.lang.setup.assert_called_once_with()
     controller.agent_workflow.setup.assert_called_once_with()
     controller.assistant.setup.assert_called_once_with()
@@ -78,7 +78,7 @@ def test_controller_post_setup_does_not_open_license_when_accepted():
     controller.calendar.setup.assert_called_once_with()
     controller.painter.setup.assert_called_once_with()
     controller.debug.post_setup.assert_called_once_with()
-    controller.ui.tabs.restore_data.assert_called_once_with()
+    controller.tabs.restore_data.assert_called_once_with()
     controller.dialogs.info.toggle.assert_not_called()
 
 
@@ -123,17 +123,17 @@ def test_controller_reload_success_unlocks_and_restarts_components():
     controller.presets.lock.assert_called_once_with()
     controller.presets.unlock.assert_called_once_with()
     controller.window.core.reload.assert_called_once_with()
-    controller.ui.tabs.reload.assert_called_once_with(restore_data=False)
+    controller.tabs.reload.assert_called_once_with(restore_data=False)
     controller.ctx.reload.assert_called_once_with()
-    controller.ui.tabs.restore_after_ctx_reload.assert_called_once_with()
+    controller.tabs.restore_after_ctx_reload.assert_called_once_with()
     controller.skills.reload.assert_called_once_with()
     controller.connectors.reload.assert_called_once_with()
     controller.agents_v2.reload.assert_called_once_with()
-    controller.ui.tabs.reload_after.assert_called_once_with()
+    controller.tabs.reload_after.assert_called_once_with()
     controller.ctx.reload_after.assert_called_once_with()
     controller.kernel.restart.assert_called_once_with()
     controller.theme.reload_all.assert_called_once_with()
-    controller.ui.tabs.finalize_profile_reload.assert_called_once_with()
+    controller.tabs.finalize_profile_reload.assert_called_once_with()
     controller.window.tools.on_reload.assert_called_once_with()
     mem_clean.assert_called_once_with(force=True)
 

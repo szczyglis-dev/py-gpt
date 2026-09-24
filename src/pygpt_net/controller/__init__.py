@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 10:56:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from .access import Access
@@ -45,6 +45,7 @@ from .profile_exporter import ProfileExporter
 from .settings import Settings
 from .skills import Skills
 from .theme import Theme
+from .tabs import Tabs
 from .tools import Tools
 from .ui import UI
 
@@ -59,6 +60,7 @@ class Controller:
         :param window: Window instance
         """
         self.window = window
+        self.tabs = Tabs(window)
         self.access = Access(window)
         self.agent = Agent(window)
         self.agents_v2 = AgentsV2(window)
@@ -108,7 +110,7 @@ class Controller:
         # setup layout
         self.layout.setup()
         self.ui.setup()
-        self.ui.tabs.setup()
+        self.tabs.setup()
 
         # setup controllers
         self.lang.setup()
@@ -143,7 +145,7 @@ class Controller:
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
         self.debug.post_setup()  # post setup debug after all loaded
-        self.ui.tabs.restore_data()  # restore opened tabs data
+        self.tabs.restore_data()  # restore opened tabs data
 
         # show license terms dialog
         if not self.window.core.config.get('license.accepted'):
@@ -180,20 +182,22 @@ class Controller:
         profile_mode = self.window.core.config.get("mode")
 
         try:
-            self.ui.tabs.locked = True  # lock tabs
-            self.window.core.reload()  # db, config, patch, etc.
+            self.tabs.lock()
+            try:
+                self.window.core.reload()  # db, config, patch, etc.
 
-            # Profile/workdir reload is intentionally two-phase. First rebuild
-            # tab widgets from the *new profile* config, but do not restore any
-            # chat selection yet. CtxMeta records still belong to the previous
-            # profile until ctx.reload() has finished. Restoring a tab earlier
-            # can therefore resolve the new tab's data_id against the old DB
-            # (IDs are profile-local and may overlap), producing wrong titles
-            # and even wrong context assignments.
-            self.ui.tabs.reload(restore_data=False)
-            self.ctx.reload()
-            self.ui.tabs.restore_after_ctx_reload()
-            self.ui.tabs.locked = False  # unlock tabs
+                # Profile/workdir reload is intentionally two-phase. First rebuild
+                # tab widgets from the *new profile* config, but do not restore any
+                # chat selection yet. CtxMeta records still belong to the previous
+                # profile until ctx.reload() has finished. Restoring a tab earlier
+                # can therefore resolve the new tab's data_id against the old DB
+                # (IDs are profile-local and may overlap), producing wrong titles
+                # and even wrong context assignments.
+                self.tabs.reload(restore_data=False)
+                self.ctx.reload()
+                self.tabs.restore_after_ctx_reload()
+            finally:
+                self.tabs.unlock()
 
             self.settings.reload()
             self.skills.reload()
@@ -220,7 +224,7 @@ class Controller:
             self.tools.reload()
 
             # post-reload
-            self.ui.tabs.reload_after()
+            self.tabs.reload_after()
             self.ctx.reload_after()
 
             # ctx/tab restoration can call ctx.reload_config(), which restores
@@ -246,7 +250,7 @@ class Controller:
             # after renderer/theme synchronization, so the footer/status area
             # and the visible chat WebView do not stay in an intermediate state
             # until the user clicks another conversation/tab.
-            self.ui.tabs.finalize_profile_reload()
+            self.tabs.finalize_profile_reload()
 
         except Exception as e:
             self.window.core.debug.log(e)

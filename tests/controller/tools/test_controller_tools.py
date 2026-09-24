@@ -13,7 +13,7 @@ def test_tools_open_tab_switches_to_first_tab_of_requested_type():
     tools.open_tab(99)
 
     window.core.tabs.get_min_idx_by_type.assert_called_once_with(99)
-    window.controller.ui.tabs.switch_tab_by_idx.assert_called_once_with(4)
+    window.controller.tabs.switch_tab_by_idx.assert_called_once_with(4)
 
 
 def test_tools_open_tab_does_nothing_when_type_has_no_tab():
@@ -23,7 +23,7 @@ def test_tools_open_tab_does_nothing_when_type_has_no_tab():
 
     tools.open_tab(99)
 
-    window.controller.ui.tabs.switch_tab_by_idx.assert_not_called()
+    window.controller.tabs.switch_tab_by_idx.assert_not_called()
 
 
 def test_tools_get_tab_tools_returns_controller_mapping():

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 16:35:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Optional, Union, Tuple
@@ -229,7 +229,7 @@ class ChatInput(QTextEdit):
         chat that visibly owns this composer.
         """
         try:
-            tabs = self.window.controller.ui.tabs
+            tabs = self.window.controller.tabs
             if hasattr(tabs, 'get_chat_input_column_idx'):
                 column_idx = tabs.get_chat_input_column_idx()
             else:

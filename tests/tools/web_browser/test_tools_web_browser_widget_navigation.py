@@ -26,7 +26,8 @@ def _widget():
     )
     window = SimpleNamespace(
         controller=SimpleNamespace(
-            ui=SimpleNamespace(tabs=MagicMock()),
+            ui=SimpleNamespace(),
+            tabs=MagicMock(),
         ),
         ui=SimpleNamespace(splitters={}),
     )
@@ -111,16 +112,16 @@ def test_web_browser_widget_runtime_state_updates_view_and_real_tab_title():
         {"title": "Example", "width": 900, "height": 600}
     )
     obj._update_plugin_hint.assert_called_once_with()
-    obj.window.controller.ui.tabs.update_title_by_tab.assert_called_once_with(obj.tab, "Example")
+    obj.window.controller.tabs.update_title_by_tab.assert_called_once_with(obj.tab, "Example")
 
-    obj.window.controller.ui.tabs.update_title_by_tab.reset_mock()
+    obj.window.controller.tabs.update_title_by_tab.reset_mock()
     ToolWidget.on_runtime_state(obj, {"title": "about:blank"})
     ToolWidget.on_runtime_state(obj, {"title": ""})
-    obj.window.controller.ui.tabs.update_title_by_tab.assert_not_called()
+    obj.window.controller.tabs.update_title_by_tab.assert_not_called()
 
     obj.tab = None
     ToolWidget.on_runtime_state(obj, {"title": "Ignored"})
-    obj.window.controller.ui.tabs.update_title_by_tab.assert_not_called()
+    obj.window.controller.tabs.update_title_by_tab.assert_not_called()
 
 
 def test_web_browser_widget_viewport_sync_tracks_visible_runtime_area():

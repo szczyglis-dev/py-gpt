@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 15:20:00
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
@@ -329,7 +329,7 @@ class Mode:
 
     def toggle_chat_footer(self):
         """Toggle chat-only footer controls together with the shared Chat input."""
-        tabs = self.window.controller.ui.tabs
+        tabs = self.window.controller.tabs
         if hasattr(tabs, 'is_chat_input_visible') and tabs.is_chat_input_visible():
             self.show_chat_footer()
         elif tabs.get_current_type() == Tab.TAB_CHAT:
@@ -401,7 +401,7 @@ class Mode:
 
     def hide_chat_footer(self):
         """Hide chat-only controls only when the shared Chat input is hidden."""
-        tabs = self.window.controller.ui.tabs
+        tabs = self.window.controller.tabs
         if hasattr(tabs, 'is_chat_input_visible') and tabs.is_chat_input_visible():
             # A non-chat tab may have focus in the other split column while a
             # single visible Chat keeps owning the shared input. Its Plugins /

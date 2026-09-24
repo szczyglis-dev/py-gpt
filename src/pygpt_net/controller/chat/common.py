@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 12:30:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import os
@@ -177,7 +177,7 @@ class Common:
         chat_input = self.window.controller.chat.input
         busy = bool(chat_input.locked or chat_input.generating)
         editing = self.window.controller.ctx.extra.is_editing()
-        tabs = self.window.controller.ui.tabs
+        tabs = self.window.controller.tabs
         if hasattr(tabs, 'is_chat_input_visible'):
             chat_input_visible = tabs.is_chat_input_visible()
         else:
@@ -342,7 +342,7 @@ class Common:
         self.window.update_status(trans('status.stopped'))
         dispatch(KernelEvent(KernelEvent.STATE_IDLE, {"meta": current_meta}))  # state: idle
         core.ctx.output.finish_request(meta=current_meta)
-        controller.ui.tabs.sync_focused_chat_context()
+        controller.tabs.sync_focused_chat_context()
 
         # remotely stop assistant
         mode = core.config.get('mode')

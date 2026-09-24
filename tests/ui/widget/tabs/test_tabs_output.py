@@ -91,7 +91,7 @@ def _tabs_widget():
         append=MagicMock(),
     )
     window = SimpleNamespace(
-        controller=SimpleNamespace(ui=SimpleNamespace(tabs=ui_tabs)),
+        controller=SimpleNamespace(ui=SimpleNamespace(), tabs=ui_tabs),
         core=SimpleNamespace(tabs=SimpleNamespace(get_max_idx_by_column=MagicMock(return_value=3))),
     )
     return SimpleNamespace(
@@ -109,11 +109,11 @@ def test_tab_signal_handlers_route_current_index_and_column():
     OutputTabs._on_tabbar_dbl_clicked(widget, 99)
     OutputTabs._on_tab_moved(widget, 1, 2)
 
-    tabs = widget.window.controller.ui.tabs
-    tabs.on_tab_changed.assert_called_once_with(4, 1)
-    tabs.on_tab_clicked.assert_called_once_with(4, 1)
-    tabs.on_tab_dbl_clicked.assert_called_once_with(4, 1)
-    tabs.on_tab_moved.assert_called_once_with(4, 1)
+    tabs = widget.window.controller.tabs
+    tabs.on_tab_changed.assert_called_once_with(99, 1)
+    tabs.on_tab_clicked.assert_called_once_with(99, 1)
+    tabs.on_tab_dbl_clicked.assert_called_once_with(99, 1)
+    tabs.on_tab_moved.assert_called_once_with(2, 1)
 
 
 def test_tab_close_handler_routes_and_schedules_refresh(monkeypatch):
@@ -123,7 +123,7 @@ def test_tab_close_handler_routes_and_schedules_refresh(monkeypatch):
     single_shot = MagicMock()
     monkeypatch.setattr(output_module, "QTimer", SimpleNamespace(singleShot=single_shot))
     OutputTabs._on_tab_close_requested(widget, 2)
-    widget.window.controller.ui.tabs.on_tab_closed.assert_called_once_with(4, 1)
+    widget.window.controller.tabs.on_tab_closed.assert_called_once_with(2, 1)
     single_shot.assert_called_once_with(0, widget._refresh_plus_button)
 
 
@@ -133,7 +133,7 @@ def test_tab_operation_wrappers_route_to_controller():
     OutputTabs.close_tab(widget, 3, 0)
     OutputTabs.close_all(widget, Tab.TAB_NOTEPAD, 1)
 
-    tabs = widget.window.controller.ui.tabs
+    tabs = widget.window.controller.tabs
     tabs.rename.assert_called_once_with(2, 1)
     tabs.close.assert_called_once_with(3, 0)
     tabs.close_all.assert_called_once_with(Tab.TAB_NOTEPAD, 1)
@@ -142,7 +142,7 @@ def test_tab_operation_wrappers_route_to_controller():
 def test_add_tab_uses_requested_index_for_regular_insert():
     widget = _tabs_widget()
     OutputTabs.add_tab(widget, 5, 1, Tab.TAB_CHAT, tool_id="tool-x")
-    widget.window.controller.ui.tabs.append.assert_called_once_with(
+    widget.window.controller.tabs.append.assert_called_once_with(
         type=Tab.TAB_CHAT,
         tool_id="tool-x",
         idx=5,
@@ -155,7 +155,7 @@ def test_add_tab_resolves_special_new_button_index():
     widget = _tabs_widget()
     OutputTabs.add_tab(widget, -2, 1, Tab.TAB_NOTEPAD)
     widget.window.core.tabs.get_max_idx_by_column.assert_called_once_with(1)
-    widget.window.controller.ui.tabs.append.assert_called_once_with(
+    widget.window.controller.tabs.append.assert_called_once_with(
         type=Tab.TAB_NOTEPAD,
         tool_id=None,
         idx=3,
@@ -167,7 +167,7 @@ def test_add_tab_uses_zero_when_column_is_empty():
     widget = _tabs_widget()
     widget.window.core.tabs.get_max_idx_by_column.return_value = -1
     OutputTabs.add_tab(widget, -2, 0, Tab.TAB_CHAT)
-    widget.window.controller.ui.tabs.append.assert_called_once_with(
+    widget.window.controller.tabs.append.assert_called_once_with(
         type=Tab.TAB_CHAT,
         tool_id=None,
         idx=0,

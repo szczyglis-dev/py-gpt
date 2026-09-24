@@ -5,6 +5,8 @@
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -40,7 +42,7 @@ class Url:
                 self.window.controller.access.on_escape()
                 return
             if action == "focus":
-                pid = self.window.controller.ui.tabs.get_current_pid()
+                pid = self.window.controller.tabs.get_current_pid()
                 if pid in self.window.ui.nodes['output']:
                     self.window.ui.nodes['output'][pid].on_focus_js()
                 return

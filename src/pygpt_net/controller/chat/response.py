@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 15:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -138,7 +138,7 @@ class Response:
             if ctx is not None and failed_meta is not None:
                 dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": failed_meta, "ctx": ctx}))
             core.ctx.output.finish_request(meta=failed_meta)
-            controller.ui.tabs.sync_focused_chat_context()
+            controller.tabs.sync_focused_chat_context()
             return
 
         try:
@@ -437,7 +437,7 @@ class Response:
             if ctx is not None and getattr(ctx, "meta", None) is not None:
                 self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
             self.window.core.ctx.output.finish_request(meta=getattr(ctx, "meta", None))
-            self.window.controller.ui.tabs.sync_focused_chat_context()
+            self.window.controller.tabs.sync_focused_chat_context()
 
     def agent_v2_begin(self, context: BridgeContext, extra: Dict[str, Any]):
         """Begin the single user-visible Agents v2 response stream."""

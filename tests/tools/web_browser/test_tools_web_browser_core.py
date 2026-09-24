@@ -8,14 +8,15 @@ from pygpt_net.tools.web_browser.tool import WebBrowser
 def _tool():
     tool = WebBrowser()
     tabs = MagicMock()
-    tabs.column_idx = 0
+    tabs.get_current_column_idx.return_value = 0
     plugin = MagicMock()
     plugin.get_option_value.return_value = None
     core_tabs = MagicMock()
     core_tabs.get_max_idx_by_column.return_value = 0
     window = SimpleNamespace(
         controller=SimpleNamespace(
-            ui=SimpleNamespace(tabs=tabs),
+            ui=SimpleNamespace(),
+            tabs=tabs,
             chat=SimpleNamespace(common=MagicMock()),
             kernel=SimpleNamespace(busy=False),
         ),
@@ -66,7 +67,7 @@ def test_web_browser_set_url_routes_to_canvas_runtime():
 
 def test_web_browser_open_creates_singleton_in_second_column_and_focuses_it():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tab = SimpleNamespace(idx=7, column_idx=1)
     tabs.get_first_tab_by_tool.side_effect = [None, tab]
     tabs.is_split_screen_enabled.return_value = False
@@ -88,7 +89,7 @@ def test_web_browser_open_creates_singleton_in_second_column_and_focuses_it():
 
 def test_web_browser_open_reuses_existing_singleton():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tab = SimpleNamespace(idx=3, column_idx=1)
     tabs.get_first_tab_by_tool.return_value = tab
     tabs.is_split_screen_enabled.return_value = True
@@ -111,7 +112,7 @@ def test_web_browser_toggle_is_an_opener_not_dialog_state_toggle():
 
 def test_web_browser_close_surface_preserves_runtime_and_hides_ui():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tab = SimpleNamespace(idx=3, column_idx=1)
     tabs.get_first_tab_by_tool.return_value = tab
     tabs.is_split_screen_enabled.return_value = True
@@ -133,7 +134,7 @@ def test_web_browser_close_surface_preserves_runtime_and_hides_ui():
 
 def test_web_browser_auto_open_existing_second_column_reveals_once_without_focus_steal():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tab = SimpleNamespace(idx=3, column_idx=1)
     tabs.get_first_tab_by_tool.return_value = tab
     tabs.is_split_screen_enabled.return_value = False
@@ -152,7 +153,7 @@ def test_web_browser_auto_open_existing_second_column_reveals_once_without_focus
 
 def test_web_browser_auto_open_respects_existing_legacy_primary_column_tab():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tabs.get_first_tab_by_tool.return_value = SimpleNamespace(idx=2, column_idx=0)
     tool._ensure_surface = MagicMock()
 
@@ -166,7 +167,7 @@ def test_web_browser_auto_open_respects_existing_legacy_primary_column_tab():
 
 def test_web_browser_auto_open_creates_missing_tab_without_switching_focus():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tabs.get_first_tab_by_tool.return_value = None
     tabs.is_split_screen_enabled.return_value = False
     tool.window.core.tabs.get_max_idx_by_column.return_value = 5

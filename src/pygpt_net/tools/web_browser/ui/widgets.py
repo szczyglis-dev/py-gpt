@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 02:05:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
@@ -216,7 +216,7 @@ class ToolWidget:
         title = state.get("title") or ""
         if self.tab is not None and title and title != "about:blank":
             try:
-                self.window.controller.ui.tabs.update_title_by_tab(self.tab, title)
+                self.window.controller.tabs.update_title_by_tab(self.tab, title)
             except Exception:
                 pass
 

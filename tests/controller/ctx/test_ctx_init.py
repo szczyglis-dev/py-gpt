@@ -9,7 +9,8 @@
 # Updated Date: 2025.09.15 22:00:00                  #
 # ================================================== #
 
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+from unittest.mock import MagicMock, call
 
 from tests.mocks import mock_window
 from pygpt_net.controller.ctx import Ctx
@@ -93,7 +94,7 @@ def test_select(mock_window):
     ctx.common.focus_chat = MagicMock()
     mock_window.core.ctx.get_current.return_value = None
     mock_window.core.ctx.get_meta_by_id.return_value = None
-    mock_window.controller.ui.tabs.focus_chat_by_data_id.return_value = False
+    mock_window.controller.tabs.focus_chat_by_data_id.return_value = False
 
     ctx.select(3)
 
@@ -239,6 +240,77 @@ def test_load(mock_window):
     assert mock_window.core.config.get('assistant_thread') == 'th_123'
 
 
+
+def test_load_creates_first_column_chat_when_no_chat_tab_exists(mock_window):
+    """Loading a ctx must recover even if the UI temporarily has no chat tab."""
+    ctx = Ctx(mock_window)
+    ctx.context_change_locked = MagicMock(return_value=False)
+    ctx.set_group = MagicMock()
+    ctx.fresh_output = MagicMock()
+    ctx.reload_config = MagicMock()
+    ctx.update = MagicMock()
+
+    meta = SimpleNamespace(id=33, group_id=7)
+    created_tab = SimpleNamespace(pid=303, data_id=None)
+    mock_window.controller.tabs.get_preferred_chat_tab.return_value = None
+    mock_window.controller.tabs.open_chat_context.return_value = created_tab
+    mock_window.core.ctx.get_meta_by_id.return_value = meta
+
+    ctx.load(33)
+
+    mock_window.controller.tabs.get_preferred_chat_tab.assert_called_once_with(None)
+    mock_window.controller.tabs.open_chat_context.assert_called_once_with(33, 0)
+    mock_window.controller.tabs.bind_chat.assert_called_once_with(created_tab, 33)
+    mock_window.core.ctx.select.assert_called_once_with(33, restore_model=True)
+    ctx.fresh_output.assert_called_once_with(meta)
+    mock_window.controller.tabs.on_load_ctx.assert_called_once_with(meta, pid=303)
+
+
+def test_load_recovers_from_stale_explicit_tab_pid_when_no_chat_tab_exists(mock_window):
+    """A stale caller PID must fall back to a new chat in column zero."""
+    ctx = Ctx(mock_window)
+    ctx.context_change_locked = MagicMock(return_value=False)
+    ctx.set_group = MagicMock()
+    ctx.fresh_output = MagicMock()
+    ctx.reload_config = MagicMock()
+    ctx.update = MagicMock()
+
+    meta = SimpleNamespace(id=44, group_id=None)
+    created_tab = SimpleNamespace(pid=404, data_id=None)
+    mock_window.core.tabs.get_tab_by_pid.return_value = None
+    mock_window.controller.tabs.get_preferred_chat_tab.return_value = None
+    mock_window.controller.tabs.open_chat_context.return_value = created_tab
+    mock_window.core.ctx.get_meta_by_id.return_value = meta
+
+    ctx.load(44, tab_pid=999)
+
+    mock_window.core.tabs.get_tab_by_pid.assert_called_once_with(999)
+    mock_window.controller.tabs.get_preferred_chat_tab.assert_called_once_with(0)
+    mock_window.controller.tabs.open_chat_context.assert_called_once_with(44, 0)
+    mock_window.controller.tabs.bind_chat.assert_called_once_with(created_tab, 44)
+    mock_window.controller.tabs.on_load_ctx.assert_called_once_with(meta, pid=404)
+
+
+def test_load_new_tab_uses_explicit_target_column(mock_window):
+    """new_tab routing is deterministic and does not depend on active focus."""
+    ctx = Ctx(mock_window)
+    ctx.context_change_locked = MagicMock(return_value=False)
+    ctx.set_group = MagicMock()
+    ctx.fresh_output = MagicMock()
+    ctx.reload_config = MagicMock()
+    ctx.update = MagicMock()
+
+    meta = SimpleNamespace(id=55, group_id=None)
+    created_tab = SimpleNamespace(pid=505)
+    mock_window.controller.tabs.open_chat_context.return_value = created_tab
+    mock_window.core.ctx.get_meta_by_id.return_value = meta
+
+    ctx.load(55, new_tab=True, target_column_idx=1)
+
+    mock_window.controller.tabs.open_chat_context.assert_called_once_with(55, 1)
+    mock_window.controller.tabs.get_current_column_idx.assert_not_called()
+    mock_window.controller.tabs.on_load_ctx.assert_called_once_with(meta, pid=505)
+
 def test_update_ctx(mock_window):
     """Test update ctx"""
     ctx = Ctx(mock_window)
@@ -266,13 +338,35 @@ def test_delete(mock_window):
     mock_window.core.ctx.get_id_by_idx = MagicMock(return_value=3)
     mock_window.core.ctx.remove = MagicMock()
 
+    ctx.update_and_restore = MagicMock()
+
     ctx.delete(3, True)
+
     mock_window.core.ctx.remove.assert_called_once_with(3)
-    ctx.update.assert_called_once()
+    mock_window.core.ctx.clear_current.assert_called_once_with()
+    mock_window.controller.tabs.detach_chat_contexts.assert_called_once_with([3])
+    ctx.update_and_restore.assert_called_once_with()
 
-    # current
-    mock_window.dispatch.assert_called()
 
+
+def test_delete_multiple_contexts_detaches_tabs_once_with_all_ids(mock_window):
+    """Bulk deletion leaves tabs alive and detaches every deleted ctx in one pass."""
+    ctx = Ctx(mock_window)
+    ctx.delete_meta_from_idx = MagicMock()
+    ctx.remove_selected = MagicMock()
+    ctx.update_and_restore = MagicMock()
+    mock_window.core.ctx.get_current.return_value = 3
+
+    ctx.delete([3, 5], True)
+
+    assert mock_window.core.ctx.remove.call_args_list == [call(3), call(5)]
+    assert mock_window.core.attachments.context.delete_by_meta_id.call_args_list == [
+        call(3), call(5)
+    ]
+    assert ctx.remove_selected.call_args_list == [call(3), call(5)]
+    mock_window.core.ctx.clear_current.assert_called_once_with()
+    mock_window.controller.tabs.detach_chat_contexts.assert_called_once_with([3, 5])
+    ctx.update_and_restore.assert_called_once_with()
 
 def test_delete_history(mock_window):
     """Test delete ctx history"""

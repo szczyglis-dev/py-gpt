@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 19:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Optional, Union
@@ -105,7 +105,7 @@ class Common:
         """
         data_id = meta.id if meta else None
         title = meta.name if meta else None
-        self.window.controller.ui.tabs.focus_by_type(
+        self.window.controller.tabs.focus_by_type(
             Tab.TAB_CHAT,
             data_id=data_id,
             title=title,

@@ -45,10 +45,13 @@ def make_window(values=None):
     )
     window = SimpleNamespace(
         core=SimpleNamespace(config=config, ctx=ctx, presets=presets, models=models, debug=SimpleNamespace(log=MagicMock())),
-        controller=SimpleNamespace(ui=SimpleNamespace(tabs=SimpleNamespace(
-            get_current_tab_name=MagicMock(return_value="Chat"),
-            get_current_tab_name_for_audio=MagicMock(return_value="Chat"),
-        ))),
+        controller=SimpleNamespace(
+            ui=SimpleNamespace(),
+            tabs=SimpleNamespace(
+                get_current_tab_name=MagicMock(return_value="Chat"),
+                get_current_tab_name_for_audio=MagicMock(return_value="Chat"),
+            ),
+        ),
         dispatch=MagicMock(),
     )
     return window

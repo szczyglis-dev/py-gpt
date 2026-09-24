@@ -13,7 +13,8 @@ def _window():
     option = {"value": 1.0}
     controller = SimpleNamespace(
         finder=SimpleNamespace(open=MagicMock(), focus_in=MagicMock()),
-        ui=SimpleNamespace(tabs=SimpleNamespace(on_column_focus=MagicMock())),
+        ui=SimpleNamespace(),
+        tabs=SimpleNamespace(on_column_focus=MagicMock()),
         chat=SimpleNamespace(render=SimpleNamespace(
             on_js_ready=MagicMock(),
             scroll=0,
@@ -152,12 +153,12 @@ def test_web_focus_helpers_route_column_focus():
     widget = SimpleNamespace(window=window, tab=tab, setFocus=MagicMock())
     widget._activate_tab_column = lambda: ChatWebOutput._activate_tab_column(widget)
     ChatWebOutput.on_focus(widget, object())
-    window.controller.ui.tabs.on_column_focus.assert_called_once_with(2)
+    window.controller.tabs.on_column_focus.assert_called_once_with(2)
     widget.setFocus.assert_called_once_with()
 
-    window.controller.ui.tabs.on_column_focus.reset_mock()
+    window.controller.tabs.on_column_focus.reset_mock()
     ChatWebOutput.on_focus_js(widget)
-    window.controller.ui.tabs.on_column_focus.assert_called_once_with(2)
+    window.controller.tabs.on_column_focus.assert_called_once_with(2)
 
 
 def test_web_find_and_update_delegate_to_finder():

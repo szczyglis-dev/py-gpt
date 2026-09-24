@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 22:34:00
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QSize
@@ -311,7 +311,7 @@ class NotepadOutput(QTextEdit):
             return
         had_focus = self.hasFocus()
         try:
-            self.window.controller.ui.tabs.on_column_focus(idx)
+            self.window.controller.tabs.on_column_focus(idx)
         except Exception:
             # Keep the UI resilient even if external handler fails
             pass
