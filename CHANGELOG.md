@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.8.30 (2026-09-24)
+
+- Added a new **Canvas** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. See the new **Canvas** section in the documentation for details.
+- The chat input field is now pinned to its corresponding chat column.
+- Added support for new models: **Claude Opus 5.5**, **GPT-6 Sol**, and **GPT-6 Luna**.
+
 ## 2.8.29 (2026-09-22)
 
 - Renamed **Chat with Agents** mode to **Agents**.

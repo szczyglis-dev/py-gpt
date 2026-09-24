@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.29** | build: **2026-09-22** | Python: **>=3.10, <3.14**
+Release: **2.8.30** | build: **2026-09-24** | Python: **>=3.10, <3.14**
 
 > Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
 > 
@@ -778,7 +778,7 @@ Below is a pattern for how different types of agents work. You can use these pat
 
 Canvas is useful for prototypes, widgets, dashboards, animations, small browser applications, visualizations, interactive demos, games, forms, UI experiments, and other tasks where seeing and manipulating a live result is more useful than receiving source code alone. You can also leave **annotations** directly on selected content or page elements. The model can read these annotations as precise feedback and apply requested changes to the current page.
 
-For example, enable the **Canvas** plugin and ask:
+For example, enable the **Canvas (inline)** plugin and ask:
 
 ```text
 Create an animated cat in the canvas.
@@ -790,7 +790,7 @@ The model can generate the HTML/CSS/JavaScript, open the Canvas, render the anim
 
 Canvas can also work as a browser workspace. It can open external websites, navigate pages, inspect and interact with DOM elements, and use either the built-in Chromium/QWebEngine runtime or the optional Playwright sandbox. For local web projects, the plugin can start a lightweight loopback-only HTML server, open the served site in Canvas, and then test or modify it interactively.
 
-To use this functionality, enable the **Canvas** plugin in the Plugins menu. Because this is currently a **BETA** feature, behavior and available tools may change or expand in future versions.
+To use this functionality, enable the **Canvas (inline)** plugin in the Plugins menu. As an inline plugin, Canvas works independently of the global **Tools** switch, so **Tools** does not need to be enabled. Because this is currently a **BETA** feature, behavior and available tools may change or expand in future versions.
 
 # Indexing and RAG
 
@@ -1377,7 +1377,7 @@ The following plugins are currently available:
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
-- `Canvas` **(BETA)** - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers.
+- `Canvas (inline)` **(BETA)** - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
 
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
@@ -2084,7 +2084,7 @@ Enables translation between multiple languages using an AI model.
 
 ## Canvas (BETA)
 
-The **Canvas** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas** plugin to expose its model-callable tools. See the [Canvas](#canvas-beta) section above for an overview.
+The **Canvas** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas (inline)** plugin to expose its model-callable tools; the global **Tools** switch is not required. See the [Canvas](#canvas-beta) section above for an overview.
 
 **BETA:** This tool and its plugin integration will be expanded in future releases. Treat untrusted webpages and scripts with the same caution as other browser content.
 
@@ -2496,6 +2496,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.30 (2026-09-24)**
+
+- Added a new **Canvas (inline)** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. As an inline plugin, it works independently of the global **Tools** switch. See the new **Canvas** section in the documentation for details.
+- The chat input field is now pinned to its corresponding chat column.
+- Added support for new models: **Claude Opus 5.5**, **GPT-6 Sol**, and **GPT-6 Luna**.
 
 **2.8.29 (2026-09-22)**
 

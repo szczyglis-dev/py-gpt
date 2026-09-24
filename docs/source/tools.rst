@@ -124,7 +124,7 @@ Enables translation between multiple languages using an AI model.
 Canvas (BETA)
 ----------------------
 
-The **Canvas** tool is a persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas** plugin. It can render generated HTML/CSS/JavaScript, open external webpages, support scoped interaction, annotations, screenshots, DOM inspection, and iterative live editing. Enable the plugin to expose the model-callable Canvas tools.
+The **Canvas** tool is a persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can render generated HTML/CSS/JavaScript, open external webpages, support scoped interaction, annotations, screenshots, DOM inspection, and iterative live editing. Enable the plugin to expose the model-callable Canvas tools; the global ``Tools`` switch is not required.
 
 See :doc:`canvas` for the feature overview and :ref:`plugin-canvas-web-html` for the complete tool and configuration reference.
 
