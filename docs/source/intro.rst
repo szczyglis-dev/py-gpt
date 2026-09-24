@@ -29,7 +29,7 @@ Features
 * Built-in vector-store support with automatic file, database-context, and data embedding.
 * Image generation with models such as ``gpt-image``, ``Imagen``, ``Gemini``, and ``Nano Banana``.
 * Video generation with models such as ``Veo3`` and ``Sora2``.
-* Web search via ``DuckDuckGo``, ``Google``, and ``Microsoft Bing``.
+* Web search via ``DuckDuckGo``, ``Google``, ``Microsoft Bing`` and remote web search.
 * Speech synthesis via ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs``, and ``xAI``.
 * Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing``, and ``xAI Grok Voice``.
 * Extensible plugin system with ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and more.
@@ -39,6 +39,7 @@ Features
 * Project-specific ``AGENTS.md`` rules for the main Agents agent.
 * Portable ``SKILL.md``-based ``Agent Skills`` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
 * Built-in ``Python/OS`` tool for real-time Python, IPython, and system command execution.
+* Built-in real-time ``Canvas`` with annotation support and web browser integration for interactive workflows.
 * Camera capture for real-time image input in Chat and other supported modes.
 * Image analysis with vision-capable models.
 * Accessibility features including keyboard shortcuts, voice control, and spoken descriptions of on-screen actions.
