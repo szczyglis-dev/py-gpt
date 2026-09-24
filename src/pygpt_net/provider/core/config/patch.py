@@ -1471,6 +1471,20 @@ class Patch:
                     del data["render.engine"]
                     updated = True
 
+                # Jev / System One is an inline decision plugin rather than a chat LLM,
+                # but its credentials live with provider API settings. Ensure these keys
+                # are also added to profiles that already carry the current app version.
+                for key in ("api_key_jev", "api_endpoint_jev"):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
+
+                plugins_enabled = data.get("plugins_enabled")
+                if isinstance(plugins_enabled, dict) and "jev" not in plugins_enabled:
+                    base_plugins_enabled = cfg_get_base("plugins_enabled") or {}
+                    plugins_enabled["jev"] = bool(base_plugins_enabled.get("jev", False))
+                    updated = True
+
         # update file
         migrated = False
         if updated:

@@ -323,6 +323,43 @@
         "advanced": false,
         "tab": "DeepSeek"
     },
+    "api_key_jev": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_key.jev",
+        "description": "settings.api_key.jev.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        },
+        "urls": {
+            "API Keys": "https://console.typesafe.ai/keys"
+        },
+        "secret": true,
+        "persist": true,
+        "advanced": false,
+        "tab": "Jev"
+    },
+    "api_endpoint_jev": {
+        "section": "api_keys",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint_jev",
+        "description": "settings.api_endpoint_jev.desc",
+        "value": "https://api.typesafe.ai",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false,
+        "tab": "Jev"
+    },
     "api_key_xai": {
         "section": "api_keys",
         "type": "text",

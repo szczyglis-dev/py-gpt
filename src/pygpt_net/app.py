@@ -286,6 +286,7 @@ def run(**kwargs):
         from pygpt_net.plugin.mcp import Plugin as MCPPlugin
         from pygpt_net.plugin.wolfram import Plugin as WolframPlugin
         from pygpt_net.plugin.osm import Plugin as OSMPlugin
+        from pygpt_net.plugin.jev import Plugin as JevPlugin
 
         # agents (Llama-index)
         from pygpt_net.provider.agents.llama_index.legacy.openai_assistant import OpenAIAssistantAgent
@@ -511,6 +512,7 @@ def run(**kwargs):
         launcher.add_plugin(MCPPlugin())
         launcher.add_plugin(WolframPlugin())
         launcher.add_plugin(OSMPlugin())
+        launcher.add_plugin(JevPlugin())
 
         # register custom plugins
         plugins = kwargs.get('plugins', None)
