@@ -31,6 +31,7 @@ class Console:
             "lang",
             "oclr",
             "dump(",
+            "mods(",
             "js(",
             "help",
             "/help",
@@ -109,6 +110,12 @@ class Console:
             expr = msg[5:-1].strip()
             self.log(f"{expr}:")
             self.log(self.dump(expr))
+        elif msg == "smods":
+            self.log(self.smods())
+        elif msg == "omods":
+            self.log(self.omods())
+        elif msg == "emods":
+            self.log(self.emods())
         elif msg.startswith("js(") and msg.endswith(")"):
             expr = msg[3:-1].strip()
             if self.window.controller.chat.render.get_engine() == "web":
@@ -130,6 +137,48 @@ class Console:
         except Exception as e:
             return f"Error while dumping: {str(e)}"
 
+    def smods(self) -> str:
+        """
+        Get loaded modules in console (sorted by name)
+
+        :return: List of loaded modules or error message
+        """
+        try:
+            import sys
+            mods = sorted(sys.modules.keys())
+            num = len(mods)
+            return f"Loaded modules - sorted:\n" + "\n".join(mods) + f"\n==========\nTotal: {num} modules"
+        except Exception as e:
+            return f"Error while getting modules: {str(e)}"
+
+    def omods(self) -> str:
+        """
+        Get loaded modules in console (load order)
+
+        :return: List of loaded modules or error message
+        """
+        try:
+            import sys
+            mods = sys.modules.keys()
+            num = len(mods)
+            return f"Loaded modules - load order:\n" + "\n".join(mods) + f"\n==========\nTotal: {num} modules"
+        except Exception as e:
+            return f"Error while getting modules: {str(e)}"
+
+    def emods(self) -> str:
+        """
+        Get loaded modules in console (external modules only)
+
+        :return: List of loaded modules or error message
+        """
+        try:
+            import sys
+            mods = sorted(m for m in sys.modules.keys() if not m.startswith("pygpt_net") and not m.startswith("PySide6"))
+            num = len(mods)
+            return f"Loaded modules - external only:\n" + "\n".join(mods) + f"\n==========\nTotal: {num} modules"
+        except Exception as e:
+            return f"Error while getting modules: {str(e)}"
+
     def get_help(self):
         """
         Get help message for console commands
@@ -145,6 +194,9 @@ class Console:
             "  lang - reload language\n"
             "  oclr - close OpenAI client\n"
             "  dump(object|expr) - dump object or eval() expression\n"
+            "  smods - list loaded modules sorted by name\n"
+            "  omods - list loaded modules in load order\n"
+            "  emods - list loaded external modules only\n"
             "  js(expr) - evaluate JavaScript expression (current PID)\n"
             "  help - show this help message\n"
             "  quit|exit - close application\n"
