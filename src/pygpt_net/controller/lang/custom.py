@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 14:55:00
+# Updated Date: 2026.09.24 12:31:00
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -278,6 +278,14 @@ class Custom:
         self.window.ui.models['attachments_ctx'].setHeaderData(3, Qt.Horizontal, trans('attachments.header.size'))
         self.window.ui.models['attachments_ctx'].setHeaderData(4, Qt.Horizontal, trans('attachments.header.length'))
         self.window.ui.models['attachments_ctx'].setHeaderData(5, Qt.Horizontal, trans('attachments.header.idx'))
+
+        # dialog: changelog update notice contains a runtime version placeholder,
+        # so it cannot use the generic static node mapping.
+        changelog_updated = self.window.ui.nodes.get('dialog.changelog.updated')
+        if changelog_updated is not None:
+            changelog_updated.setText(
+                trans("dialog.changelog.updated").format(version=self.window.meta["version"])
+            )
 
         # dialog: about
         self.window.ui.nodes['dialog.about.content'].setText(trans(self.window.ui.dialogs.about.prepare_content()))
