@@ -244,8 +244,7 @@ class Agent(BaseAgent):
         supervisor_display_name = None  # set after agent is created
 
         # tool to run Worker
-        @function_tool(name_override="run_worker")
-        async def run_worker(fn_ctx: RunContextWrapper[Any], instruction: str) -> str:
+        async def run_worker(fn_ctx, instruction: str) -> str:
             """
             Run the Worker with an instruction from the Supervisor and return its output.
 
@@ -303,6 +302,13 @@ class Agent(BaseAgent):
                     pass
 
             return worker_text
+
+        # ``function_tool`` resolves annotations with typing.get_type_hints(),
+        # which only sees function globals. RunContextWrapper is intentionally
+        # imported locally so the Agents SDK remains optional at module import
+        # time; attach the concrete annotation before decorating the callback.
+        run_worker.__annotations__["fn_ctx"] = RunContextWrapper[Any]
+        run_worker = function_tool(name_override="run_worker")(run_worker)
 
         agent_kwargs["worker_tool"] = run_worker
         agent = self.get_agent(window, agent_kwargs)

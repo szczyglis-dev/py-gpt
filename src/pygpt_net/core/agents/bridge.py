@@ -18,6 +18,7 @@ class ConnectionContext:
             on_error: callable = None,
             on_next: callable = None,
             on_next_ctx: callable = None,
+            workflow = None,
     ):
         """
         Initialize connection context for agent operations.
@@ -28,6 +29,7 @@ class ConnectionContext:
         :param on_error: error callback function to be called when an error occurs
         :param on_next: next callback function to be called for the next step in the process
         :param on_next_ctx: new ctx in cycle
+        :param workflow: optional Agent Workflow runtime bridge
         """
         self.stopped = stopped
         self.on_step = on_step
@@ -35,3 +37,4 @@ class ConnectionContext:
         self.on_error = on_error
         self.on_next = on_next
         self.on_next_ctx = on_next_ctx
+        self.workflow = workflow

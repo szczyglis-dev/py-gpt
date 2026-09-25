@@ -43,6 +43,7 @@ class OpenAIWorkflow(BaseRunner):
             history: List[CtxItem] = None,
             stream: bool = False,
             schema: Optional[List] = None,
+            workflow_bridge: Any = None,
     ) -> bool:
         """
         Run OpenAI agents
@@ -60,12 +61,27 @@ class OpenAIWorkflow(BaseRunner):
         :return: True if success
         """
         if self.is_stopped():
+            if workflow_bridge is not None:
+                workflow_bridge.stop()
             return True  # abort if stopped
 
         if "llm" in agent_kwargs:
             agent_kwargs["llm"] = None  # clear llm if provided, as it is not used in OpenAI workflow
 
         self.set_busy(signals)
+
+        def sync_workflow_agent(item: CtxItem):
+            if workflow_bridge is None or item is None:
+                return
+            try:
+                name = item.get_agent_name()
+            except Exception:
+                name = None
+            if name:
+                workflow_bridge.agent_running(name)
+
+        if workflow_bridge is not None:
+            workflow_bridge.status("running_task")
 
         # A number of OpenAI agent providers emit an empty ``on_step`` before
         # starting a request only to prepare the next agent/header.  That is not
@@ -97,6 +113,7 @@ class OpenAIWorkflow(BaseRunner):
             :param ctx: CtxItem
             :param begin: whether this is the first step
             """
+            sync_workflow_agent(ctx)
             chunk = ctx.stream if isinstance(ctx.stream, str) else ""
             if not chunk.strip():
                 # Empty pre-flight steps are used by multi-agent providers to
@@ -113,6 +130,8 @@ class OpenAIWorkflow(BaseRunner):
 
             :param ctx: CtxItem
             """
+            if workflow_bridge is not None:
+                workflow_bridge.stop()
             self.set_idle(signals)
             self.end_stream(ctx, signals)
 
@@ -128,6 +147,7 @@ class OpenAIWorkflow(BaseRunner):
             :param ctx: CtxItem
             :param wait: if True, flush current output to before buffer and clear current buffer
             """
+            sync_workflow_agent(ctx)
             ctx.stream = "\n"
             self.send_stream(ctx, signals, False)
             self.next_stream(ctx, signals)
@@ -152,6 +172,7 @@ class OpenAIWorkflow(BaseRunner):
             :param stream: is streaming enabled
             :return: CtxItem - the next context item in the cycle
             """
+            sync_workflow_agent(ctx)
             # finish current stream
             ctx.stream = "\n"
             ctx.extra["agent_output"] = True  # allow usage in history
@@ -197,6 +218,8 @@ class OpenAIWorkflow(BaseRunner):
 
             :param error: Exception raised during processing
             """
+            if workflow_bridge is not None:
+                workflow_bridge.fail(error)
             self.set_idle(signals)
             self.set_error(error)
 
@@ -209,6 +232,7 @@ class OpenAIWorkflow(BaseRunner):
             on_error=on_error,
             on_next=on_next,
             on_next_ctx=on_next_ctx,
+            workflow=workflow_bridge,
         )
         run_kwargs = {
             "window": self.window,
@@ -231,6 +255,7 @@ class OpenAIWorkflow(BaseRunner):
 
         # run agent
         ctx, output, response_id = await run(**run_kwargs)
+        sync_workflow_agent(ctx)
 
         if not ctx.partial or self.is_stopped():
             response_ctx = self.make_response(ctx, prompt, output, response_id)
@@ -238,6 +263,11 @@ class OpenAIWorkflow(BaseRunner):
         else:
             ctx.partial = False  # last part, not partial anymore
 
+        if workflow_bridge is not None:
+            if self.is_stopped():
+                workflow_bridge.stop()
+            else:
+                workflow_bridge.finish(output)
         self.set_idle(signals)
         return True
 

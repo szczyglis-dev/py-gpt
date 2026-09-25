@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QWidget
 
 from pygpt_net.core.events import BaseEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.core.types import MODE_AGENT_V2
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2
 from pygpt_net.tools.base import BaseTool
 from pygpt_net.utils import trans
 
@@ -25,7 +25,7 @@ from .ui.widgets import WorkflowWidget
 
 
 class AgentWorkflow(BaseTool):
-    """Live Agents v2 workflow monitor."""
+    """Live workflow monitor for Agents v2 and legacy agent runtimes."""
 
     ONBOARDING_KEY = "agent.v2.workflow_tool.shown"
     DEFAULT_COLUMN = 1
@@ -52,11 +52,9 @@ class AgentWorkflow(BaseTool):
         return None
 
     def show_on_first_agent_run(self) -> bool:
-        """Reveal Agent Workflow in column 2 once, when the first Agents v2 run starts."""
+        """Reveal Agent Workflow in column 2 once, when the first user-facing agent run starts."""
         cfg = self.window.core.config
-        # RUNTIME INIT is shared by other Agents v2-backed features (e.g. Experts).
-        # The onboarding belongs only to the user-facing Chat with Agents mode.
-        if cfg.get("mode") != MODE_AGENT_V2:
+        if cfg.get("mode") not in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2):
             return False
         if bool(cfg.get(self.ONBOARDING_KEY, False)):
             return False

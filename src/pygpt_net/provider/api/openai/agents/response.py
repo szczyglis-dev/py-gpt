@@ -102,6 +102,13 @@ class StreamHandler:
         :param buffer: bool - whether to buffer the output
         :return: Final output string, response ID
         """
+        workflow = getattr(self.bridge, "workflow", None) if self.bridge is not None else None
+        if workflow is not None:
+            try:
+                workflow.openai_event(event, ctx)
+            except Exception:
+                pass
+
         if isinstance(event, ReasoningItem):
             print(
                 f"\033[33m{event.summary[0].text}\033[0m", end="", flush=True

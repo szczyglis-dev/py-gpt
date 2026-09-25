@@ -294,7 +294,7 @@ def build_openai_agent_computer_tool(
     except Exception:
         return None
 
-    async def invoke(run_ctx: RunContextWrapper[Any], args: str) -> str:
+    async def invoke(run_ctx, args: str) -> str:
         try:
             payload = json.loads(args or "{}")
         except Exception:
@@ -321,6 +321,10 @@ def build_openai_agent_computer_tool(
                 "tool": OPENAI_AGENT_COMPUTER_TOOL_NAME,
             }, ensure_ascii=False)
         return result.output or "Computer Use task completed."
+
+    # Keep the SDK import local while still giving runtime type introspection
+    # a concrete RunContextWrapper instead of an unresolved forward reference.
+    invoke.__annotations__["run_ctx"] = RunContextWrapper[Any]
 
     return FunctionTool(
         name=OPENAI_AGENT_COMPUTER_TOOL_NAME,

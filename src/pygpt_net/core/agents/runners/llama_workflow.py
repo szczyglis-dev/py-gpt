@@ -53,6 +53,7 @@ class LlamaWorkflow(BaseRunner):
             history: List[CtxItem] = None,
             llm: Any = None,
             schema: Optional[List] = None,
+            workflow_bridge: Any = None,
     ) -> bool:
         """
         Run agent workflow
@@ -68,6 +69,8 @@ class LlamaWorkflow(BaseRunner):
         :return: True if success
         """
         if self.is_stopped():
+            if workflow_bridge is not None:
+                workflow_bridge.stop()
             return True  # abort if stopped
 
         agent_ctx = Context(agent)
@@ -83,11 +86,16 @@ class LlamaWorkflow(BaseRunner):
                 verbose=verbose,
                 item_ctx=ctx,
                 signals=signals,
-                use_partials=self.window.core.config.get("agent.openai.response.split", True)
+                use_partials=self.window.core.config.get("agent.openai.response.split", True),
+                workflow_bridge=workflow_bridge,
             )
         except WorkflowCancelledByUser:
+            if workflow_bridge is not None:
+                workflow_bridge.stop()
             print("\n\n[STOP] Workflow stopped by user.")
         except Exception as e:
+            if workflow_bridge is not None:
+                workflow_bridge.fail(e)
             self.window.core.debug.log(f"Error running agent workflow: {e}")
             ctx.extra["error"] = str(e)
             self.set_idle(signals)
@@ -101,6 +109,8 @@ class LlamaWorkflow(BaseRunner):
         response_ctx = self.make_response(ctx, use_current=use_current)
         self.end_stream(response_ctx, signals)
         self.send_response(response_ctx, signals, KernelEvent.APPEND_DATA)  # send response
+        if workflow_bridge is not None:
+            workflow_bridge.finish(ctx.agent_final_response or ctx.live_output)
         self.set_idle(signals)
         return True
 
@@ -220,6 +230,7 @@ class LlamaWorkflow(BaseRunner):
             signals: Optional[BridgeSignals] = None,
             use_partials: bool = True,
             flush: bool = True,
+            workflow_bridge: Any = None,
     ):
         """
         Run agent workflow
@@ -261,6 +272,8 @@ class LlamaWorkflow(BaseRunner):
 
         async for event in handler.stream_events():
             if self.is_stopped():
+                if workflow_bridge is not None:
+                    workflow_bridge.stop()
                 # persist current output on stop
                 item_ctx.output = item_ctx.live_output
                 self.window.core.ctx.update_item(item_ctx)
@@ -268,6 +281,9 @@ class LlamaWorkflow(BaseRunner):
                     self.end_stream(item_ctx, signals)
                 await handler.cancel_run()  # cancel, will raise WorkflowCancelledByUser
                 break
+
+            if workflow_bridge is not None:
+                workflow_bridge.llama_event(event)
 
             if isinstance(event, ToolCallResult):
                 tool_output = self._tool_output_to_text(event.tool_output)

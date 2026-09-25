@@ -15,6 +15,7 @@ from typing import Optional, Dict, Any, Union
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
 from pygpt_net.core.bridge.context import BridgeContext
+from pygpt_net.core.agent_workflow import AgentWorkflowBridge
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.types import (
     AGENT_MODE_ASSISTANT,
@@ -80,6 +81,7 @@ class Runner:
 
         agent_id = extra.get("agent_provider", "openai")
         verbose = self.is_verbose()
+        workflow_bridge = None
 
         try:
             # first, check if agent exists
@@ -209,6 +211,27 @@ class Runner:
             if schema:
                 kwargs["schema"] = schema
 
+            # Feed legacy agent runtimes into the same runtime-only Agent Workflow
+            # monitor used by Agents v2. The bridge translates native LlamaIndex /
+            # OpenAI Agents events, while the monitor remains the single owner of
+            # state, timers, limits and rendering semantics.
+            if mode in (AGENT_MODE_WORKFLOW, AGENT_MODE_OPENAI):
+                workflow_bridge = AgentWorkflowBridge(
+                    self.window,
+                    source="llama_index" if mode == AGENT_MODE_WORKFLOW else "openai_agents",
+                    root_name=(
+                        getattr(agent, "name", None)
+                        or getattr(provider, "name", None)
+                        or str(agent_id)
+                    ),
+                    model=model,
+                    preset=context.preset if context else None,
+                    system_prompt=system_prompt,
+                    prompt=prompt,
+                )
+                workflow_bridge.start()
+                kwargs["workflow_bridge"] = workflow_bridge
+
             if mode == AGENT_MODE_PLAN:
                 return self.llama_plan.run(**kwargs)
             elif mode == AGENT_MODE_STEP:
@@ -226,6 +249,8 @@ class Runner:
                 return asyncio.run(self.openai_workflow.run(**kwargs))
 
         except Exception as e:
+            if workflow_bridge is not None:
+                workflow_bridge.fail(e)
             self.window.core.debug.log(e)
             self.last_error = e
             return False

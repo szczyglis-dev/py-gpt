@@ -136,7 +136,7 @@ class Tools:
         """
         from agents import FunctionTool as OpenAIFunctionTool, RunContextWrapper
 
-        async def run_function(_run_ctx: RunContextWrapper[Any], args: str) -> str:
+        async def run_function(_run_ctx, args: str) -> str:
             # openai-agents 0.18.x passes a plain RunContextWrapper when the
             # callback explicitly declares that type; tool_name lives only on
             # ToolContext. This tool has a fixed name, so do not depend on the
@@ -148,6 +148,11 @@ class Tools:
                 "params": json.loads(args)  # args should be a JSON string
             }
             return self.tool_exec(name, cmd["params"])
+
+        # ``from __future__ import annotations`` stores annotations as strings.
+        # RunContextWrapper is imported locally to keep the Agents SDK optional,
+        # so expose the concrete runtime type to introspection explicitly.
+        run_function.__annotations__["_run_ctx"] = RunContextWrapper[Any]
 
         schema = {"type": "object", "properties": {
             "query": {
@@ -271,7 +276,7 @@ class Tools:
                 description = item['desc']
 
                 def make_run_function(tool_name: str):
-                    async def run_function(_run_ctx: RunContextWrapper[Any], args: str) -> str:
+                    async def run_function(_run_ctx, args: str) -> str:
                         # Capture the tool name explicitly. In openai-agents
                         # 0.18.x RunContextWrapper itself has no ``tool_name``
                         # attribute; that metadata belongs to ToolContext.
@@ -281,6 +286,7 @@ class Tools:
                             "params": json.loads(args)  # args should be a JSON string
                         }
                         return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+                    run_function.__annotations__["_run_ctx"] = RunContextWrapper[Any]
                     return run_function
 
                 run_function = make_run_function(name)
