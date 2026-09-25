@@ -2607,6 +2607,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
 - Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
 - Fixed equal split-screen column widths when enabling split-screen mode.
+- Agent Workflow tool connected to legacy agents. 
 - UI improvements.
 
 **2.8.31 (2026-09-25)**

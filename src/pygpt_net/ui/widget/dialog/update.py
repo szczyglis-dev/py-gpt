@@ -88,10 +88,10 @@ class UpdateDialog(BaseDialog):
 
         # update cmd/buttons
         self.cmd = CmdLabel(self.window, "")
-        # Commands can be wider than the dialog. Keep the field anchored at
-        # the beginning so the user sees e.g. ``git pull ...`` first instead
-        # of the tail of the command.
-        self.cmd.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        # Keep short manual update commands visually centered.  For commands
+        # wider than the field, setCursorPosition(0) in set_data() still keeps
+        # the beginning accessible instead of jumping to the command tail.
+        self.cmd.setAlignment(Qt.AlignCenter)
         # Add extra horizontal breathing room for long manual update commands.
         # Keep this local to the updater instead of changing CmdLabel globally.
         self.cmd.setStyleSheet(
@@ -111,19 +111,6 @@ class UpdateDialog(BaseDialog):
         self.update_now.setCursor(Qt.PointingHandCursor)
         self.update_now.clicked.connect(self.start_auto_update)
         self.update_now.setVisible(False)
-
-        # manual update separator
-        self.info_manual = QLabel(trans("update.auto.manual"))
-        self.info_manual.setWordWrap(True)
-        self.info_manual.setAlignment(Qt.AlignCenter)
-        self.info_manual.setStyleSheet(
-            "font-size: 12px;"
-            "margin: 5px 0px 0px 0px;"
-        )
-        # Prevent QVBoxLayout from collapsing this one-line separator when
-        # the changelog consumes the available vertical space.
-        self.info_manual.setMinimumHeight(24)
-        self.info_manual.setVisible(False)
 
         # info upgrade now
         self.info_upgrade = QLabel(trans("update.info.upgrade"))
@@ -155,9 +142,8 @@ class UpdateDialog(BaseDialog):
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.changelog, 1)
         self.layout.addWidget(self.info_upgrade)
-        self.layout.addWidget(self.update_now)
-        self.layout.addWidget(self.info_manual)
         self.layout.addWidget(self.cmd)
+        self.layout.addWidget(self.update_now)
         self.layout.addWidget(self.download_file)
         self.layout.addLayout(buttons)
         self.layout.addWidget(self.checkbox_startup)
@@ -227,6 +213,13 @@ class UpdateDialog(BaseDialog):
         )
         self.update_now.setVisible(auto_available)
         self.update_now.setEnabled(auto_available)
+
+        # When UPDATE NOW is available, keep the dialog focused on the
+        # automatic update flow. The generic website/GitHub actions are only
+        # useful as fallback links when automatic update is unavailable.
+        self.www.setVisible(not auto_available)
+        self.github.setVisible(not auto_available)
+
         if is_new and not auto_available:
             # Keep the legacy/manual hint when automatic update is unavailable.
             # When UPDATE NOW is shown it is self-explanatory and the extra
@@ -245,7 +238,6 @@ class UpdateDialog(BaseDialog):
         # check platform
         self.cmd.setVisible(False)
         self.download_file.setVisible(False)
-        self.info_manual.setVisible(False)
 
         if is_new:
             if AUTO_UPDATER_ENABLED and auto_type == "flatpak":
@@ -287,16 +279,14 @@ class UpdateDialog(BaseDialog):
                 self.cmd.setText(self.cmd_pip)
                 self.cmd.setCursorPosition(0)
                 self.cmd.setVisible(True)
-            elif AUTO_UPDATER_ENABLED and auto_type == "source_manual":
-                # Source archive/manual checkout without .git metadata is not
-                # safe to update through pip: another pygpt-net distribution
-                # may be installed in the same interpreter. Keep the generic
-                # manual-update information instead of suggesting pip.
-                self.info_upgrade.setVisible(True)
-                self.info_upgrade.setText(trans("update.auto.unsupported"))
+            elif auto_type == "source_manual":
+                # Manual/source-ZIP installs can be updated from the source ZIP
+                # for the matching GitHub release tag. Keep a direct ZIP link
+                # as the manual fallback next to the automatic update flow.
+                self.download_link = (
+                    "https://github.com/szczyglis-dev/py-gpt/"
+                    f"archive/refs/tags/v{str(version).lstrip('v')}.zip"
+                )
+                self.download_file.setText("{} .zip ({})".format(trans("action.download"), version))
+                self.download_file.setVisible(True)
 
-        # Show the manual separator only when it is an alternative to an
-        # available automatic update. Do not leave a dangling "or" label for
-        # installations that only support a manual update path.
-        has_manual_update = self.cmd.isVisible() or self.download_file.isVisible()
-        self.info_manual.setVisible(bool(is_new and auto_available and has_manual_update))

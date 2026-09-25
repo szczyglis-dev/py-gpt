@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "app.version": "2.8.31",
-    "version": "2.8.31",
+    "app.version": "2.8.32",
+    "version": "2.8.32",
     "updated_at": "2026-09-25T11:38:00"
   },
   "access.audio.event.speech": false,
@@ -357,6 +357,7 @@
   "log.events": false,
   "log.image": false,
   "log.level": "error",
+  "log.auto_update": false,
   "log.llama": false,
   "log.plugins": false,
   "log.realtime": false,
