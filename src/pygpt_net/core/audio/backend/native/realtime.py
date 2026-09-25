@@ -107,6 +107,31 @@ class RealtimeSession(QObject):
         self.final = True
         self._pump()
 
+    def interrupt(self) -> None:
+        """
+        Abort playback immediately and discard queued realtime audio.
+
+        Do not invoke on_stopped: an interrupted response was superseded by a
+        newer one, so it must not emit the normal RT_OUTPUT_AUDIO_END lifecycle.
+        """
+        self.on_stopped = None
+        self.final = True
+        try:
+            self.buffer.clear()
+        except Exception:
+            pass
+        try:
+            self.vol_buffer.clear()
+        except Exception:
+            pass
+        try:
+            if self.sink:
+                # reset() discards data already queued inside QAudioSink.
+                self.sink.reset()
+        except Exception:
+            pass
+        self.stop()
+
     def stop(self) -> None:
         """Stop the session and clean up."""
         try:

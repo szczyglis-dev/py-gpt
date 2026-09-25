@@ -127,13 +127,36 @@ class RealtimeSessionPyAudio(QObject):
         self._final = True
 
     def stop(self) -> None:
-        """Stop playback and free resources. Idempotent."""
-        # ensure this executes only once even if called from multiple paths
+        """Stop playback normally and emit the regular stopped callback."""
+        self._shutdown(immediate=False, notify=True)
+
+    def interrupt(self) -> None:
+        """
+        Abort playback immediately and discard all queued realtime audio.
+
+        This is used when a newer realtime response starts while the previous
+        response is still audible. It deliberately does not call on_stopped,
+        because that callback represents a natural playback end and would emit
+        RT_OUTPUT_AUDIO_END for the superseded response.
+        """
+        with self._buf_lock:
+            self._buffer.clear()
+        with self._vol_lock:
+            self._vol_buffer.clear()
+        self._final = True
+        self._shutdown(immediate=True, notify=False)
+
+    def _shutdown(self, immediate: bool, notify: bool) -> None:
+        """Stop PortAudio and release resources."""
         if self._stopping:
             return
         self._stopping = True
 
-        # stop timers first to prevent re-entry
+        # Prevent a callback from the old response from racing with the next
+        # realtime session.
+        cb = self.on_stopped if notify else None
+        self.on_stopped = None
+
         try:
             if self._finish_timer:
                 self._finish_timer.stop()
@@ -145,10 +168,14 @@ class RealtimeSessionPyAudio(QObject):
         except Exception:
             pass
 
-        # gracefully stop PortAudio stream and close/terminate
         try:
             if self._stream and self._stream.is_active():
-                self._stream.stop_stream()  # drains queued audio per PortAudio docs
+                if immediate and hasattr(self._stream, "abort_stream"):
+                    # Pa_AbortStream drops pending buffers instead of waiting
+                    # for them to drain. This is the barge-in path.
+                    self._stream.abort_stream()
+                else:
+                    self._stream.stop_stream()
         except Exception:
             pass
         try:
@@ -162,7 +189,6 @@ class RealtimeSessionPyAudio(QObject):
         except Exception:
             pass
 
-        # zero the meter
         try:
             if self._volume_emitter:
                 self._volume_emitter(0)
@@ -172,8 +198,6 @@ class RealtimeSessionPyAudio(QObject):
         self._stream = None
         self._pa = None
 
-        cb = self.on_stopped
-        self.on_stopped = None
         if cb:
             try:
                 cb()

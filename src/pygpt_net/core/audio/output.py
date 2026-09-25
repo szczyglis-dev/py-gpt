@@ -104,6 +104,13 @@ class Output:
         """
         return self.get_backend().get_default_output_device()
 
+    def interrupt_realtime(self) -> None:
+        """Immediately abort queued realtime output audio, if any."""
+        backend = self.get_backend()
+        interrupt = getattr(backend, "interrupt_realtime", None)
+        if callable(interrupt):
+            interrupt()
+
     def handle_realtime(self, payload, signals):
         """
         Handle real-time audio playback

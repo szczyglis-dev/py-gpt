@@ -64,6 +64,7 @@ class PyaudioBackend:
 
         # realtime members (compatible with native backend)
         self._rt_session = None
+        self._rt_ctx = None
         self._rt_signals = None  # set by set_rt_signals()
 
         # input state guard (prevents races on stop)
@@ -795,11 +796,9 @@ class PyaudioBackend:
                     return s
             except Exception:
                 pass
-            try:
-                s.stop()
-            except Exception:
-                pass
-            self._rt_session = None
+            # A replacement session must not wait for the previous
+            # hardware/software queue to drain.
+            self._interrupt_realtime_session()
 
         from .realtime import RealtimeSessionPyAudio
         session = RealtimeSessionPyAudio(
@@ -811,12 +810,21 @@ class PyaudioBackend:
             volume_emitter=self._emit_output_volume,
             playback_start_emitter=self._emit_output_playback_start
         )
-        session.on_stopped = lambda: (
-            self._rt_signals and safe_emit(self._rt_signals, "response", 
-                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"})
-            ),
-            setattr(self, "_rt_session", None)
-        )
+        def _on_stopped(current=session):
+            # A superseded session may finish after a replacement has already
+            # been installed. Never let its callback clear the new session.
+            if self._rt_session is not current:
+                return
+            if self._rt_signals:
+                safe_emit(
+                    self._rt_signals,
+                    "response",
+                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"}),
+                )
+            self._rt_session = None
+            self._rt_ctx = None
+
+        session.on_stopped = _on_stopped
         self._rt_session = session
         return session
 
@@ -849,6 +857,27 @@ class PyaudioBackend:
             out_format="s16"
         )
 
+    def _interrupt_realtime_session(self) -> None:
+        """Hard-stop the current realtime response without emitting AUDIO_END."""
+        session = self._rt_session
+        self._rt_session = None
+        if session is None:
+            return
+        try:
+            interrupt = getattr(session, "interrupt", None)
+            if callable(interrupt):
+                interrupt()
+            else:
+                session.on_stopped = None
+                session.stop()
+        except Exception:
+            pass
+
+    def interrupt_realtime(self) -> None:
+        """Immediately abort the current realtime playback generation."""
+        self._interrupt_realtime_session()
+        self._rt_ctx = None
+
     def stop_realtime(self):
         """Stop realtime audio playback session."""
         s = self._rt_session
@@ -874,6 +903,20 @@ class PyaudioBackend:
             rate = int(payload.get("rate", 24000) or 24000)
             channels = int(payload.get("channels", 1) or 1)
             final = bool(payload.get("final", False))
+            ctx = payload.get("ctx", None)
+
+            # Realtime responses are independent playback generations. If a
+            # newer response starts while the previous one still has buffered
+            # audio, drop the old generation immediately instead of appending
+            # the new PCM behind it.
+            if ctx is not None:
+                if (
+                    self._rt_session is not None
+                    and self._rt_ctx is not None
+                    and ctx is not self._rt_ctx
+                ):
+                    self._interrupt_realtime_session()
+                self._rt_ctx = ctx
 
             # only raw PCM/L16 is supported here
             if ("pcm" not in mime) and ("l16" not in mime):

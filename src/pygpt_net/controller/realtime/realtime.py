@@ -81,6 +81,7 @@ class Realtime:
             payload = event.data.get("payload", None)
             if payload and not is_muted:  # do not play if muted
                 ctx = payload.get("ctx", None)
+                self._interrupt_superseded_playback(ctx)
                 if ctx is not None:
                     self._playback_ctx = ctx
                 self.window.core.audio.output.handle_realtime(payload, self.signals)
@@ -139,6 +140,10 @@ class Realtime:
             ctx = event.data.get('ctx', None)
             chunk = event.data.get('chunk', "")
             if chunk and ctx:
+                # First visible content from a newer response is a barge-in point:
+                # stop any still-audible previous response immediately.
+                self._interrupt_superseded_playback(ctx)
+
                 # Realtime starts its provider stream almost immediately after the
                 # input row is queued in the WebView. The loader can still change
                 # document height in that window and Chromium may transiently leave
@@ -188,6 +193,7 @@ class Realtime:
 
         # audio end: on stop audio playback
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_END:
+            self._playback_ctx = None
             self.set_idle()
             self.window.controller.chat.common.unlock_input()
             if self.is_loop():
@@ -213,6 +219,7 @@ class Realtime:
 
         # error: audio output error
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_ERROR:
+            self._playback_ctx = None
             self.set_idle()
             error = event.data.get("error")
             self.window.core.debug.log(error)
@@ -231,6 +238,22 @@ class Realtime:
 
         elif event.name == AppEvent.CTX_SELECTED:
             QTimer.singleShot(0, lambda: self.reset())
+
+    def _interrupt_superseded_playback(self, ctx) -> None:
+        """
+        Stop buffered audio from an older response when new response content arrives.
+
+        The comparison is deliberately based on the CtxItem object carried by
+        realtime events, so chunks belonging to the same response keep using the
+        same playback session.
+        """
+        if ctx is None or self._playback_ctx is None or ctx is self._playback_ctx:
+            return
+        try:
+            self.window.core.audio.output.interrupt_realtime()
+        except Exception:
+            pass
+        self._playback_ctx = None
 
     def next_turn(self):
         """Start next turn in loop mode (if enabled)"""
