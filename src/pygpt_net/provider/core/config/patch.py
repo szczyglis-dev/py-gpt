@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 01:55:00                  #
+# Updated Date: 2026.09.25 12:35:00                  #
 # ================================================== #
 
 import copy
@@ -1499,6 +1499,19 @@ class Patch:
                     if key not in data:
                         data[key] = cfg_get_base(key)
                         updated = True
+
+                # Migrate the Agent Skills registry to v2 and cache lightweight
+                # metadata directly alongside enabled/source state. Subsequent
+                # startups only reparse skills whose SKILL.md changed on disk.
+                try:
+                    skills = getattr(self.window.core, "skills", None)
+                    if skills is not None and skills.migrate_registry_cache(save=True):
+                        updated = True
+                except Exception as exc:
+                    try:
+                        self.window.core.debug.log(exc)
+                    except Exception:
+                        print(exc)
 
         # update file
         migrated = False

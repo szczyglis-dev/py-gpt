@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.09.25 12:35:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ class Skills:
         "src/pygpt_net/data/skills/catalog.json"
     )
     REGISTRY_FILENAME = ".registry.json"
-    REGISTRY_VERSION = 1
+    REGISTRY_VERSION = 2
     MAX_DOWNLOAD_BYTES = 256 * 1024 * 1024
     MAX_CATALOG_BYTES = 4 * 1024 * 1024
     MAX_ICON_BYTES = 512 * 1024
@@ -66,27 +66,27 @@ class Skills:
     def __init__(self, window=None):
         self.window = window
         self._cache: Optional[List[dict]] = None
-        self._cache_key: Optional[Tuple[float, float]] = None
+        self._cache_key: Optional[tuple] = None
 
     # PATHS / REGISTRY -----------------------------------------------------
 
-    def get_root_dir(self, create: bool = True) -> str:
-        base = self.window.core.config.get_user_path()
+    def get_root_dir(self, create: bool = True, profile_dir: Optional[str] = None) -> str:
+        base = os.path.abspath(profile_dir or self.window.core.config.get_user_path())
         path = os.path.join(base, "agents", "skills")
         if create:
             os.makedirs(path, exist_ok=True)
         return path
 
-    def get_registry_path(self) -> str:
-        return os.path.join(self.get_root_dir(), self.REGISTRY_FILENAME)
+    def get_registry_path(self, profile_dir: Optional[str] = None) -> str:
+        return os.path.join(self.get_root_dir(create=False, profile_dir=profile_dir), self.REGISTRY_FILENAME)
 
     def get_bundled_catalog_path(self) -> str:
         return os.path.join(
             self.window.core.config.get_app_path(), "data", "skills", "catalog.json"
         )
 
-    def _load_registry(self) -> dict:
-        path = self.get_registry_path()
+    def _load_registry(self, profile_dir: Optional[str] = None) -> dict:
+        path = self.get_registry_path(profile_dir=profile_dir)
         if not os.path.isfile(path):
             return {"version": self.REGISTRY_VERSION, "items": {}}
         try:
@@ -96,16 +96,22 @@ class Skills:
                 raise ValueError("Registry root must be an object")
             if not isinstance(value.get("items"), dict):
                 value["items"] = {}
-            value["version"] = self.REGISTRY_VERSION
+            try:
+                value["version"] = int(value.get("version") or 1)
+            except (TypeError, ValueError):
+                value["version"] = 1
             return value
         except Exception as exc:
             self._log(exc)
             return {"version": self.REGISTRY_VERSION, "items": {}}
 
-    def _save_registry(self, registry: dict):
-        path = self.get_registry_path()
+    def _save_registry(self, registry: dict, profile_dir: Optional[str] = None):
+        path = self.get_registry_path(profile_dir=profile_dir)
         tmp = path + ".tmp"
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        registry["version"] = self.REGISTRY_VERSION
+        if not isinstance(registry.get("items"), dict):
+            registry["items"] = {}
         with open(tmp, "w", encoding="utf-8") as handle:
             json.dump(registry, handle, ensure_ascii=False, indent=2, sort_keys=True)
         os.replace(tmp, path)
@@ -114,6 +120,199 @@ class Skills:
     def invalidate(self):
         self._cache = None
         self._cache_key = None
+
+    @staticmethod
+    def _mtime_ns(path: str) -> int:
+        try:
+            return int(os.stat(path).st_mtime_ns)
+        except OSError:
+            return 0
+
+    def _cache_row_from_skill(self, skill: dict, profile_dir: str) -> dict:
+        directory = os.path.realpath(skill["path"])
+        profile_root = os.path.realpath(profile_dir)
+        rel_path = os.path.relpath(directory, profile_root).replace(os.sep, "/")
+        icon_path = str(skill.get("icon_path") or "")
+        icon_rel = ""
+        if icon_path:
+            try:
+                real_icon = os.path.realpath(icon_path)
+                if self._is_inside(real_icon, profile_root):
+                    icon_rel = os.path.relpath(real_icon, profile_root).replace(os.sep, "/")
+            except OSError:
+                icon_rel = ""
+        skill_md = os.path.join(directory, "SKILL.md")
+        return {
+            "id": str(skill.get("name") or ""),
+            "name": str(skill.get("name") or ""),
+            "source_name": str(skill.get("source_name") or skill.get("name") or ""),
+            "display_name": str(skill.get("display_name") or skill.get("name") or ""),
+            "description": str(skill.get("description") or ""),
+            "short_description": str(skill.get("short_description") or ""),
+            "path": rel_path,
+            "dir_name": str(skill.get("dir_name") or os.path.basename(directory)),
+            "standard": str(skill.get("standard") or "agent-skills"),
+            "implicit": bool(skill.get("implicit", True)),
+            "compatibility": str(skill.get("compatibility") or ""),
+            "icon_path": icon_rel,
+            "issues": list(skill.get("issues") or []),
+            "mtime_ns": self._mtime_ns(skill_md),
+            "openai_mtime_ns": self._mtime_ns(os.path.join(directory, "agents", "openai.yaml")),
+        }
+
+    def _resolve_cached_path(self, row: dict, profile_dir: str) -> Optional[str]:
+        profile_root = os.path.realpath(profile_dir)
+        root = os.path.realpath(self.get_root_dir(create=False, profile_dir=profile_dir))
+        raw_path = str(row.get("path") or "").strip()
+        if raw_path:
+            candidate = os.path.realpath(os.path.join(profile_root, raw_path))
+        else:
+            dir_name = str(row.get("dir_name") or row.get("name") or "").strip()
+            candidate = os.path.realpath(os.path.join(root, dir_name))
+        if not self._is_inside(candidate, root) or candidate == root:
+            return None
+        return candidate
+
+    def _inflate_registry_item(self, row: dict, profile_dir: str) -> Optional[dict]:
+        path = self._resolve_cached_path(row, profile_dir)
+        if not path:
+            return None
+        skill_md = os.path.join(path, "SKILL.md")
+        if not os.path.isfile(skill_md):
+            return None
+
+        icon_path = ""
+        icon_rel = str(row.get("icon_path") or "").strip()
+        if icon_rel:
+            candidate = os.path.realpath(os.path.join(os.path.realpath(profile_dir), icon_rel))
+            if self._is_inside(candidate, path) and os.path.isfile(candidate):
+                icon_path = candidate
+
+        name = str(row.get("name") or row.get("id") or os.path.basename(path)).strip()
+        return {
+            "id": str(row.get("id") or name),
+            "name": name,
+            "source_name": str(row.get("source_name") or name),
+            "display_name": str(row.get("display_name") or name),
+            "description": str(row.get("description") or ""),
+            "short_description": str(row.get("short_description") or ""),
+            "path": path,
+            "skill_md": skill_md,
+            "standard": str(row.get("standard") or "agent-skills"),
+            "enabled": bool(row.get("enabled", False)),
+            "implicit": bool(row.get("implicit", True)),
+            "license": "",
+            "compatibility": str(row.get("compatibility") or ""),
+            "allowed_tools": "",
+            "metadata": {},
+            "icon_path": icon_path,
+            "resources": [],
+            "issues": list(row.get("issues") or []),
+            "source": row.get("source", "local"),
+            "source_url": row.get("source_url", ""),
+            "installed_at": row.get("installed_at", ""),
+            "frontmatter": {},
+            "dir_name": str(row.get("dir_name") or os.path.basename(path)),
+        }
+
+    def sync_registry(
+            self,
+            force: bool = False,
+            save: bool = True,
+            profile_dir: Optional[str] = None,
+            refresh_names: Optional[Iterable[str]] = None,
+    ) -> bool:
+        """Synchronize lightweight skill metadata directly in .registry.json.
+
+        Unchanged skills are restored from the registry without parsing SKILL.md.
+        New or modified skills are reparsed individually. Registry entries whose
+        directories no longer exist are removed.
+        """
+        profile_dir = os.path.abspath(profile_dir or self.window.core.config.get_user_path())
+        refresh = {str(name).strip() for name in (refresh_names or []) if str(name).strip()}
+        root = self.get_root_dir(create=False, profile_dir=profile_dir)
+        registry = self._load_registry(profile_dir=profile_dir)
+        old_items = registry.get("items", {}) if isinstance(registry.get("items"), dict) else {}
+        new_items = {}
+
+        entries = []
+        if os.path.isdir(root):
+            try:
+                entries = sorted(os.scandir(root), key=lambda entry: entry.name.lower())
+            except OSError as exc:
+                self._log(exc)
+
+        for entry in entries:
+            if not entry.is_dir(follow_symlinks=False) or entry.name.startswith("."):
+                continue
+            skill_md = os.path.join(entry.path, "SKILL.md")
+            if not os.path.isfile(skill_md):
+                continue
+
+            previous = old_items.get(entry.name, {})
+            if not isinstance(previous, dict):
+                previous = {}
+            mtime_ns = self._mtime_ns(skill_md)
+            openai_mtime_ns = self._mtime_ns(os.path.join(entry.path, "agents", "openai.yaml"))
+            try:
+                cached_mtime_ns = int(previous.get("mtime_ns") or 0)
+            except (TypeError, ValueError):
+                cached_mtime_ns = 0
+            try:
+                cached_openai_mtime_ns = int(previous.get("openai_mtime_ns") or 0)
+            except (TypeError, ValueError):
+                cached_openai_mtime_ns = 0
+
+            cached_path = self._resolve_cached_path(previous, profile_dir) if previous else None
+            has_metadata = bool(previous.get("name") or previous.get("id"))
+            if (
+                    not force
+                    and entry.name not in refresh
+                    and has_metadata
+                    and cached_mtime_ns == mtime_ns
+                    and cached_openai_mtime_ns == openai_mtime_ns
+                    and cached_path == os.path.realpath(entry.path)
+            ):
+                new_items[entry.name] = dict(previous)
+                continue
+
+            try:
+                parsed = self._parse_skill(entry.path, previous, include_resources=False)
+                parsed["dir_name"] = entry.name
+                merged = dict(previous)
+                merged.update(self._cache_row_from_skill(parsed, profile_dir))
+                merged.setdefault("enabled", False)
+                merged.setdefault("source", "local")
+                merged.setdefault("source_url", "")
+                merged.setdefault("installed_at", "")
+                new_items[entry.name] = merged
+            except Exception as exc:
+                self._log(exc)
+                # Keep the last known metadata for a still-present skill. Its
+                # mtime stays stale so a later forced sync/restart can retry.
+                if previous:
+                    new_items[entry.name] = dict(previous)
+
+        changed = (
+            int(registry.get("version") or 0) != self.REGISTRY_VERSION
+            or new_items != old_items
+        )
+        if changed:
+            registry["version"] = self.REGISTRY_VERSION
+            registry["items"] = new_items
+            if save:
+                self._save_registry(registry, profile_dir=profile_dir)
+            else:
+                self.invalidate()
+        return changed
+
+    def migrate_registry_cache(
+            self,
+            profile_dir: Optional[str] = None,
+            save: bool = True,
+    ) -> bool:
+        """Migrate/rebuild the Agent Skills registry to the current cache schema."""
+        return self.sync_registry(force=True, save=save, profile_dir=profile_dir)
 
     # PARSING / DISCOVERY --------------------------------------------------
 
@@ -180,7 +379,12 @@ class Skills:
         value = re.sub(r"-{2,}", "-", value)
         return (value[:64].rstrip("-") or "skill")
 
-    def _parse_skill(self, directory: str, registry_item: Optional[dict] = None) -> dict:
+    def _parse_skill(
+            self,
+            directory: str,
+            registry_item: Optional[dict] = None,
+            include_resources: bool = True,
+    ) -> dict:
         skill_md = os.path.join(directory, "SKILL.md")
         with open(skill_md, "r", encoding="utf-8-sig", errors="replace") as handle:
             raw = handle.read()
@@ -257,7 +461,7 @@ class Skills:
             implicit = False
 
         reg = registry_item if isinstance(registry_item, dict) else {}
-        resources = self._resource_manifest(directory)
+        resources = self._resource_manifest(directory) if include_resources else []
         return {
             "name": name,
             "source_name": raw_name,
@@ -300,44 +504,54 @@ class Skills:
                     return out
         return sorted(out)
 
+    def _runtime_cache_key(self, registry: dict, profile_dir: str) -> tuple:
+        root = self.get_root_dir(create=False, profile_dir=profile_dir)
+        registry_path = self.get_registry_path(profile_dir=profile_dir)
+        try:
+            root_mtime = int(os.stat(root).st_mtime_ns)
+        except OSError:
+            root_mtime = 0
+        try:
+            registry_mtime = int(os.stat(registry_path).st_mtime_ns)
+        except OSError:
+            registry_mtime = 0
+        skill_mtimes = []
+        items = registry.get("items", {}) if isinstance(registry, dict) else {}
+        if isinstance(items, dict):
+            for dir_name, row in sorted(items.items()):
+                if not isinstance(row, dict):
+                    continue
+                path = self._resolve_cached_path(row, profile_dir)
+                current = self._mtime_ns(os.path.join(path, "SKILL.md")) if path else 0
+                current_openai = self._mtime_ns(os.path.join(path, "agents", "openai.yaml")) if path else 0
+                skill_mtimes.append((str(dir_name), current, current_openai))
+        return os.path.realpath(profile_dir), root_mtime, registry_mtime, tuple(skill_mtimes)
+
     def list_installed(self, enabled_only: bool = False, force: bool = False) -> List[dict]:
-        root = self.get_root_dir()
-        registry_path = self.get_registry_path()
-        try:
-            root_mtime = os.path.getmtime(root)
-        except OSError:
-            root_mtime = 0.0
-        try:
-            registry_mtime = os.path.getmtime(registry_path)
-        except OSError:
-            registry_mtime = 0.0
-        cache_key = (root_mtime, registry_mtime)
+        profile_dir = os.path.abspath(self.window.core.config.get_user_path())
+        registry = self._load_registry(profile_dir=profile_dir)
+        cache_key = self._runtime_cache_key(registry, profile_dir)
         if not force and self._cache is not None and self._cache_key == cache_key:
             items = list(self._cache)
-            return [x for x in items if x.get("enabled")] if enabled_only else items
+            return [item for item in items if item.get("enabled")] if enabled_only else items
 
-        registry = self._load_registry()
-        reg_items = registry.get("items", {})
+        # Fast path: unchanged SKILL.md files are restored directly from the
+        # registry. Only new/modified files are reparsed by sync_registry().
+        self.sync_registry(force=force, save=True, profile_dir=profile_dir)
+        registry = self._load_registry(profile_dir=profile_dir)
+        reg_items = registry.get("items", {}) if isinstance(registry, dict) else {}
         items = []
-        for entry in sorted(os.scandir(root), key=lambda e: e.name.lower()):
-            if not entry.is_dir(follow_symlinks=False) or entry.name.startswith("."):
-                continue
-            path = entry.path
-            if not os.path.isfile(os.path.join(path, "SKILL.md")):
-                continue
-            try:
-                raw_reg = reg_items.get(entry.name, {})
-                parsed = self._parse_skill(path, raw_reg)
-                # Registry keys follow the destination directory. If an old or
-                # hand-copied folder differs from frontmatter, keep state stable.
-                parsed["dir_name"] = entry.name
-                items.append(parsed)
-            except Exception as exc:
-                self._log(exc)
+        if isinstance(reg_items, dict):
+            for dir_name, row in sorted(reg_items.items(), key=lambda pair: pair[0].lower()):
+                if not isinstance(row, dict):
+                    continue
+                item = self._inflate_registry_item(row, profile_dir)
+                if item is not None:
+                    items.append(item)
 
         self._cache = items
-        self._cache_key = cache_key
-        return [x for x in items if x.get("enabled")] if enabled_only else list(items)
+        self._cache_key = self._runtime_cache_key(registry, profile_dir)
+        return [item for item in items if item.get("enabled")] if enabled_only else list(items)
 
     def get(self, name: str, require_enabled: bool = False) -> Optional[dict]:
         key = str(name or "").strip().lower().lstrip("$")
@@ -345,8 +559,31 @@ class Skills:
             if key in {item["name"].lower(), item.get("dir_name", "").lower()}:
                 if require_enabled and not item.get("enabled"):
                     return None
+                # Never trust a cached path at point of use.
+                if not os.path.isfile(item.get("skill_md", "")):
+                    self.invalidate()
+                    return None
                 return item
         return None
+
+    def _get_full_skill(self, name: str, require_enabled: bool = False) -> Optional[dict]:
+        skill = self.get(name, require_enabled=require_enabled)
+        if skill is None:
+            return None
+        path = os.path.realpath(skill["path"])
+        root = os.path.realpath(self.get_root_dir(create=False))
+        if not self._is_inside(path, root) or not os.path.isfile(os.path.join(path, "SKILL.md")):
+            self.invalidate()
+            return None
+        registry = self._load_registry()
+        reg = registry.get("items", {}).get(skill.get("dir_name") or skill["name"], {})
+        try:
+            parsed = self._parse_skill(path, reg, include_resources=True)
+            parsed["dir_name"] = skill.get("dir_name") or os.path.basename(path)
+            return parsed
+        except Exception as exc:
+            self._log(exc)
+            return None
 
     # ENABLE / REMOVE ------------------------------------------------------
 
@@ -451,7 +688,7 @@ class Skills:
             imported_names = []
             root = self.get_root_dir()
             for skill_dir in skill_dirs:
-                parsed = self._parse_skill(skill_dir, {})
+                parsed = self._parse_skill(skill_dir, {}, include_resources=False)
                 name = parsed["name"]
                 if name in names:
                     raise SkillsError(f"Duplicate skill name in source: {name}")
@@ -491,6 +728,7 @@ class Skills:
             self._save_registry(registry)
             committed = True
             self.invalidate()
+            self.sync_registry(save=True, refresh_names=imported_names)
             result = []
             for name in imported_names:
                 item = self.get(name)
@@ -725,12 +963,12 @@ class Skills:
         return json.dumps(payload, ensure_ascii=False, indent=2)
 
     def load_for_agent(self, name: str, ctx=None) -> str:
-        skill = self.get(name, require_enabled=True)
+        skill = self._get_full_skill(name, require_enabled=True)
         if skill is None:
             return json.dumps({"error": "Skill is not installed or not enabled", "name": name}, ensure_ascii=False)
         with open(skill["skill_md"], "r", encoding="utf-8-sig", errors="replace") as handle:
             raw = handle.read()
-        front, body = self._split_frontmatter(raw)
+        _front, body = self._split_frontmatter(raw)
         materialized = self.materialize(skill["name"], ctx=ctx)
         display_path = self._display_workdir_path(materialized, ctx=ctx)
         execution = self._execution_context(materialized, ctx=ctx)

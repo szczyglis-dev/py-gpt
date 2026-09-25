@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 17:50:00                  #
+# Updated Date: 2026.09.25 12:35:00                  #
 # ================================================== #
 
 import os
@@ -68,7 +68,7 @@ class Skills:
         self._refreshing = True
         try:
             tree.clear()
-            for skill in self.window.core.skills.list_installed(force=True):
+            for skill in self.window.core.skills.list_installed():
                 item = QTreeWidgetItem(tree)
                 item.setText(1, skill.get("display_name") or skill["name"])
                 item.setText(2, skill.get("description", ""))

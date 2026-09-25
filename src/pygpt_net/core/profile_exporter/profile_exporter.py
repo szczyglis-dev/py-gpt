@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 12:10:00                  #
+# Updated Date: 2026.09.25 12:35:00                  #
 # ================================================== #
 
 import json
@@ -334,6 +334,12 @@ class ProfileExporter:
         if not selected:
             raise ProfileExportError("No export sections selected")
 
+        # Keep the profile-local skills registry coherent before exporting Files.
+        # This is cheap for unchanged skills and only reparses modified SKILL.md files.
+        skills = getattr(self.window.core, "skills", None)
+        if skills is not None and self.SECTION_FILES in selected:
+            skills.sync_registry(force=False, save=True)
+
         workdir = self.get_workdir()
         destination = os.path.abspath(destination)
         parent = os.path.dirname(destination) or os.getcwd()
@@ -596,6 +602,11 @@ class ProfileExporter:
             self._check_cancel(cancelled)
             self._emit_status(status, "profile.import.status.defaults")
             self._prepare_defaults(staging)
+            # Rebuild/migrate skill metadata in the imported profile registry.
+            # Cached paths are relative, so the profile remains portable.
+            skills = getattr(self.window.core, "skills", None)
+            if skills is not None and self.SECTION_FILES in selected:
+                skills.migrate_registry_cache(profile_dir=staging, save=True)
             self._check_cancel(cancelled)
 
             self._emit_status(status, "profile.import.status.finalizing")
