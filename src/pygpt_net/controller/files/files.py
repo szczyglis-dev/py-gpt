@@ -560,6 +560,7 @@ class Files:
         :param: reload: reload explorer root dir
         """
         data = {}  # indexed file rows are lazy-loaded by the explorer model
+        self.window.core.tabs.refresh_files_tooltips()
         self.window.ui.nodes['output_files'].index_data = data
         if reload:
             root = self.window.core.filesystem.get_data_dir()

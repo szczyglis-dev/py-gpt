@@ -708,6 +708,25 @@ class Tabs:
         if tab.type != Tab.TAB_CHAT:
             tab.tooltip = "" if tab.title is None else str(tab.title)
 
+    def get_files_tooltip(self) -> str:
+        """Return the active project-aware Files root for the tab tooltip."""
+        try:
+            return str(self.window.core.filesystem.get_data_dir(create=False) or "")
+        except Exception:
+            return ""
+
+    def refresh_files_tooltips(self):
+        """Refresh Files-tab tooltips after context/project workdir changes."""
+        tooltip = self.get_files_tooltip()
+        for tab in self.pids.values():
+            if tab.type != Tab.TAB_FILES:
+                continue
+            tab.tooltip = tooltip
+            tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+            if tabs is None or tab.idx is None or tab.idx < 0 or tab.idx >= tabs.count():
+                continue
+            tabs.setTabToolTip(tab.idx, tooltip)
+
     def add_chat(self, tab: Tab):
         """
         Add chat tab
@@ -767,7 +786,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.explorer.setup()
-        self._sync_tooltip_with_title(tab)
+        tab.tooltip = self.get_files_tooltip()
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
