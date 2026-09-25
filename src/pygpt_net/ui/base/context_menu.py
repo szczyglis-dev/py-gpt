@@ -184,20 +184,12 @@ class ContextMenu:
                     )
                     menu.addAction(action)
 
-        if 'interpreter' not in excluded:
-            add_edit = 'interpreter_edit' not in excluded
-            add_input = 'interpreter_input' not in excluded
-            if add_edit or add_input:
-                menu.addSeparator()
-                interpreter = tools.get("interpreter")
-                if add_edit:
-                    action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.code'), menu)
-                    action.triggered.connect(lambda checked=False: interpreter.append_to_edit(resolved_text()))
-                    menu.addAction(action)
-                if add_input:
-                    action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.input'), menu)
-                    action.triggered.connect(lambda checked=False: interpreter.append_to_input(resolved_text()))
-                    menu.addAction(action)
+        if 'interpreter' not in excluded and 'interpreter_input' not in excluded:
+            menu.addSeparator()
+            interpreter = tools.get("interpreter")
+            action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.input'), menu)
+            action.triggered.connect(lambda checked=False: interpreter.append_to_input(resolved_text()))
+            menu.addAction(action)
 
         if 'translator' not in excluded:
             add_left = 'translator_left' not in excluded
