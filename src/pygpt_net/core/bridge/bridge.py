@@ -244,9 +244,16 @@ class Bridge:
             self.window.core.debug.info("[bridge] RAG gateway -> LlamaIndex chat: " + str(context.idx))
 
         # Completion has its own LlamaIndex runtime. Keep MODE_COMPLETION so the
-        # worker enters core.idx.completion instead of the chat-with-index path;
-        # the completion runtime performs RAG retrieval before complete/stream_complete.
-        rag_completion = base_mode == MODE_COMPLETION and valid_rag
+        # worker enters core.idx.completion instead of the chat-with-index path.
+        # RAG participates only while Completion is using chat-style assembly.
+        completion_as_chat = bool(
+            self.window.core.config.get("completion.as_chat", True)
+        )
+        rag_completion = (
+            base_mode == MODE_COMPLETION
+            and completion_as_chat
+            and valid_rag
+        )
         if rag_completion:
             mode = MODE_COMPLETION
             context.idx_mode = MODE_COMPLETION

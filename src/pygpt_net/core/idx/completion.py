@@ -45,6 +45,8 @@ class Completion:
         if llm is None:
             raise Exception("Invalid LlamaIndex completion provider")
 
+        as_chat = bool(self.window.core.config.get("completion.as_chat", True))
+
         # Completion must remain a plain-text completion even when RAG is
         # selected. Reuse the shared retrieval pipeline, but keep retrieved
         # material separate from the user's current turn so the final prompt is
@@ -53,7 +55,7 @@ class Completion:
         # where all of these parts are one flat text sequence rather than roles.
         user_prompt = context.prompt or getattr(ctx, "final_input", "") or ""
         rag_context = ""
-        if self.window.core.idx.is_valid(context.idx):
+        if as_chat and self.window.core.idx.is_valid(context.idx):
             rag_context = self.window.core.idx.chat.query_retrieval(
                 query=user_prompt,
                 idx=context.idx,
@@ -69,7 +71,7 @@ class Completion:
             prompt=user_prompt,
             system_prompt=context.system_prompt,
             model=model,
-            history=context.history,
+            history=context.history if as_chat else [],
             ai_name=ctx.output_name,
             user_name=ctx.input_name,
             rag_context=rag_context,
@@ -78,7 +80,7 @@ class Completion:
         request_kwargs = self._get_request_kwargs(
             context=context,
             model=model,
-            user_name=ctx.input_name,
+            user_name=ctx.input_name if as_chat else None,
         )
 
         self.window.core.api.logger.log_input(
@@ -86,7 +88,7 @@ class Completion:
             provider=model.provider,
             kwargs=request_kwargs,
             input=prompt,
-            history=context.history,
+            history=context.history if as_chat else [],
             extra=extra,
             model=model.id,
             path="llm.stream_complete" if context.stream else "llm.complete",
@@ -194,6 +196,20 @@ class Completion:
     ) -> str:
         """Build the same plain-text conversation prompt used by native completion."""
         message = ""
+        as_chat = bool(self.window.core.config.get("completion.as_chat", True))
+
+        # One-shot Completion intentionally bypasses transcript formatting and
+        # RAG. The system prompt still precedes the current user input.
+        if not as_chat:
+            if system_prompt:
+                message += str(system_prompt)
+            if prompt is not None and str(prompt) != "":
+                if message:
+                    message += "\n"
+                message += str(prompt)
+            self.input_tokens = self.window.core.tokens.from_text(message, model.id)
+            return message
+
         formatted_rag = self._format_rag_context(rag_context)
         current_input = prompt
         if formatted_rag:

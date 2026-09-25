@@ -1485,6 +1485,18 @@ class Patch:
                     plugins_enabled["jev"] = bool(base_plugins_enabled.get("jev", False))
                     updated = True
 
+            # < 2.8.32
+            if old < parse_version("2.8.32"):
+                print("Migrating config from < 2.8.32...")
+
+                # Completion keeps its current chat-style prompt assembly by
+                # default. Users can opt into one-shot completion from the new
+                # footer toggle without changing existing profile behavior.
+                key = "completion.as_chat"
+                if key not in data:
+                    data[key] = cfg_get_base(key)
+                    updated = True
+
         # update file
         migrated = False
         if updated:

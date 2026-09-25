@@ -24,6 +24,7 @@ from .agent import Agent
 from .agent_llama import AgentLlama
 from .audio import Audio
 from .computer_env import ComputerEnv
+from .completion import Completion
 from .image import Image
 from .indexes import Indexes
 from .vision import Vision
@@ -44,6 +45,7 @@ class Footer:
         self.agent_llama = AgentLlama(window)
         self.audio = Audio(window)
         self.env = ComputerEnv(window)
+        self.completion = Completion(window)
         self.image = Image(window)
         self.indexes = Indexes(window)
         self.vision = Vision(window)
@@ -75,6 +77,7 @@ class Footer:
             self.env.setup(),
             self.window.ui.nodes['voice.control.btn'],
             self.audio.setup(),
+            self.completion.setup(),
             self.indexes.setup_options(),
             self.split.setup(),
         ]

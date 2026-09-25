@@ -290,6 +290,22 @@ class Mode:
         else:
             ui_nodes['assistants.widget'].setVisible(False)
 
+        # Completion can optionally behave like a flat chat transcript. When
+        # disabled, runtime sends only system prompt + current input and ignores
+        # history/RAG. Keep the footer toggle synchronized after profile changes.
+        completion_as_chat_widget = ui_nodes.get('completion.as_chat.widget')
+        completion_as_chat_toggle = ui_nodes.get('completion.as_chat')
+        if completion_as_chat_widget is not None:
+            completion_as_chat_widget.setVisible(is_completion)
+        if is_completion and completion_as_chat_toggle is not None:
+            configured_as_chat = bool(
+                self.window.core.config.get('completion.as_chat', True)
+            )
+            if completion_as_chat_toggle.isChecked() != configured_as_chat:
+                blocked = completion_as_chat_toggle.box.blockSignals(True)
+                completion_as_chat_toggle.setChecked(configured_as_chat)
+                completion_as_chat_toggle.box.blockSignals(blocked)
+
         # Shared RAG selector. The RAG operation mode (chat/query/retrieval)
         # is configured globally in Settings -> RAG -> Chat.
         show_rag = mode in (

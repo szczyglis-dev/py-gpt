@@ -163,6 +163,7 @@ class Mapping:
         nodes["agent.continue"] = "toolbox.agent.continue.label"
         nodes["agent.v2.mode.label"] = "agent.v2.mode.label"
         nodes['layout.split'] = "layout.split"
+        nodes['completion.as_chat'] = "toolbox.completion.as_chat"
 
         # input
         nodes['input.label'] = 'input.label'
