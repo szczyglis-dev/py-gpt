@@ -143,7 +143,6 @@ class Controller:
         self.plugins.settings.setup()
         self.model.editor.setup()
         self.agents_v2.setup()
-        self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
         self.debug.post_setup()  # post setup debug after all loaded
@@ -161,6 +160,7 @@ class Controller:
     def after_setup(self):
         """After-setup, after all loaded"""
         self.plugins.update()
+        self.launcher.after_setup()
 
         # Run after the Qt event loop starts, when the main window, dialogs,
         # plugins and restored tabs are already fully initialized.

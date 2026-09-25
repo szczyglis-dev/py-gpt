@@ -46,14 +46,16 @@ class Launcher:
             return
         self._startup_checks_started = True
 
+        # Both network operations are independent and asynchronous. Start them
+        # only after the main window has painted; banner UI itself is created
+        # lazily only when a displayable remote item is returned.
+        self.window.core.banners.run_load()
+
         if self.window.core.config.get('updater.check.launch'):
             self.window.core.updater.run_check(
                 force=True,
-                on_finished=self.window.core.banners.run_load,
                 event="launch",
             )
-        else:
-            self.window.core.banners.run_load()
 
     def show_api_monit(self):
         """Show empty API KEY monit"""
