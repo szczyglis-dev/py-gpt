@@ -25,6 +25,7 @@ from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 from packaging.version import parse as parse_version, Version
 
 from pygpt_net.core.qt import safe_emit
+from pygpt_net.core.auto_updater import AutoUpdater, UpdatePayload
 from pygpt_net.utils import trans
 
 
@@ -38,6 +39,7 @@ class Updater(QObject):
         super(Updater, self).__init__()
         self.window = window
         self.thanks = None  # cache
+        self.auto = AutoUpdater(window)
         # True only for the one patch pass performed during real application
         # startup. Profile/workdir reloads call patch() again later and must not
         # be treated as application updates.
@@ -250,6 +252,34 @@ class Updater(QObject):
                 print("Patched file: {}.".format(dst))
         except Exception as e:
             self.window.core.debug.log(e)
+
+    def start_auto_update(
+            self,
+            version: str,
+            build: str = "",
+            changelog: str = "",
+            download_windows: str = "",
+            download_linux: str = "",
+            download_appimage: str = "",
+    ) -> bool:
+        """Start the automatic update procedure for the running distribution."""
+        payload = UpdatePayload(
+            version=str(version or ""),
+            build=str(build or ""),
+            changelog=str(changelog or ""),
+            download_windows=str(download_windows or ""),
+            download_linux=str(download_linux or ""),
+            download_appimage=str(download_appimage or ""),
+        )
+        return self.auto.start(payload)
+
+    def can_auto_update(self) -> bool:
+        """Return True when the current distribution supports in-app updates."""
+        return self.auto.can_update()
+
+    def get_auto_update_type(self) -> str:
+        """Return the detected automatic updater distribution type."""
+        return self.auto.get_type()
 
     def get_app_version(self) -> Version:
         """
