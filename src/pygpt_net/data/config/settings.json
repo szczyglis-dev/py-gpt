@@ -2636,7 +2636,7 @@
         "slider": false,
         "label": "settings.llama.idx.storage",
         "description": "settings.llama.idx.storage.desc",
-        "value": "SimpleVectorStore",
+        "value": "ChromaVectorStore",
         "min": null,
         "max": null,
         "multiplier": null,
