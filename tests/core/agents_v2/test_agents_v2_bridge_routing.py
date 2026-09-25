@@ -33,7 +33,7 @@ def make_worker(call_result=True, error="agent error"):
         core=SimpleNamespace(
             debug=SimpleNamespace(info=MagicMock()),
             security=SimpleNamespace(
-                append_prompt_injection_guard=MagicMock(side_effect=lambda prompt, ensure_last=True: prompt),
+                append_prompt_injection_guard=MagicMock(side_effect=lambda prompt, ensure_last=True, mode=None: prompt),
             ),
             agents_v2=SimpleNamespace(runner=runner),
         )

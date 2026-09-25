@@ -56,7 +56,7 @@ def test_copy_to_menu_routes_to_all_available_targets(qapp):
         menu = ContextMenu(window).get_copy_to_menu(None, "hello")
 
     non_separators = [a for a in menu.actions() if not a.isSeparator()]
-    assert len(non_separators) == 8
+    assert len(non_separators) == 7
     for action in non_separators:
         action.trigger()
 
@@ -64,7 +64,6 @@ def test_copy_to_menu_routes_to_all_available_targets(qapp):
     controller.calendar.note.append_text.assert_called_once_with("hello")
     controller.notepad.append_text.assert_any_call("hello", "a")
     controller.notepad.append_text.assert_any_call("hello", "b")
-    interpreter.append_to_edit.assert_called_once_with("hello")
     interpreter.append_to_input.assert_called_once_with("hello")
     translator.append_content.assert_any_call("left", "hello")
     translator.append_content.assert_any_call("right", "hello")

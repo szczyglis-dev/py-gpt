@@ -45,7 +45,7 @@ class ContextObj:
 
 def _security():
     return SimpleNamespace(
-        append_prompt_injection_guard=Mock(side_effect=lambda prompt, ensure_last=True: prompt),
+        append_prompt_injection_guard=Mock(side_effect=lambda prompt, ensure_last=True, mode=None: prompt),
     )
 
 

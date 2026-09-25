@@ -64,7 +64,7 @@ def make_window():
     window.core.debug.debug = Mock()
     window.core.debug.error = Mock()
     window.core.security = SimpleNamespace()
-    window.core.security.append_prompt_injection_guard = Mock(side_effect=lambda prompt, ensure_last=True: prompt)
+    window.core.security.append_prompt_injection_guard = Mock(side_effect=lambda prompt, ensure_last=True, mode=None: prompt)
     window.core.config = SimpleNamespace()
     window.core.config.get = Mock(return_value=None)
     window.core.config.has = Mock(return_value=False)

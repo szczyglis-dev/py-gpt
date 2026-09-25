@@ -18,6 +18,8 @@ def _realtime():
     realtime.allowed_modes = [MODE_AUDIO]
     realtime.manual_commit_sent = False
     realtime._continuation_text_started = set()
+    realtime._realtime_follow_checked = set()
+    realtime._playback_ctx = None
     realtime.window.core.config.get.side_effect = lambda key, default=None: {
         "mode": MODE_AUDIO,
         "audio.input.loop": False,
@@ -61,12 +63,22 @@ def test_realtime_unsupported_realtime_event_is_stopped_without_side_effects():
 
 def test_realtime_audio_output_delta_forwards_payload_unless_muted():
     realtime = _realtime()
-    realtime.set_idle = MagicMock()
-    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_DELTA, {"payload": b"audio"})
+    ctx = SimpleNamespace(meta=SimpleNamespace(id=1))
+    payload = {
+        "ctx": ctx,
+        "data": b"audio",
+        "mime": "audio/pcm",
+        "rate": 24000,
+        "channels": 1,
+        "final": False,
+        "provider": "openai",
+        "model": "realtime-model",
+    }
+    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_DELTA, {"payload": payload})
 
     realtime.handle(event)
-    realtime.window.core.audio.output.handle_realtime.assert_called_once_with(b"audio", realtime.signals)
-    realtime.set_idle.assert_called_once_with()
+    realtime.window.core.audio.output.handle_realtime.assert_called_once_with(payload, realtime.signals)
+    assert realtime._playback_ctx is ctx
 
     realtime.window.core.audio.output.handle_realtime.reset_mock()
     realtime.window.controller.audio.is_muted.return_value = True

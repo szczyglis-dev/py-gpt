@@ -708,6 +708,9 @@ def test_get_prompt_items():
     ctx.window.core.tokens.from_ctx = MagicMock()
     ctx.window.core.context_manager.fit_history_limit.side_effect = lambda model, limit: limit
     ctx.window.core.context_manager.filter_history.side_effect = lambda values: values
+    ctx.window.core.config.get.side_effect = lambda key, default=None: (
+        0 if key == "context.max_history_items" else default
+    )
 
     item1 = CtxItem()
     item2 = CtxItem()

@@ -29,7 +29,7 @@ class FakeTray:
     def __init__(self):
         self.msg_calls = []
 
-    def show_msg(self, title, content):
+    def show_msg_if_inactive(self, title, content):
         self.msg_calls.append((title, content))
 
 

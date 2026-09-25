@@ -15,18 +15,28 @@ from tests.mocks import mock_window
 from pygpt_net.controller import Launcher
 
 
-def test_post_setup(mock_window):
-    """Test post setup"""
+def test_run_startup_checks(mock_window):
+    """Test deferred startup checks."""
     launcher = Launcher(mock_window)
-    mock_window.core.config.data['mode'] = 'chat'
-    mock_window.core.config.data['api_key'] = None
     mock_window.core.config.data['updater.check.launch'] = True
-    launcher.show_api_monit = MagicMock()
+    mock_window.core.banners.run_load = MagicMock()
     mock_window.core.updater.run_check = MagicMock()
 
-    launcher.post_setup()
-#    launcher.show_api_monit.assert_called_once()
-    mock_window.core.updater.run_check.assert_called_once()
+    launcher._run_startup_checks()
+
+    mock_window.core.banners.run_load.assert_called_once_with()
+    mock_window.core.updater.run_check.assert_called_once_with(
+        force=True,
+        event="launch",
+    )
+
+    # The app-ready signal may fire more than once; checks are intentionally one-shot.
+    launcher._run_startup_checks()
+    mock_window.core.banners.run_load.assert_called_once_with()
+    mock_window.core.updater.run_check.assert_called_once_with(
+        force=True,
+        event="launch",
+    )
 
 
 def test_show_api_monit(mock_window):
