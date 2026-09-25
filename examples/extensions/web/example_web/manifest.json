@@ -1,0 +1,15 @@
+{
+  "manifest_version": 1,
+  "version": "1.0.0",
+  "min_app_version": "2.8.32",
+  "author": "PyGPT example",
+  "contact": {
+    "repo": "https://github.com/szczyglis-dev/py-gpt"
+  },
+  "external_dependencies": [],
+  "id": "example_web",
+  "name": "Example web provider",
+  "description": "Minimal external web/search provider.",
+  "type": "web",
+  "entrypoint": "provider.py:ExampleWeb"
+}

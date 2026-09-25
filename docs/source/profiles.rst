@@ -21,7 +21,7 @@ Importing and exporting profiles
 Use ``File -> Export profile...`` to create a portable ZIP archive of the currently active profile. The export dialog separates profile data into four sections:
 
 * **Database** - the profile SQLite database. It is exported using a consistent SQLite snapshot, so the application can remain open while the archive is created.
-* **Config files** - profile configuration JSON files together with profile presets and custom CSS, locale and font data.
+* **Config files** - profile configuration JSON files together with profile presets, installed external Add-ons under ``addons``, and custom CSS, locale and font data.
 * **Files** - the remaining persistent profile files and directories, including images, uploads, captures, indexes, history and other profile-owned working files outside ``data/``.
 * **Workdir data/** - only the profile's shared ``data/`` directory. This option is disabled by default; the other three sections are enabled by default.
 

@@ -2,9 +2,9 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.31** | build: **2026-09-25** | Python: **>=3.10, <3.14**
+Release: **2.8.32** | build: **2026-09-25** | Python: **>=3.10, <3.14**
 
-> Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
+> Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
 > Get it from: [PyPi](https://pypi.org/project/pygpt-net) | [Snap Store](https://snapcraft.io/pygpt) | [Microsoft Store](https://apps.microsoft.com/detail/XP99R4MX3X65VQ) | [AppImage](https://github.com/szczyglis-dev/py-gpt/releases)
 > 
@@ -853,7 +853,7 @@ PyGPT uses three related index concepts:
 
 Built-in file loaders include CSV, Epub, XLSX, HTML, IPYNB, images, JSON, Markdown, PDF, plain text, video/audio, DOCX, and XML. Built-in web/external loaders include Bitbucket, ChatGPT Retrieval Plugin, GitHub Issues and repositories, Google Calendar/Docs/Drive/Gmail/Keep/Sheets, Microsoft OneDrive, RSS, SQL databases, sitemaps, Twitter/X posts, webpages, and YouTube transcriptions.
 
-Additional loader arguments can be configured in `Settings -> Indexes / RAG -> Data loaders`. Custom loaders can also be registered by extensions.
+Additional loader arguments can be configured in `Settings -> Indexes / RAG -> Data loaders`. Custom loaders can also be registered by Add-ons.
 
 ## File indexing
 
@@ -1148,7 +1148,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ### Importing and exporting profiles
 
-Use `File -> Export profile...` to save the active profile as a ZIP archive. You can include the **Database**, **Config files**, **Files**, and optionally the shared **Workdir data/** directory. Temporary files, caches, logs, and project data stored outside the profile workdir are not included.
+Use `File -> Export profile...` to save the active profile as a ZIP archive. You can include the **Database**, **Config files** (including installed external Add-ons), **Files**, and optionally the shared **Workdir data/** directory. Temporary files, caches, logs, and project data stored outside the profile workdir are not included.
 
 Use `File -> Import profile...` to restore an exported archive as a new profile. Choose which available sections to import, provide a unique profile name, and select its workdir.
 
@@ -2041,11 +2041,13 @@ The X/Twitter plugin exposes X tools for reading and searching posts, publishing
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#x-twitter
 
-# Creating Your Own Plugins
+# Creating Your Own Plugins and Add-ons
 
-PyGPT can be extended with custom plugins, models, LLM wrappers, vector stores, data loaders, audio providers, web providers, and agents.
+PyGPT can install profile-scoped external Add-ons from `Config -> Install Add-on...`. Supported packages include plugins, LLM/provider wrappers, vector stores, data loaders, audio input/output providers, web providers, GUI tools, agents, themes, and locale packs. Each package uses a `manifest.json` and is stored below `%workdir%/addons`; Python Add-ons are loaded into the same runtime registries as built-in components and also work with compiled builds.
 
-For implementation guides, launcher examples, plugin APIs, and complete code samples, see the full documentation:
+Add-ons can be imported from a directory, ZIP, GitHub, or the Explore registry. The default public registry is `https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json`. External code runs with the same permissions as PyGPT, so review untrusted source before installing it.
+
+For installation, manifest format, examples, publishing/registry instructions, custom launcher compatibility, plugin APIs, and complete code samples, see the full documentation:
 
 https://pygpt.readthedocs.io/en/latest/extending.html
 
@@ -2547,13 +2549,39 @@ For the complete debugging reference, Logger commands, DB Viewer details, compil
 
 # Extending PyGPT
 
-PyGPT can also load custom themes directly from the active profile workdir. Put a theme in `%workdir%/css/<theme-id>/`; supported per-theme files are `app.css`, `app.xml`, and `chat.css`. New custom IDs should use a `-dark` or `-light` suffix to declare runtime compatibility, e.g. `my_custom-dark` becomes **My Custom** and `paper-light` becomes **Paper** in the menu. The suffix remains part of the stored theme ID. If both variants of one base name exist, they are shown as **(Dark)** / **(Light)**. Unsuffixed new custom IDs default to Dark. Reusing a built-in ID such as `ocean` overrides/extends that theme and preserves its built-in Dark/Light type. The runtime type controls qt-material behavior, platform fixes, widgets, renderer compatibility, and fallback assets. The global `data/css/app.css` is always the native UI base, `data/css/chat.css` is the chat base for both Standard and Wide layouts, and `chat.wide.css` is appended only for Wide. See the documentation section **Extending PyGPT -> Custom themes and styles** for the full load order and examples.
+PyGPT can be extended with custom:
 
-PyGPT can be extended with custom models, plugins, LLM wrappers, vector stores, data loaders, audio input/output providers, web providers, and custom agents. Extension components can be registered through a custom launcher.
+- themes (CSS/QSS)
+- plugins,
+- GUI tools,
+- LLM wrappers,
+- vector store providers,
+- data loaders,
+- audio input providers,
+- audio output providers,
+- web search providers,
+- agent providers.
+
+The repository's ``examples`` directory contains tutorial implementations for every add-on type:
+
+- `examples/custom_launcher.py`
+- `examples/example_plugin.py`
+- `examples/example_tool.py`
+- `examples/example_agent.py`
+- `examples/example_llm.py`
+- `examples/example_vector_store.py`
+- `examples/example_data_loader.py`
+- `examples/example_audio_input.py`
+- `examples/example_audio_output.py`
+- `examples/example_web_search.py`
+
+PyGPT can be also extended with external Add-ons installed under `%workdir%/addons` (plugins, LLM wrappers, vector stores, loaders, audio/web providers, tools, agents, themes and locale packs).
+
+You can install external Add-ons from `Config -> Install Add-on...` using a local directory/ZIP, GitHub, or the **Explore** catalog. The official catalog and community submissions are maintained in the [PyGPT Add-ons repository](https://github.com/szczyglis-dev/py-gpt-addons).
 
 The repository also contains ready-to-use examples in the `examples` directory.
 
-For complete Python examples, event handling, custom model configuration, provider interfaces, launcher code, and extension API reference, see:
+For complete Python examples, manifest format, publishing instructions, event handling, custom model configuration, provider interfaces, launcher code, and the Add-ons API reference, see:
 
 https://pygpt.readthedocs.io/en/latest/extending.html
 
@@ -2573,6 +2601,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.32 (2026-09-25)**
+
+- Added support for external **Add-ons** (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.
+- Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
+- Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
+- Fixed equal split-screen column widths when enabling split-screen mode.
+- UI improvements.
+
 **2.8.31 (2026-09-25)**
 
 - Refactored and improved tab management.
@@ -2590,65 +2626,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new **Canvas (inline)** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. As an inline plugin, it works independently of the global **Tools** switch. See the new **Canvas** section in the documentation for details.
 - The chat input field is now pinned to its corresponding chat column.
 - Added support for new models: **Claude Opus 5.5**, **GPT-6 Sol**, and **GPT-6 Luna**.
-
-**2.8.29 (2026-09-22)**
-
-- Renamed **Chat with Agents** mode to **Agents**.
-- Updated default agent preset models to `gpt-5.6-luna`.
-- Fixed compatibility errors in legacy Agent modes.
-- Simplified LlamaIndex fallback for models without native tools to standard LLM.
-- Added support for passing a reference image directly from a chat attachment to the image generation tool.
-- Added and unified **local/remote tool permissions** across more agent workflow roles.
-- Improved runtime artifact sharing between host, Docker Python/IPython, System/OS tools, and agent workflows.
-- Google GenAI SDK upgraded to v2.25.0, OpenAI Agents upgraded to v0.18.3.
-
-**2.8.28 (2026-09-22)**
-
-- Integrated **Chat with Files** into the standard **Chat** mode. RAG is now available across all supported modes.
-- Added a **Judge** mode to **Autonomous**, providing improved response evaluation and continuation guidance after each step.
-- Added support for defining preinstalled packages in the built-in **Python Interpreter** and **System / OS** sandboxes.
-- Added an option to manually rebuild the built-in sandbox virtual environment.
-- Optimized Python command execution.
-- Other fixes and improvements.
-
-**2.8.27 (2026-09-20)**
-
-- Added a built-in sandboxed Python interpreter running in its own virtual environment, managed by `uv`, available as the default third sandbox option in the Python Interpreter and System / OS plugins. It allows Python code to be executed without requiring Python to be installed on the host system and without using Docker, as the interpreter is bundled and managed directly by PyGPT. See the documentation: Plugins -> Python Interpreter.
-- Fixed HTML / Canvas base directory handling for relative paths and local assets.
-- UI and CSS fixes, refinements, and visual improvements.
-
-**2.8.26 (2026-09-20)**
-
-- Refactored, improved, and simplified CSS/QSS handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
-- Fixed and optimized RAG retrieval for improved reliability and performance.
-- Fixed the splitter resize policy and improved layout resizing behavior.
-
-**2.8.25 (2026-09-19)**
-
-- Added support for **Agent Skills**, including importing from GitHub, local files, and formats compatible with Claude, Codex, OpenClaw, and other supported ecosystems. Added a dedicated **Skills** management interface for browsing, installing, enabling, disabling, and removing skills.
-- Added support for **Claude/Codex-style Connectors**, integrated with the MCP plugin. Connectors can be imported from GitHub, local files, Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible JSON, TOML, and YAML definitions. Connector management is available under **Config → MCP → Connectors**.
-- Added new application themes: **Matrix, Gray, Mint, Flare, Ocean, Sun, and Retro**.
-- Refactored theme/CSS assets into a directory-per-theme layout and added profile-level custom themes/overrides from `%workdir%/css`, including runtime `-dark` / `-light` compatibility classification for custom themes.
-- Added **Full Screen mode (F11)** and support for a frameless window layout.
-- Optimized message sending from the chat input by moving pre-send preparation tasks to asynchronous workers, reducing UI blocking before requests are sent.
-- Various **UI fixes, layout improvements, workflow fixes, and usability refinements** across the application.
-
-**2.8.24 (2026-09-18)**
-
-- Added **Import profile...** and **Export profile...** options to the **File** menu, allowing complete profiles to be exported and imported, including the database, configuration, files, and application data.
-- Added an automatic prompt-injection guard in **Settings -> Security -> Auto-prevent prompt injections**.
-- Moved the model selector to the input field.
-- Added a clock to the Calendar.
-- Added subdirectory lookup support for `@mentions`.
-- Added runtime switching to the Agent Workflows editor.
-- Removed the **Edit JSON configs** option.
-- Improved the chat input field.
-- Added a loader to the Docker builder.
-- Integrated system notifications with **Agents**.
-- The input field is now hidden in non-chat tabs.
-- Added date and time headers above chat input blocks.
-- Added support for referencing other conversations from the database using `@mentions` with conversation IDs, e.g. `What were we talking about in chat @123?`
-- Added various CSS, layout, and UI improvements.
 
 # Credits and links
 

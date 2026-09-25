@@ -1,0 +1,23 @@
+{
+  "manifest_version": 1,
+  "id": "my_extension",
+  "type": "plugin",
+  "name": "My Extension",
+  "description": "Example external PyGPT extension.",
+  "version": "1.0.0",
+  "min_app_version": "2.8.32",
+  "author": "Your Name",
+  "contact": {
+    "email": "you@example.com",
+    "repo": "https://github.com/example/my-extension",
+    "www": "https://example.com"
+  },
+  "entrypoint": "plugin.py:Plugin",
+  "external_dependencies": [
+    {
+      "name": "example-package",
+      "version": ">=1.0,<2.0",
+      "optional": false
+    }
+  ]
+}

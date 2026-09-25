@@ -44,10 +44,10 @@ class Connectors:
     OpenCode, MCPorter and generic MCP JSON/TOML/YAML) into that registry.
     """
 
-    DEFAULT_CATALOG_URL = (
-        "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/"
-        "src/pygpt_net/data/connectors/catalog.json"
-    )
+    DEFAULT_CATALOG_URL = "https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/mcp.json"
+    LEGACY_CATALOG_URLS = {
+        "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/connectors/catalog.json",
+    }
     MAX_DOWNLOAD_BYTES = 32 * 1024 * 1024
     MAX_CATALOG_BYTES = 4 * 1024 * 1024
     CONFIG_NAMES = {
@@ -206,7 +206,9 @@ class Connectors:
 
     def get_catalog_url(self) -> str:
         value = str(self.window.core.config.get("connectors.catalog.url", "") or "").strip()
-        return value or self.DEFAULT_CATALOG_URL
+        if not value or value in self.LEGACY_CATALOG_URLS:
+            return self.DEFAULT_CATALOG_URL
+        return value
 
     def set_catalog_url(self, value: str):
         self.window.core.config.set("connectors.catalog.url", str(value or "").strip())
@@ -220,7 +222,7 @@ class Connectors:
         raw = None
         if target:
             try:
-                raw = self._download_bytes(target, self.MAX_CATALOG_BYTES)
+                raw = self._download_bytes(self._normalize_catalog_url(target), self.MAX_CATALOG_BYTES)
             except Exception as exc:
                 self._log(exc)
                 if target != self.DEFAULT_CATALOG_URL:
@@ -688,6 +690,18 @@ class Connectors:
                 return value
 
     # NETWORK -------------------------------------------------------------
+
+    @staticmethod
+    def _normalize_catalog_url(url: str) -> str:
+        parsed = urlparse(url)
+        if parsed.netloc.lower() not in {"github.com", "www.github.com"}:
+            return url
+        parts = [part for part in parsed.path.split("/") if part]
+        if len(parts) == 3 and parts[2].lower().endswith(".json"):
+            return f"https://raw.githubusercontent.com/{parts[0]}/{parts[1]}/main/{parts[2]}"
+        if len(parts) >= 5 and parts[2] == "blob":
+            return f"https://raw.githubusercontent.com/{parts[0]}/{parts[1]}/{parts[3]}/{'/'.join(parts[4:])}"
+        return url
 
     def _download_bytes(self, url: str, limit: int) -> bytes:
         req = Request(url, headers={"User-Agent": "PyGPT Connectors/1.0", "Accept": "application/json, text/plain, */*"})

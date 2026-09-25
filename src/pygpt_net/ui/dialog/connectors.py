@@ -246,7 +246,7 @@ class Connectors:
         tab = QWidget()
         url = QLineEdit()
         url.setPlaceholderText(trans("connectors.catalog.url.placeholder"))
-        url.returnPressed.connect(self.window.controller.connectors.refresh_catalog)
+        url.returnPressed.connect(self.window.controller.connectors.refresh_catalog_silent)
         nodes["connectors.catalog.url"] = url
         refresh = QPushButton(QIcon(":/icons/reload.svg"), trans("action.refresh"))
         refresh.clicked.connect(self.window.controller.connectors.refresh_catalog)

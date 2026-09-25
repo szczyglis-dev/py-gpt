@@ -58,7 +58,7 @@ When the setting is empty, PyGPT uses its built-in default catalog URL:
 
 .. code-block:: text
 
-   https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/connectors/catalog.json
+   https://github.com/szczyglis-dev/py-gpt-addons/mcp.json
 
 PyGPT also includes a bundled local catalog. If loading the built-in default remote catalog fails, the bundled catalog is used as a fallback. An explicitly configured custom catalog reports its loading error instead of silently switching to the default source.
 

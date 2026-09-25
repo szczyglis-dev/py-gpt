@@ -66,7 +66,7 @@ class ProfileExporter:
         SECTION_DATA: "workdir_data",
     }
 
-    CONFIG_DIRS = {"presets", "css", "locale", "fonts"}
+    CONFIG_DIRS = {"presets", "css", "locale", "fonts", "addons"}
     # Profile-local runtime environments/caches are reproducible and must
     # never be treated as portable profile data.  In particular, the
     # built-in uv-managed interpreter lives under ``sandbox/`` and can be

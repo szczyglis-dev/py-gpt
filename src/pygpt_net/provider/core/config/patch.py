@@ -1500,6 +1500,22 @@ class Patch:
                         data[key] = cfg_get_base(key)
                         updated = True
 
+                # Move public registries to the dedicated py-gpt-addons repo.
+                # Preserve user-provided custom URLs and only rewrite the old built-in defaults.
+                old_registry_urls = {
+                    "skills.catalog.url": {
+                        "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/skills/catalog.json",
+                    },
+                    "connectors.catalog.url": {
+                        "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/connectors/catalog.json",
+                    },
+                    "extensions.registry.url": {},
+                }
+                for key, old_values in old_registry_urls.items():
+                    if key not in data or str(data.get(key) or "").strip() in old_values:
+                        data[key] = cfg_get_base(key)
+                        updated = True
+
                 # Migrate the Agent Skills registry to v2 and cache lightweight
                 # metadata directly alongside enabled/source state. Subsequent
                 # startups only reparse skills whose SKILL.md changed on disk.

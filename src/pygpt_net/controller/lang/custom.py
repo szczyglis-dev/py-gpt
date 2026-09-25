@@ -155,6 +155,42 @@ class Custom:
         except (AttributeError, KeyError, RuntimeError):
             pass
 
+        # External extensions dialog.
+        try:
+            tabs = self.window.ui.nodes.get("extensions.tabs")
+            if tabs is not None:
+                tabs.setTabText(0, trans("extensions.tab.installed"))
+                tabs.setTabText(1, trans("extensions.tab.explore"))
+            dialog = self.window.ui.dialog.get("extensions")
+            if dialog is not None:
+                dialog.setWindowTitle(f'{trans("extensions.title")} (beta)')
+
+            installed = self.window.ui.nodes.get("extensions.installed.list")
+            if installed is not None:
+                header = installed.headerItem()
+                for column, key in enumerate((
+                    "extensions.column.name", "extensions.column.description",
+                    "extensions.column.author", "extensions.column.version",
+                    "extensions.column.type", "extensions.column.trusted",
+                    "extensions.column.official",
+                )):
+                    header.setText(column, trans(key))
+
+            explore = self.window.ui.nodes.get("extensions.explore.list")
+            if explore is not None:
+                header = explore.headerItem()
+                for column, key in enumerate((
+                    None, "extensions.column.name", "extensions.column.description",
+                    "extensions.column.author", "extensions.column.version",
+                    "extensions.column.type", "extensions.column.trusted",
+                    "extensions.column.official", "extensions.column.source",
+                )):
+                    header.setText(column, "" if key is None else trans(key))
+            self.window.controller.extensions.refresh_installed()
+            self.window.controller.extensions._render_registry(self.window.controller.extensions._catalog)
+        except (AttributeError, KeyError, RuntimeError):
+            pass
+
         # MCP Connectors dialog uses the same dynamic tab/header pattern as
         # Agent Skills, so keep its open view synchronized with the locale too.
         try:

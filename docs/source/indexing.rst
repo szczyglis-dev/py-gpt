@@ -134,7 +134,7 @@ Built-in web/external loaders include:
 
 Additional loader arguments can be configured in
 ``Settings -> Indexes / RAG -> Data loaders``. Custom loaders can also be
-registered by extensions.
+registered by Add-ons.
 
 File indexing
 -------------

@@ -25,6 +25,7 @@ from pygpt_net.ui.dialog.debug import Debug
 from pygpt_net.ui.dialog.dictionary import Dictionary
 from pygpt_net.ui.dialog.editor import Editor
 from pygpt_net.ui.dialog.find import Find
+from pygpt_net.ui.dialog.extensions import Extensions
 from pygpt_net.ui.dialog.image import Image
 from pygpt_net.ui.dialog.license import License
 from pygpt_net.ui.dialog.logger import Logger
@@ -67,6 +68,7 @@ class Dialogs:
         self.dictionary = Dictionary(self.window)
         self.editor = Editor(self.window)
         self.find = Find(self.window)
+        self.extensions = Extensions(self.window)
         self.image = Image(self.window)
         self.license = License(self.window)
         self.logger = Logger(self.window)

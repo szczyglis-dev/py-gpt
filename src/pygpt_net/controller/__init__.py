@@ -27,6 +27,7 @@ from .debug import Debug
 from .dialogs import Dialogs
 from .files import Files
 from .finder import Finder
+from .extensions import Extensions
 from .idx import Idx
 from .kernel import Kernel
 from .lang import Lang
@@ -81,6 +82,7 @@ class Controller:
         self.dialogs = Dialogs(window)
         self.files = Files(window)
         self.finder = Finder(window)
+        self.extensions = Extensions(window)
         self.idx = Idx(window)
         self.kernel = Kernel(window)
         self.lang = Lang(window)
@@ -130,6 +132,7 @@ class Controller:
         self.dialogs.setup()
         self.skills.setup()
         self.connectors.setup()
+        self.extensions.setup()
         self.audio.setup()
         self.attachment.setup()
         self.camera.setup_ui()
@@ -209,6 +212,7 @@ class Controller:
             self.settings.reload()
             self.skills.reload()
             self.connectors.reload()
+            self.extensions.reload()
             self.assistant.reload()
             self.remote_store.reload()
             self.attachment.reload()

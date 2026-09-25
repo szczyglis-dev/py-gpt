@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.8.32 (2026-09-25)
+
+- Added support for external **Add-ons** (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.
+- Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
+- Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
+- Fixed equal split-screen column widths when enabling split-screen mode.
+- UI improvements.
+
 ## 2.8.31 (2026-09-25)
 
 - Refactored and improved tab management.

@@ -84,7 +84,7 @@ The catalog URL is configurable in ``config.json`` using:
 
 .. code-block:: json
 
-   "skills.catalog.url": "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/skills/catalog.json"
+   "skills.catalog.url": "https://github.com/szczyglis-dev/py-gpt-addons/skills.json"
 
 The current catalog URL is also editable directly in the ``Explore`` tab. PyGPT has a built-in default URL and a bundled local catalog fallback. The bundled fallback is used when the default remote catalog cannot be loaded; an explicitly configured custom URL reports its error instead of silently switching to the default catalog.
 
@@ -162,7 +162,7 @@ Binary resources are not injected into the prompt as text. They remain available
 Security and permissions
 ------------------------
 
-A downloaded skill should be treated as third-party extension content. Installing or enabling a skill does **not** grant it additional permissions.
+A downloaded skill should be treated as third-party add-on content. Installing or enabling a skill does **not** grant it additional permissions.
 
 In particular:
 

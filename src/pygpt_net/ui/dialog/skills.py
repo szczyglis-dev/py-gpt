@@ -152,7 +152,7 @@ class Skills:
 
         url = QLineEdit()
         url.setPlaceholderText(trans("skills.catalog.url.placeholder"))
-        url.returnPressed.connect(self.window.controller.skills.refresh_catalog)
+        url.returnPressed.connect(self.window.controller.skills.refresh_catalog_silent)
         nodes["skills.catalog.url"] = url
 
         btn_refresh = QPushButton(QIcon(":/icons/reload.svg"), trans("skills.catalog.refresh"))

@@ -129,9 +129,9 @@ def run(**kwargs):
     You can provide custom plugin instances, LLM wrappers, vector store providers, and more to the launcher.
     This is useful for extending PyGPT with your own plugins, vector storage, LLMs, or other data providers.
 
-    --- HOW TO REGISTER CUSTOM EXTENSIONS ---
+    --- HOW TO REGISTER CUSTOM ADD-ONS ---
 
-    1. First, create a custom launcher file, such as "custom_launcher.py," and register your extensions in it.
+    1. First, create a custom launcher file, such as "custom_launcher.py," and register your add-ons in it.
 
     To register a custom plugin, create the custom launcher (e.g., "custom_launcher.py") and:
 
@@ -606,6 +606,15 @@ def run(**kwargs):
         if isinstance(tools, list):
             for tool in tools:
                 launcher.add_tool(tool)
+
+        # register profile-scoped external add-ons
+        # Broken or incompatible add-ons are isolated and reported as warnings.
+        # The external loader itself is also non-fatal: third-party code must not
+        # prevent PyGPT from reaching the normal application startup path.
+        try:
+            launcher.window.core.extensions.load_into_launcher(launcher)
+        except Exception as exc:
+            print(f"[Add-ons] WARNING: External add-on loader failed: {exc}")
 
         # run the app
         launcher.run()

@@ -83,6 +83,12 @@ class Mapping:
         self._apply_tooltips(m['tooltip'], ui.nodes)
         self._apply_map(m['placeholder'], ui.nodes, 'placeholderText', 'setPlaceholderText')
 
+        # External extensions info combines the general description and security
+        # warning into one centered paragraph at the bottom of the dialog.
+        extensions_info = ui.nodes.get("extensions.info")
+        if extensions_info is not None:
+            extensions_info.setText(f'{trans("extensions.help")} {trans("extensions.warning")}')
+
         # Plain-text toggle uses a state-dependent tooltip, so refresh it
         # after every locale mapping pass instead of assigning one static key.
         try:
@@ -361,6 +367,17 @@ class Mapping:
         nodes['skills.catalog.btn.refresh'] = 'skills.catalog.refresh'
         nodes['skills.explore.btn.install'] = 'skills.install'
 
+        # External extensions dialog
+        nodes['extensions.btn.close'] = 'action.close'
+        nodes['extensions.installed.btn.zip'] = 'extensions.import.zip'
+        nodes['extensions.installed.btn.directory'] = 'extensions.import.directory'
+        nodes['extensions.installed.btn.github'] = 'extensions.import.github'
+        nodes['extensions.installed.btn.open'] = 'extensions.open_dir'
+        nodes['extensions.installed.btn.refresh'] = 'action.refresh'
+        nodes['extensions.registry.label'] = 'extensions.registry.url'
+        nodes['extensions.registry.btn.refresh'] = 'action.refresh'
+        nodes['extensions.explore.btn.install'] = 'extensions.install_update'
+
         # MCP Connectors dialog
         nodes['connectors.info'] = 'connectors.info'
         nodes['connectors.btn.close'] = 'action.close'
@@ -407,6 +424,7 @@ class Mapping:
         menu_text['config.mcp.settings'] = 'menu.config.mcp.settings'
         menu_text['config.mcp.connectors'] = 'menu.config.mcp.connectors'
         menu_text['config.mcp.enabled'] = 'menu.config.mcp.enabled'
+        menu_text['config.extensions'] = 'menu.config.extensions'
         menu_text['config.models.edit'] = 'menu.config.models.edit'
         menu_text['config.models.import.provider'] = 'menu.config.models.import.provider'
         menu_text['config.access'] = 'menu.config.access'

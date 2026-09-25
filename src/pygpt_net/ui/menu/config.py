@@ -74,6 +74,10 @@ class Config:
         m['config.mcp'].addSeparator()
         m['config.mcp'].addAction(m['config.mcp.enabled'])
 
+        m['config.extensions'] = QAction(QIcon(":/icons/add.svg"), tr("menu.config.extensions"), w)
+        m['config.extensions'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.extensions'].triggered.connect(lambda: w.controller.extensions.open(False))
+
         m['config.access'] = QAction(icon_access, tr("menu.config.access"), w)
         m['config.access'].setMenuRole(QAction.MenuRole.NoRole)
 
@@ -136,6 +140,7 @@ class Config:
         menu.addMenu(m['config.models'])
         menu.addAction(m['config.agents'])
         menu.addMenu(m['config.mcp'])
+        menu.addAction(m['config.extensions'])
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])
