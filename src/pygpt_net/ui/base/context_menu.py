@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 14:00:00                  #
+# Updated Date: 2026.09.25 10:30:00                  #
 # ================================================== #
 from typing import Union
 
@@ -137,7 +137,8 @@ class ContextMenu:
             self,
             parent,
             selected_text: str = None,
-            excluded: list = None
+            excluded: list = None,
+            selected_text_provider=None,
     ) -> QMenu:
         """
         Get copy to menu
@@ -145,6 +146,7 @@ class ContextMenu:
         :param parent: Parent menu
         :param selected_text: Selected text
         :param excluded: Excluded items
+        :param selected_text_provider: Optional callable resolving text when an action is triggered
         :return: Menu
         """
         excluded = set(excluded) if excluded else set()
@@ -153,14 +155,23 @@ class ContextMenu:
         ctrl = window.controller
         tools = window.tools
 
+        def resolved_text():
+            if callable(selected_text_provider):
+                try:
+                    value = selected_text_provider()
+                except Exception:
+                    value = ""
+                return "" if value is None else str(value)
+            return "" if selected_text is None else str(selected_text)
+
         if 'input' not in excluded:
             action = QAction(self._ICON_INPUT, trans('text.context_menu.copy_to.input'), menu)
-            action.triggered.connect(lambda checked=False: ctrl.chat.common.append_to_input(selected_text))
+            action.triggered.connect(lambda checked=False: ctrl.chat.common.append_to_input(resolved_text()))
             menu.addAction(action)
 
         if 'calendar' not in excluded:
             action = QAction(self._ICON_SCHEDULE, trans('text.context_menu.copy_to.calendar'), menu)
-            action.triggered.connect(lambda checked=False: ctrl.calendar.note.append_text(selected_text))
+            action.triggered.connect(lambda checked=False: ctrl.calendar.note.append_text(resolved_text()))
             menu.addAction(action)
 
         if 'notepad' not in excluded:
@@ -169,7 +180,7 @@ class ContextMenu:
                 for tab in tabs:
                     action = QAction(self._ICON_PASTE, tab.title, menu)
                     action.triggered.connect(
-                        lambda checked=False, tab=tab: ctrl.notepad.append_text(selected_text, tab.data_id)
+                        lambda checked=False, tab=tab: ctrl.notepad.append_text(resolved_text(), tab.data_id)
                     )
                     menu.addAction(action)
 
@@ -181,11 +192,11 @@ class ContextMenu:
                 interpreter = tools.get("interpreter")
                 if add_edit:
                     action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.code'), menu)
-                    action.triggered.connect(lambda checked=False: interpreter.append_to_edit(selected_text))
+                    action.triggered.connect(lambda checked=False: interpreter.append_to_edit(resolved_text()))
                     menu.addAction(action)
                 if add_input:
                     action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.input'), menu)
-                    action.triggered.connect(lambda checked=False: interpreter.append_to_input(selected_text))
+                    action.triggered.connect(lambda checked=False: interpreter.append_to_input(resolved_text()))
                     menu.addAction(action)
 
         if 'translator' not in excluded:
@@ -196,11 +207,11 @@ class ContextMenu:
                 translator = tools.get("translator")
                 if add_left:
                     action = QAction(self._ICON_TRANSLATOR, trans('text.context_menu.copy_to.translator_left'), menu)
-                    action.triggered.connect(lambda checked=False: translator.append_content("left", selected_text))
+                    action.triggered.connect(lambda checked=False: translator.append_content("left", resolved_text()))
                     menu.addAction(action)
                 if add_right:
                     action = QAction(self._ICON_TRANSLATOR, trans('text.context_menu.copy_to.translator_right'), menu)
-                    action.triggered.connect(lambda checked=False: translator.append_content("right", selected_text))
+                    action.triggered.connect(lambda checked=False: translator.append_content("right", resolved_text()))
                     menu.addAction(action)
 
         return menu

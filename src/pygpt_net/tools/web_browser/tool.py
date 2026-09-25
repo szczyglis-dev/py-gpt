@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 12:31:00
+# Updated Date: 2026.09.25 11:00:00
 # ================================================== #
 
 import json
@@ -22,7 +22,7 @@ from urllib.parse import urljoin
 
 from PySide6.QtCore import QEventLoop, QTimer, QUrl, Slot, Qt
 from PySide6.QtGui import QAction, QIcon, QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
@@ -93,6 +93,8 @@ class _PreviewHandler(SimpleHTTPRequestHandler):
 
 class WebBrowser(BaseTool):
     """Single persistent browser runtime exposed through one Canvas tab."""
+
+    HISTORY_LIMIT = 30
 
     BLANK_CANVAS_HTML_LIGHT = """<!doctype html>
 <html>
@@ -247,6 +249,13 @@ body {
         self.server_url = None
         self.runtime_html = ""
         self.blank_canvas_active = False
+
+        # Canvas-level navigation history. QWebEngine does not create a useful
+        # history item for setHtml(), so keep URL and HTML entries together here.
+        # This also gives the Playwright backend the same Back/Forward semantics.
+        self.canvas_history = []
+        self.canvas_history_index = -1
+        self._history_loading = False
 
     def setup(self):
         self.update()
@@ -592,6 +601,134 @@ body {
         if self.surface is not None and self.blank_canvas_active:
             self._render_blank_canvas()
 
+    def _history_push(self, entry: dict):
+        """Append one Canvas history entry and keep only the newest HISTORY_LIMIT items."""
+        if not isinstance(entry, dict):
+            return
+        if self.canvas_history_index + 1 < len(self.canvas_history):
+            self.canvas_history = self.canvas_history[:self.canvas_history_index + 1]
+        self.canvas_history.append(dict(entry))
+        overflow = len(self.canvas_history) - self.HISTORY_LIMIT
+        if overflow > 0:
+            self.canvas_history = self.canvas_history[overflow:]
+        self.canvas_history_index = len(self.canvas_history) - 1
+
+    def _history_update_current_url(self, url: str):
+        """Update a pending URL entry after redirects resolve to their final address."""
+        if not url or not (0 <= self.canvas_history_index < len(self.canvas_history)):
+            return
+        entry = self.canvas_history[self.canvas_history_index]
+        if entry.get("kind") == "url":
+            entry["url"] = str(url)
+
+    def _history_record_navigation(self, url: str):
+        """Record user/page navigation that was not initiated by a Canvas history restore."""
+        url = str(url or "").strip()
+        if not url or url == "about:blank" or self.blank_canvas_active:
+            return
+        if 0 <= self.canvas_history_index < len(self.canvas_history):
+            current = self.canvas_history[self.canvas_history_index]
+            if current.get("kind") == "url" and current.get("url") == url:
+                return
+        self._history_push({"kind": "url", "url": url})
+
+    def _history_restore(self, index: int):
+        """Restore an existing URL/HTML entry without creating another history item."""
+        if not (0 <= index < len(self.canvas_history)):
+            return self.current_state()
+        self.canvas_history_index = index
+        entry = self.canvas_history[index]
+        if entry.get("kind") == "html":
+            return self._cmd_set_html({
+                "html": entry.get("html", ""),
+                "base_url": entry.get("base_url", ""),
+                "__workdir": entry.get("workdir") or os.getcwd(),
+                "__ui": True,
+                "__history_restore": True,
+            })
+        return self._cmd_open({
+            "url": entry.get("url", "about:blank"),
+            "__ui": True,
+            "__history_restore": True,
+        })
+
+    def get_selected_text(self) -> str:
+        """Return selected text from the active Canvas backend."""
+        try:
+            if self.backend == "playwright":
+                self._ensure_playwright()
+                return str(self.pw_page.evaluate(r"""() => {
+                    const el = document.activeElement;
+                    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')
+                            && typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
+                        return String(el.value || '').slice(el.selectionStart, el.selectionEnd);
+                    }
+                    return window.getSelection ? String(window.getSelection()) : '';
+                }""") or "")
+            if self.surface is not None and self.surface.web.page().hasSelection():
+                return str(self.surface.web.page().selectedText() or "")
+        except Exception as exc:
+            try:
+                self.window.core.debug.log(exc)
+            except Exception:
+                pass
+        return ""
+
+    def open_html_file(self):
+        """Load an HTML file from disk into the current Canvas runtime."""
+        last_dir = self.window.core.config.get_last_used_dir()
+        path, _ = QFileDialog.getOpenFileName(
+            self.window,
+            trans("ui.open_html", domain="plugin.canvas_web"),
+            last_dir,
+            "HTML files (*.html *.htm);;All files (*)",
+        )
+        if not path:
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                html = handle.read()
+            base_url = QUrl.fromLocalFile(os.path.dirname(os.path.abspath(path)) + os.sep).toString()
+            self.window.core.config.set_last_used_dir(os.path.dirname(path))
+            source_visible = bool(self.surface is not None and getattr(self.surface, "_source_visible", False))
+            self.runtime_call("canvas_set_html", {
+                "html": html,
+                "base_url": base_url,
+                "__workdir": os.path.dirname(os.path.abspath(path)),
+                "__ui": True,
+            })
+            if source_visible and self.surface is not None:
+                self.surface.show_source(html, base_url=base_url)
+            self.window.update_status(f"{trans('action.open')}: {os.path.basename(path)}")
+        except Exception as exc:
+            self._append_console("file", "error", str(exc))
+
+    def save_html_file(self):
+        """Save the currently rendered/edited Canvas HTML document to disk."""
+        last_dir = self.window.core.config.get_last_used_dir()
+        path, _ = QFileDialog.getSaveFileName(
+            self.window,
+            trans("ui.save_html", domain="plugin.canvas_web"),
+            last_dir,
+            "HTML files (*.html *.htm);;All files (*)",
+            "HTML files (*.html *.htm)",
+        )
+        if not path:
+            return
+        if not os.path.splitext(path)[1]:
+            path += ".html"
+        try:
+            if self.surface is not None and getattr(self.surface, "_source_visible", False):
+                html = self.surface.source.toPlainText()
+            else:
+                html = str(self._eval(self.JS_SERIALIZE_HTML) or self.runtime_html or "")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write(html)
+            self.window.core.config.set_last_used_dir(os.path.dirname(path))
+            self.window.update_status(f"{trans('status.saved')}: {os.path.basename(path)}")
+        except Exception as exc:
+            self._append_console("file", "error", str(exc))
+
     def show_source(self):
         """Switch the persistent viewport to editable serialized page source.
 
@@ -720,6 +857,9 @@ body {
         url = self._resolve_url(str(p.get("url") or ""), p.get("__workdir"))
         if not url:
             url = self.virtual_url or "about:blank"
+        if not p.get("__history_restore"):
+            self._history_push({"kind": "url", "url": url})
+        self._history_loading = True
         if self.backend == "playwright":
             self._ensure_playwright()
             self.pw_page.goto(url, wait_until="domcontentloaded")
@@ -736,6 +876,8 @@ body {
                 self.blank_canvas_active = False
                 self.surface.web.setUrl(QUrl.fromUserInput(url))
                 self.virtual_url = url
+        if self.backend == "playwright":
+            self._history_loading = False
         return self.current_state()
 
     def _cmd_resolution(self, p):
@@ -758,6 +900,14 @@ body {
         base_url = self._normalize_base_url(p.get("base_url"), workdir)
         runtime_base = base_url
         self.base_url = base_url
+        if not p.get("__history_restore"):
+            self._history_push({
+                "kind": "html",
+                "html": html,
+                "base_url": base_url,
+                "workdir": workdir,
+            })
+        self._history_loading = True
         if self.backend == "playwright":
             self._ensure_playwright()
             self.blank_canvas_active = False
@@ -783,6 +933,8 @@ body {
             self.runtime_html = html
             self.surface.web.setHtml(html, QUrl(runtime_base) if runtime_base else QUrl.fromLocalFile(str(Path(workdir).resolve()) + os.sep))
             self.virtual_url = runtime_base or "about:blank"
+        if self.backend == "playwright":
+            self._history_loading = False
         return {"url": self.current_url(), "base_url": self.base_url, "backend": self.backend, "ok": True}
 
     def _cmd_get_html(self, p):
@@ -790,6 +942,10 @@ body {
         return {"url": self.current_url(), "html": html or ""}
 
     def _cmd_prev(self, p):
+        if self.canvas_history:
+            if self.canvas_history_index > 0:
+                return self._history_restore(self.canvas_history_index - 1)
+            return self.current_state()
         if self.backend == "playwright":
             self._ensure_playwright()
             if self.pw_history_index > 0:
@@ -800,10 +956,17 @@ body {
                     self.pw_history_mode = None
                 self._refresh_playwright_frame()
         else:
-            self.surface.web.back()
+            hist = self.surface.web.history()
+            if hist.canGoBack():
+                self._history_loading = True
+                self.surface.web.back()
         return self.current_state()
 
     def _cmd_next(self, p):
+        if self.canvas_history:
+            if self.canvas_history_index + 1 < len(self.canvas_history):
+                return self._history_restore(self.canvas_history_index + 1)
+            return self.current_state()
         if self.backend == "playwright":
             self._ensure_playwright()
             if self.pw_history_index + 1 < len(self.pw_history):
@@ -814,10 +977,17 @@ body {
                     self.pw_history_mode = None
                 self._refresh_playwright_frame()
         else:
-            self.surface.web.forward()
+            hist = self.surface.web.history()
+            if hist.canGoForward():
+                self._history_loading = True
+                self.surface.web.forward()
         return self.current_state()
 
     def _cmd_reload(self, p):
+        if 0 <= self.canvas_history_index < len(self.canvas_history):
+            entry = self.canvas_history[self.canvas_history_index]
+            if entry.get("kind") == "html":
+                return self._history_restore(self.canvas_history_index)
         if self.backend == "playwright":
             self._ensure_playwright()
             self.pw_history_mode = "reload"
@@ -825,6 +995,7 @@ body {
             self.pw_history_mode = None
             self._refresh_playwright_frame()
         else:
+            self._history_loading = True
             self.surface.web.reload()
         return self.current_state()
 
@@ -1280,6 +1451,10 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             return
         if not url:
             return
+        if self._history_loading:
+            self._history_update_current_url(url)
+        else:
+            self._history_record_navigation(url)
         mode = self.pw_history_mode
         if mode == "back":
             if self.pw_history_index > 0:
@@ -1301,6 +1476,9 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             if current != url:
                 self.pw_history = self.pw_history[:self.pw_history_index + 1]
                 self.pw_history.append(url)
+                if len(self.pw_history) > self.HISTORY_LIMIT:
+                    overflow = len(self.pw_history) - self.HISTORY_LIMIT
+                    self.pw_history = self.pw_history[overflow:]
                 self.pw_history_index = len(self.pw_history) - 1
         if url != "about:blank":
             self.virtual_url = url
@@ -1434,6 +1612,11 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
 
     def on_qt_load_finished(self, success: bool):
         self.virtual_url = self.surface.web.url().toString() or self.virtual_url
+        if self._history_loading:
+            self._history_update_current_url(self.virtual_url)
+            self._history_loading = False
+        elif not self.blank_canvas_active:
+            self._history_record_navigation(self.virtual_url)
         self._update_qt_virtual_cursor()
         self._render_annotations()
         self._notify_state()
@@ -1500,8 +1683,9 @@ c.style.left='{x-7}px'; c.style.top='{y-7}px'; return true; }})()"""
             "resolution": f"{self.width}x{self.height}", "orientation": self.orientation,
             "cursor": {"x": self.cursor_x, "y": self.cursor_y},
             "base_url": self.base_url,
-            "can_go_back": can_back, "can_go_forward": can_forward,
-            "history_length": len(self.pw_history) if self.backend == "playwright" else None,
+            "can_go_back": (self.canvas_history_index > 0) if self.canvas_history else can_back,
+            "can_go_forward": (self.canvas_history_index + 1 < len(self.canvas_history)) if self.canvas_history else can_forward,
+            "history_length": len(self.canvas_history),
             "ui_surface": ui_surface, "session_alive": True,
             "server": self.server_state(), "annotations": len(self.annotations),
         }

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.25 11:10:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
@@ -19,6 +19,25 @@ from PySide6.QtWebEngineCore import QWebEnginePage
 
 from pygpt_net.ui.widget.textarea.html import HtmlOutput
 from pygpt_net.utils import trans
+
+
+def add_html_file_actions(menu, tool, parent):
+    """Add delayed Open/Save HTML actions safe to invoke from WebEngine RMB menus."""
+    open_html = QAction(
+        QIcon(":/icons/folder_open.svg"),
+        trans("ui.open_html", domain="plugin.canvas_web"),
+        parent,
+    )
+    open_html.triggered.connect(lambda: QTimer.singleShot(0, tool.open_html_file))
+    menu.addAction(open_html)
+
+    save_html = QAction(
+        QIcon(":/icons/save.svg"),
+        trans("ui.save_html", domain="plugin.canvas_web"),
+        parent,
+    )
+    save_html.triggered.connect(lambda: QTimer.singleShot(0, tool.save_html_file))
+    menu.addAction(save_html)
 
 
 class ToolWidget:
@@ -451,6 +470,8 @@ class BrowserOutput(HtmlOutput):
             copy_action = QAction(QIcon(":/icons/copy.svg"), trans("ui.copy", domain="plugin.canvas_web"), self)
             copy_action.triggered.connect(self.copy_selected_text)
             menu.addAction(copy_action)
+            copy_to_menu = self.window.ui.context_menu.get_copy_to_menu(menu, selected)
+            menu.addMenu(copy_to_menu)
             annotate = QAction(trans("ui.annotate_selection", domain="plugin.canvas_web"), self)
             annotate.triggered.connect(lambda: self.tool.annotate_selection(selected, position, backend="qt"))
             menu.addAction(annotate)
@@ -461,6 +482,8 @@ class BrowserOutput(HtmlOutput):
             select_all = QAction(trans("ui.select_all", domain="plugin.canvas_web"), self)
             select_all.triggered.connect(self.select_all_text)
             menu.addAction(select_all)
+        menu.addSeparator()
+        add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
         show_source = QAction(trans("ui.show_source", domain="plugin.canvas_web"), self)
         show_source.triggered.connect(self.tool.show_source)
@@ -582,6 +605,13 @@ class SandboxView(QWidget):
         annotate = QAction(trans("ui.annotate_element", domain="plugin.canvas_web"), self)
         annotate.triggered.connect(lambda: self.tool.annotate_at(p.x(), p.y(), backend="playwright"))
         menu.addAction(annotate)
+        copy_to_menu = self.tool.window.ui.context_menu.get_copy_to_menu(
+            menu,
+            selected_text_provider=self.tool.get_selected_text,
+        )
+        menu.addMenu(copy_to_menu)
+        menu.addSeparator()
+        add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
         show_source = QAction(trans("ui.show_source", domain="plugin.canvas_web"), self)
         show_source.triggered.connect(self.tool.show_source)
@@ -600,8 +630,13 @@ class SourceEditor(QPlainTextEdit):
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()
+        selected = self.textCursor().selection().toPlainText()
+        if selected:
+            menu.addMenu(self.tool.window.ui.context_menu.get_copy_to_menu(menu, selected))
         if menu.actions():
             menu.addSeparator()
+        add_html_file_actions(menu, self.tool, self)
+        menu.addSeparator()
         back = QAction(trans("ui.back_to_canvas", domain="plugin.canvas_web"), self)
         back.triggered.connect(self.tool.show_canvas)
         menu.addAction(back)
