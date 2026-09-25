@@ -14,6 +14,8 @@ import re
 import shlex
 from typing import Iterable, List, Optional
 
+from pygpt_net.core.types import MODE_COMPLETION
+
 
 class SecurityError(PermissionError):
     """Raised when a plugin operation is blocked by Security settings."""
@@ -79,9 +81,16 @@ class Security:
         """Return the configured prompt-injection security annotation."""
         return str(self.window.core.config.get(self.PROMPT_INJECTION_PROMPT_KEY, "") or "").strip()
 
-    def append_prompt_injection_guard(self, prompt: str, ensure_last: bool = False) -> str:
-        """Append the configured prompt-injection guard once, optionally moving it to the end."""
+    def append_prompt_injection_guard(
+            self,
+            prompt: str,
+            ensure_last: bool = False,
+            mode: Optional[str] = None,
+    ) -> str:
+        """Append the configured prompt-injection guard once when allowed for the mode."""
         base = "" if prompt is None else str(prompt)
+        if mode == MODE_COMPLETION:
+            return base
         if not self.is_prompt_injection_protection_enabled():
             return base
         annotation = self.get_prompt_injection_annotation()

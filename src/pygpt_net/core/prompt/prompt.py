@@ -78,7 +78,7 @@ class Prompt:
 
             # abort if native func call enabled
             if self.window.core.command.is_native_enabled():
-                return self.window.core.security.append_prompt_injection_guard(prompt, ensure_last=True)
+                return self.window.core.security.append_prompt_injection_guard(prompt, ensure_last=True, mode=mode)
 
             # abort if model not supported
             # if not self.window.core.command.is_model_supports_tools(mode, model):
@@ -116,7 +116,7 @@ class Prompt:
                         model=model,
                     )
 
-        return self.window.core.security.append_prompt_injection_guard(prompt, ensure_last=True)
+        return self.window.core.security.append_prompt_injection_guard(prompt, ensure_last=True, mode=mode)
 
     def prepare_sys_prompt(
             self,
@@ -185,7 +185,7 @@ class Prompt:
         # Agents v2 runtime. Their tool schemas are owned by that runtime, so never
         # append the legacy PyGPT <tool> command syntax to an Expert system prompt.
         if is_expert:
-            return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True)
+            return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True, mode=mode)
 
         force_native_tools = False
         force_syntax_tools = False
@@ -193,7 +193,7 @@ class Prompt:
         # event: tools syntax apply (if tools enabled or inline plugin then append tools prompt)
         if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
             if self.window.core.command.is_native_enabled(force=force_native_tools) and not force_syntax_tools:
-                return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True)  # abort syntax if native func calls enabled
+                return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True, mode=mode)  # abort syntax if native func calls enabled
 
             data = {
                 'mode': mode,
@@ -225,4 +225,4 @@ class Prompt:
                         model=model,
                     )
 
-        return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True)
+        return self.window.core.security.append_prompt_injection_guard(sys_prompt, ensure_last=True, mode=mode)

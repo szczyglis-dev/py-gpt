@@ -75,7 +75,7 @@ class BridgeWorker(QRunnable):
             # Apply the global prompt-injection annotation after all late system
             # prompt hooks so external-context warnings remain the final policy.
             self.context.system_prompt = core.security.append_prompt_injection_guard(
-                self.context.system_prompt, ensure_last=True
+                self.context.system_prompt, ensure_last=True, mode=self.mode
             )
 
             # Langchain
@@ -140,16 +140,22 @@ class BridgeWorker(QRunnable):
 
             # Completion normally uses the LlamaIndex completion provider so all
             # configured backends share one path. Keep one narrow exception for
-            # OpenAI's legacy instruct model: without RAG it must use the native
-            # OpenAI SDK Completions endpoint. If RAG is selected, keep using the
-            # LlamaIndex completion runtime so retrieval is preserved.
+            # OpenAI's legacy instruct model: without active chat-style RAG it
+            # must use the native OpenAI SDK Completions endpoint. A selected RAG
+            # index is intentionally ignored when Completion "As chat" is off.
             elif self.mode == MODE_COMPLETION \
                     and self.context.model is not None:
                 model = self.context.model
+                completion_as_chat = bool(
+                    core.config.get("completion.as_chat", True)
+                )
                 native_openai_completion = (
                     model.provider == "openai"
                     and model.id == "gpt-3.5-turbo-instruct"
-                    and not core.idx.is_valid(self.context.idx)
+                    and (
+                        not completion_as_chat
+                        or not core.idx.is_valid(self.context.idx)
+                    )
                 )
                 if native_openai_completion:
                     core.debug.info(
