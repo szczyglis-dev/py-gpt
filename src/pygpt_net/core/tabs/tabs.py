@@ -711,7 +711,10 @@ class Tabs:
     def get_files_tooltip(self) -> str:
         """Return the active project-aware Files root for the tab tooltip."""
         try:
-            return str(self.window.core.filesystem.get_data_dir(create=False) or "")
+            path = str(self.window.core.filesystem.get_data_dir(create=False) or "")
+            if not path:
+                return ""
+            return f"{trans('output.tab.files.workdir')}: {path}"
         except Exception:
             return ""
 
