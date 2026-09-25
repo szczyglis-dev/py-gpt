@@ -160,6 +160,7 @@
   "context.advanced.notes_max_chars": 24000,
   "context.advanced.target": 45,
   "context.advanced.threshold": 75,
+  "context.max_history_items": 0,
   "context.tool_calls.restore": false,
   "context.tool_calls.restore_runtime": true,
   "context.tool_calls.store": "truncated",

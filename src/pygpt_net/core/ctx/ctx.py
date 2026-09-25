@@ -2321,6 +2321,26 @@ class Ctx:
 
         return i, context_tokens
 
+    def get_history_items_limit(self) -> int:
+        """Return the configured model-facing history item limit (0 = unlimited)."""
+        try:
+            return max(0, int(self.window.core.config.get("context.max_history_items") or 0))
+        except (TypeError, ValueError):
+            return 0
+
+    def limit_history_items(self, history_items: List[CtxItem]) -> List[CtxItem]:
+        """Limit model-facing conversation history to the newest configured items.
+
+        A value of 0 keeps the full available history. The limit is applied to
+        durable conversation items before protocol/tool expansion, so one chat
+        turn counts as one history item regardless of its internal partials.
+        """
+        items = list(history_items or [])
+        limit = self.get_history_items_limit()
+        if limit <= 0 or len(items) <= limit:
+            return items
+        return items[-limit:]
+
     def get_history(
             self,
             history_items: List[CtxItem],
@@ -2354,6 +2374,7 @@ class Ctx:
         )
         source_items = history_items[:-1] if ignore_first and history_items else history_items
         source_items = self.window.core.context_manager.filter_history(source_items)
+        source_items = self.limit_history_items(source_items)
         expanded_items = self.expand_history(
             source_items,
             target_mode=mode,

@@ -1489,13 +1489,16 @@ class Patch:
             if old < parse_version("2.8.32"):
                 print("Migrating config from < 2.8.32...")
 
-                # Completion keeps its current chat-style prompt assembly by
-                # default. Users can opt into one-shot completion from the new
-                # footer toggle without changing existing profile behavior.
-                key = "completion.as_chat"
-                if key not in data:
-                    data[key] = cfg_get_base(key)
-                    updated = True
+                # Add defaults introduced in 2.8.32 without changing existing
+                # profile behavior. Completion stays chat-style by default and
+                # context history remains unlimited unless the user sets a limit.
+                for key in (
+                        "completion.as_chat",
+                        "context.max_history_items",
+                ):
+                    if key not in data:
+                        data[key] = cfg_get_base(key)
+                        updated = True
 
         # update file
         migrated = False

@@ -1287,20 +1287,6 @@
         "step": 1,
         "advanced": false
     },
-    "use_context": {
-        "section": "ctx",
-        "tab": "options",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.use_context",
-        "description": "settings.use_context.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "lock_modes": {
         "section": "ctx",
         "tab": "options",
@@ -1482,6 +1468,20 @@
         "step": 1,
         "advanced": false
     },
+    "use_context": {
+        "section": "context",
+        "tab": "general",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.use_context",
+        "description": "settings.use_context.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "max_total_tokens": {
         "section": "context",
         "type": "int",
@@ -1509,6 +1509,20 @@
         "step": 1,
         "advanced": false,
         "tab": "general"
+    },
+    "context.max_history_items": {
+        "section": "context",
+        "tab": "general",
+        "type": "int",
+        "slider": false,
+        "label": "settings.context.max_history_items",
+        "description": "settings.context.max_history_items.desc",
+        "value": 0,
+        "min": 0,
+        "max": null,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
     },
     "context.tool_calls.store": {
         "section": "context",
