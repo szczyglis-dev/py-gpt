@@ -383,7 +383,7 @@ class Bridge:
             return ""
 
         context.system_prompt = self.window.core.security.append_prompt_injection_guard(
-            context.system_prompt, ensure_last=True
+            context.system_prompt, ensure_last=True, mode=context.mode
         )
 
         self.window.core.debug.info("[bridge] Call...")

@@ -759,3 +759,18 @@ QMenu#chatInputModelMenu::item:checked:selected {
   color: #f1f3f4;
 }
 
+/* Gray Dark: slightly darker interactive collection surfaces. */
+QListView,
+QTreeView,
+QMenu,
+QComboBox,
+QComboBox QAbstractItemView,
+QListView#ComboPopupList,
+QListView#ComboPopupList > QWidget#ComboPopupViewport,
+.ctx-list,
+.toolbox QListView,
+.toolbox QTreeView,
+.mention-popup-list,
+.file-explorer QTreeView {{
+  background-color: #212426;
+}}

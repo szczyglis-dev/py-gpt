@@ -750,12 +750,10 @@ body.display-timestamp .ts {{
   margin-bottom: 0px !important;
   border-radius: 10px;
   width: auto;
-  transition: filter 0.22s ease;
 }}
 .extra-src-img-box .img-wrapper:hover {{
   cursor: pointer;
   border: none;
-  filter: brightness(105%);
 }}
 .extra-src-img-box img {{
   margin-bottom: 2px;
