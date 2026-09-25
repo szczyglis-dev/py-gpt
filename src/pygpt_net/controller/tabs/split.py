@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.25 11:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -76,6 +76,37 @@ class TabSplit:
         """Restore column 2 after Qt has applied the new splitter geometry."""
         QTimer.singleShot(0, lambda: self._restore_revealed_split_chat(1))
 
+    def _equalize_split_screen_columns(self):
+        """Set both visible output columns to the same final width.
+
+        ``setSizes([1, 1])`` is enough to reveal the collapsed second column,
+        but the shared Chat input can be reparented immediately afterwards and
+        change one column's size hint.  Apply the 50/50 geometry once that
+        layout update has reached the event loop.
+        """
+        if not self.is_split_screen_enabled():
+            return
+
+        splitter = self.window.ui.splitters.get('columns')
+        if splitter is None or splitter.count() < 2:
+            return
+
+        try:
+            sizes = splitter.sizes()
+            total = sum(int(size) for size in sizes[:2])
+            if total <= 0:
+                total = max(2, int(splitter.width()) - int(splitter.handleWidth()))
+
+            left = total // 2
+            right = total - left
+            splitter.setSizes([left, right])
+        except (RuntimeError, TypeError, ValueError):
+            return
+
+    def _schedule_equal_split_screen_columns(self):
+        """Equalize columns after Qt has processed split-screen layout changes."""
+        QTimer.singleShot(0, self._equalize_split_screen_columns)
+
     def is_split_screen_enabled(self) -> bool:
         """
         Check if split screen mode is enabled
@@ -117,6 +148,7 @@ class TabSplit:
         self.window.core.config.save()
         self._schedule_revealed_split_chat_restore()
         self.update_current()
+        self._schedule_equal_split_screen_columns()
         self._sync_chat_input_width()
 
         if update_switch:
