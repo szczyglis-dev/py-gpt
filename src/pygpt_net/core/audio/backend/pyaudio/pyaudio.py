@@ -675,6 +675,19 @@ class PyaudioBackend:
         except Exception:
             pass
 
+    def _emit_output_playback_start(self) -> None:
+        """Emit event when realtime audio is actually handed to the device."""
+        if not self._rt_signals:
+            return
+        try:
+            safe_emit(
+                self._rt_signals,
+                "response",
+                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START),
+            )
+        except Exception:
+            pass
+
     def _select_output_device(self) -> int:
         """
         Select PyAudio output device index based on configuration or default.
@@ -795,7 +808,8 @@ class PyaudioBackend:
             channels=out_ch,
             width_bytes=out_w,
             parent=None,
-            volume_emitter=self._emit_output_volume
+            volume_emitter=self._emit_output_volume,
+            playback_start_emitter=self._emit_output_playback_start
         )
         session.on_stopped = lambda: (
             self._rt_signals and safe_emit(self._rt_signals, "response", 

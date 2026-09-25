@@ -186,16 +186,27 @@ class Kernel:
         w.controller.chat.input.generating = True
         w.controller.chat.common.sync_send_stop_buttons()
 
+        # Realtime has its own explicit response-activity boundary: first visible
+        # text token or actual audio playback. Do not delay its loader, otherwise
+        # a fast first token can cancel the pending show before the spinner ever
+        # becomes visible. The input gate still guarantees correct placement
+        # below the newly materialized user row.
+        loading_delay_ms = 100
+        try:
+            if w.controller.realtime.is_enabled():
+                loading_delay_ms = 0
+        except Exception:
+            pass
+
         self.set_state(KernelEvent(KernelEvent.STATE_BUSY, {
             "id": data.get("id", "chat"),
             "msg": data.get("msg", trans("status.sending")),
             "meta": meta,
             # The chat output loader belongs visually *after* the user row.
             # Arm it now, but do not let it enter layout before APPEND_INPUT has
-            # materialized the row.  A short delay also avoids flashing the
-            # loader for very fast requests while the Send/Stop state still
-            # changes immediately.
-            "loading_delay_ms": 100,
+            # materialized the row. Non-realtime requests retain the short delay
+            # that avoids flashing the loader for very fast responses.
+            "loading_delay_ms": loading_delay_ms,
             "loading_wait_for_input": True,
         }))
 

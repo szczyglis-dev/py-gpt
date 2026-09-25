@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.25 12:55:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -41,6 +41,8 @@ class Realtime:
         self.allowed_modes = [MODE_AUDIO]
         self.manual_commit_sent = False
         self._continuation_text_started = set()
+        self._realtime_follow_checked = set()
+        self._playback_ctx = None
 
     def setup(self):
         """Setup realtime core, signals, etc. in main thread"""
@@ -76,14 +78,24 @@ class Realtime:
 
         # audio output chunk: send to audio output handler
         if event.name == RealtimeEvent.RT_OUTPUT_AUDIO_DELTA:
-            self.set_idle()
             payload = event.data.get("payload", None)
             if payload and not is_muted:  # do not play if muted
+                ctx = payload.get("ctx", None)
+                if ctx is not None:
+                    self._playback_ctx = ctx
                 self.window.core.audio.output.handle_realtime(payload, self.signals)
+
+        # audio playback really started: hide only the WebView request loader.
+        # Keep the kernel BUSY until the realtime turn actually finishes.
+        elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START:
+            ctx = self._playback_ctx
+            if ctx is not None:
+                self.window.dispatch(RenderEvent(RenderEvent.STATE_IDLE, {
+                    "meta": ctx.meta,
+                }))
 
         # audio input chunk: send to the active realtime client
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_DELTA:
-            self.set_idle()
             if self.current_active == "google":
                 self.window.core.api.google.realtime.handle_audio_input(event)
             elif self.current_active == "openai":
@@ -94,6 +106,7 @@ class Realtime:
         # begin: first text chunk or audio chunk received, start rendering
         elif event.name == RealtimeEvent.RT_OUTPUT_READY:
             ctx = event.data.get('ctx', None)
+            self._playback_ctx = None
             if ctx:
                 self.window.dispatch(RenderEvent(RenderEvent.STREAM_BEGIN, {
                     "meta": ctx.meta,
@@ -123,10 +136,30 @@ class Realtime:
 
         # text delta: append text chunk to the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TEXT_DELTA:
-            self.set_idle()
             ctx = event.data.get('ctx', None)
             chunk = event.data.get('chunk', "")
             if chunk and ctx:
+                # Realtime starts its provider stream almost immediately after the
+                # input row is queued in the WebView. The loader can still change
+                # document height in that window and Chromium may transiently leave
+                # ScrollManager in MANUAL although the user was at the bottom. Before
+                # the first visible text delta only, recover FOLLOW if the viewport is
+                # still physically near the bottom. Never force a user who scrolled up.
+                follow_key = id(ctx)
+                if follow_key not in self._realtime_follow_checked:
+                    self._realtime_follow_checked.add(follow_key)
+                    try:
+                        renderer = self.window.controller.chat.render.instance()
+                        restore_follow = getattr(
+                            renderer,
+                            "resume_auto_follow_if_near_bottom",
+                            None,
+                        )
+                        if callable(restore_follow):
+                            restore_follow(ctx.meta)
+                    except Exception:
+                        pass
+
                 # A tool-result response is an ephemeral continuation of the same
                 # durable user turn. Reuse the normal chat stream continuation
                 # renderer so the completed tool row stays in chronological order
@@ -258,6 +291,7 @@ class Realtime:
 
         source_ctx = ctx
         self._continuation_text_started.discard(id(source_ctx))
+        self._realtime_follow_checked.discard(id(source_ctx))
         is_continuation = getattr(source_ctx, "turn_parent", None) is not None
         closes_tool_series = bool(
             is_continuation
@@ -332,6 +366,8 @@ class Realtime:
     def reset(self):
         """Reset realtime session"""
         self._continuation_text_started.clear()
+        self._realtime_follow_checked.clear()
+        self._playback_ctx = None
         try:
             self.window.core.api.openai.realtime.reset()
         except Exception as e:

@@ -18,6 +18,7 @@ class RealtimeSessionPyAudio(QObject):
             width_bytes: int = 2,
             parent: Optional[QObject] = None,
             volume_emitter: Optional[callable] = None,
+            playback_start_emitter: Optional[callable] = None,
     ):
         super().__init__(parent)
         import pyaudio  # local import to keep backend import-safe
@@ -46,6 +47,9 @@ class RealtimeSessionPyAudio(QObject):
 
         # volume metering
         self._volume_emitter = volume_emitter
+        self._playback_start_emitter = playback_start_emitter
+        self._playback_started = False
+        self._playback_pending = False
         self._vol_buffer = bytearray()
         self._vol_lock = threading.Lock()
         self._vol_timer = QTimer(self)
@@ -108,6 +112,7 @@ class RealtimeSessionPyAudio(QObject):
             return
         with self._buf_lock:
             self._buffer.extend(data)
+        self._playback_pending = True
         # push to volume window from the same bytes
         self._vol_push(data)
 
@@ -199,6 +204,19 @@ class RealtimeSessionPyAudio(QObject):
             elif len(self._buffer) > 0:
                 out = bytes(self._buffer)
                 self._buffer.clear()
+
+        # Signal response activity only when real queued audio is being handed
+        # to PortAudio. Session creation / received chunks may precede audible
+        # playback, so they must not dismiss the request spinner.
+        has_audio = bool(out)
+        if has_audio and self._playback_pending and not self._playback_started:
+            self._playback_started = True
+            self._playback_pending = False
+            try:
+                if self._playback_start_emitter:
+                    self._playback_start_emitter()
+            except Exception:
+                pass
 
         if len(out) < need:
             out += self._silence(need - len(out))

@@ -22,7 +22,8 @@ class RealtimeSession(QObject):
             device,
             fmt: QAudioFormat,
             parent=None,
-            volume_emitter: callable = None
+            volume_emitter: callable = None,
+            playback_start_emitter: callable = None
     ):
         """
         Initialize the session.
@@ -70,6 +71,9 @@ class RealtimeSession(QObject):
 
         # simple volume metering (optional)
         self.volume_emitter = volume_emitter
+        self.playback_start_emitter = playback_start_emitter
+        self.playback_started = False
+        self.playback_pending = False
         self.vol_window_bytes = max(1, self.bytes_per_ms * 100)  # ~100 ms
         self.vol_buffer = bytearray()
         self.vol_timer = QTimer(self)
@@ -90,6 +94,7 @@ class RealtimeSession(QObject):
         if not data or self.io is None:
             return
         self.buffer.extend(data)
+        self.playback_pending = True
         # NOTE: try pump quickly (non-blocking)
         self._pump()
 
@@ -162,6 +167,14 @@ class RealtimeSession(QObject):
             written = self.io.write(chunk)
             if written and written > 0:
                 del self.buffer[:written]
+                if self.playback_pending and not self.playback_started:
+                    self.playback_started = True
+                    self.playback_pending = False
+                    try:
+                        if self.playback_start_emitter:
+                            self.playback_start_emitter()
+                    except Exception:
+                        pass
                 # simple volume window
                 self._vol_push(chunk[:self._align_down(written)])
 

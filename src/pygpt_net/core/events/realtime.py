@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.09.25 12:20:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -24,6 +24,7 @@ class RealtimeEvent(BaseEvent):
     - RT_OUTPUT_AUDIO_DELTA - audio output chunk (with payload)
     - RT_OUTPUT_READY - audio output is ready (STREAM_BEGIN)
     - RT_OUTPUT_TEXT_DELTA - text chunk (delta)
+    - RT_OUTPUT_AUDIO_PLAYBACK_START - audio playback actually started
     - RT_OUTPUT_AUDIO_END - audio output ended (STREAM_END)
     - RT_OUTPUT_TURN_END - audio output turn ended (TURN_END)
     - RT_OUTPUT_AUDIO_ERROR - audio output error (STREAM_ERROR)
@@ -34,6 +35,7 @@ class RealtimeEvent(BaseEvent):
 
     # realtime events
     RT_OUTPUT_AUDIO_DELTA = "rt.output.audio.delta"
+    RT_OUTPUT_AUDIO_PLAYBACK_START = "rt.output.audio.playback.start"
     RT_OUTPUT_AUDIO_END = "rt.output.audio.end"
     RT_OUTPUT_AUDIO_ERROR = "rt.output.audio.error"
     RT_OUTPUT_AUDIO_VOLUME_CHANGED = "rt.output.audio.volume.changed"

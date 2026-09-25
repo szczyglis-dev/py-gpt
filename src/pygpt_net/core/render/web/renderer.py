@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 18:55:00                  #
+# Updated Date: 2026.09.25 12:55:00                  #
 # ================================================== #
 
 import json
@@ -2779,6 +2779,43 @@ class Renderer(BaseRenderer):
     def scroll_to_bottom(self):
         """Scroll to bottom placeholder"""
         pass
+
+    def resume_auto_follow_if_near_bottom(self, meta: CtxMeta, margin: int = 128):
+        """Re-arm WebView auto-follow when the viewport is still near the bottom.
+
+        Realtime can begin its provider stream immediately after APPEND_INPUT while
+        the request loader is still changing document height. In that narrow race
+        Chromium may report a layout-driven scroll as manual movement and leave the
+        JS ScrollManager in MANUAL even though the user never moved away from the
+        bottom. Recover only when the physical viewport is still close to the bottom;
+        this keeps an intentional scroll-up untouched.
+
+        This helper is invoked only by the Realtime controller and therefore does
+        not alter scroll ownership in Chat/Agents/other modes.
+
+        :param meta: context meta owning the WebView
+        :param margin: maximum distance from the physical bottom in pixels
+        """
+        if meta is None:
+            return
+        try:
+            node = self.get_output_node(meta)
+            if node is None:
+                return
+            safe_margin = max(0, int(margin))
+            node.page().runJavaScript(
+                "(() => {"
+                "const el = document.scrollingElement || document.documentElement;"
+                "if (!el) return false;"
+                "const d = Math.max(0, el.scrollHeight - el.clientHeight - el.scrollTop);"
+                f"if (d <= {safe_margin} && typeof window.scrollToBottomUser === 'function') {{"
+                "window.scrollToBottomUser(); return true;"
+                "}"
+                "return false;"
+                "})()"
+            )
+        except Exception:
+            pass
 
     def append_block(self):
         """Append block placeholder"""

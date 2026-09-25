@@ -758,6 +758,16 @@ class NativeBackend(QObject):
             return
         safe_emit(self._rt_signals, "response", build_output_volume_event(int(value)))
 
+    def _emit_output_playback_start(self) -> None:
+        """Emit event when realtime audio is actually handed to the device."""
+        if not self._rt_signals:
+            return
+        safe_emit(
+            self._rt_signals,
+            "response",
+            RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START),
+        )
+
     def _ensure_rt_session(
             self,
             mime: str,
@@ -815,7 +825,8 @@ class NativeBackend(QObject):
             device=device,
             fmt=fmt,
             parent=self,
-            volume_emitter=self._emit_output_volume
+            volume_emitter=self._emit_output_volume,
+            playback_start_emitter=self._emit_output_playback_start
         )
         # NOTE: when device actually stops (buffer empty), inform UI
         session.on_stopped = lambda: (
