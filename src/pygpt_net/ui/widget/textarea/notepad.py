@@ -226,6 +226,7 @@ class NotepadOutput(QTextEdit):
             'light': '#efefef',
             'mint': '#e8f4ee',
             'gray': '#2b2d34',
+            'gray_dark': '#222527',
             'dark': '#202020',
             'matrix': '#0d1710',
             'flare': '#170d0d',
