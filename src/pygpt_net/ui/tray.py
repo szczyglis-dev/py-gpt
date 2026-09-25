@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:55:00                  #
+# Updated Date: 2026.09.25 11:15:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -57,6 +57,15 @@ class Tray:
             msg,
             getattr(QSystemTrayIcon, icon, QSystemTrayIcon.Information),
         )
+
+    def show_msg_if_inactive(self, title: str, msg: str, icon: str = 'Information'):
+        """Show a tray message only while the main window is not the active window."""
+        try:
+            if self.window is not None and self.window.isActiveWindow():
+                return
+        except Exception:
+            pass
+        self.show_msg(title, msg, icon)
 
     def setup(self, app=None):
         """

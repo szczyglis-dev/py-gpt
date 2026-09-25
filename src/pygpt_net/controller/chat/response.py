@@ -872,7 +872,7 @@ class Response:
         # the completed-message sync, so the tray message never races ahead
         # of the full final response visible to the user.
         if has_final and self.window.core.config.get("agent.goal.notify"):
-            self.window.ui.tray.show_msg(
+            self.window.ui.tray.show_msg_if_inactive(
                 trans("notify.agent.goal.title"),
                 trans("notify.agent.goal.content"),
             )
