@@ -249,7 +249,9 @@ class Plugins:
         plugin = self.plugins.get(plugin_id)
         if plugin:
             if hasattr(plugin, 'destroy'):
-                plugin.destroy()
+                fn = getattr(plugin, "destroy", None)
+                if callable(fn):
+                    plugin.destroy()
 
     def has_options(self, plugin_id: str) -> bool:
         """

@@ -415,13 +415,10 @@ class Plugins:
 
         pm = self.window.core.plugins
         for pid in pm.get_ids():
-            plugin = pm.get(pid)
-            fn = getattr(pm, "destroy", None)
-            if callable(fn):
-                try:
-                    pm.destroy(pid)
-                except AttributeError:
-                    pass
+            try:
+                pm.destroy(pid)
+            except AttributeError:
+                pass
 
     def has_type(self, id: str, type: str):
         """
