@@ -55,6 +55,7 @@ class ToolWidget:
         self.btn_back = None
         self.btn_next = None
         self.btn_reload = None
+        self.btn_home = None
         self.btn_go = None
         self.scroll = None
         self._layout = None
@@ -110,6 +111,7 @@ class ToolWidget:
         self.nav_bar.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         icon_size_px = 20
         nav_height = 36
+        button_size = nav_height - 8
         self.nav_bar.setFixedHeight(nav_height)
 
         def button(icon, tip):
@@ -117,7 +119,7 @@ class ToolWidget:
             btn.setToolTip(tip)
             btn.setIcon(QIcon(icon))
             btn.setIconSize(QSize(icon_size_px, icon_size_px))
-            btn.setFixedHeight(nav_height - 8)
+            btn.setFixedSize(button_size, button_size)
             btn.setAutoDefault(False)
             try:
                 btn.setDefault(False)
@@ -128,6 +130,7 @@ class ToolWidget:
         self.btn_back = button(":/icons/back.svg", trans("ui.back", domain="plugin.canvas_web"))
         self.btn_next = button(":/icons/forward.svg", trans("ui.next", domain="plugin.canvas_web"))
         self.btn_reload = button(":/icons/reload.svg", trans("ui.reload", domain="plugin.canvas_web"))
+        self.btn_home = button(":/icons/home.svg", trans("ui.home", domain="plugin.canvas_web"))
         self.btn_go = button(":/icons/redo.svg", trans("ui.open_url", domain="plugin.canvas_web"))
         self.address_bar = AddressLineEdit(on_return_callback=self._on_address_enter)
         self.address_bar.setPlaceholderText(trans("ui.address_placeholder", domain="plugin.canvas_web"))
@@ -137,11 +140,13 @@ class ToolWidget:
         self.btn_back.clicked.connect(lambda: self.tool.runtime_call("canvas_prev", {"__ui": True}))
         self.btn_next.clicked.connect(lambda: self.tool.runtime_call("canvas_next", {"__ui": True}))
         self.btn_reload.clicked.connect(lambda: self.tool.runtime_call("canvas_reload", {"__ui": True}))
+        self.btn_home.clicked.connect(self.tool.open_start_page)
         self.btn_go.clicked.connect(self._on_address_enter)
 
         self.nav_layout.addWidget(self.btn_back)
         self.nav_layout.addWidget(self.btn_next)
         self.nav_layout.addWidget(self.btn_reload)
+        self.nav_layout.addWidget(self.btn_home)
         self.nav_layout.addWidget(self.address_bar, 1)
         self.nav_layout.addWidget(self.btn_go)
 
@@ -166,7 +171,9 @@ class ToolWidget:
         self.viewport_badge.show()
 
         self.plugin_hint = QFrame(self.scroll.viewport())
-        self.plugin_hint.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.plugin_hint.setToolTip(
+            trans("ui.enable_hint_tooltip", domain="plugin.canvas_web")
+        )
         self.plugin_hint.setStyleSheet(
             "QFrame {"
             " background: rgba(24, 24, 24, 175);"
@@ -224,7 +231,7 @@ class ToolWidget:
             return
         text = self.address_bar.text().strip()
         if text:
-            self.tool.runtime_call("canvas_open", {"url": text, "__ui": True})
+            self.tool.open_address(text)
 
     def _sync_from_runtime(self):
         state = self.tool.current_state()
@@ -444,6 +451,15 @@ class BrowserOutput(HtmlOutput):
         if window is not None:
             self.signals.audio_read.connect(window.controller.chat.render.handle_audio_read)
 
+    def reset_runtime_page(self):
+        """Replace the WebEngine page so native history/DOM state cannot cross profiles."""
+        self._detach_gl_event_filter()
+        old_page = self.page()
+        new_page = BrowserPage(tool=self.tool, parent=self)
+        self.setPage(new_page)
+        if old_page is not None and old_page is not new_page:
+            old_page.deleteLater()
+
     def _detach_gl_event_filter(self):
         """Detach WebEngine's transient GL child without logging stale Qt wrappers.
 
@@ -528,6 +544,10 @@ class SandboxView(QWidget):
         if data and pix.loadFromData(data):
             self._pixmap = pix
             self.update()
+
+    def clear_frame(self):
+        self._pixmap = QPixmap()
+        self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -689,6 +709,21 @@ class BrowserViewport(QWidget):
         self.layout.setCurrentWidget(self.web)
         self.set_resolution(1280, 800)
 
+    def reset_session(self):
+        """Clear all visible page/editor/frame state before a profile switch."""
+        self._source_timer.stop()
+        self._source_loading = True
+        try:
+            self.source.clear()
+            self.source.document().setModified(False)
+            self._source_base_url = ""
+            self._source_visible = False
+        finally:
+            self._source_loading = False
+        self.web.reset_runtime_page()
+        self.sandbox.clear_frame()
+        self.set_mode("qt")
+
     def set_tab(self, tab):
         self.tab = tab
         self.web.set_tab(tab)
@@ -780,6 +815,24 @@ class AddressLineEdit(QLineEdit):
     def __init__(self, on_return_callback=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._on_return_callback = on_return_callback
+        self._select_all_on_click = True
+
+    def focusOutEvent(self, event):
+        # The next mouse visit starts a new address-editing interaction.
+        self._select_all_on_click = True
+        super().focusOutEvent(event)
+
+    def mousePressEvent(self, event):
+        """Select the whole address on the first click in an editing interaction."""
+        select_all = self._select_all_on_click and event.button() == Qt.LeftButton
+        if event.button() == Qt.LeftButton:
+            self._select_all_on_click = False
+        super().mousePressEvent(event)
+        if select_all:
+            # QLineEdit applies the click cursor position during the mouse event,
+            # so defer selection until that processing has completed. Subsequent
+            # clicks while the field stays focused behave normally.
+            QTimer.singleShot(0, self.selectAll)
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):

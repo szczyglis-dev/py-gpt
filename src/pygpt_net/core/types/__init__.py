@@ -12,6 +12,7 @@
 from .agent import *
 from .audio import *
 from .base import *
+from .canvas import *
 from .image import *
 from .mode import *
 from .model import *

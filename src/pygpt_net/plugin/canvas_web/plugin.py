@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 17:40:00                  #
+# Updated Date: 2026.09.26 12:30:00                  #
 # ================================================== #
 
 import os
@@ -41,6 +41,7 @@ class Plugin(BasePlugin):
             "annotations": "Annotations",
             "server": "Preview server",
             "tools": "Tools",
+            "options": "Options",
         }
         self.allowed_cmds = [
             "canvas_open", "canvas_change_resolution", "canvas_set_html",

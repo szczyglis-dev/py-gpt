@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 11:00:00
+# Updated Date: 2026.09.26 12:30:00
 # ================================================== #
 
 import json
 import os
+import re
 import threading
 import time
 import uuid
@@ -25,6 +26,7 @@ from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import QFileDialog, QWidget, QVBoxLayout
 
 from pygpt_net.core.tabs.tab import Tab
+from pygpt_net.core.types.canvas import CanvasSearchEngine
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
 from pygpt_net.tools.base import BaseTool, TabWidget
 from pygpt_net.utils import trans
@@ -267,9 +269,14 @@ body {
 
     def on_reload(self):
         self.update()
-        # Profile reloads can change the light/dark theme while the persistent
-        # Canvas runtime stays alive. Refresh only the synthetic empty page.
-        self.setup_theme()
+        # Canvas is profile-scoped. If a runtime already exists, discard the
+        # previous profile's page/session state and start the new profile from
+        # its configured start page. Keep WebEngine lazy when Canvas was never
+        # created in this application session.
+        if self.surface is not None:
+            self._reset_profile_runtime()
+        else:
+            self.setup_theme()
 
     def on_exit(self):
         self._stop_server()
@@ -300,6 +307,56 @@ body {
     def _sandbox_enabled(self) -> bool:
         """Return whether Playwright is explicitly enabled in plugin settings."""
         return bool(self._opt("use_sandbox", False))
+
+    def _start_page(self) -> str:
+        """Return the profile start page, normalizing an empty value to about:blank."""
+        value = str(self._opt("start_page", "about:blank") or "").strip()
+        return value or "about:blank"
+
+    def _search_engine(self) -> CanvasSearchEngine:
+        return CanvasSearchEngine.from_value(self._opt("default_search_engine", CanvasSearchEngine.GOOGLE.value))
+
+    def _load_start_page(self):
+        """Load the configured profile start page without opening/focusing a Canvas tab."""
+        return self._cmd_open({
+            "url": self._start_page(),
+            "__ui": True,
+            "__startup": True,
+        })
+
+    def _reset_profile_runtime(self):
+        """Drop all browser/session state that must not survive a profile switch."""
+        self._stop_server()
+        self._stop_playwright()
+        self.backend = "qt"
+        self.agent_backend_locked = False
+        self.model_resolution = None
+        self.cursor_x = 0
+        self.cursor_y = 0
+        self.virtual_url = "about:blank"
+        self.base_url = ""
+        self.console = []
+        self.annotations = []
+        self.annotation_seq = 0
+        self.runtime_html = ""
+        self.blank_canvas_active = False
+        self.canvas_history = []
+        self.canvas_history_index = -1
+        self._history_loading = False
+
+        width = int(self._opt("default_width", 1280) or 1280)
+        height = int(self._opt("default_height", 800) or 800)
+        if self.surface is not None:
+            self.surface.reset_session()
+            self.surface.set_mode("qt")
+            self._set_resolution(width, height, "auto")
+        else:
+            self.width = width
+            self.height = height
+            self.orientation = "landscape" if width >= height else "portrait"
+
+        self._load_start_page()
+        self._notify_state()
 
     def _blank_canvas_html(self) -> str:
         """Return the empty Canvas grid matching the active light/dark theme."""
@@ -336,10 +393,6 @@ body {
         self.hidden_layout.setContentsMargins(0, 0, 0, 0)
         self.surface = BrowserViewport(self.window, self)
         self.surface.set_resolution(self.width, self.height)
-        # Give a newly created/empty canvas a subtle theme-aware grid instead
-        # of QWebEngine's plain white about:blank page. Any real navigation or
-        # canvas_set_html call replaces this document normally.
-        self._render_blank_canvas()
         self.hidden_layout.addWidget(self.surface)
         self.pw_frame_timer = QTimer(self)
         self.pw_frame_timer.setInterval(250)
@@ -350,6 +403,9 @@ body {
             self.surface.web.titleChanged.connect(lambda _title: self._notify_state())
         except Exception:
             pass
+        # The start page is loaded only when the Canvas runtime is actually
+        # created, preserving the existing lazy WebEngine/Playwright startup.
+        self._load_start_page()
         return self.surface
 
     def attach_surface(self, owner):
@@ -459,6 +515,20 @@ body {
 
     def set_url(self, url: str):
         self.runtime_call("canvas_open", {"url": url, "__ui": True})
+
+    def open_address(self, value: str):
+        """Open an address-bar value, converting plain text to a web search."""
+        target = self._address_target(value)
+        if not target:
+            return self.current_state()
+        return self.runtime_call("canvas_open", {"url": target, "__ui": True})
+
+    def open_start_page(self):
+        """Open the start page configured for the active profile."""
+        return self.runtime_call("canvas_open", {
+            "url": self._start_page(),
+            "__ui": True,
+        })
 
     def open(self, load: bool = True):
         """Open/focus the single Canvas tab in the second column."""
@@ -828,7 +898,8 @@ body {
         return result
 
     def _cmd_open(self, p):
-        self.ensure_agent_surface()
+        if not p.get("__startup"):
+            self.ensure_agent_surface()
         sandbox_arg = p.get("sandbox")
         sandbox_enabled = self._sandbox_enabled()
         if not sandbox_enabled:
@@ -1744,6 +1815,54 @@ c.style.left='{x-7}px'; c.style.top='{y-7}px'; return true; }})()"""
         if p.get("x") is None or p.get("y") is None:
             raise ValueError("x and y are required when selector is omitted")
         return self._clamp(int(p["x"]), int(p["y"]))
+
+    @staticmethod
+    def _has_explicit_scheme(value: str) -> bool:
+        # Generic RFC-style scheme detection covers http(s), file, about, data,
+        # ftp, ws(s), mailto and future/custom schemes without maintaining a list.
+        return bool(re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", str(value or "")))
+
+    @staticmethod
+    def _looks_like_direct_address(value: str) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        if WebBrowser._has_explicit_scheme(text):
+            return True
+        if text.startswith(("/", "./", "../", "~/", "\\\\")):
+            return True
+        if re.match(r"^[A-Za-z]:[\\/]", text):
+            return True
+
+        expanded = os.path.expanduser(text)
+        try:
+            if Path(expanded).exists():
+                return True
+        except (OSError, ValueError):
+            pass
+
+        # Browser-like convenience: domain names, localhost and literal IPs can
+        # be typed without a protocol; only genuine free text becomes a search.
+        if any(ch.isspace() for ch in text):
+            return False
+        host = text.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+        host_no_port = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+        lowered = host_no_port.lower()
+        if lowered == "localhost":
+            return True
+        if re.match(r"^\d{1,3}(?:\.\d{1,3}){3}$", host_no_port):
+            return True
+        if host.startswith("[") and "]" in host:  # IPv6 literal
+            return True
+        return "." in host_no_port and not host_no_port.startswith(".")
+
+    def _address_target(self, value: str) -> str:
+        text = str(value or "").strip()
+        if not text:
+            return ""
+        if self._looks_like_direct_address(text):
+            return text
+        return self._search_engine().build_url(text)
 
     def _resolve_url(self, value: str, workdir=None):
         value = (value or "").strip()

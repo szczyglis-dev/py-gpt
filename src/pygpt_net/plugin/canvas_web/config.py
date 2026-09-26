@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 17:40:00                  #
+# Updated Date: 2026.09.26 12:30:00                  #
 # ================================================== #
 
+from pygpt_net.core.types.canvas import CanvasSearchEngine
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
 
 
@@ -53,7 +54,6 @@ class Config(BaseConfig):
         plugin.add_option(
             "console_limit", type="int", value=200, label="Console log limit",
             description="Maximum browser console entries retained in memory.", min=10, max=2000, tab="browser", advanced=True)
-
         def cmd(name, instruction, params, description=None, tab="tools"):
             plugin.add_cmd(name, instruction=instruction, params=params, enabled=True,
                            description=description or instruction, tab=tab)
@@ -176,3 +176,15 @@ class Config(BaseConfig):
             ], tab="server")
         cmd("web_server_current", "Get current lightweight preview server state and base URL.", [], tab="server")
         cmd("web_server_stop", "Stop the lightweight preview server.", [], tab="server")
+
+        # Keep Options last in the plugin settings tabs: tab order follows the
+        # first occurrence of each tab in the option definition order.
+        plugin.add_option(
+            "start_page", type="text", value="about:blank", label="Start page",
+            description="Page loaded when the Canvas browser starts or the active profile is reloaded. Leave empty to use about:blank.",
+            tab="options")
+        plugin.add_option(
+            "default_search_engine", type="combo", value=CanvasSearchEngine.GOOGLE.value,
+            label="Default search engine",
+            description="Search engine used when text entered in the Canvas address bar is not a URL, protocol address or local path.",
+            keys=CanvasSearchEngine.combo_keys(), tab="options")
