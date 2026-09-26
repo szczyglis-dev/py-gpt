@@ -6,7 +6,22 @@
     <MediaTemplate EmbedCab="yes" />
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
     <Property Id="REBOOT" Value="ReallySuppress" />
-    <UIRef Id="WixUI_InstallDir" />
+
+    <!-- Optional launch checkbox on the final installer page; checked by default. -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch PyGPT" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+
+    <!-- Launch the installed PyGPT executable when Finish is clicked and the checkbox is checked. -->
+    <Property Id="WixShellExecTarget" Value="[#PygptExe]" />
+    <CustomAction Id="LaunchPyGPT" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
+
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="ExitDialog"
+               Control="Finish"
+               Event="DoAction"
+               Value="LaunchPyGPT">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed</Publish>
+    </UI>
     <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\_internal\USER-LICENSE.rtf" />
     <WixVariable Id="WixUIBannerBmp" Value="$(var.SourceDir)\_internal\banner.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="$(var.SourceDir)\_internal\banner_welcome.bmp" />
@@ -34,7 +49,7 @@
 
   <Fragment>
   <DirectoryRef Id="INSTALLDIR">
-    <Component Id="ApplicationComponent" Guid="946F55FA-E8F9-4A8F-876D-1C0D2D58E8D4">
+    <Component Id="ApplicationComponent" Guid="4873A698-B346-4A81-BCDE-BFF5705D4FF0">
       <File Id="PygptExe" Source="$(var.SourceDir)\pygpt.exe" KeyPath="yes">
         <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
         <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />

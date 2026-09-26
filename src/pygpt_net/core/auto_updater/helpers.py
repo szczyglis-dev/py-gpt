@@ -9,8 +9,11 @@
 # Updated Date: 2026.09.25 20:00:00                  #
 # ================================================== #
 
+
 from __future__ import annotations
 
+import base64
+import json
 import os
 import shlex
 import shutil
@@ -42,13 +45,6 @@ def _sh_debug_line(message: str, enabled: bool) -> str:
     if not enabled:
         return ""
     return f"printf '%s\\n' {shlex.quote('[AUTO-UPDATER] helper: ' + message)}"
-
-
-def _cmd_debug_line(message: str, enabled: bool) -> str:
-    if not enabled:
-        return ""
-    safe = str(message).replace("%", "%%")
-    return f"echo [AUTO-UPDATER] helper: {safe}"
 
 
 def current_restart_command() -> List[str]:
@@ -269,30 +265,472 @@ def launch_posix_script(content: str, debug: bool = False, trace: TraceCallback 
     return script
 
 
-def launch_windows_script(content: str, debug: bool = False, trace: TraceCallback = None) -> str:
-    script = _write_temp_script(".cmd", content.replace("\n", "\r\n"))
-    if debug:
-        # In explicit updater-debug mode keep stdout/stderr attached when a
-        # console exists; from a windowed build cmd.exe may open a temporary
-        # console, which is useful for observing the post-exit handoff.
-        flags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+def launch_windows_python_helper(
+        content: str,
+        debug: bool = False,
+        trace: TraceCallback = None,
+        visible_console: bool = False,
+) -> str:
+    # Source/pip/git installs have a Python interpreter available. A tiny
+    # stdlib-only helper is more reliable than cmd.exe/tasklist/find/ping.
+    # Most helpers are intentionally hidden, but the Windows pip updater uses
+    # a visible console so the user can see live installation progress.
+    script = _write_temp_script(".py", content)
+    if visible_console:
+        flags = (
+            getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            | getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+        )
         stdout = None
         stderr = None
+        log_handle = None
+        log_path = None
     else:
-        flags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | getattr(subprocess, "DETACHED_PROCESS", 0)
+        flags = (
+            getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            | getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        )
+        log_handle = None
+        log_path = None
+        if debug:
+            log_path = script + ".log"
+            log_handle = open(log_path, "ab")
+            stdout = log_handle
+            stderr = subprocess.STDOUT
+        else:
+            stdout = subprocess.DEVNULL
+            stderr = subprocess.DEVNULL
+
+    _trace(
+        trace,
+        f"Created Windows Python post-exit helper: {script!r}; "
+        f"visible_console={visible_console}; debug_log={log_path!r}.",
+    )
+    try:
+        proc = subprocess.Popen(
+            [sys.executable, script],
+            stdin=None if visible_console else subprocess.DEVNULL,
+            stdout=stdout,
+            stderr=stderr,
+            creationflags=flags,
+            close_fds=True,
+        )
+    finally:
+        if log_handle is not None:
+            log_handle.close()
+    _trace(
+        trace,
+        f"Started Windows Python helper: pid={proc.pid}, script={script!r}, "
+        f"visible_console={visible_console}, debug_log={log_path!r}.",
+    )
+    return script
+
+
+
+def launch_windows_powershell_helper(
+        content: str,
+        args: Optional[List[str]] = None,
+        debug: bool = False,
+        trace: TraceCallback = None,
+) -> str:
+    """Launch a hidden PowerShell helper for frozen Windows builds."""
+    script = os.path.join(
+        tempfile.gettempdir(),
+        f"pygpt-update-{uuid.uuid4().hex}.ps1",
+    )
+    # Windows PowerShell 5.1 reliably detects UTF-8 when a BOM is present.
+    with open(script, "w", encoding="utf-8-sig", newline="\r\n") as handle:
+        handle.write(content)
+
+    flags = (
+        getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        | getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    )
+    command = [
+        "powershell.exe",
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy", "Bypass",
+        "-WindowStyle", "Hidden",
+        "-File", script,
+    ] + list(args or [])
+
+    log_handle = None
+    log_path = None
+    if debug:
+        log_path = script + ".log"
+        log_handle = open(log_path, "ab")
+        stdout = log_handle
+        stderr = subprocess.STDOUT
+    else:
         stdout = subprocess.DEVNULL
         stderr = subprocess.DEVNULL
-    _trace(trace, f"Created Windows post-exit helper script: {script!r}; debug_console={debug}.")
-    proc = subprocess.Popen(
-        ["cmd.exe", "/d", "/c", script],
+
+    _trace(
+        trace,
+        f"Created Windows PowerShell post-exit helper: {script!r}; "
+        f"hidden_console=True; debug_log={log_path!r}.",
+    )
+    try:
+        proc = subprocess.Popen(
+            command,
+            stdin=subprocess.DEVNULL,
+            stdout=stdout,
+            stderr=stderr,
+            creationflags=flags,
+            close_fds=True,
+        )
+    finally:
+        if log_handle is not None:
+            log_handle.close()
+
+    _trace(
+        trace,
+        f"Started Windows PowerShell helper: pid={proc.pid}, script={script!r}, "
+        f"debug_log={log_path!r}.",
+    )
+    return script
+
+def _windows_wait_helper_source(
+        pid: int,
+        body: str,
+        debug: bool,
+        timeout_seconds: int = 30,
+) -> str:
+    # OpenProcess + WaitForSingleObject waits on the exact process object.
+    # This avoids PID text matching, localization issues and PID-reuse races.
+    return f"""import ctypes
+import os
+import subprocess
+import sys
+import time
+
+PARENT_PID = {int(pid)!r}
+WAIT_TIMEOUT_SECONDS = {int(timeout_seconds)!r}
+DEBUG = {bool(debug)!r}
+
+
+def log(message):
+    if DEBUG:
+        print("[AUTO-UPDATER] helper: " + str(message), flush=True)
+
+
+def wait_for_parent():
+    SYNCHRONIZE = 0x00100000
+    WAIT_OBJECT_0 = 0x00000000
+    WAIT_TIMEOUT = 0x00000102
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.OpenProcess(SYNCHRONIZE, False, PARENT_PID)
+    if not handle:
+        log("Parent process already exited.")
+        return True
+    try:
+        result = kernel32.WaitForSingleObject(handle, WAIT_TIMEOUT_SECONDS * 1000)
+        if result == WAIT_OBJECT_0:
+            log("Parent PyGPT process exited.")
+            return True
+        if result == WAIT_TIMEOUT:
+            log(f"Timed out waiting for PyGPT PID {{PARENT_PID}}; aborting helper.")
+            return False
+        log(f"WaitForSingleObject failed with result={{result}}; aborting helper.")
+        return False
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def hidden_creation_flags():
+    return (
+        getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        | getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    )
+
+
+def launch(command):
+    log(f"Launching: {{command!r}}")
+    return subprocess.Popen(
+        command,
         stdin=subprocess.DEVNULL,
-        stdout=stdout,
-        stderr=stderr,
-        creationflags=flags,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        creationflags=hidden_creation_flags(),
         close_fds=True,
     )
-    _trace(trace, f"Started Windows helper process: pid={proc.pid}, script={script!r}.")
-    return script
+
+
+def remove_path(path):
+    import shutil
+    if os.path.islink(path) or os.path.isfile(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
+
+
+def cleanup_self():
+    try:
+        os.remove(__file__)
+    except OSError:
+        pass
+
+
+try:
+    if not wait_for_parent():
+        sys.exit(2)
+{body}
+finally:
+    cleanup_self()
+"""
+
+
+
+def schedule_windows_msi_install_after_exit(
+        msi_path: str,
+        restart_executable: str,
+        debug: bool = False,
+        trace: TraceCallback = None,
+        timeout_seconds: int = 60,
+) -> str:
+    """Install an MSI after PyGPT exits, then restart the installed app."""
+    if os.name != "nt":
+        raise UpdateError("Windows MSI post-exit helper can only run on Windows")
+
+    pid = os.getpid()
+    payload = {
+        "parent_pid": pid,
+        "wait_timeout_ms": max(1, int(timeout_seconds)) * 1000,
+        "msi_path": os.path.abspath(msi_path),
+        "restart_executable": os.path.abspath(restart_executable),
+        "debug": bool(debug),
+    }
+    payload_arg = base64.b64encode(
+        json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    ).decode("ascii")
+
+    _trace(
+        trace,
+        f"Scheduling Windows MSI install after pid={pid} exits; "
+        f"msi={payload['msi_path']!r}, restart={payload['restart_executable']!r}, "
+        f"timeout={timeout_seconds}s.",
+    )
+
+    content = r'''param(
+    [Parameter(Mandatory=$true)]
+    [string]$PayloadBase64
+)
+
+$ErrorActionPreference = "Stop"
+$cfgJson = [System.Text.Encoding]::UTF8.GetString(
+    [System.Convert]::FromBase64String($PayloadBase64)
+)
+$cfg = $cfgJson | ConvertFrom-Json
+$debugEnabled = [bool]$cfg.debug
+
+function Write-UpdateLog([string]$Message) {
+    if ($debugEnabled) {
+        Write-Output ("[AUTO-UPDATER] helper: " + $Message)
+    }
+}
+
+try {
+    $parentPid = [int]$cfg.parent_pid
+    $timeoutMs = [int]$cfg.wait_timeout_ms
+    Write-UpdateLog ("Waiting for PyGPT PID {0} to exit." -f $parentPid)
+    try {
+        $parent = [System.Diagnostics.Process]::GetProcessById($parentPid)
+        if (-not $parent.WaitForExit($timeoutMs)) {
+            Write-UpdateLog ("Timed out waiting for PyGPT PID {0}; aborting MSI update." -f $parentPid)
+            exit 2
+        }
+    }
+    catch [System.ArgumentException] {
+        Write-UpdateLog "PyGPT process already exited."
+    }
+
+    $msiPath = [string]$cfg.msi_path
+    $installerArgs = '/i "' + $msiPath + '" /passive /norestart'
+    Write-UpdateLog ("Launching passive MSI installer: {0}" -f $msiPath)
+    $installer = Start-Process `
+        -FilePath "$env:SystemRoot\System32\msiexec.exe" `
+        -ArgumentList $installerArgs `
+        -PassThru `
+        -Wait
+
+    $exitCode = [int]$installer.ExitCode
+    Write-UpdateLog ("MSI installer finished with exit code {0}." -f $exitCode)
+    if (@(0, 3010, 1641) -notcontains $exitCode) {
+        Write-UpdateLog "MSI installation failed; PyGPT will not be restarted."
+        exit 3
+    }
+
+    $restartExe = [string]$cfg.restart_executable
+    if (-not [string]::IsNullOrWhiteSpace($restartExe)) {
+        Write-UpdateLog ("Launching updated PyGPT: {0}" -f $restartExe)
+        Start-Process -FilePath $restartExe | Out-Null
+    }
+    Write-UpdateLog "Windows MSI update helper completed successfully."
+}
+catch {
+    Write-UpdateLog ("Helper failed: " + $_.Exception.GetType().Name + ": " + $_.Exception.Message)
+    exit 4
+}
+finally {
+    try {
+        Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction SilentlyContinue
+    }
+    catch {}
+}
+'''
+    return launch_windows_powershell_helper(
+        content,
+        args=[payload_arg],
+        debug=debug,
+        trace=trace,
+    )
+
+def schedule_windows_pip_update_after_exit(
+        update_command: List[str],
+        restart_command: List[str],
+        debug: bool = False,
+        trace: TraceCallback = None,
+        timeout_seconds: int = 30,
+) -> str:
+    """Run pip after PyGPT exits, show live progress, then restart PyGPT.
+
+    Windows locks ``Scripts/pygpt.exe`` while the app is running, so pip must
+    update only after PyGPT exits. Unlike the other post-exit helpers this one
+    intentionally owns a visible console window. That gives the user immediate
+    feedback during a potentially long dependency update and also leaves a
+    readable error on screen if pip or the automatic restart fails.
+    """
+    if os.name != "nt":
+        raise UpdateError("Windows pip post-exit helper can only run on Windows")
+
+    pid = os.getpid()
+    _trace(
+        trace,
+        f"Scheduling visible Windows pip update after pid={pid} exits; "
+        f"update_command={update_command!r}, restart_command={restart_command!r}.",
+    )
+
+    body = (
+        "    try:\n"
+        "        ctypes.windll.kernel32.SetConsoleTitleW(\"PyGPT Update\")\n"
+        "    except Exception:\n"
+        "        pass\n"
+        "    update_command = " + repr(list(update_command)) + "\n"
+        "    restart_command = " + repr(list(restart_command)) + "\n"
+        "    print(\"\", flush=True)\n"
+        "    print(\"============================================================\", flush=True)\n"
+        "    print(\" PyGPT automatic update\", flush=True)\n"
+        "    print(\"============================================================\", flush=True)\n"
+        "    print(\"Updating PyGPT via pip... please wait.\", flush=True)\n"
+        "    print(\"Do not close this window until the update is complete.\", flush=True)\n"
+        "    print(\"\", flush=True)\n"
+        "    log(f\"Running pip update after PyGPT exit: {update_command!r}\")\n"
+        "    completed = subprocess.Popen(\n"
+        "        update_command,\n"
+        "        stdin=subprocess.DEVNULL,\n"
+        "        stdout=subprocess.PIPE,\n"
+        "        stderr=subprocess.STDOUT,\n"
+        "        text=True,\n"
+        "        encoding=\"utf-8\",\n"
+        "        errors=\"replace\",\n"
+        "        creationflags=0,\n"
+        "        close_fds=True,\n"
+        "    )\n"
+        "    if completed.stdout is not None:\n"
+        "        for line in completed.stdout:\n"
+        "            print(line, end=\"\", flush=True)\n"
+        "    returncode = completed.wait()\n"
+        "    print(\"\", flush=True)\n"
+        "    log(f\"pip finished with return code {returncode}.\")\n"
+        "    if returncode != 0:\n"
+        "        print(\"UPDATE FAILED. PyGPT was not restarted.\", flush=True)\n"
+        "        print(\"Press Enter to close this window.\", flush=True)\n"
+        "        try:\n"
+        "            input()\n"
+        "        except EOFError:\n"
+        "            time.sleep(10)\n"
+        "        sys.exit(returncode or 3)\n"
+        "\n"
+        "    print(\"Update completed successfully.\", flush=True)\n"
+        "    print(\"Restarting PyGPT...\", flush=True)\n"
+        "\n"
+        "    restart_candidates = []\n"
+        "    if restart_command:\n"
+        "        restart_candidates.append(restart_command)\n"
+        "\n"
+        "    # The pip console-script launcher is recreated during upgrade. In\n"
+        "    # rare cases Windows/AV may still delay the fresh launcher. Keep a\n"
+        "    # direct pythonw fallback that starts PyGPT from the installed\n"
+        "    # package without relying on Scripts\\pygpt.exe.\n"
+        "    python_exe = update_command[0] if update_command else sys.executable\n"
+        "    python_dir = os.path.dirname(os.path.abspath(python_exe))\n"
+        "    pythonw = os.path.join(python_dir, \"pythonw.exe\")\n"
+        "    fallback_python = pythonw if os.path.isfile(pythonw) else python_exe\n"
+        "    fallback_command = [\n"
+        "        fallback_python,\n"
+        "        \"-c\",\n"
+        "        \"from pygpt_net.app import run; run()\",\n"
+        "    ]\n"
+        "    if fallback_command not in restart_candidates:\n"
+        "        restart_candidates.append(fallback_command)\n"
+        "\n"
+        "    restarted = False\n"
+        "    last_error = None\n"
+        "    for idx, command in enumerate(restart_candidates, 1):\n"
+        "        # The freshly installed console launcher can appear a fraction\n"
+        "        # of a second after pip returns on some Windows setups.\n"
+        "        target = command[0] if command else \"\"\n"
+        "        if target and target.lower().endswith(\".exe\"):\n"
+        "            for _ in range(20):\n"
+        "                if os.path.exists(target):\n"
+        "                    break\n"
+        "                time.sleep(0.25)\n"
+        "        try:\n"
+        "            log(f\"Restart attempt {idx}: {command!r}\")\n"
+        "            proc = launch(command)\n"
+        "            time.sleep(2.0)\n"
+        "            code = proc.poll()\n"
+        "            if code is None:\n"
+        "                log(f\"PyGPT restart succeeded with pid={proc.pid}.\")\n"
+        "                restarted = True\n"
+        "                break\n"
+        "            last_error = RuntimeError(\n"
+        "                f\"restart command exited immediately with code {code}\"\n"
+        "            )\n"
+        "            log(str(last_error))\n"
+        "        except Exception as exc:\n"
+        "            last_error = exc\n"
+        "            log(f\"Restart attempt failed: {type(exc).__name__}: {exc}\")\n"
+        "\n"
+        "    if not restarted:\n"
+        "        print(\"\", flush=True)\n"
+        "        print(\"UPDATE SUCCEEDED, BUT PyGPT COULD NOT BE RESTARTED AUTOMATICALLY.\", flush=True)\n"
+        "        if last_error is not None:\n"
+        "            print(f\"Reason: {type(last_error).__name__}: {last_error}\", flush=True)\n"
+        "        print(\"Start PyGPT manually, then press Enter to close this window.\", flush=True)\n"
+        "        try:\n"
+        "            input()\n"
+        "        except EOFError:\n"
+        "            time.sleep(15)\n"
+        "        sys.exit(4)\n"
+        "\n"
+        "    print(\"PyGPT restarted successfully.\", flush=True)\n"
+        "    print(\"This update window will close automatically.\", flush=True)\n"
+        "    time.sleep(1.5)\n"
+    )
+    content = _windows_wait_helper_source(
+        pid,
+        body,
+        debug,
+        timeout_seconds=timeout_seconds,
+    )
+    return launch_windows_python_helper(
+        content,
+        debug=debug,
+        trace=trace,
+        visible_console=True,
+    )
 
 
 def schedule_restart_after_exit(
@@ -303,21 +741,12 @@ def schedule_restart_after_exit(
     pid = os.getpid()
     _trace(trace, f"Scheduling restart after pid={pid} exits; command={command!r}.")
     if os.name == "nt":
-        cmdline = subprocess.list2cmdline(command)
-        content = f"""@echo off
-{_cmd_debug_line(f'Waiting for PyGPT PID {pid} to exit.', debug)}
-:wait_loop
-tasklist /FI "PID eq {pid}" 2>NUL | find "{pid}" >NUL
-if not errorlevel 1 (
-  ping 127.0.0.1 -n 2 >NUL
-  goto wait_loop
-)
-{_cmd_debug_line('PyGPT exited; launching restart command.', debug)}
-start "" {cmdline}
-{_cmd_debug_line('Restart command launched; deleting helper script.', debug)}
-del "%~f0"
+        body = f"""    command = {command!r}
+    proc = launch(command)
+    log(f"Restart command launched successfully; pid={{proc.pid}}.")
 """
-        return launch_windows_script(content, debug=debug, trace=trace)
+        content = _windows_wait_helper_source(pid, body, debug, timeout_seconds=30)
+        return launch_windows_python_helper(content, debug=debug, trace=trace)
 
     cmdline = " ".join(shlex.quote(part) for part in command)
     content = f"""#!/bin/sh
@@ -448,38 +877,73 @@ def schedule_source_package_swap_after_exit(
     )
 
     if os.name == "nt":
-        current_win = subprocess.list2cmdline([os.path.abspath(current_package)])
-        staged_win = subprocess.list2cmdline([os.path.abspath(staged_package)])
-        old_win = subprocess.list2cmdline([os.path.abspath(current_package) + ".old"])
-        restart_win = subprocess.list2cmdline(restart_command)
-        content = f"""@echo off
-{_cmd_debug_line(f'Waiting for PyGPT PID {pid} to exit before source package swap.', debug)}
-:wait_loop
-tasklist /FI "PID eq {pid}" 2>NUL | find "{pid}" >NUL
-if not errorlevel 1 (
-  ping 127.0.0.1 -n 2 >NUL
-  goto wait_loop
-)
-{_cmd_debug_line('PyGPT exited; backing up current source package.', debug)}
-if exist {old_win} rmdir /s /q {old_win}
-if exist {current_win} move /y {current_win} {old_win} >NUL || goto rollback
-{_cmd_debug_line('Promoting staged source package.', debug)}
-move /y {staged_win} {current_win} >NUL || goto rollback
-{_cmd_debug_line('Launching updated source installation.', debug)}
-start "" {restart_win}
-ping 127.0.0.1 -n 3 >NUL
-rem Windows cannot reliably probe an arbitrary detached GUI child here; a
-rem successful rename + launch is considered handoff success.
-if exist {old_win} rmdir /s /q {old_win}
-goto cleanup
-:rollback
-{_cmd_debug_line('Source package swap failed; restoring backup.', debug)}
-if exist {current_win} rmdir /s /q {current_win}
-if exist {old_win} move /y {old_win} {current_win} >NUL
-:cleanup
-del "%~f0"
+        current_abs = os.path.abspath(current_package)
+        staged_abs = os.path.abspath(staged_package)
+        old_abs = current_abs + ".old"
+        body = f"""    current = {current_abs!r}
+    staged = {staged_abs!r}
+    old = {old_abs!r}
+    restart = {restart_command!r}
+    backed_up = False
+    promoted = False
+    try:
+        log(f"Removing stale backup: {{old!r}}")
+        if os.path.exists(old) or os.path.islink(old):
+            remove_path(old)
+        if os.path.exists(current) or os.path.islink(current):
+            log(f"Backing up current package: {{current!r}} -> {{old!r}}")
+            os.rename(current, old)
+            backed_up = True
+        log(f"Promoting staged package: {{staged!r}} -> {{current!r}}")
+        os.rename(staged, current)
+        promoted = True
+    except Exception as exc:
+        log(f"Package swap failed: {{type(exc).__name__}}: {{exc}}; rolling back.")
+        try:
+            if promoted and (os.path.exists(current) or os.path.islink(current)):
+                remove_path(current)
+            if backed_up and (os.path.exists(old) or os.path.islink(old)):
+                os.rename(old, current)
+        finally:
+            raise
+
+    try:
+        proc = launch(restart)
+        log(f"Updated PyGPT launched; pid={{proc.pid}}. Verifying startup.")
+    except Exception as exc:
+        log(f"Unable to launch updated PyGPT: {{type(exc).__name__}}: {{exc}}; rolling back.")
+        if os.path.exists(current) or os.path.islink(current):
+            remove_path(current)
+        if backed_up and (os.path.exists(old) or os.path.islink(old)):
+            os.rename(old, current)
+            try:
+                restored = launch(restart)
+                log(f"Restored PyGPT launched; pid={{restored.pid}}.")
+            except Exception as restore_exc:
+                log(f"Unable to launch restored PyGPT: {{restore_exc}}")
+        raise
+
+    time.sleep(2.0)
+    exit_code = proc.poll()
+    if exit_code is not None:
+        log(f"Updated PyGPT exited during startup verification with code={{exit_code}}; rolling back.")
+        if os.path.exists(current) or os.path.islink(current):
+            remove_path(current)
+        if backed_up and (os.path.exists(old) or os.path.islink(old)):
+            os.rename(old, current)
+            try:
+                restored = launch(restart)
+                log(f"Restored PyGPT launched; pid={{restored.pid}}.")
+            except Exception as restore_exc:
+                log(f"Unable to launch restored PyGPT: {{restore_exc}}")
+        sys.exit(3)
+
+    log("Updated PyGPT is still running; removing old package backup.")
+    if backed_up and (os.path.exists(old) or os.path.islink(old)):
+        remove_path(old)
 """
-        return launch_windows_script(content, debug=debug, trace=trace)
+        content = _windows_wait_helper_source(pid, body, debug, timeout_seconds=30)
+        return launch_windows_python_helper(content, debug=debug, trace=trace)
 
     content = f"""#!/bin/sh
 set -u
@@ -584,42 +1048,3 @@ rm -f -- {old}
 {_sh_debug_line('AppImage swap completed successfully.', debug)}
 """
     return launch_posix_script(content, debug=debug, trace=trace)
-
-
-def schedule_windows_msi_after_exit(
-        msi_path: str,
-        restart_command: List[str],
-        debug: bool = False,
-        trace: TraceCallback = None,
-) -> str:
-    pid = os.getpid()
-    msi = subprocess.list2cmdline([os.path.abspath(msi_path)])
-    restart = subprocess.list2cmdline(restart_command)
-    _trace(
-        trace,
-        f"Scheduling MSI install after pid={pid} exits; msi={msi_path!r}, restart={restart_command!r}.",
-    )
-    content = f"""@echo off
-{_cmd_debug_line(f'Waiting for PyGPT PID {pid} to exit before MSI install.', debug)}
-:wait_loop
-tasklist /FI "PID eq {pid}" 2>NUL | find "{pid}" >NUL
-if not errorlevel 1 (
-  ping 127.0.0.1 -n 2 >NUL
-  goto wait_loop
-)
-{_cmd_debug_line('PyGPT exited; starting MSI installer.', debug)}
-start /wait "" msiexec.exe /i {msi}
-set "MSI_RC=%ERRORLEVEL%"
-{('echo [AUTO-UPDATER] helper: MSI exit code: %MSI_RC%' if debug else '')}
-if "%MSI_RC%"=="0" goto restart_app
-if "%MSI_RC%"=="3010" goto restart_app
-goto cleanup
-:restart_app
-{_cmd_debug_line('MSI succeeded; restarting PyGPT.', debug)}
-start "" {restart}
-:cleanup
-{_cmd_debug_line('Cleaning downloaded MSI and helper script.', debug)}
-del /q {msi} >NUL 2>NUL
-del "%~f0"
-"""
-    return launch_windows_script(content, debug=debug, trace=trace)

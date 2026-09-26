@@ -3374,20 +3374,7 @@
                 "debug": "DEBUG"
             }
         ]
-    },
-    "log.auto_update": {
-        "section": "debug",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.log.auto_update",
-        "description": "settings.log.auto_update.desc",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
+    },    
     "log.api.input": {
         "section": "debug",
         "type": "bool",
@@ -3572,6 +3559,19 @@
         "step": null,
         "advanced": false,
         "description": "settings.log.assistants.desc"
+    },
+    "log.auto_update": {
+        "section": "debug",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.log.auto_update",
+        "description": "settings.log.auto_update.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
     },
     "access.voice_control": {
         "section": "access",

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygpt-net"
-version = "2.8.31"
+version = "2.8.32"
 description = "Open-source desktop AI assistant for OpenAI, Gemini, Claude, Grok, DeepSeek, Ollama and more, with agents, RAG, Skills, plugins/MCP, Python/OS tools, vision, image/video generation and Computer use."
 authors = ["Marcin Szczyglinski <info@pygpt.net>"]
 license = "MIT"

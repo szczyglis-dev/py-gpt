@@ -390,6 +390,8 @@ class Patch:
                 # Assistants mode is no longer selectable. Keep the legacy implementation
                 # in the codebase, but remove the mode capability from user models.
                 for model in data.values():
+                    if model is None:
+                        continue
                     if model.has_mode("assistant"):
                         model.remove_mode("assistant")
                         updated = True
@@ -435,6 +437,8 @@ class Patch:
             if old < parse_version("2.8.10"):
                 print("Migrating models from < 2.8.10...")
                 for model in data.values():
+                    if model is None:
+                        continue
                     if model.has_mode(MODE_CHAT) and not model.has_mode(MODE_AGENT_V2):
                         model.add_mode(MODE_AGENT_V2)
                         updated = True
@@ -482,6 +486,8 @@ class Patch:
                 # and GPT-6 Astra. Match by API model ID so custom user keys and
                 # all reasoning variants are migrated as well.
                 for model in data.values():
+                    if model is None:
+                        continue
                     model_id = str(getattr(model, "id", "") or "")
                     if supports_future_computer_mode("openai", model_id) \
                             and not model.has_mode(MODE_COMPUTER):
@@ -493,6 +499,8 @@ class Patch:
                 # model IDs are migrated as well. Gemini 3.8 Flash is included for
                 # user-defined models even though it is not yet in the bundled catalog.
                 for model in data.values():
+                    if model is None:
+                        continue
                     model_id = str(getattr(model, "id", "") or "").lower()
                     if supports_future_computer_mode("google", model_id) \
                             and not model.has_mode(MODE_COMPUTER):
@@ -503,6 +511,8 @@ class Patch:
                 # by provider/api/anthropic/computer.py. Prefix matching also covers
                 # dated API IDs and user models stored under custom keys.
                 for model in data.values():
+                    if model is None:
+                        continue
                     model_id = str(getattr(model, "id", "") or "").lower()
                     if supports_future_computer_mode("anthropic", model_id) \
                             and not model.has_mode(MODE_COMPUTER):
@@ -516,6 +526,8 @@ class Patch:
                 )
                 for key in list(data.keys()):
                     model = data.get(key)
+                    if model is None:
+                        continue
                     model_id = str(getattr(model, "id", "") or "")
                     if str(key).startswith(deprecated_openai_prefixes) \
                             or model_id.startswith(deprecated_openai_prefixes):
@@ -563,6 +575,8 @@ class Patch:
                 # maps chat models to Chat Completions and keeps instruct-only
                 # models on the legacy Completions endpoint.
                 for model in data.values():
+                    if model is None:
+                        continue
                     if not getattr(model, "llama_index", None):
                         continue
                     if not model.has_mode(MODE_CHAT):
@@ -617,6 +631,8 @@ class Patch:
                 variant_groups = {}
                 identity_counts = {}
                 for _key, _model in data.items():
+                    if _model is None:
+                        continue
                     _identity = (
                         str(getattr(_model, "provider", "") or ""),
                         str(getattr(_model, "id", "") or ""),
@@ -624,6 +640,8 @@ class Patch:
                     identity_counts[_identity] = identity_counts.get(_identity, 0) + 1
 
                 for key, model in list(data.items()):
+                    if model is None:
+                        continue
                     extra = getattr(model, "extra", None) or {}
                     base_key, suffix_effort = legacy_key_parts(key)
                     extra_effort = str(extra.get("reasoning_effort", "") or "").lower()

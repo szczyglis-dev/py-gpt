@@ -21,7 +21,7 @@ AUTO_UPDATER_ENABLED = True
 # Per-distribution kill switches. These only disable the automatic procedure
 # for the selected installation type; version checking and manual update info
 # remain available.
-DISABLE_AUTO_UPDATE_WINDOWS_MSI = False
+DISABLE_AUTO_UPDATE_WINDOWS_MSI = True
 DISABLE_AUTO_UPDATE_LINUX_ARCHIVE = False
 DISABLE_AUTO_UPDATE_APPIMAGE = False
 DISABLE_AUTO_UPDATE_PIP = False

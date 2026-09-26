@@ -300,9 +300,10 @@ class AutoUpdater(QObject):
             f"message={result.message!r}, data={result.data!r}"
         )
         if result.quit_app:
-            self.log("Post-exit helper is prepared; scheduling application shutdown in 50 ms.")
-            # The flow has already created a detached post-exit helper. Quit via
-            # QApplication so aboutToQuit performs PyGPT's normal shutdown path.
+            self.log("Update flow requested application shutdown; scheduling quit in 50 ms.")
+            # Flows that need post-exit work prepare a detached helper before
+            # returning. Quit through QApplication so aboutToQuit performs
+            # PyGPT's normal shutdown path before that helper continues.
             QTimer.singleShot(50, self.window.app.quit)
             return
 

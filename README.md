@@ -2,13 +2,13 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.32** | build: **2026-09-25** | Python: **>=3.10, <3.14**
+Release: **2.8.32** | build: **2026-09-26** | Python: **>=3.10, <3.14**
 
-> Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
+> Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
 > Get it from: [PyPi](https://pypi.org/project/pygpt-net) | [Snap Store](https://snapcraft.io/pygpt) | [Microsoft Store](https://apps.microsoft.com/detail/XP99R4MX3X65VQ) | [AppImage](https://github.com/szczyglis-dev/py-gpt/releases)
 > 
-> Compiled version for Linux and Windows: [Download](https://pygpt.net/#download) (64-bit)
+> Prebuilt binaries for Linux and Windows: [Download](https://pygpt.net/#download) (64-bit)
 > 
 > Donate: [Buy Me A Coffee](https://www.buymeacoffee.com/szczyglis) | [GitHub Sponsors](https://github.com/sponsors/szczyglis-dev) | [PayPal](https://pygpt.net/donate/paypal)
 
@@ -2601,13 +2601,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.8.32 (2026-09-25)**
+**2.8.32 (2026-09-26)**
 
 - Added support for external **Add-ons** (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.
 - Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
 - Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
 - Fixed equal split-screen column widths when enabling split-screen mode.
-- Agent Workflow tool connected to legacy agents. 
+- Agent Workflow tool connected to legacy agents.
+- Added auto-updater.
 - UI improvements.
 
 **2.8.31 (2026-09-25)**
