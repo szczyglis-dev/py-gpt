@@ -528,21 +528,22 @@ class NodeTemplateEngine {
 
 		const contentHtml = this._renderTimelineSegments(block, timeline);
 		if (!contentHtml) return '';
+		const expanded = workflow.expanded === true;
 		const label = this._escapeHtml(String(workflow.label || ''));
 		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND) ? window.ICON_EXPAND : '';
 		const toggleTitle = (typeof window !== 'undefined' && window.LOCALE_EXPAND)
 			? String(window.LOCALE_EXPAND)
 			: 'Expand';
 		const id = this._esc(block.id);
-		const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow agent-workflow-arrow' width='25' height='25' alt=''>`;
+		const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow agent-workflow-arrow${expanded ? ' toggle-expanded' : ''}' width='25' height='25' alt=''>`;
 
 		return (
 			`<div class='tool-output agent-workflow-output' id='tool-output-${id}'>` +
 			`<button type='button' class='tool-output-toggle agent-workflow-toggle' ` +
-			`onclick='toggleToolOutput(${id});' title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
+			`onclick='toggleToolOutput(${id});' title='${this._escapeHtml(toggleTitle)}' aria-expanded='${expanded}'>` +
 			`<span class='tool-output-label agent-workflow-label'><b>${label}</b></span>${arrowHtml}` +
 			`</button>` +
-			`<div class='tool-output-content agent-workflow-content' style='display:none' data-trusted='1'>${contentHtml}</div>` +
+			`<div class='tool-output-content agent-workflow-content${expanded ? ' is-expanded' : ''}' ${expanded ? '' : "style='display:none'"} data-trusted='1'><div class='tool-collapse-inner'><div class='tool-collapse-body'>${contentHtml}</div></div></div>` +
 			`</div>`
 		);
 	}

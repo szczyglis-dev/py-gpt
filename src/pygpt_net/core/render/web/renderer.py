@@ -4004,7 +4004,7 @@ class Renderer(BaseRenderer):
         This is a UI-only preference. It does not change durable partial storage
         or the separate model-facing history replay policy.
         """
-        if str(getattr(ctx, "mode", "") or "") != MODE_AGENT_V2:
+        if not CtxItem.uses_agent_timeline(ctx):
             return False
         return bool(self.window.core.config.get("agent.v2.display_full_workflow", True))
 
@@ -4186,7 +4186,7 @@ class Renderer(BaseRenderer):
         """
         if not self._display_tool_calls_json():
             return False
-        if str(getattr(ctx, "mode", "") or "") != MODE_AGENT_V2:
+        if not CtxItem.uses_agent_timeline(ctx):
             return True
         return bool(self.window.core.config.get("agent.v2.show_tool_chain", False))
 
@@ -4561,14 +4561,14 @@ class Renderer(BaseRenderer):
         # it. A fresh history load has no records here, so old completed turns keep
         # the previous final-only behavior.
         if (rebuild
-                and str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2
+                and CtxItem.uses_agent_timeline(ctx)
                 and self._ctx_has_final_answer(ctx)
                 and runtime_status_records):
             replay_statuses = True
 
         show_tool_chain = self._show_tool_chain_for_ctx(ctx)
         completed_agents_v2_output = None
-        if (str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2
+        if (CtxItem.uses_agent_timeline(ctx)
                 and (rebuild or self._ctx_has_final_answer(ctx))):
             # Support both a full context rebuild and the direct runtime render
             # path used right after the final response has been committed.
@@ -4618,6 +4618,7 @@ class Renderer(BaseRenderer):
             if workflow_step_count > 1:
                 collapsed_workflow = {
                     "label": self._format_agent_v2_processing_label(ctx),
+                    "expanded": False,
                     "timeline": workflow_timeline,
                     # Runtime finalization uses this key to preserve the exact
                     # streamed final DOM node while collapsing all preceding

@@ -644,7 +644,9 @@ class Ctx:
         """
         if item is None:
             return False
-        return should_persist_ctx_partials(getattr(item, "mode", None))
+        return should_persist_ctx_partials(getattr(item, "mode", None)) or (
+            isinstance(item.extra, dict) and item.extra.get("agent_timeline") is True
+        )
 
     def ensure_part(
             self,

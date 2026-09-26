@@ -354,7 +354,12 @@ Agent (LlamaIndex)
 
 **Legacy mode — not recommended. Use the newer and more advanced ``Agents`` mode instead.**
 
-This mode provides the older LlamaIndex-based agent workflows.
+This mode runs the LlamaIndex agent workflows and custom graphs from Agent Builder.
+New runs use the same streaming, chronological partial-message rendering and asynchronous
+plugin bridge as Agents v2. Text and tool results stay in one conversation turn, including
+after reloading history. The final answer is kept separately from intermediate work.
+The Agents full-workflow and tool-chain display preferences apply to these new runs;
+existing conversations retain their original format.
 
 Includes built-in agents (Workflow):
 
@@ -362,11 +367,17 @@ Includes built-in agents (Workflow):
 * ReAct
 * Structured Planner (sub-tasks)
 * Supervisor + worker
+* CodeAct (using the enabled Python/IPython plugin tools)
 
 
 You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agent Builder (Legacy)``.
 
 You can also create your own agent by creating a new provider that inherits from ``pygpt_net.provider.agents.base``.
+Custom workflows should forward child ``AgentStream``, ``ToolCall`` and ``ToolCallResult``
+events and return their final answer through the workflow result. Use ``StepEvent`` to
+announce an agent transition and ``StatusEvent`` for transient progress. Keep child
+``StopEvent`` events inside the child workflow. Built-in graph workflows handle this
+forwarding, cancellation and routing automatically; router JSON is not shown in chat.
 
 **Tools and Plugins**
 

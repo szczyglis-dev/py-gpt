@@ -327,6 +327,12 @@ class CtxItem:
             return "" if any(getattr(part, "output", None) == "" for part in self.parts) else self.output
         return "".join(chunks)
 
+    def uses_agent_timeline(self) -> bool:
+        """Whether this turn uses the shared durable agent timeline protocol."""
+        return str(getattr(self, "mode", "") or "") == "agent_v2" or (
+            isinstance(getattr(self, "extra", None), dict) and self.extra.get("agent_timeline") is True
+        )
+
     def sync_output_from_parts(self) -> Optional[str]:
         """Refresh the parent output cache from durable partials.
 
@@ -335,7 +341,7 @@ class CtxItem:
         response. Unfinished/interrupted turns still compose all partials.
         """
         extra = self.extra if isinstance(self.extra, dict) else {}
-        if str(self.mode or "") == "agent_v2" and extra.get("response_final") is True:
+        if self.uses_agent_timeline() and extra.get("response_final") is True:
             final_output = self.get_agents_v2_final_output()
             if final_output is not None and str(final_output).strip():
                 self.output = final_output
@@ -417,7 +423,7 @@ class CtxItem:
         partial explicitly marked ``agents_v2_final`` is the source of truth.
         If that final does not exist, callers must fall back to the full partials.
         """
-        if str(getattr(self, "mode", "") or "") != "agent_v2":
+        if not self.uses_agent_timeline():
             return None
         extra = self.extra if isinstance(getattr(self, "extra", None), dict) else {}
         if extra.get("response_final") is not True:

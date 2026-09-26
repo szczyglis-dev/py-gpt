@@ -46,11 +46,12 @@ class OpenAIAgent(BaseAgent):
         llm: LLM = kwargs.get("llm", None)
         verbose: bool = kwargs.get("verbose", False)
         system_prompt: str = kwargs.get("system_prompt", None)
-        max_steps: int = kwargs.get("max_steps", 12)
+        max_steps: int = kwargs.get("max_iterations", 12)
 
         return OpenAIWorkflowAgent(
             tools=tools,
             llm=llm,
             system_prompt=system_prompt,
             verbose=verbose,
+            max_function_calls=max_steps,
         )

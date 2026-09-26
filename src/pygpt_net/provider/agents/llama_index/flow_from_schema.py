@@ -65,7 +65,8 @@ class Agent(BaseAgent):
         system_prompt_extra = self.get_system_prompt_extra(kwargs)
         allow_local_tools_default = bool(self.get_option(preset, "base", "allow_local_tools"))
         allow_remote_tools_default = bool(self.get_option(preset, "base", "allow_remote_tools"))
-        max_iterations = int(self.get_option(preset, "base", "max_iterations") or kwargs.get("max_iterations", 20))
+        configured_limit = self.get_option(preset, "base", "max_iterations")
+        max_iterations = int(configured_limit if configured_limit is not None else kwargs.get("max_iterations", 20))
         router_stream_mode = self.get_option(preset, "router", "stream_mode") or kwargs.get("router_stream_mode", "realtime")
 
         option_get = make_option_getter(self, preset)

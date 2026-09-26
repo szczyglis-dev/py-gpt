@@ -251,6 +251,7 @@ class SupervisorWorkflow(Workflow):
         self._worker = kwargs["worker"]
         self._worker_memory = kwargs.get("worker_memory")
         self._max_steps = kwargs.get("max_steps", 12)
+        self._on_stop = None
 
     def run(
         self,
@@ -270,6 +271,7 @@ class SupervisorWorkflow(Workflow):
         :param kwargs: Additional keyword arguments for the workflow, such as `external_context`, `stop_on_ask_user`, etc.
         :return: OutputEvent or ExecuteEvent based on the workflow's progress.
         """
+        self._on_stop = kwargs.get("on_stop")
         if verbose:
             self._verbose = True
 
@@ -330,26 +332,13 @@ class SupervisorWorkflow(Workflow):
         except Exception:
             pass
 
-    async def _run_muted(self, ctx: Context, awaitable) -> Any:
-        """
-        Execute an agent call while muting all events sent to ctx.
-        Matches schema-style emission: we control all UI events ourselves.
-        """
-        orig_write = ctx.write_event_to_stream
-
-        def _noop(ev: Any) -> None:
-            return None
-
-        ctx.write_event_to_stream = _noop
-        try:
-            return await awaitable
-        finally:
-            ctx.write_event_to_stream = orig_write
+    def _stopped(self):
+        return bool(self._on_stop and self._on_stop())
 
     @step
     async def supervisor_step(self, ctx: Context, ev: InputEvent) -> ExecuteEvent | OutputEvent:
         """
-        Supervisor step: run Supervisor silently, then emit exactly one UI block like schema.
+        Stream Supervisor prose while retaining control JSON for routing.
 
         :param ctx: Context for the workflow
         :param ev: InputEvent containing the user's message and context.
@@ -368,11 +357,7 @@ class SupervisorWorkflow(Workflow):
         )
         sup_input = "\n".join(parts)
 
-        # Announce the Supervisor step BEFORE waiting for the muted agent call.
-        # The runner treats StepEvent as a transition boundary: it finalizes the
-        # previous agent block (if any), creates the next partial context and
-        # switches the UI back to BUSY.  Emitting this only after ``await`` left
-        # the UI with no loader for the whole Supervisor inference.
+        # Announce the actor before the first streamed token.
         await self._emit_step(
             ctx,
             agent_name=self._supervisor.name,
@@ -380,20 +365,35 @@ class SupervisorWorkflow(Workflow):
             total=ev.max_rounds,
         )
 
-        # Run Supervisor with stream muted to avoid leaking its internal JSON.
-        sup_resp = await self._run_muted(ctx, self._supervisor.run(user_msg=sup_input, memory=self._supervisor_memory))
-        sup_text = response_to_text(sup_resp)
+        from pygpt_net.core.agents.runners.llama_events import forward_handler
+        from pygpt_net.core.agents.custom.llama_index.router_streamer import RealtimeRouterStreamerLI
+        prose = RealtimeRouterStreamerLI(fields=("instruction", "final_answer", "question"))
+        sup_resp, streamed = await forward_handler(
+            self._supervisor.run(user_msg=sup_input, memory=self._supervisor_memory),
+            ctx, self._stopped, name=self._supervisor.name, text_filter=prose.handle_delta,
+        )
+
+        async def emit_remaining(text):
+            if not streamed:
+                await self._emit_text(ctx, text, agent_name=self._supervisor.name)
+            elif text.startswith(streamed) and len(text) > len(streamed):
+                await self._emit_text(ctx, text[len(streamed):], agent_name=self._supervisor.name)
+            elif text.strip() != streamed.strip() and not text.startswith(streamed):
+                await self._emit_text(ctx, "\n\n" + text, agent_name=self._supervisor.name)
+
         directive = parse_supervisor_response(sup_resp)
 
         # Final/ask_user/max_rounds -> emit text into the already announced
         # Supervisor block and stop.
         if directive.action == "final":
-            await self._emit_text(ctx, f"\n\n{directive.final_answer or sup_text}", agent_name=self._supervisor.name)
-            return OutputEvent(status="final", final_answer=directive.final_answer or sup_text, rounds_used=ev.round_idx)
+            if not directive.final_answer:
+                raise ValueError("Supervisor returned a final directive without an answer.")
+            await emit_remaining(directive.final_answer)
+            return OutputEvent(status="final", final_answer=directive.final_answer, rounds_used=ev.round_idx)
 
         if directive.action == "ask_user" and ev.stop_on_ask_user:
             q = directive.question or "I need more information, please clarify."
-            await self._emit_text(ctx, f"\n\n{q}", agent_name=self._supervisor.name)
+            await emit_remaining(q)
             return OutputEvent(status="ask_user", final_answer=q, rounds_used=ev.round_idx)
 
         if ev.round_idx >= ev.max_rounds:
@@ -402,7 +402,7 @@ class SupervisorWorkflow(Workflow):
 
         # Emit exactly one Supervisor block with the instruction (no JSON leakage, no duplicates).
         instruction = (directive.instruction or "").strip() or "Perform a step that gets closest to fulfilling the DoD."
-        await self._emit_text(ctx, f"\n\n{instruction}", agent_name=self._supervisor.name)
+        await emit_remaining(instruction)
 
         return ExecuteEvent(
             instruction=instruction,
@@ -415,7 +415,7 @@ class SupervisorWorkflow(Workflow):
     @step
     async def worker_step(self, ctx: Context, ev: ExecuteEvent) -> InputEvent:
         """
-        Worker step: run Worker silently and emit exactly one UI block like schema.
+        Worker step: forward native text and tool events into the parent workflow.
 
         :param ctx: Context for the workflow
         :param ev: ExecuteEvent containing the instruction and context.
@@ -432,13 +432,18 @@ class SupervisorWorkflow(Workflow):
             total=ev.max_rounds,
         )
 
-        # Run Worker with stream muted; we will emit a single block with the final text.
+        # Forward worker text/tools as they arrive.
         worker_input = f"Instruction from Supervisor:\n{ev.instruction}\n"
-        worker_resp = await self._run_muted(ctx, self._worker.run(user_msg=worker_input, memory=self._worker_memory))
+        from pygpt_net.core.agents.runners.llama_events import forward_handler
+        worker_resp, streamed_text = await forward_handler(
+            self._worker.run(user_msg=worker_input, memory=self._worker_memory),
+            ctx, self._stopped, name=self._worker.name,
+        )
         worker_text = response_to_text(worker_resp)
 
         # Emit the response into the Worker block announced above.
-        await self._emit_text(ctx, f"\n\n{worker_text}", agent_name=self._worker.name)
+        if not streamed_text:
+            await self._emit_text(ctx, worker_text, agent_name=self._worker.name)
 
         return InputEvent(
             user_msg="",

@@ -153,6 +153,9 @@ def to_li_chat_messages(items: List[TResponseInputItem]) -> List[ChatMessage]:
         return []
     msgs: List[ChatMessage] = []
     for it in items or []:
+        if isinstance(it, ChatMessage):
+            msgs.append(it)
+            continue
         if not isinstance(it, dict):
             continue
         role = str(it.get("role", "")).lower()
@@ -249,6 +252,9 @@ def extract_agent_text(ret: Any) -> str:
             content = getattr(msg, "content", None) or getattr(msg, "text", None)
             if isinstance(content, str):
                 return content
+        content = getattr(resp, "content", None)
+        if isinstance(content, str):
+            return content
         text = getattr(resp, "text", None)
         if isinstance(text, str):
             return text

@@ -72,7 +72,7 @@ class SupervisorAgent(BaseAgent):
         if main_model is not None:
             llm_supervisor = window.core.idx.llm.get_agent(
                 main_model,
-                stream=False,
+                stream=True,
                 allow_remote_tools=supervisor_allow_remote_tools,
                 computer_runtime=computer_runtime if supervisor_allow_remote_tools else None,
             )
@@ -96,7 +96,7 @@ class SupervisorAgent(BaseAgent):
         )
         llm_worker = window.core.idx.llm.get_agent(
             model_worker,
-            stream=False,
+            stream=True,
             allow_remote_tools=worker_allow_remote_tools,
             computer_runtime=computer_runtime if worker_allow_remote_tools else None,
         )

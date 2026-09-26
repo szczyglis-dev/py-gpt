@@ -959,7 +959,7 @@ class Runtime {
 			reduced = typeof window !== 'undefined' && window.matchMedia
 				&& window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		} catch (_) {}
-		const duration = reduced ? 0 : 180;
+		const duration = reduced || (workflow && workflow.expanded === true) ? 0 : 180;
 		const animations = [];
 		for (const el of stale) {
 			if (!el) continue;

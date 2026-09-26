@@ -336,7 +336,7 @@ class Body:
         :return: List of HTML strings for icons.
         """
         icons: List[str] = []
-        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+        if CtxItem.uses_agent_timeline(ctx) and getattr(ctx, "current", False):
             return icons
         if ctx.output:
             cid = ctx.id
@@ -381,7 +381,7 @@ class Body:
         :return: List of action dicts
         """
         items: List[Dict] = []
-        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+        if CtxItem.uses_agent_timeline(ctx) and getattr(ctx, "current", False):
             return items
         if ctx.output:
             cid = ctx.id
@@ -698,7 +698,7 @@ class Body:
         # Agents v2 exposes response artifacts only after the authoritative final
         # response has finished streaming. FINAL_BEGIN rebuilds the current turn,
         # so suppress both artifact extras and footer actions while it is active.
-        if getattr(ctx, "mode", None) == MODE_AGENT_V2 and getattr(ctx, "current", False):
+        if CtxItem.uses_agent_timeline(ctx) and getattr(ctx, "current", False):
             return images, files, urls, {"actions": []}
 
         # images

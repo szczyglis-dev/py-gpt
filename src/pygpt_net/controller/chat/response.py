@@ -849,13 +849,13 @@ class Response:
         self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {"meta": ctx.meta, "ctx": ctx}))
 
         if self.window.controller.kernel.stopped():
-            self.window.controller.chat.output.handle_end(ctx=ctx, mode=MODE_AGENT_V2)
+            self.window.controller.chat.output.handle_end(ctx=ctx, mode=context.mode or MODE_AGENT_V2)
             return
 
-        self.window.controller.chat.output.handle_after(ctx=ctx, mode=MODE_AGENT_V2, stream=True)
+        self.window.controller.chat.output.handle_after(ctx=ctx, mode=context.mode or MODE_AGENT_V2, stream=True)
         self.post_handle(
             ctx=ctx,
-            mode=MODE_AGENT_V2,
+            mode=context.mode or MODE_AGENT_V2,
             stream=True,
             reply=extra.get("reply", False),
             internal=extra.get("internal", False),
@@ -871,6 +871,9 @@ class Response:
         # final-answer chunk. Notify here, after STREAM_END/post-processing and
         # the completed-message sync, so the tray message never races ahead
         # of the full final response visible to the user.
+        if has_final and ctx.extra.get("agent_timeline") is True:
+            self.window.controller.agent.llama.on_finish(ctx)
+            return
         if has_final and self.window.core.config.get("agent.goal.notify"):
             self.window.ui.tray.show_msg_if_inactive(
                 trans("notify.agent.goal.title"),

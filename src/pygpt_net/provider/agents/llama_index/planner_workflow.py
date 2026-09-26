@@ -60,7 +60,7 @@ class PlannerAgent(BaseAgent):
         if kwargs.get("model") is not None:
             executor_llm = window.core.idx.llm.get_agent(
                 kwargs.get("model"),
-                stream=False,
+                stream=True,
                 allow_remote_tools=step_allow_remote_tools,
                 computer_runtime=(
                     kwargs.get("computer_runtime") if step_allow_remote_tools else None

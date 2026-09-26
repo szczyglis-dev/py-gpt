@@ -436,6 +436,10 @@ class PlannerWorkflow(Workflow):
         ctx_text = "Completed sub-tasks context:\n" + "\n".join(parts)
         return self._truncate(ctx_text, char_limit or 8000)
 
+    async def _emit_status(self, ctx: Context, text: str):
+        from .events import StatusEvent
+        ctx.write_event_to_stream(StatusEvent(status=text))
+
     async def _run_subtask(self, ctx: Context, prompt: str, agent_label: Optional[str] = None) -> str:
         """
         Run a sub-task using the executor agent.
@@ -447,96 +451,21 @@ class PlannerWorkflow(Workflow):
         if self._clear_exec_mem_between_subtasks:
             self._reset_executor_memory()
 
-        # llama-index-core 0.14.23 exposes BaseWorkflowAgent.run as *args/**kwargs
-        # at runtime and consumes these names internally. Signature introspection therefore
-        # cannot discover user_msg/max_iterations and previously started the executor with
-        # no sub-task prompt at all. Pass the supported runtime arguments explicitly.
+        from pygpt_net.core.agents.runners.llama_events import forward_handler
+        from pygpt_net.core.agents.runners.llama_session import result_text
+        from pygpt_net.core.agents_v2.utils import effective_iteration_limit
         handler = self._executor.run(
             user_msg=prompt,
-            max_iterations=max(1, self._max_steps),
-            early_stopping_method="generate",
+            max_iterations=effective_iteration_limit(self._max_steps),
         )
-        last_answer = ""
-        has_stream = False
-        stream_buf = []
+        result, streamed = await forward_handler(
+            handler, ctx, self._stopped, name=agent_label,
+        )
+        answer = result_text(result) or streamed.strip()
+        if answer and not streamed:
+            await self._emit_text(ctx, answer, agent_name=agent_label)
+        return answer
 
-        async def _stream():
-            nonlocal last_answer, has_stream
-
-            async for e in handler.stream_events():
-                if isinstance(e, StopEvent):
-                    continue
-
-                # stop callback
-                if self._stopped():
-                    ctx.write_event_to_stream(StopEvent())
-                    await handler.cancel_run()
-                    return last_answer or ("".join(stream_buf).strip() if stream_buf else "")
-
-                if isinstance(e, AgentStream):
-                    delta = getattr(e, "delta", None)
-                    if delta:
-                        has_stream = True
-                        stream_buf.append(str(delta))
-                    # Force the per-step label for executor events.
-                    try:
-                        e.current_agent_name = agent_label or self._display_executor_name
-                    except Exception:
-                        try:
-                            e = AgentStream(
-                                delta=getattr(e, "delta", ""),
-                                response=getattr(e, "response", ""),
-                                current_agent_name=agent_label or self._display_executor_name,
-                                tool_calls=getattr(e, "tool_calls", []),
-                                raw=getattr(e, "raw", {}),
-                            )
-                        except Exception:
-                            pass
-                    ctx.write_event_to_stream(e)
-                    continue
-
-                if isinstance(e, AgentOutput):
-                    resp = getattr(e, "response", None)
-                    content = self._to_text(resp).strip()
-                    last_answer = content or ("".join(stream_buf).strip() if stream_buf else "")
-                    if not has_stream and last_answer:
-                        ctx.write_event_to_stream(
-                            AgentStream(
-                                delta=last_answer,
-                                response=last_answer,
-                                current_agent_name=agent_label or self._display_executor_name,
-                                tool_calls=e.tool_calls,
-                                raw=e.raw,
-                            )
-                        )
-                    continue
-
-                if isinstance(e, (ToolCall, ToolCallResult)):
-                    ctx.write_event_to_stream(e)
-                    continue
-
-                if isinstance(e, Event):
-                    ctx.write_event_to_stream(e)
-
-            final_result = await handler
-            if not last_answer:
-                final_text = self._to_text(final_result).strip()
-                if final_text and final_text != "None":
-                    last_answer = final_text
-
-            return last_answer or ("".join(stream_buf).strip() if stream_buf else "")
-
-        try:
-            return await _stream()
-        except Exception as ex:
-            await self._emit_text(
-                ctx,
-                f"\n`{trans('agent.planner.ui.subtask_failed').format(error=ex)}`",
-                agent_name=agent_label or self._display_executor_name,
-            )
-            return last_answer or ("".join(stream_buf).strip() if stream_buf else "")
-
-    # Helper to render sub-tasks into a readable string for prompts and UI.
     def _format_subtasks(self, sub_tasks: List[SubTask]) -> str:
         parts = []
         for i, st in enumerate(sub_tasks, 1):
@@ -596,6 +525,23 @@ class PlannerWorkflow(Workflow):
             # Graceful fallback if the model fails to conform to schema.
             return None
 
+    @staticmethod
+    def _subtask_header(key: str, *, status: bool = False, **kwargs) -> str:
+        """
+        Format a planner sub-task header for plan text or plain UI status.
+
+        Planner locale strings are markdown-oriented. Plan output keeps the
+        markdown emphasis, while status text must stay plain because the
+        global status bar does not render markdown. Decorative '=' separators
+        are removed in both cases.
+        """
+        header = trans(key).format(**kwargs).replace("=====", "").strip()
+        if header.startswith("**") and header.endswith("**"):
+            header = header[2:-2].strip()
+            if not status:
+                header = f"**{header}**"
+        return header
+
     @step
     async def make_plan(self, ctx: Context, ev: QueryEvent) -> PlanReady:
         """
@@ -629,7 +575,7 @@ class PlannerWorkflow(Workflow):
 
         lines = [f"`{trans('agent.planner.ui.current_plan')}`"]
         for i, st in enumerate(plan.sub_tasks, 1):
-            header = trans("agent.planner.ui.subtask_header.one").format(index=i, name=st.name)
+            header = self._subtask_header("agent.planner.ui.subtask_header.one", index=i, name=st.name)
             lines.append(
                 f"\n{header}\n"
                 f"{trans('agent.planner.ui.expected_output')} {st.expected_output}\n"
@@ -655,7 +601,7 @@ class PlannerWorkflow(Workflow):
 
         # Start executing with a per-step label
         execute_label = self._agent_label("execute")
-        await self._emit_text(ctx, f"\n\n`{trans('agent.planner.ui.executing_plan')}`", agent_name=execute_label)
+        await self._emit_status(ctx, trans("agent.planner.ui.executing_plan"))
 
         # Prepare static prompt parts for refinement.
         tools_str = ""
@@ -688,13 +634,12 @@ class PlannerWorkflow(Workflow):
                 },
             )
 
-            header = trans("agent.planner.ui.subtask_header.progress").format(
-                index=i + 1, total=total, name=st.name
-            )
-            header_block = (
-                f"\n\n{header}\n"
-                f"{trans('agent.planner.ui.expected_output')} {st.expected_output}\n"
-                f"{trans('agent.planner.ui.dependencies')} {st.dependencies}\n\n"
+            header = self._subtask_header(
+                "agent.planner.ui.subtask_header.progress",
+                status=True,
+                index=i + 1,
+                total=total,
+                name=st.name,
             )
 
             # stop callback
@@ -702,7 +647,7 @@ class PlannerWorkflow(Workflow):
                 await self._emit_text(ctx, f"\n`{trans('agent.planner.ui.execution_stopped')}`", agent_name=execute_label)
                 return FinalEvent(result=last_answer or trans("agent.planner.ui.execution_stopped"))
 
-            await self._emit_text(ctx, header_block, agent_name=subtask_label)
+            await self._emit_status(ctx, header)
 
             # build context for sub-task
             ctx_text = self._build_context_for_subtask(
@@ -726,10 +671,8 @@ class PlannerWorkflow(Workflow):
             sub_answer = await self._run_subtask(ctx, composed_prompt, agent_label=subtask_label)
             sub_answer = (sub_answer or "").strip()
 
-            await self._emit_text(
-                ctx,
-                f"\n\n`{trans('agent.planner.ui.subtask_finished').format(index=i + 1, total=total, name=st.name)}`",
-                agent_name=subtask_label,
+            await self._emit_status(
+                ctx, trans('agent.planner.ui.subtask_finished').format(index=i + 1, total=total, name=st.name),
             )
 
             # save completed sub-task
@@ -806,8 +749,11 @@ class PlannerWorkflow(Workflow):
                         # Present the updated tail of the plan to the UI.
                         lines = [f"`{trans('agent.planner.ui.updated_remaining_plan')}`"]
                         for k, st_upd in enumerate(new_remaining, i + 1):
-                            upd_header = trans("agent.planner.ui.subtask_header.progress").format(
-                                index=k, total=len(plan_sub_tasks), name=st_upd.name
+                            upd_header = self._subtask_header(
+                                "agent.planner.ui.subtask_header.progress",
+                                index=k,
+                                total=len(plan_sub_tasks),
+                                name=st_upd.name,
                             )
                             lines.append(
                                 f"\n{upd_header}\n"
@@ -816,5 +762,5 @@ class PlannerWorkflow(Workflow):
                             )
                         await self._emit_text(ctx, "\n".join(lines), agent_name=refine_label)
 
-        await self._emit_text(ctx, f"\n\n`{trans('agent.planner.ui.plan_execution_finished')}`", agent_name=execute_label)
+        await self._emit_status(ctx, trans("agent.planner.ui.plan_execution_finished"))
         return FinalEvent(result=last_answer or trans("agent.planner.ui.plan_finished"))

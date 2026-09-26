@@ -98,14 +98,14 @@ svg xmlns=\x22http:\
 wBox=\x220 0 6 24\x22>\
 \x0a  <circle cx=\x223\
 \x22 cy=\x227\x22 r=\x221.25\
-\x22 fill=\x22#929292\x22\
+\x22 fill=\x22#707070\x22\
 />\x0a  <circle cx=\
 \x223\x22 cy=\x2212\x22 r=\x221\
-.25\x22 fill=\x22#9292\
-92\x22/>\x0a  <circle \
+.25\x22 fill=\x22#7070\
+70\x22/>\x0a  <circle \
 cx=\x223\x22 cy=\x2217\x22 r\
-=\x221.25\x22 fill=\x22#9\
-29292\x22/>\x0a</svg>\x0a\
+=\x221.25\x22 fill=\x22#7\
+07070\x22/>\x0a</svg>\x0a\
 \
 \x00\x00\x01\x91\
 <\
@@ -3499,14 +3499,14 @@ svg xmlns=\x22http:\
 wBox=\x220 0 24 6\x22>\
 \x0a  <circle cx=\x227\
 \x22 cy=\x223\x22 r=\x221.25\
-\x22 fill=\x22#929292\x22\
+\x22 fill=\x22#707070\x22\
 />\x0a  <circle cx=\
 \x2212\x22 cy=\x223\x22 r=\x221\
-.25\x22 fill=\x22#9292\
-92\x22/>\x0a  <circle \
+.25\x22 fill=\x22#7070\
+70\x22/>\x0a  <circle \
 cx=\x2217\x22 cy=\x223\x22 r\
-=\x221.25\x22 fill=\x22#9\
-29292\x22/>\x0a</svg>\x0a\
+=\x221.25\x22 fill=\x22#7\
+07070\x22/>\x0a</svg>\x0a\
 \
 \x00\x00\x02\x1a\
 <\

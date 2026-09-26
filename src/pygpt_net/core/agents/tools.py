@@ -30,13 +30,14 @@ if TYPE_CHECKING:
 
 class Tools:
 
-    def __init__(self, window=None):
+    def __init__(self, window=None, executor=None):
         """
         Agent tools
 
         :param window: Window instance
         """
         self.window = window
+        self.executor = executor  # per-run asynchronous plugin bridge
         self.cmd_blacklist = []
         self.verbose = False
         self.agent_idx = None  # agent index, used for query engine tool
@@ -240,10 +241,24 @@ class Tools:
                     description=description,
                     schema=schema,
                 )
-                tool = FunctionTool(
-                    fn=func,
-                    metadata=metadata,
-                )
+                async_fn = None
+                if self.executor is not None:
+                    def make_async(tool_name, tool_schema):
+                        async def invoke(**kwargs):
+                            args = dict(kwargs)
+                            for wrapper in ("params", "arguments"):
+                                if len(args) == 1 and isinstance(args.get(wrapper), dict):
+                                    args = dict(args[wrapper])
+                                    break
+                            required = list(tool_schema.get("required") or [])
+                            missing = [key for key in required if args.get(key) is None]
+                            if missing:
+                                return json.dumps({"error": "Missing required tool parameter(s).",
+                                                   "tool": tool_name, "missing": missing})
+                            return await self.executor(tool_name, args)
+                        return invoke
+                    async_fn = make_async(name, schema)
+                tool = FunctionTool(fn=func, async_fn=async_fn, metadata=metadata)
                 tools.append(tool)
             except Exception as e:
                 self.window.core.debug.log(e)

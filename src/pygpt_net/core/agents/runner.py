@@ -36,6 +36,8 @@ from .runners.llama_workflow import LlamaWorkflow
 from .runners.openai_workflow import OpenAIWorkflow
 from .runners.helpers import Helpers
 from .runners.loop import Loop
+from .runners.llama_session import LlamaSession
+from .tools import Tools
 
 class Runner:
 
@@ -79,6 +81,7 @@ class Runner:
         if self.window.controller.kernel.stopped():
             return True  # abort if stopped
 
+        self.last_error = None
         agent_id = extra.get("agent_provider", "openai")
         verbose = self.is_verbose()
         workflow_bridge = None
@@ -87,6 +90,11 @@ class Runner:
             # first, check if agent exists
             if not self.window.core.agents.provider.has(agent_id, context.mode):
                 raise Exception(f"Agent not found: {agent_id}")
+
+            provider = self.window.core.agents.provider.get(agent_id, context.mode)
+            session = None
+            if provider.get_mode() == AGENT_MODE_WORKFLOW:
+                session = LlamaSession(self.window, context, extra, signals)
 
             # prepare input ctx
             ctx = context.ctx
@@ -109,7 +117,7 @@ class Runner:
             # remote tools and lets the adapter own Computer Use continuations.
             llm = self.window.core.idx.llm.get_agent(
                 model,
-                stream=False,
+                stream=True,
                 allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
@@ -121,7 +129,9 @@ class Runner:
                 extra["agent_idx"] = vector_store_idx
 
             # tools
-            agent_tools = self.window.core.agents.tools
+            agent_tools = (Tools(self.window, executor=session.execute_plugin)
+                           if session is not None else self.window.core.agents.tools)
+            agent_tools.cmd_blacklist = list(self.window.core.agents.tools.cmd_blacklist)
             agent_tools.set_context(context)
             agent_tools.set_computer_runtime(computer_runtime)
             agent_tools.set_idx(vector_store_idx)
@@ -189,6 +199,8 @@ class Runner:
                 "preset": context.preset if context else None,
                 "schema": schema,
                 "computer_runtime": computer_runtime,
+                "agent_tools": agent_tools,
+                "stream": bool(getattr(context, "stream", False)),
             }
             provider = self.window.core.agents.provider.get(agent_id, context.mode)
             # Preserve late/plugin system-prompt additions for providers that use
@@ -239,6 +251,7 @@ class Runner:
             elif mode == AGENT_MODE_ASSISTANT:
                 return self.llama_assistant.run(**kwargs)
             elif mode == AGENT_MODE_WORKFLOW:
+                kwargs["session"] = session
                 kwargs["history"] = history
                 kwargs["llm"] = llm
                 return asyncio.run(self.llama_workflow.run(**kwargs))
@@ -272,6 +285,7 @@ class Runner:
         if self.window.controller.kernel.stopped():
             return True  # abort if stopped
 
+        self.last_error = None
         agent_id = extra.get("agent_provider", "openai")
         verbose = self.is_verbose()
 
@@ -279,6 +293,9 @@ class Runner:
             # first, check if agent exists
             if not self.window.core.agents.provider.has(agent_id):
                 raise Exception(f"Agent not found: {agent_id}")
+
+            provider = self.window.core.agents.provider.get(agent_id)
+            session = LlamaSession(self.window, context, extra, signals, visible=False)
 
             # prepare input ctx
             ctx = context.ctx
@@ -300,14 +317,16 @@ class Runner:
             # remote tools and lets the adapter own Computer Use continuations.
             llm = self.window.core.idx.llm.get_agent(
                 model,
-                stream=False,
+                stream=True,
                 allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
             workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
 
             # tools
-            agent_tools = self.window.core.agents.tools
+            agent_tools = (Tools(self.window, executor=session.execute_plugin)
+                           if session is not None else self.window.core.agents.tools)
+            agent_tools.cmd_blacklist = list(self.window.core.agents.tools.cmd_blacklist)
             agent_tools.set_context(context)
             agent_tools.set_computer_runtime(computer_runtime)
             agent_tools.set_idx(vector_store_idx)
@@ -336,6 +355,9 @@ class Runner:
             agent_kwargs = {
                 "context": context,
                 "tools": tools,
+                "plugin_tools": agent_tools.get_plugin_tools(context, extra, force=True) if is_cmd else {},
+                "plugin_specs": agent_tools.get_plugin_specs(context, extra, force=True) if is_cmd else [],
+                "schema": self.window.core.agents.custom.get_schema(agent_id),
                 "llm": llm,
                 "model": model,
                 "chat_history": history,
@@ -346,6 +368,8 @@ class Runner:
                 "workdir": workdir,
                 "preset": context.preset if context else None,
                 "computer_runtime": computer_runtime,
+                "agent_tools": agent_tools,
+                "stream": bool(getattr(context, "stream", False)),
             }
             provider = self.window.core.agents.provider.get(agent_id)
             agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
@@ -367,6 +391,7 @@ class Runner:
             }
             # TODO: add support for other modes
             if mode == AGENT_MODE_WORKFLOW:
+                kwargs["session"] = session
                 return asyncio.run(self.llama_workflow.run_once(**kwargs))  # return CtxItem
 
         except Exception as e:

@@ -888,3 +888,38 @@ def test_auto_cleanup_uses_effective_memory_after_exclusion(renderer, fake_windo
 
     renderer.fresh.assert_called_once_with(meta, force=True)
     renderer.auto_cleanup_soft.assert_not_called()
+
+
+@pytest.mark.parametrize('mode', ['agent_llama', 'agent_v2'])
+@pytest.mark.parametrize('full_workflow', [False, True])
+@pytest.mark.parametrize('rebuild', [False, True])
+def test_completed_workflow_respects_display_setting(renderer, mode, full_workflow, rebuild):
+    ctx = CtxItem()
+    ctx.mode = mode
+    ctx.extra = {'agent_timeline': True}
+    ctx.id = 1
+    ctx.output = 'Final'
+    from pygpt_net.item.ctx_part import CtxItemPart
+    ctx.extra['response_final'] = True
+    ctx.parts = [CtxItemPart(output='Final', extra={'agents_v2_final': True})]
+    renderer.pids[1] = MagicMock()
+    renderer.helpers.pre_format_text.side_effect = lambda text, **kwargs: text
+    renderer.get_or_create_pid = MagicMock(return_value=1)
+    original_get = renderer.window.core.config.get.side_effect
+    renderer.window.core.config.get.side_effect = lambda key, default=None: (
+        full_workflow if key == "agent.v2.display_full_workflow" else original_get(key, default)
+    )
+    renderer._ctx_has_final_answer = MagicMock(return_value=True)
+    renderer._build_partial_timeline = MagicMock(return_value=[
+        {'kind': 'text', 'text': 'First', 'part_uuid': 'first'},
+        {'kind': 'text', 'text': 'Second', 'part_uuid': 'second'},
+    ])
+    renderer._agent_v2_timeline_without_final_text = MagicMock(side_effect=lambda ctx, timeline: timeline)
+    renderer._agent_v2_collapsed_workflow_step_count = MagicMock(return_value=2)
+    block = renderer._build_render_block(CtxMeta(), ctx, None, 'Final', action_state={}, rebuild=rebuild)
+    if full_workflow:
+        assert block.extra['collapsed_workflow'] is None
+        assert len(block.extra['partial_timeline']) == 2
+    else:
+        assert block.extra['collapsed_workflow']['expanded'] is False
+        assert len(block.extra['collapsed_workflow']['timeline']) == 2

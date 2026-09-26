@@ -45,6 +45,8 @@ def dummy_window():
     win.core.idx = MagicMock()
     win.core.idx.llm = MagicMock()
     win.core.idx.llm.get.return_value = "dummy_llm"
+    win.core.idx.is_valid.return_value = False
+    win.core.command.get_functions.return_value = []
     win.core.agents.tools = MagicMock()
     win.core.agents.tools.prepare.return_value = ["tool1"]
     win.core.agents.tools.get_function_tools.return_value = ["ftool"]

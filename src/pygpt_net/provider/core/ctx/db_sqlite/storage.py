@@ -1238,7 +1238,7 @@ class Storage:
         # Persist the rich partial/task graph only for workflow modes. Ordinary
         # Chat/Chat with Files/etc. keep ctx_item as the durable format and may
         # allocate CtxItemPart objects later purely for the live tool loop.
-        if should_persist_ctx_partials(item.mode):
+        if item.uses_agent_timeline():
             if not item.parts:
                 part = CtxItemPart(parent_item_id=item.id, output=item.output)
                 self.insert_part(part)
