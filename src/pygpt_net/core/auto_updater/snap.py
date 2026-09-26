@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 20:00:00                  #
+# Updated Date: 2026.09.26 16:50:00                  #
 # ================================================== #
 
 import shlex
@@ -48,10 +48,10 @@ class SnapUpdateFlow(BaseUpdateFlow):
             raise UpdateError(trans("update.auto.error.terminal_missing"))
 
         if not self.context.confirm(
-                trans("update.auto.confirm.command.title"),
+                trans("update.auto.confirm.restart.title"),
                 trans("update.auto.confirm.snap").format(command="sudo snap refresh pygpt")):
-            self.log("Snap refresh confirmation declined.")
-            return UpdateResult(success=False, message=trans("update.auto.cancelled"))
+            self.log("Restart/Snap update confirmation declined.")
+            return UpdateResult(success=False)
 
         self.context.progress("update.auto.status.preparing", percent=None)
         self.log(f"Scheduling terminal command after application exit: {command!r}.")

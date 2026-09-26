@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 20:00:00                  #
+# Updated Date: 2026.09.26 16:50:00                  #
 # ================================================== #
 
 import os
@@ -116,12 +116,6 @@ class AppImageUpdateFlow(BaseUpdateFlow):
         else:
             self.log(f"AppImage URL already points to a concrete asset: {url!r}.")
 
-        if not self.context.confirm(
-                trans("update.auto.confirm.download.title"),
-                trans("update.auto.confirm.download").format(version=version)):
-            self.log("Download confirmation declined.")
-            return UpdateResult(success=False, message=trans("update.auto.cancelled"))
-
         # Stage the new binary under its target-version filename.  The
         # currently running AppImage may contain the old version in its name
         # (e.g. PyGPT-2.8.30-...).  Keeping the staged/final path separate
@@ -157,7 +151,7 @@ class AppImageUpdateFlow(BaseUpdateFlow):
                 self.log(f"Removed staged AppImage: {staged!r}.")
             except OSError as exc:
                 self.log(f"Unable to remove staged AppImage {staged!r}: {exc}")
-            return UpdateResult(success=False, message=trans("update.auto.cancelled"))
+            return UpdateResult(success=False)
 
         try:
             args = list(sys.argv[1:])

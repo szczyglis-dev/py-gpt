@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 20:00:00                  #
+# Updated Date: 2026.09.26 16:50:00                  #
 # ================================================== #
 
 import os
@@ -34,12 +34,6 @@ class LinuxArchiveUpdateFlow(BaseUpdateFlow):
         version = self.payload.version
         url = self.payload.download_linux or AUTO_UPDATER_LINUX_ARCHIVE_URL.format(version=version)
         self.log(f"Flow started: version={version!r}, download_url={url!r}, executable={sys.executable!r}.")
-        if not self.context.confirm(
-                trans("update.auto.confirm.download.title"),
-                trans("update.auto.confirm.download").format(version=version)):
-            self.log("Download confirmation declined.")
-            return UpdateResult(success=False, message=trans("update.auto.cancelled"))
-
         tmp_root = os.path.join(self.window.core.config.get_user_dir("tmp"), "updates")
         os.makedirs(tmp_root, exist_ok=True)
         ext = ".zip" if ".zip" in url.lower() else ".tar.gz"
@@ -76,7 +70,7 @@ class LinuxArchiveUpdateFlow(BaseUpdateFlow):
                     staged = os.path.join(install_dir, name + ".update")
                     if os.path.exists(staged) or os.path.islink(staged):
                         clear_path(staged, self.context)
-                return UpdateResult(success=False, message=trans("update.auto.ready.not_installed"))
+                return UpdateResult(success=False)
 
             self.context.progress("update.auto.status.preparing", percent=None)
             try:

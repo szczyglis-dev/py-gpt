@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 20:00:00                  #
+# Updated Date: 2026.09.26 16:50:00                  #
 # ================================================== #
 
 import os
@@ -28,21 +28,17 @@ class PipUpdateFlow(BaseUpdateFlow):
     def run(self) -> UpdateResult:
         command = [sys.executable, "-m", "pip", "install", "--upgrade", AUTO_UPDATER_PYPI_PACKAGE]
         self.log(f"Flow started; interpreter={sys.executable!r}, update_command={command!r}.")
-        confirm_message = trans("update.auto.confirm.pip").format(command=" ".join(command))
         if os.name == "nt":
             # On Windows the running console-script executable can be locked,
-            # so pip must run only after PyGPT has fully exited.
-            confirm_message += "\n\n" + trans("update.auto.confirm.restart.apply").format(
-                version=self.payload.version
-            )
+            # so pip must run only after PyGPT has fully exited. The initial
+            # update consent is handled by AutoUpdater; this is the single
+            # post-preparation question about closing/restarting the app.
+            if not self.context.confirm(
+                    trans("update.auto.confirm.restart.title"),
+                    trans("update.auto.confirm.restart.apply").format(version=self.payload.version)):
+                self.log("Restart/update confirmation declined for Windows pip update.")
+                return UpdateResult(success=False)
 
-        if not self.context.confirm(
-                trans("update.auto.confirm.command.title"),
-                confirm_message):
-            self.log("pip upgrade confirmation declined.")
-            return UpdateResult(success=False, message=trans("update.auto.cancelled"))
-
-        if os.name == "nt":
             self.context.progress("update.auto.status.preparing", percent=None)
             restart = current_restart_command()
             self.log(
@@ -78,7 +74,7 @@ class PipUpdateFlow(BaseUpdateFlow):
                 trans("update.auto.confirm.restart.title"),
                 trans("update.auto.confirm.restart.updated")):
             self.log("Restart declined after successful pip update.")
-            return UpdateResult(True, trans("update.auto.updated.no_restart"), quit_app=False)
+            return UpdateResult(True, quit_app=False)
 
         self.context.progress("update.auto.status.preparing", percent=None)
         restart = current_restart_command()

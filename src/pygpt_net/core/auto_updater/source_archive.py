@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 20:00:00                  #
+# Updated Date: 2026.09.26 16:50:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -118,12 +118,6 @@ class SourceArchiveUpdateFlow(BaseUpdateFlow):
         if not os.access(package_parent, os.W_OK):
             raise UpdateError(trans("update.auto.error.install_not_writable").format(path=package_parent))
 
-        if not self.context.confirm(
-                trans("update.auto.confirm.download.title"),
-                trans("update.auto.confirm.download").format(version=version)):
-            self.log("Source ZIP download confirmation declined.")
-            return UpdateResult(success=False, message=trans("update.auto.cancelled"))
-
         tmp_root = os.path.join(self.window.core.config.get_user_dir("tmp"), "updates")
         os.makedirs(tmp_root, exist_ok=True)
         archive_path = os.path.join(
@@ -155,16 +149,11 @@ class SourceArchiveUpdateFlow(BaseUpdateFlow):
             self.log(f"Downloaded requirements file: {requirements!r}.")
             if requirements:
                 pip_command = [sys.executable, "-m", "pip", "install", "-r", requirements]
-                if self.context.confirm(
-                        trans("update.auto.confirm.command.title"),
-                        trans("update.auto.confirm.requirements").format(command=" ".join(pip_command))):
-                    self.context.run_process(
-                        pip_command,
-                        status="update.auto.status.requirements",
-                    )
-                    self.log("Source ZIP dependency update completed successfully.")
-                else:
-                    self.log("Source ZIP dependency update skipped by user.")
+                self.context.run_process(
+                    pip_command,
+                    status="update.auto.status.requirements",
+                )
+                self.log("Source ZIP dependency update completed successfully.")
 
             if not self.context.confirm(
                     trans("update.auto.confirm.restart.title"),
@@ -172,7 +161,7 @@ class SourceArchiveUpdateFlow(BaseUpdateFlow):
                 self.log("Restart/apply confirmation declined; removing staged source package.")
                 if os.path.exists(staged_package) or os.path.islink(staged_package):
                     clear_path(staged_package, self.context)
-                return UpdateResult(success=False, message=trans("update.auto.ready.not_installed"))
+                return UpdateResult(success=False)
 
             restart = current_restart_command()
             self.context.progress("update.auto.status.preparing", percent=None)

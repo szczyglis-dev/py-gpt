@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 20:00:00                  #
+# Updated Date: 2026.09.26 16:50:00                  #
 # ================================================== #
 
 import os
@@ -38,11 +38,6 @@ class SourceUpdateFlow(BaseUpdateFlow):
 
         git_command = [git, "-C", self.source_root, "pull", "--ff-only"]
         self.log(f"Prepared git update command: {git_command!r}.")
-        if not self.context.confirm(
-                trans("update.auto.confirm.command.title"),
-                trans("update.auto.confirm.git_pull").format(path=self.source_root)):
-            self.log("git pull confirmation declined.")
-            return UpdateResult(success=False, message=trans("update.auto.cancelled"))
         self.context.run_process(git_command, status="update.auto.status.git_pull")
         self.log("git pull --ff-only completed successfully.")
 
@@ -51,11 +46,6 @@ class SourceUpdateFlow(BaseUpdateFlow):
         if os.path.isfile(requirements):
             pip_command = [sys.executable, "-m", "pip", "install", "-r", requirements]
             self.log(f"Prepared requirements update command: {pip_command!r}.")
-            if not self.context.confirm(
-                    trans("update.auto.confirm.command.title"),
-                    trans("update.auto.confirm.requirements").format(command=" ".join(pip_command))):
-                self.log("requirements installation declined after successful git pull.")
-                return UpdateResult(True, trans("update.auto.source.pulled_no_requirements"), quit_app=False)
             self.context.run_process(
                 pip_command,
                 cwd=self.source_root,
@@ -69,7 +59,7 @@ class SourceUpdateFlow(BaseUpdateFlow):
                 trans("update.auto.confirm.restart.title"),
                 trans("update.auto.confirm.restart.updated")):
             self.log("Restart declined after source update.")
-            return UpdateResult(True, trans("update.auto.updated.no_restart"), quit_app=False)
+            return UpdateResult(True, quit_app=False)
 
         self.context.progress("update.auto.status.preparing", percent=None)
         restart = current_restart_command()
