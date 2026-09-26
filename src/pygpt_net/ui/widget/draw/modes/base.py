@@ -62,6 +62,15 @@ DRAW_MODE_TRANSLATION_KEYS = {
     DrawMode.TEXT: "painter.draw.mode.text",
 }
 
+DRAW_MODE_ICONS = {
+    DrawMode.FREE: ":/icons/brush.svg",
+    DrawMode.ARROW: ":/icons/forward.svg",
+    DrawMode.RECTANGLE: ":/icons/window_maximize.svg",
+    DrawMode.CIRCLE: ":/icons/circle.svg",
+    DrawMode.LINE: ":/icons/window_minimize.svg",
+    DrawMode.TEXT: ":/icons/text.svg",
+}
+
 
 class BaseDrawMode:
     """Base class for a single Painter drawing gesture."""

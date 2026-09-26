@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, Q
 from PySide6.QtCore import QSize
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
-from pygpt_net.ui.widget.draw.modes import DRAW_MODE_TRANSLATION_KEYS
+from pygpt_net.ui.widget.draw.modes import DRAW_MODE_TRANSLATION_KEYS, DRAW_MODE_ICONS
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.utils import trans
@@ -49,7 +49,18 @@ class Painter:
             cb.setMinimumContentsLength(10)
             cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
             for draw_mode in common.get_draw_modes():
-                cb.addItem(trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]), draw_mode.value)
+                icon_path = DRAW_MODE_ICONS.get(draw_mode)
+                if icon_path:
+                    cb.addItem(
+                        QIcon(icon_path),
+                        trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]),
+                        draw_mode.value,
+                    )
+                else:
+                    cb.addItem(
+                        trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]),
+                        draw_mode.value,
+                    )
             cb.currentIndexChanged.connect(lambda _idx: common.change_draw_mode(cb.currentData()))
             nodes[key] = cb
 

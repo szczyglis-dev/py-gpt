@@ -29,6 +29,7 @@ from pygpt_net.ui.widget.draw.modes import (
     DrawMode,
     DRAW_MODE_ORDER,
     DRAW_MODE_TRANSLATION_KEYS,
+    DRAW_MODE_ICONS,
     create_draw_mode_handlers,
 )
 from pygpt_net.utils import trans
@@ -165,7 +166,15 @@ class PainterWidget(QWidget):
         self._draw_action_group.setExclusive(True)
         self._draw_actions = {}
         for draw_mode in DRAW_MODE_ORDER:
-            action = QAction(trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]), self)
+            icon_path = DRAW_MODE_ICONS.get(draw_mode)
+            if icon_path:
+                action = QAction(
+                    QIcon(icon_path),
+                    trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]),
+                    self,
+                )
+            else:
+                action = QAction(trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]), self)
             action.setCheckable(True)
             action.setData(draw_mode.value)
             action.setChecked(draw_mode == self._drawMode)
