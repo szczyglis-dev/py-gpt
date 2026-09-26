@@ -229,6 +229,7 @@ body {
         self.viewport_policy_timer.timeout.connect(self._apply_viewport_policy)
         self.cursor_x = 0
         self.cursor_y = 0
+        self.cursor_visible = False
         self.virtual_url = "about:blank"
         self.base_url = ""
         self.console = []
@@ -333,6 +334,7 @@ body {
         self.model_resolution = None
         self.cursor_x = 0
         self.cursor_y = 0
+        self.cursor_visible = False
         self.virtual_url = "about:blank"
         self.base_url = ""
         self.console = []
@@ -1119,10 +1121,12 @@ body {
                 if box:
                     self.cursor_x = int(box["x"] + box["width"] / 2)
                     self.cursor_y = int(box["y"] + box["height"] / 2)
+                    self.cursor_visible = True
             else:
                 x, y = self._point(p)
                 self.pw_page.mouse.click(x, y, button=button, click_count=count)
                 self.cursor_x, self.cursor_y = x, y
+                self.cursor_visible = True
             self._refresh_playwright_frame()
         else:
             if selector:
@@ -1131,9 +1135,11 @@ body {
                 if not pos:
                     raise RuntimeError(f"Element not found: {selector}")
                 self.cursor_x, self.cursor_y = int(pos["x"]), int(pos["y"])
+                self.cursor_visible = True
             else:
                 x, y = self._point(p)
                 self.cursor_x, self.cursor_y = x, y
+                self.cursor_visible = True
                 self._qt_js(self._js_mouse_event(x, y, "click", button, count))
             self._update_qt_virtual_cursor()
         return self.current_state()
@@ -1149,6 +1155,7 @@ body {
         else:
             x, y = self._point(p)
         self.cursor_x, self.cursor_y = x, y
+        self.cursor_visible = True
         if self.backend == "playwright":
             self._ensure_playwright()
             self.pw_page.mouse.move(x, y)
@@ -1198,6 +1205,7 @@ body {
         dy = int(p.get("dy") or 0)
         if p.get("x") is not None and p.get("y") is not None:
             self.cursor_x, self.cursor_y = self._point(p)
+            self.cursor_visible = True
         if self.backend == "playwright":
             self._ensure_playwright()
             self.pw_page.mouse.move(self.cursor_x, self.cursor_y)
@@ -1226,6 +1234,7 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
 }} return true; }})()"""
             self._qt_js(script)
         self.cursor_x, self.cursor_y = x2, y2
+        self.cursor_visible = True
         self._update_qt_virtual_cursor()
         return self.current_state()
 
@@ -1695,8 +1704,11 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
     def _update_qt_virtual_cursor(self):
         if self.backend != "qt":
             return
-        x, y = self.cursor_x, self.cursor_y
-        script = f"""(() => {{
+        if not self.cursor_visible:
+            script = """(() => { const c=document.getElementById('__pygpt_virtual_cursor'); if(c)c.remove(); return true; })()"""
+        else:
+            x, y = self.cursor_x, self.cursor_y
+            script = f"""(() => {{
 let c=document.getElementById('__pygpt_virtual_cursor');
 if(!c){{c=document.createElement('div');c.id='__pygpt_virtual_cursor';Object.assign(c.style,{{position:'fixed',zIndex:'2147483647',width:'14px',height:'14px',border:'2px solid #ff2d55',borderRadius:'50%',pointerEvents:'none',boxSizing:'border-box'}});document.documentElement.appendChild(c);}}
 c.style.left='{x-7}px'; c.style.top='{y-7}px'; return true; }})()"""
@@ -1977,7 +1989,7 @@ return true; }})()"""
 
     def _draw_cursor_on_pixmap(self, pixmap, x=None, y=None):
         from PySide6.QtGui import QPainter, QPen
-        if pixmap is None or pixmap.isNull():
+        if pixmap is None or pixmap.isNull() or not self.cursor_visible:
             return
         painter = QPainter(pixmap)
         pen = QPen(Qt.GlobalColor.red)

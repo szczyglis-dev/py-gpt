@@ -555,7 +555,7 @@ class SandboxView(QWidget):
             painter.drawPixmap(self.rect(), self._pixmap)
         else:
             painter.fillRect(self.rect(), self.palette().base())
-        if self.tool is not None:
+        if self.tool is not None and self.tool.cursor_visible:
             x, y = self.tool.cursor_x, self.tool.cursor_y
             pen = QPen(self.palette().highlight().color())
             pen.setWidth(2)
