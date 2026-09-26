@@ -61,7 +61,7 @@ def test_copy_to_menu_routes_to_all_available_targets(qapp):
         action.trigger()
 
     controller.chat.common.append_to_input.assert_called_once_with("hello")
-    controller.calendar.note.append_text.assert_called_once_with("hello")
+    controller.calendar.note.append_text_today.assert_called_once_with("hello")
     controller.notepad.append_text.assert_any_call("hello", "a")
     controller.notepad.append_text.assert_any_call("hello", "b")
     interpreter.append_to_input.assert_called_once_with("hello")

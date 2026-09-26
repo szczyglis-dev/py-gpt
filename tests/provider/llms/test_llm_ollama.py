@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock, patch, mock_open, Mock
 
 from tests.mocks import mock_window
-from pygpt_net.provider.llms.ollama import OllamaLLM as Wrapper
+from pygpt_net.provider.llms.ollama.provider import OllamaLLM as Wrapper
 
 
 def test_completion(mock_window):

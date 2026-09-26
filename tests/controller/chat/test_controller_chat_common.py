@@ -217,22 +217,25 @@ def test_chat_common_stop_client_swallows_external_api_error():
 
 
 @pytest.mark.parametrize(
-    "provider,key",
+    "provider",
     [
-        ("anthropic", "api_key_anthropic"),
-        ("google", "api_key_google"),
-        ("x_ai", "api_key_xai"),
-        ("perplexity", "api_key_perplexity"),
-        ("deepseek_api", "api_key_deepseek"),
-        ("mistral_ai", "api_key_mistral"),
+        "anthropic",
+        "google",
+        "x_ai",
+        "perplexity",
+        "deepseek_api",
+        "mistral_ai",
     ],
 )
-def test_chat_common_check_api_key_rejects_missing_remote_provider_key(provider, key):
+def test_chat_common_check_api_key_rejects_missing_remote_provider_key(provider):
     common = _common()
     model = MagicMock()
     model.provider = provider
     model.is_ollama.return_value = False
-    common.window.core.config.get.side_effect = lambda name, default=None: None if name == key else "other"
+    llm_provider = MagicMock()
+    llm_provider.has_config.return_value = True
+    llm_provider.get_config.return_value = None
+    common.window.core.llm.get.return_value = llm_provider
     common.window.core.llm.get_provider_name.return_value = "Provider"
 
     assert common.check_api_key("chat", model, monit=True) is False

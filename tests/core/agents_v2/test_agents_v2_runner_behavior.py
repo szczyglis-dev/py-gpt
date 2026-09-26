@@ -64,7 +64,7 @@ def test_agents_v2_runner_call_treats_cancelled_error_as_normal_control_flow(mon
     assert emitter.finished == [None]
 
 
-def test_agents_v2_runner_call_logs_error_and_finishes_visible_response(monkeypatch):
+def test_agents_v2_runner_call_logs_error_and_returns_false_for_bridge_error_path(monkeypatch):
     FakeEmitter.instances.clear()
     monkeypatch.setattr(runner_module, "RuntimeEmitter", FakeEmitter)
     window = MagicMock()
@@ -74,11 +74,11 @@ def test_agents_v2_runner_call_logs_error_and_finishes_visible_response(monkeypa
     result = runner.call(SimpleNamespace(), {}, SimpleNamespace())
 
     emitter = FakeEmitter.instances[-1]
-    assert result is True
+    assert result is False
     assert isinstance(runner.get_error(), RuntimeError)
     window.core.debug.log.assert_called_once()
     assert emitter.clear_count == 1
-    assert emitter.finished == ["Agents: boom"]
+    assert emitter.finished == [None]
 
 
 @pytest.mark.parametrize("checkpoint", [False, True])

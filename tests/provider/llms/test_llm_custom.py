@@ -12,9 +12,9 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from pygpt_net.core.types import MODE_CHAT, MODE_LLAMA_INDEX
+from pygpt_net.core.types import MODE_CHAT, MODE_LLAMA_INDEX, MODE_EMBEDDINGS
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.llms.custom import CustomLLM
+from pygpt_net.provider.llms.custom.provider import CustomLLM
 
 
 def _window():
@@ -38,7 +38,7 @@ def test_init_and_api_key_placeholder():
     assert provider.id == "custom_test_12345678"
     assert provider.name == "Test API"
     assert provider.api_base == "https://api.example/v1"
-    assert provider.type == [MODE_LLAMA_INDEX, "embeddings"]
+    assert provider.type == [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
     assert provider.is_runtime_custom is True
     assert provider.get_api_key() == "custom"
 

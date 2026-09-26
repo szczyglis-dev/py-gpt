@@ -39,9 +39,14 @@ def isolate_openai_env(monkeypatch):
         monkeypatch.setenv(key, "__PYGPT_TEST_SENTINEL__")
 
 def test_init_sets_all_envs(mock_window, isolate_openai_env):
-    mock_window.core.config.set("api_key", "KEY")
-    mock_window.core.config.set("api_endpoint", "https://api.example.com")
-    mock_window.core.config.set("organization_key", "ORG")
+    values = {
+        "api_key": "KEY",
+        "api_base": "https://api.example.com",
+        "organization": "ORG",
+    }
+    mock_window.core.llm.get_config.side_effect = (
+        lambda provider, key, default=None: values.get(key, default)
+    )
     llm = Llm(mock_window)
 
     llm.init()
@@ -86,9 +91,14 @@ def test_get_calls_init_and_llama_with_stream_and_sets_initialized(mock_window):
 
 def test_get_returns_default_openai_when_model_none_and_sets_env(mock_window, patch_openai, isolate_openai_env):
     DummyOpenAI, instances = patch_openai
-    mock_window.core.config.set("api_key", "KEYX")
-    mock_window.core.config.set("api_endpoint", "https://api.test")
-    mock_window.core.config.set("organization_key", "ORGX")
+    values = {
+        "api_key": "KEYX",
+        "api_base": "https://api.test",
+        "organization": "ORGX",
+    }
+    mock_window.core.llm.get_config.side_effect = (
+        lambda provider, key, default=None: values.get(key, default)
+    )
 
     llm = Llm(mock_window)
     result = llm.get(model=None)

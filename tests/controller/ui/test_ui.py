@@ -80,7 +80,8 @@ def test_update_tokens(mock_window):
     assert "222" in tooltip
     assert "133" in tooltip
     assert "41" in tooltip
-    assert "35" in tooltip
+    # Extra tokens are still counted in TOTAL but intentionally hidden from the tooltip.
+    assert "35" not in tooltip
     assert "~ 71 / 822" in tooltip
 
 

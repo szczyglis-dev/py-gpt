@@ -17,6 +17,7 @@ def _widget():
     tool = SimpleNamespace(
         detach_surface=MagicMock(),
         runtime_call=MagicMock(),
+        open_address=MagicMock(),
         current_state=MagicMock(return_value={
             "url": "https://example.com",
             "can_go_back": False,
@@ -96,10 +97,7 @@ def test_web_browser_widget_address_enter_routes_raw_user_input_to_runtime():
 
     ToolWidget._on_address_enter(obj)
 
-    obj.tool.runtime_call.assert_called_once_with(
-        "canvas_open",
-        {"url": "example.com", "__ui": True},
-    )
+    obj.tool.open_address.assert_called_once_with("example.com")
 
 
 def test_web_browser_widget_runtime_state_updates_view_and_real_tab_title():

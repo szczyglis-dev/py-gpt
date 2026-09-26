@@ -47,7 +47,9 @@ def test_settings():
     path = os.path.join(config.get_app_path(), "data", "config", "settings.json")
     with open(path, "r") as f:
         data = json.load(f)
-    assert "api_key" in data
+    # Provider API settings are declared dynamically by LLM providers and
+    # are no longer stored as top-level entries in settings.json.
+    assert "api_key" not in data
     assert "api_custom_providers" in data
     custom = data["api_custom_providers"]
     assert custom["section"] == "custom_providers"

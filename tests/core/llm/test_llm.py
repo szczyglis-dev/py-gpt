@@ -9,7 +9,8 @@
 # Updated Date: 2026.09.05 12:30:00                  #
 # ================================================== #
 
-from types import SimpleNamespace
+import sys
+from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from pygpt_net.core.llm import LLM
@@ -24,6 +25,12 @@ class DummyCustomLLM:
         self.api_key = api_key
         self.type = [MODE_LLAMA_INDEX]
         self.is_runtime_custom = True
+
+
+def _patch_custom_llm():
+    module = ModuleType("pygpt_net.provider.llms.custom.provider")
+    module.CustomLLM = DummyCustomLLM
+    return patch.dict(sys.modules, {"pygpt_net.provider.llms.custom.provider": module})
 
 
 def _make_manager(rows):
@@ -57,7 +64,7 @@ def test_sync_custom_adds_valid_runtime_providers_and_keeps_builtin():
     builtin.type = [MODE_LLAMA_INDEX]
     manager.register("openai", builtin)
 
-    with patch("pygpt_net.provider.llms.custom.CustomLLM", DummyCustomLLM):
+    with _patch_custom_llm():
         manager.sync_custom(force=True)
 
     provider_id = manager.make_custom_provider_id("My API")
@@ -81,7 +88,7 @@ def test_sync_custom_updates_and_removes_runtime_provider_without_touching_built
     builtin.type = [MODE_LLAMA_INDEX]
     manager.register("openai", builtin)
 
-    with patch("pygpt_net.provider.llms.custom.CustomLLM", DummyCustomLLM):
+    with _patch_custom_llm():
         manager.sync_custom(force=True)
         provider_id = manager.make_custom_provider_id("Runtime")
         first = manager.get(provider_id)
@@ -111,7 +118,7 @@ def test_sync_custom_does_not_overwrite_provider_registered_by_code_with_same_id
     registered.type = [MODE_LLAMA_INDEX]
     manager.register(provider_id, registered)
 
-    with patch("pygpt_net.provider.llms.custom.CustomLLM", DummyCustomLLM):
+    with _patch_custom_llm():
         manager.sync_custom(force=True)
 
     assert manager.get(provider_id) is registered
@@ -125,7 +132,7 @@ def test_get_choices_includes_runtime_custom_provider_and_sorts_by_name():
     ]
     manager, _ = _make_manager(rows)
 
-    with patch("pygpt_net.provider.llms.custom.CustomLLM", DummyCustomLLM):
+    with _patch_custom_llm():
         choices = manager.get_choices()
 
     assert list(choices.values()) == ["Alpha API", "Zulu API"]

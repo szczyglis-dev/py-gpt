@@ -10,6 +10,7 @@ def plugin(api_key="key", model="whisper-1"):
     core = SimpleNamespace(
         api=SimpleNamespace(openai=SimpleNamespace(get_client=MagicMock(return_value=client))),
         config=SimpleNamespace(get=MagicMock(return_value=api_key)),
+        llm=SimpleNamespace(get_config=MagicMock(return_value=api_key)),
     )
     p = MagicMock()
     p.window = SimpleNamespace(core=core)
@@ -37,9 +38,9 @@ def test_openai_whisper_options_configuration_and_message():
     p.add_option.assert_called_once()
     assert p.add_option.call_args.args[0] == "whisper_model"
     assert provider.is_configured() is True
-    p.window.core.config.get.return_value = ""
+    p.window.core.llm.get_config.return_value = ""
     assert provider.is_configured() is False
-    p.window.core.config.get.return_value = None
+    p.window.core.llm.get_config.return_value = None
     assert provider.is_configured() is False
     assert "OpenAI API key" in provider.get_config_message()
 

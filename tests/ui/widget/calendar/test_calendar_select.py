@@ -9,7 +9,14 @@ from pygpt_net.ui.widget.calendar.select import CalendarSelect
 
 def test_set_tab_and_page_change_update_state_and_controller():
     window = MagicMock()
-    widget = SimpleNamespace(tab=None, currentYear=0, currentMonth=0, window=window)
+    widget = SimpleNamespace(
+        tab=None,
+        currentYear=0,
+        currentMonth=0,
+        window=window,
+        _cell_rects={},
+        _note_marker_rects={},
+    )
     tab = SimpleNamespace(column_idx=2)
 
     CalendarSelect.set_tab(widget, tab)
@@ -45,7 +52,7 @@ def test_get_color_for_status_uses_mapping_or_defaults():
     assert CalendarSelect.get_color_for_status(widget, 99) == ("bg", "font")
 
 
-def test_day_click_updates_date_and_dispatches_both_calendar_actions_and_focus():
+def test_day_click_updates_date_and_dispatches_selection_and_focus():
     date = QDate(2026, 9, 7)
     window = MagicMock()
     widget = SimpleNamespace(currentYear=0, currentMonth=0, currentDay=0, window=window, tab=SimpleNamespace(column_idx=3))
@@ -54,7 +61,7 @@ def test_day_click_updates_date_and_dispatches_both_calendar_actions_and_focus()
 
     assert (widget.currentYear, widget.currentMonth, widget.currentDay) == (2026, 9, 7)
     window.controller.calendar.on_day_select.assert_called_once_with(2026, 9, 7)
-    window.controller.calendar.on_ctx_select.assert_called_once_with(2026, 9, 7)
+    window.controller.calendar.on_ctx_select.assert_not_called()
     window.controller.tabs.on_column_focus.assert_called_once_with(3)
 
 
