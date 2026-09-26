@@ -468,7 +468,7 @@ class Input:
         status_layout.setContentsMargins(4, 0, 0, 5)
 
         bottom_row = QGridLayout()
-        bottom_row.setContentsMargins(2, 0, 2, 0)
+        bottom_row.setContentsMargins(2, 0, 2, 2)
         bottom_row.setHorizontalSpacing(6)
         bottom_row.addLayout(status_layout, 0, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
         bottom_row.addWidget(
