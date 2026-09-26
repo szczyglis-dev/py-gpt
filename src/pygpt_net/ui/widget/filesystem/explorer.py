@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.26 21:15:00                  #
 # ================================================== #
 
 import datetime
@@ -675,6 +675,11 @@ class FileExplorer(QWidget):
         self.header = self.treeView.header()
         self.header.setStretchLastSection(True)
         self.header.setContentsMargins(0, 0, 0, 0)
+        self.header.setSectionsClickable(True)
+        self.header.setSortIndicatorShown(True)
+        self.header.setSortIndicator(0, Qt.AscendingOrder)
+        self.treeView.setSortingEnabled(True)
+        self.model.sort(0, Qt.AscendingOrder)
 
         # Persisted column widths across model refreshes/layout changes
         self._saved_column_widths = {}
@@ -1021,6 +1026,13 @@ class FileExplorer(QWidget):
 
             use_menu = QMenu(trans('action.use'), self)
 
+            # Keep the direct AI action first in the Use submenu.
+            actions['use_read_cmd'] = QAction(self._icons['read'], trans('action.use.read_cmd'), self)
+            actions['use_read_cmd'].triggered.connect(
+                lambda: self.window.controller.files.make_read_cmd(target_multi)
+            )
+            use_menu.addAction(actions['use_read_cmd'])
+
             files_only = all(os.path.isfile(p) for p in paths)
             if files_only:
                 actions['use_attachment'] = QAction(self._icons['attachment'], trans('action.use.attachment'), self)
@@ -1046,14 +1058,8 @@ class FileExplorer(QWidget):
                 lambda: self.window.controller.files.copy_sys_path(target_multi)
             )
 
-            actions['use_read_cmd'] = QAction(self._icons['read'], trans('action.use.read_cmd'), self)
-            actions['use_read_cmd'].triggered.connect(
-                lambda: self.window.controller.files.make_read_cmd(target_multi)
-            )
-
             use_menu.addAction(actions['use_copy_work_path'])
             use_menu.addAction(actions['use_copy_sys_path'])
-            use_menu.addAction(actions['use_read_cmd'])
             menu.addMenu(use_menu)
 
             allowed_any = any(self.window.core.idx.indexing.is_allowed(p) for p in paths)
@@ -1137,14 +1143,14 @@ class FileExplorer(QWidget):
                 a_unpack.triggered.connect(lambda: self.action_unpack(target_multi))
                 menu.addAction(a_unpack)
 
-            menu.addSeparator()            
+            menu.addSeparator()
             menu.addAction(actions['refresh'])
             menu.addAction(actions['touch'])
             menu.addAction(actions['mkdir'])
-            menu.addAction(actions['upload'])
             menu.addSeparator()
-
+            menu.addAction(actions['upload'])
             menu.addAction(actions['download'])
+            menu.addSeparator()
             menu.addAction(actions['rename'])
             menu.addAction(actions['duplicate'])
             menu.addAction(actions['delete'])
@@ -1687,6 +1693,22 @@ class IndexedFileSystemModel(QFileSystemModel):
             self.setReadOnly(False)
         except Exception:
             pass
+
+    def hasChildren(self, parent=QModelIndex()) -> bool:
+        """Hide expand indicators for directories that are actually empty."""
+        if parent.isValid():
+            try:
+                path = self.filePath(parent.siblingAtColumn(0))
+                if path and self.isDir(parent.siblingAtColumn(0)):
+                    with os.scandir(path) as entries:
+                        return next(entries, None) is not None
+            except OSError:
+                # Keep QFileSystemModel's lazy/default behavior when the directory
+                # cannot be inspected (permissions, transient mount, etc.).
+                pass
+            except Exception:
+                pass
+        return super().hasChildren(parent)
 
     def refresh_path(self, path):
         index = self.index(path)
