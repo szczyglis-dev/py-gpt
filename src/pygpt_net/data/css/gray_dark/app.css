@@ -181,9 +181,10 @@ QComboBox::item:checked {{
   qproperty-todayTextColor: #000000;
   qproperty-todayFontBold: false;
   qproperty-inactiveDayBackgroundColor: transparent;
+  qproperty-inactiveDayTextColor: #373737;
   qproperty-dayBorderColor: #3c3f47;
-  qproperty-counterBackgroundColor: #50535d;
-  qproperty-counterTextColor: #f1f3f4;
+  qproperty-counterBackgroundColor: transparent;
+  qproperty-counterTextColor: #5a5a5a;
   qproperty-headerBackgroundColor: transparent;
   qproperty-headerFontBold: true;
   qproperty-hoverDayBackgroundColor: #24262c;

@@ -6,17 +6,71 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.26 15:30:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QTime, QTimer
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup
+from PySide6.QtCore import Qt, QDate, QLocale, QTime, QTimer
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup
 
+from pygpt_net.ui.widget.calendar.note import CalendarNotePopup
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
 from pygpt_net.ui.widget.element.checkbox import ColorCheckbox
-from pygpt_net.ui.widget.element.labels import HelpLabel, IconLabel
+from pygpt_net.ui.widget.element.labels import IconLabel
 from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
+
+
+# Toggle horizontal centering of the responsive month grid.
+CENTER_CALENDAR = True
+
+
+class CalendarSquareHost(QWidget):
+    """Keep the calendar square and responsive inside the Calendar tab."""
+
+    def __init__(self, calendar: QWidget, parent=None):
+        super().__init__(parent)
+        self.calendar = calendar
+
+        # Do not put the calendar in a layout here. A fixed-size child inside a
+        # layout propagates its minimum size back to the host, which prevents
+        # the host from shrinking when the application window gets smaller.
+        # Keep it as a normal child and resize it from the host's resize event.
+        self.calendar.setParent(self)
+        self.calendar.setMinimumSize(0, 0)
+        self.calendar.setMaximumSize(16777215, 16777215)
+        self.calendar.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+
+        self.setMinimumSize(0, 0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._fit_calendar()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # The final host size may only be known after the tab/layout has been
+        # shown, so fit once more on the next event-loop iteration.
+        QTimer.singleShot(0, self._fit_calendar)
+
+    def _fit_calendar(self) -> None:
+        """Fit the largest possible square and optionally center it horizontally."""
+        rect = self.contentsRect()
+        side = min(rect.width(), rect.height())
+        if side <= 0:
+            return
+
+        x = max(0, (rect.width() - side) // 2) if CENTER_CALENDAR else 0
+        y = 0
+
+        geometry = self.calendar.geometry()
+        if (
+            geometry.x() != x
+            or geometry.y() != y
+            or geometry.width() != side
+            or geometry.height() != side
+        ):
+            self.calendar.setGeometry(x, y, side, side)
 
 
 class Calendar:
@@ -41,6 +95,7 @@ class Calendar:
         ui.calendar['select'].setMinimumSize(200, 200)
         ui.calendar['select'].setGridVisible(True)
         ui.calendar['note'] = CalendarNote(self.window)
+        ui.calendar['note.popup'] = CalendarNotePopup(self.window, ui.calendar['note'])
 
     def setup(self) -> QWidget:
         """
@@ -52,6 +107,7 @@ class Calendar:
         body = self.window.core.tabs.from_widget(self.setup_calendar())
         body.append(self.window.ui.calendar['note'])
         body.append(self.window.ui.calendar['select'])
+        body.add_ref(self.window.ui.calendar['note.popup'])
         return body
 
     def _on_filter_id_clicked(self, id_: int) -> None:
@@ -60,6 +116,31 @@ class Calendar:
 
     def _on_counters_all_toggled(self, checked: bool) -> None:
         self.window.controller.calendar.note.toggle_counters_all(checked)
+
+    def _current_weekday_text(self) -> str:
+        """Return today's full weekday name in the active application language."""
+        today = QDate.currentDate()
+        try:
+            lang = self.window.core.config.get_lang() or "en"
+            weekday = QLocale(lang).dayName(
+                today.dayOfWeek(),
+                QLocale.FormatType.LongFormat,
+            ).strip().rstrip(".")
+            if weekday:
+                return weekday
+        except Exception:
+            pass
+        return today.toString("dddd")
+
+    def _update_clock(self) -> None:
+        """Refresh the weekday and clock labels from the same timer."""
+        nodes = self.window.ui.nodes
+        weekday = nodes.get('calendar.clock.weekday')
+        clock = nodes.get('calendar.clock')
+        if weekday is not None:
+            weekday.setText(self._current_weekday_text())
+        if clock is not None:
+            clock.setText(QTime.currentTime().toString("HH:mm"))
 
     def setup_filters(self) -> QWidget:
         """
@@ -93,21 +174,22 @@ class Calendar:
             layout.addStretch()
 
             nodes['filter.ctx.labels'] = ColorCheckbox(self.window)
+            nodes['calendar.clock.weekday'] = QLabel(self._current_weekday_text(), widget)
+            nodes['calendar.clock.weekday'].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             nodes['calendar.clock.icon'] = IconLabel(":/icons/clock.svg", widget, hover=False)
-            nodes['calendar.clock'] = QLabel(QTime.currentTime().toString("HH:mm:ss"), widget)
+            nodes['calendar.clock'] = QLabel(QTime.currentTime().toString("HH:mm"), widget)
             nodes['calendar.clock'].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
             labels_layout = QHBoxLayout()
             labels_layout.setContentsMargins(0, 0, 0, 0)
             labels_layout.addWidget(nodes['filter.ctx.labels'], 1)
+            labels_layout.addWidget(nodes['calendar.clock.weekday'], 0, Qt.AlignRight | Qt.AlignVCenter)
             labels_layout.addWidget(nodes['calendar.clock.icon'], 0, Qt.AlignRight | Qt.AlignVCenter)
             labels_layout.addWidget(nodes['calendar.clock'], 0, Qt.AlignRight | Qt.AlignVCenter)
 
             clock_timer = QTimer(widget)
             clock_timer.setInterval(1000)
-            clock_timer.timeout.connect(
-                lambda: nodes['calendar.clock'].setText(QTime.currentTime().toString("HH:mm:ss"))
-            )
+            clock_timer.timeout.connect(self._update_clock)
             clock_timer.start()
             nodes['calendar.clock.timer'] = clock_timer
 
@@ -136,6 +218,8 @@ class Calendar:
             nodes['filter.ctx.radio.indexed'].setText(trans("filter.ctx.radio.indexed"))
             nodes['filter.ctx.counters.all'].setText(trans("filter.ctx.counters.all"))
 
+        self._update_clock()
+
         desired = bool(self.window.core.config.get("ctx.counters.all"))
         if nodes['filter.ctx.counters.all'].isChecked() != desired:
             nodes['filter.ctx.counters.all'].setChecked(desired)
@@ -147,58 +231,33 @@ class Calendar:
         """
         Setup calendar
 
-        :return: QSplitter
+        :return: QWidget
         """
         ui = self.window.ui
-        nodes = ui.nodes
         calendar = ui.calendar
 
-        select_layout = QVBoxLayout()
-        select_layout.addWidget(calendar['select'])
-        select_layout.setContentsMargins(5, 0, 5, 0)
-
-        tip = nodes.get('tip.output.tab.calendar')
-        if tip is None:
-            tip = HelpLabel(trans('tip.output.tab.calendar'), self.window)
-            nodes['tip.output.tab.calendar'] = tip
-        else:
-            tip.setText(trans('tip.output.tab.calendar'))
-
-        note_label = calendar.get('note.label')
-        if note_label is None:
-            note_label = QLabel(trans('calendar.note.label'))
-            calendar['note.label'] = note_label
-        else:
-            note_label.setText(trans('calendar.note.label'))
-
         layout = QVBoxLayout()
-        layout.addWidget(note_label)
-        layout.addWidget(calendar['note'])
-        layout.addWidget(tip)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(5, 0, 5, 0)
+        layout.setSpacing(6)
+
+        # Keep the month view inside the existing Calendar tab hierarchy.
+        # The host is managed by Qt's normal layout, while the calendar itself
+        # is resized to the largest square that fits. Horizontal centering can
+        # be toggled with CENTER_CALENDAR at the top of this module.
+        calendar_host = CalendarSquareHost(calendar['select'])
+        layout.addWidget(calendar_host, 1)
+
+        filters = self.setup_filters()
+        filters.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        layout.addWidget(filters, 0)
 
         widget = QWidget()
         widget.setLayout(layout)
+        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        filters = self.setup_filters()
-        select_layout.addWidget(filters)
+        # Day notes are edited in a floating, resizable popup.  The calendar
+        # no longer needs a horizontal splitter or a permanently visible note
+        # textarea on the right.
+        ui.splitters.pop('calendar', None)
 
-        select_widget = QWidget()
-        select_widget.setLayout(select_layout)
-
-        ui.splitters['calendar'] = QSplitter(Qt.Horizontal)
-        ui.splitters['calendar'].addWidget(select_widget)
-        ui.splitters['calendar'].addWidget(widget)
-
-        # Default to a wide calendar and a compact note pane (75/25).
-        # This is only the initial geometry: the layout controller may restore
-        # a previously saved user position afterwards, and manual splitter
-        # changes remain fully resizable/persistent.
-        ui.splitters['calendar'].setStretchFactor(0, 3)
-        ui.splitters['calendar'].setStretchFactor(1, 1)
-        ui.splitters['calendar'].setSizes([750, 250])
-
-        ui.splitters['calendar'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        filters.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
-        return self.window.core.tabs.from_widget(ui.splitters['calendar'])
+        return self.window.core.tabs.from_widget(widget)

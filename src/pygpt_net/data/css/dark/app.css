@@ -178,11 +178,12 @@ QComboBox::item:checked {{
 .calendar {{
   qproperty-todayBackgroundColor: #ffffff;
   qproperty-todayTextColor: #000000;
-  qproperty-todayFontBold: false;
+  qproperty-todayFontBold: true;
   qproperty-inactiveDayBackgroundColor: transparent;
+  qproperty-inactiveDayTextColor: #373737;
   qproperty-dayBorderColor: #292929;
-  qproperty-counterBackgroundColor: #464646;
-  qproperty-counterTextColor: #ffffff;
+  qproperty-counterBackgroundColor: transparent;
+  qproperty-counterTextColor: #5a5a5a;
   qproperty-headerBackgroundColor: transparent;
   qproperty-headerFontBold: true;
   qproperty-hoverDayBackgroundColor: #1e1e1e;

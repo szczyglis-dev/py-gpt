@@ -328,9 +328,10 @@ QMenu::indicator {{
   qproperty-todayTextColor: #17382d;
   qproperty-todayFontBold: true;
   qproperty-inactiveDayBackgroundColor: #f4faf7;
+  qproperty-inactiveDayTextColor: #787878;
   qproperty-dayBorderColor: #e8f4ee;
-  qproperty-counterBackgroundColor: #e8f4ee;
-  qproperty-counterTextColor: #17382d;
+  qproperty-counterBackgroundColor: transparent;
+  qproperty-counterTextColor: #7a7a7a;
   qproperty-headerBackgroundColor: #c6dbd1;
   qproperty-headerFontBold: true;
   qproperty-hoverDayBackgroundColor: #edf7f2;
