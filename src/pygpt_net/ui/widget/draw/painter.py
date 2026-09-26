@@ -142,6 +142,9 @@ class PainterWidget(QWidget):
         self._act_capture = QAction(QIcon(":/icons/attachment.svg"), trans('painter.btn.capture'), self)
         self._act_capture.triggered.connect(self.action_capture)
 
+        self._act_camera_capture = QAction(QIcon(":/icons/camera.svg"), trans('painter.btn.camera.capture'), self)
+        self._act_camera_capture.triggered.connect(self.action_camera_capture)
+
         self._act_save = QAction(QIcon(":/icons/save.svg"), trans('img.action.save'), self)
         self._act_save.triggered.connect(self.action_save)
 
@@ -182,9 +185,10 @@ class PainterWidget(QWidget):
         self._ctx_menu.addAction(self._act_crop)
         self._ctx_menu.addAction(self._act_fit)
         self._ctx_menu.addSeparator()
+        self._ctx_menu.addAction(self._act_capture)
         self._ctx_menu.addSeparator()
         self._ctx_menu.addAction(self._act_open)
-        self._ctx_menu.addAction(self._act_capture)
+        self._ctx_menu.addAction(self._act_camera_capture)
         self._ctx_menu.addAction(self._act_copy)
         self._ctx_menu.addAction(self._act_paste)
         self._ctx_menu.addAction(self._act_save)
@@ -935,9 +939,13 @@ class PainterWidget(QWidget):
             self.open_image(path)
 
     def action_capture(self):
-        """Capture the image"""
+        """Use an image from the current capture source."""
         self.saveForUndo()
         self.window.controller.painter.capture.use()
+
+    def action_camera_capture(self):
+        """Capture an image from the camera."""
+        self.window.controller.painter.capture.camera()
 
     def action_save(self):
         """Save image to file"""

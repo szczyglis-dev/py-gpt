@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QPixmap, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea, QLabel
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QComboBox, QScrollArea, QLabel
 from PySide6.QtCore import QSize
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
@@ -200,25 +200,6 @@ class Painter:
         top.addWidget(nodes['painter.icon.zoom'])
         top.addWidget(nodes['painter.select.zoom'])
         top.addStretch(1)
-
-        if nodes.get('painter.btn.capture') is None:
-            btn = QPushButton(QIcon(":/icons/attachment.svg"), trans('painter.btn.capture'))
-            btn.clicked.connect(self.window.controller.painter.capture.use)
-            nodes['painter.btn.capture'] = btn
-        top.addWidget(nodes['painter.btn.capture'])
-
-        if nodes.get('painter.btn.camera.capture') is None:
-            btn = QPushButton(QIcon(":/icons/camera.svg"), trans('painter.btn.camera.capture'))
-            btn.clicked.connect(self.window.controller.painter.capture.camera)
-            nodes['painter.btn.camera.capture'] = btn
-        top.addWidget(nodes['painter.btn.camera.capture'])
-
-        if nodes.get('painter.btn.clear') is None:
-            btn = QPushButton(QIcon(":/icons/close.svg"), trans('painter.btn.clear'))
-            # Use the same undo-aware path as the Painter context-menu Clear action.
-            btn.clicked.connect(ui.painter.action_clear)
-            nodes['painter.btn.clear'] = btn
-        top.addWidget(nodes['painter.btn.clear'])
 
         if getattr(ui, 'painter_scroll', None) is None:
             ui.painter_scroll = QScrollArea()
