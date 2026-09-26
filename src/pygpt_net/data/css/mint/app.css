@@ -338,6 +338,9 @@ QMenu::indicator {{
   qproperty-hoverTodayBackgroundColor: #dff5e8;
   qproperty-hoverTodayTextColor: #17382d;
 }}
+QCalendarWidget QAbstractItemView {
+  border-left: 1px solid #e8f4ee;
+}
 QCalendarWidget QAbstractItemView::item {{
     background: #f4faf7;
 }}
