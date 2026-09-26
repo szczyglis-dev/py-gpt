@@ -30,6 +30,9 @@ from pygpt_net.utils import trans
 
 
 class Updater(QObject):
+
+    STARTUP_FAIL_MSG = ">>> CRITICAL <<< Failed to patch {file}. Configuration may be corrupted, trying to launch..."
+
     def __init__(self, window=None):
         """
         Updater core (config data patcher)
@@ -114,7 +117,11 @@ class Updater(QObject):
             config.data.pop("app_updated", None)
             marker_changed = True
 
-        migrated = config.patch(version)
+        try:
+            migrated = config.patch(version)
+        except Exception as e:
+            self.throw_startup_error(e, "config.json")
+            migrated = False
 
         # A release may only bump the version and have no config migration. In
         # that case save explicitly so __meta__.version (and app_updated, when
@@ -147,8 +154,11 @@ class Updater(QObject):
 
         :param version: current app version
         """
-        if self.window.core.models.patch(version):
-            print("Migrated models. [OK]")
+        try:
+            if self.window.core.models.patch(version):
+                print("Migrated models. [OK]")
+        except Exception as e:
+            self.throw_startup_error(e, "models.json")
 
     def patch_presets(self, version: Version):
         """
@@ -156,8 +166,11 @@ class Updater(QObject):
 
         :param version: current app version
         """
-        if self.window.core.presets.patch(version):
-            print("Migrated presets. [OK]")
+        try:
+            if self.window.core.presets.patch(version):
+                print("Migrated presets. [OK]")
+        except Exception as e:
+            self.throw_startup_error(e, "presets")
 
     def patch_ctx(self, version: Version):
         """
@@ -165,8 +178,11 @@ class Updater(QObject):
 
         :param version: current app version
         """
-        if self.window.core.ctx.patch(version):
-            print("Migrated ctx. [OK]")
+        try:
+            if self.window.core.ctx.patch(version):
+                print("Migrated ctx. [OK]")
+        except Exception as e:
+            self.throw_startup_error(e, "ctx")
 
     def patch_assistants(self, version: Version):
         """
@@ -174,8 +190,11 @@ class Updater(QObject):
 
         :param version: current app version
         """
-        if self.window.core.assistants.patch(version):
-            print("Migrated assistants. [OK]")
+        try:
+            if self.window.core.assistants.patch(version):
+                print("Migrated assistants. [OK]")
+        except Exception as e:
+            self.throw_startup_error(e, "assistants")
 
     def patch_attachments(self, version: Version):
         """
@@ -183,8 +202,11 @@ class Updater(QObject):
 
         :param version: current app version
         """
-        if self.window.core.attachments.patch(version):
-            print("Migrated attachments. [OK]")
+        try:
+            if self.window.core.attachments.patch(version):
+                print("Migrated attachments. [OK]")
+        except Exception as e:
+            self.throw_startup_error(e, "attachments")
 
     def patch_indexes(self, version: Version):
         """
@@ -192,8 +214,11 @@ class Updater(QObject):
 
         :param version: current app version
         """
-        if self.window.core.idx.patch(version):
-            print("Migrated indexes. [OK]")
+        try:
+            if self.window.core.idx.patch(version):
+                print("Migrated indexes. [OK]")
+        except Exception as e:
+            self.throw_startup_error(e, "indexes")
 
     def patch_notepad(self, version: Version):
         """
@@ -201,8 +226,22 @@ class Updater(QObject):
 
         :param version: current app version
         """
-        if self.window.core.notepad.patch(version):
-            print("Migrated notepad. [OK]")
+        try:
+            if self.window.core.notepad.patch(version):
+                print("Migrated notepad. [OK]")
+        except Exception as e:
+            self.throw_startup_error(e, "notepad")
+
+    def throw_startup_error(self, exception: Exception, file: str):
+        """
+        Log and print startup error
+
+        :param exception: exception
+        :param file: file name
+        """
+        self.window.core.debug.log(exception)
+        print(exception)
+        print(self.STARTUP_FAIL_MSG.format(file=file))
 
     def patch_dir(
             self,
