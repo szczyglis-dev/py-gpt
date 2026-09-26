@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 13:00:00                  #
+# Updated Date: 2026.09.26 21:15:00                  #
 # ================================================== #
 
 from typing import Tuple
 
 from PySide6.QtCore import QRect, QDate, Property, QEvent
 from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QCursor, QIcon, QPixmap, QPen, QPalette
-from PySide6.QtWidgets import QAbstractItemView, QCalendarWidget, QMenu, QStyledItemDelegate, QToolTip
+from PySide6.QtWidgets import QAbstractItemView, QCalendarWidget, QMenu, QStyledItemDelegate, QToolTip, QWidget
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
@@ -123,6 +123,19 @@ class CalendarSelect(QCalendarWidget):
         self._default_status_font = QColor(255, 255, 255)
         self._today = QDate.currentDate()
         self._sync_today_weekday_header()
+        self._move_navigation_bar_to_bottom()
+
+    def _move_navigation_bar_to_bottom(self):
+        """Move Qt's month/year navigation row below the calendar grid."""
+        nav = self.findChild(QWidget, "qt_calendar_navigationbar")
+        if nav is None:
+            return
+        parent = nav.parentWidget()
+        layout = parent.layout() if parent is not None else self.layout()
+        if layout is None or layout.indexOf(nav) < 0:
+            return
+        layout.removeWidget(nav)
+        layout.addWidget(nav)
 
     @staticmethod
     def _enum_value(value):
