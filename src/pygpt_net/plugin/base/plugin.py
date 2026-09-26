@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2026.09.26 16:45:00                  #
 # ================================================== #
 
 import copy
@@ -296,6 +296,18 @@ class BasePlugin(QObject):
 
         :param args: arguments
         :param kwargs: keyword arguments
+        """
+        return
+
+    def shutdown(self, enabled: Optional[bool] = None):
+        """
+        Called during application shutdown.
+
+        This hook is invoked for every registered plugin, including disabled
+        plugins. ``enabled`` reports whether the plugin is active at the time
+        the application begins shutting down.
+
+        :param enabled: current plugin enabled state, or None if unavailable
         """
         return
 

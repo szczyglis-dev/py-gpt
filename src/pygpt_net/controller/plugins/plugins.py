@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 18:02:00                  #
+# Updated Date: 2026.09.26 16:45:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
@@ -668,6 +668,22 @@ class Plugins:
         self.setup()
         self.settings.init()
         self.update()
+
+    def shutdown(self):
+        """Run the shutdown hook for every registered plugin."""
+        pm = self.window.core.plugins
+        for pid in pm.get_ids():
+            plugin = pm.get(pid)
+            if plugin is None:
+                continue
+
+            enabled = bool(self.enabled.get(pid, getattr(plugin, 'enabled', False)))
+            try:
+                plugin.shutdown(enabled=enabled)
+            except Exception as e:
+                self.window.core.debug.log(
+                    f"Plugin shutdown failed ({pid}): {e}"
+                )
 
     def save_all(self):
         """Save plugin settings"""

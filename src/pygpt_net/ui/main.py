@@ -375,6 +375,11 @@ class MainWindow(QMainWindow, QtStyleTools):
             self.controller.camera.shutdown()
         except Exception as e:
             self.core.debug.log(e)
+        print("Shutting down plugins...")
+        try:
+            self.controller.plugins.shutdown()
+        except Exception as e:
+            self.core.debug.log(e)
         print("Sending terminate signal to all...")
         self.controller.kernel.terminate()
         print("Saving context and projects...")
