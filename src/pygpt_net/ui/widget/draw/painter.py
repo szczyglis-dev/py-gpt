@@ -1343,7 +1343,23 @@ class PainterWidget(QWidget):
             action.blockSignals(False)
 
     def retranslate_draw_modes(self):
-        """Refresh Painter drawing mode labels after a runtime language change."""
+        """Refresh Painter RMB actions and drawing mode labels at runtime."""
+        action_keys = {
+            self._act_undo: 'action.undo',
+            self._act_redo: 'action.redo',
+            self._act_copy: 'action.copy',
+            self._act_paste: 'action.paste',
+            self._act_open: 'action.open',
+            self._act_capture: 'painter.btn.capture',
+            self._act_camera_capture: 'painter.btn.camera.capture',
+            self._act_save: 'img.action.save',
+            self._act_clear: 'painter.btn.clear',
+            self._act_crop: 'painter.btn.crop',
+            self._act_fit: 'painter.btn.fit',
+        }
+        for action, key in action_keys.items():
+            action.setText(trans(key))
+
         self._draw_menu.setTitle(trans('painter.draw'))
         for mode, action in self._draw_actions.items():
             action.setText(trans(DRAW_MODE_TRANSLATION_KEYS[mode]))

@@ -16,7 +16,6 @@ from PySide6.QtWidgets import QMenuBar
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.tools.code_interpreter.ui.widgets import ToolWidget
 from pygpt_net.ui.widget.dialog.base import BaseDialog
-from pygpt_net.utils import trans
 
 class Tool:
     def __init__(self, window=None, tool=None):
@@ -76,27 +75,41 @@ class Tool:
         # create menu bar
         self.menu_bar = QMenuBar()
         self.menu_bar.setNativeMenuBar(False)
-        self.menu["file"] = self.menu_bar.addMenu(trans("interpreter.menu.file"))
-        self.menu["kernel"] = self.menu_bar.addMenu(trans("interpreter.menu.kernel"))
+        self.menu["file"] = self.menu_bar.addMenu("")
+        self.menu["kernel"] = self.menu_bar.addMenu("")
+        self.tool.add_lang_mapping(self.menu["file"], "interpreter.menu.file", "setTitle")
+        self.tool.add_lang_mapping(self.menu["kernel"], "interpreter.menu.kernel", "setTitle")
 
-        self.actions["file.clear_output"] = QAction(QIcon(":/icons/close.svg"),
-                                                    trans("interpreter.menu.file.clear_output"))
+        self.actions["file.clear_output"] = QAction(QIcon(":/icons/close.svg"), "", self.menu_bar)
+        self.tool.add_lang_mapping(
+            self.actions["file.clear_output"],
+            "interpreter.menu.file.clear_output",
+        )
         self.actions["file.clear_output"].triggered.connect(
             lambda: self.tool.clear_output()
         )
-        self.actions["file.clear_history"] = QAction(QIcon(":/icons/close.svg"),
-                                                    trans("interpreter.menu.file.clear_history"))
+        self.actions["file.clear_history"] = QAction(QIcon(":/icons/close.svg"), "", self.menu_bar)
+        self.tool.add_lang_mapping(
+            self.actions["file.clear_history"],
+            "interpreter.menu.file.clear_history",
+        )
         self.actions["file.clear_history"].triggered.connect(
             lambda: self.tool.clear_history()
         )
-        self.actions["file.clear_all"] = QAction(QIcon(":/icons/close.svg"),
-                                                   trans("interpreter.menu.file.clear_all"))
+        self.actions["file.clear_all"] = QAction(QIcon(":/icons/close.svg"), "", self.menu_bar)
+        self.tool.add_lang_mapping(
+            self.actions["file.clear_all"],
+            "interpreter.menu.file.clear_all",
+        )
         self.actions["file.clear_all"].triggered.connect(
             lambda: self.tool.clear_all()
         )
 
-        self.actions["kernel.restart"] = QAction(QIcon(":/icons/reload.svg"),
-                                                      trans("interpreter.menu.kernel.restart"))
+        self.actions["kernel.restart"] = QAction(QIcon(":/icons/reload.svg"), "", self.menu_bar)
+        self.tool.add_lang_mapping(
+            self.actions["kernel.restart"],
+            "interpreter.menu.kernel.restart",
+        )
         self.actions["kernel.restart"].triggered.connect(
             lambda: self.tool.restart_kernel()
         )
@@ -115,7 +128,11 @@ class Tool:
 
         self.window.ui.dialog['interpreter'] = ToolDialog(self.window)
         self.window.ui.dialog['interpreter'].setLayout(self.layout)
-        self.window.ui.dialog['interpreter'].setWindowTitle(trans("dialog.interpreter.title"))
+        self.tool.add_lang_mapping(
+            self.window.ui.dialog['interpreter'],
+            "dialog.interpreter.title",
+            "setWindowTitle",
+        )
         self.window.ui.dialog['interpreter'].resize(800, 500)
 
 

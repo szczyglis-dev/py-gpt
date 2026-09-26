@@ -13,12 +13,15 @@ from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTime
 from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QWidget, QSizePolicy,
-    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout, QLabel,
+    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout, QLabel, QLayout,
 )
 from PySide6.QtWebEngineCore import QWebEnginePage
 
 from pygpt_net.ui.widget.textarea.html import HtmlOutput
 from pygpt_net.utils import trans
+
+
+CANVAS_LOCALE_DOMAIN = "plugin.canvas_web"
 
 
 def add_html_file_actions(menu, tool, parent):
@@ -61,6 +64,8 @@ class ToolWidget:
         self._layout = None
         self.viewport_badge = None
         self.plugin_hint = None
+        self.plugin_hint_icon = None
+        self.plugin_hint_text = None
         self._plugin_action = None
         self._viewport_filter = None
         self._viewport_sync_timer = None
@@ -114,9 +119,8 @@ class ToolWidget:
         button_size = nav_height - 8
         self.nav_bar.setFixedHeight(nav_height)
 
-        def button(icon, tip):
+        def button(icon):
             btn = QPushButton()
-            btn.setToolTip(tip)
             btn.setIcon(QIcon(icon))
             btn.setIconSize(QSize(icon_size_px, icon_size_px))
             btn.setFixedSize(button_size, button_size)
@@ -127,13 +131,24 @@ class ToolWidget:
                 pass
             return btn
 
-        self.btn_back = button(":/icons/back.svg", trans("ui.back", domain="plugin.canvas_web"))
-        self.btn_next = button(":/icons/forward.svg", trans("ui.next", domain="plugin.canvas_web"))
-        self.btn_reload = button(":/icons/reload.svg", trans("ui.reload", domain="plugin.canvas_web"))
-        self.btn_home = button(":/icons/home.svg", trans("ui.home", domain="plugin.canvas_web"))
-        self.btn_go = button(":/icons/redo.svg", trans("ui.open_url", domain="plugin.canvas_web"))
+        self.btn_back = button(":/icons/back.svg")
+        self.btn_next = button(":/icons/forward.svg")
+        self.btn_reload = button(":/icons/reload.svg")
+        self.btn_home = button(":/icons/home.svg")
+        self.btn_go = button(":/icons/redo.svg")
+        self.tool.add_lang_mapping(self.btn_back, "ui.back", "setToolTip", CANVAS_LOCALE_DOMAIN)
+        self.tool.add_lang_mapping(self.btn_next, "ui.next", "setToolTip", CANVAS_LOCALE_DOMAIN)
+        self.tool.add_lang_mapping(self.btn_reload, "ui.reload", "setToolTip", CANVAS_LOCALE_DOMAIN)
+        self.tool.add_lang_mapping(self.btn_home, "ui.home", "setToolTip", CANVAS_LOCALE_DOMAIN)
+        self.tool.add_lang_mapping(self.btn_go, "ui.open_url", "setToolTip", CANVAS_LOCALE_DOMAIN)
+
         self.address_bar = AddressLineEdit(on_return_callback=self._on_address_enter)
-        self.address_bar.setPlaceholderText(trans("ui.address_placeholder", domain="plugin.canvas_web"))
+        self.tool.add_lang_mapping(
+            self.address_bar,
+            "ui.address_placeholder",
+            "setPlaceholderText",
+            CANVAS_LOCALE_DOMAIN,
+        )
         self.address_bar.setFixedHeight(nav_height - 8)
         self.address_bar.returnPressed.connect(self._on_address_enter)
 
@@ -171,34 +186,54 @@ class ToolWidget:
         self.viewport_badge.show()
 
         self.plugin_hint = QFrame(self.scroll.viewport())
-        self.plugin_hint.setToolTip(
-            trans("ui.enable_hint_tooltip", domain="plugin.canvas_web")
-        )
         self.plugin_hint.setStyleSheet(
             "QFrame {"
             " background: rgba(24, 24, 24, 175);"
+            " border: none;"
             " border-radius: 5px;"
             "}"
         )
-        plugin_hint_layout = QHBoxLayout(self.plugin_hint)
-        plugin_hint_layout.setContentsMargins(7, 3, 7, 3)
-        plugin_hint_layout.setSpacing(5)
-
-        plugin_hint_icon = QLabel(self.plugin_hint)
-        plugin_hint_icon.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        plugin_hint_icon.setPixmap(QIcon(":/icons/warning.svg").pixmap(QSize(14, 14)))
-        plugin_hint_layout.addWidget(plugin_hint_icon, 0, Qt.AlignVCenter)
-
-        plugin_hint_text = QLabel(
-            trans("ui.enable_hint", domain="plugin.canvas_web"),
+        self.tool.add_lang_mapping(
             self.plugin_hint,
+            "ui.enable_hint_tooltip",
+            "setToolTip",
+            CANVAS_LOCALE_DOMAIN,
         )
-        plugin_hint_text.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        plugin_hint_text.setStyleSheet(
-            "QLabel { background: transparent; color: white; font-size: 11px; }"
+        plugin_hint_layout = QHBoxLayout(self.plugin_hint)
+        plugin_hint_layout.setContentsMargins(7, 4, 7, 4)
+        plugin_hint_layout.setSpacing(5)
+        plugin_hint_layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
+
+        self.plugin_hint_icon = QLabel(self.plugin_hint)
+        self.plugin_hint_icon.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.plugin_hint_icon.setFixedSize(14, 14)
+        self.plugin_hint_icon.setStyleSheet(
+            "QLabel { background: transparent; border: none; padding: 0px; margin: 0px; }"
         )
-        plugin_hint_layout.addWidget(plugin_hint_text, 0, Qt.AlignVCenter)
-        self.plugin_hint.adjustSize()
+        self.plugin_hint_icon.setPixmap(QIcon(":/icons/warning.svg").pixmap(QSize(14, 14)))
+        plugin_hint_layout.addWidget(self.plugin_hint_icon, 0, Qt.AlignVCenter)
+
+        self.plugin_hint_text = QLabel("", self.plugin_hint)
+        self.plugin_hint_text.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.plugin_hint_text.setStyleSheet(
+            "QLabel {"
+            " background: transparent;"
+            " color: white;"
+            " border: none;"
+            " padding: 0px;"
+            " margin: 0px;"
+            " font-size: 11px;"
+            "}"
+        )
+        plugin_hint_layout.addWidget(self.plugin_hint_text, 0, Qt.AlignVCenter)
+        self.tool.add_lang_mapping(
+            self.plugin_hint_text,
+            "ui.enable_hint",
+            "setText",
+            CANVAS_LOCALE_DOMAIN,
+            on_apply=self._refresh_plugin_hint_layout,
+        )
+        self._refresh_plugin_hint_layout()
         self._update_plugin_hint()
         self._connect_plugin_hint_hook()
 
@@ -390,6 +425,17 @@ class ToolWidget:
             return bool(plugin is not None and getattr(plugin, "enabled", False))
         except Exception:
             return False
+
+    def _refresh_plugin_hint_layout(self):
+        """Resize/reposition the Canvas footer hint after a locale/style change."""
+        if self.plugin_hint is None:
+            return
+        try:
+            self.plugin_hint.updateGeometry()
+            self.plugin_hint.adjustSize()
+        except RuntimeError:
+            return
+        self._position_viewport_overlays()
 
     def _update_plugin_hint(self):
         if self.plugin_hint is None:

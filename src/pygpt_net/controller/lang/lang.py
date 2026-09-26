@@ -158,6 +158,23 @@ class Lang:
             print("Error updating plugin locale", e)
             w.core.debug.log(e)
 
+        # Tool-owned widgets/actions can live outside the global ui.nodes/menu
+        # registries (e.g. per-tab Canvas/Python-OS surfaces). Refresh their
+        # registered mappings after plugin locale domains have been reloaded.
+        try:
+            w.tools.apply_lang_mappings()
+        except Exception as e:
+            print("Error updating tool locale", e)
+            w.core.debug.log(e)
+
+        # Files tab tooltip contains both a translated prefix and a live path.
+        # Rebuild it on a runtime language switch instead of treating it as a
+        # static tab tooltip.
+        try:
+            w.core.tabs.refresh_files_tooltips()
+        except Exception:
+            pass
+
         w.controller.ctx.common.update_label_by_current()
         w.controller.ctx.update(True, False)
         w.controller.ui.update()

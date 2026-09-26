@@ -208,8 +208,7 @@ class UI:
             f"{trans('tip.tokens.system_prompt')}: {short_num(system_tokens)}\n"
             f"{trans('tip.tokens.user_input')}: {short_num(input_tokens)}\n"
             f"{trans('tip.tokens.context')}: {short_num(ctx_tokens)}\n"
-            f"{trans('tip.tokens.attachment')}: {short_num(attachments_tokens)}\n"
-            f"{trans('tip.tokens.extra')}: {short_num(extra_tokens)}\n\n"
+            f"{trans('tip.tokens.attachment')}: {short_num(attachments_tokens)}\n\n"
             f"{trans('tip.tokens.total')}: ~ {short_num(sum_tokens)} / {tooltip_max}"
         )
         if tooltip != self._last_input_counter_tooltip:

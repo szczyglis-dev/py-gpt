@@ -144,6 +144,11 @@ class Tools:
             if instance is not None:
                 return instance
 
+    def apply_lang_mappings(self):
+        """Refresh runtime language mappings registered by all tools."""
+        for id in self.tools:
+            self.tools[id].apply_lang_mappings()
+
     def get_lang_mappings(self) -> Dict[str, dict]:
         """
         Get language mappings
