@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 11:10:00                  #
+# Updated Date: 2026.09.26 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
@@ -165,20 +165,32 @@ class ToolWidget:
         self.viewport_badge.adjustSize()
         self.viewport_badge.show()
 
-        self.plugin_hint = QLabel(
-            trans("ui.enable_hint", domain="plugin.canvas_web"),
-            self.scroll.viewport(),
-        )
+        self.plugin_hint = QFrame(self.scroll.viewport())
         self.plugin_hint.setAttribute(Qt.WA_TransparentForMouseEvents, True)
         self.plugin_hint.setStyleSheet(
-            "QLabel {"
+            "QFrame {"
             " background: rgba(24, 24, 24, 175);"
-            " color: white;"
             " border-radius: 5px;"
-            " padding: 3px 7px;"
-            " font-size: 11px;"
             "}"
         )
+        plugin_hint_layout = QHBoxLayout(self.plugin_hint)
+        plugin_hint_layout.setContentsMargins(7, 3, 7, 3)
+        plugin_hint_layout.setSpacing(5)
+
+        plugin_hint_icon = QLabel(self.plugin_hint)
+        plugin_hint_icon.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        plugin_hint_icon.setPixmap(QIcon(":/icons/warning.svg").pixmap(QSize(14, 14)))
+        plugin_hint_layout.addWidget(plugin_hint_icon, 0, Qt.AlignVCenter)
+
+        plugin_hint_text = QLabel(
+            trans("ui.enable_hint", domain="plugin.canvas_web"),
+            self.plugin_hint,
+        )
+        plugin_hint_text.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        plugin_hint_text.setStyleSheet(
+            "QLabel { background: transparent; color: white; font-size: 11px; }"
+        )
+        plugin_hint_layout.addWidget(plugin_hint_text, 0, Qt.AlignVCenter)
         self.plugin_hint.adjustSize()
         self._update_plugin_hint()
         self._connect_plugin_hint_hook()
@@ -476,7 +488,7 @@ class BrowserOutput(HtmlOutput):
             annotate.triggered.connect(lambda: self.tool.annotate_selection(selected, position, backend="qt"))
             menu.addAction(annotate)
         else:
-            annotate = QAction(trans("ui.annotate_element", domain="plugin.canvas_web"), self)
+            annotate = QAction(QIcon(":/icons/chat3.svg"), trans("ui.annotate_element", domain="plugin.canvas_web"), self)
             annotate.triggered.connect(lambda: self.tool.annotate_at(position.x(), position.y(), backend="qt"))
             menu.addAction(annotate)
             select_all = QAction(trans("ui.select_all", domain="plugin.canvas_web"), self)
@@ -602,7 +614,7 @@ class SandboxView(QWidget):
         annotate_selection = QAction(trans("ui.annotate_selection", domain="plugin.canvas_web"), self)
         annotate_selection.triggered.connect(lambda: self.tool.annotate_selection("", p, backend="playwright"))
         menu.addAction(annotate_selection)
-        annotate = QAction(trans("ui.annotate_element", domain="plugin.canvas_web"), self)
+        annotate = QAction(QIcon(":/icons/chat3.svg"), trans("ui.annotate_element", domain="plugin.canvas_web"), self)
         annotate.triggered.connect(lambda: self.tool.annotate_at(p.x(), p.y(), backend="playwright"))
         menu.addAction(annotate)
         copy_to_menu = self.tool.window.ui.context_menu.get_copy_to_menu(
