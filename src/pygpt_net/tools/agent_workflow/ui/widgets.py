@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.26 12:30:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -14,9 +14,10 @@ from __future__ import annotations
 import json
 import os
 
-from PySide6.QtCore import QEvent, QTimer
+from PySide6.QtCore import QEvent, QTimer, QSaveFile, QIODevice
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QWidget
+from PySide6.QtWidgets import QFileDialog, QMenu, QVBoxLayout, QPushButton, QWidget
 
 from pygpt_net.utils import trans
 
@@ -58,6 +59,60 @@ class WorkflowView(QWebEngineView):
             self.window.controller.tabs.on_column_focus(self.tab.column_idx)
         except Exception:
             pass
+
+    def contextMenuEvent(self, event):
+        """Show workflow-specific actions instead of WebEngine navigation actions."""
+        menu = QMenu(self)
+
+        clear_action = QAction(
+            QIcon(":/icons/close.svg"),
+            trans("action.clear"),
+            self,
+        )
+        clear_action.triggered.connect(
+            lambda: QTimer.singleShot(0, self._clear_view)
+        )
+        menu.addAction(clear_action)
+
+        save_action = QAction(
+            QIcon(":/icons/save.svg"),
+            trans("action.save_as") + " (html)",
+            self,
+        )
+        save_action.triggered.connect(
+            lambda: QTimer.singleShot(0, self._save_as_html)
+        )
+        menu.addAction(save_action)
+
+        menu.exec(event.globalPos())
+
+    def _clear_view(self):
+        """Clear the workflow monitor and render its default empty state."""
+        self.window.controller.agent_workflow.clear()
+        self.render(self.window.core.agent_workflow.snapshot())
+
+    def _save_as_html(self):
+        """Save the currently rendered workflow DOM as a standalone HTML file."""
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            trans("action.save_as") + " (html)",
+            "agent_workflow.html",
+            "HTML (*.html *.htm)",
+        )
+        if not path:
+            return
+        if not path.lower().endswith((".html", ".htm")):
+            path += ".html"
+
+        def save_html(html: str):
+            output = QSaveFile(path)
+            if not output.open(QIODevice.WriteOnly | QIODevice.Text):
+                return
+            output.write(html.encode("utf-8"))
+            output.commit()
+
+        # toHtml serializes the live DOM, including the flow rendered by JS.
+        self.page().toHtml(save_html)
 
     def _is_render_target_active(self) -> bool:
         """Return True when this workflow is the selected tab in a visible column.
