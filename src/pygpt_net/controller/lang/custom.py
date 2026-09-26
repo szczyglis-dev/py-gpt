@@ -165,6 +165,13 @@ class Custom:
             if dialog is not None:
                 dialog.setWindowTitle(f'{trans("extensions.title")} (beta)')
 
+            type_filter = self.window.ui.nodes.get("extensions.filter")
+            if type_filter is not None:
+                for i in range(type_filter.count()):
+                    ext_type = str(type_filter.itemData(i) or "")
+                    key = "extensions.filter.all" if not ext_type else f"extensions.type.{ext_type}"
+                    type_filter.setItemText(i, trans(key))
+
             installed = self.window.ui.nodes.get("extensions.installed.list")
             if installed is not None:
                 header = installed.headerItem()

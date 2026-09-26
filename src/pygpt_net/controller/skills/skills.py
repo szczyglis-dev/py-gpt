@@ -38,6 +38,7 @@ class Skills:
         explore_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         explore_tree.customContextMenuRequested.connect(self.show_explore_context_menu)
         self.window.ui.nodes["skills.tabs"].currentChanged.connect(self._on_tab_changed)
+        self.window.ui.nodes["skills.search"].textChanged.connect(self._apply_filter)
         self.refresh_installed()
         self._update_install_button()
         self.window.ui.nodes["skills.catalog.url"].setText(self.window.core.skills.get_catalog_url())
@@ -95,6 +96,7 @@ class Skills:
                 if icon_path and os.path.isfile(icon_path):
                     item.setIcon(1, QIcon(icon_path))
             tree.resizeColumnToContents(0)
+            self._apply_filter()
             self._update_installed_status()
         finally:
             self._refreshing = False
@@ -364,12 +366,27 @@ class Skills:
         # row; install selection is represented only by column-0 checkboxes.
         tree.clearSelection()
         tree.setCurrentItem(None)
+        self._apply_filter()
         self._update_install_button()
         self._set_status_key(
             "skills.status.catalog",
             targets=("explore",),
             total=len(self._catalog),
         )
+
+    def _apply_filter(self, *_args):
+        node = self.window.ui.nodes.get("skills.search")
+        query = str(node.text() if node is not None else "").strip().casefold()
+        for key in ("skills.installed.list", "skills.explore.list"):
+            tree = self.window.ui.nodes.get(key)
+            if tree is None:
+                continue
+            for row in range(tree.topLevelItemCount()):
+                item = tree.topLevelItem(row)
+                text = "\n".join(
+                    item.text(column) for column in range(tree.columnCount())
+                ).casefold()
+                item.setHidden(bool(query) and query not in text)
 
     def _start_worker(self, action: str, show_error_dialog: bool = True, **kwargs):
         status_key = {

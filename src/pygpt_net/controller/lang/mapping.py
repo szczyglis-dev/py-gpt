@@ -532,7 +532,10 @@ class Mapping:
         placeholders['input'] = 'input.placeholder'
         placeholders['logger.console'] = 'logger.console.placeholder'
         placeholders['skills.catalog.url'] = 'skills.catalog.url.placeholder'
+        placeholders['skills.search'] = 'input.search.placeholder'
         placeholders['connectors.catalog.url'] = 'connectors.catalog.url.placeholder'
+        placeholders['connectors.search'] = 'input.search.placeholder'
+        placeholders['extensions.search'] = 'input.search.placeholder'
 
         mapping = {}
         mapping['nodes'] = nodes

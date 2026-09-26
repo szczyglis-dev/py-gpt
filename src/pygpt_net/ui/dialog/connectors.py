@@ -145,6 +145,18 @@ class Connectors:
         tabs.addTab(self._installed_tab(), trans("connectors.tab.installed"))
         tabs.addTab(self._explore_tab(), trans("connectors.tab.explore"))
 
+        search = QLineEdit()
+        search.setPlaceholderText(trans("input.search.placeholder"))
+        search.setClearButtonEnabled(True)
+        search.setFixedWidth(220)
+        nodes["connectors.search"] = search
+        corner = QWidget()
+        corner_layout = QHBoxLayout(corner)
+        corner_layout.setContentsMargins(0, 0, 0, 0)
+        corner_layout.setSpacing(6)
+        corner_layout.addWidget(search)
+        tabs.setCornerWidget(corner, Qt.Corner.TopRightCorner)
+
         info = QLabel(trans("connectors.info"))
         info.setWordWrap(True)
         info.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)

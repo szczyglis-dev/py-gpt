@@ -62,6 +62,18 @@ class Skills:
         tabs.addTab(self._installed_tab(), trans("skills.tab.installed"))
         tabs.addTab(self._explore_tab(), trans("skills.tab.explore"))
 
+        search = QLineEdit()
+        search.setPlaceholderText(trans("input.search.placeholder"))
+        search.setClearButtonEnabled(True)
+        search.setFixedWidth(220)
+        nodes["skills.search"] = search
+        corner = QWidget()
+        corner_layout = QHBoxLayout(corner)
+        corner_layout.setContentsMargins(0, 0, 0, 0)
+        corner_layout.setSpacing(6)
+        corner_layout.addWidget(search)
+        tabs.setCornerWidget(corner, Qt.Corner.TopRightCorner)
+
         info = QLabel(trans("skills.info"))
         info.setWordWrap(True)
         info.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)

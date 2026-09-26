@@ -33,6 +33,8 @@ class Extensions:
         tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tree.customContextMenuRequested.connect(self.show_explore_context_menu)
         self.window.ui.nodes["extensions.tabs"].currentChanged.connect(self._on_tab_changed)
+        self.window.ui.nodes["extensions.search"].textChanged.connect(self._apply_filters)
+        self.window.ui.nodes["extensions.filter"].currentIndexChanged.connect(self._apply_filters)
         self.window.ui.nodes["extensions.registry.url"].setText(
             self.window.core.extensions.get_registry_url()
         )
@@ -82,6 +84,7 @@ class Extensions:
             item.setText(6, trans("extensions.yes") if ext.get("official") else trans("extensions.no"))
             if not ext.get("_compatible", True):
                 item.setToolTip(0, trans("extensions.incompatible").format(version=ext.get("min_app_version")))
+        self._apply_filters()
         status = self.window.ui.nodes.get("extensions.installed.status")
         if status is not None:
             status.setText(trans("extensions.status.installed").format(total=len(items)))
@@ -300,10 +303,33 @@ class Extensions:
                 item.setText(8, source + ((" :: " + path) if path else ""))
         finally:
             tree.blockSignals(False)
+        self._apply_filters()
         self._update_install_button()
         node = self.window.ui.nodes.get("extensions.explore.status")
         if node is not None:
             node.setText(trans("extensions.status.registry").format(total=len(self._catalog)))
+
+    def _apply_filters(self, *_args):
+        search_node = self.window.ui.nodes.get("extensions.search")
+        query = str(search_node.text() if search_node is not None else "").strip().casefold()
+        filter_node = self.window.ui.nodes.get("extensions.filter")
+        ext_type = str(filter_node.currentData() if filter_node is not None else "").strip()
+
+        for key, type_column in (
+            ("extensions.installed.list", 4),
+            ("extensions.explore.list", 5),
+        ):
+            tree = self.window.ui.nodes.get(key)
+            if tree is None:
+                continue
+            for row in range(tree.topLevelItemCount()):
+                item = tree.topLevelItem(row)
+                matches_type = not ext_type or item.text(type_column).strip() == ext_type
+                text = "\n".join(
+                    item.text(column) for column in range(tree.columnCount())
+                ).casefold()
+                matches_search = not query or query in text
+                item.setHidden(not (matches_type and matches_search))
 
     def _start_worker(self, action: str, show_error_dialog: bool = True, **kwargs):
         # Installation mutates one profile-scoped add-ons tree and registry.

@@ -12,8 +12,8 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
-    QAbstractItemView, QHeaderView, QHBoxLayout, QLabel, QLineEdit, QPushButton,
-    QTabWidget, QTreeWidget, QVBoxLayout, QWidget,
+    QAbstractItemView, QComboBox, QHeaderView, QHBoxLayout, QLabel, QLineEdit,
+    QPushButton, QTabWidget, QTreeWidget, QVBoxLayout, QWidget,
 )
 
 from pygpt_net.ui.widget.dialog.base import BaseDialog
@@ -53,6 +53,27 @@ class Extensions:
         nodes["extensions.tabs"] = tabs
         tabs.addTab(self._installed_tab(), trans("extensions.tab.installed"))
         tabs.addTab(self._explore_tab(), trans("extensions.tab.explore"))
+
+        type_filter = QComboBox()
+        type_filter.addItem(trans("extensions.filter.all"), "")
+        for ext_type in self.window.core.extensions.TYPE_DIRS:
+            type_filter.addItem(trans(f"extensions.type.{ext_type}"), ext_type)
+        type_filter.setFixedWidth(155)
+        nodes["extensions.filter"] = type_filter
+
+        search = QLineEdit()
+        search.setPlaceholderText(trans("input.search.placeholder"))
+        search.setClearButtonEnabled(True)
+        search.setFixedWidth(220)
+        nodes["extensions.search"] = search
+
+        corner = QWidget()
+        corner_layout = QHBoxLayout(corner)
+        corner_layout.setContentsMargins(0, 0, 0, 0)
+        corner_layout.setSpacing(6)
+        corner_layout.addWidget(type_filter)
+        corner_layout.addWidget(search)
+        tabs.setCornerWidget(corner, Qt.Corner.TopRightCorner)
 
         close_btn = QPushButton(trans("action.close"))
         close_btn.setAutoDefault(False)
