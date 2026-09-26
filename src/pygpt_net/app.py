@@ -309,25 +309,24 @@ def run(**kwargs):
         from pygpt_net.provider.agents.openai.flow_from_schema import Agent as OpenAICustomAgent  # builder schema
 
         # LLM wrapper providers (langchain, llama-index, embeddings)
-        from pygpt_net.provider.llms.anthropic import AnthropicLLM
-        from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
-        from pygpt_net.provider.llms.deepseek_api import DeepseekApiLLM
-        from pygpt_net.provider.llms.google import GoogleLLM
-        # from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
-        from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
-        from pygpt_net.provider.llms.hugging_face_router import HuggingFaceRouterLLM
-        from pygpt_net.provider.llms.local import LocalLLM
-        from pygpt_net.provider.llms.mistral import MistralAILLM
-        from pygpt_net.provider.llms.ollama import OllamaLLM
-        from pygpt_net.provider.llms.openai import OpenAILLM
-        from pygpt_net.provider.llms.perplexity import PerplexityLLM
-        from pygpt_net.provider.llms.x_ai import xAILLM
-        from pygpt_net.provider.llms.open_router import OpenRouterLLM
-        from pygpt_net.provider.llms.litellm import LiteLLMProvider
-        from pygpt_net.provider.llms.forge import ForgeLLM
-        from pygpt_net.provider.llms.edenai import EdenAILLM
-        from pygpt_net.provider.llms.voyage_config import VoyageConfigLLM
-        from pygpt_net.provider.llms.jev_config import JevConfigLLM
+        from pygpt_net.provider.llms.anthropic.provider import AnthropicLLM
+        from pygpt_net.provider.llms.azure_openai.provider import AzureOpenAILLM
+        from pygpt_net.provider.llms.deepseek.provider import DeepseekApiLLM
+        from pygpt_net.provider.llms.google.provider import GoogleLLM
+        from pygpt_net.provider.llms.hugging_face.api import HuggingFaceApiLLM
+        from pygpt_net.provider.llms.hugging_face.router import HuggingFaceRouterLLM
+        from pygpt_net.provider.llms.local.provider import LocalLLM
+        from pygpt_net.provider.llms.mistral.provider import MistralAILLM
+        from pygpt_net.provider.llms.ollama.provider import OllamaLLM
+        from pygpt_net.provider.llms.openai.provider import OpenAILLM
+        from pygpt_net.provider.llms.perplexity.provider import PerplexityLLM
+        from pygpt_net.provider.llms.x_ai.provider import xAILLM
+        from pygpt_net.provider.llms.open_router.provider import OpenRouterLLM
+        from pygpt_net.provider.llms.litellm.provider import LiteLLMProvider
+        from pygpt_net.provider.llms.forge.provider import ForgeLLM
+        from pygpt_net.provider.llms.edenai.provider import EdenAILLM
+        from pygpt_net.provider.llms.voyage.config import VoyageConfigLLM
+        from pygpt_net.provider.llms.jev.config import JevConfigLLM
 
         # vector store providers (llama-index)
         from pygpt_net.provider.vector_stores.chroma import ChromaProvider

@@ -48,7 +48,7 @@ class LiteLLMProvider(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        from .litellm_index import LiteLLMIndex
+        from .index import LiteLLMIndex
 
         args = self.prepare_openai_compatible_args(window, model)
         model_name = args.pop("model", model.id)
@@ -72,7 +72,7 @@ def __getattr__(name):
     # Backward-compatible lazy export; the LlamaIndex adapter is loaded only
     # when callers explicitly request it.
     if name == "LiteLLMIndex":
-        from .litellm_index import LiteLLMIndex
+        from .index import LiteLLMIndex
         return LiteLLMIndex
     raise AttributeError(name)
 

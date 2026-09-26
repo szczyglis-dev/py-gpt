@@ -14,8 +14,8 @@ from typing import Optional, Dict, Any, Union
 
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
-from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.agent_workflow import AgentWorkflowBridge
+from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.types import (
     AGENT_MODE_ASSISTANT,
@@ -26,7 +26,7 @@ from pygpt_net.core.types import (
 )
 
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.provider.llms.agent_computer import ComputerRuntime
+from pygpt_net.provider.llms.computer import ComputerRuntime
 from pygpt_net.provider.agents.base import BaseAgent
 
 from .runners.llama_assistant import LlamaAssistant

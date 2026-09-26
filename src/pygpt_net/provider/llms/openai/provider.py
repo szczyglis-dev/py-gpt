@@ -283,7 +283,7 @@ class OpenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         from llama_index.llms.openai import OpenAI as LlamaOpenAI
-        from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
+        from .responses_agent import AgentOpenAIResponses
         args = self.prepare_openai_compatible_args(window, model)
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         mode = window.core.config.get("mode")
@@ -354,7 +354,7 @@ class OpenAILLM(BaseLLM):
         exactly through the same PyGPT remote-tools builder used by normal Chat.
         Local FunctionAgent tools are merged by LlamaIndex at request time.
         """
-        from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
+        from .responses_agent import AgentOpenAIResponses
 
         args = self.prepare_openai_compatible_args(window, model)
         args = self.inject_llamaindex_http_clients(args, window.core.config)

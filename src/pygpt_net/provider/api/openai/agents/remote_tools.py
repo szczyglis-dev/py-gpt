@@ -34,7 +34,7 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.compat import supports_future_computer_mode
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.llms.agent_computer import build_openai_agent_computer_tool
+from pygpt_net.provider.llms.computer import build_openai_agent_computer_tool
 
 from .computer import LocalComputer
 

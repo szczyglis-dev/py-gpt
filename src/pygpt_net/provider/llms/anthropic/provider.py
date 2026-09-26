@@ -346,7 +346,7 @@ class AnthropicLLM(BaseLLM):
         client-side Computer Use continuation and preserves the beta headers
         required by legacy Computer Use tool versions.
         """
-        from pygpt_net.provider.llms.anthropic_agent import AgentAnthropic
+        from .agent import AgentAnthropic
 
         args = self.parse_args(model.llama_index, window)
         proxy = window.core.config.get("api_proxy", None)
@@ -421,7 +421,7 @@ class AnthropicLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from .voyage import VoyageEmbeddingWithProxy
+        from pygpt_net.provider.llms.voyage.embedding import VoyageEmbeddingWithProxy
         args = {}
         if config is not None:
             args = self.parse_args({

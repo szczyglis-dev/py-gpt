@@ -18,7 +18,7 @@ from llama_index.core.base.llms.types import ChatMessage, ChatResponse
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.llms.openai import OpenAIResponses
 
-from pygpt_net.provider.llms.agent_computer import (
+from pygpt_net.provider.llms.computer import (
     AgentComputerBridge,
     run_coroutine_sync,
     wait_for_computer_safety_confirmation,

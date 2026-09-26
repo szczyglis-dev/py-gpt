@@ -313,7 +313,7 @@ class Chat:
         # Provider-native Computer Use is a client-side continuation protocol.
         # Chat with Files is synchronous LlamaIndex code, so bind a tiny runtime
         # adapter that reuses the same provider adapters/executor as Agents v2.
-        from pygpt_net.provider.llms.agent_computer import ComputerRuntime
+        from pygpt_net.provider.llms.computer import ComputerRuntime
 
         computer_runtime = ComputerRuntime(self.window, context)
         force_computer_use = context.parent_mode == MODE_COMPUTER

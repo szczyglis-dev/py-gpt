@@ -24,12 +24,12 @@ from llama_index.llms.google_genai.utils import (
     prepare_chat_params,
 )
 
-from pygpt_net.provider.llms.agent_computer import (
+from pygpt_net.provider.llms.computer import (
     AgentComputerBridge,
     run_coroutine_sync,
     wait_for_computer_safety_confirmation,
 )
-from pygpt_net.provider.llms.google_capture import PyGPTGoogleGenAI
+from .capture import PyGPTGoogleGenAI
 
 
 class AgentGoogleGenAI(PyGPTGoogleGenAI):

@@ -162,7 +162,7 @@ class HuggingFaceApiLLM(BaseLLM):
             window,
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
-        from .hugging_face_embedding import (
+        from .embedding import (
             HuggingFaceInferenceAPIEmbeddingWithProxy as HFEmbed,
         )
 

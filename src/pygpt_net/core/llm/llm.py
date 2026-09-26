@@ -74,7 +74,7 @@ class LLM:
             self._runtime_custom_signature = signature
             return
 
-        from pygpt_net.provider.llms.custom import CustomLLM
+        from pygpt_net.provider.llms.custom.provider import CustomLLM
 
         for item in rows:
             if not isinstance(item, dict):

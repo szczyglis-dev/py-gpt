@@ -12,7 +12,7 @@
 from typing import Optional, List
 import voyageai
 from llama_index.embeddings.voyageai import VoyageEmbedding
-from .utils import ProxyEnv
+from pygpt_net.provider.llms.utils import ProxyEnv
 
 class VoyageEmbeddingWithProxy(VoyageEmbedding):
     def __init__(

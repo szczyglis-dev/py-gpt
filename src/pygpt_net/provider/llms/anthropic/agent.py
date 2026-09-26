@@ -23,7 +23,7 @@ from llama_index.llms.anthropic.utils import (
     messages_to_anthropic_messages,
 )
 
-from pygpt_net.provider.llms.agent_computer import AgentComputerBridge, run_coroutine_sync
+from pygpt_net.provider.llms.computer import AgentComputerBridge, run_coroutine_sync
 from pygpt_net.provider.llms.artifacts import append_unique_urls, extract_anthropic_urls
 
 

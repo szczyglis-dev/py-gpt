@@ -63,7 +63,7 @@ class DeepseekApiLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        from pygpt_net.provider.llms.llama_index.deepseek import DeepSeek
+        from .llama_index import DeepSeek
         args = self.prepare_openai_compatible_args(window, model)
         args.setdefault("is_function_calling_model", bool(model.tool_calls))
         reasoning_effort = window.core.models.get_reasoning_effort(model)
@@ -87,7 +87,7 @@ class DeepseekApiLLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from .voyage import VoyageEmbeddingWithProxy
+        from pygpt_net.provider.llms.voyage.embedding import VoyageEmbeddingWithProxy
         args = {}
         if config is not None:
             args = self.parse_args({

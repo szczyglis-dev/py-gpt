@@ -38,7 +38,7 @@ class GoogleLLM(BaseLLM):
         Required ENV variables:
             - GOOGLE_API_KEY - API key for Google API
         Required args:
-            - model: model name, e.g. gemini-1,5-pro
+            - model: model name, e.g. gemini-1.5-pro
             - api_key: API key for Google API
         """
         self.id = "google"
@@ -140,9 +140,10 @@ class GoogleLLM(BaseLLM):
         :param window: window instance
         :param model: model instance
         :param stream: stream mode
+        :param remote_tools: enable remote tools for Google GenAI
         :return: LLM provider instance
         """
-        from pygpt_net.provider.llms.google_capture import PyGPTGoogleGenAI
+        from .capture import PyGPTGoogleGenAI
         args = self.parse_args(model.llama_index, window)
         if not args.get("model"):
             model_id = str(model.id or "").strip()
@@ -242,7 +243,7 @@ class GoogleLLM(BaseLLM):
         Remote Google tools are merged with FunctionAgent tools at request time
         by the adapter, and grounding URLs are collected for PyGPT artifacts.
         """
-        from pygpt_net.provider.llms.google_agent import AgentGoogleGenAI
+        from .agent import AgentGoogleGenAI
 
         args = self.parse_args(model.llama_index, window)
         if not args.get("model"):

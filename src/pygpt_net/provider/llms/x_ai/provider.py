@@ -163,7 +163,7 @@ class xAILLM(BaseLLM):
             remote_cfg: Dict,
     ) -> LlamaBaseLLM:
         """Build an xAI Responses/Agent Tools LlamaIndex adapter."""
-        from pygpt_net.provider.llms.x_ai_responses_agent import AgentXAIResponses
+        from .responses_agent import AgentXAIResponses
 
         args = self.prepare_openai_compatible_args(window, model)
 
@@ -275,7 +275,7 @@ class xAILLM(BaseLLM):
         :param config: config keyword arguments list
         :return: Embedding provider instance
         """
-        from .llama_index.x_ai.embedding import XAIEmbedding as BaseXAIEmbedding
+        from .llama_index.embedding import XAIEmbedding as BaseXAIEmbedding
 
         cfg = window.core.config
 

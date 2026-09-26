@@ -13,7 +13,7 @@ from typing import Any
 
 from llama_index.core.base.llms.types import LLMMetadata
 
-from pygpt_net.provider.llms.openai_responses_agent import AgentOpenAIResponses
+from pygpt_net.provider.llms.openai.responses_agent import AgentOpenAIResponses
 from pygpt_net.provider.llms.artifacts import extract_xai_urls
 
 

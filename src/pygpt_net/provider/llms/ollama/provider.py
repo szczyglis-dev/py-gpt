@@ -81,7 +81,7 @@ class OllamaLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """Return native Ollama text completion through ``/api/generate``."""
-        from pygpt_net.provider.llms.ollama_completion import OllamaCompletion
+        from .completion import OllamaCompletion
 
         args = self.parse_args(model.llama_index, window)
         model_id = (model.get_ollama_model() or model.id or "").strip()
@@ -195,7 +195,7 @@ class OllamaLLM(BaseLLM):
             model: ModelItem,
     ) -> LlamaBaseLLM:
         """Build the native Ollama LlamaIndex adapter used by tool loops."""
-        from pygpt_net.provider.llms.ollama_custom import Ollama
+        from .custom import Ollama
 
         args = self.parse_args(model.llama_index, window)
         model_id = (model.get_ollama_model() or model.id or "").strip()

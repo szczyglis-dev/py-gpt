@@ -18,7 +18,7 @@ from llama_index.core.base.llms.types import (
 )
 from llama_index.core.llms.callbacks import llm_completion_callback
 
-from pygpt_net.provider.llms.ollama_custom import Ollama
+from pygpt_net.provider.llms.ollama.custom import Ollama
 
 
 def _plain_dict(value: Any) -> dict:
