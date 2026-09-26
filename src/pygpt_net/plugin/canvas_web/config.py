@@ -188,3 +188,8 @@ class Config(BaseConfig):
             label="Default search engine",
             description="Search engine used when text entered in the Canvas address bar is not a URL, protocol address or local path.",
             keys=CanvasSearchEngine.combo_keys(), tab="options")
+        plugin.add_option(
+            "display_footer", type="bool", value=True,
+            label="Display canvas footer",
+            description="Show the Canvas footer overlays with the plugin status and current viewport size.",
+            tab="options")

@@ -359,6 +359,15 @@ class ToolWidget:
             return
         self.tool.request_viewport_policy(width, height, visible=True, delay=0)
 
+    def _display_footer_enabled(self) -> bool:
+        """Return whether Canvas footer overlays are enabled for the active profile."""
+        if self.tool is None:
+            return True
+        try:
+            return bool(self.tool._opt("display_footer", True))
+        except Exception:
+            return True
+
     def _update_viewport_badge(self, state: dict):
         if self.viewport_badge is None:
             return
@@ -366,6 +375,7 @@ class ToolWidget:
         height = int(state.get("height") or 0)
         self.viewport_badge.setText(f"{width} × {height}")
         self.viewport_badge.adjustSize()
+        self.viewport_badge.setVisible(self._display_footer_enabled())
         self._position_viewport_overlays()
 
     def _is_canvas_plugin_enabled(self) -> bool:
@@ -384,7 +394,11 @@ class ToolWidget:
     def _update_plugin_hint(self):
         if self.plugin_hint is None:
             return
-        self.plugin_hint.setVisible(not self._is_canvas_plugin_enabled())
+        self.plugin_hint.setVisible(
+            self._display_footer_enabled() and not self._is_canvas_plugin_enabled()
+        )
+        if self.viewport_badge is not None:
+            self.viewport_badge.setVisible(self._display_footer_enabled())
         self._position_viewport_overlays()
 
     def _connect_plugin_hint_hook(self):
