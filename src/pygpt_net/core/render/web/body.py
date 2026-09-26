@@ -845,7 +845,7 @@ class Body:
         run_path = os.path.join(app_path, "data", "icons", "play.svg").replace("\\", "/")
         menu_path = os.path.join(app_path, "data", "icons", "menu.svg").replace("\\", "/")
 
-        url_path = os.path.join(app_path, "data", "icons", "url.svg").replace("\\", "/")
+        url_path = os.path.join(app_path, "data", "icons", "public_filled.svg").replace("\\", "/")
         attach_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
         db_path = os.path.join(app_path, "data", "icons", "db.svg").replace("\\", "/")
         done_path = os.path.join(app_path, "data", "icons", "done.svg").replace("\\", "/")
