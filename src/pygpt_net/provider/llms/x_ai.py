@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -31,7 +32,33 @@ class xAILLM(BaseLLM):
         super(xAILLM, self).__init__(*args, **kwargs)
         self.id = "x_ai"
         self.name = "xAI"
-        self.type = [MODE_CHAT, MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_CHAT, MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str", "default": "", "secret": True,
+                    "urls": {"API Keys": "https://console.x.ai"},
+                },
+                "api_base": {"type": "str", "default": "https://api.x.ai/v1"},
+                "extra": {
+                    "management_api_key": {
+                        "type": "str", "default": "", "secret": True,
+                        "label": "settings.api_key_management.xai",
+                        "desc": "settings.api_key_management.xai.desc",
+                        "use_locale": True,
+                        "urls": {"API Keys": "https://console.x.ai"},
+                    },
+                    "native": {
+                        "type": "bool", "default": True,
+                        "label": "settings.api_native_xai",
+                        "desc": "settings.api_native_xai.desc",
+                        "use_locale": True,
+                    },
+                },
+            }
+        }
 
     def completion(
             self,
@@ -254,7 +281,7 @@ class xAILLM(BaseLLM):
 
         args = self.prepare_openai_compatible_embedding_args(window, config)
 
-        proxy = cfg.get("api_proxy") or cfg.get("api_native_xai.proxy")
+        proxy = cfg.get("api_proxy") or self.get_config("proxy")
         if not cfg.get("api_proxy.enabled", False):
             proxy = ""
         timeout = self.get_embeddings_timeout(cfg)

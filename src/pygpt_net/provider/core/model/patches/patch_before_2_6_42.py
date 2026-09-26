@@ -473,16 +473,16 @@ class Patch:
                 # move API keys to config
                 config_updated = False
                 if azure_endpoint:
-                    self.window.core.config.set("api_azure_endpoint", azure_endpoint)
+                    self.window.core.config.set_provider("azure_openai", "api_base", azure_endpoint)
                     config_updated = True
                 if azure_api_version:
-                    self.window.core.config.set("api_azure_version", azure_api_version)
+                    self.window.core.config.set_provider("azure_openai", "extra.api_version", azure_api_version)
                     config_updated = True
                 if google_key:
-                    self.window.core.config.set("api_key_google", google_key)
+                    self.window.core.config.set_provider("google", "api_key", google_key)
                     config_updated = True
                 if anthropic_key:
-                    self.window.core.config.set("api_key_anthropic", anthropic_key)
+                    self.window.core.config.set_provider("anthropic", "api_key", anthropic_key)
                     config_updated = True
                 if config_updated:
                     self.window.core.config.save()

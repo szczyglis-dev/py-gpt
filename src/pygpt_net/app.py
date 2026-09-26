@@ -326,6 +326,8 @@ def run(**kwargs):
         from pygpt_net.provider.llms.litellm import LiteLLMProvider
         from pygpt_net.provider.llms.forge import ForgeLLM
         from pygpt_net.provider.llms.edenai import EdenAILLM
+        from pygpt_net.provider.llms.voyage_config import VoyageConfigLLM
+        from pygpt_net.provider.llms.jev_config import JevConfigLLM
 
         # vector store providers (llama-index)
         from pygpt_net.provider.vector_stores.chroma import ChromaProvider
@@ -537,6 +539,8 @@ def run(**kwargs):
         launcher.add_llm(OpenRouterLLM())
         launcher.add_llm(ForgeLLM())
         launcher.add_llm(EdenAILLM())
+        launcher.add_llm(VoyageConfigLLM())
+        launcher.add_llm(JevConfigLLM())
         launcher.add_llm(LiteLLMProvider())
 
         # register LLMs

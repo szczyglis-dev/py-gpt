@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -29,7 +30,7 @@ class LocalLLM(BaseLLM):
         super(LocalLLM, self).__init__(*args, **kwargs)
         self.id = "local_ai"
         self.name = "Local model (OpenAI API compatible)"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def get_embeddings_model(
             self,

@@ -83,8 +83,13 @@ class Settings:
         return persist_options
 
     def load(self):
-        """Load settings options"""
-        self.options = self.window.core.config.get_options()
+        """Load static settings plus provider-owned API configuration."""
+        static_options = self.window.core.config.get_options() or {}
+        provider_options = self.window.core.llm.get_settings_options() or {}
+        # Provider fields come first so API Keys tabs follow provider
+        # registration order; static non-LLM entries (e.g. plugin credentials)
+        # remain supported without hard-coding them in the LLM layer.
+        self.options = {**provider_options, **static_options}
         self.sections = self.window.core.config.get_sections()
         self.initialized = True
 

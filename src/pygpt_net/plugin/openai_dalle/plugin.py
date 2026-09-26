@@ -276,9 +276,9 @@ class Plugin(BasePlugin):
                         mark_pending(ctx, True)
 
                     # Use the native image provider selected by the configured image model.
-                    if model.provider == "google" and self.window.core.config.get("api_native_google", False):
+                    if model.provider == "google" and self.window.core.llm.get_config("google", "native", False):
                         self.window.core.api.google.image.generate(bridge_context, extra, sync)
-                    elif model.provider == "x_ai" and self.window.core.config.get("api_native_xai", False):
+                    elif model.provider == "x_ai" and self.window.core.llm.get_config("x_ai", "native", False):
                         self.window.core.api.xai.image.generate(bridge_context, extra, sync)
                     else:
                         self.window.core.api.openai.image.generate(bridge_context, extra, sync)

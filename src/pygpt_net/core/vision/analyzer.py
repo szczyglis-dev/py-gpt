@@ -58,11 +58,11 @@ class Analyzer:
 
         # Use the same native-SDK routing policy as the main bridge worker.
         api = core.api.openai
-        if model.provider == "google" and core.config.get("api_native_google", False):
+        if model.provider == "google" and core.llm.get_config("google", "native", False):
             api = core.api.google
-        elif model.provider == "anthropic" and core.config.get("api_native_anthropic", False):
+        elif model.provider == "anthropic" and core.llm.get_config("anthropic", "native", False):
             api = core.api.anthropic
-        elif model.provider == "x_ai" and core.config.get("api_native_xai", False):
+        elif model.provider == "x_ai" and core.llm.get_config("x_ai", "native", False):
             api = core.api.xai
 
         # request=True redirects quick_call to the normal Chat path. This is

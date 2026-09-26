@@ -75,14 +75,12 @@ class Bridge:
 
         provider = getattr(model, "provider", None)
         native = {
-            "google": ("api_native_google", "google"),
-            "anthropic": ("api_native_anthropic", "anthropic"),
-            "x_ai": ("api_native_xai", "xai"),
+            "google": "google",
+            "anthropic": "anthropic",
+            "x_ai": "xai",
         }
-        if provider in native:
-            config_key, api_provider = native[provider]
-            if self.window.core.config.get(config_key, False):
-                return api_provider
+        if provider in native and self.window.core.llm.get_config(provider, "native", False):
+            return native[provider]
 
         if model.is_openai_supported():
             return "openai"

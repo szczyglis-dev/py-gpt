@@ -534,20 +534,22 @@ class Models:
             model: ModelItem = None
     ) -> Dict[str, str]:
         """
-        Prepare chat client arguments
+        Prepare chat client arguments from the registered provider config.
 
         :param mode: mode name
         :param model: ModelItem
         :return: client arguments dict
         """
         cfg = self.window.core.config
-        args = {
-            "api_key": cfg.get('api_key'),
-            "organization": cfg.get('organization_key'),
-        }
-
-        if cfg.has('api_endpoint'):
-            endpoint = cfg.get('api_endpoint')
+        llm = self.window.core.llm
+        openai_provider = llm.get("openai")
+        args = {}
+        if openai_provider is not None:
+            args["api_key"] = openai_provider.get_config("api_key")
+            organization = openai_provider.get_config("organization")
+            if organization:
+                args["organization"] = organization
+            endpoint = openai_provider.get_config("api_base")
             if endpoint:
                 args["base_url"] = endpoint
 
@@ -562,58 +564,14 @@ class Models:
                 args["http_client"] = DefaultHttpxClient(transport=transport)
 
         if model is not None:
-            if model.provider == "x_ai":
-                args["api_key"] = cfg.get('api_key_xai', "")
-                args["base_url"] = cfg.get('api_endpoint_xai', "")
-                self.window.core.debug.info("[api] Using client: xAI")
-            elif model.provider == "perplexity":
-                args["api_key"] = cfg.get('api_key_perplexity', "")
-                args["base_url"] = cfg.get('api_endpoint_perplexity', "")
-                self.window.core.debug.info("[api] Using client: Perplexity")
-            elif model.provider == "google":
-                args["api_key"] = cfg.get('api_key_google', "")
-                args["base_url"] = cfg.get('api_endpoint_google', "")
-                self.window.core.debug.info("[api] Using client: Google")
-            elif model.provider == "anthropic":
-                args["api_key"] = cfg.get('api_key_anthropic', "")
-                args["base_url"] = cfg.get('api_endpoint_anthropic', "")
-                self.window.core.debug.info("[api] Using client: Anthropic")
-            elif model.provider == "deepseek_api":
-                args["api_key"] = cfg.get('api_key_deepseek', "")
-                args["base_url"] = cfg.get('api_endpoint_deepseek', "")
-                self.window.core.debug.info("[api] Using client: Deepseek API")
-            elif model.provider == "mistral_ai":
-                args["api_key"] = cfg.get('api_key_mistral', "")
-                args["base_url"] = cfg.get('api_endpoint_mistral', "")
-                self.window.core.debug.info("[api] Using client: Mistral AI API")
-            elif model.provider == "huggingface_router":
-                args["api_key"] = cfg.get('api_key_hugging_face', "")
-                args["base_url"] = cfg.get('api_endpoint_hugging_face', "")
-                self.window.core.debug.info("[api] Using client: HuggingFace Router API")
-            elif model.provider == "open_router":
-                args["api_key"] = cfg.get('api_key_open_router', "")
-                args["base_url"] = cfg.get('api_endpoint_open_router', "")
-                self.window.core.debug.info("[api] Using client: OpenRouter API")
-            elif model.provider == "forge":
-                args["api_key"] = cfg.get('api_key_forge', "") or os.environ.get("FORGE_API_KEY", "")
-                args["base_url"] = cfg.get('api_endpoint_forge', "") or os.environ.get(
-                    "FORGE_API_BASE", "https://api.forge.tensorblock.co/v1"
-                )
-                self.window.core.debug.info("[api] Using client: Forge API")
-            elif model.provider == "edenai":
-                args["api_key"] = cfg.get('api_key_edenai', "")
-                args["base_url"] = cfg.get('api_endpoint_edenai', "")
-                self.window.core.debug.info("[api] Using client: Eden AI API")
-            elif model.provider == "ollama":
+            if model.provider == "ollama":
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"
                 self.window.core.debug.info("[api] Using client: Ollama")
-            elif self.window.core.llm.is_custom_provider(model.provider):
-                provider = self.window.core.llm.get(model.provider)
+            elif llm.is_custom_provider(model.provider):
+                provider = llm.get(model.provider)
                 if provider is None:
-                    raise RuntimeError(
-                        f"Custom provider is not configured: {model.provider}"
-                    )
+                    raise RuntimeError(f"Custom provider is not configured: {model.provider}")
                 if getattr(provider, "is_runtime_custom", False):
                     args["api_key"] = provider.get_api_key()
                     args["base_url"] = provider.api_base
@@ -621,7 +579,19 @@ class Models:
                         f"[api] Using client: custom provider ({provider.name})"
                     )
             else:
-                self.window.core.debug.info("[api] Using client: OpenAI (default)")
+                provider = llm.get(model.provider)
+                if provider is not None:
+                    if provider.has_config("api_key"):
+                        args["api_key"] = provider.get_config("api_key", "")
+                    if provider.has_config("api_base"):
+                        base_url = provider.get_config("api_base", "")
+                        if base_url:
+                            args["base_url"] = base_url
+                        else:
+                            args.pop("base_url", None)
+                    self.window.core.debug.info(f"[api] Using client: {provider.name}")
+                else:
+                    self.window.core.debug.info("[api] Using client: OpenAI (default)")
 
             custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
             custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
@@ -633,8 +603,7 @@ class Models:
                 self.window.core.debug.info("[api] Applying model-specific API configuration")
 
             if model.provider != "openai":
-                if "organization" in args:
-                    del args["organization"]
+                args.pop("organization", None)
         else:
             self.window.core.debug.info("[api] No model provided, using default OpenAI client")
         return args

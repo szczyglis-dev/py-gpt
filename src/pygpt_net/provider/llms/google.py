@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -42,7 +43,50 @@ class GoogleLLM(BaseLLM):
         """
         self.id = "google"
         self.name = "Google"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str", "default": "", "secret": True,
+                    "urls": {"API Keys": "https://aistudio.google.com/app/apikey"},
+                },
+                "api_base": {"type": "str", "default": "https://generativelanguage.googleapis.com/v1beta/openai"},
+                "extra": {
+                    "native": {
+                        "type": "bool", "default": True,
+                        "label": "settings.api_native_google",
+                        "desc": "settings.api_native_google.desc",
+                        "use_locale": True,
+                    },
+                    "use_vertex": {
+                        "type": "bool", "default": False,
+                        "label": "settings.api_native_google.use_vertex",
+                        "desc": "settings.api_native_google.use_vertex.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                    "cloud_project": {
+                        "type": "str", "default": "",
+                        "label": "settings.api_native_google.cloud_project",
+                        "desc": "settings.api_native_google.cloud_project.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                    "cloud_location": {
+                        "type": "str", "default": "us-central1",
+                        "label": "settings.api_native_google.cloud_location",
+                        "desc": "settings.api_native_google.cloud_location.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                    "app_credentials": {
+                        "type": "str", "default": "",
+                        "label": "settings.api_native_google.app_credentials",
+                        "desc": "settings.api_native_google.app_credentials.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                },
+            }
+        }
 
     @staticmethod
     def _generation_config_dict(value) -> dict:
@@ -112,7 +156,7 @@ class GoogleLLM(BaseLLM):
                     (model.llama_index or {}).get("env", []),
                     ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
                 )
-                or window.core.config.get("api_key_google", "")
+                or self.get_config("api_key", "")
             )
 
         window.core.api.google.setup_env()  # setup VertexAI if configured
@@ -213,7 +257,7 @@ class GoogleLLM(BaseLLM):
                     (model.llama_index or {}).get("env", []),
                     ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
                 )
-                or window.core.config.get("api_key_google", "")
+                or self.get_config("api_key", "")
             )
 
         window.core.api.google.setup_env()
@@ -267,7 +311,7 @@ class GoogleLLM(BaseLLM):
                     window.core.config.get("llama.idx.embeddings.env", []) or [],
                     ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
                 )
-                or window.core.config.get("api_key_google", "")
+                or self.get_config("api_key", "")
             )
         if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")

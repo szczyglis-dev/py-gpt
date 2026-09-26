@@ -859,7 +859,7 @@ class Responses:
                 # check mode
                 elif (mode in self.RESPONSES_ALLOWED_MODES
                         and effective_parent_mode in self.RESPONSES_ALLOWED_MODES
-                        and self.window.core.config.get('api_use_responses', False)):
+                        and self.window.core.llm.get_config('openai', 'responses_api', False)):
                     allowed = True  # use responses API for chat mode, only OpenAI models
 
                     # Expert manager requests use the same global Responses

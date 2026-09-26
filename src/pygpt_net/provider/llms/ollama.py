@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     MODE_CHAT,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -34,7 +35,7 @@ class OllamaLLM(BaseLLM):
         super(OllamaLLM, self).__init__(*args, **kwargs)
         self.id = "ollama"
         self.name = "Ollama"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def completion(
             self,

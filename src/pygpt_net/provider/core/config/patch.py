@@ -59,6 +59,13 @@ class Patch:
                 patcher = PatchBefore2_8_32(self.window)
                 data, updated, _ = patcher.execute(version)
             # --------------------------------------------
+            # provider-scoped API config introduced in 2.8.33
+            if old < parse_version("2.8.33"):
+                from .patches.patch_before_2_8_33 import Patch as PatchBefore2_8_33
+                patcher = PatchBefore2_8_33(self.window)
+                data, provider_updated, _ = patcher.execute(version)
+                updated = updated or provider_updated
+            # --------------------------------------------
 
         # update file
         migrated = False

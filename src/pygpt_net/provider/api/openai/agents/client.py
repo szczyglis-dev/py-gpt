@@ -110,6 +110,6 @@ def set_openai_env(window):
 
     :param window: Window instance
     """
-    os.environ['OPENAI_API_KEY'] = str(window.core.config.get('api_key'))
-    os.environ['OPENAI_API_BASE'] = str(window.core.config.get('api_endpoint'))
-    os.environ['OPENAI_ORGANIZATION'] = str(window.core.config.get('organization_key'))
+    os.environ['OPENAI_API_KEY'] = str(window.core.llm.get_config('openai', 'api_key', ''))
+    os.environ['OPENAI_API_BASE'] = str(window.core.llm.get_config('openai', 'api_base', ''))
+    os.environ['OPENAI_ORGANIZATION'] = str(window.core.llm.get_config('openai', 'organization', ''))

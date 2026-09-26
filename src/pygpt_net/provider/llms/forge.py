@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from llama_index.core.base.embeddings.base import BaseEmbedding
     from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
-from pygpt_net.core.types import MODE_LLAMA_INDEX
+from pygpt_net.core.types import MODE_LLAMA_INDEX, MODE_EMBEDDINGS
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
@@ -28,15 +28,30 @@ class ForgeLLM(BaseLLM):
         super(ForgeLLM, self).__init__(*args, **kwargs)
         self.id = "forge"
         self.name = "Forge"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str",
+                    "default": "",
+                    "secret": True,
+                    "env": ["FORGE_API_KEY"],
+                },
+                "api_base": {
+                    "type": "str",
+                    "default": FORGE_DEFAULT_BASE_URL,
+                    "env": ["FORGE_API_BASE"],
+                },
+            }
+        }
 
     def _apply_auth(self, args: Dict, window) -> Dict:
         if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = os.environ.get("FORGE_API_KEY") or window.core.config.get("api_key_forge", "")
+            args["api_key"] = os.environ.get("FORGE_API_KEY") or self.get_config("api_key", "")
         if "api_base" not in args or args["api_base"] == "":
-            args["api_base"] = os.environ.get("FORGE_API_BASE") or window.core.config.get(
-                "api_endpoint_forge", ""
-            ) or FORGE_DEFAULT_BASE_URL
+            args["api_base"] = os.environ.get("FORGE_API_BASE") or self.get_config("api_base", "") or FORGE_DEFAULT_BASE_URL
         return args
 
     def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:

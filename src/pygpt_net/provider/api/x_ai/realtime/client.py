@@ -398,7 +398,7 @@ class xAIIRealtimeClient:
             return
 
         core = self.window.core
-        api_key = self.window.core.config.get("api_key_xai")
+        api_key = self.window.core.llm.get_config("x_ai", "api_key")
         if not api_key:
             raise RuntimeError("xAPI key not configured")
 

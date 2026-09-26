@@ -396,6 +396,78 @@ class Config:
         """
         return self.data.get(key, default)
 
+    def get_provider(self, provider_id: str, key: str = None, default: any = None) -> any:
+        """Return provider-scoped configuration from ``providers``.
+
+        ``api_key`` and ``api_base`` are top-level provider values. Other keys
+        are resolved from ``extra``; callers may explicitly use ``extra.foo``
+        as well.
+        """
+        providers = self.data.get("providers", {})
+        if not isinstance(providers, dict):
+            return default
+        provider = providers.get(provider_id, {})
+        if not isinstance(provider, dict):
+            return default
+        if key is None:
+            return provider
+        if key in provider:
+            return provider.get(key, default)
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = provider.get("extra", {})
+        if isinstance(extra, dict):
+            return extra.get(extra_key, default)
+        return default
+
+    def set_provider(self, provider_id: str, key: str, value: any):
+        """Set provider-scoped configuration in ``providers``."""
+        providers = self.data.setdefault("providers", {})
+        if not isinstance(providers, dict):
+            providers = {}
+            self.data["providers"] = providers
+        provider = providers.setdefault(provider_id, {})
+        if not isinstance(provider, dict):
+            provider = {}
+            providers[provider_id] = provider
+        if key in ("api_key", "api_base"):
+            provider[key] = value
+            return
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = provider.setdefault("extra", {})
+        if not isinstance(extra, dict):
+            extra = {}
+            provider["extra"] = extra
+        extra[extra_key] = value
+
+    def ensure_provider(self, provider_id: str, defaults: dict = None) -> bool:
+        """Create a provider entry and fill only missing schema defaults."""
+        changed = False
+        providers = self.data.setdefault("providers", {})
+        if not isinstance(providers, dict):
+            providers = {}
+            self.data["providers"] = providers
+            changed = True
+        provider = providers.get(provider_id)
+        if not isinstance(provider, dict):
+            provider = {}
+            providers[provider_id] = provider
+            changed = True
+        for key, value in (defaults or {}).items():
+            if key == "extra":
+                extra = provider.get("extra")
+                if not isinstance(extra, dict):
+                    extra = {}
+                    provider["extra"] = extra
+                    changed = True
+                for extra_key, extra_value in (value or {}).items():
+                    if extra_key not in extra:
+                        extra[extra_key] = copy.deepcopy(extra_value)
+                        changed = True
+            elif key not in provider:
+                provider[key] = copy.deepcopy(value)
+                changed = True
+        return changed
+
     def get_session(self, key: str, default: any = None) -> any:
         """
         Return session config value by key

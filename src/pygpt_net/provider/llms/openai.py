@@ -27,6 +27,7 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_AGENT_V2,
     MODE_COMPUTER,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -38,7 +39,49 @@ class OpenAILLM(BaseLLM):
         super(OpenAILLM, self).__init__(*args, **kwargs)
         self.id = "openai"
         self.name = "OpenAI"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str",
+                    "default": "",
+                    "secret": True,
+                    "urls": {"API Keys": "https://platform.openai.com/account/api-keys"},
+                },
+                "api_base": {
+                    "type": "str",
+                    "default": "https://api.openai.com/v1",
+                },
+                "extra": {
+                    "organization": {
+                        "type": "str",
+                        "default": "",
+                        "label": "settings.organization_key",
+                        "desc": "settings.organization_key.desc",
+                        "use_locale": True,
+                        "secret": True,
+                    },
+                    "responses_api": {
+                        "type": "bool",
+                        "default": True,
+                        "label": "settings.api_use_responses",
+                        "desc": "settings.api_use_responses.desc",
+                        "use_locale": True,
+                        "advanced": True,
+                    },
+                    "responses_api_llama": {
+                        "type": "bool",
+                        "default": True,
+                        "label": "settings.api_use_responses_llama",
+                        "desc": "settings.api_use_responses_llama.desc",
+                        "use_locale": True,
+                        "advanced": True,
+                    },
+                },
+            }
+        }
 
     def completion(
             self,
@@ -133,7 +176,7 @@ class OpenAILLM(BaseLLM):
             raise ValueError("Model name is required for OpenAI completion.")
         args["model"] = model_id
 
-        organization = str(window.core.config.get("organization_key", "") or "").strip()
+        organization = str(self.get_config("organization", "") or "").strip()
         if organization:
             headers = dict(args.get("default_headers") or {})
             headers.setdefault("OpenAI-Organization", organization)
@@ -245,7 +288,7 @@ class OpenAILLM(BaseLLM):
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         mode = window.core.config.get("mode")
         # dont' use Responses in agent modes
-        if window.core.config.get('api_use_responses_llama', False) and mode == MODE_LLAMA_INDEX:
+        if self.get_config("responses_api_llama", False) and mode == MODE_LLAMA_INDEX:
             self._append_responses_remote_tools(
                 window=window,
                 model=model,

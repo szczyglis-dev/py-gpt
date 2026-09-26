@@ -18,7 +18,9 @@ if TYPE_CHECKING:
     from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
 from pygpt_net.core.types import (
-    MODE_LLAMA_INDEX, MODE_CHAT,
+    MODE_LLAMA_INDEX,
+    MODE_CHAT,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.provider.llms.artifacts import append_unique_urls, extract_anthropic_urls
@@ -37,7 +39,26 @@ class AnthropicLLM(BaseLLM):
         """
         self.id = "anthropic"
         self.name = "Anthropic"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str", "default": "", "secret": True,
+                    "urls": {"API Keys": "https://platform.claude.com/settings/keys"},
+                },
+                "api_base": {"type": "str", "default": "https://api.anthropic.com/v1"},
+                "extra": {
+                    "native": {
+                        "type": "bool", "default": True,
+                        "label": "settings.api_native_anthropic",
+                        "desc": "settings.api_native_anthropic.desc",
+                        "use_locale": True,
+                    },
+                },
+            }
+        }
 
     def llama_completion(
             self,
@@ -149,7 +170,7 @@ class AnthropicLLM(BaseLLM):
                     (model.llama_index or {}).get("env", []),
                     ["ANTHROPIC_API_KEY"],
                 )
-                or window.core.config.get("api_key_anthropic", "")
+                or self.get_config("api_key", "")
             )
 
         # ---------------------------------------------
@@ -340,7 +361,7 @@ class AnthropicLLM(BaseLLM):
                     (model.llama_index or {}).get("env", []),
                     ["ANTHROPIC_API_KEY"],
                 )
-                or window.core.config.get("api_key_anthropic", "")
+                or self.get_config("api_key", "")
             )
 
         built_remote_tools = []
@@ -415,13 +436,13 @@ class AnthropicLLM(BaseLLM):
                     window.core.config.get("llama.idx.embeddings.env", []) or [],
                     ["VOYAGE_API_KEY"],
                 )
-                or window.core.config.get("api_key_voyage", "")
+                or window.core.llm.get_config("voyage", "api_key", "")
             )
         if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
 
         timeout = args.pop("timeout", self.get_embeddings_timeout(window.core.config))
-        max_retries = window.core.config.get("api_native_voyage.max_retries")
+        max_retries = window.core.llm.get_config("voyage", "max_retries")
         proxy = window.core.config.get("api_proxy")
         if not window.core.config.get("api_proxy.enabled", False):
             proxy = ""

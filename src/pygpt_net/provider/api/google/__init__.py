@@ -352,16 +352,16 @@ class ApiGoogle:
         """
         config = self.window.core.config
         use_vertex = False
-        if config.get("api_native_google.use_vertex", False):
+        if self.window.core.llm.get_config("google", "use_vertex", False):
             use_vertex = True
             # 2.x prefers the Enterprise name. Keep the legacy alias in sync
             # for google-genai 1.x and integrations which still inspect it.
             os.environ["GOOGLE_GENAI_USE_ENTERPRISE"] = "1"
             os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
-            os.environ["GOOGLE_CLOUD_PROJECT"] = config.get("api_native_google.cloud_project", "")
-            os.environ["GOOGLE_CLOUD_LOCATION"] = config.get("api_native_google.cloud_location", "us-central1")
-            if config.get("api_native_google.app_credentials", ""):
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.get("api_native_google.app_credentials", "")
+            os.environ["GOOGLE_CLOUD_PROJECT"] = self.window.core.llm.get_config("google", "cloud_project", "")
+            os.environ["GOOGLE_CLOUD_LOCATION"] = self.window.core.llm.get_config("google", "cloud_location", "us-central1")
+            if self.window.core.llm.get_config("google", "app_credentials", ""):
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.window.core.llm.get_config("google", "app_credentials", "")
         else:
             if os.environ.get("GOOGLE_GENAI_USE_ENTERPRISE"):
                 del os.environ["GOOGLE_GENAI_USE_ENTERPRISE"]

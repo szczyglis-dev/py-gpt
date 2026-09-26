@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from llama_index.core.base.embeddings.base import BaseEmbedding
     from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
 
-from pygpt_net.core.types import MODE_LLAMA_INDEX
+from pygpt_net.core.types import MODE_LLAMA_INDEX, MODE_EMBEDDINGS
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.llms.base import BaseLLM
 
@@ -37,7 +37,7 @@ class CustomLLM(BaseLLM):
         self.name = name
         self.api_base = api_base
         self.api_key = api_key or ""
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
         self.is_runtime_custom = True
 
     def get_api_key(self) -> str:

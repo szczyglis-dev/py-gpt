@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -29,7 +30,23 @@ class EdenAILLM(BaseLLM):
         super(EdenAILLM, self).__init__(*args, **kwargs)
         self.id = "edenai"
         self.name = "Eden AI"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str",
+                    "default": "",
+                    "secret": True,
+                    "urls": {"API Keys": "https://app.edenai.run/admin/api-settings/features-preferences"},
+                },
+                "api_base": {
+                    "type": "str",
+                    "default": "https://api.edenai.run/v3",
+                },
+            }
+        }
 
     def get_embeddings_model(
             self,

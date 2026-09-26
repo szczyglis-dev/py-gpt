@@ -109,8 +109,8 @@ class ApiXAI:
         import xai_sdk
 
         cfg = self.window.core.config
-        api_key = cfg.get("api_key_xai") or os.environ.get("XAI_API_KEY") or ""
-        timeout = cfg.get("api_native_xai.timeout")  # optional
+        api_key = self.window.core.llm.get_config("x_ai", "api_key") or os.environ.get("XAI_API_KEY") or ""
+        timeout = self.window.core.llm.get_config("x_ai", "timeout")  # optional
         proxy = cfg.get("api_proxy") or ""
         if not cfg.get("api_proxy.enabled"):
             proxy = ""

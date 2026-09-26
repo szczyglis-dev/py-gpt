@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 
 from pygpt_net.provider.llms.base import BaseLLM
@@ -31,7 +32,23 @@ class MistralAILLM(BaseLLM):
         super(MistralAILLM, self).__init__(*args, **kwargs)
         self.id = "mistral_ai"
         self.name = "Mistral AI"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str",
+                    "default": "",
+                    "secret": True,
+                    "urls": {"API Keys": "https://admin.mistral.ai/organization/api-keys"},
+                },
+                "api_base": {
+                    "type": "str",
+                    "default": "https://api.mistral.ai/v1",
+                },
+            }
+        }
 
     def llama(
             self,
@@ -89,7 +106,7 @@ class MistralAILLM(BaseLLM):
                     (model.llama_index or {}).get("env", []),
                     ["MISTRAL_API_KEY"],
                 )
-                or window.core.config.get("api_key_mistral", "")
+                or self.get_config("api_key", "")
             )
         if not args.get("endpoint"):
             endpoint = (
@@ -98,7 +115,7 @@ class MistralAILLM(BaseLLM):
                     (model.llama_index or {}).get("env", []),
                     ["MISTRAL_ENDPOINT"],
                 )
-                or window.core.config.get("api_endpoint_mistral", "")
+                or self.get_config("api_base", "")
             )
             if endpoint:
                 args["endpoint"] = endpoint
@@ -170,7 +187,7 @@ class MistralAILLM(BaseLLM):
                     window.core.config.get("llama.idx.embeddings.env", []) or [],
                     ["MISTRAL_API_KEY"],
                 )
-                or window.core.config.get("api_key_mistral", "")
+                or self.get_config("api_key", "")
             )
         if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
@@ -181,7 +198,7 @@ class MistralAILLM(BaseLLM):
                     window.core.config.get("llama.idx.embeddings.env", []) or [],
                     ["MISTRAL_ENDPOINT"],
                 )
-                or window.core.config.get("api_endpoint_mistral", "")
+                or self.get_config("api_base", "")
             )
             if endpoint:
                 args["endpoint"] = endpoint

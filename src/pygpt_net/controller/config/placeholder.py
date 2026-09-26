@@ -16,6 +16,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     AGENT_TYPE_OPENAI,
     AGENT_TYPE_LLAMA,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.utils import trans
 
@@ -205,7 +206,7 @@ class Placeholder:
 
         :return: Filled placeholder list
         """
-        choices = self.window.core.llm.get_choices("embeddings")
+        choices = self.window.core.llm.get_choices(MODE_EMBEDDINGS)
         return [{k: v} for k, v in choices.items()]
 
     def get_agent_providers(self) -> List[Dict[str, str]]:

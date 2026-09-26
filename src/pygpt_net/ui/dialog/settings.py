@@ -86,6 +86,7 @@ class Settings(BaseConfigDialog):
             is_general = False
 
             tab_by_key = {}
+            tab_labels = {}
             for key, field in fields.items():
                 if 'tab' in field:
                     tab = field['tab']
@@ -99,6 +100,8 @@ class Settings(BaseConfigDialog):
 
                 tab_id = field['tab'] if field.get('tab') not in (None, "") else "general"
                 tab_by_key[key] = tab_id
+                if field.get('_tab_label'):
+                    tab_labels[tab_id] = field.get('_tab_label')
 
                 if field.get('advanced'):
                     advanced_keys.setdefault(tab_id, []).append(key)
@@ -237,17 +240,23 @@ class Settings(BaseConfigDialog):
                             locale_key = "settings.section.tab.general"
                     else:
                         locale_key = "settings.section." + section_id + "." + tab_id
-                    name_key = trans(locale_key)
-                    tab_name = name_key
-                    trans_key = name_key.replace(" ", "_").lower()
-                    translated = trans(trans_key)
-                    if translated != trans_key:
-                        tab_name = translated
+                    literal_label = tab_labels.get(tab_id)
+                    if literal_label:
+                        tab_name = literal_label
+                        tab_meta = {"label": literal_label}
+                    else:
+                        name_key = trans(locale_key)
+                        tab_name = name_key
+                        trans_key = name_key.replace(" ", "_").lower()
+                        translated = trans(trans_key)
+                        if translated != trans_key:
+                            tab_name = translated
+                        tab_meta = {"locale": locale_key}
                     scroll_widget = QWidget()
                     scroll_widget.setLayout(content_tabs[tab_id])
                     scroll_tabs[tab_id].setWidget(scroll_widget)
                     tab_widget.addTab(scroll_tabs[tab_id], tab_name)
-                    tab_keys.append(locale_key)
+                    tab_keys.append(tab_meta)
 
                 self.window.ui.tabs['settings.section.tabs'][section_id] = tab_widget
                 self.window.ui.tabs['settings.section.tab_keys'][section_id] = tab_keys

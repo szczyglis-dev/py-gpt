@@ -74,7 +74,14 @@ class Editor:
                 if 'type' not in self.options[key]:
                     continue
                 options[key] = self.options[key]
-                options[key]['value'] = self.window.core.config.get(key)  # append current config value
+                if self.options[key].get('_provider_dynamic'):
+                    provider = self.window.core.llm.get(self.options[key].get('_provider'))
+                    if provider is not None:
+                        options[key]['value'] = provider.get_config(self.options[key].get('_provider_key'))
+                    else:
+                        options[key]['value'] = self.options[key].get('value')
+                else:
+                    options[key]['value'] = self.window.core.config.get(key)  # append current config value
             self.window.controller.config.load_options('config', options)
 
     def load(self):
@@ -109,7 +116,12 @@ class Editor:
                 key=key, 
                 option=self.options[key],
             )
-            self.window.core.config.set(key, value)
+            if self.options[key].get('_provider_dynamic'):
+                provider = self.window.core.llm.get(self.options[key].get('_provider'))
+                if provider is not None:
+                    provider.set_config(self.options[key].get('_provider_key'), value)
+            else:
+                self.window.core.config.set(key, value)
 
 
         if not self.window.core.config.get('layout.tray'):

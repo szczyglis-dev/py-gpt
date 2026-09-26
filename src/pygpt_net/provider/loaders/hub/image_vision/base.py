@@ -180,11 +180,11 @@ class ImageVisionLLMReader(BaseReader):
         # Follow the same native-provider routing policy as regular chat/vision
         # requests instead of forcing every image model through OpenAI.
         api = core.api.openai
-        if model.provider == "google" and core.config.get("api_native_google", False):
+        if model.provider == "google" and core.llm.get_config("google", "native", False):
             api = core.api.google
-        elif model.provider == "anthropic" and core.config.get("api_native_anthropic", False):
+        elif model.provider == "anthropic" and core.llm.get_config("anthropic", "native", False):
             api = core.api.anthropic
-        elif model.provider == "x_ai" and core.config.get("api_native_xai", False):
+        elif model.provider == "x_ai" and core.llm.get_config("x_ai", "native", False):
             api = core.api.xai
 
         text = (api.quick_call(context=context, extra={}) or "").strip()

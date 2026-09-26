@@ -26,7 +26,15 @@ class Patch:
     def execute(self, version: Version):
         """Run config migrations introduced after 2.6.42 and through 2.8.32."""
         data = self.window.core.config.all()
-        cfg_get_base = self.window.core.config.get_base
+        raw_cfg_get_base = self.window.core.config.get_base
+        from .patch_before_2_8_33 import LEGACY_DEFAULTS
+
+        def cfg_get_base(key):
+            value = raw_cfg_get_base(key)
+            if value is None and key in LEGACY_DEFAULTS:
+                return copy.deepcopy(LEGACY_DEFAULTS[key])
+            return value
+
         remove_plugin_config = self.window.core.config.remove_plugin_config
         current = "0.0.0"
         updated = False
@@ -1449,14 +1457,6 @@ class Patch:
                 if "render.engine" in data:
                     del data["render.engine"]
                     updated = True
-
-                # Jev / System One is an inline decision plugin rather than a chat LLM,
-                # but its credentials live with provider API settings. Ensure these keys
-                # are also added to profiles that already carry the current app version.
-                for key in ("api_key_jev", "api_endpoint_jev"):
-                    if key not in data:
-                        data[key] = cfg_get_base(key)
-                        updated = True
 
                 plugins_enabled = data.get("plugins_enabled")
                 if isinstance(plugins_enabled, dict) and "jev" not in plugins_enabled:

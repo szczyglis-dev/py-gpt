@@ -371,50 +371,27 @@ class Common:
             model: ModelItem,
             monit: bool = True
     ) -> bool:
-        """
-        Check if API KEY is set
-
-        :param mode: current mode
-        :param model: ModelItem instance
-        :param monit: True if monitor should be shown
-        :return: True if API KEY is set, False otherwise
-        """
-        if model is None:
-            return True
-        # Ollama and other local providers do not require an API key
-        if model.is_ollama():
+        """Check whether the selected provider requires and has an API key."""
+        if model is None or model.is_ollama():
             return True
 
-        config = self.window.core.config
-        provider_keys = {
-            "openai": config.get('api_key', None),
-            "azure_openai": config.get('api_key', None),
-            "anthropic": config.get('api_key_anthropic', None),
-            "google": config.get('api_key_google', None),
-            "x_ai": config.get('api_key_xai', None),
-            "perplexity": config.get('api_key_perplexity', None),
-            "deepseek_api": config.get('api_key_deepseek', None),
-            "mistral_ai": config.get('api_key_mistral', None),
-        }
+        provider = self.window.core.llm.get(model.provider)
+        if provider is None or not hasattr(provider, 'has_config') or not provider.has_config('api_key'):
+            return True
 
-        if model.provider in provider_keys:
-            api_key = provider_keys[model.provider]
+        api_key = provider.get_config('api_key')
+        # OpenAI historically allows an empty key for non-GPT/local-compatible
+        # model entries. Keep that behavior while making all declared provider
+        # credentials otherwise data-driven.
+        if model.provider == 'openai' and not model.is_gpt():
+            return True
+        if api_key is None or api_key == '':
             name = self.window.core.llm.get_provider_name(model.provider)
-            if model.provider == 'openai':
-                # allow empty key for models other than GPT
-                if model.is_gpt() and (api_key is None or api_key == ''):
-                    if monit:
-                        self.window.ui.nodes['start.api_key.provider'].setText(name)
-                        self.window.controller.launcher.show_api_monit()
-                    self.window.update_status(f"Missing API KEY for provider: {name}")
-                    return False
-            else:
-                if api_key is None or api_key == '':
-                    if monit:
-                        self.window.ui.nodes['start.api_key.provider'].setText(name)
-                        self.window.controller.launcher.show_api_monit()
-                    self.window.update_status(f"Missing API KEY for provider: {name}")
-                    return False
+            if monit:
+                self.window.ui.nodes['start.api_key.provider'].setText(name)
+                self.window.controller.launcher.show_api_monit()
+            self.window.update_status(f"Missing API KEY for provider: {name}")
+            return False
         return True
 
     def apply_timestamp(self, value: bool, initialized: bool = True):

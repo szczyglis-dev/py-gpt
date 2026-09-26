@@ -80,7 +80,7 @@ class Worker(BaseWorker):
     def _api_key(self) -> str:
         key = (
             os.environ.get("TYPESAFE_API_KEY")
-            or self._config_value("api_key_jev")
+            or self._provider_config("api_key", "")
             or ""
         )
         key = str(key).strip()
@@ -94,7 +94,7 @@ class Worker(BaseWorker):
     def _api_base(self) -> str:
         value = (
             os.environ.get("TYPESAFE_BASE_URL")
-            or self._config_value("api_endpoint_jev")
+            or self._provider_config("api_base", self.DEFAULT_BASE_URL)
             or self.DEFAULT_BASE_URL
         )
         return str(value).strip().rstrip("/")
@@ -115,13 +115,13 @@ class Worker(BaseWorker):
             value = self.plugin.get_option_value("model")
         return str(value or self.DEFAULT_MODEL).strip() or self.DEFAULT_MODEL
 
-    def _config_value(self, key: str):
+    def _provider_config(self, key: str, default=None):
         if self.window is None or getattr(self.window, "core", None) is None:
-            return None
-        config = getattr(self.window.core, "config", None)
-        if config is None:
-            return None
-        return config.get(key)
+            return default
+        llm = getattr(self.window.core, "llm", None)
+        if llm is None:
+            return default
+        return llm.get_config("jev", key, default)
 
     def _headers(self) -> Dict[str, str]:
         return {

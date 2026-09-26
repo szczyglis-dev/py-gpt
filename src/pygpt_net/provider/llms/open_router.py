@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -29,7 +30,23 @@ class OpenRouterLLM(BaseLLM):
         super(OpenRouterLLM, self).__init__(*args, **kwargs)
         self.id = "open_router"
         self.name = "OpenRouter"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str",
+                    "default": "",
+                    "secret": True,
+                    "urls": {"API Keys": "https://openrouter.ai/settings/keys"},
+                },
+                "api_base": {
+                    "type": "str",
+                    "default": "https://openrouter.ai/api/v1",
+                },
+            }
+        }
 
     def get_embeddings_model(
             self,

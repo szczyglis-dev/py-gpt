@@ -10,7 +10,7 @@
 # ================================================== #
 
 import os
-from typing import Optional, List, Dict, TYPE_CHECKING
+from typing import Optional, List, Dict, TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from llama_index.core.base.embeddings.base import BaseEmbedding
@@ -27,11 +27,121 @@ from pygpt_net.utils import parse_args
 
 
 class BaseLLM:
+    _MISSING = object()
+
     def __init__(self, *args, **kwargs):
         self.id = ""
         self.name = ""
         self.type = []  # langchain, llama_index, embeddings
         self.description = ""
+        self.window = None
+        self.config_id = ""
+
+    def setup(self) -> dict:
+        """Return provider-owned setup metadata.
+
+        Providers expose their API configuration here instead of relying on a
+        central, hard-coded list in ``settings.json``.  The ``settings`` dict
+        may contain ``api_key``, ``api_base`` and an ``extra`` mapping.
+        """
+        return {"settings": {}}
+
+    def bind(self, window):
+        """Bind provider to the application window/config at registration time."""
+        self.window = window
+        if not getattr(self, "config_id", ""):
+            self.config_id = self.id
+        return self
+
+    def get_config_id(self) -> str:
+        """Return the logical ID used under ``config.providers``."""
+        return getattr(self, "config_id", "") or self.id
+
+    def get_settings_schema(self) -> dict:
+        """Return normalized provider settings schema."""
+        try:
+            setup = self.setup() or {}
+        except Exception:
+            return {}
+        settings = setup.get("settings", {}) if isinstance(setup, dict) else {}
+        return settings if isinstance(settings, dict) else {}
+
+    def _get_schema_field(self, key: str) -> Optional[dict]:
+        schema = self.get_settings_schema()
+        if key in ("api_key", "api_base"):
+            field = schema.get(key)
+            return field if isinstance(field, dict) else None
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = schema.get("extra", {})
+        if isinstance(extra, dict):
+            field = extra.get(extra_key)
+            return field if isinstance(field, dict) else None
+        return None
+
+    def has_config(self, key: str) -> bool:
+        """Return True when the provider declares a configuration key."""
+        return self._get_schema_field(key) is not None
+
+    def get_config(self, key: str, default: Any = _MISSING) -> Any:
+        """Read a provider value from ``config.providers``.
+
+        ``api_key`` and ``api_base`` live directly under the provider entry;
+        all other declared fields are read from ``extra``.  If the entry has
+        not been materialized yet, the provider schema default is returned.
+        """
+        fallback = default
+        field = self._get_schema_field(key)
+        if fallback is self._MISSING:
+            fallback = field.get("default") if field is not None else None
+        if self.window is None or not hasattr(self.window, "core"):
+            return fallback
+        config = getattr(self.window.core, "config", None)
+        if config is None:
+            return fallback
+        value = config.get_provider(self.get_config_id(), key, fallback)
+        # Optional ENV fallback is provider-owned metadata. This keeps special
+        # cases (e.g. Forge) out of the central client/config code while still
+        # allowing a provider to retain its historical environment fallback.
+        if (value is None or value == "") and field is not None:
+            env_names = field.get("env", [])
+            if isinstance(env_names, str):
+                env_names = [env_names]
+            for env_name in env_names if isinstance(env_names, (list, tuple)) else []:
+                env_value = os.environ.get(str(env_name), "")
+                if env_value:
+                    return env_value
+        return value
+
+    def set_config(self, key: str, value: Any):
+        """Write a provider value to ``config.providers``."""
+        if self.window is None or not hasattr(self.window, "core"):
+            return
+        config = getattr(self.window.core, "config", None)
+        if config is not None:
+            config.set_provider(self.get_config_id(), key, value)
+
+    def sync_config(self) -> bool:
+        """Materialize missing provider defaults in the active config."""
+        if self.window is None or not hasattr(self.window, "core"):
+            return False
+        schema = self.get_settings_schema()
+        if not schema:
+            return False
+        config = getattr(self.window.core, "config", None)
+        if config is None:
+            return False
+        defaults = {}
+        for key in ("api_key", "api_base"):
+            field = schema.get(key)
+            if isinstance(field, dict):
+                defaults[key] = field.get("default")
+        extra_defaults = {}
+        for key, field in (schema.get("extra", {}) or {}).items():
+            if isinstance(field, dict):
+                extra_defaults[key] = field.get("default")
+        if extra_defaults:
+            defaults["extra"] = extra_defaults
+        return config.ensure_provider(self.get_config_id(), defaults)
 
     def init(
             self,

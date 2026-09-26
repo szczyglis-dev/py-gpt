@@ -51,7 +51,7 @@ class Store:
         Get xAI client (xai_sdk.Client or OpenAI-compatible client).
         Requires management_api_key.
         """
-        management_api_key = self.window.core.config.get("api_key_management_xai")
+        management_api_key = self.window.core.llm.get_config("x_ai", "management_api_key")
         if management_api_key:
             return self.window.core.api.xai.get_client(management_api_key=management_api_key)
         return self.window.core.api.xai.get_client()

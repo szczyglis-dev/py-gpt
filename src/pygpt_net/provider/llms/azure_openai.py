@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
@@ -37,7 +38,24 @@ class AzureOpenAILLM(BaseLLM):
         """
         self.id = "azure_openai"
         self.name = "Azure OpenAI"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {"type": "str", "default": "", "secret": True},
+                "api_base": {"type": "str", "default": "https://<your-resource-name>.openai.azure.com/"},
+                "extra": {
+                    "api_version": {
+                        "type": "str",
+                        "default": "2023-07-01-preview",
+                        "label": "settings.api_azure_version",
+                        "desc": "settings.api_azure_version.desc",
+                        "use_locale": True,
+                    },
+                },
+            }
+        }
 
     def completion(
             self,
@@ -97,21 +115,21 @@ class AzureOpenAILLM(BaseLLM):
         if not args.get("api_key"):
             args["api_key"] = (
                 self.get_env_override(window, env, ["AZURE_OPENAI_API_KEY", "OPENAI_API_KEY"])
-                or window.core.config.get("api_key", "")
+                or self.get_config("api_key", "")
             )
         if not args.get("model"):
             args["model"] = model.id
         if not args.get("azure_endpoint"):
             endpoint = (
                 self.get_env_override(window, env, ["AZURE_OPENAI_ENDPOINT"])
-                or window.core.config.get("api_azure_endpoint", "")
+                or self.get_config("api_base", "")
             )
             if endpoint:
                 args["azure_endpoint"] = endpoint
         if not args.get("api_version"):
             api_version = (
                 self.get_env_override(window, env, ["OPENAI_API_VERSION", "AZURE_OPENAI_API_VERSION"])
-                or window.core.config.get("api_azure_version", "")
+                or self.get_config("api_version", "")
             )
             if api_version:
                 args["api_version"] = api_version
@@ -146,21 +164,21 @@ class AzureOpenAILLM(BaseLLM):
         if not args.get("api_key"):
             args["api_key"] = (
                 self.get_env_override(window, env, ["AZURE_OPENAI_API_KEY", "OPENAI_API_KEY"])
-                or window.core.config.get("api_key", "")
+                or self.get_config("api_key", "")
             )
         if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
         if not args.get("azure_endpoint"):
             endpoint = (
                 self.get_env_override(window, env, ["AZURE_OPENAI_ENDPOINT"])
-                or window.core.config.get("api_azure_endpoint", "")
+                or self.get_config("api_base", "")
             )
             if endpoint:
                 args["azure_endpoint"] = endpoint
         if not args.get("api_version"):
             api_version = (
                 self.get_env_override(window, env, ["OPENAI_API_VERSION", "AZURE_OPENAI_API_VERSION"])
-                or window.core.config.get("api_azure_version", "")
+                or self.get_config("api_version", "")
             )
             if api_version:
                 args["api_version"] = api_version

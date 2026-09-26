@@ -89,14 +89,14 @@ class Native:
         cfg = self.window.core.config
         if provider == "openai":
             return provider
-        if provider == "google" and cfg.get("api_native_google", False):
+        if provider == "google" and self.window.core.llm.get_config("google", "native", False):
             # Gemini File API upload is used here. Vertex AI uses a different file/GCS flow.
-            if cfg.get("api_native_google.use_vertex", False):
+            if self.window.core.llm.get_config("google", "use_vertex", False):
                 return None
             return provider
-        if provider == "anthropic" and cfg.get("api_native_anthropic", False):
+        if provider == "anthropic" and self.window.core.llm.get_config("anthropic", "native", False):
             return provider
-        if provider == "x_ai" and cfg.get("api_native_xai", False):
+        if provider == "x_ai" and self.window.core.llm.get_config("x_ai", "native", False):
             if supports_xai_native_files(model.id):
                 return provider
         return None

@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
 )
 
 from pygpt_net.provider.llms.base import BaseLLM
@@ -30,7 +31,23 @@ class DeepseekApiLLM(BaseLLM):
         super(DeepseekApiLLM, self).__init__(*args, **kwargs)
         self.id = "deepseek_api"
         self.name = "Deepseek API"
-        self.type = [MODE_LLAMA_INDEX, "embeddings"]
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str",
+                    "default": "",
+                    "secret": True,
+                    "urls": {"API Keys": "https://platform.deepseek.com/api_keys"},
+                },
+                "api_base": {
+                    "type": "str",
+                    "default": "https://api.deepseek.com/v1",
+                },
+            }
+        }
 
     def llama(
             self,
@@ -85,13 +102,13 @@ class DeepseekApiLLM(BaseLLM):
                     window.core.config.get("llama.idx.embeddings.env", []) or [],
                     ["VOYAGE_API_KEY"],
                 )
-                or window.core.config.get("api_key_voyage", "")
+                or window.core.llm.get_config("voyage", "api_key", "")
             )
         if args.get("model") and not args.get("model_name"):
             args["model_name"] = args.pop("model")
 
         timeout = args.pop("timeout", self.get_embeddings_timeout(window.core.config))
-        max_retries = window.core.config.get("api_native_voyage.max_retries")
+        max_retries = window.core.llm.get_config("voyage", "max_retries")
         proxy = window.core.config.get("api_proxy")
         if not window.core.config.get("api_proxy.enabled", False):
             proxy = ""
