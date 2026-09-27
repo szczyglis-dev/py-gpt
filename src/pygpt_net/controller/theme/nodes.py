@@ -115,6 +115,12 @@ class Nodes:
                 ta.apply_theme_style()
                 ta.value = size
 
+        files = ui.nodes.get('output_files')
+        if files is not None:
+            viewer = files.preview.viewer
+            if hasattr(viewer, 'restore_zoom'):
+                viewer.restore_zoom()
+
         # apply to calendar
         note = ui.calendar.get('note')
         if note is not None:

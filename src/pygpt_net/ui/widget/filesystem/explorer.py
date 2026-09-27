@@ -19,7 +19,10 @@ from typing import Union
 from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent, QUrl, QPoint, QMimeData, QTimer, QRect, QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent, QGuiApplication, QKeySequence, QShortcut, QClipboard, QDrag
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
-    QPushButton, QSizePolicy, QAbstractItemView, QFrame
+    QPushButton, QSizePolicy, QAbstractItemView, QFrame, QSplitter, QLineEdit, QHeaderView
+
+from .preview import PreviewPanel
+from .search import TreeSearch
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.element.button import ContextMenuButton
@@ -211,6 +214,7 @@ class MultiDragTreeView(QTreeView):
                     except Exception:
                         pass
                     self._sel_anchor_index = self._md_press_index
+                    self.clicked.emit(self._md_press_index)
                 else:
                     self.setCurrentIndex(QModelIndex())
 
@@ -662,7 +666,34 @@ class FileExplorer(QWidget):
 
         self.window.ui.nodes['tip.output.tab.files'] = HelpLabel(trans('tip.output.tab.files'), self.window)
 
-        self.layout.addWidget(self.treeView)
+        self.preview = PreviewPanel(self.window, self.directory, self)
+        self.preview.directoryRequested.connect(self.navigate_directory)
+        self.search = QLineEdit()
+        self.search.setPlaceholderText(trans('files.search.placeholder'))
+        self.search.setClearButtonEnabled(True)
+        self.search.addAction(QIcon(':/icons/search.svg'), QLineEdit.LeadingPosition)
+        self.search_status = QLabel()
+        self.searching_text = trans('files.search.searching')
+        search_bar = QHBoxLayout()
+        search_bar.addWidget(self.search, 1)
+        search_bar.addWidget(self.search_status)
+        files_panel = QWidget()
+        files_layout = QVBoxLayout(files_panel)
+        files_layout.setContentsMargins(0, 0, 0, 0)
+        files_layout.addLayout(search_bar)
+        files_layout.addWidget(self.treeView)
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.addWidget(self.preview)
+        self.splitter.addWidget(files_panel)
+        self.splitter.setSizes([600, 400])
+        self.splitter.setStretchFactor(0, 3)
+        self.splitter.setStretchFactor(1, 2)
+        self.layout.addWidget(self.splitter, 1)
+        self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.treeView.clicked.connect(self.preview_index)
+        self.treeView.activated.connect(self.preview_index)
+        self.tree_search = TreeSearch(self)
         self.layout.addWidget(self.window.ui.nodes['tip.output.tab.files'])
         self.layout.addLayout(header)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -673,7 +704,9 @@ class FileExplorer(QWidget):
         self.treeView.setColumnWidth(0, int(self.width() / 2))
 
         self.header = self.treeView.header()
-        self.header.setStretchLastSection(True)
+        self.header.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.header.customContextMenuRequested.connect(self.header_context_menu)
+        self.header.setStretchLastSection(False)
         self.header.setContentsMargins(0, 0, 0, 0)
         self.header.setSectionsClickable(True)
         self.header.setSortIndicatorShown(True)
@@ -681,23 +714,10 @@ class FileExplorer(QWidget):
         self.treeView.setSortingEnabled(True)
         self.model.sort(0, Qt.AscendingOrder)
 
-        # Persisted column widths across model refreshes/layout changes
-        self._saved_column_widths = {}
-        self._is_restoring_columns = False
-
-        # Re-apply widths when user resizes columns or model refreshes
-        try:
-            self.header.sectionResized.connect(self._on_header_section_resized)
-            self.model.modelAboutToBeReset.connect(self._on_model_about_to_reset)
-            self.model.modelReset.connect(self._on_model_reset)
-            self.model.layoutAboutToBeChanged.connect(self._on_layout_about_to_change)
-            self.model.layoutChanged.connect(self._on_layout_changed)
-            self.model.directoryLoaded.connect(self._on_model_directory_loaded)
-        except Exception:
-            pass
-
-        self.column_proportion = 0.3
-        self.adjustColumnWidths()  # initial layout
+        self.model.modelReset.connect(self._schedule_restore_columns)
+        self.model.layoutChanged.connect(lambda *_: self._schedule_restore_columns())
+        self.model.directoryLoaded.connect(lambda *_: self._schedule_restore_columns())
+        self.adjustColumnWidths()
 
         self.header.setStyleSheet("""
            QHeaderView::section {
@@ -758,69 +778,34 @@ class FileExplorer(QWidget):
 
         self._dnd_handler = ExplorerDropHandler(self)
 
-    def _on_header_section_resized(self, logical_index: int, old: int, new: int):
-        """Track user-driven column width changes."""
-        if self._is_restoring_columns:
-            return
-        try:
-            self._saved_column_widths[logical_index] = int(new)
-        except Exception:
-            pass
+    def header_context_menu(self, position):
+        menu = QMenu(self.header)
+        menu.addAction(trans('files.tree.collapse_all'), self.tree_search.collapse_all)
+        menu.addAction(trans('files.tree.expand_all'), self.tree_search.expand_all)
+        menu.exec(self.header.mapToGlobal(position))
+        menu.deleteLater()
 
-    def _on_model_about_to_reset(self):
-        """Save current widths before model reset."""
-        self._save_current_column_widths()
+    def preview_index(self, index):
+        path = self.model.filePath(index)
+        if os.path.isfile(path):
+            if not self.preview.open_file(path) and self.preview.path:
+                self.treeView.setCurrentIndex(self.model.index(self.preview.path))
 
-    def _on_model_reset(self):
-        """Restore widths right after model reset."""
-        self._schedule_restore_columns()
+    def navigate_directory(self, path):
+        self.search.clear()
+        self.tree_search.start()
+        index = self.model.index(path)
+        ancestor = index
+        while ancestor.isValid() and ancestor != self.treeView.rootIndex():
+            self.treeView.expand(ancestor)
+            ancestor = ancestor.parent()
+        if index.isValid():
+            self.treeView.setCurrentIndex(index)
+            self.treeView.scrollTo(index)
 
-    def _on_layout_about_to_change(self):
-        """Save widths before layout changes."""
-        self._save_current_column_widths()
-
-    def _on_layout_changed(self):
-        """Restore widths after layout changes."""
-        self._schedule_restore_columns()
-
-    def _on_model_directory_loaded(self, path: str):
-        """Ensure widths are re-applied when a directory finishes loading."""
-        self._schedule_restore_columns()
-
-    def _save_current_column_widths(self):
-        """Persist current column widths."""
-        try:
-            count = self.model.columnCount()
-            for i in range(count):
-                w = self.treeView.columnWidth(i)
-                if w > 0:
-                    self._saved_column_widths[i] = int(w)
-        except Exception:
-            pass
-
-    def _restore_columns_now(self):
-        """Best-effort restoration of column widths with proportional fallback."""
-        try:
-            self._is_restoring_columns = True
-            col_count = self.model.columnCount()
-            self.adjustColumnWidths()  # apply proportional baseline
-            if self._saved_column_widths:
-                for i, w in list(self._saved_column_widths.items()):
-                    if 0 <= i < col_count and w > 0:
-                        try:
-                            self.treeView.setColumnWidth(i, int(w))
-                        except Exception:
-                            pass
-            try:
-                self.header.setStretchLastSection(True)
-            except Exception:
-                pass
-        finally:
-            self._is_restoring_columns = False
-
-    def _schedule_restore_columns(self, delay_ms: int = 0):
-        """Defer restoration to allow view/header to settle after reset."""
-        QTimer.singleShot(max(0, delay_ms), self._restore_columns_now)
+    def _schedule_restore_columns(self):
+        """Keep the single name column after filesystem model refreshes."""
+        QTimer.singleShot(0, self.adjustColumnWidths)
 
     def eventFilter(self, source, event):
         """
@@ -860,12 +845,15 @@ class FileExplorer(QWidget):
         return self.owner
 
     def update_view(self):
-        """Update explorer view keeping column widths intact."""
-        self._save_current_column_widths()
+        """Refresh the root and restart the current recursive search."""
+        if not self.preview.set_root(self.directory):
+            self.directory = self.preview.root
+            return
         self.model.beginResetModel()
         self.model.setRootPath(self.directory)
         self.model.endResetModel()
         self.treeView.setRootIndex(self.model.index(self.directory))
+        self.tree_search.start()
         self._schedule_restore_columns()
 
     def idx_context_menu(self, parent, pos):
@@ -912,17 +900,10 @@ class FileExplorer(QWidget):
         menu.exec(parent.mapToGlobal(pos))
 
     def adjustColumnWidths(self):
-        """Adjust column widths and persist them."""
-        total_width = self.treeView.width()
-        col_count = self.model.columnCount()
-        first_column_width = int(total_width * self.column_proportion)
-        self.treeView.setColumnWidth(0, first_column_width)
-        if col_count > 1:
-            remaining = max(total_width - first_column_width, 0)
-            per_col = remaining // (col_count - 1) if col_count > 1 else 0
-            for column in range(1, col_count):
-                self.treeView.setColumnWidth(column, per_col)
-        self._save_current_column_widths()
+        """Show only the filename, filling the tree panel."""
+        for column in range(1, self.model.columnCount()):
+            self.treeView.setColumnHidden(column, True)
+        self.header.setSectionResizeMode(0, QHeaderView.Stretch)
 
     def resizeEvent(self, event: QResizeEvent):
         """
