@@ -1,6 +1,28 @@
 """Breadcrumb file tree in a native popup, dismissed by outside clicks."""
-from PySide6.QtCore import Qt, QDir
+import os
+
+from PySide6.QtCore import Qt, QDir, QModelIndex
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QTreeView, QFileSystemModel, QAbstractItemView
+
+
+class DirectoryFileSystemModel(QFileSystemModel):
+    """Filesystem model that does not advertise expandability for empty folders."""
+
+    def hasChildren(self, parent=QModelIndex()) -> bool:
+        if parent.isValid():
+            try:
+                index = parent.siblingAtColumn(0)
+                path = self.filePath(index)
+                if path and self.isDir(index):
+                    with os.scandir(path) as entries:
+                        return next(entries, None) is not None
+            except OSError:
+                # Preserve QFileSystemModel's lazy/default behavior when the
+                # directory cannot be inspected (permissions, transient mount, etc.).
+                pass
+            except Exception:
+                pass
+        return super().hasChildren(parent)
 
 
 class DirectoryPopup(QFrame):
@@ -12,7 +34,7 @@ class DirectoryPopup(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
         self.tree = QTreeView(self)
-        self.model = QFileSystemModel(self)
+        self.model = DirectoryFileSystemModel(self)
         self.model.setFilter(QDir.AllEntries | QDir.NoDotAndDotDot | QDir.Hidden)
         self.model.setRootPath(path)
         self.tree.setModel(self.model)
