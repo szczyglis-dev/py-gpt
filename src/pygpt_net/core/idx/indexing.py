@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 20:10:00                  #
+# Updated Date: 2026.09.27 17:35:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -314,12 +314,25 @@ class Indexing:
         if not silent:
             self.window.core.idx.log(f"Reading documents from path: {path}")
         if os.path.isdir(path):
-            reader = SimpleDirectoryReader(
-                input_dir=path,
-                recursive=True,
-                exclude_hidden=False,
-            )
-            documents = reader.load_data()
+            # Do not let SimpleDirectoryReader choose its own default readers here.
+            # That bypasses PyGPT's registered/configured loaders (notably the
+            # video/audio loader) and may instantiate optional readers such as
+            # LlamaIndex VideoAudioReader, which requires a local Whisper install.
+            # Route every file through get_documents() instead, so the same loader
+            # selection and exclusion rules are used for files and directories.
+            documents = []
+            for root, dirs, files in os.walk(path):
+                dirs.sort()
+                files.sort()
+                for name in files:
+                    file_path = os.path.join(root, name)
+                    documents.extend(self.get_documents(
+                        file_path,
+                        force=force,
+                        silent=silent,
+                        loader_kwargs=loader_kwargs,
+                    ))
+            return documents
         else:
             # get extension
             ext = os.path.splitext(path)[1][1:].lower()

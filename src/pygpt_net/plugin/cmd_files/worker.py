@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 14:45:00                  #
+# Updated Date: 2026.09.27 17:35:00                  #
 # ================================================== #
 
 import fnmatch
@@ -1387,6 +1387,18 @@ class Worker(BaseWorker):
         context = []
         for path in paths:
             path = self.prepare_path(path)
+            if os.path.isdir(path):
+                # read_file is intentionally file-only. Treating a directory as a
+                # file used to pass it to LlamaIndex's SimpleDirectoryReader, which
+                # recursively scanned the directory and could invoke unrelated
+                # optional loaders (for example VideoAudioReader/Whisper).
+                message = "Path is a directory; use list_dir or tree to inspect directories."
+                data.append({
+                    "path": os.path.basename(os.path.normpath(path)) or path,
+                    "error": message,
+                })
+                self.log(f"File read skipped (directory): {path}")
+                continue
             if os.path.exists(path):
                 # + auto-index file using Llama-index
                 if self.plugin.get_option_value("auto_index") \

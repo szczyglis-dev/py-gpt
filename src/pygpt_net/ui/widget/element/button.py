@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 15:05:00                  #
+# Updated Date: 2026.09.27 17:35:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -36,6 +36,7 @@ class NewCtxButton(QPushButton):
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
+        self.clicked.connect(lambda: self.window.controller.ctx.new(force=False))
 
     @classmethod
     def _ensure_icons(cls):
@@ -44,7 +45,7 @@ class NewCtxButton(QPushButton):
             cls._icon_folder_filled = QIcon(":/icons/folder_filled.svg")
 
     def mousePressEvent(self, event):
-        if event.button() in (Qt.LeftButton, Qt.RightButton):
+        if event.button() == Qt.RightButton:
             self.new_context_menu(self, event.pos())
             event.accept()
             return
