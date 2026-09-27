@@ -565,6 +565,18 @@ class Response:
         if part_changed:
             core_ctx.update_part(ctx, previous_part, sync_item=True)
 
+            # A workflow can keep one CtxItem open across many assistant passes.
+            # Generate the automatic context title as soon as the first partial
+            # has actually finished, instead of waiting for the whole agent flow
+            # to reach CTX_END. For ordinary/single-pass flows the existing
+            # end-of-turn prepare_summary() call remains the fallback.
+            parts = getattr(ctx, "parts", None) or []
+            if parts and previous_part is parts[0]:
+                try:
+                    self.window.controller.ctx.prepare_summary(ctx)
+                except Exception as exc:
+                    self.window.core.debug.log(exc)
+
         # A real runtime part boundary means that the preceding tool/text segment
         # is complete. Materialize it in the durable parent and then stream the
         # new prose as an *inline partial* of that same msg-box. Do not begin a
