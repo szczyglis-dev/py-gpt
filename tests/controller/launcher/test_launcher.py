@@ -28,6 +28,7 @@ def test_run_startup_checks(mock_window):
     mock_window.core.updater.run_check.assert_called_once_with(
         force=True,
         event="launch",
+        quiet=True,
     )
 
     # The app-ready signal may fire more than once; checks are intentionally one-shot.
@@ -36,6 +37,7 @@ def test_run_startup_checks(mock_window):
     mock_window.core.updater.run_check.assert_called_once_with(
         force=True,
         event="launch",
+        quiet=True,
     )
 
 

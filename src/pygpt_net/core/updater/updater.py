@@ -451,7 +451,6 @@ class Updater(QObject):
 
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Failed to check for updates")
 
         return is_new, newest_version, newest_build, changelog, download_windows, download_linux, download_appimage
 
@@ -582,19 +581,21 @@ class Updater(QObject):
             True
         )
 
-    def run_check(self, force: bool = False, on_finished=None, event: Optional[str] = "ping"):
+    def run_check(self, force: bool = False, on_finished=None, event: Optional[str] = "ping", quiet: bool = False):
         """
         Run check for updates in background
 
         :param force: force show version dialog
         :param on_finished: optional callback invoked after the background check finishes
         :param event: updater event name
+        :param quiet: suppress console output from the background worker
         """
         worker = UpdaterWorker()
         worker.window = self.window
         worker.checker = self.check_silent
         worker.force = force
         worker.event = event
+        worker.quiet = quiet
         worker.signals.version_changed.connect(self.handle_new_version)
         if on_finished is not None:
             worker.signals.finished.connect(on_finished)
@@ -617,6 +618,7 @@ class UpdaterWorker(QRunnable):
         self.checker = None
         self.force = False
         self.event = None
+        self.quiet = False
 
     @Slot()
     def run(self):
@@ -631,7 +633,7 @@ class UpdaterWorker(QRunnable):
             if last_checked is not None and last_checked != "":
                 parsed_prev_checked = parse_version(last_checked)
 
-            if self.force:
+            if self.force and not self.quiet:
                 print("Checking for updates...")
 
             is_new, version, build, changelog, download_windows, download_linux, download_appimage = self.checker(self.event)
@@ -646,12 +648,13 @@ class UpdaterWorker(QRunnable):
                         download_appimage
                     )
                 return
-            if self.force:
+            if self.force and not self.quiet:
                 print("No updates available.")
 
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Failed to check for updates")
+            if not self.quiet:
+                print("Failed to check for updates")
 
         finally:
             if self.signals is not None:

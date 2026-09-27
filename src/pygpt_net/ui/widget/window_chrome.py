@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.20 20:20:00                  #
+# Updated Date: 2026.09.27 23:30:00                  #
 # ================================================== #
 
 import os
@@ -33,6 +33,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QLabel,
     QSizePolicy,
+    QSizeGrip,
     QWidget,
 )
 
@@ -84,6 +85,7 @@ class WindowChrome(QObject):
     """Native-like controls and move/resize handling for the frameless main window."""
 
     RESIZE_MARGIN = 5
+    RESIZE_GRIP_SIZE = 22
     ICON_SIZE = 15
     BUTTON_WIDTH = 34
     BUTTON_HEIGHT = 26
@@ -99,6 +101,7 @@ class WindowChrome(QObject):
         self.btn_minimize = None
         self.btn_maximize = None
         self.btn_close = None
+        self.resize_grip = None
 
         # Do NOT install this filter on QApplication. QtWebEngine/PySide6 on
         # Linux can crash natively when a Python event filter sees all app events.
@@ -194,6 +197,7 @@ class WindowChrome(QObject):
         self._track_menu_actions()
         self._install_drag_filters()
         self._setup_resize_handles()
+        self._setup_resize_grip()
         self.refresh_metadata()
         self.update_state()
         QTimer.singleShot(0, self.refresh)
@@ -202,6 +206,7 @@ class WindowChrome(QObject):
         """Refresh locally filtered passive widgets and edge handles."""
         self._install_drag_filters()
         self._position_resize_handles()
+        self._position_resize_grip()
         self.refresh_metadata()
         self.update_state()
 
@@ -359,6 +364,12 @@ class WindowChrome(QObject):
             if resize_visible:
                 handle.raise_()
 
+        if self.resize_grip is not None:
+            self.resize_grip.setVisible(resize_visible)
+            if resize_visible:
+                self._position_resize_grip()
+                self.resize_grip.raise_()
+
     def _toggle_maximized(self, checked=False):
         if self.window.isFullScreen():
             return
@@ -473,6 +484,30 @@ class WindowChrome(QObject):
             self._resize_handles[handle] = edges
 
         self._position_resize_handles()
+
+    def _setup_resize_grip(self):
+        """Add a dialog-like resize grip to the main window bottom-right corner."""
+        if self.resize_grip is not None:
+            return
+
+        self.resize_grip = QSizeGrip(self.window)
+        self.resize_grip.setObjectName("windowResizeGrip")
+        self.resize_grip.setFocusPolicy(Qt.NoFocus)
+        self.resize_grip.setToolTip("")
+        size = max(self.RESIZE_GRIP_SIZE, self.resize_grip.sizeHint().width(), self.resize_grip.sizeHint().height())
+        self.resize_grip.setFixedSize(size, size)
+        self._position_resize_grip()
+
+    def _position_resize_grip(self):
+        """Keep the resize grip anchored to the main window bottom-right corner."""
+        if self.resize_grip is None:
+            return
+        size = self.resize_grip.width()
+        self.resize_grip.move(
+            max(0, self.window.width() - size),
+            max(0, self.window.height() - self.resize_grip.height()),
+        )
+        self.resize_grip.raise_()
 
     def _position_resize_handles(self):
         if not self._resize_handles:
@@ -628,6 +663,7 @@ class WindowChrome(QObject):
         if watched is self.window:
             if event_type in (QEvent.Resize, QEvent.Show):
                 QTimer.singleShot(0, self._position_resize_handles)
+                QTimer.singleShot(0, self._position_resize_grip)
                 QTimer.singleShot(0, self.update_state)
             return False
 

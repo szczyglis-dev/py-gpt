@@ -55,6 +55,7 @@ class Launcher:
             self.window.core.updater.run_check(
                 force=True,
                 event="launch",
+                quiet=True,
             )
 
     def show_api_monit(self):
