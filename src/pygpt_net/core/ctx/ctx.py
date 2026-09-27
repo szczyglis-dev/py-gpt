@@ -1626,12 +1626,18 @@ class Ctx:
         else:
             return self.load(meta_id)
 
+    def _clear_agent_session_memory(self, meta=None):
+        """Standalone context stores have no application-owned agent cache."""
+        if self.window is not None:
+            self.window.core.agents.clear_session_memory(meta)
+
     def remove(self, id: int):
         """
         Delete ctx by id
 
         :param id: ctx id
         """
+        self._clear_agent_session_memory(id)
         if id in self.meta:
             del self.meta[id]
             self.provider.remove(id)
@@ -1646,6 +1652,7 @@ class Ctx:
         for i, item in enumerate(items):
             if item.id == id:
                 items.pop(i)
+                self._clear_agent_session_memory(item.meta or self.current)
                 self.provider.remove_item(id)
                 break
 
@@ -1662,12 +1669,14 @@ class Ctx:
         """
         items = [item for item in self.get_items() if item.id < item_id]
         self.set_items(items)
+        self._clear_agent_session_memory(meta_id)
         return self.provider.remove_items_from(meta_id, item_id)
 
     def truncate(self):
         """Delete all ctx"""
         self.meta = {}
         self.provider.truncate()
+        self._clear_agent_session_memory()
 
     def clear(self):
         """Clear ctx items"""
@@ -2924,6 +2933,7 @@ class Ctx:
 
         :param id: meta id
         """
+        self._clear_agent_session_memory(id)
         if id in self.meta:
             self.provider.clear_meta(id)
             self.meta[id].initialized = False
@@ -2962,6 +2972,7 @@ class Ctx:
 
     def reset(self):
         """Reset all data"""
+        self._clear_agent_session_memory()
         self.meta = {}
         self.clear_items()
         self.current = None

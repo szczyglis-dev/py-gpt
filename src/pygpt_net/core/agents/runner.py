@@ -106,6 +106,11 @@ class Runner:
             # prepare agent
             model = context.model
             vector_store_idx = extra.get("agent_idx", None)
+            # Preserve the fully composed request system prompt on the durable
+            # turn for loop/evaluate continuations. REQUEST_NEXT bypasses the
+            # normal chat BridgeWorker prompt hooks, so without this the next
+            # improvement pass silently lost the preset/plugin system prompt.
+            ctx.agents_v2_system_prompt = context.system_prompt or ""
             system_prompt = BaseAgent.append_security_rule(context.system_prompt)
             preset = context.preset
             max_steps = self.window.core.config.get("agent.llama.steps", 10)

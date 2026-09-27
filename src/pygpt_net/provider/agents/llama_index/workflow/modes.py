@@ -5,7 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 from llama_index.core.agent.workflow import AgentStream
-from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.workflow import Workflow, Context, StartEvent, StopEvent, step
 from workflows.errors import WorkflowCancelledByUser
 
@@ -98,16 +97,21 @@ class ModesWorkflow(Workflow):
             ctx.write_event_to_stream(AgentStream(delta=text, response=text,
                                       current_agent_name=name, tool_calls=[], raw={}))
 
-    async def role(self, ctx, section, query, *, name=None, schema=None, fresh=False, expert=None):
+    async def role(self, ctx, section, query, *, name=None, schema=None, role_id=None, expert=None):
         """All child runs share the ordered stream/tool/cancellation bridge."""
         name = name or section.capitalize()
         self.announce(ctx, name)
         agent = self.provider.build_role(self.window, self.kwargs, section, name, schema,
                                          workflow=self, ctx=ctx, expert=expert, query=query)
-        key = (section, name)
-        if fresh or key not in self.memories:
-            self.memories[key] = ChatMemoryBuffer.from_defaults(
-                chat_history=list(self.initial_history), token_limit=self.memory_token_limit)
+        from pygpt_net.core.agents.session_memory import role_memory
+        # Display labels (task names, generation numbers, localized names) are
+        # transient. Roles and expert UUIDs identify the same agent next turn.
+        identity = role_id or (getattr(expert, 'uuid', None) if expert is not None else None) or section
+        key = (section, str(identity))
+        if key not in self.memories:
+            self.memories[key] = role_memory(
+                self.window, self.provider, self.kwargs.get('context'), json.dumps(key),
+                history=self.initial_history, token_limit=self.memory_token_limit)
         handler = agent.run(user_msg=query, memory=self.memories[key],
                             max_iterations=effective_iteration_limit(self.limit))
         prose = RealtimeRouterStreamerLI(fields=('feedback', 'reason')) if schema else None
@@ -147,9 +151,9 @@ class ModesWorkflow(Workflow):
                 candidates = []
                 for index in range(count):
                     candidates.append(await self.role(ctx, 'base', prompt,
-                        name=f'Generation {generation} · Candidate {index + 1}', fresh=True))
+                        name=f'Generation {generation} · Candidate {index + 1}', role_id=f'candidate:{index + 1}'))
                 choice = await self.role(ctx, 'chooser', query + '\n\n' + '\n\n'.join(
-                    f'Answer {i + 1}:\n{text}' for i, text in enumerate(candidates)), schema=Choice, fresh=True)
+                    f'Answer {i + 1}:\n{text}' for i, text in enumerate(candidates)), schema=Choice)
                 if choice.answer_number > len(candidates):
                     raise ValueError('Chooser selected a nonexistent candidate')
                 answer = candidates[choice.answer_number - 1]
@@ -186,7 +190,7 @@ class ModesWorkflow(Workflow):
         results = []
         for item in plan.searches:
             result = await self.role(ctx, 'search', f'{item.query}\n{item.reason}',
-                                     name='Researcher', fresh=True)
+                                     name='Researcher')
             results.append(f'Query: {item.query}\n{result}')
         return await self.role(ctx, 'writer', f'Task:\n{query}\n\nResearch:\n' + '\n\n'.join(results),
                                name='Writer')
@@ -212,7 +216,7 @@ class ModesWorkflow(Workflow):
             context = '\n\n'.join(f'{name}:\n{answer}' for name, answer in completed.items())
             completed[ready.name] = await self.role(ctx, 'step',
                 f'Task: {query}\nSubtask: {ready.input}\nExpected: {ready.expected_output}\nCompleted:\n{context}',
-                name=ready.name, fresh=True)
+                name=ready.name)
             steps += 1
             if self.option('refine', 'after_each_subtask', True) or len(remaining) == 1:
                 refinement = await self.role(ctx, 'refine', f'Task: {query}\nRemaining: {[t.model_dump() for t in remaining if t.name not in completed]}\nCompleted:\n' +
@@ -222,7 +226,7 @@ class ModesWorkflow(Workflow):
                 if refinement.plan is not None:
                     plan = refinement.plan
         return await self.role(ctx, 'step', f'Give the final answer to: {query}\nResults:\n' +
-                               '\n\n'.join(completed.values()), name='Final answer', fresh=True)
+                               '\n\n'.join(completed.values()), name='Final answer')
 
     @step
     async def execute(self, ctx: Context, ev: StartEvent) -> StopEvent:

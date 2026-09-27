@@ -99,7 +99,16 @@ class PlannerAgent(BaseAgent):
             prompt_plan_refine_each_step = True
 
 
+        from pygpt_net.core.agents.session_memory import role_memory
+        executor_memory = role_memory(window, self, context, "executor",
+                                      history=kwargs.get("chat_history"))
+        planner_memory = role_memory(window, self, context, "planner",
+                                     history=kwargs.get("chat_history"))
         return PlannerWorkflow(
+            executor_memory_factory=lambda: executor_memory,
+            planner_memory=planner_memory,
+            refiner_memory=role_memory(window, self, context, "refiner",
+                                       history=kwargs.get("chat_history")),
             tools=tools if step_allow_local_tools else [],
             llm=llm,
             executor_llm=executor_llm,

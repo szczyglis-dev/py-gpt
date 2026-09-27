@@ -107,6 +107,7 @@ class DynamicFlowWorkflowLI(Workflow):
         initial_messages: Optional[List[TResponseInputItem]],
         preset: Optional[PresetItem],
         default_model: ModelItem,
+        memory_manager: Optional[MemoryManager] = None,
         option_get: OptionGetter,
         router_stream_mode: str,
         allow_local_tools_default: bool,
@@ -128,7 +129,7 @@ class DynamicFlowWorkflowLI(Workflow):
         # Graph/schema
         self.fs: FlowSchema = parse_schema(schema or [])
         self.g: FlowGraph = build_graph(self.fs)
-        self.mem = MemoryManager()
+        self.mem = memory_manager if memory_manager is not None else MemoryManager()
         self.factory = AgentFactoryLI(window, self.logger)
 
         # Options
@@ -277,17 +278,21 @@ class DynamicFlowWorkflowLI(Workflow):
         # memory with history
         if mem_state and mem_state.items:
             base_items = list(mem_state.items)
+            chat_history_msgs = to_li_chat_messages(base_items)
+
+            # A persisted memory belongs to the same ctx.meta across user turns.
+            # On the first dispatch of a NEW turn, the baton must therefore be
+            # the current user query, not the last assistant message stored in
+            # memory. Subsequent nodes inside this same workflow run still use
+            # the previous node output as their baton.
+            if not self._first_dispatch_done:
+                user_msg_text = self._initial_chat[-1].content if self._initial_chat else ""
+                return user_msg_text, chat_history_msgs, "memory:existing_new_turn"
+
             if self._last_plain_output.strip():
                 user_msg_text = self._last_plain_output
             else:
-                last_ass = mem_state.items[-1] if isinstance(mem_state.items[-1], dict) else {}
-                if isinstance(last_ass.get("content"), str):
-                    user_msg_text = last_ass.get("content", "")
-                elif isinstance(last_ass.get("content"), list) and last_ass["content"]:
-                    user_msg_text = last_ass["content"][0].get("text", "")
-                else:
-                    user_msg_text = ""
-            chat_history_msgs = to_li_chat_messages(base_items)
+                user_msg_text = chat_history_msgs[-1].content or "" if chat_history_msgs else ""
             return user_msg_text, chat_history_msgs, "memory:existing_to_user_baton"
 
         # memory empty
@@ -310,7 +315,7 @@ class DynamicFlowWorkflowLI(Workflow):
             )
             return user_msg, [], "no-mem:last_output"
 
-    async def _update_memory_after_step(self, node_id: str, user_msg_text: str, display_text: str):
+    async def _update_memory_after_step(self, node_id: str, user_msg_text: str, display_text: str, native_history=None):
         """
         Update per-node memory after a step, storing baton user message and assistant output.
         """
@@ -326,7 +331,9 @@ class DynamicFlowWorkflowLI(Workflow):
             {"role": "user", "content": user_msg_text},
             {"role": "assistant", "content": [{"type": "output_text", "text": display_text}]},
         ]
-        mem_state.set_from(new_mem, None)
+        # Native messages include tool calls, tool results and multimodal blocks.
+        # Rebuilding only user/assistant text loses what this node actually did.
+        mem_state.set_from(native_history if native_history is not None else new_mem, None)
         after_len = len(mem_state.items)
         if self.dbg.log_memory_dump:
             self.logger.debug(
@@ -472,9 +479,11 @@ class DynamicFlowWorkflowLI(Workflow):
         # field, never protocol JSON. History and limits belong to run(), not
         # constructor kwargs (which newer LlamaIndex releases ignore).
         router = RealtimeRouterStreamerLI() if multi_output else None
+        from pygpt_net.core.agents.session_memory import WorkflowMemory
+        node_memory = WorkflowMemory.from_defaults(chat_history=chat_history_msgs, llm=llm_node)
         handler = agent.run(
             user_msg=user_msg_text,
-            chat_history=chat_history_msgs,
+            memory=node_memory,
             max_iterations=effective_iteration_limit(self.max_iterations),
         )
         t0 = perf_counter()
@@ -505,7 +514,8 @@ class DynamicFlowWorkflowLI(Workflow):
                 await self._emit_agent_text(ctx, display_text, agent_name=(node.name or current_id))
             elif display_text.startswith(streamed_text) and len(display_text) > len(streamed_text):
                 await self._emit_agent_text(ctx, display_text[len(streamed_text):], agent_name=(node.name or current_id))
-            await self._update_memory_after_step(current_id, user_msg_text, display_text)
+            await self._update_memory_after_step(
+                current_id, user_msg_text, display_text, native_history=await node_memory.aget_all())
             if not decision.valid:
                 raise ValueError(f"Invalid route from workflow node {current_id}")
             next_id = decision.route
@@ -519,7 +529,8 @@ class DynamicFlowWorkflowLI(Workflow):
                 await self._emit_agent_text(ctx, display_text, agent_name=(node.name or current_id))
             elif display_text.startswith(streamed_text) and len(display_text) > len(streamed_text):
                 await self._emit_agent_text(ctx, display_text[len(streamed_text):], agent_name=(node.name or current_id))
-            await self._update_memory_after_step(current_id, user_msg_text, display_text)
+            await self._update_memory_after_step(
+                current_id, user_msg_text, display_text, native_history=await node_memory.aget_all())
             outs = self.g.get_next(current_id)
             next_id = outs[0] if outs else self.g.first_connected_end(current_id)
             if self.dbg.log_routes:

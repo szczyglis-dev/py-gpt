@@ -250,6 +250,7 @@ class SupervisorWorkflow(Workflow):
         self._supervisor = kwargs["supervisor"]
         self._worker = kwargs["worker"]
         self._worker_memory = kwargs.get("worker_memory")
+        self._supervisor_memory = kwargs.get("supervisor_memory")
         self._max_steps = kwargs.get("max_steps", 12)
         self._on_stop = None
 
@@ -275,7 +276,7 @@ class SupervisorWorkflow(Workflow):
         if verbose:
             self._verbose = True
 
-        if memory is not None:
+        if self._supervisor_memory is None and memory is not None:
             self._supervisor_memory = memory  # use external memory for Supervisor
 
         start_event = InputEvent(
@@ -465,7 +466,9 @@ def get_workflow(
     prompt_supervisor: str = SUPERVISOR_PROMPT,
     prompt_worker: str = WORKER_PROMPT,
     max_steps: int = 12,
-    worker_memory_session_id: str = "llama_worker_session"  # session ID for worker memory
+    worker_memory_session_id: str = "llama_worker_session",  # session ID for worker memory
+    worker_memory: Optional[Memory] = None,
+    supervisor_memory: Optional[Memory] = None,
 ):
     """
     Create a SupervisorWorkflow instance.
@@ -480,6 +483,7 @@ def get_workflow(
     :param prompt_worker: Prompt for the Worker agent.
     :param max_steps: Maximum number of steps for the workflow.
     :param worker_memory_session_id: Session ID for the Worker agent's memory.
+    :param worker_memory: Optional persistent Worker memory supplied by the app session.
     :return: SupervisorWorkflow instance
     """
     # Keep backwards compatibility for direct callers: historically the Worker
@@ -503,13 +507,16 @@ def get_workflow(
         tools=worker_tools,
     )
 
-    # separate memory for the worker
-    worker_memory = Memory.from_defaults(session_id=worker_memory_session_id, token_limit=40000)
+    # Separate Worker memory. The app may provide a persistent instance scoped
+    # to ctx.meta; direct callers keep the historical per-workflow fallback.
+    if worker_memory is None:
+        worker_memory = Memory.from_defaults(session_id=worker_memory_session_id, token_limit=40000)
 
     return SupervisorWorkflow(
         supervisor=supervisor,
         worker=worker,
         worker_memory=worker_memory,
+        supervisor_memory=supervisor_memory,
         verbose=verbose,
         timeout=120,
         max_steps=max_steps,

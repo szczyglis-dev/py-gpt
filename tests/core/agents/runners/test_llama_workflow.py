@@ -366,7 +366,7 @@ def test_custom_flow_streams_routes_and_keeps_current_input_and_history():
     assert [m.content for m in seen[0] if m.role == 'user'] == ['old question', 'new question']
     assert any(m.content == 'old answer' for m in seen[0])
     assert any(m.content == 'handoff text' for m in seen[1])
-    assert workflow.mem.get('mem').items[-1]['content'][0]['text'] == 'Final result'
+    assert workflow.mem.get('mem').items[-1].content == 'Final result'
 
 
 def test_error_without_stream_terminal_does_not_hang():

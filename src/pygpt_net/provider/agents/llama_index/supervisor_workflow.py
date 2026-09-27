@@ -100,9 +100,10 @@ class SupervisorAgent(BaseAgent):
             allow_remote_tools=worker_allow_remote_tools,
             computer_runtime=computer_runtime if worker_allow_remote_tools else None,
         )
-        worker_memory_session_id = ""
-        if context.ctx and context.ctx.meta:
-            worker_memory_session_id = "llama_worker_session_" + str(context.ctx.meta.id)
+        from pygpt_net.core.agents.session_memory import role_memory
+        supervisor_memory = role_memory(window, self, context, "supervisor",
+                                         history=kwargs.get("chat_history"))
+        worker_memory = role_memory(window, self, context, "worker")
 
         # create workflow
         return get_workflow(
@@ -115,7 +116,8 @@ class SupervisorAgent(BaseAgent):
                 max_steps=max_steps,
                 prompt_supervisor=prompt_supervisor,
                 prompt_worker=prompt_worker,
-                worker_memory_session_id=worker_memory_session_id,
+                supervisor_memory=supervisor_memory,
+                worker_memory=worker_memory,
         )
 
     def get_options(self) -> Dict[str, Any]:

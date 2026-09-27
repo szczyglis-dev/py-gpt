@@ -106,6 +106,8 @@ class PlannerWorkflow(Workflow):
         memory_char_limit: int = 8000,
         clear_executor_memory_between_subtasks: bool = False,
         executor_memory_factory: Optional[Callable[[], object]] = None,
+        planner_memory=None,
+        refiner_memory=None,
         on_stop: Optional[Callable] = None,
         refine_after_each_subtask: bool = True,
     ):
@@ -118,7 +120,8 @@ class PlannerWorkflow(Workflow):
         self._plan_refine_prompt = PromptTemplate(plan_refine_prompt)
         self._tools = tools
         self._max_steps = max_steps
-        self._memory = None
+        self._memory = planner_memory
+        self._refiner_memory = refiner_memory
         self.verbose = verbose
         self._memory_char_limit = memory_char_limit
         self._on_stop = on_stop
@@ -140,7 +143,8 @@ class PlannerWorkflow(Workflow):
         else:
             def _default_factory():
                 if ChatMemoryBuffer is not None:
-                    return ChatMemoryBuffer.from_defaults()
+                    from pygpt_net.core.agents.session_memory import WorkflowMemory
+                    return WorkflowMemory.from_defaults()
                 return None
             self._executor_mem_factory = _default_factory
 
@@ -235,21 +239,8 @@ class PlannerWorkflow(Workflow):
                 pass
 
     def _reset_executor_memory(self):
-        """Reset the memory of the executor agent to a new instance or clear it."""
-        try:
-            new_mem = self._executor_mem_factory()
-            if hasattr(self._executor, "memory"):
-                self._executor.memory = new_mem
-        except Exception:
-            mem = getattr(self._executor, "memory", None)
-            for attr in ("reset", "clear", "flush"):
-                fn = getattr(mem, attr, None)
-                if callable(fn):
-                    try:
-                        fn()
-                        break
-                    except Exception:
-                        pass
+        """Acquire the executor's scoped memory; pass it to run(), not the agent."""
+        self._executor_memory = self._executor_mem_factory()
 
     def run(
         self,
@@ -278,7 +269,8 @@ class PlannerWorkflow(Workflow):
         if on_stop is not None:
             self._on_stop = on_stop
 
-        self._memory = memory
+        if self._memory is None:
+            self._memory = memory
         self._reset_executor_memory()
 
         return super().run(ctx=ctx, query=query)
@@ -456,12 +448,19 @@ class PlannerWorkflow(Workflow):
         from pygpt_net.core.agents_v2.utils import effective_iteration_limit
         handler = self._executor.run(
             user_msg=prompt,
+            memory=self._executor_memory,
             max_iterations=effective_iteration_limit(self._max_steps),
         )
         result, streamed = await forward_handler(
             handler, ctx, self._stopped, name=agent_label,
         )
         answer = result_text(result) or streamed.strip()
+        if self._memory is not None:
+            from llama_index.core.llms import ChatMessage
+            await self._memory.aput_messages([
+                ChatMessage(role="user", content="Executor task: " + prompt),
+                ChatMessage(role="assistant", content=answer),
+            ])
         if answer and not streamed:
             await self._emit_text(ctx, answer, agent_name=agent_label)
         return answer
@@ -500,6 +499,8 @@ class PlannerWorkflow(Workflow):
         """
         Ask the planner LLM to refine the plan. Returns a PlanRefinement or None on failure.
         """
+        if self._refiner_memory is not None:
+            memory_context = self._memory_to_text(self._refiner_memory)
         completed_text = self._format_completed(completed)
         remaining_text = self._format_subtasks(remaining)
 
@@ -520,6 +521,12 @@ class PlannerWorkflow(Workflow):
                 remaining_sub_tasks=remaining_text,
                 memory_context=memory_context,
             )
+            if self._refiner_memory is not None:
+                from llama_index.core.llms import ChatMessage
+                await self._refiner_memory.aput_messages([
+                    ChatMessage(role="user", content=f"Task: {task}\nCompleted: {completed_text}\nRemaining: {remaining_text}"),
+                    ChatMessage(role="assistant", content=refinement.model_dump_json()),
+                ])
             return refinement
         except (ValueError, TypeError, ValidationError):
             # Graceful fallback if the model fails to conform to schema.
@@ -573,6 +580,12 @@ class PlannerWorkflow(Workflow):
         if plan is None or not plan.sub_tasks:
             plan = Plan(sub_tasks=[SubTask(name="default", input=ev.query, expected_output="", dependencies=[])])
 
+        if self._memory is not None:
+            from llama_index.core.llms import ChatMessage
+            await self._memory.aput_messages([
+                ChatMessage(role="user", content=ev.query),
+                ChatMessage(role="assistant", content=plan.model_dump_json()),
+            ])
         lines = [f"`{trans('agent.planner.ui.current_plan')}`"]
         for i, st in enumerate(plan.sub_tasks, 1):
             header = self._subtask_header("agent.planner.ui.subtask_header.one", index=i, name=st.name)

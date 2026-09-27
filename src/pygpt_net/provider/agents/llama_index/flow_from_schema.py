@@ -73,11 +73,16 @@ class Agent(BaseAgent):
         stream = bool(kwargs.get("stream", False))
         logger = StdLogger(prefix="[flow]") if verbose else NullLogger()
 
+        from pygpt_net.core.agents.custom.memory import MemoryManager
+        from pygpt_net.core.agents.session_memory import session_value
+        memory_manager = session_value(window, self, context, "memory_manager", MemoryManager)
+
         return DynamicFlowWorkflowLI(
             window=window,
             logger=logger,
             schema=schema,
             initial_messages=initial_messages,
+            memory_manager=memory_manager,
             preset=preset,
             default_model=default_model,
             option_get=option_get,

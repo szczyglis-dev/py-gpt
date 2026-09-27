@@ -182,7 +182,9 @@ def test_evolve_improves_selected_candidate_in_next_generation():
     assert result == 'Improved A'
     for messages in seen[4:6]:
         assert 'Selected' in str(messages) and 'Add evidence' in str(messages)
-        assert 'Weak' not in str(messages)
+    # Each candidate retains its OWN prior attempts, never the other candidate's.
+    assert 'Weak' in str(seen[4])
+    assert 'Weak' not in str(seen[5])
 
 
 def test_migration_keeps_explicit_llama_choice_and_copies_options_independently():

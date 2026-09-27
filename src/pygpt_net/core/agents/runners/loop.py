@@ -17,6 +17,7 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.utils import trans
 
 from .base import BaseRunner
@@ -141,6 +142,11 @@ class Loop(BaseRunner):
             return True  # abort if stopped
 
         score = int(score)
+        if score < 0:
+            self.send_response(ctx, signals, KernelEvent.APPEND_END)
+            self.set_idle(signals)
+            return True
+
         msg = "{score_label}: {score}%".format(
             score_label=trans('eval.score'),
             score=str(score)
@@ -150,10 +156,6 @@ class Loop(BaseRunner):
         if self.is_verbose():
             print("[Evaluation] Score:", score)
 
-        if score < 0:
-            self.send_response(ctx, signals, KernelEvent.APPEND_END)
-            self.set_idle(signals)
-            return True
         good_score = self.window.core.config.get("agent.llama.loop.score", 75)
         if self.is_verbose():
             print("[Evaluation] Score needed:", good_score)
@@ -170,45 +172,35 @@ class Loop(BaseRunner):
             self.set_idle(signals)
             return True
 
-        # print("Instruction: " + instruction, "Score: " + str(score))
-        step_ctx = self.add_ctx(ctx)
-        step_ctx.set_input(instruction)
-        step_ctx.set_output("")
-        step_ctx.results = [
-            {
-                "loop": {
-                    "score": score,
-                }
-            }
-        ]
-        step_ctx.extra = {
-            "agent_input": True,
-            "agent_evaluate": True,
-            "footer": "Score: " + str(score) + "%",
+        # Continue inside the same durable CtxItem. The evaluator feedback is UI
+        # metadata on the next partial, not a synthetic user CtxItem between
+        # workflow passes. This keeps the whole legacy agent run inside one
+        # Processed-for timeline, exactly like Autonomous continuations.
+        reply = ReplyContext()
+        reply.type = ReplyContext.AGENT_CONTINUE
+        reply.ctx = ctx
+        reply.input = instruction
+        reply.extra["inline_message"] = {
+            "type": "evaluation",
+            "text": f"{trans('eval.score')}: {score}%\n\n{instruction}",
         }
-        step_ctx.internal = False  # input
 
         self.set_busy(signals)
-        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
+        context = BridgeContext(ctx=ctx)
+        context.reply_context = reply
+        self.window.dispatch(KernelEvent(KernelEvent.AGENT_CONTINUE, {
+            "context": context,
+            "extra": {},
+        }))
+        # Evaluation is completed after the ordinary output lifecycle has
+        # already drained its reply stack, so execute this newly queued
+        # continuation explicitly.
+        self.window.controller.kernel.stack.handle()
 
-        # call next run
-        context = BridgeContext()
-        context.ctx = step_ctx
-        context.history = self.window.core.ctx.all(meta_id=ctx.meta.id)
-        context.prompt = instruction  # use instruction as prompt
-        preset = self.window.controller.presets.get_current()
-        context.preset = preset
-        extra = {
-            "agent_idx": preset.idx,
-            "agent_provider": preset.agent_provider,
-        }
-        if preset.agent_openai:
-            extra["agent_provider"] = preset.agent_provider_openai
         if self.is_verbose():
             print("[Evaluation] Instruction:", instruction)
-            print("[Evaluation] Running next step...")
-        context.model = self.window.core.models.get(self.window.core.config.get('model'))
-        return self.window.core.agents.runner.call(context, extra, signals)
+            print("[Evaluation] Running next step in the same ctx...")
+        return True
 
     def is_verbose(self) -> bool:
         """
