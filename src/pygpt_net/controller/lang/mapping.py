@@ -412,7 +412,7 @@ class Mapping:
         menu_title['theme.density'] = 'menu.theme.density'
         menu_title['theme.style'] = 'menu.theme.style'
         menu_title['menu.plugins'] = 'menu.plugins'
-        menu_title['menu.skills'] = 'menu.skills'
+        menu_title['config.skills'] = 'menu.skills'
         menu_title['menu.plugins.presets'] = 'menu.plugins.presets'
         menu_title['menu.about'] = 'menu.info'
         menu_title['menu.audio'] = 'menu.audio'

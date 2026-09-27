@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QMenu
 from pygpt_net.utils import trans
 
 from .lang import Lang
+from .skills import Skills
 from .theme import Theme
 
 
@@ -27,6 +28,7 @@ class Config:
         """
         self.window = window
         self.lang = Lang(window)
+        self.skills = Skills(window)
         self.theme = Theme(window)
 
     def setup(self):
@@ -73,6 +75,8 @@ class Config:
         m['config.mcp'].addAction(m['config.mcp.settings'])
         m['config.mcp'].addSeparator()
         m['config.mcp'].addAction(m['config.mcp.enabled'])
+
+        self.skills.setup()
 
         m['config.extensions'] = QAction(QIcon(":/icons/add.svg"), tr("menu.config.extensions"), w)
         m['config.extensions'].setMenuRole(QAction.MenuRole.NoRole)
@@ -140,6 +144,7 @@ class Config:
         menu.addMenu(m['config.models'])
         menu.addAction(m['config.agents'])
         menu.addMenu(m['config.mcp'])
+        menu.addMenu(m['config.skills'])
         menu.addAction(m['config.extensions'])
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])

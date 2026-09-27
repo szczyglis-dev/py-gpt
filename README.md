@@ -472,7 +472,7 @@ Use **Chat** for general agent conversations and tasks where delegation is occas
 
 PyGPT supports portable **Agent Skills** built around `SKILL.md`, with optional scripts, references and assets. Skills can be imported from GitHub, local files/folders, `.skill`, ZIP or TAR packages.
 
-Use the **Skills** menu to browse, install, enable, disable and remove skills. In **Agents**, enabled skills are loaded on demand so their full instructions do not have to be included in every prompt.
+Use **Config -> Skills** to browse, install, enable, disable and remove skills. In **Agents**, enabled skills are loaded on demand so their full instructions do not have to be included in every prompt.
 
 Skills do not bypass normal tool permissions or sandbox/security rules. Review third-party instructions and executable files before using them.
 

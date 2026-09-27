@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QMenu
 
 from pygpt_net.utils import trans
 
@@ -23,10 +24,10 @@ class Skills:
         ui_menu = w.ui.menu
         ctrl = w.controller.skills
 
-        menu = ui_menu.get("menu.skills")
+        menu = ui_menu.get("config.skills")
         if menu is None:
-            menu = w.menuBar().addMenu(trans("menu.skills"))
-            ui_menu["menu.skills"] = menu
+            menu = QMenu(trans("menu.skills"), w)
+            ui_menu["config.skills"] = menu
         else:
             menu.setTitle(trans("menu.skills"))
             menu.clear()

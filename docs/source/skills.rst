@@ -39,7 +39,7 @@ PyGPT keeps the complete imported skill directory intact. Vendor-specific files 
 Managing Skills
 ---------------
 
-Use the top-level ``Skills`` menu to manage Agent Skills. The menu provides:
+Use ``Config -> Skills`` to manage Agent Skills. The submenu is located directly after ``Config -> MCP`` and provides:
 
 * ``Manage skills...`` - opens the installed-skills list and lets you enable or disable individual skills.
 * ``Explore...`` - opens the skill catalog browser.
