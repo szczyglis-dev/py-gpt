@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:55:00                  #
+# Updated Date: 2026.09.27 22:10:00                  #
 # ================================================== #
 
 from typing import Optional, List, Union
@@ -253,7 +253,10 @@ class Ctx:
 
     def select_on_list_only(self, id: int):
         """
-        Select ctx by id only on list
+        Select ctx by id only on list.
+
+        This path is also used when a loaded chat tab becomes active, so keep
+        the Files tool synchronized with the newly selected context/project.
 
         :param id: context meta id
         """
@@ -265,6 +268,7 @@ class Ctx:
         self.reload_config(all=False)
         self.update(reload=False, all=True, select=False)
         self.set_selected(id)
+        self.window.controller.files.update_explorer(reload=True)
 
     def select_by_idx(self, idx: int):
         """
@@ -621,6 +625,9 @@ class Ctx:
 
         self.reload_config()
         self.update(reload=False, all=True)
+        # Loading a context can also happen from an output-tab switch. Keep
+        # the Files root/workdir in sync even when the ctx list was not clicked.
+        self.window.controller.files.update_explorer(reload=True)
 
         if meta is not None:
             self.window.controller.tabs.on_load_ctx(meta, pid=tab_pid)
