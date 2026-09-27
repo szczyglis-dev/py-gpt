@@ -6,23 +6,33 @@ from PySide6.QtCore import QObject, Signal, QRunnable, QThreadPool, QTimer
 from pygpt_net.utils import trans
 
 
+def matches_path(path, root, pattern):
+    pattern = pattern.casefold()
+    candidate = os.path.relpath(path, root).replace(os.sep, '/') if '/' in pattern else os.path.basename(path)
+    candidate = candidate.casefold()
+    return fnmatch.fnmatchcase(candidate, pattern) if any(c in pattern for c in '*?[') else pattern in candidate
+
+
 def find_paths(root, pattern, cancelled=None):
     root = os.path.abspath(root)
-    pattern = pattern.casefold()
-    glob = any(char in pattern for char in '*?[')
     accepted = {root}
     directories = {root}
     for parent, dirs, files in os.walk(root, followlinks=False):
         if cancelled is not None and cancelled.is_set():
             return None
-        for name in files:
+        for name in dirs + files:
             path = os.path.join(parent, name)
-            relative = os.path.relpath(path, root).replace(os.sep, '/')
-            candidate = relative if '/' in pattern else name
-            match = fnmatch.fnmatchcase(candidate.casefold(), pattern) if glob else pattern in candidate.casefold()
-            if not match:
+            if not matches_path(path, root, pattern):
                 continue
             accepted.add(path)
+            if name in dirs:
+                directories.add(path)
+                # A matching directory exposes its immediate contents only.
+                try:
+                    with os.scandir(path) as children:
+                        accepted.update(os.path.join(path, child.name) for child in children)
+                except OSError:
+                    pass
             ancestor = parent
             while ancestor not in directories:
                 accepted.add(ancestor)
@@ -142,7 +152,9 @@ class TreeSearch(QObject):
             return
         self.pending = False
         self.accepted, self.directories = result
-        count = len(self.accepted) - len(self.directories)
+        root = self.explorer.directory
+        pattern = self.explorer.search.text().strip()
+        count = sum(matches_path(path, root, pattern) for path in self.accepted if path != root)
         self.explorer.search_status.setText(str(count) if count else trans('files.search.empty'))
         self.apply()
 
@@ -166,6 +178,8 @@ class TreeSearch(QObject):
                         if model.canFetchMore(index):
                             model.fetchMore(index)
                         tree.expand(index)
+                    elif self.accepted is not None and path not in self.directories:
+                        tree.collapse(index)
                     visit(index)
         updates_enabled = tree.updatesEnabled()
         tree.setUpdatesEnabled(False)

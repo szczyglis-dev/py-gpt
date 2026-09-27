@@ -46,24 +46,16 @@ def test_on_update_clears_finder():
     n.finder.clear.assert_called_once_with()
 
 
-def test_ctrl_wheel_updates_font_setting_and_applies_config():
+def test_ctrl_wheel_uses_shared_zoom_scheduler(monkeypatch):
     n = _note()
-    option = {"value": 0}
-    n.window.controller.settings.editor.get_option.return_value = option
+    zoom = MagicMock()
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.calendar_note.zoom_text', zoom)
     event = MagicMock()
     event.modifiers.return_value = Qt.ControlModifier
     event.angleDelta.return_value.y.return_value = 120
-
     CalendarNote.wheelEvent(n, event)
-
-    assert n.value == 13
-    assert n.window.core.config.data["font_size"] == 13
-    n.window.core.config.save.assert_called_once_with()
-    assert option["value"] == 13
-    n.window.controller.config.apply.assert_called_once_with(
-        parent_id="config", key="font_size", option=option,
-    )
-    n.window.controller.ui.update_font_size.assert_called_once_with()
+    zoom.assert_called_once_with(n, n.window, 13, 'font_size')
+    n.window.core.config.save.assert_not_called()
     event.accept.assert_called_once_with()
 
 

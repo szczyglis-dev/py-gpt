@@ -171,21 +171,15 @@ def test_web_find_and_update_delegate_to_finder():
     finder.clear.assert_called_once_with()
 
 
-def test_custom_web_page_view_change_persists_zoom_after_loaded():
+def test_custom_web_page_view_change_schedules_zoom_after_loaded(monkeypatch):
     window = _window()
-    page = SimpleNamespace(
-        loaded=True,
-        window=window,
-        zoomFactor=MagicMock(return_value=1.6),
-    )
+    page = SimpleNamespace(loaded=True, window=window, zoomFactor=MagicMock(return_value=1.6))
+    schedule = MagicMock()
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.web.schedule_zoom', schedule)
     CustomWebEnginePage.on_view_changed(page)
-    window.core.config.set.assert_called_once_with("zoom", 1.6)
-    option = window.controller.settings.editor.get_option.return_value
-    assert option["value"] == 1.6
-    window.controller.config.apply.assert_called_once_with(
-        parent_id="config", key="zoom", option=option
-    )
-    window.ui.nodes["input.container"].sync_width.assert_called_once_with()
+    schedule.assert_called_once_with(window, 'zoom', 1.6)
+    window.controller.config.apply.assert_not_called()
+    window.ui.nodes['input.container'].sync_width.assert_not_called()
 
 
 def test_custom_web_page_view_change_ignores_unloaded_page():

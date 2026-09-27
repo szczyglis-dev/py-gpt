@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 )
 
 from pygpt_net.core.events import Event
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, DirectoryPasteHandler
 from pygpt_net.core.text.mentions import (
@@ -1173,16 +1174,7 @@ class ChatInput(QTextEdit):
         super().wheelEvent(event)
 
     def on_zoom_changed(self, value: int):
-        """
-        Called when zoom level changes.
-
-        :param value: new zoom level
-        """
-        self.value = value
-        self.window.core.config.data['font_size.input'] = value
-        self.window.core.config.save()
-        self.window.controller.ui.update_font_size()
-        # Reflow may change number of lines; adjust auto-height next tick
+        zoom_text(self, self.window, value, 'font_size.input')
         QTimer.singleShot(0, self._schedule_auto_resize)
 
     def changeEvent(self, event):

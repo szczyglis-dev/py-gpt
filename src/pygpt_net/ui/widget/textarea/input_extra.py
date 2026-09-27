@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, DirectoryPasteHandler
 
@@ -382,30 +383,16 @@ class ExtraInput(QTextEdit):
             super().keyPressEvent(event)
 
     def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
         if event.modifiers() & Qt.ControlModifier:
-            prev = self.value
-            dy = event.angleDelta().y()
-            if dy > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-
-            if self.value != prev:
-                self.window.core.config.data['font_size.input'] = self.value
-                self.window.core.config.save()
-                self.window.controller.ui.update_font_size()
-                # Reflow may change number of lines; adjust auto-height next tick
-                QTimer.singleShot(0, self._schedule_auto_resize)
+            delta = event.angleDelta().y()
+            if delta:
+                value = max(self.min_font_size, min(self.max_font_size, self.value + (1 if delta > 0 else -1)))
+                if value != self.value:
+                    zoom_text(self, self.window, value, 'font_size.input')
+                    QTimer.singleShot(0, self._schedule_auto_resize)
             event.accept()
-            return
-        super().wheelEvent(event)
+        else:
+            super().wheelEvent(event)
 
     def changeEvent(self, event):
         super().changeEvent(event)

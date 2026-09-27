@@ -161,6 +161,12 @@ def test_explorer_filters_unloaded_directories_and_clears(app, tmp_path):
     assert explorer.treeView.isExpanded(explorer.model.index(str(deep)))
     explorer.tree_search.collapse_all()
     assert not explorer.treeView.isExpanded(explorer.model.index(str(deep)))
+    explorer.search.setText('one')
+    wait(350)
+    assert explorer.treeView.isExpanded(explorer.model.index(str(deep.parent)))
+    assert not explorer.treeView.isExpanded(explorer.model.index(str(deep)))
+    assert not explorer.treeView.isRowHidden(explorer.model.index(str(deep)).row(), explorer.model.index(str(deep)).parent())
+    assert explorer.search_status.text() == '1'
     explorer.close()
     explorer.deleteLater()
     wait()
@@ -257,6 +263,8 @@ def test_zoom_uses_shared_config_and_ctrl_wheel(app, tmp_path):
     panel.viewer.wheelEvent(event)
     assert panel.viewer.value == 17
     assert values['font_size'] == 17
+    window.core.config.save.assert_not_called()
+    wait(300)
     window.core.config.save.assert_called_once()
     event.accept.assert_called_once()
     panel.show_empty()
@@ -281,6 +289,70 @@ def test_dark_highlighting_is_correct_on_show_and_theme_change(app, tmp_path):
     wait()
     color = panel.viewer.highlighter.formats[Name.Function].foreground().color()
     assert color.name() == '#0000ff'
+    panel.close()
+    panel.deleteLater()
+    wait()
+
+
+def test_directory_search_exposes_one_level(tmp_path):
+    folder = tmp_path / 'reports'
+    nested = folder / 'child'
+    nested.mkdir(parents=True)
+    (folder / 'summary.txt').write_text('hello')
+    (nested / 'hidden.txt').write_text('deep')
+    accepted, expanded = find_paths(str(tmp_path), 'reports')
+    assert str(folder) in expanded
+    assert str(nested) in accepted
+    assert str(nested) not in expanded
+    assert str(folder / 'summary.txt') in accepted
+    assert str(nested / 'hidden.txt') not in accepted
+
+
+def test_preview_uses_shared_finder_and_cleans_up(app, tmp_path):
+    from PySide6.QtCore import Qt
+    from PySide6.QtTest import QTest
+    window = MagicMock()
+    panel = PreviewPanel(window, str(tmp_path))
+    path = tmp_path / 'search.txt'
+    path.write_text('needle and needle')
+    panel.open_file(str(path))
+    editor = panel.viewer
+    QTest.keyClick(editor, Qt.Key_F, Qt.ControlModifier)
+    window.controller.finder.open.assert_called_once_with(editor.finder)
+    editor.finder.find('needle')
+    wait(150)
+    assert len(editor.finder.matches) == 2
+    panel.show_empty()
+    window.controller.finder.unset.assert_called_with(editor.finder)
+    assert editor.finder.parent() is None
+    panel.deleteLater()
+    wait()
+
+
+def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
+    from pygpt_net.ui.widget.filesystem.preview import text as module
+    window = MagicMock()
+    values = {'font_size': 12}
+    window.core.config.get.side_effect = values.get
+    window.core.config.set.side_effect = values.__setitem__
+    panel = PreviewPanel(window, str(tmp_path))
+    path = tmp_path / 'zoom.py'
+    path.write_text('def example():\n    return 1\n')
+    panel.open_file(str(path))
+    panel.show()
+    wait(200)
+    lex = MagicMock(wraps=module.lex)
+    monkeypatch.setattr(module, 'lex', lex)
+    for value in range(13, 20):
+        panel.viewer.on_zoom_changed(value)
+        wait(10)
+    assert panel.viewer.value == 19
+    window.core.config.save.assert_not_called()
+    wait(300)
+    window.core.config.save.assert_called_once()
+    window.controller.theme.nodes.apply_all.assert_called_once_with(dispatch_theme=False)
+    window.controller.config.apply.assert_not_called()
+    lex.assert_not_called()
     panel.close()
     panel.deleteLater()
     wait()

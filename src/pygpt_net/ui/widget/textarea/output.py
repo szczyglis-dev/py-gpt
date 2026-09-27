@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QTextBrowser
 from PySide6.QtGui import QAction, QIcon, QTextOption, QKeySequence
 
 from pygpt_net.core.text.finder import Finder
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 
 
@@ -163,57 +164,18 @@ class ChatOutput(QTextBrowser):
         super().keyPressEvent(e)
 
     def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
         if event.modifiers() & Qt.ControlModifier:
-            dy = event.angleDelta().y()
-            if dy > 0:
-                new_value = min(self.value + 1, self.max_font_size)
-            elif dy < 0:
-                new_value = max(self.value - 1, self.min_font_size)
-            else:
-                event.accept()
-                return
-
-            if new_value == self.value:
-                event.accept()
-                return
-
-            self.value = new_value
-
-            cfg = self.window.core.config
-            cfg.data['font_size'] = new_value
-            cfg.save()
-
-            ctrl = self.window.controller
-            option = ctrl.settings.editor.get_option('font_size')
-            option['value'] = new_value
-            ctrl.config.apply(parent_id='config', key='font_size', option=option)
-            ctrl.ui.update_font_size()
+            delta = event.angleDelta().y()
+            if delta:
+                value = max(self.min_font_size, min(self.max_font_size, self.value + (1 if delta > 0 else -1)))
+                if value != self.value:
+                    zoom_text(self, self.window, value, 'font_size')
             event.accept()
         else:
             super().wheelEvent(event)
 
     def on_zoom_changed(self, value: int):
-        """
-        On font size changed
-
-        :param value: New font size
-        """
-        self.value = value
-
-        cfg = self.window.core.config
-        cfg.data['font_size'] = value
-        cfg.save()
-
-        ctrl = self.window.controller
-        option = ctrl.settings.editor.get_option('font_size')
-        option['value'] = value
-        ctrl.config.apply(parent_id='config', key='font_size', option=option)
-        ctrl.ui.update_font_size()
+        zoom_text(self, self.window, value, 'font_size')
 
     def focusInEvent(self, e):
         """

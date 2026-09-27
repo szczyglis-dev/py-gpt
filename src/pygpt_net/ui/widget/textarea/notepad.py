@@ -24,6 +24,7 @@ from pygpt_net.core.events import Event
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 from .highlight import MarkerHighlighter
 
@@ -496,23 +497,7 @@ class NotepadOutput(QTextEdit):
         self.finder.clear()  # clear finder
 
     def on_zoom_changed(self, value: int):
-        """
-        On font size changed
-
-        :param value: New font size
-        """
-        self.value = value
-        self.window.core.config.data['font_size'] = value
-        self.window.core.config.save()
-        option = self.window.controller.settings.editor.get_option('font_size')
-        option['value'] = self.value
-        self.window.controller.config.apply(
-                parent_id='config',
-                key='font_size',
-                option=option,
-        )
-        self.window.controller.ui.update_font_size()
-        self.last_scroll_pos = self._vscroll.value()
+        zoom_text(self, self.window, value, 'font_size')
 
     def keyPressEvent(self, e):
         """
@@ -527,39 +512,16 @@ class NotepadOutput(QTextEdit):
             super(NotepadOutput, self).keyPressEvent(e)
 
     def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
         if event.modifiers() & Qt.ControlModifier:
             delta = event.angleDelta().y()
-            if delta > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-                else:
-                    return
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-                else:
-                    return
-
-            self.window.core.config.data['font_size'] = self.value
-            self.window.core.config.save()
-            option = self.window.controller.settings.editor.get_option('font_size')
-            option['value'] = self.value
-            self.window.controller.config.apply(
-                parent_id='config',
-                key='font_size',
-                option=option,
-            )
-            self.window.controller.ui.update_font_size()
+            if delta:
+                value = max(self.min_font_size, min(self.max_font_size, self.value + (1 if delta > 0 else -1)))
+                if value != self.value:
+                    zoom_text(self, self.window, value, 'font_size')
             event.accept()
-            self.last_scroll_pos = self._vscroll.value()
         else:
-            super(NotepadOutput, self).wheelEvent(event)
-            self.last_scroll_pos = self._vscroll.value()
+            super().wheelEvent(event)
+        self.last_scroll_pos = self._vscroll.value()
 
     def mousePressEvent(self, e):
         """

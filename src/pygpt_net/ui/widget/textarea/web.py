@@ -29,6 +29,7 @@ from pygpt_net.core.events import RenderEvent
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.ui.widget.tabs.layout import FocusEventFilter
+from pygpt_net.ui.widget.textarea.zoom import schedule_zoom
 from pygpt_net.utils import trans
 
 
@@ -883,17 +884,7 @@ class CustomWebEnginePage(QWebEnginePage):
         if not self.loaded:
             return
         zoom = self.zoomFactor()
-        self.window.core.config.set("zoom", zoom)
-        option = self.window.controller.settings.editor.get_option('zoom')
-        option['value'] = zoom
-        self.window.controller.config.apply(
-            parent_id='config',
-            key='zoom',
-            option=option,
-        )
-        input_container = self.window.ui.nodes.get('input.container')
-        if input_container is not None and hasattr(input_container, 'sync_width'):
-            input_container.sync_width()
+        schedule_zoom(self.window, 'zoom', zoom)
 
     def acceptNavigationRequest(self, url, _type, isMainFrame):
         if _type == QWebEnginePage.NavigationTypeLinkClicked:

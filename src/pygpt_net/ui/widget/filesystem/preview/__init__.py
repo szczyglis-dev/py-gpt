@@ -70,6 +70,8 @@ class PreviewPanel(QWidget):
 
     def _clear(self):
         if self.viewer is not None:
+            if isinstance(self.viewer, TextPreview):
+                self.viewer.on_destroy()
             if isinstance(self.viewer, MediaPreview):
                 self.viewer.stop()
             self.layout.removeWidget(self.viewer)
