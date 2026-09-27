@@ -212,9 +212,18 @@ class Runner:
                 "stream": bool(getattr(context, "stream", False)),
             }
             provider = self.window.core.agents.provider.get(agent_id, context.mode)
-            # Preserve late/plugin system-prompt additions for providers that use
-            # their own per-agent instructions instead of context.system_prompt.
-            agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
+            # LlamaIndex legacy agents build their own role prompts (planner,
+            # supervisor/worker, mode agents, custom flow, CodeAct, etc.). Feed
+            # them the *final* BridgeContext system prompt verbatim, just like
+            # Agents v2 does. At this point BridgeWorker has already run the
+            # SYSTEM/POST/POST_PROMPT_ASYNC/POST_PROMPT_END pipeline and the
+            # global prompt-injection guard, so this preserves Real Time, Files
+            # I/O, Extra Prompt, personalization and any other runtime additions.
+            # OpenAI legacy providers keep the historical extracted-extra path.
+            if provider.get_mode() == AGENT_MODE_WORKFLOW:
+                agent_kwargs["system_prompt_extra"] = system_prompt
+            else:
+                agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
             agent = provider.get_agent(self.window, agent_kwargs)
             agent_run = provider.run
             if verbose:
@@ -385,7 +394,13 @@ class Runner:
                 "stream": bool(getattr(context, "stream", False)),
             }
             provider = self.window.core.agents.provider.get(agent_id)
-            agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
+            # call_once() is also used by legacy LlamaIndex evaluation/expert
+            # continuations. Keep the same full BridgeContext system prompt here
+            # so nested/next-step agents do not lose late plugin additions.
+            if provider.get_mode() == AGENT_MODE_WORKFLOW:
+                agent_kwargs["system_prompt_extra"] = system_prompt
+            else:
+                agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
             agent = provider.get_agent(self.window, agent_kwargs)
             if verbose:
                 print(f"Using Agent: {agent_id}, model: {model.id}")
