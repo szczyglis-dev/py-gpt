@@ -394,6 +394,10 @@ class Preset(BaseConfigDialog):
         tabs.addTab(widget_personalize, trans("preset.tab.personalize"))
         tabs.addTab(widget_remote_tools, trans("preset.tab.remote_tools"))
         tabs.addTab(widget_mcp, trans("preset.tab.mcp"))
+        from pygpt_net.ui.widget.lists.experts import ExpertsEditor
+        experts = ExpertsEditor(self.window)
+        self.window.ui.nodes["preset.editor.experts"] = experts
+        tabs.addTab(experts, trans("preset.tab.experts"))
         tabs.addTab(widget_skills, trans("preset.tab.skills"))
         tabs.addTab(widget_options, trans("preset.tab.options"))
         self.window.ui.tabs['preset.editor.tabs'] = tabs

@@ -289,10 +289,8 @@ def run(**kwargs):
         from pygpt_net.plugin.jev import Plugin as JevPlugin
 
         # agents (Llama-index)
-        from pygpt_net.provider.agents.llama_index.legacy.openai_assistant import OpenAIAssistantAgent
         from pygpt_net.provider.agents.llama_index.planner_workflow import PlannerAgent as PlannerWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.openai_workflow import OpenAIAgent as OpenAIWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
+        from pygpt_net.provider.agents.llama_index.modes import get_mode_agents
         from pygpt_net.provider.agents.llama_index.supervisor_workflow import SupervisorAgent as LlamaSupervisorAgent
         from pygpt_net.provider.agents.llama_index.flow_from_schema import Agent as LlamaCustomAgent  # builder schema
 
@@ -566,13 +564,9 @@ def run(**kwargs):
                 launcher.add_vector_store(store)
 
         # register base agents
-        # launcher.add_agent(OpenAIAgent())  # llama-index
-        launcher.add_agent(OpenAIWorkflowAgent())  # llama-index
-        launcher.add_agent(OpenAIAssistantAgent())  # llama-index
-        # launcher.add_agent(PlannerAgent())  # llama-index
         launcher.add_agent(PlannerWorkflowAgent())  # llama-index
-        # launcher.add_agent(ReactAgent())  # llama-index
-        launcher.add_agent(ReactWorkflowAgent())  # llama-index
+        for agent in get_mode_agents():
+            launcher.add_agent(agent)
         launcher.add_agent(LlamaSupervisorAgent())  # llama-index
         launcher.add_agent(LlamaCustomAgent())  # llama-index
         launcher.add_agent(OpenAIAgentsBase())  # openai-agents

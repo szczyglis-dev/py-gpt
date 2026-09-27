@@ -67,12 +67,16 @@ class Presets:
         """
         w = self.window
         cfg = w.core.config
-        if cfg.get('mode') != MODE_AGENT_OPENAI:
+        mode = cfg.get('mode')
+        if mode not in (MODE_AGENT_OPENAI, MODE_AGENT_LLAMA):
             return False
         preset_id = cfg.get('preset')
         if not preset_id or preset_id == "*":
             return False
-        preset_data = w.core.presets.get_by_id(MODE_AGENT_OPENAI, preset_id)
+        preset_data = w.core.presets.get_by_id(mode, preset_id)
+        if mode == MODE_AGENT_LLAMA:
+            return bool(preset_data and preset_data.agent_provider in (
+                "llama_agent_b2b", "llama_agent_researcher"))
         return bool(
             preset_data
             and preset_data.agent_openai

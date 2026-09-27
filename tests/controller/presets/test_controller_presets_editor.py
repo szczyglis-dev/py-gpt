@@ -1,3 +1,4 @@
+import pytest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -79,7 +80,7 @@ def test_preset_editor_update_from_global_updates_current_preset_and_saves():
 
 def test_preset_editor_toggle_tab_rebuilds_static_tab_set():
     ctrl, _ = _editor()
-    assert 'experts' not in ctrl.TAB_IDX
+    assert 'experts' in ctrl.TAB_IDX
     ctrl._current_visible_tab_names = MagicMock(return_value=['general', 'options'])
     ctrl._rebuild_static_tabs = MagicMock()
 
@@ -412,3 +413,12 @@ def test_preset_editor_reload_all_custom_agent_options_returns_without_tabs():
     ctrl, window = _editor()
     window.ui.tabs['preset.editor.extra'] = None
     assert ctrl.reload_all_custom_agent_options() is None
+
+
+@pytest.mark.parametrize('mode,visible', [('agent_llama', True), ('agent_openai', True), ('agent_v2', False), ('chat', False)])
+def test_legacy_expert_selection_tab(mode, visible):
+    ctrl, _ = _editor()
+    ctrl._rebuild_static_tabs = MagicMock()
+    ctrl.sync_tabs_for_mode(mode)
+    names = ctrl._rebuild_static_tabs.call_args.args[0]
+    assert ('experts' in names) is visible

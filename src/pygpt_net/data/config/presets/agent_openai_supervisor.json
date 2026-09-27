@@ -13,7 +13,7 @@
   "assistant": false,
   "llama_index": false,
   "agent": false,
-  "agent_llama": false,
+  "agent_llama": true,
   "agent_openai": true,
   "expert": false,
   "audio": false,

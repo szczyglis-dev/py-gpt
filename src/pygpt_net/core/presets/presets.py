@@ -437,6 +437,13 @@ class Presets:
     def load(self):
         """Load presets templates"""
         self.items = self.provider.load()
+        from pygpt_net.core.agents.compatibility import migrate_preset
+        for preset in self.items.values():
+            migrate_preset(preset)
+        config = self.window.core.config
+        from pygpt_net.core.agents.compatibility import RETIRED_LLAMA_PROVIDERS
+        if config.get("agent.llama.provider") in RETIRED_LLAMA_PROVIDERS:
+            config.set("agent.llama.provider", "llama_agent_base")
         self.patch_empty()
         self.patch_duplicated()
         self.sort_by_name()

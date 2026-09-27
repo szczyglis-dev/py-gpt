@@ -28,6 +28,15 @@ class Provider:
         self.agents = {}
         self.hidden = ["openai_custom", "llama_custom"]  # builder hidden agents (hide provider on list)
 
+    @staticmethod
+    def resolve_id(id, mode=MODE_AGENT_LLAMA):
+        # Saved conversations/presets still referring to removed provider types
+        # use the ordinary LlamaIndex function-calling workflow.
+        from .compatibility import RETIRED_LLAMA_PROVIDERS
+        if mode == MODE_AGENT_LLAMA and id in RETIRED_LLAMA_PROVIDERS:
+            return "llama_agent_base"
+        return id
+
     def get_ids(self) -> List[str]:
         """
         Get agent providers ids
@@ -44,6 +53,7 @@ class Provider:
         :param mode: agent mode, used for custom agents (optional)
         :return: True if exists
         """
+        id = self.resolve_id(id, mode)
         custom = self.get_custom(id, mode) # shared instance
         if custom is not None:
             return True
@@ -58,6 +68,7 @@ class Provider:
         :return: agent provider
         """
         # custom agents
+        id = self.resolve_id(id, mode)
         custom = self.get_custom(id, mode)  # shared instance
         if custom is not None:
             return custom

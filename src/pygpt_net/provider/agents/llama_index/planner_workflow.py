@@ -37,7 +37,7 @@ class PlannerAgent(BaseAgent):
         self.id = "planner"
         self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_WORKFLOW
-        self.name = "Planner"
+        self.name = "Planner (sub-tasks)"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """

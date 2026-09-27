@@ -50,6 +50,7 @@ class Editor:
         "personalize",
         "remote_tools",
         "mcp",
+        "experts",
         "skills",
         "options",
     )
@@ -58,6 +59,7 @@ class Editor:
         "personalize": "preset.tab.personalize",
         "remote_tools": "preset.tab.remote_tools",
         "mcp": "preset.tab.mcp",
+        "experts": "preset.tab.experts",
         "skills": "preset.tab.skills",
         "options": "preset.tab.options",
     }
@@ -73,6 +75,8 @@ class Editor:
         :param window: Window instance
         """
         self.window = window
+        from .experts import Experts
+        self.experts = Experts(window)
         self.built = False
         self.tab_options_idx = {}
         # Strong references to all static preset tab pages. QTabWidget::removeTab
@@ -1433,14 +1437,15 @@ class Editor:
             itm = self.window.core.presets.items[preset_id]
             itm.reset_modes()
             itm.agent = True
-        elif curr_mode == MODE_AGENT_LLAMA:
+        elif curr_mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
             itm = self.window.core.presets.items[preset_id]
+            # Migrated legacy presets can be used by both engines. Preserve
+            # that pairing while still dropping unrelated stale mode flags.
+            llama = itm.agent_llama or curr_mode == MODE_AGENT_LLAMA
+            openai = itm.agent_openai or curr_mode == MODE_AGENT_OPENAI
             itm.reset_modes()
-            itm.agent_llama = True
-        elif curr_mode == MODE_AGENT_OPENAI:
-            itm = self.window.core.presets.items[preset_id]
-            itm.reset_modes()
-            itm.agent_openai = True
+            itm.agent_llama = llama
+            itm.agent_openai = openai
         elif curr_mode == MODE_AGENT_V2:
             itm = self.window.core.presets.items[preset_id]
             itm.reset_modes()
@@ -1927,6 +1932,7 @@ class Editor:
             "remote_tools": False,
             # MCP can be stored by every preset mode.
             "mcp": True,
+            "experts": mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI),
             # Skills are per-preset only for Chat with Agents.
             "skills": mode == MODE_AGENT_V2,
             # Options is shared by every preset mode and is physically added
@@ -1935,6 +1941,8 @@ class Editor:
         }
         names = [name for name in self.TAB_ORDER if visible.get(name, False)]
         self._rebuild_static_tabs(names)
+        if visible["experts"] and "preset.editor.experts" in self.window.ui.nodes:
+            self.experts.update_list()
 
     def toggle_tab(self, name: str, show: bool = True):
         """Show or hide one preset tab using the same physical rebuild path."""

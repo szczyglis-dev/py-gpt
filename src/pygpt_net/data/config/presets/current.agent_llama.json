@@ -21,7 +21,7 @@
   },
   "experts": [],
   "idx": "base",
-  "agent_provider": "openai",
+  "agent_provider": "llama_agent_base",
   "enabled": true,
   "__meta__": {
     "version": "2.8.19",

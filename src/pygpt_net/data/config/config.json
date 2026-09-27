@@ -59,7 +59,7 @@
   "agent.llama.loop.mode": "score",
   "agent.llama.loop.score": 75,
   "agent.llama.max_eval": 3,
-  "agent.llama.provider": "openai",
+  "agent.llama.provider": "llama_agent_base",
   "agent.llama.steps": 10,
   "agent.llama.verbose": false,
   "agent.openai.provider": "openai_agent_base",

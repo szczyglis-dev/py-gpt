@@ -82,7 +82,8 @@ class Runner:
             return True  # abort if stopped
 
         self.last_error = None
-        agent_id = extra.get("agent_provider", "openai")
+        agent_id = self.window.core.agents.provider.resolve_id(
+            extra.get("agent_provider", "llama_agent_base"), context.mode)
         verbose = self.is_verbose()
         workflow_bridge = None
 
@@ -286,7 +287,8 @@ class Runner:
             return True  # abort if stopped
 
         self.last_error = None
-        agent_id = extra.get("agent_provider", "openai")
+        agent_id = self.window.core.agents.provider.resolve_id(
+            extra.get("agent_provider", "llama_agent_base"), context.mode)
         verbose = self.is_verbose()
 
         try:
