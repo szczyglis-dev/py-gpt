@@ -12,6 +12,7 @@
   "llama_index": false,
   "agent": true,
   "expert": false,
+  "model": "gpt-5.6-luna",
   "experts": [],
   "enabled": true,
   "__meta__": {

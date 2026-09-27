@@ -14,7 +14,7 @@
   "agent": false,
   "expert": true,
   "filename": "joke_expert",
-  "model": "gpt-4o",
+  "model": "gpt-5.6-luna",
   "tools": {
     "function": []
   },

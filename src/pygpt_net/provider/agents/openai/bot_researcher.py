@@ -241,7 +241,7 @@ class Agent(BaseAgent):
                         "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
-                        "default": "gpt-4o",
+                        "default": "gpt-5.6-luna",
                     },
                     "model_overwrite": {
                         "label": trans("agent.option.model.overwrite"),
@@ -275,7 +275,7 @@ class Agent(BaseAgent):
                         "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
-                        "default": "gpt-4o",
+                        "default": "gpt-5.6-luna",
                     },
                     "model_overwrite": {
                         "label": trans("agent.option.model.overwrite"),

@@ -18,7 +18,7 @@
   "research": false,
   "computer": false,
   "filename": "agent_coder",
-  "model": "o3-mini",
+  "model": "gpt-5.6-luna",
   "tools": {
     "function": []
   },
@@ -38,7 +38,7 @@
         "allow_remote_tools": true
       },
       "feedback": {
-        "model": "o3-mini-low",
+        "model": "gpt-5.6-luna",
         "prompt": "You evaluate a code and decide if it's correct. If it's not correct, you provide feedback on what needs to be fixed and improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the code is good enough. You can use tools for checking the code, running tests, etc.",
         "allow_local_tools": true,
         "allow_remote_tools": true
@@ -51,7 +51,7 @@
         "allow_remote_tools": true
       },
       "feedback": {
-        "model": "o3-mini-low",
+        "model": "gpt-5.6-luna",
         "prompt": "You evaluate a code and decide if it's correct. If it's not correct, you provide feedback on what needs to be fixed and improved. Never give it a pass on the first try. After 5 attempts, you can give it a pass if the code is good enough. You can use tools for checking the code, running tests, etc.",
         "allow_local_tools": true,
         "allow_remote_tools": true

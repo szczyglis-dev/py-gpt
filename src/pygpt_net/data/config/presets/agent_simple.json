@@ -18,7 +18,7 @@
   "research": false,
   "computer": false,
   "filename": "agent_simple",
-  "model": "gpt-4o",
+  "model": "gpt-5.6-luna",
   "tools": {
     "function": []
   },
