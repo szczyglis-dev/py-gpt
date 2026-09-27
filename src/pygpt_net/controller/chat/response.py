@@ -669,6 +669,7 @@ class Response:
                 "ctx": ctx,
                 "chunk": render_value,
                 "begin": bool(begin),
+                "part_key": current_part_key,
             }))
 
     def agent_v2_status(self, context: BridgeContext, extra: Dict[str, Any], status: str):

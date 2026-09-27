@@ -25,6 +25,8 @@ class Patch:
     OLD_PREFIX = "agent_openai_"
     NEW_PREFIX = "agent_"
     REMOVE_FILES = (
+        "agent_assistant.json",
+        "agent_code_act.json",
         "agent_openai.json",
         "agent_react.json",
     )
@@ -60,23 +62,6 @@ class Patch:
                 os.remove(path)
                 print("Removed retired preset: {}.".format(path))
                 migrated = True
-
-        # The old Llama planner used the same filename as the new canonical
-        # planner. Remove it only while it is actually the retired workflow (or
-        # when an agent_openai_planner source is waiting to replace it). This
-        # keeps the migration idempotent on every later startup.
-        planner_target = os.path.join(presets_dir, "agent_planner.json")
-        remove_old_planner = os.path.isfile(planner_source)
-        if os.path.isfile(planner_target) and not remove_old_planner:
-            planner_data = self._load_json(planner_target)
-            remove_old_planner = bool(
-                planner_data is not None
-                and planner_data.get("agent_provider") == "planner"
-            )
-        if remove_old_planner and os.path.isfile(planner_target):
-            os.remove(planner_target)
-            print("Removed retired preset: {}.".format(planner_target))
-            migrated = True
 
         # Rename every agent_openai_* user preset to agent_* while preserving
         # the user's actual JSON payload (including fields unknown to this

@@ -297,7 +297,42 @@ class Runtime {
 		return { box, msg, timeline };
 	};
 
-	_findPartialStreamHost = (parentId, partId, create = false) => {
+	_setAgentNamePrefix = (container, agentName, beforeNode = null) => {
+		if (!container) return null;
+		const name = String(agentName || '').trim();
+		if (!name) return null;
+
+		let prefix = null;
+		try { prefix = container.querySelector(':scope > .agent-name-prefix'); }
+		catch (_) { prefix = null; }
+		if (!prefix) {
+			prefix = document.createElement('span');
+			prefix.className = 'agent-name-prefix';
+			container.insertBefore(prefix, beforeNode || container.firstChild || null);
+		}
+		prefix.textContent = `${name}:`;
+		return prefix;
+	};
+
+	_bindMainStreamAgentPrefix = (timeline, partId, agentName) => {
+		const name = String(agentName || '').trim();
+		if (!timeline || !name) return null;
+
+		let root = null;
+		try { root = timeline.querySelector(':scope > .md-snapshot-root'); }
+		catch (_) { root = null; }
+		if (!root) return null;
+
+		const prefix = this._setAgentNamePrefix(timeline, name, root);
+		if (prefix) {
+			prefix.dataset.streamAgentPrefix = '1';
+			if (partId) prefix.dataset.partId = String(partId);
+			if (prefix.nextSibling !== root) timeline.insertBefore(prefix, root);
+		}
+		return prefix;
+	};
+
+	_findPartialStreamHost = (parentId, partId, create = false, agentName = '') => {
 		const host = this._workflowMessageHost(parentId, create);
 		if (!host || !host.timeline) return null;
 
@@ -344,6 +379,7 @@ class Runtime {
 			root.className = 'md-snapshot-root';
 			part.appendChild(root);
 		}
+		this._setAgentNamePrefix(part, agentName, root);
 		return { ...host, part, root };
 	};
 
@@ -386,11 +422,11 @@ class Runtime {
 	// Append streamed Markdown into a nested partial of an existing assistant
 	// turn. A missing durable node gets a provisional id-bound stream host; it is
 	// never rendered as an unrelated second message.
-	api_appendPartialStream = (parentId, partId, chunk, begin = false) => {
+	api_appendPartialStream = (parentId, partId, chunk, begin = false, agentName = '') => {
 		const key = this._partialStreamKey(parentId, partId);
 		let state = this._partialStreams.get(key) || null;
 		if (begin || !state || (state.root && !state.root.isConnected)) {
-			const host = this._findPartialStreamHost(parentId, partId, true);
+			const host = this._findPartialStreamHost(parentId, partId, true, agentName);
 			if (!host) {
 				const finalLatch = this._agentsV2FinalActive;
 				// Python owns loader visibility and knows whether this is hidden
@@ -403,6 +439,10 @@ class Runtime {
 				state = { ...host, text: '' };
 				this._partialStreams.set(key, state);
 			}
+		}
+
+		if (state && !state.fallback && agentName) {
+			this._setAgentNamePrefix(state.part, agentName, state.root || null);
 		}
 
 		const value = String(chunk || '');
@@ -472,6 +512,7 @@ class Runtime {
 			if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
 			const el = node;
 			if (el.classList && el.classList.contains('msg-part-status')) return false;
+			if (el.classList && el.classList.contains('agent-name-prefix')) return false;
 			if (el === streamRoot || (el.classList && el.classList.contains('md-snapshot-root'))) {
 				return !!(String(el.textContent || '').trim() || (el.children && el.children.length > 0));
 			}
@@ -488,7 +529,10 @@ class Runtime {
 		}
 		const rootHasContent = !!(streamRoot && nodeHasPayload(streamRoot));
 		if (streamRoot && !rootHasContent && !hasEarlierPayload) {
-			host.timeline.insertBefore(part, streamRoot);
+			let streamPrefix = null;
+			try { streamPrefix = host.timeline.querySelector(':scope > .agent-name-prefix[data-stream-agent-prefix="1"]'); }
+			catch (_) { streamPrefix = null; }
+			host.timeline.insertBefore(part, streamPrefix || streamRoot);
 		} else {
 			host.timeline.appendChild(part);
 		}
@@ -631,7 +675,7 @@ class Runtime {
 	// After beginStream() clears the transient output area, recreate the id-bound
 	// stream shell and restore UI-only status history before the first text chunk.
 	// This prevents "Planning/Using tool" rows from disappearing at stream start.
-	api_bindWorkflowStream = (parentId, nameHeader = '', records = []) => {
+	api_bindWorkflowStream = (parentId, nameHeader = '', records = [], partId = '', agentName = '') => {
 		const value = String(parentId || '');
 		if (!value) return;
 
@@ -672,6 +716,8 @@ class Runtime {
 				{ moveExisting: false }
 			);
 		}
+
+		this._bindMainStreamAgentPrefix(timeline, partId, agentName);
 	};
 
 	// ------------------------------------------------------------------
@@ -1701,8 +1747,8 @@ window.appendStream = (name, chunk) => runtime.api_appendStream(name, chunk);
 window.appendStreamTyped = (type, name, chunk) => runtime.api_onChunk(name, chunk, type);
 window.nextStream = () => runtime.api_nextStream();
 window.clearStream = () => runtime.api_clearStream();
-window.appendPartialStream = (parentId, partId, chunk, begin) => runtime.api_appendPartialStream(parentId, partId, chunk, begin);
-window.bindWorkflowStream = (parentId, nameHeader, records) => runtime.api_bindWorkflowStream(parentId, nameHeader, records);
+window.appendPartialStream = (parentId, partId, chunk, begin, agentName) => runtime.api_appendPartialStream(parentId, partId, chunk, begin, agentName);
+window.bindWorkflowStream = (parentId, nameHeader, records, partId, agentName) => runtime.api_bindWorkflowStream(parentId, nameHeader, records, partId, agentName);
 window.setAgentStatus = (text, parentId, statusId) => runtime.api_setAgentStatus(text, parentId, statusId);
 window.clearAgentStatus = (parentId) => runtime.api_clearAgentStatus(parentId);
 window.setToolStatus = (names, parentId, statusId) => runtime.api_setToolStatus(names, parentId, statusId);

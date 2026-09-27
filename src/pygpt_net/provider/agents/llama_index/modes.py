@@ -17,7 +17,7 @@ SOURCES = {
     'b2b': 'agent_b2b',
     'evolve': 'evolve',
     'researcher': 'bot_researcher',
-    'planner': 'agent_planner',
+    # 'planner': 'agent_planner',
 }
 
 

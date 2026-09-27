@@ -24,7 +24,7 @@ from PySide6.QtCore import QLocale, QTimer
 
 from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.core.render.protocol import RenderMutation, RenderOp
-from pygpt_net.core.types import MODE_AGENT_V2
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
@@ -47,6 +47,10 @@ WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_KEY = "agent.v2.single_status.live"
 WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_KEY = "agent.v2.single_status.history"
 WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_DEFAULT = True
 WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_DEFAULT = True
+
+# UI-only actor label for legacy LlamaIndex Custom agents. The prefix is
+# rendered from CtxItemPart.name and is never stored in part.output/ctx.output.
+SHOW_LEGACY_AGENT_NAME_PREFIX = True
 
 
 @dataclass(slots=True)
@@ -1132,7 +1136,14 @@ class Renderer(BaseRenderer):
                     replace_text=True,
                 ))
 
-    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False,
+            part_key: Optional[object] = None,
+    ):
         """
         Append streamed Markdown chunk to JS with micro-batching and typed chunk support.
 
@@ -1140,6 +1151,7 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         :param text_chunk: text chunk to append
         :param begin: True if begin of stream
+        :param part_key: durable partial UUID/ID owning this chunk (optional)
         """
         pid = self.get_or_create_pid(meta)
         if pid is None:
@@ -1205,9 +1217,22 @@ class Renderer(BaseRenderer):
                 live_ids=self._workflow_single_status_live(),
             )
             try:
+                stream_part_key = str(part_key or "")
+                if stream_part_key:
+                    agent_name = self._legacy_agent_name_prefix(ctx, part_key=stream_part_key)
+                else:
+                    active_part = ctx.get_active_part()
+                    stream_part_key = str(
+                        getattr(active_part, "uuid", "")
+                        or getattr(active_part, "id", "")
+                        or ""
+                    )
+                    agent_name = self._legacy_agent_name_prefix(ctx, part=active_part)
                 parent_json = json.dumps(parent_id, ensure_ascii=False)
                 header_json = json.dumps(pctx.header or "", ensure_ascii=False)
                 records_json = json.dumps(status_records, ensure_ascii=False, default=str)
+                part_key_json = json.dumps(stream_part_key, ensure_ascii=False)
+                agent_name_json = json.dumps(agent_name, ensure_ascii=False)
                 chunk_js = "true" if has_response_activity else "false"
                 self.get_output_node(meta).page().runJavaScript(
                     "if (typeof window.freezeWorkflowStatus !== 'undefined') "
@@ -1215,7 +1240,8 @@ class Renderer(BaseRenderer):
                     "if (typeof window.beginStream !== 'undefined') "
                     f"beginStream({chunk_js}, {parent_json});"
                     "if (typeof window.bindWorkflowStream !== 'undefined') "
-                    f"bindWorkflowStream({parent_json}, {header_json}, {records_json});"
+                    f"bindWorkflowStream({parent_json}, {header_json}, {records_json},"
+                    f"{part_key_json}, {agent_name_json});"
                 )
             except Exception:
                 pass
@@ -1341,12 +1367,15 @@ class Renderer(BaseRenderer):
         begin = key not in self._partial_stream_started
         self._partial_stream_started.add(key)
         try:
+            parent_ctx = self.pids.get(pid).item if pid in self.pids else None
+            agent_name = self._legacy_agent_name_prefix(parent_ctx, part_key=part_key)
             node.page().runJavaScript(
                 "if (typeof window.appendPartialStream !== 'undefined') "
                 f"appendPartialStream({json.dumps(parent_id, ensure_ascii=False)},"
                 f"{json.dumps(part_key, ensure_ascii=False)},"
                 f"{json.dumps(data, ensure_ascii=False)},"
-                f"{'true' if begin else 'false'});"
+                f"{'true' if begin else 'false'},"
+                f"{json.dumps(agent_name, ensure_ascii=False)});"
             )
         except Exception:
             pass
@@ -3998,6 +4027,45 @@ class Renderer(BaseRenderer):
             )
         )
 
+    def _legacy_agent_name_prefix(
+            self,
+            ctx: Optional[CtxItem],
+            part=None,
+            part_key: Optional[object] = None,
+            prefer_final: bool = False,
+    ) -> str:
+        """Return a UI-only actor label for one legacy LlamaIndex partial."""
+        if (not SHOW_LEGACY_AGENT_NAME_PREFIX
+                or ctx is None
+                or str(getattr(ctx, "mode", "") or "") != MODE_AGENT_LLAMA):
+            return ""
+
+        parts = list(getattr(ctx, "parts", None) or [])
+        if part is None and part_key not in (None, ""):
+            wanted = str(part_key)
+            for candidate in parts:
+                if (str(getattr(candidate, "uuid", "") or "") == wanted
+                        or str(getattr(candidate, "id", "") or "") == wanted):
+                    part = candidate
+                    break
+
+        if part is None and prefer_final:
+            for candidate in reversed(parts):
+                extra = candidate.extra if isinstance(getattr(candidate, "extra", None), dict) else {}
+                if extra.get("agents_v2_final") is True:
+                    part = candidate
+                    break
+
+        if part is None and parts:
+            part = parts[-1]
+        if part is None:
+            try:
+                part = ctx.get_active_part()
+            except Exception:
+                part = None
+
+        return str(getattr(part, "name", "") or "").strip() if part is not None else ""
+
     def _display_full_agent_workflow_for_ctx(self, ctx: CtxItem) -> bool:
         """Return whether completed Chat with Agents partials stay visible.
 
@@ -4290,6 +4358,9 @@ class Renderer(BaseRenderer):
                 "render_id": -(base_id * 10000 + seq),
                 "text": md_text,
                 "tool_calls": tool_calls,
+                "agent_name_prefix": (
+                    self._legacy_agent_name_prefix(ctx, part=part) if text else ""
+                ),
             })
 
         def append_status(record):
@@ -4713,6 +4784,9 @@ class Renderer(BaseRenderer):
                 "text": md_text,
                 "timestamp": ctx.output_timestamp if hasattr(ctx, "output_timestamp") else None,
             }
+            agent_name_prefix = self._legacy_agent_name_prefix(ctx, prefer_final=True)
+            if agent_name_prefix:
+                block.output["agent_name_prefix"] = agent_name_prefix
 
             # extras (images/files/urls/actions)
             images, files, urls, extra_actions = self.body.build_extras_dicts(

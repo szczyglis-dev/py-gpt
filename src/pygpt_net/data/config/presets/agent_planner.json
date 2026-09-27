@@ -24,7 +24,7 @@
   },
   "experts": [],
   "idx": "_",
-  "agent_provider": "llama_agent_planner",
+  "agent_provider": "planner",
   "agent_provider_openai": "openai_agent_planner",
   "assistant_id": "",
   "enabled": true,

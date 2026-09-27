@@ -202,6 +202,15 @@ think {{
   font-size: 0.8rem;
 }}
 
+/* UI-only actor prefix for legacy LlamaIndex Custom agents. */
+.agent-name-prefix {{
+  float: left;
+  padding-right: 5px;
+  white-space: nowrap;
+  font-weight: 700;
+  color: #a4a4a4;
+}}
+
 /* code wrapper */
 .code-header-wrapper {{
   text-align: right;

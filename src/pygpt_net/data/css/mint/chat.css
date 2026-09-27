@@ -127,3 +127,6 @@ code {{
     padding: 1px 3px;
     font-weight: 600;
 }}
+.agent-name-prefix {{
+  color: #6c6c6c;
+}}

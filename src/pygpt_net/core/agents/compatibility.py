@@ -10,7 +10,7 @@ OPENAI_TO_LLAMA = {
     'openai_agent_b2b': 'llama_agent_b2b',
     'openai_agent_evolve': 'llama_agent_evolve',
     'openai_agent_bot_researcher': 'llama_agent_researcher',
-    'openai_agent_planner': 'llama_agent_planner',
+    'openai_agent_planner': 'planner',
     'openai_agent_supervisor': 'supervisor',
 }
 

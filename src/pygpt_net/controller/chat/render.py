@@ -112,12 +112,22 @@ class Render:
                     data.get("begin", False),
                 )
             else:
-                self.instance().append_chunk(
-                    data.get("meta"),
-                    data.get("ctx"),
-                    data.get("chunk", ""),
-                    data.get("begin", False),
-                )
+                renderer = self.instance()
+                if data.get("part_key") is not None and hasattr(renderer, "_legacy_agent_name_prefix"):
+                    renderer.append_chunk(
+                        data.get("meta"),
+                        data.get("ctx"),
+                        data.get("chunk", ""),
+                        data.get("begin", False),
+                        part_key=data.get("part_key"),
+                    )
+                else:
+                    renderer.append_chunk(
+                        data.get("meta"),
+                        data.get("ctx"),
+                        data.get("chunk", ""),
+                        data.get("begin", False),
+                    )
         elif name == RenderEvent.STREAM_NEXT:
             self.next_chunk(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_END:
