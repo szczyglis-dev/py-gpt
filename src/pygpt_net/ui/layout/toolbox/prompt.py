@@ -72,7 +72,9 @@ class Prompt:
 
         option = w.controller.presets.editor.get_option('prompt')
         nodes['preset.prompt'] = PromptTextarea(w, 'preset', 'prompt', option)
-        nodes['preset.prompt'].setPlaceholderText(trans("toolbox.prompt"))
+        prompt_label = trans("toolbox.prompt")
+        nodes['preset.prompt'].setPlaceholderText(f"{prompt_label}...")
+        nodes['preset.prompt'].setToolTip(prompt_label)
         nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Agents v2 runtime strategy selector. Persist machine-friendly values in

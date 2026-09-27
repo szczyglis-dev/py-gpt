@@ -90,12 +90,10 @@ class Mapping:
         if prompt is not None:
             try:
                 mode = self.window.core.config.get('mode')
-                key = (
-                    'toolbox.agent.preset.placeholder'
-                    if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI)
-                    else 'toolbox.prompt'
-                )
-                prompt.setPlaceholderText(trans(key))
+                if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+                    prompt.setPlaceholderText(trans('toolbox.agent.preset.placeholder'))
+                else:
+                    prompt.setPlaceholderText(f"{trans('toolbox.prompt')}...")
             except Exception:
                 pass
 
@@ -521,6 +519,10 @@ class Mapping:
         tooltips = {}
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
+        tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'
+        tooltips['indexes.new'] = 'toolbox.indexes.edit.tooltip'
+        tooltips['layout.split'] = 'layout.split.tooltip'
+        tooltips['preset.prompt'] = 'toolbox.prompt'
         tooltips['icon.video.capture'] = 'icon.video.capture'
         tooltips['icon.audio.output'] = 'icon.audio.output'
         tooltips['icon.audio.input'] = 'icon.audio.input'

@@ -35,6 +35,7 @@ class Split:
                                                            icon=":/icons/split_screen.svg",
                                                            parent=self.window,
                                                            elide_label=False)
+        self.window.ui.nodes['layout.split'].setToolTip(trans('layout.split.tooltip'))
         self.window.ui.nodes['layout.split'].box.toggled.connect(
             self.window.controller.tabs.toggle_split_screen
         )

@@ -96,7 +96,7 @@ class Mode:
             # Preset-editor tab visibility is synchronized atomically below.
             if 'preset.prompt' in ui_nodes and ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(False)
-                ui_nodes['preset.prompt'].setPlaceholderText(trans("toolbox.prompt"))
+                ui_nodes['preset.prompt'].setPlaceholderText(f"{trans('toolbox.prompt')}...")
         else:
             if 'preset.prompt' in ui_nodes and not ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(True)

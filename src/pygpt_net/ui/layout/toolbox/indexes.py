@@ -112,6 +112,7 @@ class Indexes:
         )
         nodes['indexes.select'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         nodes['indexes.select'].setMinimumWidth(0)
+        nodes['indexes.select'].setToolTip(trans('toolbox.indexes.select.tooltip'))
 
         nodes['indexes.new'] = QPushButton(self._settings_icon, "")
         # Configure compact, borderless settings button for options row
