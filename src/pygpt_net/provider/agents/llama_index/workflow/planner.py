@@ -110,6 +110,7 @@ class PlannerWorkflow(Workflow):
         refiner_memory=None,
         on_stop: Optional[Callable] = None,
         refine_after_each_subtask: bool = True,
+        input_builder=None,
     ):
         # ``executor_llm`` lets the wrapper apply an independent remote-tool
         # policy to the tool-calling executor while planner/refiner structured
@@ -152,6 +153,7 @@ class PlannerWorkflow(Workflow):
 
         # Controls whether the legacy-style refine happens after every sub-task execution.
         self._refine_after_each_subtask = refine_after_each_subtask
+        self._input_builder = input_builder
 
     def _stopped(self) -> bool:
         """
@@ -446,8 +448,9 @@ class PlannerWorkflow(Workflow):
         from pygpt_net.core.agents.runners.llama_events import forward_handler
         from pygpt_net.core.agents.runners.llama_session import result_text
         from pygpt_net.core.agents_v2.utils import effective_iteration_limit
+        user_msg = self._input_builder(prompt) if callable(self._input_builder) else prompt
         handler = self._executor.run(
-            user_msg=prompt,
+            user_msg=user_msg,
             memory=self._executor_memory,
             max_iterations=effective_iteration_limit(self._max_steps),
         )

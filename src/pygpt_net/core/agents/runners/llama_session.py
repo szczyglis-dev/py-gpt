@@ -4,13 +4,19 @@ The workflow owns logical boundaries; Qt owns streamed text updates. Never read
 part.output to decide whether a boundary is needed: queued Qt events may lag.
 """
 import asyncio
+import base64
 import json
+import os
+from types import SimpleNamespace
 from uuid import uuid4
 
+from pygpt_net.core.agents_v2.context import RuntimeContext
 from pygpt_net.core.agents_v2.emitter import RuntimeEmitter
+from pygpt_net.core.agents_v2.tools import WorkerToolFactory
 from pygpt_net.core.agents_v2.tool_history import RuntimeToolHistory
 from pygpt_net.core.agents_v2.utils import tool_result_value, translated_status
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.provider.llms.artifacts import drain_llm_urls
 
 
 class LlamaSession:
@@ -27,7 +33,33 @@ class LlamaSession:
         self.boundary_pending = False
         self.final_answer = ""
         self.artifacts = {key: [] for key in ("files", "images", "urls", "attachments")}
-        self.tool_lock = asyncio.Lock()
+        self.model = getattr(context, "model", None)
+        self.index_id = getattr(context, "idx", None)
+        if self.index_id in ("_", "-"):
+            self.index_id = None
+        self.allow_local_tools = True
+        self.is_swarm_mode = False
+        self.main_agent_name = "Agent"
+        self.local_tool_lock = asyncio.Lock()
+        self.tool_lock = self.local_tool_lock
+        self.verbose = SimpleNamespace(log=lambda *args, **kwargs: None)
+        self.context_api = RuntimeContext(self)
+        # Keep legacy LlamaIndex sessions on the same multimodal input path as
+        # Agents v2. RuntimeContext deliberately calls back through the runtime
+        # wrappers below, so expose them before building/persisting turn context.
+        self._persist_input_images()
+        self.shared_context_text = self._build_shared_context()
+        self.tool_factory = WorkerToolFactory(self)
+        self.provider_ctx = self._make_tool_ctx("orchestrator")
+        self.llm = None
+        self.actor = SimpleNamespace(
+            id="orchestrator",
+            name=self.name,
+            progress="",
+            stop_requested=False,
+            tool_ctx=self.provider_ctx,
+            artifacts=self.artifacts,
+        )
         self._main_tool_call_seq = 0
         self._persisted_tool_tasks = {}
         self.return_tool_calls_to_main_ctx = True
@@ -42,6 +74,154 @@ class LlamaSession:
 
     def is_stopped(self):
         return self.window.controller.kernel.stopped()
+
+    def _make_tool_ctx(self, actor_id: str) -> CtxItem:
+        parent = self.context.ctx
+        ctx = CtxItem(getattr(parent, "mode", None))
+        ctx.meta = getattr(parent, "meta", None)
+        ctx.meta_id = getattr(parent, "meta_id", None)
+        ctx.model = getattr(parent, "model", None)
+        if parent is not None:
+            ctx.images = list(getattr(parent, "images", None) or [])
+            ctx.attachments = list(getattr(parent, "attachments", None) or [])
+            ctx.additional_ctx = list(getattr(parent, "additional_ctx", None) or [])
+            ctx.doc_ids = list(getattr(parent, "doc_ids", None) or [])
+            ctx.hidden_input = getattr(parent, "hidden_input", None)
+        ctx.agent_call = True
+        ctx.async_disabled = False
+        ctx.internal = True
+        ctx.hidden = True
+        ctx.current = False
+        ctx.extra = {
+            "agent_legacy_actor": actor_id,
+            "run_id": self.run_id,
+            # Reuse the same async plugin completion bridge as Agents v2.
+            "agents_v2_async_tool": True,
+        }
+        return ctx
+
+    def _input_image_paths(self):
+        """Return native image inputs using the shared Agents v2 resolver."""
+        return self.context_api._input_image_paths()
+
+    def _persist_input_images(self):
+        """Persist native image inputs on the durable turn, matching Agents v2."""
+        return self.context_api._persist_input_images()
+
+    def _build_shared_context(self):
+        return self.context_api._build_shared_context()
+
+    def build_user_message(self, text: str):
+        return self.context_api.build_user_message(text)
+
+    def build_worker_message(self, text: str):
+        value = str(text or "")
+        if self.shared_context_text:
+            value += (
+                "\n\n<shared_attachment_context>\n"
+                + self.shared_context_text
+                + "\n</shared_attachment_context>"
+            )
+        return self.context_api.build_user_message(value)
+
+    def bind_llm(self, llm):
+        self.llm = llm
+        return llm
+
+    def collect_llm_artifacts(self, response=None):
+        if self.llm is None:
+            return []
+        try:
+            urls = drain_llm_urls(
+                self.provider_ctx,
+                self.llm,
+                response=response,
+                on_error=self.window.core.debug.log,
+            )
+            self.collect_artifacts(self.provider_ctx)
+            return urls or []
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+            return []
+
+    def _show_tool_status(self, tool_name: str) -> bool:
+        return not self.window.core.command.is_tool_hidden(tool_name)
+
+    def emit_runtime_status(self, key: str, **kwargs):
+        if not self.visible:
+            return
+        tool = kwargs.get("tool")
+        if tool:
+            self.emitter.status(translated_status(key, tool=tool))
+
+    def register_local_plugin_tool(self, name: str):
+        return None
+
+    def record_local_plugin_tool_call(self, name, params, actor="orchestrator"):
+        return self.history._persist_tool_call(name, params, actor)
+
+    def record_local_plugin_tool_result(self, call_id, name, response, actor="orchestrator"):
+        self.history._persist_tool_result(response, actor, name, call_id)
+
+    def collect_artifacts(self, source_ctx: CtxItem, worker=None):
+        if source_ctx is None:
+            return
+        # Files are deliberately opt-in, exactly as in Agents v2. Merely reading
+        # a file must not attach it to the user's final response.
+        for attr in ("images", "urls", "attachments"):
+            target = self.artifacts[attr]
+            for value in getattr(source_ctx, attr, None) or []:
+                if value not in target:
+                    target.append(value)
+
+    def register_delivery_files(self, files, worker=None):
+        exported = []
+        for entry in files or []:
+            path = str(entry.get("path") if isinstance(entry, dict) else entry or "").strip()
+            if path and path not in self.artifacts["files"]:
+                self.artifacts["files"].append(path)
+                exported.append(path)
+        return exported
+
+    def register_provider_image_base64(self, data: str, actor_id=None):
+        if not data:
+            return None
+        try:
+            raw = base64.b64decode(data)
+            path = self.window.core.image.gen_unique_path(self.provider_ctx)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as handle:
+                handle.write(raw)
+            local = self.window.core.filesystem.make_local(path, ctx=self.provider_ctx)
+            if local not in self.provider_ctx.images:
+                self.provider_ctx.images.append(local)
+            runtime_artifact = self.window.core.filesystem.materialize_runtime_artifact(
+                path, ctx=self.provider_ctx,
+            )
+            self.collect_artifacts(self.provider_ctx)
+            return runtime_artifact
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+            return None
+
+    def register_provider_container_files(self, files, actor_id=None):
+        if not files:
+            return []
+        try:
+            downloaded = self.window.core.api.openai.container.download_files(
+                self.provider_ctx, list(files)
+            )
+            # Provider container files are generated outputs, not arbitrary files
+            # observed by a read/search tool, so they are valid response artifacts.
+            for value in downloaded or []:
+                path = str(value.get("path") if isinstance(value, dict) else value or "").strip()
+                if path and path not in self.artifacts["files"]:
+                    self.artifacts["files"].append(path)
+            self.collect_artifacts(self.provider_ctx)
+            return downloaded or []
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+            return []
 
     def _promote_part_tasks(self, part):
         self.history._promote_part_tasks(part)
@@ -109,6 +289,7 @@ class LlamaSession:
 
     async def event(self, event):
         from llama_index.core.agent.workflow import AgentStream, AgentOutput, ToolCall, ToolCallResult
+        self.collect_llm_artifacts(response=event)
         from pygpt_net.provider.agents.llama_index.workflow.events import StepEvent, StatusEvent
         if isinstance(event, StatusEvent):
             if self.visible:
@@ -167,31 +348,45 @@ class LlamaSession:
         if self.emitter.signals is None:
             raise RuntimeError("LlamaIndex plugin execution requires the UI bridge.")
         async with self.tool_lock:
-            # A separate context for EVERY call prevents late callbacks and
-            # parallel tools from sharing results, artifacts or pending state.
-            source = self.context.ctx
-            tool_ctx = CtxItem()
-            tool_ctx.meta = source.meta
-            tool_ctx.mode = source.mode
-            tool_ctx.model = source.model
-            tool_ctx.agent_call = True
-            tool_ctx.async_disabled = False
-            tool_ctx.internal = True
-            tool_ctx.hidden = True
+            # Isolate every plugin invocation while reusing the Agents v2 transport
+            # contract for runtime attachments and explicit user-delivery files.
+            tool_ctx = self._make_tool_ctx("orchestrator")
             tool_ctx.reply = False
             tool_ctx.extra["agent_input"] = True
             response = await self.emitter.execute_plugin(
                 tool_ctx, [{"cmd": name, "params": params}], self.is_stopped,
             )
-            for key, values in self.artifacts.items():
-                for value in getattr(tool_ctx, key, None) or []:
-                    if value not in values:
-                        values.append(value)
-            if isinstance(response, (dict, list)):
-                return json.dumps(response, ensure_ascii=False, default=str)
-            return "" if response is None else str(response)
+
+            runtime_attachments = self.tool_factory._extract_runtime_attachments(response)
+            runtime_attachments.extend(self.tool_factory._drain_transport_images(tool_ctx))
+            delivery_files = self.tool_factory._extract_delivery_files(response)
+            if runtime_attachments:
+                unique = []
+                seen = set()
+                for entry in runtime_attachments:
+                    path = str(entry.get("path") or "")
+                    if path and path not in seen:
+                        seen.add(path)
+                        unique.append(entry)
+                runtime_attachments = unique
+
+            display_response = (
+                self.tool_factory._strip_private_artifact_markers(response)
+                if runtime_attachments or delivery_files else response
+            )
+            self.collect_artifacts(tool_ctx)
+            if delivery_files:
+                self.register_delivery_files(delivery_files)
+            tool_ctx.reply = False
+
+            if runtime_attachments:
+                return self.tool_factory._runtime_attachment_blocks(
+                    display_response, runtime_attachments
+                )
+            return self.tool_factory._response_text(display_response)
 
     async def finish(self, terminal):
+        self.collect_llm_artifacts(response=terminal)
         final = result_text(terminal) or self.text.strip()
         # Some adapters return the accumulated prose from every model pass.
         # Strip only exact completed prefixes, retaining an already-final answer.

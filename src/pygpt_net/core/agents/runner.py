@@ -117,7 +117,7 @@ class Runner:
             is_stream = self.window.core.config.get("stream", False)
             is_cmd = self.window.core.command.is_cmd(inline=False)
             history = self.window.core.agents.memory.prepare(context)
-            computer_runtime = ComputerRuntime(self.window, context)
+            computer_runtime = ComputerRuntime(self.window, context, artifact_runtime=session)
             # Legacy LlamaIndex agents are agent workflows, so use the same
             # provider adapter path as Agents v2. This preserves provider-native
             # remote tools and lets the adapter own Computer Use continuations.
@@ -127,6 +127,8 @@ class Runner:
                 allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
+            if session is not None:
+                session.bind_llm(llm)
             workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
 
             # vector store idx from preset
@@ -206,6 +208,7 @@ class Runner:
                 "schema": schema,
                 "computer_runtime": computer_runtime,
                 "agent_tools": agent_tools,
+                "input_builder": session.build_worker_message if session is not None else None,
                 "stream": bool(getattr(context, "stream", False)),
             }
             provider = self.window.core.agents.provider.get(agent_id, context.mode)
@@ -318,7 +321,7 @@ class Runner:
             is_expert_call = context.is_expert_call
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_cmd = self.window.core.command.is_cmd(inline=False)
-            computer_runtime = ComputerRuntime(self.window, context)
+            computer_runtime = ComputerRuntime(self.window, context, artifact_runtime=session)
             # Legacy LlamaIndex agents are agent workflows, so use the same
             # provider adapter path as Agents v2. This preserves provider-native
             # remote tools and lets the adapter own Computer Use continuations.
@@ -328,6 +331,8 @@ class Runner:
                 allow_remote_tools=True,
                 computer_runtime=computer_runtime,
             )
+            if session is not None:
+                session.bind_llm(llm)
             workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
 
             # tools
@@ -376,6 +381,7 @@ class Runner:
                 "preset": context.preset if context else None,
                 "computer_runtime": computer_runtime,
                 "agent_tools": agent_tools,
+                "input_builder": session.build_worker_message if session is not None else None,
                 "stream": bool(getattr(context, "stream", False)),
             }
             provider = self.window.core.agents.provider.get(agent_id)

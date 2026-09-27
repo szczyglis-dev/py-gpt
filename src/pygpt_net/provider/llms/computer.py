@@ -73,12 +73,16 @@ class ComputerRuntime:
     orchestration runtime.
     """
 
-    def __init__(self, window, context):
+    def __init__(self, window, context, artifact_runtime=None):
         self.window = window
         self.context = context
         self.model = getattr(context, "model", None)
         self.local_tool_lock = _AsyncThreadLock()
         self.verbose = _ComputerRuntimeVerbose(window)
+        # Optional richer runtime (Agents v2 or legacy LlamaSession) used only
+        # for provider-native generated artifacts. This keeps Computer Use itself
+        # shared while allowing the caller to own final artifact delivery.
+        self.artifact_runtime = artifact_runtime
 
     def __copy__(self):
         """Keep the live UI/runtime bridge shared when SDK objects are copied."""
@@ -98,7 +102,7 @@ class ComputerRuntime:
 
     def for_model(self, model):
         """Return a lightweight child runtime for another model, sharing the desktop lock."""
-        child = ComputerRuntime(self.window, self.context)
+        child = ComputerRuntime(self.window, self.context, artifact_runtime=self.artifact_runtime)
         child.model = model
         child.local_tool_lock = self.local_tool_lock
         child.verbose = self.verbose
@@ -135,6 +139,20 @@ class ComputerRuntime:
         # do not, so keep this hook transient and diagnostic instead of persisting
         # an Agents-v2-specific status block in the normal chat context.
         self.verbose.log("STATUS", {"key": key, "args": kwargs})
+
+    def register_provider_image_base64(self, data: str, actor_id=None):
+        target = self.artifact_runtime
+        callback = getattr(target, "register_provider_image_base64", None)
+        if callable(callback):
+            return callback(data, actor_id=actor_id)
+        return None
+
+    def register_provider_container_files(self, files, actor_id=None):
+        target = self.artifact_runtime
+        callback = getattr(target, "register_provider_container_files", None)
+        if callable(callback):
+            return callback(files, actor_id=actor_id)
+        return []
 
 
 # Backward-compatible name used by older Chat with Files callers/plugins.

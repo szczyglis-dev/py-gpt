@@ -252,6 +252,7 @@ class SupervisorWorkflow(Workflow):
         self._worker_memory = kwargs.get("worker_memory")
         self._supervisor_memory = kwargs.get("supervisor_memory")
         self._max_steps = kwargs.get("max_steps", 12)
+        self._input_builder = kwargs.get("input_builder")
         self._on_stop = None
 
     def run(
@@ -370,7 +371,10 @@ class SupervisorWorkflow(Workflow):
         from pygpt_net.core.agents.custom.llama_index.router_streamer import RealtimeRouterStreamerLI
         prose = RealtimeRouterStreamerLI(fields=("instruction", "final_answer", "question"))
         sup_resp, streamed = await forward_handler(
-            self._supervisor.run(user_msg=sup_input, memory=self._supervisor_memory),
+            self._supervisor.run(
+                user_msg=self._input_builder(sup_input) if callable(self._input_builder) else sup_input,
+                memory=self._supervisor_memory,
+            ),
             ctx, self._stopped, name=self._supervisor.name, text_filter=prose.handle_delta,
         )
 
@@ -437,7 +441,10 @@ class SupervisorWorkflow(Workflow):
         worker_input = f"Instruction from Supervisor:\n{ev.instruction}\n"
         from pygpt_net.core.agents.runners.llama_events import forward_handler
         worker_resp, streamed_text = await forward_handler(
-            self._worker.run(user_msg=worker_input, memory=self._worker_memory),
+            self._worker.run(
+                user_msg=self._input_builder(worker_input) if callable(self._input_builder) else worker_input,
+                memory=self._worker_memory,
+            ),
             ctx, self._stopped, name=self._worker.name,
         )
         worker_text = response_to_text(worker_resp)
@@ -469,6 +476,7 @@ def get_workflow(
     worker_memory_session_id: str = "llama_worker_session",  # session ID for worker memory
     worker_memory: Optional[Memory] = None,
     supervisor_memory: Optional[Memory] = None,
+    input_builder=None,
 ):
     """
     Create a SupervisorWorkflow instance.
@@ -520,4 +528,5 @@ def get_workflow(
         verbose=verbose,
         timeout=120,
         max_steps=max_steps,
+        input_builder=input_builder,
     )

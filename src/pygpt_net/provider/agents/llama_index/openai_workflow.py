@@ -54,4 +54,5 @@ class OpenAIAgent(BaseAgent):
             system_prompt=system_prompt,
             verbose=verbose,
             max_function_calls=max_steps,
+            input_builder=kwargs.get("input_builder"),
         )

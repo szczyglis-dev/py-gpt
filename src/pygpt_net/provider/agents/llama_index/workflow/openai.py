@@ -136,6 +136,7 @@ class OpenAIWorkflowAgent(Workflow):
         tool_retriever: Optional[Any] = None,
         memory_char_limit: int = 8000,
         on_stop: Optional[Callable[[], bool]] = None,
+        input_builder: Optional[Callable[[str], Any]] = None,
     ):
         """
         Initialize the OpenAIWorkflowAgent.
@@ -163,6 +164,7 @@ class OpenAIWorkflowAgent(Workflow):
         self._default_tool_choice = (default_tool_choice or "auto").strip().lower()
         self._max_steps = int(max_function_calls) if max_function_calls is not None else DEFAULT_MAX_FUNCTION_CALLS
         self._on_stop = on_stop
+        self._input_builder = input_builder
         self.verbose = verbose
 
         # human-friendly display name propagated to UI via workflow events
@@ -538,8 +540,9 @@ class OpenAIWorkflowAgent(Workflow):
         from pygpt_net.core.agents.runners.llama_events import forward_handler
         from pygpt_net.core.agents.runners.llama_session import result_text
         from pygpt_net.core.agents_v2.utils import effective_iteration_limit
+        user_msg = self._input_builder(prompt) if callable(self._input_builder) else prompt
         handler = self._agent.run(
-            user_msg=prompt, memory=self._memory,
+            user_msg=user_msg, memory=self._memory,
             max_iterations=effective_iteration_limit(self._max_steps),
         )
         result, streamed = await forward_handler(

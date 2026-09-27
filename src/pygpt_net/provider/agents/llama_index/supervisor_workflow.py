@@ -118,6 +118,7 @@ class SupervisorAgent(BaseAgent):
                 prompt_worker=prompt_worker,
                 supervisor_memory=supervisor_memory,
                 worker_memory=worker_memory,
+                input_builder=kwargs.get("input_builder"),
         )
 
     def get_options(self) -> Dict[str, Any]:

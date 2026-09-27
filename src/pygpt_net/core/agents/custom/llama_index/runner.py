@@ -119,6 +119,7 @@ class DynamicFlowWorkflowLI(Workflow):
         stream: bool,
         base_prompt: Optional[str],
         system_prompt_extra: Optional[str] = None,
+        input_builder=None,
         timeout: int = 120,
         verbose: bool = True,
     ):
@@ -150,6 +151,7 @@ class DynamicFlowWorkflowLI(Workflow):
         self.stream = bool(stream)
         self.base_prompt = base_prompt or ""
         self.system_prompt_extra = system_prompt_extra or ""
+        self.input_builder = input_builder
 
         # Runtime
         self._on_stop = None
@@ -481,8 +483,9 @@ class DynamicFlowWorkflowLI(Workflow):
         router = RealtimeRouterStreamerLI() if multi_output else None
         from pygpt_net.core.agents.session_memory import WorkflowMemory
         node_memory = WorkflowMemory.from_defaults(chat_history=chat_history_msgs, llm=llm_node)
+        user_msg = self.input_builder(user_msg_text) if callable(self.input_builder) else user_msg_text
         handler = agent.run(
-            user_msg=user_msg_text,
+            user_msg=user_msg,
             memory=node_memory,
             max_iterations=effective_iteration_limit(self.max_iterations),
         )

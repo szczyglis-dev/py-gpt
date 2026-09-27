@@ -73,8 +73,11 @@ class LlamaWorkflow(BaseRunner):
         # Pass iteration limits at run time: constructor kwargs are ignored by
         # recent LlamaIndex versions.
         if isinstance(agent, BaseWorkflowAgent):
+            # Reuse the Agents v2 multimodal input builder so attached images are
+            # available natively to legacy FunctionAgent/ReActAgent runs too.
+            user_msg = session.build_user_message(query)
             handler = agent.run(
-                user_msg=query, ctx=ctx, memory=memory,
+                user_msg=user_msg, ctx=ctx, memory=memory,
                 max_iterations=effective_iteration_limit(
                     int(self.window.core.config.get("agent.llama.steps", 10))),
             )

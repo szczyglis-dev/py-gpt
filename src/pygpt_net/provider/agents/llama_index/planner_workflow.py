@@ -118,6 +118,7 @@ class PlannerAgent(BaseAgent):
             initial_plan_prompt=prompt_plan_initial,
             plan_refine_prompt=prompt_plan_refine,
             refine_after_each_subtask=prompt_plan_refine_each_step,
+            input_builder=kwargs.get("input_builder"),
         )
 
     def get_options(self) -> Dict[str, Any]:

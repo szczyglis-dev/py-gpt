@@ -96,6 +96,7 @@ class Agent(BaseAgent):
             stream=stream,
             base_prompt=base_prompt,
             system_prompt_extra=system_prompt_extra,
+            input_builder=kwargs.get("input_builder"),
             timeout=120,
             verbose=verbose,
         )
