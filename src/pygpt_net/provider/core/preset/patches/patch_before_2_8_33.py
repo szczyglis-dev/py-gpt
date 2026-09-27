@@ -61,7 +61,7 @@ class Patch:
             if os.path.isfile(path):
                 os.remove(path)
                 print("Removed retired preset: {}.".format(path))
-                migrated = True
+            migrated = True
 
         # Rename every agent_openai_* user preset to agent_* while preserving
         # the user's actual JSON payload (including fields unknown to this

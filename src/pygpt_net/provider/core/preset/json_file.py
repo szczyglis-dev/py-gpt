@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 12:20:00                  #
+# Updated Date: 2026.09.27 23:35:00                  #
 # ================================================== #
 
 import json
@@ -40,6 +40,12 @@ from .patch import Patch
 
 
 class JsonFileProvider(BaseProvider):
+    INSTALL_BLACKLIST = frozenset({
+        "agent_openai.json",
+        "agent_react.json",
+        "agent_openai_assistant.json",
+    })
+
     def __init__(self, window=None):
         super(JsonFileProvider, self).__init__(window)
         self.window = window
@@ -53,10 +59,17 @@ class JsonFileProvider(BaseProvider):
         presets_dir = self.window.core.config.get_user_dir('presets')
         src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets')
         if not os.path.exists(presets_dir):
-            shutil.copytree(src, presets_dir)
+            shutil.copytree(
+                src,
+                presets_dir,
+                ignore=shutil.ignore_patterns(*self.INSTALL_BLACKLIST),
+            )
         else:
-            # copy missing presets
+            # copy missing presets, except retired files that may still be
+            # present in an upgraded/dirty bundled installation (e.g. MSI).
             for file in os.listdir(src):
+                if file in self.INSTALL_BLACKLIST or not file.startswith("current."):
+                    continue
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(presets_dir, file)
                 if not os.path.exists(dst_file):
