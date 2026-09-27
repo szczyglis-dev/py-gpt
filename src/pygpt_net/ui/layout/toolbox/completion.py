@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 10:25:00                  #
+# Updated Date: 2026.09.27 09:48:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget
@@ -22,13 +22,14 @@ class Completion:
         self.window = window
 
     def setup(self) -> QWidget:
-        """Create the ``As chat`` toggle shown directly above the RAG row."""
+        """Create the ``Chat mode`` toggle shown directly above the RAG row."""
         nodes = self.window.ui.nodes
 
         toggle = ToggleLabel(
             trans("toolbox.completion.as_chat"),
-            label_position="left",
+            label_position="right",
             parent=self.window,
+            elide_label=False,
         )
         toggle.setChecked(bool(self.window.core.config.get("completion.as_chat", True)))
         toggle.box.toggled.connect(self._on_toggle)

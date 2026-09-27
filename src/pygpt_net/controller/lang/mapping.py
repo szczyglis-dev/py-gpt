@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 20:50:00
+# Updated Date: 2026.09.27 10:15:00
 # ================================================== #
 
 from typing import Dict
 
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_OPENAI
 from pygpt_net.utils import trans
 
 
@@ -82,6 +83,21 @@ class Mapping:
         self._apply_map(m['dialog.title'], ui.dialog, 'windowTitle', 'setWindowTitle')
         self._apply_tooltips(m['tooltip'], ui.nodes)
         self._apply_map(m['placeholder'], ui.nodes, 'placeholderText', 'setPlaceholderText')
+
+        # The toolbox system-prompt placeholder depends on the active mode,
+        # so refresh it explicitly on every runtime language change.
+        prompt = ui.nodes.get('preset.prompt')
+        if prompt is not None:
+            try:
+                mode = self.window.core.config.get('mode')
+                key = (
+                    'toolbox.agent.preset.placeholder'
+                    if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI)
+                    else 'toolbox.prompt'
+                )
+                prompt.setPlaceholderText(trans(key))
+            except Exception:
+                pass
 
         # External extensions info combines the general description and security
         # warning into one centered paragraph at the bottom of the dialog.
@@ -159,7 +175,8 @@ class Mapping:
         nodes['preset.experts.label'] = 'toolbox.experts.label'
         nodes['preset.use'] = 'preset.use'
         nodes['cmd.enabled'] = 'cmd.enabled'
-        nodes['toolbox.prompt.label'] = 'toolbox.prompt'
+        nodes['audio.auto_turn'] = 'audio.auto_turn'
+        nodes['audio.loop'] = 'audio.loop'
         nodes["indexes.label"] = "toolbox.indexes.label"
         nodes["agent.llama.loop.score.label"] = "toolbox.agent.llama.loop.score.label"
         nodes["agent.llama.loop.label"] = "toolbox.agent.llama.loop.label"

@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:25:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
-from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
+from pygpt_net.ui.widget.element.labels import ElideTitleLabel, HelpLabel
 from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.ui.widget.lists.index_combo import IndexCombo
 from pygpt_net.utils import trans
@@ -65,7 +65,7 @@ class Indexes:
         nodes['indexes.new'].setToolTip(trans('toolbox.indexes.edit.tooltip'))
         nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
-        nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
+        nodes['indexes.label'] = ElideTitleLabel(trans("toolbox.indexes.label"))
 
         header = QHBoxLayout()
         header.addWidget(nodes['indexes.label'])
@@ -126,7 +126,7 @@ class Indexes:
         nodes['indexes.new'].setToolTip(trans('toolbox.indexes.edit.tooltip'))
         nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
-        nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
+        nodes['indexes.label'] = ElideTitleLabel(trans("toolbox.indexes.label"))
 
         idx_layout = QHBoxLayout()
         idx_layout.addWidget(nodes['indexes.label'])

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
 from PySide6.QtCore import (
@@ -14,7 +14,7 @@ from PySide6.QtCore import (
     QEasingCurve, QPropertyAnimation, QSequentialAnimationGroup,
     Slot, Property, QEvent)
 
-from PySide6.QtWidgets import QCheckBox
+from PySide6.QtWidgets import QCheckBox, QSizePolicy
 from PySide6.QtGui import QColor, QBrush, QPaintEvent, QPen, QPainter, QPalette
 
 
@@ -36,7 +36,10 @@ class AnimToggle(QCheckBox):
 
         # Setup the rest of the widget.
         self.setContentsMargins(8, 0, 8, 0)
-        self.setMaximumWidth(58)
+        # The switch is a graphical control with geometry based on its full
+        # width. Never let a narrow toolbox/layout compress it into a circle.
+        self.setFixedWidth(58)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self._handle_position = 0
         self._pulse_radius = 0
 

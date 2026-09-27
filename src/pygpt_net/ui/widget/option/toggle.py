@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.24 22:00:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QWidget
 
 from pygpt_net.ui.widget.anims.toggles import AnimToggle
+from pygpt_net.ui.widget.element.labels import ElideLabel
 from pygpt_net.utils import trans
 
 
@@ -44,7 +45,8 @@ class OptionCheckbox(QWidget):
             if "real_time" in self.option:
                 self.real_time = self.option["real_time"]
 
-        self.box = AnimToggle(self.title, self.window)
+        self.box = AnimToggle('', self.window)
+        self.label = ElideLabel(self.title)
         if self.value is not None:
             self.box.setChecked(self.value)
 
@@ -58,6 +60,8 @@ class OptionCheckbox(QWidget):
         )
 
         self.layout = QHBoxLayout()
-        self.layout.addWidget(self.box)
+        self.layout.addWidget(self.box, 0)
+        self.layout.addWidget(self.label, 1)
+        self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(self.layout)

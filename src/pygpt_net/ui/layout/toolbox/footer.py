@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 15:45:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePolicy, QHBoxLayout
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QWidget, QSizePolicy, QHBoxLayout
 
+from pygpt_net.ui.widget.element.labels import ElideLabel
 from pygpt_net.ui.widget.textarea.name import NameInput
 from pygpt_net.ui.widget.audio.input_button import VoiceControlButton
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
@@ -108,7 +109,7 @@ class Footer:
         :return: QVBoxLayout
         """
         label_key = 'toolbox.' + id + '.label'
-        self.window.ui.nodes[label_key] = QLabel(title, self.window)
+        self.window.ui.nodes[label_key] = ElideLabel(title, window=self.window)
         self.window.ui.nodes[id] = NameInput(self.window, id)
 
         layout = QVBoxLayout()

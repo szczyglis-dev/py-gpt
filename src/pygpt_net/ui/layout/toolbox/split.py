@@ -33,7 +33,8 @@ class Split:
         """
         self.window.ui.nodes['layout.split'] = ToggleLabel(trans('layout.split'), label_position="left",
                                                            icon=":/icons/split_screen.svg",
-                                                           parent=self.window)
+                                                           parent=self.window,
+                                                           elide_label=False)
         self.window.ui.nodes['layout.split'].box.toggled.connect(
             self.window.controller.tabs.toggle_split_screen
         )

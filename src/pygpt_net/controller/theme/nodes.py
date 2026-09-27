@@ -88,7 +88,6 @@ class Nodes:
                 'prompt.mode',
                 'prompt.mode.label',
                 'prompt.model.label',
-                'toolbox.prompt.label',
                 'toolbox.preset.ai_name.label',
                 'toolbox.preset.user_name.label',
                 'vision.capture.auto',

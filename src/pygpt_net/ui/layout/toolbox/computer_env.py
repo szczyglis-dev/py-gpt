@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.02 02:00:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox, QVBoxLayout
 
-from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.element.labels import ElideTitleLabel
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
@@ -62,7 +62,7 @@ class ComputerEnv:
         :return: QVBoxLayout
         """
         nodes = self.window.ui.nodes
-        label = TitleLabel(trans("toolbox.env.label"))
+        label = ElideTitleLabel(trans("toolbox.env.label"))
         nodes['env.label'] = label
 
         cbox = QComboBox()

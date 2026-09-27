@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 14:20:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
@@ -14,7 +14,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QPushButton
 
 from pygpt_net.core.types import MODE_AGENT_V2
-from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
+from pygpt_net.ui.widget.element.labels import ElideTitleLabel, HelpLabel
 from pygpt_net.ui.widget.option.prompt import PromptTextarea
 from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
@@ -55,8 +55,6 @@ class Prompt:
         w = self.window
         nodes = w.ui.nodes
 
-        nodes['toolbox.prompt.label'] = TitleLabel(trans("toolbox.prompt"))
-
         nodes['cmd.enabled'] = ToggleLabel(
             trans('cmd.enabled'),
             label_position="left",
@@ -68,19 +66,19 @@ class Prompt:
 
         header_widget = QWidget()
         header_layout = QHBoxLayout(header_widget)
-        header_layout.addWidget(nodes['toolbox.prompt.label'])
         header_layout.addStretch(1)
         header_layout.addWidget(nodes['cmd.enabled'])
         header_layout.setContentsMargins(5, 0, 5, 0)
 
         option = w.controller.presets.editor.get_option('prompt')
         nodes['preset.prompt'] = PromptTextarea(w, 'preset', 'prompt', option)
+        nodes['preset.prompt'].setPlaceholderText(trans("toolbox.prompt"))
         nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Agents v2 runtime strategy selector. Persist machine-friendly values in
         # config while keeping the internal PRIMARY_AGENT strategy user-facing as
         # ``Chat``. The whole row is visible only in Agents v2 mode.
-        mode_label = TitleLabel(trans("agent.v2.mode.label"))
+        mode_label = ElideTitleLabel(trans("agent.v2.mode.label"))
         mode_combo = NoScrollCombo()
         mode_combo.setSearchEnabled(False)
         for agent in w.core.agents_v2.editor.get_agents():

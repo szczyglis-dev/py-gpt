@@ -7,7 +7,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:23:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 )
 
 from pygpt_net.core.types import MODE_EXPERT
-from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
+from pygpt_net.ui.widget.element.labels import ElideTitleLabel, HelpLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
 
 from pygpt_net.ui.layout.toolbox.footer import Footer
@@ -83,9 +83,9 @@ class Presets:
             lambda _=False: self.window.controller.presets.editor.edit()
         )
 
-        nodes['preset.presets.label'] = TitleLabel(trans("toolbox.presets.label"))
-        nodes['preset.agents.label'] = TitleLabel(trans("toolbox.agents.label"))
-        nodes['preset.experts.label'] = TitleLabel(trans("toolbox.experts.label"))
+        nodes['preset.presets.label'] = ElideTitleLabel(trans("toolbox.presets.label"))
+        nodes['preset.agents.label'] = ElideTitleLabel(trans("toolbox.agents.label"))
+        nodes['preset.experts.label'] = ElideTitleLabel(trans("toolbox.experts.label"))
         nodes['preset.presets.label'].setVisible(False)
         nodes['preset.agents.label'].setVisible(False)
         nodes['preset.experts.label'].setVisible(False)

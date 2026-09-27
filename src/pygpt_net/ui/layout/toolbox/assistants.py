@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget
 
-from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
+from pygpt_net.ui.widget.element.labels import ElideTitleLabel, HelpLabel
 from pygpt_net.ui.widget.lists.assistant import AssistantList
 from pygpt_net.utils import trans
 
@@ -61,7 +61,7 @@ class Assistants:
         nodes['assistants.import'].clicked.connect(lambda checked=False, cb=_cb_import: cb())
 
         # label
-        nodes['assistants.label'] = TitleLabel(trans("toolbox.assistants.label"))
+        nodes['assistants.label'] = ElideTitleLabel(trans("toolbox.assistants.label"))
 
         # header
         header = QHBoxLayout()

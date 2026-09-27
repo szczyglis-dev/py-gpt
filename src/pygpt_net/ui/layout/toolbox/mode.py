@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:25:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QSizePolicy
 
-from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.element.labels import ElideTitleLabel
 from pygpt_net.ui.widget.lists.mode_combo import ModeCombo
 from pygpt_net.utils import trans
 
@@ -51,7 +51,7 @@ class Mode:
         label = ui_nodes.get(self._label_key)
         label_text = trans(self._label_trans_key)
         if label is None:
-            label = TitleLabel(label_text)
+            label = ElideTitleLabel(label_text)
             ui_nodes[self._label_key] = label
         else:
             label.setText(label_text)

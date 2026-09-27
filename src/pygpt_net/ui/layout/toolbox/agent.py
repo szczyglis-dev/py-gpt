@@ -6,17 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 15:45:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import (
-    QLabel,
     QSizePolicy,
     QTabWidget,
     QVBoxLayout,
     QWidget,
 )
 
+from pygpt_net.ui.widget.element.labels import ElideLabel
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
@@ -46,7 +46,7 @@ class Agent:
         container = QWidget(window)
 
         option = window.controller.agent.legacy.options["agent.iterations"]
-        nodes['agent.iterations.label'] = QLabel(trans("toolbox.agent.iterations.label"), parent=container)
+        nodes['agent.iterations.label'] = ElideLabel(trans("toolbox.agent.iterations.label"), window=container)
         nodes['agent.iterations'] = OptionSlider(window, 'global', 'agent.iterations', option)
         cfg['agent.iterations'] = nodes['agent.iterations']
 
