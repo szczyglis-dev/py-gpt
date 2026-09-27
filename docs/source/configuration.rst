@@ -642,15 +642,14 @@ An iteration is an internal reasoning/tool-call cycle, not a user message turn. 
 Legacy agents
 ^^^^^^^^^^^^^
 
-* ``Max steps (per iteration)``: Limits how many action/reasoning steps a legacy LlamaIndex agent may perform within one iteration while working toward its goal. Raising it allows more work per iteration but can increase latency and API usage. Default: 10.
+* ``Max steps (per iteration)``: Limits how many action/reasoning steps a Custom agent may perform within one iteration while working toward its goal. Raising it allows more work per iteration but can increase latency and API usage. Default: 10.
 
-* ``Max evaluation steps in loop``: Limits how many evaluate/improve cycles a legacy agent may perform before returning its final result. Set ``0`` for no application-level evaluation-loop limit. Default: 3.
+* ``Max evaluation steps in loop``: Limits how many evaluate/improve cycles a Custom agent may perform before returning its final result. Set ``0`` for no application-level evaluation-loop limit. Default: 3.
 
-* ``Model for evaluation``: Selects the model that judges intermediate legacy-agent results during evaluation loops. If no model is selected, PyGPT reuses the currently active model for the evaluation step.
+* ``Model for evaluation``: Selects the model that judges intermediate Custom agent results during evaluation loops. If no model is selected, PyGPT reuses the currently active model for the evaluation step.
 
 * ``Append and compare the previous evaluation prompt in the next evaluation``: Carries the previous evaluator feedback/improvement instruction into the next evaluation cycle so the evaluator can compare progress against earlier guidance. This can improve continuity across multi-step refinement loops. Default: False.
 
-* ``Split response messages``: Stores separate assistant messages produced by the OpenAI Agents flow as separate conversation context items instead of merging them into one item. This affects how multi-message agent output is represented in history. Default: True.
 
 Autonomous
 ^^^^^^^^^^
@@ -664,9 +663,9 @@ Autonomous
 Options
 ^^^^^^^
 
-* ``Display full agent output in chat view``: Controls whether the complete output from legacy agent modes is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents tool-chain display. Default: True.
+* ``Display full agent output in chat view``: Controls whether the complete output from Custom agents mode is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents tool-chain display. Default: True.
 
-* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a legacy agent finishes or achieves its goal. This setting does not control Agents workflow status or tool-chain rendering. Default: False.
+* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a Custom agent finishes or achieves its goal. This setting does not control Agents workflow status or tool-chain rendering. Default: False.
 
 Accessibility
 ~~~~~~~~~~~~~

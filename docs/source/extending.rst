@@ -1021,7 +1021,6 @@ Depending on its purpose, a wrapper can implement:
 
 * ``llama()`` - return a LlamaIndex LLM for RAG and LlamaIndex agents.
 * ``get_embeddings_model()`` - return a LlamaIndex embedding model.
-* ``get_openai_agent_provider()`` - optionally provide a model adapter for OpenAI Agents.
 * ``get_models()`` - optionally expose provider-side model discovery.
 
 Legacy ``chat()`` and ``completion()`` methods remain in the base interface for compatibility, but current
@@ -1252,50 +1251,13 @@ See ``examples/example_web_search.py`` for a complete Google Custom Search tutor
 Adding a custom agent
 ---------------------
 
-Agent providers are registered with ``agents=[...]``. Built-in providers live under
-``pygpt_net.provider.agents`` and include LlamaIndex and OpenAI Agents workflows.
+Agent providers are registered with ``agents=[...]``. The selectable **Custom agents** mode is LlamaIndex-backed; built-in implementations live under ``pygpt_net.provider.agents.llama_index``.
 
-The simplest safe customization is often to subclass an existing workflow and customize one stage:
+For a completely new provider, derive from ``pygpt_net.provider.agents.base.BaseAgent`` and implement the current provider contract. A provider typically defines its ID, agent type/workflow mode, configuration options, and ``get_agent()`` implementation that returns the runtime workflow/agent object used by PyGPT.
 
-.. code-block:: python
+For workflow experimentation that does not require a new Python provider, prefer the built-in **Custom agent builder**, which can construct and save node-based Custom agents workflows directly from the UI.
 
-   from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentBase
-
-
-   class ExampleAgent(OpenAIAgentBase):
-       def __init__(self, *args, **kwargs):
-           super().__init__(*args, **kwargs)
-           self.id = "example_agent"
-           self.name = "Example custom agent"
-
-       def get_agent(self, window, kwargs):
-           kwargs = dict(kwargs or {})
-
-           current = str(
-               kwargs.get("system_prompt") or ""
-           ).strip()
-
-           prefix = (
-               "You are running through the custom "
-               "ExampleAgent provider."
-           )
-
-           kwargs["system_prompt"] = (
-               f"{prefix}\n\n{current}"
-               if current
-               else prefix
-           )
-
-           return super().get_agent(window, kwargs)
-
-The inherited ``run()`` keeps the existing OpenAI Agents execution lifecycle, streaming, tools, response
-IDs and PyGPT bridge integration. Override ``run()`` only when a different execution engine/lifecycle is
-actually required.
-
-For a completely new runtime, derive from ``pygpt_net.provider.agents.base.BaseAgent`` and implement the
-current provider contract.
-
-See ``examples/example_agent.py``.
+See ``examples/example_agent.py`` for the current extension pattern and use the base interfaces as the source of truth for method signatures.
 
 Source code as API reference
 ----------------------------

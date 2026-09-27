@@ -26,7 +26,6 @@ from pygpt_net.core.types import (
     MODE_VISION,
     MODE_RESEARCH,
     MODE_COMPUTER,
-    MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
 )
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
@@ -120,9 +119,8 @@ class Preset(BaseConfigDialog):
             MODE_EXPERT,
         ]
         mode_keys_right = [
-            MODE_AGENT_LLAMA,
-            MODE_AGENT_OPENAI,
             MODE_AGENT,
+            MODE_AGENT_LLAMA,
         ]
 
         rows_mode_left = QVBoxLayout()

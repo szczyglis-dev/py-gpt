@@ -13,6 +13,8 @@ from pygpt_net.core.events import Event, AppEvent
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_AGENT,
+    MODE_AGENT_LLAMA,
+    MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
     MODE_CHAT, MODE_AUDIO,
     MODE_LLAMA_INDEX,
@@ -58,6 +60,10 @@ class Mode:
             print("Chat with Files mode is deprecated from v2.8.28 and no longer selectable. "
                   "Switching to Chat mode with the shared RAG selector.")
             return MODE_CHAT
+        elif mode == MODE_AGENT_OPENAI:
+            print("OpenAI Agents mode is deprecated from v2.8.33 and no longer selectable. "
+                  "Switching to Custom agents.")
+            return MODE_AGENT_LLAMA
         return mode
 
     def select(self, mode: str):

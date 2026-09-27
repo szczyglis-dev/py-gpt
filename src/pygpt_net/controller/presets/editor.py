@@ -151,10 +151,6 @@ class Editor:
                 "type": "bool",
                 "label": "preset.agent",
             },
-            MODE_AGENT_OPENAI: {
-                "type": "bool",
-                "label": "preset.agent_openai",
-            },
             MODE_AGENT_V2: {
                 "type": "bool",
                 "label": "preset.agent_v2",
@@ -1349,7 +1345,6 @@ class Editor:
             MODE_EXPERT,
             MODE_AGENT_LLAMA,
             MODE_AGENT,
-            MODE_AGENT_OPENAI,
             MODE_AGENT_V2,
             MODE_AUDIO,
             MODE_RESEARCH,

@@ -1,4 +1,4 @@
-"""Non-destructive mapping of saved legacy agent presets to LlamaIndex modes."""
+"""Compatibility mapping of retired agent presets to LlamaIndex modes."""
 from copy import deepcopy
 
 RETIRED_LLAMA_PROVIDERS = {'openai', 'react', 'openai_assistant'}
@@ -17,10 +17,9 @@ OPENAI_TO_LLAMA = {
 
 def migrate_preset(preset):
     if preset.agent_openai and preset.agent_provider_openai in OPENAI_TO_LLAMA:
-        # Existing explicitly configured Llama workflows retain precedence.
-        if not preset.agent_llama:
-            preset.agent_provider = OPENAI_TO_LLAMA[preset.agent_provider_openai]
-            preset.agent_llama = True
+        preset.agent_provider = OPENAI_TO_LLAMA[preset.agent_provider_openai]
+        preset.agent_llama = True
+        preset.agent_openai = False
     if preset.agent_provider in RETIRED_LLAMA_PROVIDERS:
         preset.agent_provider = 'llama_agent_base'
         if preset.agent_llama and preset.name in ('OpenAI Agent', 'ReAct Agent'):

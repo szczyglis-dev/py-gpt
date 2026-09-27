@@ -49,7 +49,7 @@ For supported models/providers, you can alternatively enable the provider-side i
 Agents
 ----------------
 
-**Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` modes, as well as from the separate ``Autonomous mode``.
+**Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the more experimental ``Custom agents`` mode and the separate ``Autonomous mode``.
 
 The **Workflow** selector below the system prompt controls how the workflow operates. The default workflow is **Chat**.
 
@@ -349,171 +349,48 @@ When the run limit is set to ``0``, PyGPT shows an infinite-loop confirmation be
    Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
 
 
-Agent (LlamaIndex)
-------------------
+Custom agents
+-------------
 
-**Legacy mode — not recommended. Use the newer and more advanced ``Agents`` mode instead.**
+**Custom agents** is a flexible, slightly older LlamaIndex-based agent mode. For most multi-agent tasks, the newer **Agents** mode is recommended because it provides the current primary agent runtime, workflow monitor, worker management, and newer orchestration features.
 
-This mode runs the LlamaIndex agent workflows and custom graphs from Agent Builder.
-New runs use the same streaming, chronological partial-message rendering and asynchronous
-plugin bridge as Agents v2. Text and tool results stay in one conversation turn, including
-after reloading history. The final answer is kept separately from intermediate work.
-The Agents full-workflow and tool-chain display preferences apply to these new runs;
-existing conversations retain their original format.
+The mode remains available for experimentation with non-standard agent workflow patterns and direct workflow construction. Built-in patterns include:
 
-Includes built-in agents (Workflow):
-
-* FunctionAgent
-* ReAct
-* Structured Planner (sub-tasks)
+* Simple / function agent
+* Agent with experts
+* Agent with feedback
+* Agent with experts + feedback
+* Structured planner
+* Researcher
+* Bot-to-bot (B2B)
+* Evolve
 * Supervisor + worker
-* CodeAct (using the enabled Python/IPython plugin tools)
 
 
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agent Builder (Legacy)``.
+You can create your own workflow constructions with the visual node editor in ``Tools -> Custom agent builder``. This makes it possible to experiment with custom graphs, routing, shared memory, bot-to-bot flows, Evolve-style loops, and other non-standard agent designs without implementing the complete workflow graph by hand.
 
-You can also create your own agent by creating a new provider that inherits from ``pygpt_net.provider.agents.base``.
-Custom workflows should forward child ``AgentStream``, ``ToolCall`` and ``ToolCallResult``
-events and return their final answer through the workflow result. Use ``StepEvent`` to
-announce an agent transition and ``StatusEvent`` for transient progress. Keep child
-``StopEvent`` events inside the child workflow. Built-in graph workflows handle this
-forwarding, cancellation and routing automatically; router JSON is not shown in chat.
+You can also create your own agent provider by inheriting from ``pygpt_net.provider.agents.base``.
 
-**Tools and Plugins**
+Tools and Plugins
+^^^^^^^^^^^^^^^^^
 
-In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
+Commands from active plugins can be exposed to Custom agents as tools according to the selected workflow and preset configuration.
 
-**RAG - using indexes**
+RAG - using indexes
+^^^^^^^^^^^^^^^^^^^
 
-If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG workflow automatically.
 
-This legacy mode supports text input only; multimodal input is not available.
+Custom agents currently supports text input only; multimodal input is not available.
 
-**Loop / Evaluate Mode**
+Loop / Evaluate Mode
+^^^^^^^^^^^^^^^^^^^^
 
-You can run the agent in autonomous mode, in a loop, and with evaluation of the current output. When you enable the ``Loop / Evaluate`` checkbox, after the final response is given, the quality of the answer will be rated on a percentage scale of ``0% to 100%`` by another agent. If the response receives a score lower than the one expected (set using a slider at the bottom right corner of the screen, with a default value ``75%``), a prompt will be sent to the agent requesting improvements and enhancements to the response.
+You can run a Custom agent in an autonomous evaluate/improve loop. When ``Loop / Evaluate`` is enabled, another agent evaluates the current result and requests improvements until the configured score or completion threshold is reached, the step limit is reached, or the run is stopped.
 
-Setting the expected (required) score to ``0%`` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
+You can choose between two evaluation methods:
 
-You can choose between two methods of evaluation:
+* By the percentage of tasks completed
+* By the accuracy (score) of the final response
 
-- By the percentage of tasks completed
-- By the accuracy (score) of the final response
-
-You can set the limit of steps in such a loop by going to ``Settings -> Agents and experts -> Legacy agents -> Max evaluation steps in loop``. The default value is ``3``, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
-
-You can change the prompts used for evaluating the response in ``Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]``. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
-
-Agent (OpenAI)
---------------
-
-**Legacy mode — not recommended. Use the newer and more advanced ``Agents`` mode instead.**
-
-This mode provides the older agent workflows built on the ``openai-agents`` library integrated into the application:
-
-https://github.com/openai/openai-agents-python
-
-It allows running agents for OpenAI models and models compatible with the OpenAI.
-
-In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the ``openai_agents_experts`` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
-
-**Agent types (workflows/patterns):**
-
-* ``Agent with experts`` - uses attached experts as sub-agents
-* ``Agent with experts + feedback`` - uses attached experts as sub-agents + feedback agent in a loop
-* ``Agent with feedback`` - single agent + feedback agent in a loop
-* ``Planner`` - planner agent, 3 sub-agents inside: planner, base agent + feedback
-* ``Research bot`` - researcher, 3 sub-agents inside: planner, searcher and writer as base agent
-* ``Simple agent`` - a single agent.
-* ``Evolve`` - in each generation (cycle), the best response from a given parent agent is selected; in the next generation, the cycle repeats.
-* ``B2B`` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
-* ``Supervisor + Worker`` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
-
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agent Builder (Legacy)``.
-
-There are also predefined presets added as examples:
-
-* ``Coder``
-* ``Experts agent``
-* ``Planner``
-* ``Researcher``
-* ``Simple agent``
-* ``Writer with Feedback``
-* ``2 bots``
-* ``Supervisor + worker``
-
-In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
-
-Remote tools for experts can be selected separately for each expert in the preset configuration.
-
-Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
-
-In agents with feedback and plans, tools can be allowed in a preset configuration for each agent. They also have separate prompts that can be configured in presets.
-
-**Description of how different types of agents work:**
-
-Below is a pattern for how different types of agents work. You can use these patterns to create agents for different tasks by modifying the appropriate prompts in the preset for the specific task.
-
-**Simple Agent**
-
-* The agent completes its task and then stops working.
-
-**Agent with Feedback**
-
-* The first agent answers a question.
-* The second agent (feedback) evaluates the answer and, if necessary, goes back to the first agent to enforce corrections.
-* The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Agent with Experts**
-
-* The agent completes the assigned task on its own or delegates it to the most suitable expert (another agent).
-
-**Agent with Experts + Feedback**
-
-* The first agent answers a question or delegates it to the most suitable expert.
-* The second agent (feedback) evaluates and, if necessary, goes back to the first agent to enforce corrections.
-* The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Research Bot**
-
-* The first agent (planner) prepares a list of phrases to search.
-* The second agent (search) finds information based on the phrases and creates a summary.
-* The third agent (writer) prepares a report based on the summary.
-
-**Planner**
-
-* The first agent (planner) breaks down a task into sub-tasks and sends the list to the second agent.
-* The second agent performs the task based on the prepared task list.
-* The third agent, responsible for feedback, evaluates, requests corrections if needed, and sends the request back to the first agent. The cycle repeats.
-
-**Evolve**
-
-* You select the number of agents (parents) to operate in each generation (iteration).
-* Each agent prepares a separate answer to a question.
-* The best agent (producing the best answer) in a generation is selected by the next agent (chooser).
-* Another agent (feedback) verifies the best answer and suggests improvements.
-* A request for improving the best answer is sent to a new pair of agents (new parents).
-* From this new pair, the best answer is selected again in the next generation, and the cycle repeats.
-
-**B2B**
-
-* A human provides a topic for discussion.
-* Bot 1 generates a response and sends it to Bot 2.
-* Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
-* The human can interrupt the loop at any time and update the entire discussion.
-
-
-**Supervisor + Worker**
-
-* A human provides a query to the Supervisor.
-* The Supervisor prepares instructions for the Worker and sends them to the Worker.
-* The Worker completes the task and returns the result to the Supervisor.
-* If the task is completed, the Supervisor returns the result to the user. If not, the Supervisor sends another instruction to the Worker to complete the task or asks the user if there are any questions.
-* The cycle repeats until the task is completed.
-
-.. tip::
-   Experts can be assigned and used in these legacy agent workflows where supported.
-
-**Limitations:**
-
-* When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
+The loop limit is configured in ``Settings -> Agents and experts -> Legacy agents -> Max evaluation steps in loop``. Set it to ``0`` for no application-level limit. Evaluation prompts can be adjusted in ``Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]``.

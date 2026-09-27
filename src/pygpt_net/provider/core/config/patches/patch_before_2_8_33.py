@@ -11,6 +11,8 @@ import copy
 
 from packaging.version import parse as parse_version, Version
 
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_OPENAI
+
 
 # Legacy provider settings removed from the fresh config.json in 2.8.33.
 # The defaults are kept here solely so migrations from older profiles do not
@@ -184,8 +186,15 @@ class Patch:
         if old >= parse_version("2.8.33") or old >= version:
             return data, False, False
 
-        print("Migrating provider API config from < 2.8.33...")
+        print("Migrating config from < 2.8.33...")
         updated = False
+
+        # OpenAI Agents remains available internally for loading old data, but
+        # it is no longer a user-selectable work mode. Persist the supported
+        # LlamaIndex-backed Custom agents mode for profiles that had it active.
+        if data.get("mode") == MODE_AGENT_OPENAI:
+            data["mode"] = MODE_AGENT_LLAMA
+            updated = True
         providers = data.get("providers")
         if not isinstance(providers, dict):
             providers = {}

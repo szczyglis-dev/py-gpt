@@ -1,5 +1,5 @@
 {
-  "uuid": "f5dd895c-3be8-4a73-aac9-7a20845e57b2",
+  "uuid": "a424e13a-b3c2-4cc7-81b5-f74821f47ec3",
   "name": "Supervisor + worker",
   "ai_name": "",
   "ai_avatar": "",
@@ -34,8 +34,8 @@
   "remote_tools": "",
   "extra": {},
   "__meta__": {
-    "version": "2.8.19",
-    "app.version": "2.6.8",
-    "updated_at": "2025-08-17T03:03:21"
+    "version": "2.8.33",
+    "app.version": "2.8.33",
+    "updated_at": "2026-09-27T09:00:00"
   }
 }

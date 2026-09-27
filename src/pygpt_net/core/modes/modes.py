@@ -42,7 +42,6 @@ class Modes:
         self.provider = JsonFileProvider(window)
         self.initialized = False
         self.all = (
-            MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
             MODE_AGENT_V2,
             MODE_AUDIO,
@@ -56,6 +55,7 @@ class Modes:
             # MODE_VISION,
             MODE_RESEARCH,
             MODE_COMPUTER,
+            MODE_AGENT_LLAMA,
         )
         self.items = {}
 
@@ -69,7 +69,10 @@ class Modes:
         """
         regular = []
         legacy = []
-        hidden = {MODE_LLAMA_INDEX}
+        # Deprecated modes remain loaded for backward compatibility/runtime
+        # handling, but are intentionally absent from every UI selector that
+        # consumes this canonical ordered list.
+        hidden = {MODE_LLAMA_INDEX, MODE_AGENT_OPENAI}
         for mode_id, item in self.items.items():
             if mode_id in hidden:
                 continue

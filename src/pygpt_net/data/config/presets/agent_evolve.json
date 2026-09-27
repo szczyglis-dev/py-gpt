@@ -1,6 +1,6 @@
 {
-  "uuid": "51e62cfa-5967-4cc1-97f3-40fd9bc9a4c7",
-  "name": "Writer with Feedback",
+  "uuid": "bfc1005f-7c86-488f-ad74-024724b4a50e",
+  "name": "Evolve",
   "ai_name": "",
   "user_name": "",
   "prompt": "",
@@ -12,28 +12,28 @@
   "llama_index": false,
   "agent": false,
   "agent_llama": true,
-  "agent_openai": true,
+  "agent_openai": false,
   "expert": false,
   "audio": false,
   "research": false,
   "computer": false,
-  "filename": "agent_openai_writer",
+  "filename": "agent_evolve",
   "model": "gpt-4o",
   "tools": {
     "function": []
   },
   "experts": [],
   "idx": "_",
-  "agent_provider": "llama_agent_feedback",
-  "agent_provider_openai": "openai_agent_feedback",
+  "agent_provider": "llama_agent_evolve",
+  "agent_provider_openai": "openai_agent_evolve",
   "assistant_id": "",
   "enabled": true,
   "description": "",
   "remote_tools": "",
   "extra": {},
   "__meta__": {
-    "version": "2.8.19",
-    "app.version": "2.5.81",
-    "updated_at": "2025-08-01T04:40:49"
+    "version": "2.8.33",
+    "app.version": "2.8.33",
+    "updated_at": "2026-09-27T09:00:00"
   }
 }

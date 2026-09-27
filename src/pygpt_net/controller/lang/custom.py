@@ -68,7 +68,6 @@ class Custom:
         # self.window.ui.config['preset'][MODE_LANGCHAIN].setText(trans("preset.langchain"))
         self.window.ui.config['preset'][MODE_AGENT].setText(trans("preset.agent"))
         self.window.ui.config['preset'][MODE_AGENT_LLAMA].setText(trans("preset.agent_llama"))
-        self.window.ui.config['preset'][MODE_AGENT_OPENAI].setText(trans("preset.agent_openai"))
         self.window.ui.config['preset'][MODE_AGENT_V2].setText(trans("preset.agent_v2"))
         self.window.ui.config['preset'][MODE_EXPERT].setText(trans("preset.expert"))
         self.window.ui.config['preset'][MODE_AUDIO].setText(trans("preset.audio"))

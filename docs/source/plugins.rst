@@ -63,7 +63,7 @@ PyGPT can be extended with:
 * custom audio input providers
 * custom audio output providers
 * custom web search engine providers
-* custom agents (LlamaIndex or OpenAI Agents)
+* custom agents (LlamaIndex)
 
 See the section ``Extending PyGPT / Adding a custom plugin`` for more details.
 

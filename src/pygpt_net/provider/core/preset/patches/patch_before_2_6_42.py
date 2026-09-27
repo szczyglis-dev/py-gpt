@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.12 00:00:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
-import os
-import shutil
-from typing import Tuple
-
 from packaging.version import parse as parse_version, Version
+
+from ..utils import safe_copy_preset
 
 
 class Patch:
@@ -62,42 +60,30 @@ class Patch:
                 # < 2.0.53
                 if old < parse_version("2.0.53") and k == 'current.assistant':
                     print("Migrating preset file from < 2.0.53...")
-                    dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.assistant.json')
-                    src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
-                                       'current.assistant.json')
-                    shutil.copyfile(src, dst)
-                    updated = True
-                    print("Patched file: {}.".format(dst))
+                    if safe_copy_preset(self.window, 'current.assistant.json'):
+                        updated = True
 
                 # < 2.0.102
                 if old < parse_version("2.0.102"):
                     if 'current.llama_index' not in self.window.core.presets.items and not is_llama:
                         print("Migrating preset file from < 2.0.102...")
-                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.llama_index.json')
-                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
-                                           'current.llama_index.json')
-                        shutil.copyfile(src, dst)
-                        updated = True
+                        if safe_copy_preset(self.window, 'current.llama_index.json'):
+                            updated = True
                         is_llama = True  # prevent multiple copies
-                        print("Patched file: {}.".format(dst))
 
                 # < 2.2.7
                 if old < parse_version("2.2.7"):
                     if not is_expert:
                         print("Migrating preset files from < 2.2.7...")
-                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.expert.json')
-                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets', 'current.expert.json')
-                        shutil.copyfile(src, dst)
-                        print("Patched file: {}.".format(dst))
-                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.agent.json')
-                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets', 'current.agent.json')
-                        shutil.copyfile(src, dst)
-                        print("Patched file: {}.".format(dst))
-                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'joke_expert.json')
-                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets', 'joke_expert.json')
-                        shutil.copyfile(src, dst)
-                        print("Patched file: {}.".format(dst))
-                        updated = True
+                        copied = False
+                        if safe_copy_preset(self.window, 'current.expert.json'):
+                            copied = True
+                        if safe_copy_preset(self.window, 'current.agent.json'):
+                            copied = True
+                        if safe_copy_preset(self.window, 'joke_expert.json'):
+                            copied = True
+                        if copied:
+                            updated = True
                         is_expert = True  # prevent multiple copies
 
                 # < 2.4.10
@@ -106,17 +92,16 @@ class Patch:
                         print("Migrating preset file from < 2.4.10...")
                         files = [
                             'current.agent_llama.json',
-                            'agent_openai.json',
+                            'agent_simple.json',
                             'agent_planner.json',
-                            'agent_react.json',
                         ]
+                        copied = False
                         for file in files:
-                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets', file)
-                            shutil.copyfile(src, dst)
-                            print("Patched file: {}.".format(dst))
+                            if safe_copy_preset(self.window, file):
+                                copied = True
 
-                        updated = True
+                        if copied:
+                            updated = True
                         is_agent_llama = True  # prevent multiple copies
 
                 # < 2.4.11
@@ -128,13 +113,9 @@ class Patch:
                 if old < parse_version("2.5.71"):
                     if 'current.computer' not in self.window.core.presets.items and not is_computer:
                         print("Migrating preset file from < 2.5.71...")
-                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.computer.json')
-                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
-                                           'current.computer.json')
-                        shutil.copyfile(src, dst)
-                        updated = True
+                        if safe_copy_preset(self.window, 'current.computer.json'):
+                            updated = True
                         is_computer = True  # prevent multiple copies
-                        print("Patched file: {}.".format(dst))
 
                 # < 2.5.76
                 if old < parse_version("2.5.76"):
@@ -142,68 +123,64 @@ class Patch:
                         print("Migrating preset file from < 2.5.76...")
                         files = [
                             'current.agent_openai.json',
-                            'agent_openai_simple.json',
-                            'agent_openai_expert.json',
+                            'agent_simple.json',
+                            'agent_expert.json',
                         ]
+                        copied = False
                         for file in files:
-                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
-                                               'presets', file)
-                            shutil.copyfile(src, dst)
-                            print("Patched file: {}.".format(dst))
+                            if safe_copy_preset(self.window, file):
+                                copied = True
 
-                        updated = True
+                        if copied:
+                            updated = True
                         is_agent_openai = True  # prevent multiple copies
 
                 # < 2.5.82
                 if old < parse_version("2.5.82"):
-                    if 'agent_openai_researcher' not in self.window.core.presets.items and not is_bot:
+                    if 'agent_researcher' not in self.window.core.presets.items and not is_bot:
                         print("Migrating preset file from < 2.5.82...")
                         files = [
-                            'agent_openai_coder.json',
-                            'agent_openai_planner.json',
-                            'agent_openai_researcher.json',
-                            'agent_openai_writer.json',
+                            'agent_coder.json',
+                            'agent_planner.json',
+                            'agent_researcher.json',
+                            'agent_writer.json',
                         ]
+                        copied = False
                         for file in files:
-                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
-                                               'presets', file)
-                            shutil.copyfile(src, dst)
-                            print("Patched file: {}.".format(dst))
-                        updated = True
+                            if safe_copy_preset(self.window, file):
+                                copied = True
+                        if copied:
+                            updated = True
                         is_bot = True  # prevent multiple copies
 
                 # < 2.5.86
                 if old < parse_version("2.5.86"):
-                    if 'agent_openai_evolve' not in self.window.core.presets.items and not is_evolve:
+                    if 'agent_evolve' not in self.window.core.presets.items and not is_evolve:
                         print("Migrating preset file from < 2.5.86...")
                         files = [
-                            'agent_openai_evolve.json',
+                            'agent_evolve.json',
                         ]
+                        copied = False
                         for file in files:
-                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
-                                               'presets', file)
-                            shutil.copyfile(src, dst)
-                            print("Patched file: {}.".format(dst))
-                        updated = True
+                            if safe_copy_preset(self.window, file):
+                                copied = True
+                        if copied:
+                            updated = True
                         is_evolve = True  # prevent multiple copies
 
                 # < 2.5.94
                 if old < parse_version("2.5.94"):
-                    if 'agent_openai_b2b' not in self.window.core.presets.items and not is_b2b:
+                    if 'agent_b2b' not in self.window.core.presets.items and not is_b2b:
                         print("Migrating preset file from < 2.5.94...")
                         files = [
-                            'agent_openai_b2b.json',
+                            'agent_b2b.json',
                         ]
+                        copied = False
                         for file in files:
-                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
-                                               'presets', file)
-                            shutil.copyfile(src, dst)
-                            print("Patched file: {}.".format(dst))
-                        updated = True
+                            if safe_copy_preset(self.window, file):
+                                copied = True
+                        if copied:
+                            updated = True
                         is_b2b = True  # prevent multiple copies
 
                 # < 2.6.1
@@ -215,19 +192,17 @@ class Patch:
 
                 # < 2.6.9
                 if old < parse_version("2.6.9"):
-                    if 'agent_openai_supervisor' not in self.window.core.presets.items and not is_supervisor:
+                    if 'agent_supervisor' not in self.window.core.presets.items and not is_supervisor:
                         print("Migrating preset file from < 2.6.9...")
                         files = [
-                            'agent_openai_supervisor.json',
                             'agent_supervisor.json',
                         ]
+                        copied = False
                         for file in files:
-                            dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
-                                               'presets', file)
-                            shutil.copyfile(src, dst)
-                            print("Patched file: {}.".format(dst))
-                        updated = True
+                            if safe_copy_preset(self.window, file):
+                                copied = True
+                        if copied:
+                            updated = True
                         is_supervisor = True  # prevent multiple copies
 
                 # update file

@@ -1,11 +1,9 @@
 {
-  "uuid": "a424e13a-b3c2-4cc7-81b5-f74821f47ec3",
-  "name": "Supervisor + worker",
+  "uuid": "09a0b758-9d3f-47c6-a1b3-f21e95093c9f",
+  "name": "Experts agent",
   "ai_name": "",
-  "ai_avatar": "",
-  "ai_personalize": false,
   "user_name": "",
-  "prompt": "",
+  "prompt": "Handoff to the appropriate agent based on the task.",
   "chat": false,
   "completion": false,
   "img": false,
@@ -14,28 +12,27 @@
   "llama_index": false,
   "agent": false,
   "agent_llama": true,
-  "agent_openai": true,
+  "agent_openai": false,
   "expert": false,
   "audio": false,
   "research": false,
   "computer": false,
-  "filename": "agent_openai_supervisor",
+  "filename": "agent_expert",
   "model": "gpt-4o",
   "tools": {
     "function": []
   },
   "experts": [],
   "idx": "_",
-  "agent_provider": "supervisor",
-  "agent_provider_openai": "openai_agent_supervisor",
+  "agent_provider": "llama_agent_experts",
+  "agent_provider_openai": "openai_agent_experts",
   "assistant_id": "",
   "enabled": true,
   "description": "",
   "remote_tools": "",
-  "extra": {},
   "__meta__": {
-    "version": "2.8.19",
-    "app.version": "2.6.8",
-    "updated_at": "2025-08-17T03:03:45"
+    "version": "2.8.33",
+    "app.version": "2.8.33",
+    "updated_at": "2026-09-27T09:00:00"
   }
 }

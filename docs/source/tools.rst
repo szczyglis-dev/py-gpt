@@ -18,7 +18,7 @@ PyGPT features several useful tools, including:
 * Translator
 * Canvas
 * Agent Workflow
-* Agent Builder (Legacy)
+* Custom agent builder
 
 .. image:: images/v2_tool_menu.png
    :width: 400
@@ -146,74 +146,36 @@ Open it from ``Tools -> Agent Workflow`` as a dialog, or pin it to an output tab
 
 The view is runtime-only and is intended for observing active work rather than replacing conversation history or debug logs. A new top-level agent run clears the monitor automatically. Use **Clear view** to clear it manually. Closing or hiding the tab does not stop the active agent workflow.
 
-Agent Builder (Legacy)
-----------------------
+Custom agent builder
+--------------------
 
-**Legacy modes only:** Agent Builder is used by the legacy ``Agent (LlamaIndex)`` and ``Agent (OpenAI)`` workflows. It is not used by the modern ``Agents`` mode.
+**Custom agent builder** is the visual node editor for the **Custom agents** mode. It is intended for experimenting with custom workflow structures and is separate from the newer **Agents** mode and its Agent Workflows editor.
 
-To launch Agent Builder, navigate to:
+Launch it from:
 
-**Tools -> Agent Builder (Legacy)**
+**Tools -> Custom agent builder**
 
 .. image:: images/nodes.png
    :width: 800
 
-This tool allows you to create workflows for agents using a node editor, without writing any code. You can add a new agent type, and it will appear in the list of presets.
+The editor lets you create workflow graphs without writing the graph by hand. A saved workflow becomes available to Custom agents presets.
 
-To add a new element, right-click on the editor grid and select ``Add`` to insert a new node.
+Node types include:
 
-**Types of Nodes:**
+* **Start** - workflow input.
+* **Agent** - an agent node with instructions and tool settings.
+* **Memory** - shared context between connected agents.
+* **End** - workflow output.
 
-- **Start**: The starting point for agents (user input).
-- **Agent**: A single agent with customizable default parameters, such as system instructions and tool usage. These settings can be overridden in the preset.
-- **Memory**: Shared memory between agents (shared Context).
-- **End**: The endpoint, returning control to the user.
+Agents connected to shared memory share it among themselves. Agents without shared memory receive the latest output from the previous agent. The first agent receives the full user context.
 
-Agents with connected shared memory share it among themselves. Agents without shared memory only receive the latest output from the previous agent.
+Node editor navigation:
 
-The first agent in the sequence always receives the full context passed by the user.
+* **Right-click** - add node, undo, redo, clear.
+* **Middle-click + drag** - pan the view.
+* **Ctrl + mouse wheel** - zoom.
+* **Left-click a port** - create a connection.
+* **Ctrl + left-click a port** - rewire or detach a connection.
+* **Right-click or Delete** on a node/connection - remove it.
 
-Connecting agents and memory is done using node connections via slots. To connect slots, simply drag from the input port to the output port (Ctrl + mouse button removes a connection).
-
-**Node Editor Navigation:**
-
-- **Right-click**: Add node, undo, redo, clear
-- **Middle-click + drag**: Pan view
-- **Ctrl + Mouse wheel**: Zoom
-- **Left-click a port**: Create connection
-- **Ctrl + Left-click a port**: Rewire or detach connection
-- **Right-click or DELETE a node/connection**: Remove node/connection
-
-
-.. tip::
-
-   Enable agent debugging in ``Settings -> Debug -> Log Agents usage to console`` to log the full workflow to the console.
-
-Workflows built with this legacy tool are compatible with the legacy ``Agent (OpenAI)`` and ``Agent (LlamaIndex)`` modes.
-
-**Notes:**
-
-Routing and system instruction: for every agent that has more than one connection leading to the next agent, a routing instruction is automatically injected just before your system prompt:
-
-.. code-block:: console
-
-   You are a routing-capable agent in a multi-agent flow.
-   Your id is: <current_id>, name: <agent_name>.
-   You MUST respond ONLY with a single JSON object and nothing else.
-   Schema:
-   {
-     "route": "<ID of the next agent from allowed_routes OR the string 'end'>",
-     "content": "<final response text for the user (or tool result)>"
-   }
-   Rules:
-   - allowed_routes: [<allowed>]
-   - If you want to finish the flow, set route to "end".
-   - content must contain the user-facing answer (you may include structured data as JSON or Markdown inside content).
-   - Do NOT add any commentary outside of the JSON. No leading or trailing text.
-   - If using tools, still return the final JSON with tool results summarized in content.
-   - Human-friendly route names: <names>
-   - Human-friendly route roles (optional): <roles>
-
-   <here begins your system instruction>
-
-**INFO:** Agent Builder is a legacy tool for the older agent modes.
+Enable agent debugging in ``Settings -> Debug -> Log Agents usage to console`` to inspect the workflow in the console.

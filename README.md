@@ -32,7 +32,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI assistant for `Linux`, `Windows` and `macOS`, written in Python.
 - Runs as a local desktop application with a ChatGPT-like conversational interface.
-- Work modes include Chat, Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, Autonomous mode, plus legacy Agent modes.
+- Work modes include Chat, Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, Autonomous mode, and Custom agents.
 - Supports `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and models available through `LlamaIndex` and `Ollama`, including `DeepSeek`, `Qwen`, `gpt-oss`, `Gemma`, `Mistral`, `Llama`, and others.
 - Integrated `LlamaIndex` RAG for files, webpages, Google/GitHub data, media, images, conversation history, and formats such as `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, and `xml`.
 - Built-in vector-store support with automatic file, database-context, and data embedding.
@@ -63,7 +63,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Desktop UI designed for direct, practical use.
 - Built-in notepad.
 - Built-in painter / drawing tool.
-- Node-based Agent Builder (Legacy) for older agent modes.
+- Node-based Custom agent builder for designing Custom agents workflows.
 - Multi-language interface support.
 - No prior AI-model experience required.
 - Extensive configuration options.
@@ -391,7 +391,7 @@ For supported models/providers, you can alternatively enable the provider-side i
 
 ## Agents
 
-**Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)` and `Agent (OpenAI)` modes, as well as from the separate `Autonomous mode`.
+**Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the more experimental `Custom agents` mode and the separate `Autonomous mode`.
 
 The **Workflow** selector below the system prompt lets you choose how the agent workflow operates. The default is **Chat**.
 
@@ -624,152 +624,34 @@ When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation beca
 **WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
 
 
-## Agent (LlamaIndex)
+## Custom agents
 
-**Legacy mode — not recommended. Use the newer and more advanced `Agents` mode instead.**
+**Custom agents** is a flexible, slightly older LlamaIndex-based agent mode. For most multi-agent tasks, the newer **Agents** mode is recommended because it provides the current primary agent runtime, workflow monitor, worker management, and newer orchestration features.
 
-This mode provides the older LlamaIndex-based agent workflows.
+Custom agents remains available as an experimentation-oriented mode for building and testing non-standard agent workflows. It includes several ready-made patterns and is especially useful when you want direct control over a workflow shape rather than the newer Agents runtime. Examples include simple/function agents, agents with experts or feedback, a structured planner, a researcher workflow, bot-to-bot (B2B) conversations, Evolve, and Supervisor + worker.
 
-Includes built-in agents (Workflow):
-
-- FunctionAgent
-- ReAct
-- Structured Planner (sub-tasks)
-- Supervisor + worker
-
-
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agent Builder (Legacy)`.
-
-You can also create your own agent by creating a new provider that inherits from `pygpt_net.provider.agents.base`.
+You can create your own workflow constructions with the built-in visual node editor at `Tools -> Custom agent builder`. This makes it possible to experiment with custom multi-agent graphs and routing without writing the full workflow by hand. You can also add your own agent provider by inheriting from `pygpt_net.provider.agents.base`.
 
 **Tools and Plugins**  
 
-In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
+Commands from active plugins can be exposed to Custom agents as tools according to the selected workflow and preset configuration.
 
 **RAG - using indexes**  
 
-If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG workflow automatically.
 
-This legacy mode supports text input only; multimodal input is not available.
+Custom agents currently supports text input only; multimodal input is not available.
 
 **Loop / Evaluate Mode**
 
-You can run the agent in autonomous mode, in a loop, and with evaluation of the current output. When you enable the `Loop / Evaluate` checkbox, after the final response is given, the quality of the answer will be rated on a percentage scale of `0% to 100%` by another agent. If the response receives a score lower than the one expected (set using a slider at the bottom right corner of the screen, with a default value `75%`), a prompt will be sent to the agent requesting improvements and enhancements to the response.
+You can run a Custom agent in an autonomous evaluate/improve loop. When `Loop / Evaluate` is enabled, another agent evaluates the current result and requests improvements until the configured score or completion threshold is reached, the step limit is reached, or the run is stopped.
 
-Setting the expected (required) score to `0%` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
-
-You can choose between two methods of evaluation:
+You can choose between two evaluation methods:
 
 - By the percentage of tasks completed
 - By the accuracy (score) of the final response
 
-You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Legacy agents -> Max evaluation steps in loop`. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
-
-You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
-
-## Agent (OpenAI)
-
-**Legacy mode — not recommended. Use the newer and more advanced `Agents` mode instead.**
-
-This mode provides the older agent workflows built on the `openai-agents` library integrated into the application:
-
-https://github.com/openai/openai-agents-python
-
-It allows running agents for OpenAI models and models compatible with the OpenAI API.
-
-In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the `openai_agents_experts` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
-
-**Agent types (workflows/patterns):**
-
-- `Agent with experts` - uses attached experts as sub-agents
-- `Agent with experts + feedback` - uses attached experts as sub-agents + feedback agent in a loop
-- `Agent with feedback` - single agent + feedback agent in a loop
-- `Planner` - planner agent, 3 sub-agents inside: planner, base agent + feedback
-- `Research bot` - researcher, 3 sub-agents inside: planner, searcher and writer as base agent
-- `Simple agent` - a single agent.
-- `Evolve` - in each generation (cycle), the best response from a given parent agent is selected; in the next generation, the cycle repeats.
-- `B2B` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
-- `Supervisor + Worker` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
-
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agent Builder (Legacy)`.
-
-There are also predefined presets added as examples:
-
-- `Coder`
-- `Experts agent`
-- `Planner`
-- `Researcher`
-- `Simple agent`
-- `Writer with Feedback`
-- `2 bots`
-- `Supervisor + worker`
-
-In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
-
-Remote tools for experts can be selected separately for each expert in the preset configuration.
-
-Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
-
-In agents with feedback and plans, tools can be allowed in a preset configuration for each agent. They also have separate prompts that can be configured in presets.
-
-**Description of how different types of agents work:**
-
-Below is a pattern for how different types of agents work. You can use these patterns to create agents for different tasks by modifying the appropriate prompts in the preset for the specific task.
-
-**Simple Agent**
-- The agent completes its task and then stops working.
-
-**Agent with Feedback**
-- The first agent answers a question.
-- The second agent (feedback) evaluates the answer and, if necessary, goes back to the first agent to enforce corrections.
-- The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Agent with Experts**
-- The agent completes the assigned task on its own or delegates it to the most suitable expert (another agent).
-
-**Agent with Experts + Feedback**
-- The first agent answers a question or delegates it to the most suitable expert.
-- The second agent (feedback) evaluates and, if necessary, goes back to the first agent to enforce corrections.
-- The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Research Bot**
-- The first agent (planner) prepares a list of phrases to search.
-- The second agent (search) finds information based on the phrases and creates a summary.
-- The third agent (writer) prepares a report based on the summary.
-
-**Planner**
-- The first agent (planner) breaks down a task into sub-tasks and sends the list to the second agent.
-- The second agent performs the task based on the prepared task list.
-- The third agent, responsible for feedback, evaluates, requests corrections if needed, and sends the request back to the first agent. The cycle repeats.
-
-**Evolve**
-- You select the number of agents (parents) to operate in each generation (iteration).
-- Each agent prepares a separate answer to a question.
-- The best agent (producing the best answer) in a generation is selected by the next agent (chooser).
-- Another agent (feedback) verifies the best answer and suggests improvements.
-- A request for improving the best answer is sent to a new pair of agents (new parents).
-- From this new pair, the best answer is selected again in the next generation, and the cycle repeats.
-
-**B2B**
-- A human provides a topic for discussion.
-- Bot 1 generates a response and sends it to Bot 2.
-- Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
-- The human can interrupt the loop at any time and update the entire discussion.
-
-**Supervisor + Worker**
-
-- A human provides a query to the Supervisor.
-- The Supervisor prepares instructions for the Worker and sends them to the Worker.
-- The Worker completes the task and returns the result to the Supervisor.
-- If the task is completed, the Supervisor returns the result to the user. If not, the Supervisor sends another instruction to the Worker to complete the task or asks the user if there are any questions.
-- The cycle repeats until the task is completed.
-
-**Tip:** Experts can be assigned and used in these legacy agent workflows where supported.
-
-**Limitations:**
-
-- When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
-
+The loop limit is configured in `Settings -> Agents and experts -> Legacy agents -> Max evaluation steps in loop`. Set it to `0` for no application-level limit. Evaluation prompts can be adjusted in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`.
 
 # Canvas
 
@@ -2080,7 +1962,7 @@ PyGPT features several useful tools, including:
 - Translator
 - Canvas
 - Agent Workflow
-- Agent Builder (Legacy)
+- Custom agent builder
 
 ![v2_tool_menu](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_menu.png)
 
@@ -2177,19 +2059,19 @@ Open it from `Tools -> Agent Workflow` as a dialog, or pin it to an output tab f
 
 The view is runtime-only and does not replace conversation history or Debug workflow logging. Every new top-level agent run clears the previous workflow automatically. Use **Clear view** to clear it manually.
 
-## Agent Builder (Legacy)
+## Custom agent builder
 
-**Legacy modes only:** Agent Builder is used by the legacy `Agent (LlamaIndex)` and `Agent (OpenAI)` workflows. It is not used by the modern `Agents` mode.
+**Custom agent builder** is the visual node editor for the **Custom agents** mode. It is intended for experimenting with your own agent workflow structures and is separate from the newer **Agents** mode and its Agent Workflows editor.
 
-To launch Agent Builder, navigate to:
+Open it from:
 
-`Tools -> Agent Builder (Legacy)`
+`Tools -> Custom agent builder`
 
 ![nodes](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/nodes.png)
 
-This tool allows you to create workflows for agents using a node editor, without writing any code. You can add a new agent type, and it will appear in the list of presets.
+The editor lets you create agent workflows without writing the graph by hand. You can add agents and shared memory nodes, connect them into a flow, and save the result as a custom agent type that becomes available to Custom agents presets.
 
-To add a new element, right-click on the editor grid and select `Add` to insert a new node.
+To add a new element, right-click on the editor grid and select `Add` to insert a node.
 
 **Types of Nodes:**
 
@@ -2198,11 +2080,7 @@ To add a new element, right-click on the editor grid and select `Add` to insert 
 - **Memory**: Shared memory between agents (shared Context).
 - **End**: The endpoint, returning control to the user.
 
-Agents with connected shared memory share it among themselves. Agents without shared memory only receive the latest output from the previous agent.
-
-The first agent in the sequence always receives the full context passed by the user.
-
-Connecting agents and memory is done using node connections via slots. To connect slots, simply drag from the input port to the output port (Ctrl + mouse button removes a connection).
+Agents connected to shared memory share it among themselves. Agents without shared memory only receive the latest output from the previous agent. The first agent in the sequence receives the full context passed by the user.
 
 **Node Editor Navigation:**
 
@@ -2214,17 +2092,6 @@ Connecting agents and memory is done using node connections via slots. To connec
 - **Right-click or DELETE a node/connection**: Remove node/connection
 
 **Tip:** Enable agent debugging in `Settings -> Debug -> Log Agents usage to console` to log the full workflow to the console.
-
-Workflows built with this tool are compatible with the legacy `Agent (OpenAI)` and `Agent (LlamaIndex)` modes.
-
-**Notes:** Multi-branch agent flows automatically receive an internal routing instruction that tells the current agent which downstream route can be selected.
-
-For the complete routing schema, injected system-instruction example, and Agent Builder details, see:
-
-https://pygpt.readthedocs.io/en/latest/tools.html#agent-builder-legacy
-
-**INFO:** Agent Builder is a legacy tool for the older agent modes.
-
 
 # Token usage calculation
 
