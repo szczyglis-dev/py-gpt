@@ -236,7 +236,7 @@ The `get_user_painter_image` tool is different from `canvas_screenshot`: it retr
                 return prompt
             lines = ["CANVAS/WEB BROWSER USER ANNOTATIONS (current runtime):"]
             for item in annotations[-20:]:
-                parts = [f"- #{item.get('id')}"]
+                parts = [f"- #{item.get('id')}", "source=canvas_web"]
                 if item.get("url"):
                     parts.append(f"URL={item['url']}")
                 if item.get("selection"):

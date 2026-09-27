@@ -37,6 +37,16 @@ class Text:
         """
         self.window = window
         self.ctx_pid = 0  # sequence number for context items
+        self.annotations = {}
+
+    def get_annotations(self, meta):
+        """Return the annotation session owned by this conversation."""
+        if meta is None or meta.id is None:
+            return None
+        from pygpt_net.ui.widget.textarea.annotations import ChatAnnotations
+        if meta.id not in self.annotations:
+            self.annotations[meta.id] = ChatAnnotations(self.window, meta.id)
+        return self.annotations[meta.id]
 
     def send(
             self,
@@ -230,6 +240,12 @@ class Text:
             reply=reply,
             internal=internal,
         )
+        annotations = self.annotations.get(getattr(meta, "id", None))
+        if annotations is not None:
+            block = annotations.prompt_block()
+            if block:
+                sys_prompt = (sys_prompt or "").rstrip() + "\n\n" + block
+                sys_prompt_raw = (sys_prompt_raw or "").rstrip() + "\n\n" + block
 
         log("Appending input to chat window...")
 

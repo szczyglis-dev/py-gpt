@@ -41,7 +41,8 @@ def _window():
 
 
 def test_web_tab_meta_and_content_accessors():
-    widget = SimpleNamespace(tab=None, meta=None, plain="", html_content="")
+    widget = SimpleNamespace(tab=None, meta=None, plain="", html_content="",
+                             _annotations=MagicMock(return_value=None))
     tab = object()
     meta = object()
     ChatWebOutput.set_tab(widget, tab)

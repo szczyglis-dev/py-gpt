@@ -346,6 +346,12 @@ class ChatWebOutput(QWebEngineView):
         :param meta: CtxMeta instance
         """
         self.meta = meta
+        annotations = self._annotations()
+        if annotations is not None:
+            annotations.views.add(self)
+
+    def _annotations(self):
+        return self.window.controller.chat.text.get_annotations(self.meta)
 
     def set_plaintext(self, text: str):
         """
@@ -665,6 +671,18 @@ class ChatWebOutput(QWebEngineView):
 
         has_selection = self.page().hasSelection()
 
+        annotations = self._annotations()
+        if annotations is not None:
+            selected = self.get_selected_text() if has_selection else ""
+            action = QAction(QIcon(":/icons/chat3.svg"), trans(
+                "ui.annotate_selection" if has_selection else "ui.annotate_element",
+                domain="plugin.canvas_web"), self)
+            action.triggered.connect(
+                lambda checked=False: annotations.show_editor(self, position, selected)
+            )
+            menu.addAction(action)
+            menu.addSeparator()
+
         if has_selection:
             # copy
             action = QAction(QIcon(":/icons/copy.svg"), trans('action.copy'), self)
@@ -785,6 +803,10 @@ class ChatWebOutput(QWebEngineView):
         :param success: bool - True if page loaded successfully, False otherwise
         """
         if success:
+            annotations = self._annotations()
+            if annotations is not None:
+                annotations.views.add(self)
+                annotations._render_annotations()
             event = RenderEvent(RenderEvent.ON_PAGE_LOAD, {
                 "meta": self.meta,
                 "tab": self.tab,
@@ -893,6 +915,10 @@ class CustomWebEnginePage(QWebEnginePage):
         return super().acceptNavigationRequest(url, _type, isMainFrame)
 
     def javaScriptConsoleMessage(self, level, message, line_number, source_id):
+        if str(message).startswith('__PYGPT_CHAT_ANNOTATION_'):
+            annotations = self.view._annotations()
+            if annotations is not None and annotations.handle_annotation_console(message):
+                return
         # Chromium may emit this benign diagnostic while a complex page is
         # settling after a batch of ResizeObserver notifications. The renderer
         # already defers observer-driven DOM/layout writes to rAF; keep this one
