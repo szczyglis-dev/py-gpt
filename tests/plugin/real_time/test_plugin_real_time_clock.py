@@ -28,13 +28,14 @@ def _plugin(mock_window, *, hour=True, date=True):
 @pytest.mark.parametrize(
     ("hour", "date", "expected"),
     [
-        (True, True, "Current time: Saturday, 2031-04-05 06:07:08"),
-        (True, False, "Current time: 06:07:08"),
-        (False, True, "Current time: Saturday, 2031-04-05"),
+        (True, True, "%A, %Y-%m-%d %H:%M:%S"),
+        (True, False, "%H:%M:%S"),
+        (False, True, "%A, %Y-%m-%d"),
     ],
 )
 def test_system_prompt_uses_fixed_clock(mock_window, hour, date, expected):
     plugin = _plugin(mock_window, hour=hour, date=date)
+    expected = "Current time: " + FixedDateTime.now().strftime(expected)
     with patch("pygpt_net.plugin.real_time.plugin.datetime", FixedDateTime):
         assert plugin.on_system_prompt("base") == f"base\n\n{expected}"
 
@@ -48,7 +49,7 @@ def test_agent_prompt_prepends_fixed_time(mock_window):
     plugin = _plugin(mock_window)
     with patch("pygpt_net.plugin.real_time.plugin.datetime", FixedDateTime):
         assert plugin.on_agent_prompt("agent") == (
-            "Current time: Saturday, 2031-04-05 06:07:08\n\nagent"
+            "Current time: " + FixedDateTime.now().strftime('%A, %Y-%m-%d %H:%M:%S') + "\n\nagent"
         )
 
 
@@ -68,7 +69,7 @@ def test_get_time_command_replies_once_with_fixed_clock(mock_window):
     assert response_ctx is ctx
     assert response == {
         "request": {"cmd": "get_time"},
-        "result": "Saturday, 2031-04-05 06:07:08",
+        "result": FixedDateTime.now().strftime('%A, %Y-%m-%d %H:%M:%S'),
     }
 
 

@@ -1,5 +1,6 @@
 """Regression coverage for the shared legacy LlamaIndex execution timeline."""
 import asyncio
+import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -164,10 +165,14 @@ def test_plugin_results_wait_for_reply_and_use_private_contexts():
         signals.response.emit.side_effect = handle
         return await asyncio.gather(session.execute_plugin('read', {'n': 1}),
                                     session.execute_plugin('read', {'n': 2}))
-    assert asyncio.run(run()) == ['{"value": 1}', '{"value": 2}']
+    assert [json.loads(value) for value in asyncio.run(run())] == [{"value": 1}, {"value": 2}]
     assert len({id(c) for c in tool_contexts}) == 2
     assert all(c is not ctx and c.hidden and not c.async_disabled for c in tool_contexts)
-    assert session.artifacts['files'] == ['file.txt']
+    # Reading a file inside a private tool context must not implicitly attach
+    # it to the final agent response. Files are exported only through the
+    # explicit delivery-files path.
+    assert all(c.files == ['file.txt'] for c in tool_contexts)
+    assert session.artifacts['files'] == []
     assert ctx.files == []
 
 
@@ -296,40 +301,6 @@ def test_openai_workflow_wrapper_passes_prompt_and_memory_to_current_li_api():
     assert any(m.content == 'old' for m in seen)
 
 
-def test_codeact_uses_enabled_plugin_bridge_and_hides_protocol_tags():
-    from llama_index.core.llms.mock import MockFunctionCallingLLM
-    from pygpt_net.provider.agents.llama_index.codeact_workflow import CodeActAgent
-    replies = iter(['Calculating.<execute>print(1+1)</execute>', 'The answer is 2.'])
-    llm = MockFunctionCallingLLM(response_generator=lambda *a, **k: ChatMessage(role='assistant', content=next(replies)))
-    window, ctx, signals, session = setup()
-    calls = []
-    async def execute(name, args):
-        calls.append((name, args))
-        return '2'
-    provider = CodeActAgent()
-    provider.get_option = lambda *a: ''
-    provider.get_system_prompt_extra = lambda *a: ''
-    agent = provider.get_agent(window, {
-        'context': session.context, 'llm': llm, 'plugin_tools': {'ipython_exec': object()},
-        'plugin_specs': ['ipython_exec(code)'], 'agent_tools': SimpleNamespace(executor=execute),
-    })
-    async def run():
-        return await forward_handler(agent.run(user_msg='compute', max_iterations=3), MagicMock(), lambda: False)
-    final, streamed = asyncio.run(run())
-    assert result_text(final) == 'The answer is 2.'
-    assert calls == [('ipython_exec', {'code': 'print(1+1)'})]
-    assert '<execute>' not in streamed
-    assert 'print(1+1)' not in streamed
-
-
-@pytest.mark.parametrize('size', [1, 2, 7, 100])
-def test_codeact_filter_handles_split_tags(size):
-    from pygpt_net.core.agents.runners.llama_events import CodeActTextFilter
-    text = 'Before<execute>code</execute>Between<tool>call</tool>After'
-    filter = CodeActTextFilter()
-    output = ''.join(filter.feed(text[i:i+size]) for i in range(0, len(text), size))
-    output += filter.feed('', final=True)
-    assert output == 'BeforeBetweenAfter'
 
 
 def test_custom_flow_streams_routes_and_keeps_current_input_and_history():

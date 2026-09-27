@@ -224,6 +224,7 @@ def test_is_allowed_dir_and_file(window, indexing, tmp_path):
 def test_get_documents_dir_and_file_and_custom(monkeypatch, indexing, tmp_path, window):
     d = tmp_path / 'folder'
     d.mkdir()
+    (d / 'nested.txt').write_text('x')
     docs = [DocumentFake(text='a', metadata={})]
     monkeypatch.setattr(llama_core_mod, 'SimpleDirectoryReader', lambda *args, **kwargs: SimpleNamespace(load_data=Mock(return_value=docs)))
     res = indexing.get_documents(str(d))

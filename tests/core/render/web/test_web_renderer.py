@@ -137,6 +137,9 @@ class DummyCtxItem:
     def get_part_tool_calls(self, visible_only=False, part=None):
         return []
 
+    def get_active_part(self):
+        return None
+
     def to_dict(self):
         return {"id": self.id}
 
@@ -382,7 +385,7 @@ class TestRenderer:
             call(
                 "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
                 "if (typeof window.beginStream !== 'undefined') beginStream(true, \"2\");"
-                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", []);"
+                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", [],\"\", \"\");"
             ),
         ]
         renderer._stream_push.assert_called_once_with(1, "header", "chunk")

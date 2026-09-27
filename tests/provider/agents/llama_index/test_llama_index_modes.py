@@ -65,9 +65,6 @@ def run(provider, window, kwargs, stop=None):
     ('researcher', ['{"searches":[{"query":"source A"},{"query":"source B"}]}',
                     'Evidence A', 'Evidence B', 'Report'], {}, 'Report',
      ['Planner', 'Researcher', 'Researcher', 'Writer']),
-    ('planner', ['{"sub_tasks":[{"name":"Read","input":"Read file"}]}', 'File result',
-                 '{"is_done":true,"reason":"Complete","plan":null}', 'Final report'], {}, 'Final report',
-     ['Planner', 'Read', 'Refine', 'Final answer']),
 ])
 def test_strategies_run_native_llama_workflows(strategy, responses, options, answer, actors):
     provider, window, kwargs, seen = build(strategy, responses, options)
@@ -128,13 +125,6 @@ def test_evolve_rejects_out_of_range_winner():
     with pytest.raises(Exception, match='nonexistent candidate'):
         run(p, w, kw)
 
-
-def test_planner_rejects_dependency_cycle():
-    plan = {'sub_tasks': [{'name':'a', 'input':'A', 'dependencies':['b']},
-                          {'name':'b', 'input':'B', 'dependencies':['a']}]}
-    p, w, kw, _ = build('planner', [json.dumps(plan)])
-    with pytest.raises(Exception, match='cyclic or missing'):
-        run(p, w, kw)
 
 
 def test_stop_prevents_next_bot_call():

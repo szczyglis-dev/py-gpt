@@ -32,12 +32,14 @@ def test_summarizer(mock_window):
     summarizer = Summarizer(mock_window)
     mock_window.core.api.openai.summarizer = MagicMock()
 
-    signal = MagicMock()
+    updated_signal = MagicMock()
+    finished_signal = MagicMock()
     mock_window.core.api.openai.summarizer.summary_ctx = MagicMock(return_value='test_title')
 
     item = CtxItem()
-    summarizer.summarizer(3, item, mock_window, signal)
-    signal.emit.assert_called_once_with(3, item, 'test_title')
+    summarizer.summarizer(3, item, mock_window, updated_signal, finished_signal)
+    updated_signal.emit.assert_called_once_with(3, item, 'test_title')
+    finished_signal.emit.assert_called_once_with(3, True)
 
 
 def test_start_worker(mock_window):

@@ -136,19 +136,31 @@ def test_agent_assistant(dummy_window, dummy_context, dummy_signals):
     assert result is True
 
 # Test runner using AGENT_MODE_WORKFLOW with an async workflow run
-def test_agent_workflow(dummy_window, dummy_context, dummy_signals):
+def test_agent_workflow(dummy_window, dummy_context, dummy_signals, monkeypatch):
     dummy_window.controller.kernel.stopped.return_value = False
     prov = dummy_provider(AGENT_MODE_WORKFLOW)
     dummy_window.core.agents.provider.has.return_value = True
     dummy_window.core.agents.provider.get.return_value = prov
+
+    session = MagicMock()
+    monkeypatch.setattr("pygpt_net.core.agents.runner.LlamaSession", MagicMock(return_value=session))
+    agent_tools = MagicMock()
+    monkeypatch.setattr("pygpt_net.core.agents.runner.Tools", MagicMock(return_value=agent_tools))
+    monkeypatch.setattr("pygpt_net.core.agents.runner.ComputerRuntime", MagicMock(return_value=MagicMock()))
+    bridge = MagicMock()
+    monkeypatch.setattr("pygpt_net.core.agents.runner.AgentWorkflowBridge", MagicMock(return_value=bridge))
+
     runner = Runner(dummy_window)
 
     async def fake_workflow_run(**kwargs):
+        assert kwargs["session"] is session
         return True
 
     runner.llama_workflow.run = fake_workflow_run
     result = runner.call(dummy_context, extra={"agent_provider": "workflow_agent"}, signals=dummy_signals)
     assert result is True
+    session.bind_llm.assert_called_once()
+    bridge.start.assert_called_once_with()
 
 # Test runner using AGENT_MODE_OPENAI with an async openai run
 def test_agent_openai(dummy_window, dummy_context, dummy_signals):

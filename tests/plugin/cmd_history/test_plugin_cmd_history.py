@@ -28,7 +28,7 @@ def test_system_prompt_uses_fixed_clock_without_local_timezone_dependency(mock_w
     with patch("pygpt_net.plugin.cmd_history.plugin.datetime") as dt_mock:
         dt_mock.now.return_value = fixed
         result = plugin.on_system_prompt("base")
-    assert result == "base\nCurrent time is: Wednesday, 2030-01-02 03:04:05"
+    assert result == "base\nCurrent time is: " + fixed.strftime('%A, %Y-%m-%d %H:%M:%S')
 
 
 def test_system_prompt_does_not_duplicate_time_when_time_plugin_enabled(mock_window):

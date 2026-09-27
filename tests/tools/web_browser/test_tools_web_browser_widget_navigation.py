@@ -100,7 +100,7 @@ def test_web_browser_widget_address_enter_routes_raw_user_input_to_runtime():
     obj.tool.open_address.assert_called_once_with("example.com")
 
 
-def test_web_browser_widget_runtime_state_updates_view_and_real_tab_title():
+def test_web_browser_widget_runtime_state_updates_view_without_renaming_tab():
     obj = _widget()
 
     ToolWidget.on_runtime_state(obj, {"title": "Example", "width": 900, "height": 600})
@@ -110,9 +110,8 @@ def test_web_browser_widget_runtime_state_updates_view_and_real_tab_title():
         {"title": "Example", "width": 900, "height": 600}
     )
     obj._update_plugin_hint.assert_called_once_with()
-    obj.window.controller.tabs.update_title_by_tab.assert_called_once_with(obj.tab, "Example")
+    obj.window.controller.tabs.update_title_by_tab.assert_not_called()
 
-    obj.window.controller.tabs.update_title_by_tab.reset_mock()
     ToolWidget.on_runtime_state(obj, {"title": "about:blank"})
     ToolWidget.on_runtime_state(obj, {"title": ""})
     obj.window.controller.tabs.update_title_by_tab.assert_not_called()

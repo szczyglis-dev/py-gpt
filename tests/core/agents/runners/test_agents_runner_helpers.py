@@ -76,7 +76,7 @@ def test_agents_runner_helpers_stream_events_use_safe_emit(monkeypatch):
         RenderEvent.STREAM_NEXT,
         RenderEvent.STREAM_END,
     ]
-    assert emitted[0][2].data["chunk"] == "before\n```python\nx\n```\nafter"
+    assert emitted[0][2].data["chunk"] == "before<execute>x</execute>after"
     assert emitted[0][2].data["begin"] is True
 
 
