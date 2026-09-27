@@ -159,7 +159,7 @@ class ChatInput(QTextEdit):
             key="mic",
             icon=self.ICON_MIC_ON,
             alt_icon=self.ICON_MIC_OFF,
-            tooltip=trans('audio.speak.btn'),
+            tooltip=trans('audio.speak.btn.icon.tooltip'),
             alt_tooltip=trans('audio.speak.btn.stop.tooltip'),
             callback=self.action_toggle_mic,
             visible=False,

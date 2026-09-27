@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.32** | build: **2026-09-26** | Python: **>=3.10, <3.14**
+Release: **2.8.33** | build: **2026-09-27** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -2467,6 +2467,20 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.33 (2026-09-27)**
+
+- Moved old legacy agent modes to Custom Agents; refactored legacy agent workflows; legacy agents now use the same runtime as Agents v2.
+- Added column sorting to the Files tool.
+- Added search engine support to the Canvas browser.
+- Added file preview and editing support to the Files tab.
+- Added filters and search input to the Skills, Connectors, and Add-ons lists.
+- Added pop-up daily notes to the Calendar tool.
+- Added annotations to the chat view via RMB → Annotate for AI.
+- Moved the Skills menu to Config.
+- Refactored LLM providers; setup options were moved to provider classes.
+- Improved toolbox responsiveness.
+- UI fixes.
 
 **2.8.32 (2026-09-26)**
 

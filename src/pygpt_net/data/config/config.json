@@ -241,6 +241,8 @@
   "layout.tray.minimize": false,
   "layout.window": {},
   "license.accepted": false,
+  "quick_start.finished": false,
+  "quick_start.pending": false,
   "llama.hub.loaders.args": [],
   "llama.hub.loaders.use_local": false,
   "llama.idx.auto": "off",

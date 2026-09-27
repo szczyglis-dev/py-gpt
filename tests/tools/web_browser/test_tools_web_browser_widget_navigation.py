@@ -48,7 +48,6 @@ def _widget():
         request_viewport_sync=MagicMock(),
         _sync_from_runtime=MagicMock(),
         _update_viewport_badge=MagicMock(),
-        _update_plugin_hint=MagicMock(),
         _column_visible=MagicMock(return_value=True),
     )
 
@@ -100,8 +99,9 @@ def test_web_browser_widget_address_enter_routes_raw_user_input_to_runtime():
     obj.tool.open_address.assert_called_once_with("example.com")
 
 
-def test_web_browser_widget_runtime_state_updates_view_without_renaming_tab():
+def test_web_browser_widget_runtime_state_updates_view_and_real_tab_title():
     obj = _widget()
+    tab = obj.tab
 
     ToolWidget.on_runtime_state(obj, {"title": "Example", "width": 900, "height": 600})
 
@@ -109,16 +109,16 @@ def test_web_browser_widget_runtime_state_updates_view_without_renaming_tab():
     obj._update_viewport_badge.assert_called_once_with(
         {"title": "Example", "width": 900, "height": 600}
     )
-    obj._update_plugin_hint.assert_called_once_with()
-    obj.window.controller.tabs.update_title_by_tab.assert_not_called()
+    obj.window.controller.tabs.update_title_by_tab.assert_called_once_with(tab, "Example")
 
+    # Empty/about:blank titles must not overwrite the real tab title.
     ToolWidget.on_runtime_state(obj, {"title": "about:blank"})
     ToolWidget.on_runtime_state(obj, {"title": ""})
-    obj.window.controller.tabs.update_title_by_tab.assert_not_called()
+    obj.window.controller.tabs.update_title_by_tab.assert_called_once_with(tab, "Example")
 
     obj.tab = None
     ToolWidget.on_runtime_state(obj, {"title": "Ignored"})
-    obj.window.controller.tabs.update_title_by_tab.assert_not_called()
+    obj.window.controller.tabs.update_title_by_tab.assert_called_once_with(tab, "Example")
 
 
 def test_web_browser_widget_viewport_sync_tracks_visible_runtime_area():

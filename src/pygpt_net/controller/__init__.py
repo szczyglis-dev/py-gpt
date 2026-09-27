@@ -159,6 +159,12 @@ class Controller:
                 height=480,
             )
             self.window.ui.dialog['info.license'].setFocus()
+        elif self.window.core.config.get('quick_start.pending', False) \
+                and not self.window.core.config.get('quick_start.finished', False):
+            # Only profiles that actually accepted the license on a first run
+            # receive this pending flag. Existing users are not onboarded after
+            # an application update simply because the new config keys appeared.
+            QTimer.singleShot(0, self.window.ui.dialogs.quick_start.open)
 
     def after_setup(self):
         """After-setup, after all loaded"""

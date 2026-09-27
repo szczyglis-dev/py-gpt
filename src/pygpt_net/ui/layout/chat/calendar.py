@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 15:30:00                  #
+# Updated Date: 2026.09.27 22:05:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QDate, QLocale, QTime, QTimer
@@ -15,7 +15,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSizePo
 from pygpt_net.ui.widget.calendar.note import CalendarNotePopup
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
 from pygpt_net.ui.widget.element.checkbox import ColorCheckbox
-from pygpt_net.ui.widget.element.labels import IconLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, IconLabel
 from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
 
@@ -250,6 +250,13 @@ class Calendar:
         filters = self.setup_filters()
         filters.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         layout.addWidget(filters, 0)
+
+        if ui.nodes.get('tip.output.tab.calendar') is None:
+            ui.nodes['tip.output.tab.calendar'] = HelpLabel(
+                trans('tip.output.tab.calendar'),
+                self.window,
+            )
+        layout.addWidget(ui.nodes['tip.output.tab.calendar'], 0)
 
         widget = QWidget()
         widget.setLayout(layout)

@@ -1,17 +1,26 @@
 from io import StringIO
 from types import SimpleNamespace
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, call, mock_open, patch
 
 from pygpt_net.ui.dialog.license import License
 
 
 def _window():
+    values = {}
+    config = SimpleNamespace(
+        get_app_path=MagicMock(return_value="/app"),
+        get=MagicMock(side_effect=lambda key, default=None: values.get(key, default)),
+        set=MagicMock(side_effect=lambda key, value: values.__setitem__(key, value)),
+        save=MagicMock(),
+    )
+    quick_start = SimpleNamespace(open=MagicMock())
     return SimpleNamespace(
-        core=SimpleNamespace(config=SimpleNamespace(
-            get_app_path=MagicMock(return_value="/app"),
-            set=MagicMock(), save=MagicMock(),
-        )),
-        ui=SimpleNamespace(nodes={}, dialog={}),
+        core=SimpleNamespace(config=config),
+        ui=SimpleNamespace(
+            nodes={},
+            dialog={},
+            dialogs=SimpleNamespace(quick_start=quick_start),
+        ),
     )
 
 
@@ -54,11 +63,18 @@ def test_setup_uses_empty_text_when_license_read_fails():
     textarea.setPlainText.assert_called_once_with("")
 
 
-def test_accept_persists_flag_and_closes_dialog():
+def test_accept_persists_flag_closes_dialog_and_schedules_quick_start():
     window = _window()
     dlg = MagicMock()
     window.ui.dialog["info.license"] = dlg
-    License(window).accept()
-    window.core.config.set.assert_called_once_with("license.accepted", True)
-    window.core.config.save.assert_called_once()
-    dlg.close.assert_called_once()
+
+    with patch("pygpt_net.ui.dialog.license.QTimer.singleShot") as single_shot:
+        License(window).accept()
+
+    window.core.config.set.assert_has_calls([
+        call("license.accepted", True),
+        call("quick_start.pending", True),
+    ])
+    window.core.config.save.assert_called_once_with()
+    dlg.close.assert_called_once_with()
+    single_shot.assert_called_once_with(0, window.ui.dialogs.quick_start.open)

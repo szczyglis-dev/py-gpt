@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.27 22:05:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QSize
@@ -72,7 +72,7 @@ class NotepadWidget(QWidget):
         self.mic_button.setCursor(Qt.PointingHandCursor)
         self.mic_button.setFocusPolicy(Qt.NoFocus)
         self.mic_button.setFlat(True)
-        self.mic_button.setToolTip(trans('audio.speak.btn'))
+        self.mic_button.setToolTip(trans('audio.note.btn.tooltip'))
         self.mic_button.clicked.connect(self.toggle_microphone)
 
         self.mic_container = QWidget(self)
@@ -86,8 +86,8 @@ class NotepadWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.textarea, 1)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0)
         layout.addWidget(self.mic_container, 0)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
@@ -121,7 +121,7 @@ class NotepadWidget(QWidget):
             self.mic_button.setToolTip(trans('audio.speak.btn.stop.tooltip'))
         else:
             self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
-            self.mic_button.setToolTip(trans('audio.speak.btn'))
+            self.mic_button.setToolTip(trans('audio.note.btn.tooltip'))
 
     def setText(self, text: str):
         """

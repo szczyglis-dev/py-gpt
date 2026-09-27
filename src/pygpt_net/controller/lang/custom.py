@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 12:31:00
+# Updated Date: 2026.09.27 20:45:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -45,6 +45,19 @@ class Custom:
         model_selector = self.window.ui.nodes.get("prompt.model")
         if model_selector is not None:
             model_selector.setToolTip(trans("input.model.tooltip"))
+
+        # The microphone is an icon-only control, so its tooltip needs an
+        # explicit refresh when the language is changed at runtime.
+        input_node = self.window.ui.nodes.get("input")
+        if input_node is not None:
+            input_node.set_icon_tooltip("mic", trans("audio.speak.btn.icon.tooltip"))
+            input_node.set_icon_tooltip("mic", trans("audio.speak.btn.stop.tooltip"), for_alt=True)
+
+        # Dedicated Notepad microphone has its own idle tooltip text.
+        try:
+            self.window.controller.audio.ui._set_notepad_mic_state(self.window.controller.audio.ui.recording)
+        except Exception:
+            pass
 
         # tool: indexer
         self.window.ui.tabs['tool.indexer'].setTabText(0, trans('tool.indexer.tab.files'))
@@ -277,9 +290,10 @@ class Custom:
             self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.auto.label"))
 
         # files / indexes
-        self.window.ui.nodes['output_files'].btn_upload.setText(trans('files.local.upload'))
-        self.window.ui.nodes['output_files'].btn_idx.setText(trans('idx.btn.index_all'))
-        self.window.ui.nodes['output_files'].btn_clear.setText(trans('idx.btn.clear'))
+        try:
+            self.window.ui.nodes['output_files'].retranslate()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
 
         # input: tabs
         input_tabs = self.window.ui.tabs['input']

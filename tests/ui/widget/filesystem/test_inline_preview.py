@@ -145,12 +145,22 @@ def test_explorer_filters_unloaded_directories_and_clears(app, tmp_path):
     explorer.search.setText('target')
     wait(300)
     explorer.search.setText('targe')
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep)))
+    deep_idx = explorer.model.index(str(deep))
+    parent_idx = explorer.model.index(str(deep.parent))
+    assert explorer.treeView.isExpanded(deep_idx)
     explorer.tree_search.apply()  # A queued model notification must not change the old view.
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    wait(300)
-    assert not explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep.parent)))
+    assert explorer.treeView.isExpanded(deep_idx)
+
+    # Search runs in QThreadPool and may take longer than the debounce interval on
+    # slower CI hosts. Wait for the new generation to finish and apply instead of
+    # assuming a fixed 300 ms deadline.
+    for _ in range(80):
+        wait(50)
+        if not explorer.tree_search.pending and not explorer.treeView.isExpanded(deep_idx):
+            break
+    assert not explorer.tree_search.pending
+    assert not explorer.treeView.isExpanded(deep_idx)
+    assert explorer.treeView.isExpanded(parent_idx)
     explorer.search.clear()
     wait(300)
     idx = explorer.model.index(str(ignored))

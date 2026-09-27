@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTime
 from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QWidget, QSizePolicy,
-    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout, QLabel, QLayout,
+    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout, QLabel,
 )
 from PySide6.QtWebEngineCore import QWebEnginePage
 
@@ -63,10 +63,6 @@ class ToolWidget:
         self.scroll = None
         self._layout = None
         self.viewport_badge = None
-        self.plugin_hint = None
-        self.plugin_hint_icon = None
-        self.plugin_hint_text = None
-        self._plugin_action = None
         self._viewport_filter = None
         self._viewport_sync_timer = None
         self._columns_splitter = None
@@ -185,58 +181,6 @@ class ToolWidget:
         self.viewport_badge.adjustSize()
         self.viewport_badge.show()
 
-        self.plugin_hint = QFrame(self.scroll.viewport())
-        self.plugin_hint.setStyleSheet(
-            "QFrame {"
-            " background: rgba(24, 24, 24, 175);"
-            " border: none;"
-            " border-radius: 5px;"
-            "}"
-        )
-        self.tool.add_lang_mapping(
-            self.plugin_hint,
-            "ui.enable_hint_tooltip",
-            "setToolTip",
-            CANVAS_LOCALE_DOMAIN,
-        )
-        plugin_hint_layout = QHBoxLayout(self.plugin_hint)
-        plugin_hint_layout.setContentsMargins(7, 4, 7, 4)
-        plugin_hint_layout.setSpacing(5)
-        plugin_hint_layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-
-        self.plugin_hint_icon = QLabel(self.plugin_hint)
-        self.plugin_hint_icon.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        self.plugin_hint_icon.setFixedSize(14, 14)
-        self.plugin_hint_icon.setStyleSheet(
-            "QLabel { background: transparent; border: none; padding: 0px; margin: 0px; }"
-        )
-        self.plugin_hint_icon.setPixmap(QIcon(":/icons/warning.svg").pixmap(QSize(14, 14)))
-        plugin_hint_layout.addWidget(self.plugin_hint_icon, 0, Qt.AlignVCenter)
-
-        self.plugin_hint_text = QLabel("", self.plugin_hint)
-        self.plugin_hint_text.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        self.plugin_hint_text.setStyleSheet(
-            "QLabel {"
-            " background: transparent;"
-            " color: white;"
-            " border: none;"
-            " padding: 0px;"
-            " margin: 0px;"
-            " font-size: 11px;"
-            "}"
-        )
-        plugin_hint_layout.addWidget(self.plugin_hint_text, 0, Qt.AlignVCenter)
-        self.tool.add_lang_mapping(
-            self.plugin_hint_text,
-            "ui.enable_hint",
-            "setText",
-            CANVAS_LOCALE_DOMAIN,
-            on_apply=self._refresh_plugin_hint_layout,
-        )
-        self._refresh_plugin_hint_layout()
-        self._update_plugin_hint()
-        self._connect_plugin_hint_hook()
-
         self._viewport_filter = ViewportEventFilter(self.scroll)
         self._viewport_filter.changed.connect(self._on_viewport_geometry_changed)
         self.scroll.viewport().installEventFilter(self._viewport_filter)
@@ -282,7 +226,6 @@ class ToolWidget:
     def on_runtime_state(self, state: dict):
         self._sync_from_runtime()
         self._update_viewport_badge(state)
-        self._update_plugin_hint()
         # The application has one canonical Canvas tab, but its title
         # may still follow the currently rendered document.  This is only a
         # label update; it must never be used as tab identity.
@@ -317,12 +260,6 @@ class ToolWidget:
                 pass
 
     def _disconnect_viewport_hooks(self):
-        if self._plugin_action is not None:
-            try:
-                self._plugin_action.toggled.disconnect(self._on_canvas_plugin_toggled)
-            except Exception:
-                pass
-            self._plugin_action = None
         if self.scroll is not None and self._viewport_filter is not None:
             try:
                 self.scroll.viewport().removeEventFilter(self._viewport_filter)
@@ -342,8 +279,6 @@ class ToolWidget:
             self._app_ready_connected = False
 
     def _on_app_ready(self):
-        self._connect_plugin_hint_hook()
-        self._update_plugin_hint()
         self.request_viewport_sync(immediate=True)
 
     def _on_columns_splitter_moved(self, _pos, _index):
@@ -413,60 +348,6 @@ class ToolWidget:
         self.viewport_badge.setVisible(self._display_footer_enabled())
         self._position_viewport_overlays()
 
-    def _is_canvas_plugin_enabled(self) -> bool:
-        if self.window is None:
-            return False
-        try:
-            return bool(self.window.controller.plugins.is_enabled("canvas_web"))
-        except Exception:
-            pass
-        try:
-            plugin = self.window.core.plugins.get("canvas_web")
-            return bool(plugin is not None and getattr(plugin, "enabled", False))
-        except Exception:
-            return False
-
-    def _refresh_plugin_hint_layout(self):
-        """Resize/reposition the Canvas footer hint after a locale/style change."""
-        if self.plugin_hint is None:
-            return
-        try:
-            self.plugin_hint.updateGeometry()
-            self.plugin_hint.adjustSize()
-        except RuntimeError:
-            return
-        self._position_viewport_overlays()
-
-    def _update_plugin_hint(self):
-        if self.plugin_hint is None:
-            return
-        self.plugin_hint.setVisible(
-            self._display_footer_enabled() and not self._is_canvas_plugin_enabled()
-        )
-        if self.viewport_badge is not None:
-            self.viewport_badge.setVisible(self._display_footer_enabled())
-        self._position_viewport_overlays()
-
-    def _connect_plugin_hint_hook(self):
-        if self.window is None or self._plugin_action is not None:
-            return
-        try:
-            action = self.window.ui.menu.get("plugins", {}).get("canvas_web")
-        except Exception:
-            action = None
-        if action is None:
-            return
-        try:
-            action.toggled.connect(self._on_canvas_plugin_toggled)
-            self._plugin_action = action
-        except Exception:
-            self._plugin_action = None
-
-    def _on_canvas_plugin_toggled(self, _checked=False):
-        # Controller state is updated by the action handler in the same event
-        # cycle. Defer one turn so the hint always reflects the final state.
-        QTimer.singleShot(0, self._update_plugin_hint)
-
     def _position_viewport_overlays(self):
         if self.scroll is None:
             return
@@ -477,10 +358,6 @@ class ToolWidget:
             y = max(margin, viewport.height() - self.viewport_badge.height() - margin)
             self.viewport_badge.move(x, y)
             self.viewport_badge.raise_()
-        if self.plugin_hint is not None:
-            y = max(margin, viewport.height() - self.plugin_hint.height() - margin)
-            self.plugin_hint.move(margin, y)
-            self.plugin_hint.raise_()
 
 
 class BrowserPage(QWebEnginePage):

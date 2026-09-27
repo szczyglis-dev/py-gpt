@@ -1,3 +1,17 @@
+2.8.33 (2026-09-27)
+
+- Moved old legacy agent modes to Custom Agents; refactored legacy agent workflows; legacy agents now use the same runtime as Agents v2.
+- Added column sorting to the Files tool.
+- Added search engine support to the Canvas browser.
+- Added file preview and editing support to the Files tab.
+- Added filters and search input to the Skills, Connectors, and Add-ons lists.
+- Added pop-up daily notes to the Calendar tool.
+- Added annotations to the chat view via RMB → Annotate for AI.
+- Moved the Skills menu to Config.
+- Refactored LLM providers; setup options were moved to provider classes.
+- Improved toolbox responsiveness.
+- UI fixes.
+
 2.8.32 (2026-09-26)
 
 - Added support for external Add-ons (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.

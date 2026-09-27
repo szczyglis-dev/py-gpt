@@ -11,7 +11,7 @@
 
 import os
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QLabel, QPushButton
 
 from pygpt_net.ui.widget.dialog.license import LicenseDialog
@@ -60,7 +60,13 @@ class License:
         self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.license.title"))
 
     def accept(self):
-        """Accept license"""
-        self.window.core.config.set('license.accepted', True)
-        self.window.core.config.save()
+        """Accept license and start first-run onboarding for new users."""
+        cfg = self.window.core.config
+        was_accepted = bool(cfg.get('license.accepted'))
+        cfg.set('license.accepted', True)
+        if not was_accepted and not cfg.get('quick_start.finished', False):
+            cfg.set('quick_start.pending', True)
+        cfg.save()
         self.window.ui.dialog['info.license'].close()
+        if cfg.get('quick_start.pending', False) and not cfg.get('quick_start.finished', False):
+            QTimer.singleShot(0, self.window.ui.dialogs.quick_start.open)
