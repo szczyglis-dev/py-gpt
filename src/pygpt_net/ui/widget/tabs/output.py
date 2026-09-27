@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.27 15:05:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar, QApplication
@@ -405,9 +405,6 @@ class AddButton(QPushButton):
         self.tabs = tabs
         self.setFixedSize(30, 25)
         self.setFlat(True)
-        self.clicked.connect(
-            lambda: self.window.controller.tabs.new_tab(self.column.get_idx())
-        )
         self.setObjectName('tab-add')
         self.setProperty('tabAdd', True)
         self.setToolTip(trans('action.tab.add.chat.tooltip'))
@@ -418,7 +415,7 @@ class AddButton(QPushButton):
 
         :param event: event
         """
-        if event.button() == Qt.RightButton:
+        if event.button() in (Qt.LeftButton, Qt.RightButton):
             idx = 0
             column_idx = self.column.get_idx()
             self.show_menu(idx, column_idx, event.globalPos())
