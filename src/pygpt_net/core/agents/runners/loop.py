@@ -17,7 +17,6 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.core.ctx.reply import ReplyContext
 from pygpt_net.utils import trans
 
 from .base import BaseRunner
@@ -172,35 +171,52 @@ class Loop(BaseRunner):
             self.set_idle(signals)
             return True
 
-        # Continue inside the same durable CtxItem. The evaluator feedback is UI
-        # metadata on the next partial, not a synthetic user CtxItem between
-        # workflow passes. This keeps the whole legacy agent run inside one
-        # Processed-for timeline, exactly like Autonomous continuations.
-        reply = ReplyContext()
-        reply.type = ReplyContext.AGENT_CONTINUE
-        reply.ctx = ctx
-        reply.input = instruction
-        reply.extra["inline_message"] = {
-            "type": "evaluation",
-            "text": f"{trans('eval.score')}: {score}%\n\n{instruction}",
+        # print("Instruction: " + instruction, "Score: " + str(score))
+        step_ctx = self.add_ctx(ctx)
+        step_ctx.set_input(instruction)
+        step_ctx.set_output("")
+        step_ctx.results = [
+            {
+                "loop": {
+                    "score": score,
+                }
+            }
+        ]
+        step_ctx.extra = {
+            "agent_input": True,
+            "agent_evaluate": True,
+            "footer": "Score: " + str(score) + "%",
         }
+        step_ctx.internal = False  # input
 
         self.set_busy(signals)
-        context = BridgeContext(ctx=ctx)
-        context.reply_context = reply
-        self.window.dispatch(KernelEvent(KernelEvent.AGENT_CONTINUE, {
-            "context": context,
-            "extra": {},
-        }))
-        # Evaluation is completed after the ordinary output lifecycle has
-        # already drained its reply stack, so execute this newly queued
-        # continuation explicitly.
-        self.window.controller.kernel.stack.handle()
+        self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
+        # call next run
+        preset = self.window.controller.presets.get_current()
+        model = self.window.core.models.get(ctx.model)
+        if model is None:
+            model = self.window.core.models.get(self.window.core.config.get('model'))
+        context = BridgeContext(
+            ctx=step_ctx,
+            history=self.window.core.ctx.all(meta_id=ctx.meta.id),
+            mode=ctx.mode,
+            model=model,
+            preset=preset,
+            prompt=instruction,
+            stream=bool(self.window.core.config.get("stream", False)),
+            system_prompt=getattr(ctx, "agents_v2_system_prompt", "") or "",
+        )
+        extra = {
+            "agent_idx": preset.idx,
+            "agent_provider": preset.agent_provider,
+        }
+        if preset.agent_openai:
+            extra["agent_provider"] = preset.agent_provider_openai
         if self.is_verbose():
             print("[Evaluation] Instruction:", instruction)
-            print("[Evaluation] Running next step in the same ctx...")
-        return True
+            print("[Evaluation] Running next step...")
+        return self.window.core.agents.runner.call(context, extra, signals)
 
     def is_verbose(self) -> bool:
         """

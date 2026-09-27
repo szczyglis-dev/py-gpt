@@ -21,6 +21,23 @@ class ToolOutput {
 		return null;
 	}
 
+	// Return only mutable/live tool-output wrappers. Completed agent workflow
+	// accordions deliberately reuse the generic .tool-output styling, but they
+	// are durable history and must never be touched by live ToolOutput.clear(),
+	// update(), append(), enable(), or disable() calls from a later turn.
+	_mutableOutputs() {
+		const outputs = Array.from(document.querySelectorAll('.tool-output'));
+		return outputs.filter((el) => {
+			if (!el || !el.classList) return false;
+			if (el.classList.contains('agent-workflow-output')) return false;
+			if (el.classList.contains('tool-output-group')) return false;
+			try {
+				if (el.closest('.agent-workflow-output')) return false;
+			} catch (_) {}
+			return true;
+		});
+	}
+
 	// Extract raw tool names from a rendered tool-output wrapper.
 	_toolNames(outputEl) {
 		if (!outputEl) return [];
@@ -384,13 +401,13 @@ class ToolOutput {
 
 	// Enables the tool output area.
 	enable() {
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) els[els.length - 1].style.display = 'block';
 	}
 
 	// Disables the tool output area.
 	disable() {
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) els[els.length - 1].style.display = 'none';
 	}
 
@@ -399,7 +416,7 @@ class ToolOutput {
 	append(content) {
 		this.hideLoader();
 		this.enable();
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
@@ -418,7 +435,7 @@ class ToolOutput {
 	update(content) {
 		this.hideLoader();
 		this.enable();
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
@@ -437,7 +454,7 @@ class ToolOutput {
 	// here would leave an empty expand arrow in the message.
 	clear() {
 		this.hideLoader();
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;

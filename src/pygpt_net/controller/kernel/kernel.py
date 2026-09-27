@@ -272,7 +272,12 @@ class Kernel:
         elif name in self._OUTPUT_EVENTS:
             return self.output(context, extra, event)
         elif name in self._STACK_ADD_EVENTS:
-            return self.stack.add(context.reply_context)
+            result = self.stack.add(context.reply_context)
+            # Evaluator feedback arrives after the previous output lifecycle
+            # drained the stack. Resume it here, on the signal receiver thread.
+            if name == KernelEvent.AGENT_CONTINUE and (extra or {}).get("execute"):
+                self.stack.handle()
+            return result
         elif name in self._CALL_EVENTS:
             return self.call(context, extra, event)
 
