@@ -77,6 +77,9 @@ class ModesWorkflow(Workflow):
         self.memory_token_limit = 64000
         self.on_stop = None
         self.sequence = 0
+        # Same runtime input builder used by planner/supervisor/custom legacy
+        # workflows. It injects shared attachment context and native ImageBlocks.
+        self.input_builder = kwargs.get('input_builder')
 
     def run(self, query=None, *, memory=None, on_stop=None, **kwargs):
         self.on_stop = on_stop
@@ -112,7 +115,8 @@ class ModesWorkflow(Workflow):
             self.memories[key] = role_memory(
                 self.window, self.provider, self.kwargs.get('context'), json.dumps(key),
                 history=self.initial_history, token_limit=self.memory_token_limit)
-        handler = agent.run(user_msg=query, memory=self.memories[key],
+        user_msg = self.input_builder(query) if callable(self.input_builder) else query
+        handler = agent.run(user_msg=user_msg, memory=self.memories[key],
                             max_iterations=effective_iteration_limit(self.limit))
         prose = RealtimeRouterStreamerLI(fields=('feedback', 'reason')) if schema else None
         result, streamed = await forward_handler(

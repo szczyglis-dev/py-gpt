@@ -59,8 +59,8 @@ class ModeAgent(BaseAgent):
         return ModesWorkflow(self, window, kwargs)
 
     def build_role(self, window, kwargs, section, name, schema=None, *, workflow, ctx, expert=None, query=""):
-        from llama_index.core.agent.workflow import FunctionAgent
         from llama_index.core.tools import FunctionTool
+        from pygpt_net.core.agents_v2.context import RuntimeImageFunctionAgent
         preset = kwargs['context'].preset
         tools = list(kwargs.get('tools') or [])
         options = self.get_options().get(section, {}).get('options', {})
@@ -108,8 +108,14 @@ class ModeAgent(BaseAgent):
                 role_tools.append(FunctionTool.from_defaults(
                     async_fn=make_consult(expert_preset), name=f'consult_expert_{index + 1}',
                     description=f'Consult {expert_preset.name}: {expert_preset.description or expert_preset.name}'))
-        return FunctionAgent(name=name, llm=llm, tools=role_tools, system_prompt=prompt, streaming=True,
-                             allow_parallel_tool_calls=False)
+        return RuntimeImageFunctionAgent(
+            name=name,
+            llm=llm,
+            tools=role_tools,
+            system_prompt=prompt,
+            streaming=True,
+            allow_parallel_tool_calls=False,
+        )
 
 
 def get_mode_agents():
