@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 21:58:00                  #
+# Updated Date: 2026.09.27 22:20:00                  #
 # ================================================== #
 
 import datetime
@@ -751,6 +751,12 @@ class FileExplorer(QWidget):
             lambda: self.window.tools.get("indexer").toggle()
         )
 
+        self.btn_swap = QPushButton(QIcon(":/icons/sync.svg"), "")
+        self.btn_swap.setToolTip(trans('files.columns.swap'))
+        self.btn_swap.setMaximumHeight(40)
+        self.btn_swap.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.btn_swap.clicked.connect(self.toggle_columns)
+
         self.path_label = QLabel(self.directory, self)
         self.path_label.setTextFormat(Qt.PlainText)
         path_font = self.path_label.font()
@@ -763,12 +769,7 @@ class FileExplorer(QWidget):
         self.path_label.setMinimumWidth(0)
         self.path_label.setToolTip(self.directory)
 
-        # Keep the workdir path on the left and index controls on the right,
-        # matching the file-list / preview column order above.
-        header.addWidget(self.path_label, 1)
-        header.addWidget(self.btn_tool)
-        header.addWidget(self.btn_idx)
-        header.addWidget(self.btn_clear)
+        self.footer_layout = header
         self.layout = QVBoxLayout()
 
         self.window.ui.nodes['tip.output.tab.files'] = HelpLabel(trans('tip.output.tab.files'), self.window)
@@ -799,18 +800,17 @@ class FileExplorer(QWidget):
         self.files_stack.addWidget(self.treeView)
         self.files_stack.addWidget(self.empty_files_wrapper)
 
-        files_panel = EmptyFilesDropPanel(self, self)
-        files_layout = QVBoxLayout(files_panel)
+        self.files_panel = EmptyFilesDropPanel(self, self)
+        files_layout = QVBoxLayout(self.files_panel)
         files_layout.setContentsMargins(0, 0, 0, 0)
         files_layout.addLayout(search_bar)
         files_layout.addWidget(self.files_stack)
         self.splitter = QSplitter(Qt.Horizontal)
         self.splitter.setChildrenCollapsible(False)
-        self.splitter.addWidget(files_panel)
+        self.splitter.addWidget(self.files_panel)
         self.splitter.addWidget(self.preview)
-        self.splitter.setSizes([400, 600])
-        self.splitter.setStretchFactor(0, 2)
-        self.splitter.setStretchFactor(1, 3)
+        self.columns_swapped = self._load_columns_swap()
+        self._apply_columns_layout(self.columns_swapped, preserve_sizes=False)
         self.layout.addWidget(self.splitter, 1)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.treeView.clicked.connect(self.preview_index)
@@ -909,6 +909,80 @@ class FileExplorer(QWidget):
 
         self._dnd_handler = ExplorerDropHandler(self)
 
+    def _load_columns_swap(self) -> bool:
+        """Return persisted Files column order; missing/invalid values mean default order."""
+        try:
+            value = self.window.core.config.get('files.columns.swap', False)
+            return value is True
+        except Exception:
+            return False
+
+    def _rebuild_footer(self, swapped: bool):
+        """Mirror the footer order to the current Files column order."""
+        while self.footer_layout.count():
+            self.footer_layout.takeAt(0)
+
+        controls = (self.btn_swap, self.btn_tool, self.btn_idx, self.btn_clear)
+        self.footer_layout.addWidget(self.path_label, 1)
+        for widget in controls:
+            self.footer_layout.addWidget(widget)
+        self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        return
+        if swapped:
+            for widget in controls:
+                self.footer_layout.addWidget(widget)
+            self.footer_layout.addWidget(self.path_label, 1)
+            self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        else:
+            self.footer_layout.addWidget(self.path_label, 1)
+            for widget in controls:
+                self.footer_layout.addWidget(widget)
+            self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
+    def _apply_columns_layout(self, swapped: bool, preserve_sizes: bool = True):
+        """Apply list/preview order and the matching footer order immediately."""
+        files_size, preview_size = 400, 600
+        if preserve_sizes:
+            try:
+                sizes = self.splitter.sizes()
+                if len(sizes) >= 2 and sum(sizes[:2]) > 0:
+                    if self.columns_swapped:
+                        preview_size, files_size = sizes[0], sizes[1]
+                    else:
+                        files_size, preview_size = sizes[0], sizes[1]
+            except Exception:
+                pass
+
+        if swapped:
+            self.splitter.insertWidget(0, self.preview)
+            self.splitter.insertWidget(1, self.files_panel)
+            self.splitter.setStretchFactor(0, 3)
+            self.splitter.setStretchFactor(1, 2)
+            self.splitter.setSizes([preview_size, files_size])
+        else:
+            self.splitter.insertWidget(0, self.files_panel)
+            self.splitter.insertWidget(1, self.preview)
+            self.splitter.setStretchFactor(0, 2)
+            self.splitter.setStretchFactor(1, 3)
+            self.splitter.setSizes([files_size, preview_size])
+
+        self.columns_swapped = swapped
+        self._rebuild_footer(swapped)
+
+    def toggle_columns(self):
+        """Swap Files columns in runtime and persist the selected order."""
+        swapped = not self.columns_swapped
+        self._apply_columns_layout(swapped)
+        try:
+            config = self.window.core.config
+            config.set('files.columns.swap', swapped)
+            config.save()
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+
     def _root_is_empty(self) -> bool:
         try:
             with os.scandir(self.directory) as entries:
@@ -929,6 +1003,7 @@ class FileExplorer(QWidget):
         """Refresh Files labels/tooltips after a runtime language change."""
         self.btn_open.setToolTip(trans('action.open'))
         self.btn_upload.setToolTip(trans('files.local.upload.tooltip'))
+        self.btn_swap.setToolTip(trans('files.columns.swap'))
         self.btn_idx.setText(trans('idx.btn.index_all'))
         self.btn_clear.setText(trans('idx.btn.clear'))
         self.path_label.setText(self.directory)

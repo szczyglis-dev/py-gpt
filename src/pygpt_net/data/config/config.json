@@ -204,6 +204,7 @@
   "debug.render": false,
   "download.dir": "download",
   "extensions.registry.url": "https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json",
+  "files.columns.swap": false,
   "font_size": 16,
   "font_size.ctx": 12,
   "font_size.input": 16,
