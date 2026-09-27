@@ -4682,11 +4682,16 @@ class Renderer(BaseRenderer):
             # path could run even when the final response was the only timeline
             # segment.
             if workflow_step_count > 0:
+                # A plain one-shot answer produces zero pre-final workflow
+                # segments. Anything above zero means there was real visible work
+                # before the authoritative final response (partial/status/tool),
+                # even if it was only one step. Keep that work reachable through
+                # the Processed accordion instead of deleting it as a supposedly
+                # trivial single response.
                 compact_agents_v2_final = {
                     "final_part_id": final_part_key,
                     "workflow_steps": workflow_step_count,
                 }
-            if workflow_step_count > 1:
                 collapsed_workflow = {
                     "label": self._format_agent_v2_processing_label(ctx),
                     "expanded": False,

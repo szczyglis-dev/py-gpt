@@ -4,20 +4,25 @@ Only option definitions/prompts are shared with the OpenAI providers. Execution,
 models, tools, memory and streaming belong to LlamaIndex.
 """
 import json
-from importlib import import_module
-
 from pygpt_net.core.types import AGENT_TYPE_LLAMA, AGENT_MODE_WORKFLOW
 from pygpt_net.provider.agents.base import BaseAgent
+from pygpt_net.provider.agents.openai.agent import Agent as BaseOptionsAgent
+from pygpt_net.provider.agents.openai.agent_with_experts import Agent as ExpertsOptionsAgent
+from pygpt_net.provider.agents.openai.agent_with_feedback import Agent as FeedbackOptionsAgent
+from pygpt_net.provider.agents.openai.agent_with_experts_feedback import Agent as ExpertsFeedbackOptionsAgent
+from pygpt_net.provider.agents.openai.agent_b2b import Agent as B2BOptionsAgent
+from pygpt_net.provider.agents.openai.evolve import Agent as EvolveOptionsAgent
+from pygpt_net.provider.agents.openai.bot_researcher import Agent as ResearcherOptionsAgent
 
 SOURCES = {
-    'base': 'agent',
-    'experts': 'agent_with_experts',
-    'feedback': 'agent_with_feedback',
-    'experts_feedback': 'agent_with_experts_feedback',
-    'b2b': 'agent_b2b',
-    'evolve': 'evolve',
-    'researcher': 'bot_researcher',
-    # 'planner': 'agent_planner',
+    'base': BaseOptionsAgent,
+    'experts': ExpertsOptionsAgent,
+    'feedback': FeedbackOptionsAgent,
+    'experts_feedback': ExpertsFeedbackOptionsAgent,
+    'b2b': B2BOptionsAgent,
+    'evolve': EvolveOptionsAgent,
+    'researcher': ResearcherOptionsAgent,
+    # 'planner': PlannerOptionsAgent,
 }
 
 
@@ -25,7 +30,8 @@ class ModeAgent(BaseAgent):
     def __init__(self, strategy):
         super().__init__()
         self.strategy = strategy
-        source = import_module('pygpt_net.provider.agents.openai.' + SOURCES[strategy]).Agent()
+        source_cls = SOURCES[strategy]
+        source = source_cls()
         self.option_source = source
         self.id = 'llama_agent_' + strategy
         self.name = source.name

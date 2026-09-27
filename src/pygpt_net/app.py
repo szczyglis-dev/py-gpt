@@ -290,7 +290,7 @@ def run(**kwargs):
 
         # agents (Llama-index)
         from pygpt_net.provider.agents.llama_index.planner_workflow import PlannerAgent as PlannerWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.modes import get_mode_agents
+        from pygpt_net.provider.agents.llama_index.modes import ModeAgent as LlamaModeAgent
         from pygpt_net.provider.agents.llama_index.supervisor_workflow import SupervisorAgent as LlamaSupervisorAgent
         from pygpt_net.provider.agents.llama_index.flow_from_schema import Agent as LlamaCustomAgent  # builder schema
 
@@ -565,8 +565,13 @@ def run(**kwargs):
 
         # register base agents
         launcher.add_agent(PlannerWorkflowAgent())  # llama-index
-        for agent in get_mode_agents():
-            launcher.add_agent(agent)
+        launcher.add_agent(LlamaModeAgent("base"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("experts"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("feedback"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("experts_feedback"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("b2b"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("evolve"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("researcher"))  # llama-index
         launcher.add_agent(LlamaSupervisorAgent())  # llama-index
         launcher.add_agent(LlamaCustomAgent())  # llama-index
         launcher.add_agent(OpenAIAgentsBase())  # openai-agents
