@@ -53,16 +53,19 @@ def test_web_browser_defaults_setup_reload_and_dialog_id():
     tool.update.assert_called_once_with()
 
 
-def test_web_browser_set_url_routes_to_canvas_runtime():
+def test_web_browser_set_url_opens_surface_and_routes_to_canvas_runtime():
     tool = _tool()
-    tool.runtime_call = MagicMock()
+    tool.open = MagicMock()
+    tool.runtime_call = MagicMock(return_value={"ok": True})
 
-    tool.set_url("https://example.com")
+    result = tool.set_url("https://example.com")
 
+    tool.open.assert_called_once_with(load=False)
     tool.runtime_call.assert_called_once_with(
         "canvas_open",
         {"url": "https://example.com", "__ui": True},
     )
+    assert result == {"ok": True}
 
 
 def test_web_browser_open_creates_singleton_in_second_column_and_focuses_it():

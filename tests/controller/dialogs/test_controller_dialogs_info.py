@@ -86,7 +86,6 @@ def test_info_open_url_uses_internal_browser_when_enabled():
 
     window.tools.get.assert_any_call("web_browser")
     browser.set_url.assert_called_once_with("https://internal.example.test")
-    browser.auto_open.assert_called_once_with(load=False)
 
 
 def test_info_open_url_uses_desktop_service_when_internal_browser_disabled():

@@ -403,41 +403,6 @@ def test_agents_v2_runtime_collect_llm_artifacts_deduplicates_provider_urls():
     }
 
 
-def test_agents_v2_project_rules_loads_agents_md_from_active_context_workdir(tmp_path):
-    rules_file = tmp_path / "AGENTS.md"
-    rules_file.write_text("  project rule  ", encoding="utf-8")
-    runtime = bare_runtime()
-    runtime.context.ctx = SimpleNamespace(id=77)
-    runtime.window.core.filesystem.get_data_dir.return_value = str(tmp_path)
-    runtime.window.core.security.is_in_workdir.return_value = True
-
-    rules = runtime.context_api.load_project_rules()
-
-    assert rules == "project rule"
-    runtime.window.core.filesystem.get_data_dir.assert_called_once_with(ctx=runtime.context.ctx, create=False)
-    runtime.window.core.security.is_in_workdir.assert_called_once_with(str(rules_file), ctx=runtime.context.ctx)
-    runtime.verbose_text.assert_called_once_with("PROJECT RULES", "project rule")
-
-
-def test_agents_v2_project_rules_rejects_agents_md_outside_active_workdir(tmp_path):
-    rules_file = tmp_path / "AGENTS.md"
-    rules_file.write_text("do not load", encoding="utf-8")
-    runtime = bare_runtime()
-    runtime.context.ctx = SimpleNamespace(id=11)
-    runtime.window.core.filesystem.get_data_dir.return_value = str(tmp_path)
-    runtime.window.core.security.is_in_workdir.return_value = False
-
-    assert runtime.context_api.load_project_rules() == ""
-    runtime.verbose_text.assert_not_called()
-    runtime.verbose_log.assert_called()
-
-
-def test_agents_v2_project_rules_missing_file_returns_empty(tmp_path):
-    runtime = bare_runtime()
-    runtime.window.core.filesystem.get_data_dir.return_value = str(tmp_path)
-    assert runtime.context_api.load_project_rules() == ""
-    runtime.window.core.security.is_in_workdir.assert_not_called()
-
 
 def test_main_function_agent_promotes_runtime_image_blocks_after_tool_result(tmp_path):
     import asyncio

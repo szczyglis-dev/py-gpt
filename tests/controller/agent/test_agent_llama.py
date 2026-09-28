@@ -28,6 +28,16 @@ class FakeCheckBox:
 class FakeTray:
     def __init__(self):
         self.msg_calls = []
+        self.title_calls = []
+        self.message_calls = []
+
+    def agent_result_title(self, ctx, fallback):
+        self.title_calls.append((ctx, fallback))
+        return fallback
+
+    def agent_result_message(self, ctx, fallback):
+        self.message_calls.append((ctx, fallback))
+        return fallback
 
     def show_msg_if_inactive(self, title, content):
         self.msg_calls.append((title, content))
@@ -241,11 +251,15 @@ def test_on_end_dispatch_and_notify(monkeypatch, notify, mode, expect_show):
     assert ev.name == FakeKernelEvent.STATE_IDLE
     assert ev.data == {"id": "agent"}
     if expect_show:
+        assert w.ui.tray.title_calls == [(None, "tr:notify.agent.goal.title")]
+        assert w.ui.tray.message_calls == [(None, "tr:notify.agent.goal.content")]
         assert len(w.ui.tray.msg_calls) == 1
         title, content = w.ui.tray.msg_calls[0]
         assert title == "tr:notify.agent.goal.title"
         assert content == "tr:notify.agent.goal.content"
     else:
+        assert w.ui.tray.title_calls == []
+        assert w.ui.tray.message_calls == []
         assert len(w.ui.tray.msg_calls) == 0
 
 
@@ -261,7 +275,7 @@ def test_on_finish_aborts_paths(monkeypatch, case):
     llama = Llama(w)
     called = {'n': 0}
 
-    def fake_on_end():
+    def fake_on_end(ctx=None):
         called['n'] += 1
 
     monkeypatch.setattr(llama, 'on_end', fake_on_end)
@@ -281,7 +295,7 @@ def test_on_finish_max_steps_reached(monkeypatch):
     llama.eval_step = 2
     called = {'n': 0}
 
-    def fake_on_end():
+    def fake_on_end(ctx=None):
         called['n'] += 1
 
     monkeypatch.setattr(llama, 'on_end', fake_on_end)

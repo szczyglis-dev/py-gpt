@@ -25,12 +25,10 @@ def make_runtime(definition=None, step_by_step=False):
         is_swarm_mode=False,
         runtime_system_context="",
         step_by_step_enabled=step_by_step,
-        project_rules_loaded=True,
-        project_rules_text="",
-        context_api=SimpleNamespace(load_project_rules=MagicMock(return_value="")),
+        agents_directory_exists=False,
         window=SimpleNamespace(
             core=SimpleNamespace(
-                config=SimpleNamespace(get=MagicMock(return_value="")),
+                config=SimpleNamespace(get=MagicMock(side_effect=lambda key, default=None: default)),
             ),
         ),
         strategy=get_agent_strategy(AgentMode.ORCHESTRATOR if definition else AgentMode.PRIMARY_AGENT),
@@ -92,3 +90,32 @@ def test_agents_v2_profiles_wrapper_exposes_editor_and_memory_store():
     assert agents.window is window
     assert agents.editor.window is window
     assert agents.memory_store.window is window
+
+
+def test_agents_v2_profiles_prompt_mentions_memories_when_agents_directory_is_missing():
+    runtime = make_runtime({
+        "id": "custom-id",
+        "name": "Research lead",
+        "system_prompt": "Custom system",
+    })
+    runtime.agents_directory_exists = False
+
+    prompt = RuntimePromptBuilder(runtime).main_agent_prompt()
+
+    assert "No `%workdir%/.agents/` directory exists" in prompt
+    assert ".agents/memories/" in prompt
+
+
+def test_agents_v2_profiles_prompt_mentions_project_agents_directory_when_present():
+    runtime = make_runtime({
+        "id": "custom-id",
+        "name": "Research lead",
+        "system_prompt": "Custom system",
+    })
+    runtime.agents_directory_exists = True
+
+    prompt = RuntimePromptBuilder(runtime).main_agent_prompt()
+
+    assert "The active workdir contains `%workdir%/.agents/`" in prompt
+    assert "agents.md" in prompt
+    assert ".agents/memories/" in prompt

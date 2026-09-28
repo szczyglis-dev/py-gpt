@@ -49,6 +49,7 @@ except Exception:
         ChatMemoryBuffer = None
 
 # Translation utility
+from pygpt_net.core.agents_v2.utils import effective_iteration_limit
 from pygpt_net.utils import trans
 
 
