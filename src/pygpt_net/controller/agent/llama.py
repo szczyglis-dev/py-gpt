@@ -112,7 +112,10 @@ class Llama:
             # show notification if enabled and mode is not llama_index
             if self.window.core.config.get("mode") != MODE_LLAMA_INDEX:
                 self.window.ui.tray.show_msg_if_inactive(
-                    trans("notify.agent.goal.title"),
+                    self.window.ui.tray.agent_result_title(
+                        ctx,
+                        trans("notify.agent.goal.title"),
+                    ),
                     self.window.ui.tray.agent_result_message(
                         ctx,
                         trans("notify.agent.goal.content"),

@@ -889,7 +889,10 @@ class Response:
             return
         if has_final and self.window.core.config.get("agent.goal.notify"):
             self.window.ui.tray.show_msg_if_inactive(
-                trans("notify.agent.goal.title"),
+                self.window.ui.tray.agent_result_title(
+                    ctx,
+                    trans("notify.agent.goal.title"),
+                ),
                 self.window.ui.tray.agent_result_message(
                     ctx,
                     trans("notify.agent.goal.content"),

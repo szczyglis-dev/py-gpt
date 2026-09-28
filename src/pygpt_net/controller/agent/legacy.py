@@ -814,7 +814,10 @@ If you say or imply that the run is finished, waiting, paused, or failed, invoke
             self.on_stop(auto=True)
             if self.window.core.config.get("agent.goal.notify"):
                 self.window.ui.tray.show_msg_if_inactive(
-                    trans("notify.agent.stop.title"),
+                    self.window.ui.tray.agent_result_title(
+                        ctx,
+                        trans("notify.agent.stop.title"),
+                    ),
                     self.window.ui.tray.agent_result_message(
                         ctx,
                         trans("notify.agent.stop.content"),
@@ -919,7 +922,10 @@ If you say or imply that the run is finished, waiting, paused, or failed, invoke
 
                 if status == "finished" and self.window.core.config.get("agent.goal.notify"):
                     self.window.ui.tray.show_msg_if_inactive(
-                        trans("notify.agent.goal.title"),
+                        self.window.ui.tray.agent_result_title(
+                            ctx,
+                            trans("notify.agent.goal.title"),
+                        ),
                         self.window.ui.tray.agent_result_message(
                             ctx,
                             trans("notify.agent.goal.content"),

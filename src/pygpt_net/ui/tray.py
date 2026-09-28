@@ -24,6 +24,7 @@ class Tray:
     RECENT_CONTEXTS_LIMIT = 5
     RECENT_CONTEXT_TITLE_LIMIT = 20
     AGENT_NOTIFICATION_TEXT_LIMIT = 100
+    AGENT_NOTIFICATION_TITLE_LIMIT = 100
 
     def __init__(self, window=None):
         """
@@ -240,6 +241,31 @@ class Tray:
             return
         self.window.restore()
         self.window.controller.ctx.select_by_id(ctx_id)
+
+    def agent_result_title(self, ctx=None, fallback: str = "") -> str:
+        """Return the summarized conversation title when it is already available."""
+        meta = getattr(ctx, "meta", None) if ctx is not None else None
+        meta_id = getattr(meta, "id", None) if meta is not None else None
+
+        if meta_id is not None:
+            try:
+                current_meta = self.window.core.ctx.get_meta_by_id(meta_id)
+            except Exception:
+                current_meta = None
+            if current_meta is not None:
+                meta = current_meta
+
+        if meta is not None:
+            name = self._compact_text(getattr(meta, "name", None))
+            initialized = bool(getattr(meta, "initialized", False))
+            default_names = {
+                self._compact_text(trans("ctx.new")),
+                self._compact_text(trans("ctx.new.prefix")),
+            }
+            if name and (initialized or name not in default_names):
+                return self._truncate_text(name, self.AGENT_NOTIFICATION_TITLE_LIMIT)
+
+        return self._truncate_text(fallback, self.AGENT_NOTIFICATION_TITLE_LIMIT)
 
     def agent_result_message(self, ctx=None, fallback: str = "") -> str:
         """Return the final/last visible agent answer for a tray notification."""
