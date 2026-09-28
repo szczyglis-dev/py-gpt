@@ -36,3 +36,9 @@ QTabBar#agentOptionsTabBar::tab {{
   border-top-color: transparent;
 }}
 
+/* Files and ctx list */
+.ctx-list,
+.file-explorer QTreeView {{
+    border: 0;
+}}
+

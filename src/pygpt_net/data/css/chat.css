@@ -1,3 +1,5 @@
+/* Shared chat layout. Theme palettes are applied after this stylesheet. */
+
 @font-face {{
   font-family: "Lato";
   src: url('file:///%fonts%/Lato/Lato-Regular.ttf');
@@ -7,11 +9,10 @@
   src: url('file:///%fonts%/MonaspaceNeon/MonaspaceNeon-Regular.otf');
 }}
 * {{
-  font-family: 'Lato'; 
+  font-family: 'Lato';
 }}
-body {{ 
+body {{
   word-wrap: break-word;
-  padding: 6px;
   line-height: 1.5;
   padding: 0;
   margin: auto;
@@ -33,8 +34,7 @@ img {{
   vertical-align: middle;
   border-radius: 10px;
 }}
-video,
-.video-player {{
+video {{
   border-radius: 10px;
 }}
 ::-webkit-scrollbar {{
@@ -49,7 +49,7 @@ video,
   will-change: transform, opacity;
 }}
 #__nodes__ {{
- margin-top: 2rem;
+  margin-top: 2rem;
 }}
 
 /* base */
@@ -189,6 +189,8 @@ pre {{
   overflow-y: auto;
 }}
 code {{
+  background: #363737;
+  padding: 6px;
   font-family: 'Monaspace Neon';
   overflow-y: auto;
   font-size: 0.8rem;
@@ -215,7 +217,6 @@ think {{
   width: auto;
   height: 20px;
   padding: 10px;
-  padding-top: 10px;
   margin: 0;
   font-size: 0.75rem;
   -webkit-border-top-left-radius: 10px;
@@ -224,6 +225,9 @@ think {{
   -moz-border-radius-topright: 10px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+}}
+.code-wrapper .code-header-wrapper {{
+  margin: 0;
 }}
 .code-header {{
   text-align: right;
@@ -242,7 +246,6 @@ think {{
   font-weight: bold;
   display: inline-block;
   color: #6e6e6e;
-  padding-right: .25rem;
   vertical-align: middle;
   padding-left: 5px;
   padding-right: 5px;
@@ -278,7 +281,6 @@ think {{
 }}
 .code-wrapper pre {{
   padding: 0;
-  padding-bottom: 0;
   margin-bottom: 0;
   margin-top: 0;
   width: 100%;
@@ -293,15 +295,15 @@ think {{
     opacity 0.16s ease;
 }}
 .code-wrapper pre code {{
- max-height: 1000px;
- min-height: 0;
- border-bottom-left-radius: 10px;
- border-bottom-right-radius: 10px;
- overflow-y: auto;
- padding: 1.5rem;
- transition:
-   padding-top 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
-   padding-bottom 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+  max-height: 1000px;
+  min-height: 0;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  overflow-y: auto;
+  padding: 1.5rem;
+  transition:
+    padding-top 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+    padding-bottom 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
 }}
 .code-wrapper.code-collapsed pre {{
   grid-template-rows: 0fr;
@@ -358,7 +360,6 @@ think {{
 body.display-timestamp .ts {{
   display: inline;
 }}
-
 
 /* history date separator */
 .msg-date-separator {{
@@ -460,7 +461,7 @@ body.display-timestamp .ts {{
   display: none;
 }}
 #_append_output_ .msg-bot {{
- margin-top: 5px !important;
+  margin-top: 5px !important;
 }}
 
 /* images */
@@ -486,21 +487,25 @@ body.display-timestamp .ts {{
   color: gray;
 }}
 .tool-output .content {{
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.16s ease,
+    visibility 0s linear 0.22s;
   font-family: 'Monaspace Neon';
   padding: 0;
   color: #4d4d4d !important;
   font-size: 0.75rem;
 }}
-.tool-output .tool-output-content {{
-  padding: 0;
-}}
 
 /* Smooth Tool / Tools / Processed workflow accordions.
    A single inner row allows true auto-height animation in CSS without JS
    measurements or arbitrary max-height values. */
-.tool-output .tool-output-content,
-.tool-output .content,
-.tool-output-group > .tool-group-content {{
+.tool-output .tool-output-content {{
+  padding: 0;
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
@@ -544,13 +549,13 @@ body.display-timestamp .ts {{
     transition: none;
   }}
 }}
+
 .tool-output .toggle-cmd-output {{
   cursor: pointer;
   padding-top: 0px;
   display: block;
   color: gray;
 }}
-
 
 .tool-output .tool-output-toggle {{
   display: inline-flex;
@@ -618,7 +623,6 @@ body.display-timestamp .ts {{
   margin-top: 6px;
 }}
 
-
 /* grouped consecutive tool calls */
 .tool-output-group > .tool-group-toggle {{
   max-width: 100%;
@@ -630,6 +634,14 @@ body.display-timestamp .ts {{
   white-space: nowrap;
 }}
 .tool-output-group > .tool-group-content {{
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.16s ease,
+    visibility 0s linear 0.22s;
   margin-top: 0;
   padding-left: 0;
 }}
@@ -658,7 +670,6 @@ body.display-timestamp .ts {{
   margin-top: 2px;
 }}
 
-
 /* extra source */
 .extra-src-icon {{
   padding-right: 4px;
@@ -667,10 +678,7 @@ body.display-timestamp .ts {{
   vertical-align: middle;
 }}
 
-.extra-items-list {{
-  margin: 0;
-  padding: 0;
-}}
+.extra-items-list,
 .extra-items-hidden {{
   margin: 0;
   padding: 0;
@@ -737,7 +745,6 @@ body.display-timestamp .ts {{
   padding: 0;
   margin: auto;
   padding-top: 10px;
-  display: block;
   font-size: 0.75rem;
   width: auto;
 }}
@@ -778,8 +785,12 @@ body.display-timestamp .ts {{
 .extra-src-img-box .img-wrapper:hover img {{
   transform: scale(1.035);
 }}
-.extra-src-video-box,
+.extra-src-video-box {{
+  max-width: 400px;
+  text-align: left;
+}}
 .video-player {{
+  border-radius: 10px;
   max-width: 400px;
   text-align: left;
 }}
@@ -788,18 +799,13 @@ body.display-timestamp .ts {{
 .toggle-expanded {{
   transform: rotateX(180deg);
 }}
-.append_input {{
-  margin: 0;
-  padding: 0;
-}}
+.append_input,
 .append_output {{
   margin: 0;
   padding: 0;
 }}
 .append_live {{
   font-size: 0.8rem;
-}}
-.empty_list {{
 }}
 .hidden {{
   display: block;
@@ -822,10 +828,10 @@ body.display-timestamp .ts {{
 /* loaders */
 @keyframes spin {{
   from {{
-  transform: rotate(0deg);
+    transform: rotate(0deg);
   }}
   to {{
-  transform: rotate(360deg);
+    transform: rotate(360deg);
   }}
 }}
 .spinner {{
@@ -844,30 +850,32 @@ body.display-timestamp .ts {{
   height: 100% !important;
 }}
 .loader-global {{
-   text-align: center;
-   margin-top: 2rem;
-   margin-bottom: 2rem;
-   opacity: 0;
-   visibility: hidden;
-   transition: opacity 0.25s ease, visibility 0s linear 0.25s;
-   will-change: opacity;
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  will-change: opacity;
 }}
 .loader-global.visible {{
-   opacity: 1;
-   visibility: visible;
-   transition: opacity 0.25s ease, visibility 0s linear 0s;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease, visibility 0s linear 0s;
 }}
 .loader-global.reserved {{
-   opacity: 0;
-   visibility: hidden;
+  opacity: 0;
+  visibility: hidden;
 }}
+
 @media (prefers-reduced-motion: reduce) {{
-   .loader-global {{
-      transition: none;
-   }}
+  .loader-global {{
+    transition: none;
+  }}
 }}
+
 .lds-ring {{
-   opacity: 0.75;
+  opacity: 0.75;
 }}
 .loader-global .lds-ring {{
   width: 40px;
@@ -881,76 +889,76 @@ body.display-timestamp .ts {{
 
 /* tips */
 .tips {{
- opacity: 0;
- transition: opacity 1s ease-in-out;
- text-align: center;
- font-size: 0.8rem;
- height: 100vh;
- min-height: 100%;
- bottom: 10px;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  text-align: center;
+  font-size: 0.8rem;
+  height: 100vh;
+  min-height: 100%;
+  bottom: 10px;
 }}
 
 .tips p {{
- display: block;
- position: fixed;
- top: 50%;
- margin: auto;
- width: 100%;
- text-align: center;
+  display: block;
+  position: fixed;
+  top: 50%;
+  margin: auto;
+  width: 100%;
+  text-align: center;
 }}
 .tips.visible {{
- opacity: 1;
-}}
-
-.code-wrapper .code-header-wrapper {{
-  margin: 0;
+  opacity: 1;
 }}
 
 /* Tool / Agents v2 status rows. Only the active row uses the waiting shimmer. */
 .agents-v2-status {{
-    display: block;
-    width: fit-content;
-    max-width: calc(100% - 24px);
-    margin: 6px 12px 12px 12px;
-    padding: 14px 0;
-    min-height: 1.3em;
-    font-size: 1em;
-    line-height: 1.35;
-    opacity: 0.82;
-    transition: opacity 140ms ease, transform 140ms ease;
-    pointer-events: none;
+  display: block;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  margin: 6px 12px 12px 12px;
+  padding: 14px 0;
+  min-height: 1.3em;
+  font-size: 1em;
+  line-height: 1.35;
+  opacity: 0.82;
+  transition: opacity 140ms ease, transform 140ms ease;
+  pointer-events: none;
 }}
 .agents-v2-status__text {{
-    display: inline-block;
-    color: #7f7f7f;
-    white-space: pre-line;
+  display: inline-block;
+  color: #7f7f7f;
+  white-space: pre-line;
 }}
 .agents-v2-status--active .agents-v2-status__text {{
-    background-image: linear-gradient(90deg, #7f7f7f 0%, #7f7f7f 32%, #c5c5c5 48%, #7f7f7f 64%, #7f7f7f 100%);
-    background-size: 240% 100%;
-    background-position: 100% 0;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: agents-v2-status-shimmer 1.8s linear infinite;
+  background-image: linear-gradient(90deg, #7f7f7f 0%, #7f7f7f 32%, #c5c5c5 48%, #7f7f7f 64%, #7f7f7f 100%);
+  background-size: 240% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: agents-v2-status-shimmer 1.8s linear infinite;
 }}
 .agents-v2-status--changing {{
-    opacity: 0.25;
-    transform: translateY(1px);
+  opacity: 0.25;
+  transform: translateY(1px);
 }}
 .agents-v2-status--leave {{
-    opacity: 0;
-    transform: translateY(-2px);
+  opacity: 0;
+  transform: translateY(-2px);
 }}
 @keyframes agents-v2-status-shimmer {{
-    from {{ background-position: 100% 0; }}
-    to {{ background-position: -120% 0; }}
+  from {{
+    background-position: 100% 0;
+  }}
+  to {{
+    background-position: -120% 0;
+  }}
 }}
 @media (prefers-reduced-motion: reduce) {{
-    .agents-v2-status--active .agents-v2-status__text {{ animation: none; }}
-    .agents-v2-status, .agents-v2-status--changing, .agents-v2-status--leave {{ transition: none; }}
-}}
-code {{
-    background: #363737;
-    padding: 6px;
+  .agents-v2-status--active .agents-v2-status__text {{
+    animation: none;
+  }}
+  .agents-v2-status, .agents-v2-status--changing, .agents-v2-status--leave {{
+    transition: none;
+  }}
 }}

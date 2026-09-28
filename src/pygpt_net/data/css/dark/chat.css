@@ -1,134 +1,169 @@
-body {{ 
-    --copy-btn-bg-hover: rgb(0 0 0 / 76%);
-    color: #fff;
-    background-color: #161616;
+/* Chat theme overrides. Base layout and runtime states live in ../chat.css. */
+
+/* Page and links */
+
+body {{
+  --copy-btn-bg-hover: rgb(0 0 0 / 76%);
+  color: #fff;
+  background-color: #161616;
 }}
-::-webkit-scrollbar {{
-    background: transparent;
+
+p {{
+  color: #fff;
 }}
-::-webkit-scrollbar-thumb {{
-    background: #292929;
-}}
-::-webkit-scrollbar-thumb:hover {{
-    background: #ffffff;
-}}
-::-webkit-scrollbar-corner {{
-    background: transparent;
-}}
-p {{ 
-    color: #fff;
-}}
+
 a {{
-    color: #b5c3cd !important;
+  color: #b5c3cd !important;
 }}
+
 a:hover {{
-    color: #ffffff !important;
-    text-decoration: none;
+  color: #ffffff !important;
+  text-decoration: none;
 }}
+
+/* Scrollbars */
+
+::-webkit-scrollbar,
+::-webkit-scrollbar-corner {{
+  background: transparent;
+}}
+
+::-webkit-scrollbar-thumb {{
+  background: #292929;
+}}
+
+::-webkit-scrollbar-thumb:hover {{
+  background: #ffffff;
+}}
+
+/* Messages and authors */
+
 .msg-user {{
-    background: #303030;
-    color: #fff;
+  background: #303030;
+  color: #fff;
 }}
-.msg-user p {{
-    color: #fff;
-}}
-.msg-bot {{
-    color: #fff;
-}}
+
+.msg-user p,
+.msg-bot,
 .msg-bot p {{
-    color: #fff;
+  color: #fff;
 }}
+
 .cmd {{
-    color: #4d4d4d !important;
+  color: #4d4d4d !important;
 }}
+
 .ts {{
-    color: #4d4d4d;
+  color: #4d4d4d;
 }}
-.list {{
+
+.name-bot::before {{
+  background-color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
 }}
+
+.name-user::before {{
+  background-color: silver;
+}}
+
+.msg-box .name-header.name-bot {{
+  color: #cfcfcf;
+}}
+
+.mention-anchor {{
+  color: #79e29a !important;
+  background: rgba(121, 226, 154, 0.10);
+  border-radius: 4px;
+  padding: 1px 3px;
+  font-weight: 600;
+}}
+
+.msg-box.msg-user {{
+  margin-right: 10px;
+}}
+
+/* Code blocks and actions */
+
 code {{
-    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+  color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+  background: #363737;
+  padding: 6px;
 }}
+
 .code-wrapper ::-webkit-scrollbar {{
-    background: transparent;
+  background: transparent;
 }}
 
 .code-wrapper ::-webkit-scrollbar-thumb {{
-    background: #464646;
-}}
-.code-wrapper ::-webkit-scrollbar-thumb:hover {{
-    background: #fff;
-}}
-.code-header-wrapper {{
-    background-color: #303030;
-}}
-.code-header-action {{
-    color: silver !important;
-}}
-.code-header-action:hover {{
-    color: #fff;
-}}
-.code-header-action:hover img {{
-    filter: brightness(130%);
-}}
-.code-header-lang {{
-    color: #686868;
-}}
-.code-wrapper .code-header-action.code-header-copy:hover, 
-.code-wrapper .code-header-action.code-header-collapse:hover {{
-    transform: scale(1.06);
-    background: var(--copy-btn-bg-hover, rgb(0 0 0 / 76%));
-    border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
-}}
-.action-icons a:hover {{
-    filter: brightness(130%);
-}}
-.name-bot::before {{
-    background-color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
-}}
-.name-user::before {{
-    background-color: silver;
-}}
-.tool-output .content {{
-    color: #4d4d4d !important;
-}}
-.tool-output .tool-output-toggle:hover {{
-    background-color: rgba(255, 255, 255, 0.10);
-}}
-.tool-output .tool-output-label {{
-    color: #8d8d8c;
-}}
-.tool-output .tool-output-name {{
-    color: #fff;
+  background: #464646;
 }}
 
-/* loader */
-.lds-ring {{
-   color: #fff;
+.code-wrapper ::-webkit-scrollbar-thumb:hover {{
+  background: #fff;
 }}
+
+.code-header-wrapper {{
+  background-color: #303030;
+}}
+
+.code-header-action {{
+  color: silver !important;
+}}
+
+.code-header-action:hover {{
+  color: #fff;
+}}
+
+.code-header-action:hover img {{
+  filter: brightness(130%);
+}}
+
+.code-header-lang {{
+  color: #686868;
+}}
+
+.code-wrapper .code-header-action.code-header-copy:hover,
+.code-wrapper .code-header-action.code-header-collapse:hover {{
+  transform: scale(1.06);
+  background: var(--copy-btn-bg-hover, rgb(0 0 0 / 76%));
+  border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
+}}
+
+/* Message actions */
+
+.action-icons a:hover {{
+  filter: brightness(130%);
+}}
+
+/* Tool output */
+
+.tool-output .content {{
+  color: #4d4d4d !important;
+}}
+
+.tool-output .tool-output-toggle:hover {{
+  background-color: rgba(255, 255, 255, 0.10);
+}}
+
+.tool-output .tool-output-label {{
+  color: #8d8d8c;
+}}
+
+.tool-output .tool-output-name {{
+  color: #fff;
+}}
+
+/* Loaders and live output */
+
+.lds-ring {{
+  color: #fff;
+}}
+
 .append_live {{
   color: gray;
 }}
 
+/* Tips */
+
 .tips p {{
- color: #5e5e5e;
-}}
-.msg-box .name-header.name-bot {{
-    color: #cfcfcf;
-}}
-code {{
-    background: #363737;
-    padding: 6px;
-}}
-/* Attachment/project mentions in user messages */
-.mention-anchor {{
-    color: #79e29a !important;
-    background: rgba(121, 226, 154, 0.10);
-    border-radius: 4px;
-    padding: 1px 3px;
-    font-weight: 600;
-}}
-/* Align user bubbles to the same right edge as the input row. */
-.msg-box.msg-user {{
-    margin-right: 10px;
+  color: #5e5e5e;
 }}
