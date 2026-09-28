@@ -496,7 +496,7 @@ class NodeTemplateEngine {
 			const mdText = this._escapeHtml(segment.text || '');
 			const agentName = String(segment.agent_name_prefix || '').trim();
 			const agentPrefix = (mdText && agentName)
-				? `<span class='agent-name-prefix'>${this._escapeHtml(agentName)}:</span>`
+				? `<span class='agent-name-prefix'>${this._escapeHtml(agentName)}</span>`
 				: '';
 			const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';
 			const calls = Array.isArray(segment.tool_calls) ? segment.tool_calls.filter(Boolean) : [];
@@ -569,7 +569,7 @@ class NodeTemplateEngine {
 		const timelineHtml = this._renderPartialTimeline(block);
 		const agentName = String(out.agent_name_prefix || '').trim();
 		const agentPrefix = (!timelineHtml && mdText && agentName)
-			? `<span class='agent-name-prefix'>${this._escapeHtml(agentName)}:</span>`
+			? `<span class='agent-name-prefix'>${this._escapeHtml(agentName)}</span>`
 			: '';
 		const mdBlock = timelineHtml ? '' : (mdText ? `${agentPrefix}<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '');
 		const collapsedWorkflowHtml = timelineHtml ? '' : this._renderCollapsedWorkflow(block);

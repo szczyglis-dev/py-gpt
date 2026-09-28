@@ -1323,6 +1323,7 @@ class ChatInput(QTextEdit):
 
         menu = QMenu(self)
         menu.setObjectName("chatInputReasoningEffortMenu")
+        menu.setAttribute(Qt.WA_TranslucentBackground, True)
 
         # Match the context-list section-header convention: disabled + bold.
         # Keeping the header as a menu action lets the native theme provide the

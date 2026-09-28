@@ -7,16 +7,16 @@
 * {{
   font-family: 'Lato' !important;
   selection-background-color: #0765d4;
-  selection-color: #f1f3f4;
+  selection-color: {APP_TEXT_COLOR};
 }}
 
 QMainWindow,
 QSplitter {{
-  background-color: #22242a;
+  background-color: {APP_SURFACE};
 }}
 
 QWebView {{
-  border-radius: 10px;
+  border-radius: {APP_RADIUS};
 }}
 
 /* Buttons */
@@ -24,7 +24,7 @@ QWebView {{
 QPushButton {{
   text-transform: none;
   border: 1px solid #60646c;
-  border-radius: 10px;
+  border-radius: {APP_RADIUS};
 }}
 
 QPushButton:hover {{
@@ -34,49 +34,47 @@ QPushButton:hover {{
 /* Lists, trees and tables */
 
 QHeaderView {{
-  background-color: #2b2d34;
+  background-color: {APP_LIST_BACKGROUND};
 }}
 
 /* Application surfaces */
 
 QFrame,
 QWidget {{
-  background-color: #22242a;
+  background-color: {APP_SURFACE};
 }}
 
 /* Text inputs */
 
 QLineEdit {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   height: 30px;
-  border-radius: 10px;
-  border: none;
-  background-color: #363840;
+  border-radius: {APP_RADIUS};
+  background-color: {APP_CONTROL_BACKGROUND};
 }}
 
 QPlainTextEdit {{
-  background-color: #363840;
+  background-color: {APP_CONTROL_BACKGROUND};
 }}
 
 QTextEdit {{
-  color: #f1f3f4;
-  border-radius: 10px;
-  border: none;
-  background-color: #363840;
+  color: {APP_TEXT_COLOR};
+  border-radius: {APP_RADIUS};
+  background-color: {APP_CONTROL_BACKGROUND};
 }}
 
 /* Lists, trees and tables */
 
 QHeaderView::section {{
-  background-color: #2b2d34;
+  background-color: {APP_LIST_BACKGROUND};
   text-transform: none;
 }}
 
 QListView,
 QTreeView {{
   height: 30px;
-  border-radius: 10px;
-  background-color: #2b2d34;
+  border-radius: {APP_RADIUS};
+  background-color: {APP_LIST_BACKGROUND};
 }}
 
 QListView::indicator,
@@ -91,6 +89,7 @@ QTreeView::indicator {{
 QListView::indicator:checked,
 QTableView::indicator:checked,
 QTreeView::indicator:checked {{
+  image: url(:/icons/checkbox.svg);
   background-color: #c8cbcd;
   border: 1px solid #f0f0f0;
 }}
@@ -110,7 +109,7 @@ QTreeView::item {{
 }}
 
 QListView::item::disabled {{
-  color: #9aa0a6;
+  color: {APP_MUTED_TEXT_COLOR};
   font-weight: bold;
 }}
 
@@ -121,30 +120,38 @@ QTreeView::item:hover:!selected {{
 
 QListView::item:selected,
 QTreeView::item:selected {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   font-weight: bold;
-  selection-color: #f1f3f4;
+  selection-color: {APP_TEXT_COLOR};
 }}
 
 QListView::item:selected:focus,
 QTreeView::item:selected:focus {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   selection-color: #000000;
+}}
+
+/* Explicit check mark for dark themes. Qt can otherwise render the
+ * checked indicator background without a visible tick on some styles. */
+QCheckBox::indicator:checked,
+QGroupBox::indicator:checked {{
+  image: url(:/icons/checkbox.svg);
 }}
 
 /* Combo boxes and value inputs */
 
 QComboBox {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   font-weight: bold;
   height: 30px;
-  border-radius: 10px;
-  background-color: #363840;
+  border-radius: {APP_RADIUS};
+  background-color: {APP_CONTROL_BACKGROUND};
 }}
 
 QComboBox QAbstractItemView {{
-  border: 1px solid rgba(0,0,0,0.18);
-  background: #2b2d34;
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
+  background: {APP_LIST_BACKGROUND};
 }}
 
 QComboBox::item:checked {{
@@ -162,7 +169,7 @@ QComboBox::item:disabled {{
 }}
 
 QComboBox::item:selected:focus {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   selection-color: #000000;
 }}
 
@@ -174,7 +181,7 @@ QDateEdit,
 QDoubleSpinBox,
 QSpinBox,
 QTimeEdit {{
-  background-color: #363840;
+  background-color: {APP_CONTROL_BACKGROUND};
 }}
 
 /* Tabs: preserve orientation-specific selectors used by qt-material.
@@ -182,7 +189,7 @@ QTimeEdit {{
 
 QTabBar {{
   text-transform: none;
-  background-color: #22242a;
+  background-color: {APP_SURFACE};
 }}
 
 QTabBar#inputCompactTabs::tab:bottom:hover:!selected,
@@ -212,14 +219,14 @@ QTabBar::tab:selected {{
 }}
 
 QTabWidget {{
-  background-color: #22242a;
+  background-color: {APP_SURFACE};
 }}
 
 /* Menus */
 
 QMenu {{
-  border-radius: 10px;
-  background-color: #2b2d34;
+  border-radius: {APP_RADIUS};
+  background-color: {APP_LIST_BACKGROUND};
 }}
 
 QMenu::indicator:exclusive {{
@@ -289,20 +296,21 @@ QListView#ComboPopupList::item {{
   min-height: 20px;
   padding: 8px 33px;
   margin: 0;
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
 }}
 
 QListView#ComboPopupList {{
-  border-radius: 10px;
-  background: #2b2d34;
-  border: 2px solid #5f6368;
+  border-radius: {APP_RADIUS};
+  background: {APP_LIST_BACKGROUND};
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
   qproperty-currentSelectedBgColor: #f1f3f4;
   qproperty-currentSelectedTextColor: #000000;
 }}
 
 QListView#ComboPopupList > QWidget#ComboPopupViewport {{
-  background: #2b2d34;
-  border-radius: 10px;
+  background: {APP_LIST_BACKGROUND};
+  border-radius: {APP_RADIUS};
 }}
 
 QListView#ComboPopupList::item:disabled {{
@@ -321,7 +329,7 @@ QListView#ComboPopupList::item:selected:hover {{
 }}
 
 QWidget#ComboPopupWindow {{
-  background: transparent;
+  background: {APP_LIST_BACKGROUND};
   border: 0;
 }}
 
@@ -330,8 +338,8 @@ QWidget#ComboPopupWindow {{
 .code-editor,
 .interpreter-output {{
   font-family: 'Monaspace Neon';
-  background: #2b2d34;
-  color: #f1f3f4;
+  background: {APP_LIST_BACKGROUND};
+  color: {APP_TEXT_COLOR};
 }}
 
 .interpreter-input {{
@@ -341,7 +349,7 @@ QWidget#ComboPopupWindow {{
 .label-chat-status,
 .label-desc,
 .label-help {{
-  color: #9aa0a6;
+  color: {APP_MUTED_TEXT_COLOR};
 }}
 
 .label-link {{
@@ -356,31 +364,35 @@ QWidget#ComboPopupWindow {{
 
 /* Layouts and notepad */
 
-.layout-input {{
-  border-top-right-radius: 10px;
+.layout-input,
+.layout-input:focus {{
+  border-top-right-radius: {APP_RADIUS};
   border-top-left-radius: 0px;
-  border-bottom-right-radius: 10px;
-  border-bottom-left-radius: 10px;
-  background-color: #363840;
+  border-bottom-right-radius: {APP_RADIUS};
+  border-bottom-left-radius: {APP_RADIUS};
+  background-color: {APP_CONTROL_BACKGROUND};
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
 }}
 
 .layout-notepad {{
-  border-top-right-radius: 10px;
+  border-top-right-radius: {APP_RADIUS};
   border-top-left-radius: 0px;
-  border-bottom-right-radius: 10px;
-  border-bottom-left-radius: 10px;
-  background-color: #22242a;
+  border-bottom-right-radius: {APP_RADIUS};
+  border-bottom-left-radius: {APP_RADIUS};
+  background-color: {APP_SURFACE};
 }}
 
 .layout-notepad-output {{
-  background-color: #363840;
-  border: none;
-  border-radius: 10px;
+  background-color: {APP_CONTROL_BACKGROUND};
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
+  border-radius: {APP_RADIUS};
 }}
 
 .layout-output-web {{
-  border-radius: 10px;
-  background-color: #22242a !important;
+  border-radius: {APP_RADIUS};
+  background-color: {APP_SURFACE} !important;
 }}
 
 .layout-search {{
@@ -388,31 +400,31 @@ QWidget#ComboPopupWindow {{
 }}
 
 NotepadWidget {{
-  background-color: #22242a;
+  background-color: {APP_SURFACE};
 }}
 
 /* Context list: qproperty colors are consumed by the row delegate;
  * item rules control hover, selection and disabled-header surfaces. */
 
 .ctx-list {{
-  background-color: #22242a;
+  background-color: {APP_SURFACE};
   qproperty-normalTextColor: #bdc1c6;
-  qproperty-hoverTextColor: #f1f3f4;
-  qproperty-activeTextColor: #f1f3f4;
+  qproperty-hoverTextColor: {APP_TEXT_COLOR};
+  qproperty-activeTextColor: {APP_TEXT_COLOR};
   qproperty-focusedSelectedTextColor: #000000;
-  qproperty-showMoreHoverTextColor: #f1f3f4;
+  qproperty-showMoreHoverTextColor: {APP_TEXT_COLOR};
   selection-background-color: #4a4d56;
 }}
 
 .ctx-list::item:hover:!selected {{
-  color: #f1f3f4;
-  selection-color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
+  selection-color: {APP_TEXT_COLOR};
   background-color: rgba(255, 255, 255, 5);
 }}
 
 .ctx-list::item:hover:selected:focus,
 .ctx-list::item:selected:focus {{
-  background-color: #f1f3f4;
+  background-color: {APP_TEXT_COLOR};
 }}
 
 .ctx-list::item:selected {{
@@ -423,8 +435,8 @@ NotepadWidget {{
 .ctx-list::item:disabled,
 .ctx-list::item:disabled:hover {{
   font-weight: bold;
-  color: #9aa0a6;
-  selection-color: #9aa0a6;
+  color: {APP_MUTED_TEXT_COLOR};
+  selection-color: {APP_MUTED_TEXT_COLOR};
   background-color: transparent;
 }}
 
@@ -437,7 +449,7 @@ NotepadWidget {{
 .toolbox .label-desc[toolboxHover="true"],
 .toolbox .label-help,
 .toolbox .label-help[toolboxHover="true"] {{
-  color: #9aa0a6;
+  color: {APP_MUTED_TEXT_COLOR};
 }}
 
 .toolbox .label-link,
@@ -463,27 +475,28 @@ NotepadWidget {{
 .toolbox QRadioButton[toolboxHover="true"],
 .toolbox QTextEdit[toolboxHover="true"],
 .toolbox QToolButton[toolboxHover="true"] {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
 }}
 
 .toolbox QComboBox {{
   color: #bdc1c6;
   padding-right: 0px;
   margin-right: 0px;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-top-right-radius: {APP_RADIUS};
+  border-bottom-right-radius: {APP_RADIUS};
 }}
 
 .toolbox QComboBox::drop-down {{
   margin-right: 0px;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-top-right-radius: {APP_RADIUS};
+  border-bottom-right-radius: {APP_RADIUS};
 }}
 
 .toolbox QComboBox[toolboxEdgeRight="true"],
 .toolbox QComboBox[toolboxEdgeRight="true"]::drop-down {{
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
+  border-right-width: 0px;
 }}
 
 .toolbox QLineEdit,
@@ -493,6 +506,7 @@ NotepadWidget {{
   border-bottom-right-radius: 0px;
   padding-right: 0px;
   margin-right: 0px;
+  border-right-width: 0px;
 }}
 
 .toolbox QListView,
@@ -503,6 +517,7 @@ NotepadWidget {{
   border-bottom-right-radius: 0px;
   padding-right: 0px;
   margin-right: 0px;
+  border-right-width: 0px;
 }}
 
 .toolbox QListView::item:selected,
@@ -515,17 +530,17 @@ NotepadWidget {{
 
 .toolbox QListView::item:hover,
 .toolbox QTreeView::item:hover {{
-  color: #f1f3f4;
-  selection-color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
+  selection-color: {APP_TEXT_COLOR};
 }}
 
 .toolbox QListView::item:selected:hover,
 .toolbox QListView[toolboxHover="true"]::item:selected,
 .toolbox QTreeView::item:selected:hover,
 .toolbox QTreeView[toolboxHover="true"]::item:selected {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   font-weight: bold;
-  selection-color: #f1f3f4;
+  selection-color: {APP_TEXT_COLOR};
   background-color: #4a4d56;
 }}
 
@@ -536,7 +551,7 @@ NotepadWidget {{
   color: #000000;
   font-weight: bold;
   selection-color: #000000;
-  background-color: #f1f3f4;
+  background-color: {APP_TEXT_COLOR};
 }}
 
 .toolbox QPlainTextEdit {{
@@ -544,13 +559,14 @@ NotepadWidget {{
   border-bottom-right-radius: 0px;
   padding-right: 0px;
   margin-right: 0px;
+  border-right-width: 0px;
 }}
 
 /* Buttons */
 
 QPushButton:disabled,
 QPushButton:disabled:hover {{
-  color: #9aa0a6;
+  color: {APP_MUTED_TEXT_COLOR};
   background-color: #3a3c44;
   border: 1px solid #4a4d56;
 }}
@@ -560,9 +576,9 @@ QPushButton:disabled:hover {{
 .DatabaseList::item:selected,
 .DatabaseList::item:selected:focus {{
   background-color: #454851;
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   selection-background-color: #454851;
-  selection-color: #f1f3f4;
+  selection-color: {APP_TEXT_COLOR};
 }}
 
 .DebugList::item:selected,
@@ -588,19 +604,22 @@ QPushButton:disabled:hover {{
 .file-explorer QScrollBar:vertical,
 .file-explorer QTreeView,
 .file-explorer QTreeView::branch {{
-  background: #22242a;
+  background: {APP_SURFACE};
 }}
 
 /* Layouts and notepad */
 
-.layout-input QTextEdit {{
-  background-color: #363840;
+.layout-input QTextEdit,
+.layout-input QTextEdit:focus {{
+  background-color: {APP_CONTROL_BACKGROUND};
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
 }}
 
 /* File explorer and data viewers */
 
 .file-explorer QHeaderView::section {{
-  background: #22242a;
+  background: {APP_SURFACE};
   padding-top: 6px;
   padding-bottom: 2px;
   height: 20px;
@@ -614,13 +633,13 @@ QPushButton:disabled:hover {{
 }}
 
 .mention-popup {{
-  background: #2b2d34;
+  background: {APP_LIST_BACKGROUND};
   border: 1px solid #484b54;
-  border-radius: 10px;
+  border-radius: {APP_RADIUS};
 }}
 
 .mention-popup-list {{
-  background: #2b2d34;
+  background: {APP_LIST_BACKGROUND};
   border: none;
   padding: 2px;
 }}
@@ -633,7 +652,7 @@ QPushButton:disabled:hover {{
 }}
 
 .mention-popup-list::item:selected {{
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
   background: #3f424b;
 }}
 
@@ -646,7 +665,7 @@ QPushButton:disabled:hover {{
 QMenu#chatInputModelMenu::item:checked,
 QMenu#chatInputModelMenu::item:checked:selected {{
   background-color: #363941;
-  color: #f1f3f4;
+  color: {APP_TEXT_COLOR};
 }}
 
 QPushButton#chatInputModel {{
@@ -724,5 +743,5 @@ NodeEditor {{
 /* Status bar */
 
 #StatusBarTimer {{
-  color: #9aa0a6 !important;
+  color: {APP_MUTED_TEXT_COLOR} !important;
 }}

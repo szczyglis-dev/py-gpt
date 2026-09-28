@@ -11,6 +11,7 @@
 
 import os
 import re
+from xml.etree import ElementTree
 from typing import List, Optional
 
 from pygpt_net.core.types.theme import (
@@ -438,8 +439,33 @@ class Common:
         return ""
 
 
+    def get_css_variables(self, theme: str) -> dict:
+        """Resolve a fresh palette for each theme, including legacy profile XMLs.
+
+        APP_* tokens never come from the process environment: a theme switch
+        must not retain values exported by a previously loaded material theme.
+        """
+        root = self.get_builtin_css_dir()
+        fallback = "light" if self.is_light_theme_id(theme) else "dark"
+        paths = [
+            os.path.join(root, "app.xml"),
+            os.path.join(root, fallback, "app.xml"),
+            os.path.join(root, theme, "app.xml"),
+            self.get_material_theme_path(theme),
+        ]
+        values = {}
+        for path in dict.fromkeys(path for path in paths if path):
+            if not os.path.isfile(path):
+                continue
+            for node in ElementTree.parse(path).getroot():
+                name = node.get("name", "")
+                if name.startswith("app") and node.text:
+                    token = re.sub(r"(?<!^)(?=[A-Z])", "_", name).upper()
+                    values[token] = node.text.strip()
+        return values
+
     @staticmethod
-    def format_css(content: str) -> str:
+    def format_css(content: str, variables: Optional[dict] = None) -> str:
         """Expand Qt-material environment placeholders without requiring normal CSS braces to be escaped."""
         if not content:
             return ""
@@ -450,7 +476,11 @@ class Common:
 
         pattern = re.compile(r"\{([A-Z][A-Z0-9_]*)\}")
         value = pattern.sub(
-            lambda match: os.environ.get(match.group(1), match.group(0)),
+            lambda match: (variables or {}).get(
+                match.group(1),
+                match.group(0) if match.group(1).startswith("APP_")
+                else os.environ.get(match.group(1), match.group(0)),
+            ),
             value,
         )
         return value.replace(open_token, "{").replace(close_token, "}")

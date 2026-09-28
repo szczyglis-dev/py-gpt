@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 10:00:00                  #
+# Updated Date: 2026.09.28 11:35:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
@@ -14,7 +14,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QPushButton
 
 from pygpt_net.core.types import MODE_AGENT_V2
-from pygpt_net.ui.widget.element.labels import ElideTitleLabel, HelpLabel
+from pygpt_net.ui.widget.element.labels import TitleLabel, HelpLabel
 from pygpt_net.ui.widget.option.prompt import PromptTextarea
 from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
@@ -80,7 +80,8 @@ class Prompt:
         # Agents v2 runtime strategy selector. Persist machine-friendly values in
         # config while keeping the internal PRIMARY_AGENT strategy user-facing as
         # ``Chat``. The whole row is visible only in Agents v2 mode.
-        mode_label = ElideTitleLabel(trans("agent.v2.mode.label"))
+        mode_label = TitleLabel(trans("agent.v2.mode.label"))
+        mode_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         mode_combo = NoScrollCombo()
         mode_combo.setSearchEnabled(False)
         for agent in w.core.agents_v2.editor.get_agents():

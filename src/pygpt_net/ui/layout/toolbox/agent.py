@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from pygpt_net.ui.widget.element.labels import ElideLabel
+from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
@@ -46,7 +46,7 @@ class Agent:
         container = QWidget(window)
 
         option = window.controller.agent.legacy.options["agent.iterations"]
-        nodes['agent.iterations.label'] = ElideLabel(trans("toolbox.agent.iterations.label"), window=container)
+        nodes['agent.iterations.label'] = TitleLabel(trans("toolbox.agent.iterations.label"), window=container)
         nodes['agent.iterations'] = OptionSlider(window, 'global', 'agent.iterations', option)
         cfg['agent.iterations'] = nodes['agent.iterations']
 

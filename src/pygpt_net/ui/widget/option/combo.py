@@ -516,6 +516,7 @@ class SearchableCombo(SeparatorComboBox):
         """Create a persistent editor used for normal display; real search input lives in the popup header."""
         self.setEditable(True)
         line = QLineEdit(self)
+        line.setObjectName("comboDisplayEditor")
         line.setPlaceholderText("")
         line.setClearButtonEnabled(False)
         line.setReadOnly(True)

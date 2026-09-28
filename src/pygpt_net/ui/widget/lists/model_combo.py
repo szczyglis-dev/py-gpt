@@ -157,6 +157,7 @@ class CompactModelCombo(QPushButton):
 
         menu = QMenu(self)
         menu.setObjectName("chatInputModelMenu")
+        menu.setAttribute(Qt.WA_TranslucentBackground, True)
         group = QActionGroup(menu)
         group.setExclusive(True)
 

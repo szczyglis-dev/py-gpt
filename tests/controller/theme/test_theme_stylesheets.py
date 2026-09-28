@@ -11,7 +11,7 @@ THEMES = sorted(CSS_ROOT.glob("*/app.css"))
 
 def rules(path):
     text = re.sub(r"/\*.*?\*/", "", path.read_text(), flags=re.S)
-    text = re.sub(r"\{QTMATERIAL_\w+\}", "material_value", text)
+    text = re.sub(r"\{(?:QTMATERIAL|APP)_\w+\}", "theme_value", text)
     text = text.replace("{{", "{").replace("}}", "}")
     for selectors, body in re.findall(r"([^{}]+)\{([^{}]*)\}", text):
         declarations = [part.strip().split(":", 1) for part in body.split(";") if part.strip()]

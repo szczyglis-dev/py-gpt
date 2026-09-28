@@ -7,4 +7,13 @@
   <color name="secondaryDarkColor">#080404</color>
   <color name="primaryTextColor">#ffd8d8</color>
   <color name="secondaryTextColor">#d89b9b</color>
+  <!-- Semantic application palette; consumed by {APP_*} QSS tokens. -->
+  <color name="appSurface">#0b0707</color>
+  <color name="appControlBackground">#1c1010</color>
+  <color name="appListBackground">#170d0d</color>
+  <color name="appTextColor">#ffd8d8</color>
+  <color name="appMutedTextColor">#986f6f</color>
+  <color name="appBorderColor">#422b27</color>
+  <color name="appFocusBorderColor">#735046</color>
+  <color name="appFocusBackground">#30201d</color>
 </resources>

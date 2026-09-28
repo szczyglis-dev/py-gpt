@@ -267,7 +267,9 @@ class Theme:
         content = "".join(part for part in content_parts if part)
         if content:
             stylesheet = window.styleSheet()
-            window.setStyleSheet(stylesheet + self.common.format_css(content))
+            window.setStyleSheet(stylesheet + self.common.format_css(
+                content, self.common.get_css_variables(name)
+            ))
 
     @staticmethod
     def _file_signature(path: str):
@@ -289,6 +291,7 @@ class Theme:
             cfg.get("layout.density"),
             bool(is_light),
             self._file_signature(material_path) if material_path else None,
+            tuple(sorted(self.common.get_css_variables(name).items())),
         ]
 
         for path in self.common.get_theme_asset_paths(name, "app.css"):

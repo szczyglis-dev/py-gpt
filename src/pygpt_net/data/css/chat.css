@@ -208,7 +208,7 @@ think {{
 .agent-name-prefix {{
   white-space: nowrap;
   font-weight: 700;
-  color: #a4a4a4;
+  color: #6e6e6e;
 }}
 
 /* code wrapper */
@@ -575,7 +575,15 @@ body.display-timestamp .ts {{
   line-height: 1.3;
   text-align: left;
   cursor: pointer !important;
-  transition: background-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    padding-left 0.15s ease;
+}}
+.tool-output .tool-output-toggle[aria-expanded="false"] {{
+  padding-left: 0;
+}}
+.tool-output .tool-output-toggle[aria-expanded="false"]:hover {{
+  padding-left: 6px;
 }}
 .tool-output .tool-output-toggle * {{
   cursor: pointer !important;
