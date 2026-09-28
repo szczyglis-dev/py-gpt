@@ -21,6 +21,23 @@ a:hover {{
   text-decoration: none;
 }}
 
+/* Conversation links */
+
+.msg-box .msg a:not(.msg-copy-btn) {{
+  color: inherit !important;
+}}
+
+.msg-box .msg a:not(.msg-copy-btn):hover {{
+  color: #bdc1c6 !important;
+}}
+
+/* Extra/footer links keep the theme link palette. */
+.msg-box .msg .msg-extra a,
+.msg-box .msg .msg-tool-extra a {{
+  color: #bdc1c6 !important;
+}}
+
+
 /* Scrollbars */
 
 ::-webkit-scrollbar,

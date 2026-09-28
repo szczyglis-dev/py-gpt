@@ -55,11 +55,38 @@ video {{
 /* base */
 a {{
   text-decoration: none;
-  color: #a1b5c4 !important;
 }}
 a:hover {{
   cursor: pointer !important;
-  text-decoration: underline;
+  text-decoration: none;
+}}
+
+/* Conversation-text links: colors are provided by each theme. */
+.msg-box .msg a:not(.msg-copy-btn) {{
+  text-decoration: none !important;
+  border-bottom: 1px dotted currentColor;
+}}
+.msg-box .msg a:not(.msg-copy-btn):hover {{
+  text-decoration: none !important;
+  border-bottom-color: currentColor;
+}}
+
+/* Technical/footer links are not part of the conversation text. */
+.msg-extra a,
+.msg-tool-extra a,
+.action-icons a,
+.action-icons a:hover,
+.msg-copy-btn,
+.msg-copy-btn:hover {{
+  text-decoration: none !important;
+  border-bottom: none !important;
+}}
+
+/* Extra/footer text links get a subtle dotted underline only on hover. */
+.msg-extra a:hover,
+.msg-tool-extra a:hover {{
+  text-decoration: none !important;
+  border-bottom: 1px dotted currentColor !important;
 }}
 p {{
   margin-top: 0.15rem;
@@ -435,9 +462,6 @@ body.display-timestamp .ts {{
 .msg-extra:not(.msg-extra .msg-extra):not(:empty):not(:has(.msg-extra)),
 .msg-extra:not(.msg-extra .msg-extra):has(.msg-extra:not(:has(.msg-extra)):not(:empty)) {{
   padding-top: 10px;
-}}
-.msg-extra a {{
-  color: gray;
 }}
 .msg > .msg-extra {{
   padding-top: 0.5rem;
