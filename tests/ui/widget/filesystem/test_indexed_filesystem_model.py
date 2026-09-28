@@ -33,11 +33,19 @@ def test_index_status_is_cached_by_file_id():
 def test_refresh_path_clears_cache_and_emits_only_for_valid_index():
     valid = MagicMock()
     valid.isValid.return_value = True
-    widget = SimpleNamespace(index=MagicMock(return_value=valid), _status_cache={1: "x"}, dataChanged=MagicMock())
+    hint_key = IndexedFileSystemModel._children_hint_key("/a")
+    widget = SimpleNamespace(
+        index=MagicMock(return_value=valid),
+        _status_cache={1: "x"},
+        _children_hint_cache={hint_key: True, "other": False},
+        _children_hint_key=IndexedFileSystemModel._children_hint_key,
+        dataChanged=MagicMock(),
+    )
 
     IndexedFileSystemModel.refresh_path(widget, "/a")
 
     assert widget._status_cache == {}
+    assert widget._children_hint_cache == {"other": False}
     widget.dataChanged.emit.assert_called_once_with(valid, valid)
 
 
