@@ -289,7 +289,7 @@ Options
 
 * ``Lock incompatible modes``: Prevents an existing conversation from being reused when you switch to a mode whose context format is incompatible with it. PyGPT creates a new context instead. Default: True.
 
-* ``Open URLs in built-in browser``: Opens clicked links inside PyGPT's built-in Chromium browser rather than handing them to the operating system's default browser. Default: False.
+* ``Open URLs in built-in browser``: Opens clicked links inside PyGPT's built-in Chromium browser rather than handing them to the operating system's default browser. Default: True.
 
 Context
 ~~~~~~~
