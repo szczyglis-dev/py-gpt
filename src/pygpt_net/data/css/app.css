@@ -132,8 +132,8 @@ QListView#ComboPopupList {{
 }}
 QMenu#chatInputModelMenu,
 QMenu#chatInputReasoningEffortMenu {{
-  border: 1px solid {APP_BORDER_COLOR};
-  border-width: 1px;
+  border: none;
+  border-width: 0px;
   border-radius: {APP_RADIUS};
   padding: 4px;
 }}

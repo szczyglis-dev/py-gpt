@@ -9,6 +9,8 @@
 # Updated Date: 2026.09.18 16:35:00                  #
 # ================================================== #
 
+import os
+
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QAction, QActionGroup, QIcon
 from PySide6.QtWidgets import QPushButton, QMenu
@@ -157,7 +159,15 @@ class CompactModelCombo(QPushButton):
 
         menu = QMenu(self)
         menu.setObjectName("chatInputModelMenu")
-        menu.setAttribute(Qt.WA_TranslucentBackground, True)
+        if os.name == "nt":
+            # A translucent top-level QMenu can get a thick native frame/shadow
+            # on Windows. Keep this compact popup opaque and frameless instead;
+            # its background and outline are provided entirely by QSS.
+            menu.setAttribute(Qt.WA_TranslucentBackground, False)
+            menu.setWindowFlag(Qt.FramelessWindowHint, True)
+            # menu.setWindowFlag(Qt.NoDropShadowWindowHint, True)
+        else:
+            menu.setAttribute(Qt.WA_TranslucentBackground, True)
         group = QActionGroup(menu)
         group.setExclusive(True)
 
