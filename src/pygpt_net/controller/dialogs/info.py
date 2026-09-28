@@ -73,7 +73,6 @@ class Info:
         if url:
             if self.window.core.config.get("ctx.urls.internal", False):
                 self.window.tools.get("web_browser").set_url(url)
-                self.window.tools.get("web_browser").auto_open(load=False)
             else:
                 QDesktopServices.openUrl(QUrl(url))
 

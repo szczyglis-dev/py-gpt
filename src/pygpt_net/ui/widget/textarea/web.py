@@ -431,7 +431,6 @@ class ChatWebOutput(QWebEngineView):
             # Always force the internal browser for this context-menu action,
             # independently from the global external/internal URL preference.
             tool.set_url(link.target)
-            tool.auto_open(load=False)
         except Exception as exc:
             self.window.core.debug.error(exc)
 

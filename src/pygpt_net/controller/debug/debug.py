@@ -75,7 +75,6 @@ class Debug(QObject):
         :param url: debug URL
         """
         self.window.tools.get("web_browser").set_url(url)
-        self.window.tools.get("web_browser").auto_open(load=False)
 
     def open_dev_tools(self) -> None:
         """

@@ -517,7 +517,9 @@ body {
         return self.dialog_id
 
     def set_url(self, url: str):
-        self.runtime_call("canvas_open", {"url": url, "__ui": True})
+        """Show/focus Canvas and then open *url* in the internal browser."""
+        self.open(load=False)
+        return self.runtime_call("canvas_open", {"url": url, "__ui": True})
 
     def open_address(self, value: str):
         """Open an address-bar value, converting plain text to a web search."""
