@@ -595,6 +595,31 @@ body {
         # the background and the user keeps typing in Chat uninterrupted.
         return "tab"
 
+    def ensure_visible_surface(self):
+        """Show Canvas only when its tab is currently not visible.
+
+        ``canvas_set_html`` produces user-facing visual output, so a hidden or
+        unselected Canvas should be surfaced the same way as opening an internal
+        URL.  If Canvas is already visible, preserve the user's active column.
+        """
+        self._ensure_surface()
+        tabs = self.window.controller.tabs
+        tab = tabs.get_first_tab_by_tool(self.id)
+
+        if tab is not None:
+            selected = tabs.get_current_by_column(tab.column_idx)
+            selected_here = (
+                selected is not None
+                and getattr(selected, "pid", None) == getattr(tab, "pid", None)
+            )
+            column_visible = tab.column_idx == 0 or tabs.is_split_screen_enabled()
+            if selected_here and column_visible:
+                return tab
+
+        # Missing tab, hidden second column, or another tab selected in Canvas'
+        # column: mirror set_url()/internal-link behavior and reveal/focus Canvas.
+        return self.open(load=False)
+
     def close(self):
         """Hide/close the Canvas tab UI while preserving browser runtime."""
         return self.close_surface()
@@ -967,7 +992,7 @@ body {
         return self.current_state()
 
     def _cmd_set_html(self, p):
-        self.ensure_agent_surface()
+        self.ensure_visible_surface()
         if (self._sandbox_enabled() and p.get("__agent")
                 and not self.agent_backend_locked and self.backend != "playwright"):
             self._set_backend("playwright")
