@@ -104,6 +104,17 @@ class UIManager {
 		const arrow = button.querySelector('.extra-items-toggle-arrow');
 		if (arrow) arrow.classList.toggle('toggle-expanded', isHidden);
 
+		const label = button.querySelector('.extra-items-toggle-label');
+		if (label) {
+			if (!button.dataset.collapsedLabel) {
+				button.dataset.collapsedLabel = label.textContent || '';
+			}
+			const lessLabel = (typeof window !== 'undefined' && window.LOCALE_LESS)
+				? String(window.LOCALE_LESS)
+				: 'Less';
+			label.textContent = isHidden ? lessLabel : button.dataset.collapsedLabel;
+		}
+
 		const expandTitle = (typeof window !== 'undefined' && window.LOCALE_EXPAND)
 			? String(window.LOCALE_EXPAND)
 			: 'Expand';

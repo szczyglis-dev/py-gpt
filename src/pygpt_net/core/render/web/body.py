@@ -870,6 +870,7 @@ class Body:
         t_preview = trans('ctx.extra.preview')
         t_run = trans('ctx.extra.run')
         t_more_items = trans("ctx.extra.more_items")
+        t_less = trans("ctx.list.less")
         t_doc_prefix = trans("chat.prefix.doc")
         t_tool = trans("ctx.tool.label")
         t_tools = trans("ctx.tool.group.label")
@@ -883,6 +884,7 @@ class Body:
             f'window.LOCALE_PREVIEW={_json_dumps(t_preview)};'
             f'window.LOCALE_RUN={_json_dumps(t_run)};'
             f'window.LOCALE_MORE_ITEMS={_json_dumps(t_more_items)};'
+            f'window.LOCALE_LESS={_json_dumps(t_less)};'
             f'window.LOCALE_COLLAPSE={_json_dumps(t_collapse)};'
             f'window.LOCALE_EXPAND={_json_dumps(t_expand)};'
             f'window.LOCALE_DOC_PREFIX={_json_dumps(t_doc_prefix)};'
