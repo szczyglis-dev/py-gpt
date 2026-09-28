@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.33** | build: **2026-09-27** | Python: **>=3.10, <3.14**
+Release: **2.8.34** | build: **2026-09-28** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -2489,6 +2489,18 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.34 (2026-09-28)**
+
+- Fixed LiteLLM issues by downgrading to version 1.81.16; fixed issue #214.
+- Added line numbers and annotations to file previews in the Files tab.
+- Added a recent chats list to the tray menu.
+- Added agent final result summaries to system notifications.
+- Added support for the `.agents` directory convention in Agents and Custom Agents.
+- Optimized file search in the Files tab.
+- Improved annotation handling.
+- Improved markers in Notepad.
+- Improved CSS/QSS styling.
 
 **2.8.33 (2026-09-27)**
 

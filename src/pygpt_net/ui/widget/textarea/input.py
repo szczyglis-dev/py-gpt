@@ -1323,7 +1323,15 @@ class ChatInput(QTextEdit):
 
         menu = QMenu(self)
         menu.setObjectName("chatInputReasoningEffortMenu")
-        menu.setAttribute(Qt.WA_TranslucentBackground, True)
+        if os.name == "nt":
+            # A translucent top-level QMenu can get a thick native frame/shadow
+            # on Windows. Keep this compact popup opaque and frameless instead;
+            # its background and outline are provided entirely by QSS.
+            menu.setAttribute(Qt.WA_TranslucentBackground, False)
+            menu.setWindowFlag(Qt.FramelessWindowHint, True)
+            # menu.setWindowFlag(Qt.NoDropShadowWindowHint, True)
+        else:
+            menu.setAttribute(Qt.WA_TranslucentBackground, True)
 
         # Match the context-list section-header convention: disabled + bold.
         # Keeping the header as a menu action lets the native theme provide the
