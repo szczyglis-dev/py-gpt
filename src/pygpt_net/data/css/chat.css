@@ -82,6 +82,13 @@ a:hover {{
   border-bottom: none !important;
 }}
 
+/* Code-header hrefs are controls, not conversation links. */
+.code-header-wrapper a,
+.code-header-wrapper a:hover {{
+  text-decoration: none !important;
+  border-bottom: none !important;
+}}
+
 /* Extra/footer text links get a subtle dotted underline only on hover. */
 .msg-extra a:hover,
 .msg-tool-extra a:hover {{
