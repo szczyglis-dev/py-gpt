@@ -143,6 +143,8 @@ class CtxItem:
     # Ephemeral copies of provider/tool generated files prepared for local
     # execution backends. Deliberately omitted from to_dict()/from_dict().
     runtime_artifacts: list = field(default_factory=list, repr=False)
+    # Runtime-only annotation delivery receipts; never persisted by to_dict().
+    _sent_annotation_batches: list = field(default_factory=list, repr=False, compare=False)
     # Exact fully composed system prompt used by the current Agents v2 main
     # actor. Runtime-only: intentionally omitted from to_dict()/from_dict().
     agents_v2_system_prompt: str = field(default="", repr=False)
@@ -231,6 +233,7 @@ class CtxItem:
         # __init__, so dataclass defaults are not assigned automatically.
         self.transport_images = []
         self.runtime_artifacts = []
+        self._sent_annotation_batches = []
         # Runtime-only exact prompt passed to the Agents v2 main actor.
         self.agents_v2_system_prompt = ""
         self.index_meta = {}  # llama-index metadata ctx used

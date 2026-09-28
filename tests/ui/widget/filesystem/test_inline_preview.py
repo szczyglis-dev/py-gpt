@@ -361,3 +361,130 @@ def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
     panel.close()
     panel.deleteLater()
     wait()
+
+
+def test_gutter_tracks_lines_zoom_and_keeps_finder_highlights(app, tmp_path):
+    from PySide6.QtGui import QTextCursor
+    panel = PreviewPanel(MagicMock(), str(tmp_path))
+    path = tmp_path / 'lines.txt'
+    path.write_text('\n'.join(['needle'] * 9))
+    panel.open_file(str(path))
+    panel.show()
+    wait()
+    editor = panel.viewer
+    width = editor.line_numbers.width()
+    editor.appendPlainText('line ten')
+    assert editor.line_numbers.width() > width
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.End)
+    editor.setTextCursor(cursor)
+    editor.finder.find('needle')
+    wait(150)
+    assert len(editor.extraSelections()) == 9  # only search matches highlight the code
+    editor.finder.clear_search()
+    assert editor.extraSelections() == []
+    width = editor.line_numbers.width()
+    editor.on_zoom_changed(30)
+    assert editor.line_numbers.width() > width
+    panel.close()
+    panel.deleteLater()
+    wait()
+
+
+def test_file_annotation_popup_captures_relative_path_and_selected_lines(app, tmp_path, monkeypatch):
+    from PySide6.QtGui import QTextCursor
+    from PySide6.QtWidgets import QDialog, QPlainTextEdit
+    from pygpt_net.ui.widget.textarea.annotations import ChatAnnotations
+    monkeypatch.setattr('pygpt_net.ui.widget.filesystem.preview.text.trans', lambda key, **kwargs: key)
+    window = MagicMock()
+    window.core.filesystem.get_data_dir.return_value = str(tmp_path)
+    session = ChatAnnotations(window, 1)
+    window.controller.chat.text.get_annotations.return_value = session
+    folder = tmp_path / 'nested'
+    folder.mkdir()
+    path = folder / 'example.txt'
+    path.write_text('first\nZażółć 😀\nthird')
+    panel = PreviewPanel(window, str(folder))
+    panel.open_file(str(path))
+    editor = panel.viewer
+    cursor = editor.textCursor()
+    cursor.setPosition(6)
+    cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+
+    def accept():
+        dialog = editor.findChild(QDialog)
+        dialog.findChild(QPlainTextEdit).setPlainText('Popraw tę linię')
+        dialog.accept()
+
+    QTimer.singleShot(0, accept)
+    editor.annotate(cursor)
+    item = session.annotations[0]
+    assert item['path'] == 'nested/example.txt'  # relative to workdir, not browsed folder
+    assert (item['start_line'], item['end_line']) == (2, 2)
+    assert item['selection'] == 'Zażółć 😀\n'
+    panel.show_empty()
+    assert 'Popraw tę linię' in session.prompt_block()
+    assert 'nested/example.txt' in session.prompt_block()
+    panel.deleteLater()
+    wait()
+
+
+def test_line_number_spacing_and_font_are_configurable(app, tmp_path, monkeypatch):
+    from PySide6.QtGui import QFontMetrics
+    from pygpt_net.ui.widget.filesystem.preview import text as module
+    monkeypatch.setattr(module, 'LINE_NUMBER_PADDING', 13)
+    monkeypatch.setattr(module, 'LINE_NUMBER_TEXT_GAP', 5)
+    monkeypatch.setattr(module, 'LINE_NUMBER_FONT_SCALE', 0.75)
+    panel = PreviewPanel(MagicMock(), str(tmp_path))
+    path = tmp_path / 'padding.txt'
+    path.write_text('code')
+    panel.open_file(str(path))
+    editor = panel.viewer
+    font = editor.line_numbers.number_font()
+    assert QFontMetrics(font).height() < editor.fontMetrics().height()
+    assert editor.line_numbers.width() == 26 + QFontMetrics(font).horizontalAdvance('9')
+    assert editor.viewportMargins().left() == editor.line_numbers.width() + 5
+    panel.deleteLater()
+    wait()
+
+
+def test_annotation_gutter_follows_add_remove_delivery_and_conversation(app, tmp_path, monkeypatch):
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.annotations.trans', lambda key, **kwargs: key)
+    from pygpt_net.ui.widget.textarea.annotations import ChatAnnotations, clear_sent_annotations
+    from pygpt_net.item.ctx import CtxItem
+    window = MagicMock()
+    window.core.filesystem.get_data_dir.return_value = str(tmp_path)
+    session = ChatAnnotations(window, 1)
+    window.controller.chat.text.get_annotations.return_value = session
+    path = tmp_path / 'notes.txt'
+    path.write_text('one\ntwo\nthree')
+    panel = PreviewPanel(window, str(tmp_path))
+    panel.open_file(str(path))
+    panel.show()
+    editor = panel.viewer
+    session.add_file_annotation('other.txt', 1, 3, 'other', 'ignore')
+    item = session.add_file_annotation('notes.txt', 1, 2, 'one\ntwo', 'fix')
+    wait(200)
+    assert editor.annotation_ranges == ((1, 2),)
+    session._remove_annotation(item['id'])
+    wait(200)
+    assert editor.annotation_ranges == ()
+    session.add_file_annotation('notes.txt', 2, 3, 'two\nthree', 'fix')
+    wait(200)
+    assert editor.annotation_ranges == ((2, 3),)
+    ctx = CtxItem()
+    session.prompt_block(ctx)
+    clear_sent_annotations(ctx)
+    wait(200)
+    assert editor.annotation_ranges == ()
+    session.add_file_annotation('notes.txt', 1, 1, 'one', 'keep')
+    wait(200)
+    assert editor.annotation_ranges == ((1, 1),)
+    window.controller.chat.text.get_annotations.return_value = ChatAnnotations(window, 2)
+    wait(200)
+    assert editor.annotation_ranges == ()
+    panel.show_empty()
+    assert not editor.annotation_timer.isActive()
+    panel.close()
+    panel.deleteLater()
+    wait()

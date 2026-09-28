@@ -242,7 +242,7 @@ class Text:
         )
         annotations = self.annotations.get(getattr(meta, "id", None))
         if annotations is not None:
-            block = annotations.prompt_block()
+            block = annotations.prompt_block(ctx=ctx)
             if block:
                 sys_prompt = (sys_prompt or "").rstrip() + "\n\n" + block
                 sys_prompt_raw = (sys_prompt_raw or "").rstrip() + "\n\n" + block

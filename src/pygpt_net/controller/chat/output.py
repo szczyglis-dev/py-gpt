@@ -110,6 +110,12 @@ class Output:
         dispatch = self.window.dispatch
         log = self.window.controller.chat.log
 
+        # Model output confirms delivery. Never consume annotations while merely
+        # preparing a prompt or obtaining a lazy streaming iterator.
+        if ctx.output or ctx.tool_calls or ctx.cmds_before:
+            from pygpt_net.ui.widget.textarea.annotations import clear_sent_annotations
+            clear_sent_annotations(ctx)
+
         # Normalize both native tool calls and legacy <tool> syntax into
         # structured commands/tasks. Tool syntax is removed from visible output;
         # the request itself is rendered later from ctx_item_partial_task.

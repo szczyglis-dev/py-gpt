@@ -63,3 +63,89 @@ def test_overlay_only_renders_into_views_of_own_conversation():
     own.page().runJavaScript.assert_called_once()
     other.page.assert_not_called()
     assert '__PYGPT_CHAT_ANNOTATION_REMOVE__:' in own.page().runJavaScript.call_args.args[0]
+
+
+def test_file_annotations_are_scoped_in_prompt_and_excluded_from_chat_overlay():
+    session = ChatAnnotations(MagicMock(), 7)
+    session.add_annotation(selection='chat text', note='chat note')
+    item = session.add_file_annotation('src/example.py', 2, 4, 'file text', 'file note')
+    prompt = session.prompt_block()
+    assert 'FILES PREVIEW USER ANNOTATIONS (source=files; conversation=7)' in prompt
+    assert 'src/example.py' in prompt
+    assert 'chat note' in prompt
+    assert 'file note' not in session._annotation_overlay_script()
+    assert ChatAnnotations(MagicMock(), 8).prompt_block() == ''
+    session._remove_annotation(item['id'])
+    assert 'file note' not in session.prompt_block()
+    assert 'chat note' in session.prompt_block()
+
+
+@pytest.mark.parametrize('source,flag', [
+    ('canvas_web', 'CLEAR_ANNOTATION_CANVAS'),
+    ('chat', 'CLEAR_ANNOTATION_CTX'),
+    ('files', 'CLEAR_ANNOTATION_FILE'),
+])
+@pytest.mark.parametrize('enabled', [True, False])
+def test_clear_only_delivered_annotations_and_refresh_popups(monkeypatch, source, flag, enabled):
+    from pygpt_net.ui.widget.textarea import annotations as module
+    monkeypatch.setattr(module, flag, enabled)
+    session = ChatAnnotations(MagicMock(), 1)
+    session._render_annotations = MagicMock()
+    session.annotations = [dict(id=1, source=source, note='sent')]
+    ctx = SimpleNamespace()
+    module.track_sent_annotations(ctx, session, session.annotations)
+    assert len(session.annotations) == 1  # preparing a request never consumes it
+    session.annotations.append(dict(id=2, source=source, note='added while sending'))
+    module.clear_sent_annotations(ctx)
+    assert [item['id'] for item in session.annotations] == ([2] if enabled else [1, 2])
+    assert session._render_annotations.call_count == int(enabled)
+    module.clear_sent_annotations(ctx)
+    assert session._render_annotations.call_count == int(enabled)
+
+
+def test_prompt_tracks_only_included_annotations_and_keeps_other_conversations():
+    from pygpt_net.ui.widget.textarea.annotations import clear_sent_annotations
+    session = ChatAnnotations(MagicMock(), 1)
+    other = ChatAnnotations(MagicMock(), 2)
+    for index in range(25):
+        session.add_file_annotation('file.py', index + 1, index + 1, 'text', str(index))
+    other.add_file_annotation('other.py', 1, 1, 'text', 'keep')
+    ctx = SimpleNamespace()
+    prompt = session.prompt_block(ctx)
+    assert len(session.annotations) == 25
+    assert '"note": "24"' in prompt
+    clear_sent_annotations(ctx)
+    assert [item['note'] for item in session.annotations] == [str(i) for i in range(5)]
+    assert len(other.annotations) == 1
+
+
+def test_canvas_prompt_is_preserved_until_delivery_and_reset_ids_are_safe():
+    from pygpt_net.item.ctx import CtxItem
+    from pygpt_net.plugin.canvas_web.plugin import Plugin
+    from pygpt_net.ui.widget.textarea.annotations import clear_sent_annotations
+    window = MagicMock()
+    browser = WebBrowser()
+    browser.annotations = [dict(id=1, time=1, source='canvas_web', note='sent note')]
+    browser._render_annotations = MagicMock()
+    window.tools.get.return_value = browser
+    ctx = CtxItem()
+    prompt = Plugin.append_runtime_context(SimpleNamespace(window=window), 'system', ctx)
+    assert 'sent note' in prompt
+    assert len(browser.annotations) == 1
+    # A runtime/profile reset may reuse the sequence number while a response is pending.
+    browser.annotations = [dict(id=1, time=2, source='canvas_web', note='new runtime')]
+    clear_sent_annotations(ctx)
+    assert browser.annotations[0]['note'] == 'new runtime'
+    browser._render_annotations.assert_not_called()
+    assert '_sent_annotation_batches' not in ctx.to_dict()
+
+
+def test_annotation_prompt_directs_feedback_to_its_source():
+    session = ChatAnnotations(MagicMock(), 1)
+    session.add_annotation(selection='answer', note='fix wording')
+    session.add_file_annotation('src/app.py', 2, 3, 'code', 'fix code')
+    prompt = session.prompt_block()
+    assert 'Apply the feedback to your answer in chat' in prompt
+    assert 'Apply the feedback to those files using file tools when changes are requested' in prompt
+    assert 'Do not call canvas_set_html or other canvas tools merely to handle them' in prompt
+    assert 'fix wording' in prompt and 'fix code' in prompt

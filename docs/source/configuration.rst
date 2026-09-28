@@ -639,7 +639,7 @@ Use ``Config -> Agent Workflows...`` (or the settings icon in the Agents toolbox
 
 An iteration is an internal reasoning/tool-call cycle, not a user message turn. Increasing or disabling iteration limits can increase latency, token/API usage, and tool execution. The Chat/Orchestrator worker limit controls the number of workers created in those workflows; ``0`` removes that limit. Swarm is not constrained by this setting and uses its separately declared worker count.
 
-Legacy agents
+Custom agents
 ^^^^^^^^^^^^^
 
 * ``Max steps (per iteration)``: Limits how many action/reasoning steps a Custom agent may perform within one iteration while working toward its goal. Raising it allows more work per iteration but can increase latency and API usage. Default: 10.
@@ -665,7 +665,7 @@ Options
 
 * ``Display full agent output in chat view``: Controls whether the complete output from Custom agents mode is rendered in the chat view. This setting is kept for older agent implementations and does not control the Agents tool-chain display. Default: True.
 
-* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a Custom agent finishes or achieves its goal. This setting does not control Agents workflow status or tool-chain rendering. Default: False.
+* ``Display a tray notification when the goal is achieved.``: Shows a system tray notification when a Custom agent finishes or achieves its goal. This setting does not control Agents workflow status or tool-chain rendering. Default: True.
 
 Accessibility
 ~~~~~~~~~~~~~

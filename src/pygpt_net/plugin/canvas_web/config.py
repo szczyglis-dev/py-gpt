@@ -74,7 +74,7 @@ class Config(BaseConfig):
                 {"name": "orientation", "type": "str", "description": "auto|portrait|landscape", "required": False},
             ])
         cmd("canvas_set_html",
-            "Render arbitrary HTML/CSS/JavaScript in the current canvas/web browser runtime. Relative assets resolve against base_url; when omitted, the current PyGPT data/work directory is used.", [
+            "Render arbitrary HTML/CSS/JavaScript in the current canvas/web browser runtime. Use canvas only for HTML/JS and interactive tasks or when the user explicitly requests it; keep ordinary answers in chat. Relative assets resolve against base_url; when omitted, the current PyGPT data/work directory is used.", [
                 {"name": "html", "type": "str", "description": "HTML/CSS/JS document", "required": True},
                 {"name": "base_url", "type": "str", "description": "Optional base URL or local directory", "required": False},
             ])

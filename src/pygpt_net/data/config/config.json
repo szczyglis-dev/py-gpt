@@ -48,7 +48,7 @@
   "agent.continue.always": false,
   "agent.continue.dynamic": true,
   "agent.continue.dynamic.messages": 3,
-  "agent.goal.notify": false,
+  "agent.goal.notify": true,
   "agent.idx.auto_retrieve": true,
   "agent.infinity.confirm": true,
   "agent.iterations": 3,

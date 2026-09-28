@@ -64,7 +64,7 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
         if name in (Event.CMD_SYNTAX, Event.CMD_SYNTAX_INLINE):
-            self.cmd_syntax(data)
+            self.cmd_syntax(data, ctx=ctx)
         elif name in (Event.CMD_EXECUTE, Event.CMD_INLINE):
             self.cmd(ctx, data.get("commands", []))
         elif name == Event.SYSTEM_PROMPT:
@@ -76,10 +76,24 @@ class Plugin(BasePlugin):
             if ctx is not None and (ctx.reply or data.get("reply")):
                 return
             if self.get_option_value("annotation_prompt"):
-                data["value"] = self.append_runtime_context(data.get("value", ""))
+                data["value"] = self.append_runtime_context(data.get("value", ""), ctx=ctx)
 
-    def cmd_syntax(self, data: dict):
+    def has_conversation_annotations(self, ctx=None):
+        """Canvas retrieval must not compete with chat/file feedback in the prompt."""
+        meta = ctx.meta if ctx is not None else self.window.core.ctx.get_current_meta()
+        if meta is None:
+            return False
+        session = self.window.controller.chat.text.annotations.get(meta.id)
+        return session is not None and any(
+            item.get('source', 'chat') in ('chat', 'files')
+            for item in session.annotations
+        )
+
+    def cmd_syntax(self, data: dict, ctx=None):
+        hide_annotations = self.has_conversation_annotations(ctx)
         for name in self.allowed_cmds:
+            if name == "canvas_annotations" and hide_annotations:
+                continue
             if self.has_cmd(name):
                 data["cmd"].append(self.get_cmd(name))
 
@@ -210,15 +224,15 @@ class Plugin(BasePlugin):
         text = """
 # Canvas/web browser, HTML and JavaScript runtime
 
-You have a dedicated PyGPT canvas/web browser runtime. Use it for building and testing websites, HTML/CSS/JS prototypes, canvas-based interfaces and small browser applications. Tools prefixed with `canvas_` control this canvas/web browser. It is separate from the user's desktop mouse and keyboard.
+You have a dedicated PyGPT canvas/web browser runtime. Use it for building and testing websites, HTML/CSS/JS prototypes, canvas-based interfaces and small browser applications. Tools prefixed with `canvas_` control this canvas/web browser. It is separate from the user's desktop mouse and keyboard. Use canvas only when the task requires building or testing a canvas/web artifact, or when the user explicitly requests canvas. Keep ordinary answers and revisions to chat answers in chat.
 
 Canvas/web browser mouse and keyboard tools are scoped only to this viewport and use a virtual model cursor. Do not use global OS mouse/keyboard control for work that can be completed inside the canvas/web browser. The default backend is the built-in QWebEngine browser. Playwright is opt-in and is available only when the user enables `Use sandbox (Playwright)` in this plugin's settings; do not assume Playwright is enabled. The `sandbox` argument may request Playwright only when that master setting is on.
 
-Use `canvas_inspect` before coordinate clicking when possible; returned `data-pygpt-ref` selectors are more reliable than vision coordinates. Use `canvas_screenshot` whenever visual verification matters. Use `canvas_set_html` to render complete HTML/CSS/JS directly in the canvas/web browser, with relative assets resolved from its base URL/work directory. Use `canvas_get_html` when you need the current rendered document source. `canvas_close` closes the visible canvas tab in the PyGPT application; it does not destroy the background canvas/web browser runtime.
+Use `canvas_inspect` before coordinate clicking when possible; returned `data-pygpt-ref` selectors are more reliable than vision coordinates. Use `canvas_screenshot` whenever visual verification matters. When working on a canvas/web artifact, use `canvas_set_html` to render complete HTML/CSS/JS directly in the canvas/web browser, with relative assets resolved from its base URL/work directory. Use `canvas_get_html` when you need the current rendered document source. `canvas_close` closes the visible canvas tab in the PyGPT application; it does not destroy the background canvas/web browser runtime.
 
 For local websites use `web_server_start`; it serves only on loopback and defaults to the current PyGPT work/data directory. Open or inspect that local site through the `canvas_*` tools.
 
-User annotations made from the canvas/web browser context menu are authoritative feedback about the displayed prototype/page. Read and apply them before making further UI changes.
+User annotations made from the canvas/web browser context menu are authoritative feedback about the displayed prototype/page. Read and apply them before making further UI changes. Annotations with source=chat refer to conversation text; annotations with source=files refer to the specified file and line range. Neither is canvas feedback or a request to call `canvas_set_html`. Apply each annotation to its stated source; do not create or update a canvas merely because an annotation is present.
 
 The `get_user_painter_image` tool is different from `canvas_screenshot`: it retrieves the current drawing/sketch that the user created or edited in this PyGPT application's Painter tab and stores it in PyGPT runtime temporary storage. Use it when the user refers to their Painter drawing, sketch, markup or image and you need to inspect that content. If the tool result contains `path`, the image has deliberately not been auto-attached: in Agents use that path with the normal agent file-attachment flow; outside Agents, when Files I/O is enabled, call `attach_runtime_file` with that path before inspecting the image. Only when Files I/O is unavailable outside Agents does PyGPT automatically use the same runtime-only attachment transport as `attach_runtime_file`. The Painter image is never added to the persistent chat attachment list.
 """.strip()
@@ -226,7 +240,7 @@ The `get_user_painter_image` tool is different from `canvas_screenshot`: it retr
             return prompt.rstrip() + "\n\n" + text
         return text
 
-    def append_runtime_context(self, prompt: str) -> str:
+    def append_runtime_context(self, prompt: str, ctx=None) -> str:
         try:
             tool = self.window.tools.get("web_browser")
             if tool is None:
@@ -247,6 +261,8 @@ The `get_user_painter_image` tool is different from `canvas_screenshot`: it retr
                     parts.append(f"note={item['note']!r}")
                 lines.append("; ".join(parts))
             block = "\n".join(lines)
+            from pygpt_net.ui.widget.textarea.annotations import track_sent_annotations
+            track_sent_annotations(ctx, tool, annotations[-20:])
             if prompt and prompt.strip():
                 return prompt.rstrip() + "\n\n" + block
             return block

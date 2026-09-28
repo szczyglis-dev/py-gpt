@@ -7,8 +7,46 @@ from PySide6.QtCore import QTimer
 from pygpt_net.utils import trans
 
 
+CLEAR_ANNOTATION_CANVAS = False
+CLEAR_ANNOTATION_CTX = True
+CLEAR_ANNOTATION_FILE = True
+
+
+def track_sent_annotations(ctx, owner, items):
+    """Snapshot only annotations serialized into this request; do not clear yet."""
+    if ctx is None or not items:
+        return
+    batches = getattr(ctx, '_sent_annotation_batches', None)
+    if batches is None:
+        batches = ctx._sent_annotation_batches = []
+    batches.append((weakref.ref(owner), {(item['id'], item.get('time')) for item in items}))
+
+
+def clear_sent_annotations(ctx):
+    """Called on the UI thread after model output, including completed streams."""
+    batches = getattr(ctx, '_sent_annotation_batches', None)
+    if not isinstance(batches, list):
+        return
+    ctx._sent_annotation_batches = []
+    for owner_ref, ids in batches:
+        owner = owner_ref()
+        if owner is not None:
+            owner.clear_sent_annotations(ids)
+
+
 class AnnotationMixin:
     annotation_source = "canvas_web"
+
+    def clear_sent_annotations(self, ids):
+        flags = {'canvas_web': CLEAR_ANNOTATION_CANVAS,
+                 'chat': CLEAR_ANNOTATION_CTX, 'files': CLEAR_ANNOTATION_FILE}
+        retained = [item for item in self.annotations
+                    if (item['id'], item.get('time')) not in ids
+                    or not flags.get(item.get('source', self.annotation_source), False)]
+        if len(retained) != len(self.annotations):
+            self.annotations = retained
+            # Rebuild overlays as well: removed annotation cards must disappear.
+            self._render_annotations()
 
     def annotate_selection(self, selected: str = "", position=None, backend=None):
         """Open the lightweight in-page annotation composer for current selection.
@@ -267,6 +305,8 @@ class AnnotationMixin:
         payload = []
         current = str(self.current_url() or "")
         for item in self.annotations:
+            if item.get('source') == 'files':
+                continue
             # An annotation belongs to the page on which it was created. Runtime
             # documents may keep the same logical page under about:blank/base URL,
             # so only suppress a clearly different non-empty URL.
@@ -438,9 +478,33 @@ class ChatAnnotations(AnnotationMixin):
                 except RuntimeError:
                     self.views.discard(view)
 
-    def prompt_block(self):
+    def prompt_block(self, ctx=None):
         if not self.annotations:
             return ""
-        return ("CHAT VIEW USER ANNOTATIONS (source=chat; conversation="
-                + str(self.meta_id) + "):\n"
-                + json.dumps(self.annotations[-20:], ensure_ascii=False))
+        blocks = []
+        instructions = {
+            'chat': "These annotations refer to selected conversation text. Apply the feedback to your answer in chat.",
+            'files': "These annotations refer to the specified files and line ranges; paths are relative to the workdir. Apply the feedback to those files using file tools when changes are requested.",
+        }
+        for source, title in (('chat', 'CHAT VIEW'), ('files', 'FILES PREVIEW')):
+            items = [item for item in self.annotations if item.get('source', 'chat') == source]
+            if items:
+                track_sent_annotations(ctx, self, items[-20:])
+                blocks.append(title + " USER ANNOTATIONS (source=" + source
+                              + "; conversation=" + str(self.meta_id) + "):\n"
+                              + instructions[source]
+                              + " These are not canvas/web browser annotations. Do not call canvas_set_html or other canvas tools merely to handle them; use canvas only if the task independently requires it or the user explicitly requests it.\n"
+                              + json.dumps(items[-20:], ensure_ascii=False))
+        return "\n\n".join(blocks)
+
+    def add_file_annotation(self, path, start_line, end_line, selection, note):
+        """Keep file references in the conversation, including after closing Files."""
+        if not note.strip():
+            return
+        self.annotation_seq += 1
+        item = dict(id=self.annotation_seq, time=time.time(), source='files',
+                    path=path, start_line=start_line, end_line=end_line,
+                    selection=selection, note=note.strip())
+        self.annotations.append(item)
+        del self.annotations[:-30]
+        return item

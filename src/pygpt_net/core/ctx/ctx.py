@@ -1234,6 +1234,9 @@ class Ctx:
         if parent is None:
             return continuation
 
+        parent._sent_annotation_batches.extend(continuation._sent_annotation_batches)
+        continuation._sent_annotation_batches = []
+
         current_part = parent.get_active_part()
         if current_part is None:
             current_part = self.ensure_part(parent)
