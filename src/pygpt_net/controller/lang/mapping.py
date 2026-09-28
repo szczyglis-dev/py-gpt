@@ -531,6 +531,8 @@ class Mapping:
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
         tooltips['attachments.btn.options'] = 'attachments.options.label'
         tooltips['attachments_ctx.btn.options'] = 'attachments.options.label'
+        tooltips['models.importer.add'] = 'models.importer.add.tooltip'
+        tooltips['models.importer.remove'] = 'models.importer.remove.tooltip'
 
         menu_tooltips = {}
         menu_tooltips['video.capture'] = 'vision.capture.enable.tooltip'

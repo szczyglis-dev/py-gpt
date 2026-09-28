@@ -71,11 +71,14 @@ class ModelsImporter:
             id="provider",
             option=option,
         )
+        self.window.ui.config["models.importer"]["provider"].setFixedWidth(220)
         self.window.ui.nodes["models.importer.url"] = QLabel("")
         self.window.ui.nodes["models.importer.url"].setAlignment(QtCore.Qt.AlignRight)
         self.window.ui.nodes["models.importer.url"].setContentsMargins(10, 10, 10, 10)
 
         top_layout = QHBoxLayout()
+        editor_layout = self.window.ui.nodes['models.importer.editor'].layout
+        top_layout.setContentsMargins(editor_layout.contentsMargins().left(), 0, 0, 0)
         top_layout.addWidget(self.window.ui.config["models.importer"]["provider"])
         top_layout.addWidget(self.window.ui.nodes["models.importer.url"])
 
