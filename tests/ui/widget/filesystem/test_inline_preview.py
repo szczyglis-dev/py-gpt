@@ -299,7 +299,7 @@ def test_dark_highlighting_is_correct_on_show_and_theme_change(app, tmp_path):
     wait()
 
 
-def test_directory_search_exposes_one_level(tmp_path):
+def test_directory_search_exposes_subtree_without_expanding_descendants(tmp_path):
     folder = tmp_path / 'reports'
     nested = folder / 'child'
     nested.mkdir(parents=True)
@@ -310,7 +310,7 @@ def test_directory_search_exposes_one_level(tmp_path):
     assert str(nested) in accepted
     assert str(nested) not in expanded
     assert str(folder / 'summary.txt') in accepted
-    assert str(nested / 'hidden.txt') not in accepted
+    assert str(nested / 'hidden.txt') in accepted
 
 
 def test_preview_uses_shared_finder_and_cleans_up(app, tmp_path):

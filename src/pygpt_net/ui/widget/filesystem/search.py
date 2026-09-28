@@ -1,4 +1,4 @@
-"""Background recursive search, retaining only matching files and their ancestors."""
+"""Background search retaining matches, their ancestors and matched subtrees."""
 import fnmatch
 import os
 import threading
@@ -17,9 +17,15 @@ def find_paths(root, pattern, cancelled=None):
     root = os.path.abspath(root)
     accepted = {root}
     directories = {root}
+    # Visibility and automatic expansion are separate: expose a matched
+    # directory's entire subtree, but expand only paths leading to matches.
+    exposed = set()
     for parent, dirs, files in os.walk(root, followlinks=False):
         if cancelled is not None and cancelled.is_set():
             return None
+        if parent in exposed:
+            accepted.update(os.path.join(parent, name) for name in dirs + files)
+            exposed.update(os.path.join(parent, name) for name in dirs)
         for name in dirs + files:
             path = os.path.join(parent, name)
             if not matches_path(path, root, pattern):
@@ -27,7 +33,9 @@ def find_paths(root, pattern, cancelled=None):
             accepted.add(path)
             if name in dirs:
                 directories.add(path)
-                # A matching directory exposes its immediate contents only.
+                exposed.add(path)
+                # Include immediate entries even for symlinks, which os.walk
+                # deliberately does not follow.
                 try:
                     with os.scandir(path) as children:
                         accepted.update(os.path.join(path, child.name) for child in children)
@@ -178,8 +186,8 @@ class TreeSearch(QObject):
                         if model.canFetchMore(index):
                             model.fetchMore(index)
                         tree.expand(index)
-                    elif self.accepted is not None and path not in self.directories:
-                        tree.collapse(index)
+                    # Do not collapse manually opened descendants when lazy
+                    # loading or a filesystem notification reapplies the filter.
                     visit(index)
         updates_enabled = tree.updatesEnabled()
         tree.setUpdatesEnabled(False)
