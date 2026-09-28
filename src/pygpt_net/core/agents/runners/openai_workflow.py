@@ -250,8 +250,8 @@ class OpenAIWorkflow(BaseRunner):
         if schema:
             run_kwargs["schema"] = schema
 
-        # split response messages to separated context items
-        run_kwargs["use_partial_ctx"] = self.window.core.config.get("agent.openai.response.split", True)
+        # Legacy OpenAI workflow always stores split response messages.
+        run_kwargs["use_partial_ctx"] = True
 
         # run agent
         ctx, output, response_id = await run(**run_kwargs)

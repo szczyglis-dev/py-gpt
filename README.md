@@ -673,7 +673,7 @@ You can choose between two evaluation methods:
 - By the percentage of tasks completed
 - By the accuracy (score) of the final response
 
-The loop limit is configured in `Settings -> Agents and experts -> Custom agents -> Max evaluation steps in loop`. Set it to `0` for no application-level limit. Evaluation prompts can be adjusted in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`.
+The loop limit is configured in `Settings -> Agents and experts -> Custom agents -> Max evaluation steps in loop`. Set it to `0` for no application-level limit. `Model for evaluation` can optionally override the evaluator model; when left empty, the model selected for the current Custom agent run is used. Evaluation prompts can be adjusted in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`.
 
 # Canvas
 

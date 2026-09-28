@@ -401,7 +401,7 @@ class SupervisorWorkflow(Workflow):
             await emit_remaining(q)
             return OutputEvent(status="ask_user", final_answer=q, rounds_used=ev.round_idx)
 
-        if ev.round_idx >= ev.max_rounds:
+        if ev.max_rounds > 0 and ev.round_idx >= ev.max_rounds:
             await self._emit_text(ctx, "\n\nMax rounds exceeded.", agent_name=self._supervisor.name)
             return OutputEvent(status="max_rounds", final_answer="Exceeded maximum number of iterations.", rounds_used=ev.round_idx)
 

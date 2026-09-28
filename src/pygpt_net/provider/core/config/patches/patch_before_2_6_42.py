@@ -2119,8 +2119,6 @@ class Patch:
             # < 2.5.98
             if old < parse_version("2.5.98"):
                 print("Migrating config from < 2.5.98...")
-                if "agent.openai.response.split" not in data:
-                    data["agent.openai.response.split"] = True
                 updated = True
 
             # < 2.6.0

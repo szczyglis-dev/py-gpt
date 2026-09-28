@@ -646,11 +646,11 @@ Custom agents
 
 * ``Add support for .agents directory``: Checks the active workdir at run start for LlamaIndex Custom agents. Existing ``.agents/`` directories receive the full project-directory guidance; otherwise only the short ``.agents/memories/`` creation/note hint is added. Files are read by the agent when needed and are not preloaded by PyGPT. Default: True.
 
-* ``Max steps (per iteration)``: Limits how many action/reasoning steps a Custom agent may perform within one iteration while working toward its goal. Raising it allows more work per iteration but can increase latency and API usage. Default: 10.
+* ``Max steps (per iteration)``: Limits how many action/reasoning steps a Custom agent may perform within one iteration while working toward its goal. Set ``0`` for no application-level step limit. The settings control accepts values up to ``1000``. Raising or disabling the limit can increase latency, token/API usage, and tool execution. Default: 10.
 
 * ``Max evaluation steps in loop``: Limits how many evaluate/improve cycles a Custom agent may perform before returning its final result. Set ``0`` for no application-level evaluation-loop limit. Default: 3.
 
-* ``Model for evaluation``: Selects the model that judges intermediate Custom agent results during evaluation loops. If no model is selected, PyGPT reuses the currently active model for the evaluation step.
+* ``Model for evaluation``: Optionally overrides the model used by the Loop / Evaluate evaluator. Leave it empty to use the model selected for the current Custom agent run.
 
 * ``Append and compare the previous evaluation prompt in the next evaluation``: Carries the previous evaluator feedback/improvement instruction into the next evaluation cycle so the evaluator can compare progress against earlier guidance. This can improve continuity across multi-step refinement loops. Default: False.
 

@@ -447,7 +447,6 @@ class PlannerWorkflow(Workflow):
 
         from pygpt_net.core.agents.runners.llama_events import forward_handler
         from pygpt_net.core.agents.runners.llama_session import result_text
-        from pygpt_net.core.agents_v2.utils import effective_iteration_limit
         user_msg = self._input_builder(prompt) if callable(self._input_builder) else prompt
         handler = self._executor.run(
             user_msg=user_msg,
@@ -627,7 +626,7 @@ class PlannerWorkflow(Workflow):
 
         i = 0  # manual index to allow in-place plan updates during refinement
         refinement_count = 0
-        max_refinements = max(1, self._max_steps)
+        max_refinements = effective_iteration_limit(self._max_steps)
         while i < len(plan_sub_tasks):
             st = plan_sub_tasks[i]
             total = len(plan_sub_tasks)

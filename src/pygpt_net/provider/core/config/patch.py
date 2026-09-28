@@ -75,7 +75,14 @@ class Patch:
                     if key not in data:
                         data[key] = True
                         updated = True
-            # --------------------------------------------
+
+                # Retired Custom agents/OpenAI-agent settings
+                for key in (
+                        "agent.openai.response.split",
+                ):
+                    if key in data:
+                        del data[key]
+                        updated = True
 
         # update file
         migrated = False

@@ -64,7 +64,6 @@
   "agent.llama.steps": 10,
   "agent.llama.verbose": false,
   "agent.openai.provider": "openai_agent_base",
-  "agent.openai.response.split": true,
   "agent.output.render.all": true,
   "agent.v2.agents_dir.enabled": true,
   "agent.v2.custom_agents": [],
