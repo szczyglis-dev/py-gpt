@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 22:20:00                  #
+# Updated Date: 2026.09.28 20:10:00                  #
 # ================================================== #
 
 import datetime
@@ -813,7 +813,7 @@ class FileExplorer(QWidget):
         self._apply_columns_layout(self.columns_swapped, preserve_sizes=False)
         self.layout.addWidget(self.splitter, 1)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.treeView.clicked.connect(self.preview_index)
+        self.treeView.clicked.connect(self.on_tree_clicked)
         self.treeView.activated.connect(self.preview_index)
         self.tree_search = TreeSearch(self)
 
@@ -1019,6 +1019,21 @@ class FileExplorer(QWidget):
         menu.addAction(trans('files.tree.expand_all'), self.tree_search.expand_all)
         menu.exec(self.header.mapToGlobal(position))
         menu.deleteLater()
+
+    def on_tree_clicked(self, index):
+        """Handle a single left-click in the file tree.
+
+        Files are previewed as before. Directories toggle their expanded state,
+        so navigating the tree does not depend on the branch indicator.
+        """
+        path = self.model.filePath(index)
+        if os.path.isdir(path):
+            if self.treeView.isExpanded(index):
+                self.treeView.collapse(index)
+            else:
+                self.treeView.expand(index)
+            return
+        self.preview_index(index)
 
     def preview_index(self, index):
         path = self.model.filePath(index)
@@ -1908,22 +1923,88 @@ class IndexedFileSystemModel(QFileSystemModel):
         self.window = window
         self.index_dict = index_dict
         self._status_cache = {}
+        # QFileSystemModel reports every not-yet-loaded directory as having
+        # children.  That keeps directory loading lazy, but it also makes Qt
+        # draw a disclosure arrow for empty directories.  Cache a lightweight
+        # one-entry probe so the probe is not repeated during every paint.
+        self._children_hint_cache = {}
         self.directoryLoaded.connect(self.refresh_path)
+        self.rowsInserted.connect(self._invalidate_children_hint)
+        self.rowsRemoved.connect(self._invalidate_children_hint)
+        self.modelReset.connect(self._clear_children_hints)
         try:
             self.setReadOnly(False)
         except Exception:
             pass
 
+    def _clear_children_hints(self):
+        self._children_hint_cache.clear()
+
+    @staticmethod
+    def _children_hint_key(path):
+        """Normalize cache keys so Qt/native Windows path forms share one hint."""
+        return os.path.normcase(os.path.normpath(path))
+
+    def _invalidate_children_hint(self, parent=QModelIndex(), *_):
+        """Invalidate only the directory whose contents changed."""
+        try:
+            index = parent.siblingAtColumn(0) if parent.isValid() else QModelIndex()
+            path = self.filePath(index) if index.isValid() else self.rootPath()
+            if path:
+                self._children_hint_cache.pop(self._children_hint_key(path), None)
+        except Exception:
+            # A full clear is still cheap and avoids keeping a stale hint if Qt
+            # emits a model notification while the root index is changing.
+            self._children_hint_cache.clear()
+
     def hasChildren(self, parent=QModelIndex()) -> bool:
-        """Use Qt's asynchronous directory cache instead of reading disk on paint."""
-        if parent.isValid() and not self.canFetchMore(parent):
-            return self.rowCount(parent) > 0
-        return super().hasChildren(parent)
+        """Return accurate expandability without repeatedly scanning directories."""
+        if not parent.isValid():
+            return super().hasChildren(parent)
+
+        try:
+            index = parent.siblingAtColumn(0)
+        except Exception:
+            index = parent
+
+        if not self.isDir(index):
+            return False
+
+        # Once QFileSystemModel has loaded the directory, use its asynchronous
+        # cache only.  This is the fast path used for expanded/visited folders.
+        if not self.canFetchMore(index):
+            return self.rowCount(index) > 0
+
+        path = self.filePath(index)
+        if not path:
+            return super().hasChildren(index)
+
+        cache_key = self._children_hint_key(path)
+        cached = self._children_hint_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        # For an unloaded directory QFileSystemModel otherwise returns True
+        # unconditionally.  Probe only until the first entry and cache the
+        # result.  This preserves lazy loading and avoids an os.listdir()/full
+        # scan on every hasChildren()/paint call.
+        try:
+            with os.scandir(path) as entries:
+                has_children = next(entries, None) is not None
+            self._children_hint_cache[cache_key] = has_children
+            return has_children
+        except OSError:
+            # Keep QFileSystemModel's default lazy behaviour for inaccessible
+            # or transient paths rather than incorrectly hiding the arrow.
+            return super().hasChildren(index)
+        except Exception:
+            return super().hasChildren(index)
 
     def refresh_path(self, path):
         index = self.index(path)
         if index.isValid():
             self._status_cache.clear()
+            self._children_hint_cache.pop(self._children_hint_key(path), None)
             self.dataChanged.emit(index, index)
 
     def columnCount(self, parent=QModelIndex()) -> int:
