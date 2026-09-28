@@ -67,10 +67,13 @@ class NodeTemplateEngine {
 
 	// Emit a normal Markdown placeholder so the standard renderer creates the
 	// same code wrapper/highlighting/copy UI as code fenced in assistant text.
-	_renderToolCode(value) {
+	_renderToolCode(value, headerLabel = '') {
 		const md = this._toolCodeMarkdown(value);
 		if (!md) return '';
-		return `<div class='tool-output-markdown' md-block-markdown='1'>${this._escapeHtml(md)}</div>`;
+		const headerAttr = headerLabel
+			? ` data-code-header='${this._escapeHtml(headerLabel)}'`
+			: '';
+		return `<div class='tool-output-markdown' md-block-markdown='1'${headerAttr}>${this._escapeHtml(md)}</div>`;
 	}
 
 	// Render name header given role
@@ -309,8 +312,8 @@ class NodeTemplateEngine {
 		const toggleTitle = (typeof trans !== 'undefined' && trans) ? trans('action.cmd.expand') : 'Expand';
 		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND) ? window.ICON_EXPAND : '';
 		const toolLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL) ? window.LOCALE_TOOL : 'Tool';
-		const requestLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_REQUEST) ? window.LOCALE_TOOL_REQUEST : 'Request';
-		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE) ? window.LOCALE_TOOL_RESPONSE : 'Response';
+		const requestLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_REQUEST) ? window.LOCALE_TOOL_REQUEST : 'Input';
+		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE) ? window.LOCALE_TOOL_RESPONSE : 'Output';
 
 		let titleHtml = '';
 		let contentHtml = legacyToolOutput;
@@ -340,7 +343,7 @@ class NodeTemplateEngine {
 			}
 			const names = displayNames.map((name) => this._escapeHtml(name));
 			toolNamesAttr = this._escapeHtml(JSON.stringify(rawNames));
-			const resultCode = this._renderToolCode(toolResult);
+			const resultCode = this._renderToolCode(toolResult, responseLabel);
 
 			const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow' width='25' height='25' alt=''>`;
 			const titleLabel = groupedInMessage && typeof window !== 'undefined' && window.LOCALE_TOOLS
@@ -355,18 +358,16 @@ class NodeTemplateEngine {
 
 			if (hasPerCallResponses) {
 				const renderPair = (call) => {
-					const requestCode = this._renderToolCode(call && call.request);
+					const requestCode = this._renderToolCode(call && call.request, requestLabel);
 					const hasResponse = !!call && Object.prototype.hasOwnProperty.call(call, 'response');
-					const responseCode = hasResponse ? this._renderToolCode(call.response) : '';
+					const responseCode = hasResponse ? this._renderToolCode(call.response, responseLabel) : '';
 					const responseDisplay = hasResponse ? '' : 'display:none';
 					return (
 						`<div class='tool-output-pair'>` +
 						`<div class='tool-output-section'>` +
-						`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
 						`<div class='tool-output-data tool-output-request-data'>${requestCode}</div>` +
 						`</div>` +
 						`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
-						`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
 						`<div class='tool-output-data tool-output-result-data'>${responseCode}</div>` +
 						`</div>` +
 						`</div>`
@@ -397,16 +398,14 @@ class NodeTemplateEngine {
 				// Legacy/single-turn tool rendering keeps its existing common response
 				// section, including incremental ToolOutput.update() behavior.
 				const requests = toolCalls
-					.map((call) => this._renderToolCode(call.request))
+					.map((call) => this._renderToolCode(call.request, requestLabel))
 					.join('');
 				const responseDisplay = resultCode ? '' : 'display:none';
 				contentHtml =
 					`<div class='tool-output-section'>` +
-					`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
 					`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
 					`</div>` +
 					`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
-					`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
 					`<div class='tool-output-data tool-output-result-data'>${resultCode}</div>` +
 					`</div>`;
 			}

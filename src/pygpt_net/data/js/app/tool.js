@@ -360,6 +360,10 @@ class ToolOutput {
 		const md = document.createElement('div');
 		md.className = 'tool-output-markdown';
 		md.setAttribute('md-block-markdown', '1');
+		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE)
+			? String(window.LOCALE_TOOL_RESPONSE)
+			: 'Output';
+		md.setAttribute('data-code-header', responseLabel);
 		md.textContent = this._codeMarkdown(raw);
 		resultEl.appendChild(md);
 

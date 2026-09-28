@@ -470,6 +470,8 @@ class MarkdownRenderer {
 				if (!isOutput) {
 					if (rawToken && !isSupportedByHLJS(rawToken) && rawToken.length < 3) headerLabel = 'code';
 				}
+				const customHeaderLabel = env && env.__codeHeaderLabel ? String(env.__codeHeaderLabel) : '';
+				if (customHeaderLabel) headerLabel = customHeaderLabel;
 
 				const content = res.content || '';
 				const len = content.length;
@@ -718,6 +720,8 @@ class MarkdownRenderer {
 				if (!isOutput) {
 					if (rawToken && !isSupportedByHLJS(rawToken) && rawToken.length < 3) headerLabel = 'code';
 				}
+				const customHeaderLabel = env && env.__codeHeaderLabel ? String(env.__codeHeaderLabel) : '';
+				if (customHeaderLabel) headerLabel = customHeaderLabel;
 
 				const content = res.content || '';
 				const len = content.length;
@@ -924,7 +928,8 @@ class MarkdownRenderer {
 			} else if (isBotMsg) {
 				let html = '';
 				const env = {
-					__box: msgBox
+					__box: msgBox,
+					__codeHeaderLabel: el.getAttribute('data-code-header') || ''
 				};
 				try {
 					let src = md;
