@@ -592,6 +592,7 @@ body.display-timestamp .ts {{
 }}
 .tool-output .tool-output-label {{
   color: #8d8d8c;
+  font-weight: normal;
   transition: color 0.15s ease;
 }}
 .tool-output .tool-output-name {{
@@ -931,6 +932,7 @@ body.display-timestamp .ts {{
 .agents-v2-status__text {{
   display: inline-block;
   color: #7f7f7f;
+  font-weight: normal;
   white-space: pre-line;
 }}
 .agents-v2-status--active .agents-v2-status__text {{

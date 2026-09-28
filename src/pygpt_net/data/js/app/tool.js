@@ -149,12 +149,9 @@ class ToolOutput {
 
 		const label = document.createElement('span');
 		label.className = 'tool-output-label';
-		const strong = document.createElement('b');
-		strong.textContent = (typeof window !== 'undefined' && window.LOCALE_TOOLS)
+		label.textContent = ((typeof window !== 'undefined' && window.LOCALE_TOOLS)
 			? String(window.LOCALE_TOOLS)
-			: 'Tools';
-		label.appendChild(strong);
-		label.appendChild(document.createTextNode(':\u00a0'));
+			: 'Tools') + ':\u00a0';
 
 		const names = document.createElement('span');
 		names.className = 'tool-output-name tool-group-names';

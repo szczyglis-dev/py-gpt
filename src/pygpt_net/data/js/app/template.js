@@ -349,7 +349,7 @@ class NodeTemplateEngine {
 			titleHtml =
 				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
 				`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-				`<span class='tool-output-label'><b>${this._escapeHtml(titleLabel)}:</b>&nbsp;</span>` +
+				`<span class='tool-output-label'>${this._escapeHtml(titleLabel)}:&nbsp;</span>` +
 				`<span class='tool-output-name'>${names.join(', ')}</span>${arrowHtml}` +
 				`</button>`;
 
@@ -383,7 +383,7 @@ class NodeTemplateEngine {
 							`<button type='button' class='tool-output-toggle tool-group-toggle' ` +
 							`onclick="toggleToolGroup('${itemId}');" ` +
 							`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-							`<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+							`<span class='tool-output-label'>${this._escapeHtml(toolLabel)}:&nbsp;</span>` +
 							`<span class='tool-output-name'>${callName}</span>${itemArrow}` +
 							`</button>` +
 							`<div class='tool-group-content' style='display:none'>${renderPair(call)}</div>` +
@@ -545,7 +545,7 @@ class NodeTemplateEngine {
 			`<div class='tool-output agent-workflow-output' id='tool-output-${id}'>` +
 			`<button type='button' class='tool-output-toggle agent-workflow-toggle' ` +
 			`onclick='toggleToolOutput(${id});' title='${this._escapeHtml(toggleTitle)}' aria-expanded='${expanded}'>` +
-			`<span class='tool-output-label agent-workflow-label'><b>${label}</b></span>${arrowHtml}` +
+			`<span class='tool-output-label agent-workflow-label'>${label}</span>${arrowHtml}` +
 			`</button>` +
 			`<div class='tool-output-content agent-workflow-content${expanded ? ' is-expanded' : ''}' ${expanded ? '' : "style='display:none'"} data-trusted='1'><div class='tool-collapse-inner'><div class='tool-collapse-body'>${contentHtml}</div></div></div>` +
 			`</div>`
