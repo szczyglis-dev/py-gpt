@@ -1,7 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os, glob, shutil
-import importlib.util
 from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
@@ -73,6 +72,10 @@ for subdir in ('wayland-graphics-integration-client', 'wayland-shell-integration
             qt_binaries.append((p, os.path.join('PySide6', 'plugins', subdir)))
 
 dyn_bins = []
+try:
+    dyn_bins += collect_dynamic_libs('litellm')
+except Exception:
+    pass
 for pkg in ('onnxruntime', 'tokenizers', 'tiktoken'):
     try:
         dyn_bins += collect_dynamic_libs(pkg)
@@ -92,35 +95,15 @@ except Exception:
 
 datas = []
 
-# LiteLLM loads tokenizer resources dynamically via importlib.resources using
-# the string package name ``litellm.litellm_core_utils.tokenizers``.
+# LiteLLM relies heavily on dynamic imports and importlib.resources.
+# Collect the complete package data tree (tokenizer JSON/cache files, model map,
+# templates, etc.) instead of chasing individual runtime resources.
 try:
-    litellm_spec = importlib.util.find_spec('litellm')
-    if litellm_spec is not None and litellm_spec.origin:
-        litellm_dir = os.path.dirname(litellm_spec.origin)
-        litellm_tokenizers_dir = os.path.join(
-            litellm_dir,
-            'litellm_core_utils',
-            'tokenizers',
-        )
-        if os.path.isdir(litellm_tokenizers_dir):
-            add_data_tree(
-                datas,
-                litellm_tokenizers_dir,
-                os.path.join('litellm', 'litellm_core_utils', 'tokenizers'),
-            )
-
-        # LiteLLM also falls back to this packaged resource when the remote
-        # model-cost map is unavailable, so keep it in frozen distributions.
-        litellm_model_map = os.path.join(
-            litellm_dir,
-            'model_prices_and_context_window_backup.json',
-        )
-        if os.path.isfile(litellm_model_map):
-            datas.append((litellm_model_map, 'litellm'))
+    datas += collect_data_files('litellm')
 except Exception:
     pass
 
+# LiteLLM checks its installed distribution metadata at runtime.
 try:
     datas += copy_metadata('litellm')
 except Exception:
@@ -278,6 +261,13 @@ for pkg in [
     'debugpy', 'zmq.backend.cython',
 ]:
     hiddenimports += collect_submodules(pkg)
+
+# LiteLLM selects providers/backends lazily via dynamic imports, so static
+# Analysis cannot discover the full import graph. Include every LiteLLM submodule.
+try:
+    hiddenimports += collect_submodules('litellm', on_error='ignore')
+except Exception:
+    pass
 
 block_cipher = None
 

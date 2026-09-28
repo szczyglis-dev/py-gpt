@@ -34,6 +34,12 @@ class LiteLLMProvider(BaseLLM):
         self.name = "LiteLLM"
         self.type = [MODE_LLAMA_INDEX]
 
+    def setup(self) -> dict:
+        return {"require_api_key": False, "settings": {
+            "api_key": {"type": "str", "default": "", "secret": True},
+            "api_base": {"type": "str", "default": ""},
+        }}
+
     def llama(
             self,
             window,
@@ -50,20 +56,38 @@ class LiteLLMProvider(BaseLLM):
         """
         from .index import LiteLLMIndex
 
-        args = self.prepare_openai_compatible_args(window, model)
+        # LiteLLM resolves provider credentials from its own environment when
+        # no explicit override is configured. Do not inherit OpenAI credentials.
+        args = self.parse_args(model.llama_index or {}, window)
         model_name = args.pop("model", model.id)
-        temperature = float(args.pop("temperature", 0.7))
-        max_tokens = int(args.pop("max_tokens", 1024))
-        api_key = args.pop("api_key", "")
-        api_base = args.pop("api_base", "")
+        # The model's output capacity and the app limit are independent caps.
+        # Zero means that a particular cap is disabled.
+        configured_limit = args.pop("max_tokens", None)
+        if configured_limit is None and "max_completion_tokens" not in args:
+            model_limit = int(getattr(model, "tokens", 0) or 0)
+            app_limit = int(window.core.config.get("max_output_tokens") or 0)
+            limits = [limit for limit in (model_limit, app_limit) if limit > 0]
+            configured_limit = min(limits) if limits else None
+        max_tokens = int(configured_limit or 0) or None
+        # Sampling is optional: reasoning models often reject temperature.
+        temperature = args.pop("temperature", None)
+        client_args = window.core.models.prepare_client_args(MODE_LLAMA_INDEX, model)
+        api_key = args.pop("api_key", None) or client_args.get("api_key")
+        api_base = args.pop("api_base", None) or client_args.get("base_url")
+        # The model capability flag gates reasoning, including manual overrides.
+        reasoning_effort_override = args.pop("reasoning_effort", None)
         reasoning_effort = window.core.models.get_reasoning_effort(model)
+        if not getattr(model, "reasoning_effort", False):
+            reasoning_effort_override = None
         constructor_args = {
             "model_name": model_name,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "context_window": int(getattr(model, "ctx", 0) or 0) or None,
             "api_key": api_key or None,
             "api_base": api_base or None,
-            "reasoning_effort": reasoning_effort,
+            "reasoning_effort": reasoning_effort_override or reasoning_effort,
+            "completion_kwargs": args,
         }
         self.log_llama_create(window, model, constructor_args, "LiteLLMIndex")
         return LiteLLMIndex(**constructor_args)
@@ -131,4 +155,3 @@ def __getattr__(name):
         from .index import LiteLLMIndex
         return LiteLLMIndex
     raise AttributeError(name)
-

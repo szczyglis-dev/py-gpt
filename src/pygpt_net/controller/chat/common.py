@@ -379,6 +379,9 @@ class Common:
         if provider is None or not hasattr(provider, 'has_config') or not provider.has_config('api_key'):
             return True
 
+        if not provider.requires_api_key():
+            return True
+
         api_key = provider.get_config('api_key')
         # OpenAI historically allows an empty key for non-GPT/local-compatible
         # model entries. Keep that behavior while making all declared provider

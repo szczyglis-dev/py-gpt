@@ -82,6 +82,11 @@ class BaseLLM:
         """Return True when the provider declares a configuration key."""
         return self._get_schema_field(key) is not None
 
+    def requires_api_key(self) -> bool:
+        """Whether the UI should require a configured provider API key."""
+        setup = self.setup() or {}
+        return bool(setup.get("require_api_key", self.has_config("api_key")))
+
     def get_config(self, key: str, default: Any = _MISSING) -> Any:
         """Read a provider value from ``config.providers``.
 

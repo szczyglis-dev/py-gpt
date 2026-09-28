@@ -337,7 +337,7 @@
   "max_total_tokens": 0,
   "mode": "chat",
   "model": "gpt-5.6-luna",
-  "model.reasoning_effort": "high",
+  "model.reasoning_effort": "medium",
   "model.restore_from_ctx": false,
   "notepad.num": 1,
   "output_timestamp": false,

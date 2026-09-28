@@ -21,35 +21,51 @@ from llama_index.core.llms import (
     LLMMetadata,
 )
 from llama_index.core.llms.callbacks import llm_chat_callback, llm_completion_callback
+from llama_index.core.constants import DEFAULT_CONTEXT_WINDOW
 
 class LiteLLMIndex(CustomLLM):
     """LlamaIndex CustomLLM that routes to 100+ providers via litellm.completion()."""
 
     model_name: str = "openai/gpt-4o-mini"
-    temperature: float = 0.7
-    max_tokens: int = 1024
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    context_window: Optional[int] = None
     api_key: Optional[str] = None
     api_base: Optional[str] = None
     reasoning_effort: Optional[str] = None
+    completion_kwargs: Dict[str, Any] = {}
 
     @property
     def metadata(self) -> LLMMetadata:
+        context_window = self.context_window
+        if not context_window:
+            # Prefer LiteLLM's model catalog when PyGPT has no context size.
+            try:
+                import litellm
+                info = (getattr(litellm, "model_cost", {}) or {}).get(self.model_name, {})
+                context_window = int(info.get("max_input_tokens") or info.get("max_tokens") or 0)
+            except (TypeError, ValueError, AttributeError, ImportError):
+                pass
         return LLMMetadata(
             model_name=self.model_name,
-            num_output=self.max_tokens,
+            num_output=self.max_tokens or -1,
+            context_window=context_window or DEFAULT_CONTEXT_WINDOW,
         )
 
     def _build_kwargs(self, messages: List[Dict[str, str]], stream: bool = False) -> Dict[str, Any]:
         """Build the shared litellm.completion kwargs from current settings."""
         completion_kwargs: Dict[str, Any] = {
+            **self.completion_kwargs,
             "model": self.model_name,
             "messages": messages,
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
             # drop_params silently drops provider-unsupported kwargs
             # to prevent cross-provider errors
             "drop_params": True,
         }
+        if self.temperature is not None:
+            completion_kwargs["temperature"] = self.temperature
+        if self.max_tokens is not None:
+            completion_kwargs["max_tokens"] = self.max_tokens
         if stream:
             completion_kwargs["stream"] = True
         if self.api_key:
