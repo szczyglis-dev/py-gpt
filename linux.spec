@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os, glob, shutil
+import importlib.util
 from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
@@ -90,6 +91,40 @@ except Exception:
     pass
 
 datas = []
+
+# LiteLLM loads tokenizer resources dynamically via importlib.resources using
+# the string package name ``litellm.litellm_core_utils.tokenizers``.
+try:
+    litellm_spec = importlib.util.find_spec('litellm')
+    if litellm_spec is not None and litellm_spec.origin:
+        litellm_dir = os.path.dirname(litellm_spec.origin)
+        litellm_tokenizers_dir = os.path.join(
+            litellm_dir,
+            'litellm_core_utils',
+            'tokenizers',
+        )
+        if os.path.isdir(litellm_tokenizers_dir):
+            add_data_tree(
+                datas,
+                litellm_tokenizers_dir,
+                os.path.join('litellm', 'litellm_core_utils', 'tokenizers'),
+            )
+
+        # LiteLLM also falls back to this packaged resource when the remote
+        # model-cost map is unavailable, so keep it in frozen distributions.
+        litellm_model_map = os.path.join(
+            litellm_dir,
+            'model_prices_and_context_window_backup.json',
+        )
+        if os.path.isfile(litellm_model_map):
+            datas.append((litellm_model_map, 'litellm'))
+except Exception:
+    pass
+
+try:
+    datas += copy_metadata('litellm')
+except Exception:
+    pass
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')

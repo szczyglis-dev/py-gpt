@@ -2,6 +2,7 @@
 import os
 import shutil
 import sys
+import importlib.util
 
 from PyInstaller.utils.hooks import (
     collect_data_files,
@@ -121,6 +122,40 @@ except Exception:
     pass
 
 datas = []
+
+# LiteLLM loads tokenizer resources dynamically via importlib.resources using
+# the string package name ``litellm.litellm_core_utils.tokenizers``.
+try:
+    litellm_spec = importlib.util.find_spec('litellm')
+    if litellm_spec is not None and litellm_spec.origin:
+        litellm_dir = os.path.dirname(litellm_spec.origin)
+        litellm_tokenizers_dir = os.path.join(
+            litellm_dir,
+            'litellm_core_utils',
+            'tokenizers',
+        )
+        if os.path.isdir(litellm_tokenizers_dir):
+            add_data_tree(
+                datas,
+                litellm_tokenizers_dir,
+                os.path.join('litellm', 'litellm_core_utils', 'tokenizers'),
+            )
+
+        # LiteLLM also falls back to this packaged resource when the remote
+        # model-cost map is unavailable, so keep it in frozen distributions.
+        litellm_model_map = os.path.join(
+            litellm_dir,
+            'model_prices_and_context_window_backup.json',
+        )
+        if os.path.isfile(litellm_model_map):
+            datas.append((litellm_model_map, 'litellm'))
+except Exception:
+    pass
+
+try:
+    datas += copy_metadata('litellm')
+except Exception:
+    pass
 
 # OpenAI Agents SDK ships runtime prompt/template files (for example
 # agents/sandbox/memory/prompts/*.md) that are read with pathlib at runtime.
