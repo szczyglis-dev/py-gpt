@@ -45,7 +45,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Model Context Protocol (MCP) support.
 - Built-in `MCP Connectors` manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
 - Agentsmulti-agent workflows with Chat, Orchestrator, and Swarm runtimes.
-- Project-specific `AGENTS.md` rules for the main Agents agent.
+- Optional project-specific `.agents/` directory support for Agents and Custom agents.
 - Portable `SKILL.md`-based `Agent Skills` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
 - Built-in `Python/OS` tool for real-time Python, IPython, and system command execution.
 - Built-in real-time `Canvas` with annotation support and web browser integration for interactive workflows.
@@ -414,11 +414,31 @@ Use **New** to create a custom profile and choose **Primary agent**, **Orchestra
 
 The built-in **Agent Workflow** tool shows the active Agents run as a tree/timeline with agents, status changes and tool calls. Open it from `Tools -> Agent Workflow` or pin it in an output tab. A new top-level run clears the previous view automatically.
 
-### Project rules with AGENTS.md
+### Project instructions with `.agents/`
 
-Before processing the user input, the top-level Agents main agent checks for `%workdir%/AGENTS.md` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main system prompt as additional project rules. The path follows the conversation/project that started the run, including a custom project data workdir.
+Agents can use an optional `%workdir%/.agents/` directory for project-specific instructions and agent resources. PyGPT does **not** preload or append these files to the system prompt. When **Add support for .agents directory** is enabled in `Settings -> Agents and experts -> Agents` (default: on), PyGPT checks the active conversation/project workdir when the agent run starts. If `.agents/` exists, the top-level Agents prompt receives the directory layout and tells the agent to inspect only the files relevant to the current task. If it does not exist, the prompt only mentions that the agent may create `.agents/` and use `.agents/memories/` for persistent work notes.
 
-`AGENTS.md` is read once per run and is not persisted to conversation history. A symlink that resolves outside the active workdir is ignored. The rules apply only to the top-level **Agents** main agent; they are not automatically injected into workers or Experts.
+Example layout:
+
+```text
+.agents/
+├── agents.md            # additional instructions
+├── system-prompt.md     # system prompt
+├── mcp.json             # MCP server configuration
+├── skills/
+│   └── code-review/
+│       └── skill.md     # skill definition
+├── agents/
+│   └── code-reviewer/
+│       └── agent.md     # sub-agent profile
+├── tasks/
+│   └── daily-code-review/
+│       └── task.md      # repeat task
+└── memories/
+    └── project-arch.md  # persistent memory for agents
+```
+
+The agent may create or update its own persistent project notes in `.agents/memories/`. Access still depends on the filesystem/tools available to the agent and the normal PyGPT security rules. The `.agents/` existence check is performed once per run against the active host workdir (including a project-specific workdir); the same behavior can be enabled independently for **Custom agents** in `Settings -> Agents and experts -> Custom agents`.
 
 ### Tools and provider capabilities
 
@@ -433,7 +453,7 @@ Local plugin execution is integrated with the normal PyGPT command/tool system, 
 
 ### Settings
 
-Agent-related application settings are organized under `Settings -> Agents and experts`. The **Agents** section contains settings for this workflow. **Show full tool-chain in Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
+Agent-related application settings are organized under `Settings -> Agents and experts`. The **Agents** section contains settings for this workflow. **Add support for .agents directory** is enabled by default and adds the directory-usage guidance described above. **Show full tool-chain in Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
 
 **Display full agent workflow** is disabled by default. When enabled, completed Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This option affects UI rendering only and does not change database storage or the separate model-facing history policy below.
 
@@ -636,6 +656,8 @@ You can create your own workflow constructions with the built-in visual node edi
 
 Commands from active plugins can be exposed to Custom agents as tools according to the selected workflow and preset configuration.
 
+**Add support for .agents directory** is enabled by default in `Settings -> Agents and experts -> Custom agents`. At the start of a Custom agent run, PyGPT checks the active workdir: when `.agents/` exists, the agent receives the same project-directory guidance as Agents; otherwise it receives only the short note about optionally creating `.agents/` and using `.agents/memories/`. Files are read by the agent as needed rather than preloaded by PyGPT.
+
 **RAG - using indexes**  
 
 If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG workflow automatically.
@@ -651,7 +673,7 @@ You can choose between two evaluation methods:
 - By the percentage of tasks completed
 - By the accuracy (score) of the final response
 
-The loop limit is configured in `Settings -> Agents and experts -> Legacy agents -> Max evaluation steps in loop`. Set it to `0` for no application-level limit. Evaluation prompts can be adjusted in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`.
+The loop limit is configured in `Settings -> Agents and experts -> Custom agents -> Max evaluation steps in loop`. Set it to `0` for no application-level limit. Evaluation prompts can be adjusted in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`.
 
 # Canvas
 
@@ -2259,7 +2281,7 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 - **Vision and camera:** Camera
 - **Audio:** Devices, Options, Cache
 - **Indexes / RAG:** General, Vector Store, Chat, Embeddings, File indexing, Context indexing, Data loaders, Clear and truncate
-- **Agents and experts:** Agents, Legacy agents, Autonomous, Options
+- **Agents and experts:** Agents, Custom agents, Autonomous, Options
 - **Security:** General, Computer use, Linux, Windows, macOS
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:

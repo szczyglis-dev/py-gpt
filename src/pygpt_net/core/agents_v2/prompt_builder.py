@@ -14,6 +14,8 @@ from __future__ import annotations
 from typing import Optional
 
 from .prompts import (
+    AGENTS_DIRECTORY_MEMORIES_PROMPT,
+    AGENTS_DIRECTORY_SUPPORT_PROMPT,
     CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
     CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
     CUSTOM_SWARM_PROMPT_CONFIG_KEY,
@@ -34,7 +36,7 @@ class RuntimePromptBuilder:
             self,
             base_prompt: str = "",
             additional_system_prompt: Optional[str] = None,
-            include_project_rules: bool = False,
+            include_agents_directory: bool = False,
             inject_workflow_policy: bool = True,
     ) -> str:
         """Compose the shared Agents v2 runtime envelope around an actor prompt.
@@ -86,20 +88,16 @@ class RuntimePromptBuilder:
         if skills_context:
             skills_context = "\n\n" + skills_context
 
-        project_rules = ""
-        if include_project_rules:
-            if not bool(getattr(self.runtime, "project_rules_loaded", False)):
-                self.runtime.project_rules_text = self.runtime.context_api.load_project_rules()
-                self.runtime.project_rules_loaded = True
-            rules = str(getattr(self.runtime, "project_rules_text", "") or "").strip()
-            if rules:
-                project_rules = (
-                    "\n\n<additional_project_rules source=\"%workdir%/AGENTS.md\">\n"
-                    "The following project-specific rules apply to the main agent for this "
-                    "workdir. Follow them in addition to the other system instructions.\n"
-                    + rules
-                    + "\n</additional_project_rules>"
-                )
+        agents_directory = ""
+        if (
+                include_agents_directory
+                and self.runtime.window.core.config.get("agent.v2.agents_dir.enabled", True)
+        ):
+            agents_directory = "\n\n" + (
+                AGENTS_DIRECTORY_SUPPORT_PROMPT
+                if bool(getattr(self.runtime, "agents_directory_exists", False))
+                else AGENTS_DIRECTORY_MEMORIES_PROMPT
+            )
 
         base = str(base_prompt or "").strip()
         prefix = (base + "\n\n") if base else ""
@@ -118,14 +116,14 @@ class RuntimePromptBuilder:
             + rag_context
             + skills_context
             + "\n\n<additional_system_prompt>\n" + additional + "\n</additional_system_prompt>"
-            + project_rules
+            + agents_directory
         )
 
     def _compose_main_agent_prompt(self, base_prompt: str) -> str:
         """Backward-compatible wrapper for top-level Chat with Agents prompts."""
         return self.compose_agent_system_prompt(
             base_prompt=base_prompt,
-            include_project_rules=True,
+            include_agents_directory=True,
         )
 
     def _custom_main_prompt(self, config_key: str) -> str:
@@ -141,7 +139,7 @@ class RuntimePromptBuilder:
         custom = self._custom_main_prompt(config_key)
         return self.compose_agent_system_prompt(
             base_prompt=custom or default_prompt,
-            include_project_rules=True,
+            include_agents_directory=True,
             inject_workflow_policy=not bool(custom),
         )
 
@@ -170,7 +168,7 @@ class RuntimePromptBuilder:
             base = str(custom.get("system_prompt") or "").strip()
             return self.compose_agent_system_prompt(
                 base_prompt=base,
-                include_project_rules=True,
+                include_agents_directory=True,
                 inject_workflow_policy=False,
             )
 
@@ -183,5 +181,5 @@ class RuntimePromptBuilder:
             return self.swarm_prompt()
         return self.compose_agent_system_prompt(
             base_prompt=self.runtime.strategy.main_prompt,
-            include_project_rules=True,
+            include_agents_directory=True,
         )

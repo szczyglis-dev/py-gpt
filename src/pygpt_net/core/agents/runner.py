@@ -15,6 +15,10 @@ from typing import Optional, Dict, Any, Union
 from llama_index.core.base.llms.types import ChatMessage, MessageRole
 
 from pygpt_net.core.agent_workflow import AgentWorkflowBridge
+from pygpt_net.core.agents_v2.prompts import (
+    agents_directory_exists,
+    append_agents_directory_support,
+)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.types import (
@@ -110,8 +114,17 @@ class Runner:
             # turn for loop/evaluate continuations. REQUEST_NEXT bypasses the
             # normal chat BridgeWorker prompt hooks, so without this the next
             # improvement pass silently lost the preset/plugin system prompt.
-            ctx.agents_v2_system_prompt = context.system_prompt or ""
-            system_prompt = BaseAgent.append_security_rule(context.system_prompt)
+            base_system_prompt = context.system_prompt or ""
+            if (
+                    provider.get_mode() == AGENT_MODE_WORKFLOW
+                    and self.window.core.config.get("agent.llama.agents_dir.enabled", True)
+            ):
+                base_system_prompt = append_agents_directory_support(
+                    base_system_prompt,
+                    directory_exists=agents_directory_exists(self.window, ctx=ctx),
+                )
+            ctx.agents_v2_system_prompt = base_system_prompt
+            system_prompt = BaseAgent.append_security_rule(base_system_prompt)
             preset = context.preset
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_stream = self.window.core.config.get("stream", False)
@@ -326,7 +339,16 @@ class Runner:
             # prepare agent
             model = context.model
             vector_store_idx = extra.get("agent_idx", None)
-            system_prompt = BaseAgent.append_security_rule(context.system_prompt)
+            base_system_prompt = context.system_prompt or ""
+            if (
+                    provider.get_mode() == AGENT_MODE_WORKFLOW
+                    and self.window.core.config.get("agent.llama.agents_dir.enabled", True)
+            ):
+                base_system_prompt = append_agents_directory_support(
+                    base_system_prompt,
+                    directory_exists=agents_directory_exists(self.window, ctx=ctx),
+                )
+            system_prompt = BaseAgent.append_security_rule(base_system_prompt)
             is_expert_call = context.is_expert_call
             max_steps = self.window.core.config.get("agent.llama.steps", 10)
             is_cmd = self.window.core.command.is_cmd(inline=False)

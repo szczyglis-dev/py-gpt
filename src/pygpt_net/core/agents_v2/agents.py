@@ -38,6 +38,7 @@ class _PromptPreviewRuntime:
     ):
         from .context import RuntimeContext
         from .prompt_builder import RuntimePromptBuilder
+        from .prompts import agents_directory_exists
 
         self.window = window
         self.model = model
@@ -72,12 +73,11 @@ class _PromptPreviewRuntime:
         # selected; only request-specific retrieved text is absent at this point.
         self.rag_context_text = ""
         self.bridge_system_prompt = str(bridge_system_prompt or "").strip()
-        self.project_rules_text = ""
-        self.project_rules_loaded = False
 
         self.context_api = RuntimeContext(self)
         self.shared_context_text = self.context_api._build_shared_context()
         self.runtime_system_context = self.context_api._build_runtime_system_context()
+        self.agents_directory_exists = agents_directory_exists(window, ctx=ctx)
         self.prompt_api = RuntimePromptBuilder(self)
 
     @property

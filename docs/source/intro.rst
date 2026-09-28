@@ -36,7 +36,7 @@ Features
 * Model Context Protocol (MCP) support.
 * Built-in ``MCP Connectors`` manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
 * Agents multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
-* Project-specific ``AGENTS.md`` rules for the main Agents agent.
+* Optional project-specific ``.agents/`` directory support for Agents and Custom agents.
 * Portable ``SKILL.md``-based ``Agent Skills`` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
 * Built-in ``Python/OS`` tool for real-time Python, IPython, and system command execution.
 * Built-in real-time ``Canvas`` with annotation support and web browser integration for interactive workflows.

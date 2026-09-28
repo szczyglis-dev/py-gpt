@@ -617,6 +617,8 @@ Agents
 
 * ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before a Agents run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
 
+* ``Add support for .agents directory``: Checks the active workdir at run start. If ``%workdir%/.agents/`` exists, the top-level Agents agent receives its layout and guidance to use relevant project instructions/resources; otherwise it receives only a short note that ``.agents/`` may be created and ``.agents/memories/`` used for persistent notes. PyGPT does not preload the directory contents. Default: True.
+
 * ``Show full tool-chain in Agents``: When enabled, the final Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
 * ``Display full agent workflow``: Keeps the complete visible sequence of persisted Agents partial responses in the chat after the workflow finishes and after the conversation is reloaded. Disable it to collapse completed turns to the final response only. This affects UI rendering only and is independent from ``Restore full workflow history on next request``. Default: True.
@@ -641,6 +643,8 @@ An iteration is an internal reasoning/tool-call cycle, not a user message turn. 
 
 Custom agents
 ^^^^^^^^^^^^^
+
+* ``Add support for .agents directory``: Checks the active workdir at run start for LlamaIndex Custom agents. Existing ``.agents/`` directories receive the full project-directory guidance; otherwise only the short ``.agents/memories/`` creation/note hint is added. Files are read by the agent when needed and are not preloaded by PyGPT. Default: True.
 
 * ``Max steps (per iteration)``: Limits how many action/reasoning steps a Custom agent may perform within one iteration while working toward its goal. Raising it allows more work per iteration but can increase latency and API usage. Default: 10.
 

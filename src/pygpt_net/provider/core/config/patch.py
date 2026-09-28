@@ -66,6 +66,16 @@ class Patch:
                 data, provider_updated, _ = patcher.execute(version)
                 updated = updated or provider_updated
             # --------------------------------------------
+            # .agents project-directory support introduced in 2.8.34
+            if old < parse_version("2.8.34"):
+                for key in (
+                    "agent.v2.agents_dir.enabled",
+                    "agent.llama.agents_dir.enabled",
+                ):
+                    if key not in data:
+                        data[key] = True
+                        updated = True
+            # --------------------------------------------
 
         # update file
         migrated = False

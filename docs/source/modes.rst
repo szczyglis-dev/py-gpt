@@ -100,14 +100,32 @@ Open the monitor from ``Tools -> Agent Workflow`` or pin it as an output tab. It
 
 The monitor is runtime-only. Every new top-level agent run clears the previous view automatically, and **Clear view** can clear it manually. The tool does not replace persisted conversation history, the full-workflow rendering option, or Debug workflow logging.
 
-Project rules with AGENTS.md
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Project instructions with ``.agents/``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Agents supports optional project-specific instructions in ``AGENTS.md``. Before processing the user's input, the top-level main agent checks for ``%workdir%/AGENTS.md`` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main agent system prompt as additional project rules.
+Agents can use an optional ``%workdir%/.agents/`` directory for project-specific instructions and agent resources. PyGPT does **not** read or append these files automatically. When **Add support for .agents directory** is enabled in ``Settings -> Agents and experts -> Agents`` (default: on), PyGPT checks the active conversation/project workdir when the run starts. If ``.agents/`` exists, the top-level Agents prompt receives the directory layout and tells the agent to inspect the relevant files itself. If it does not exist, the prompt only mentions that the agent may create ``.agents/`` and keep persistent work notes under ``.agents/memories/``.
 
-The workdir is resolved from the conversation that started the run, including a custom project data workdir, rather than from whichever project happens to be selected later in the UI. The file is read once for that run and is not stored in the conversation database. A symbolic link that resolves outside the active workdir is ignored.
+Example layout:
 
-``AGENTS.md`` rules are intentionally applied only to the top-level **Agents** main agent. They are not automatically injected into worker agents or into Experts, even though Experts reuse the Agents v2 runtime. Put shared operational instructions in the main ``AGENTS.md`` and explicitly pass any worker-specific requirements when delegating work.
+.. code-block:: text
+
+   .agents/
+   ├── agents.md            # additional instructions
+   ├── system-prompt.md     # system prompt
+   ├── mcp.json             # MCP server configuration
+   ├── skills/
+   │   └── code-review/
+   │       └── skill.md     # skill definition
+   ├── agents/
+   │   └── code-reviewer/
+   │       └── agent.md     # sub-agent profile
+   ├── tasks/
+   │   └── daily-code-review/
+   │       └── task.md      # repeat task
+   └── memories/
+       └── project-arch.md  # persistent memory for agents
+
+The agent may create or update its own persistent project notes in ``.agents/memories/``. Reading and writing still depends on the filesystem/tools exposed to that agent and the normal PyGPT security rules. The existence check is performed once per run against the active host workdir, including a project-specific workdir. The same convention can be enabled independently for **Custom agents** in ``Settings -> Agents and experts -> Custom agents``.
 
 Tools and provider capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -124,7 +142,7 @@ Local plugin execution is integrated with the normal PyGPT command/tool system, 
 Settings
 ^^^^^^^^
 
-Agent-related application settings are available under ``Settings -> Agents and experts``. The **Agents** section contains settings intended for this workflow. ``Show full tool-chain in Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
+Agent-related application settings are available under ``Settings -> Agents and experts``. The **Agents** section contains settings intended for this workflow. ``Add support for .agents directory`` is enabled by default and adds the directory-usage guidance described above. ``Show full tool-chain in Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
 
 The global ``Chats -> Render -> Display tool calls JSON`` option must also be enabled for expandable request/response blocks to be shown. If it is disabled, tool execution remains unchanged and live tool activity is represented by one aggregated ``Tool/Tools`` status row.
 
@@ -376,6 +394,8 @@ Tools and Plugins
 
 Commands from active plugins can be exposed to Custom agents as tools according to the selected workflow and preset configuration.
 
+``Add support for .agents directory`` is enabled by default in ``Settings -> Agents and experts -> Custom agents``. At the start of a Custom agent run, PyGPT checks the active workdir. When ``.agents/`` exists, the agent receives the same project-directory guidance as Agents; otherwise it receives only the short note about optionally creating ``.agents/`` and using ``.agents/memories/``. Files are read by the agent when needed rather than preloaded by PyGPT.
+
 RAG - using indexes
 ^^^^^^^^^^^^^^^^^^^
 
@@ -393,4 +413,4 @@ You can choose between two evaluation methods:
 * By the percentage of tasks completed
 * By the accuracy (score) of the final response
 
-The loop limit is configured in ``Settings -> Agents and experts -> Legacy agents -> Max evaluation steps in loop``. Set it to ``0`` for no application-level limit. Evaluation prompts can be adjusted in ``Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]``.
+The loop limit is configured in ``Settings -> Agents and experts -> Custom agents -> Max evaluation steps in loop``. Set it to ``0`` for no application-level limit. Evaluation prompts can be adjusted in ``Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]``.

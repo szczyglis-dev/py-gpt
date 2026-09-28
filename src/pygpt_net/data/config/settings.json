@@ -2357,6 +2357,20 @@
         "advanced": false,
         "tab": "data_loaders"
     },
+    "agent.llama.agents_dir.enabled": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.agents_dir",
+        "description": "settings.agent.agents_dir.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "llama"
+    },
     "agent.llama.steps": {
         "section": "agent",
         "type": "int",
@@ -2430,6 +2444,20 @@
         "step": 1,
         "advanced": false,
         "tab": "llama"
+    },
+    "agent.v2.agents_dir.enabled": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.agents_dir",
+        "description": "settings.agent.agents_dir.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
     },
     "agent.idx.auto_retrieve": {
         "section": "agent",
