@@ -131,11 +131,28 @@ QTreeView::item:selected:focus {{
   selection-color: #080505;
 }}
 
-/* Explicit check mark for dark themes. Qt can otherwise render the
- * checked indicator background without a visible tick on some styles. */
+/* Checkboxes: draw the indicator directly instead of using the black
+ * checkbox.svg asset, which becomes nearly invisible on dark surfaces. */
+QCheckBox::indicator {{
+  width: 16px;
+  height: 16px;
+  border: 1px solid {APP_MUTED_TEXT_COLOR};
+}}
+
 QCheckBox::indicator:checked,
 QGroupBox::indicator:checked {{
-  image: url(:/icons/checkbox.svg);
+  image: none;
+  width: 10px;
+  height: 10px;
+  border: 4px solid {APP_FOCUS_BORDER_COLOR};
+  background-color: {APP_TEXT_COLOR};
+}}
+
+QCheckBox::indicator:unchecked,
+QGroupBox::indicator:unchecked {{
+  image: none;
+  background-color: {APP_SURFACE};
+  border: 1px solid {APP_MUTED_TEXT_COLOR};
 }}
 
 /* Combo boxes and value inputs */
