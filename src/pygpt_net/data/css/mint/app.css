@@ -261,12 +261,23 @@ QMenu::indicator:exclusive {{
   border-radius: 8px;
 }}
 
-QMenu::indicator:exclusive:checked,
-QMenu::indicator:exclusive:checked:selected,
 QMenu::indicator:non-exclusive:checked,
 QMenu::indicator:non-exclusive:checked:selected {{
   image: none;
-  background-color: #abd8c2;
+  width: 10px;
+  height: 10px;
+  border: 4px solid #abd8c2;
+  background-color: #587067;
+}}
+
+QMenu::indicator:exclusive:checked,
+QMenu::indicator:exclusive:checked:selected {{
+  image: none;
+  width: 10px;
+  height: 10px;
+  border: 4px solid #abd8c2;
+  border-radius: 9px;
+  background-color: #587067;
 }}
 
 QMenu::indicator:exclusive:unchecked,
@@ -308,8 +319,10 @@ QCheckBox::indicator {{
 QCheckBox::indicator:checked,
 QGroupBox::indicator:checked {{
   image: none;
-  background-color: #abd8c2;
-  selection-background-color: #fbfffd;
+  width: 10px;
+  height: 10px;
+  border: 4px solid #abd8c2 !important;
+  background-color: #587067;
 }}
 
 QCheckBox::indicator:unchecked,
@@ -332,9 +345,11 @@ QRadioButton::indicator::focus {{
 
 QRadioButton::indicator:checked {{
   image: none;
-  background-color: #abd8c2;
-  selection-background-color: #fbfffd;
-  border-radius: 8px;
+  width: 10px;
+  height: 10px;
+  border: 4px solid #abd8c2 !important;
+  background-color: #587067;
+  border-radius: 9px;
 }}
 
 QRadioButton::indicator:unchecked {{
