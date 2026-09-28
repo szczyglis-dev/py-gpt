@@ -310,7 +310,7 @@ class Runtime {
 			prefix.className = 'agent-name-prefix';
 			container.insertBefore(prefix, beforeNode || container.firstChild || null);
 		}
-		prefix.textContent = `${name}:`;
+		prefix.textContent = name;
 		return prefix;
 	};
 
