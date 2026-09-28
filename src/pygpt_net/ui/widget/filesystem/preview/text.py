@@ -66,6 +66,7 @@ class TextPreview(QPlainTextEdit):
     def __init__(self, panel, path, text):
         super().__init__(panel)
         self.panel = panel
+        self.setObjectName('filesPreviewText')
         self.finder = Finder(panel.window, self)
         self.textChanged.connect(self.finder.text_changed)
         self.value = 12

@@ -99,6 +99,15 @@ QComboBox[frame="false"]:focus {{
 }}
 
 
+/* Files preview text editor is intentionally borderless. Keep the regular
+ * editor borders everywhere else. */
+QPlainTextEdit#filesPreviewText,
+QPlainTextEdit#filesPreviewText:focus {{
+  border: 0;
+  border-width: 0;
+}}
+
+
 /* Searchable combos (including Painter) use a child editor for display. */
 QComboBox QLineEdit#comboDisplayEditor,
 QComboBox QLineEdit#comboDisplayEditor:focus {{
