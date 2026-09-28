@@ -134,7 +134,12 @@ code {{
 }}
 
 .tool-output .tool-output-toggle:hover {{
-  background-color: rgba(255, 79, 216, 0.08);
+  background: none;
+}}
+
+.tool-output .tool-output-toggle:hover .tool-output-label,
+.tool-output .tool-output-toggle:hover .tool-output-name {{
+  color: #fff;
 }}
 
 .tool-output .tool-output-label {{
