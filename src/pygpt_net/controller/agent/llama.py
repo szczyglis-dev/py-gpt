@@ -102,8 +102,8 @@ class Llama:
         """
         self.reset_eval_step()  # reset evaluation step
 
-    def on_end(self):
-        """End of run"""
+    def on_end(self, ctx: CtxItem = None):
+        """End of run."""
         self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "agent",
         }))
@@ -113,7 +113,10 @@ class Llama:
             if self.window.core.config.get("mode") != MODE_LLAMA_INDEX:
                 self.window.ui.tray.show_msg_if_inactive(
                     trans("notify.agent.goal.title"),
-                    trans("notify.agent.goal.content"),
+                    self.window.ui.tray.agent_result_message(
+                        ctx,
+                        trans("notify.agent.goal.content"),
+                    ),
                 )
 
     def on_finish(self, ctx: CtxItem):
@@ -123,24 +126,24 @@ class Llama:
         :param ctx: CtxItem
         """
         if not self.window.core.config.get("agent.llama.loop.enabled"):
-            self.on_end()
+            self.on_end(ctx)
             return  # abort if loop is disabled
 
         # disable if bot
         if self.window.controller.presets.is_bot():
-            self.on_end()
+            self.on_end(ctx)
             return  # abort if bot
 
         # check if not stopped
         if self.window.controller.kernel.stopped():
-            self.on_end()
+            self.on_end(ctx)
             return
 
         # check max steps
         max_steps = int(self.window.core.config.get("agent.llama.max_eval"))
         if max_steps != 0 and self.get_eval_step() >= max_steps:
             self.window.update_status(f"Stopped. Limit of max steps: {max_steps}")  # show info
-            self.on_end()
+            self.on_end(ctx)
             return  # abort if max steps reached
 
         # evaluation step++

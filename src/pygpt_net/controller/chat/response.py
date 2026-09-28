@@ -398,7 +398,7 @@ class Response:
         """
         status = extra.get("msg", trans("status.finished"))
         self.window.update_status(status)
-        self.window.controller.agent.llama.on_end()
+        self.window.controller.agent.llama.on_end(getattr(context, "ctx", None))
         self.window.controller.chat.common.unlock_input()  # unlock input
         self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "chat",
@@ -890,7 +890,10 @@ class Response:
         if has_final and self.window.core.config.get("agent.goal.notify"):
             self.window.ui.tray.show_msg_if_inactive(
                 trans("notify.agent.goal.title"),
-                trans("notify.agent.goal.content"),
+                self.window.ui.tray.agent_result_message(
+                    ctx,
+                    trans("notify.agent.goal.content"),
+                ),
             )
 
     def live_append(
