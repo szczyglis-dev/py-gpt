@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 22:05:00                  #
+# Updated Date: 2026.09.28 13:31:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QDate, QLocale, QTime, QTimer
+from PySide6.QtCore import Qt, QDateTime, QLocale, QTimer
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup
 
 from pygpt_net.ui.widget.calendar.note import CalendarNotePopup
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
 from pygpt_net.ui.widget.element.checkbox import ColorCheckbox
-from pygpt_net.ui.widget.element.labels import HelpLabel, IconLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
 
@@ -117,30 +117,179 @@ class Calendar:
     def _on_counters_all_toggled(self, checked: bool) -> None:
         self.window.controller.calendar.note.toggle_counters_all(checked)
 
-    def _current_weekday_text(self) -> str:
-        """Return today's full weekday name in the active application language."""
-        today = QDate.currentDate()
+    @staticmethod
+    def _date_fields(format_str: str) -> list[tuple[str, int, int]]:
+        """Return Qt date-format fields outside quoted literals."""
+        fields = []
+        i = 0
+        quoted = False
+        length = len(format_str)
+
+        while i < length:
+            char = format_str[i]
+            if char == "'":
+                # Two consecutive apostrophes are an escaped literal apostrophe.
+                if i + 1 < length and format_str[i + 1] == "'":
+                    i += 2
+                    continue
+                quoted = not quoted
+                i += 1
+                continue
+
+            if not quoted and char in "yMd":
+                end = i + 1
+                while end < length and format_str[end] == char:
+                    end += 1
+                fields.append((char, i, end))
+                i = end
+                continue
+            i += 1
+
+        return fields
+
+    @classmethod
+    def _date_format_without_year(cls, format_str: str) -> str:
+        """Remove the year and its adjacent separator/literal from a Qt date format."""
+        fields = cls._date_fields(format_str)
+        year = next((field for field in fields if field[0] == "y"), None)
+        if year is None:
+            return format_str.strip()
+
+        _, year_start, year_end = year
+        previous = next((field for field in reversed(fields) if field[2] <= year_start), None)
+        following = next((field for field in fields if field[1] >= year_end), None)
+
+        if previous is None and following is not None:
+            # E.g. Japanese/Chinese: yyyy年M月d日 -> M月d日
+            result = format_str[following[1]:]
+        elif following is None and previous is not None:
+            # E.g. Polish/Spanish/English: remove the separator or literal that
+            # belongs to the trailing year as well (", yyyy", " de yyyy", etc.).
+            result = format_str[:previous[2]]
+        else:
+            result = format_str[:year_start] + format_str[year_end:]
+
+        return " ".join(result.strip(" ,;/").split())
+
+    @staticmethod
+    def _format_fields(format_str: str, chars: str) -> list[tuple[str, int, int]]:
+        """Return selected Qt date/time-format fields outside quoted literals."""
+        fields = []
+        i = 0
+        quoted = False
+        length = len(format_str)
+
+        while i < length:
+            char = format_str[i]
+            if char == "'":
+                if i + 1 < length and format_str[i + 1] == "'":
+                    i += 2
+                    continue
+                quoted = not quoted
+                i += 1
+                continue
+
+            if not quoted and char in chars:
+                end = i + 1
+                while end < length and format_str[end] == char:
+                    end += 1
+                fields.append((char, i, end))
+                i = end
+                continue
+            i += 1
+
+        return fields
+
+    @staticmethod
+    def _format_literal(text: str) -> str:
+        """Decode quoted literals from a Qt date/time format fragment."""
+        result = []
+        i = 0
+        quoted = False
+        while i < len(text):
+            if text[i] == "'":
+                if i + 1 < len(text) and text[i + 1] == "'":
+                    result.append("'")
+                    i += 2
+                    continue
+                quoted = not quoted
+                i += 1
+                continue
+            result.append(text[i])
+            i += 1
+        return "".join(result)
+
+    @classmethod
+    def _date_time_layout(cls, locale: QLocale) -> tuple[bool, str]:
+        """Return native date/time order and separator for the locale."""
+        format_str = locale.dateTimeFormat(QLocale.FormatType.ShortFormat)
+        date_fields = cls._format_fields(format_str, "yMd")
+        time_fields = cls._format_fields(format_str, "hHmszAtap")
+        if not date_fields or not time_fields:
+            return True, ", "
+
+        date_start = min(field[1] for field in date_fields)
+        date_end = max(field[2] for field in date_fields)
+        time_start = min(field[1] for field in time_fields)
+        time_end = max(field[2] for field in time_fields)
+
+        if date_end <= time_start:
+            separator = cls._format_literal(format_str[date_end:time_start])
+            return True, separator or " "
+        if time_end <= date_start:
+            separator = cls._format_literal(format_str[time_end:date_start])
+            return False, separator or " "
+        return True, ", "
+
+    def _active_locale(self) -> QLocale:
+        """Return the Qt locale matching the language selected in PyGPT."""
         try:
-            lang = self.window.core.config.get_lang() or "en"
-            weekday = QLocale(lang).dayName(
-                today.dayOfWeek(),
-                QLocale.FormatType.LongFormat,
-            ).strip().rstrip(".")
-            if weekday:
-                return weekday
+            lang = self.window.core.config.get_lang() or ""
+            if lang:
+                locale = QLocale(lang)
+                if locale.language() != QLocale.Language.C:
+                    return locale
         except Exception:
             pass
-        return today.toString("dddd")
+        return QLocale.system()
+
+    def _current_date_time_text(self) -> str:
+        """Return a localized weekday/date/time string without the year."""
+        now = QDateTime.currentDateTime()
+        locale = self._active_locale()
+
+        date_format = locale.dateFormat(QLocale.FormatType.LongFormat)
+        date_format = self._date_format_without_year(date_format)
+        date_text = locale.toString(now.date(), date_format).strip()
+
+        # Most Qt long-date formats already contain the weekday. Add it only
+        # when the locale's native format omits it.
+        has_weekday = any(
+            field == "d" and end - start >= 3
+            for field, start, end in self._date_fields(date_format)
+        )
+        if not has_weekday:
+            weekday = locale.dayName(
+                now.date().dayOfWeek(),
+                QLocale.FormatType.LongFormat,
+            ).strip()
+            if weekday:
+                date_text = f"{weekday}, {date_text}"
+
+        time_text = locale.toString(
+            now.time(),
+            QLocale.FormatType.ShortFormat,
+        ).strip()
+        date_first, separator = self._date_time_layout(locale)
+        if date_first:
+            return f"{date_text}{separator}{time_text}"
+        return f"{time_text}{separator}{date_text}"
 
     def _update_clock(self) -> None:
-        """Refresh the weekday and clock labels from the same timer."""
-        nodes = self.window.ui.nodes
-        weekday = nodes.get('calendar.clock.weekday')
-        clock = nodes.get('calendar.clock')
-        if weekday is not None:
-            weekday.setText(self._current_weekday_text())
+        """Refresh the localized date/time label."""
+        clock = self.window.ui.nodes.get('calendar.clock')
         if clock is not None:
-            clock.setText(QTime.currentTime().toString("HH:mm"))
+            clock.setText(self._current_date_time_text())
 
     def setup_filters(self) -> QWidget:
         """
@@ -174,17 +323,12 @@ class Calendar:
             layout.addStretch()
 
             nodes['filter.ctx.labels'] = ColorCheckbox(self.window)
-            nodes['calendar.clock.weekday'] = QLabel(self._current_weekday_text(), widget)
-            nodes['calendar.clock.weekday'].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            nodes['calendar.clock.icon'] = IconLabel(":/icons/clock.svg", widget, hover=False)
-            nodes['calendar.clock'] = QLabel(QTime.currentTime().toString("HH:mm"), widget)
+            nodes['calendar.clock'] = QLabel(self._current_date_time_text(), widget)
             nodes['calendar.clock'].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
             labels_layout = QHBoxLayout()
             labels_layout.setContentsMargins(0, 0, 0, 0)
             labels_layout.addWidget(nodes['filter.ctx.labels'], 1)
-            labels_layout.addWidget(nodes['calendar.clock.weekday'], 0, Qt.AlignRight | Qt.AlignVCenter)
-            labels_layout.addWidget(nodes['calendar.clock.icon'], 0, Qt.AlignRight | Qt.AlignVCenter)
             labels_layout.addWidget(nodes['calendar.clock'], 0, Qt.AlignRight | Qt.AlignVCenter)
 
             clock_timer = QTimer(widget)

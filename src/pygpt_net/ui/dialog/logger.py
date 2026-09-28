@@ -33,9 +33,9 @@ class Logger:
         self.window.logger.setProperty('class', 'text-editor')
 
         self.window.console = ConsoleInput(self.window)
-        font_size = self.window.core.config.get('font_size.input', 16)
+        font_size = self.window.core.config.get('font_size.input', 14)
         try:
-            font_size = int(font_size) + 2
+            font_size = int(font_size)
         except (TypeError, ValueError):
             font_size = 14
         self.window.console.setStyleSheet(f"font-size: {font_size}px;")
