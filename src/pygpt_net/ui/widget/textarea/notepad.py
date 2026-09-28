@@ -15,6 +15,7 @@ from PySide6.QtGui import (
     QIcon,
     QKeySequence,
     QTextCursor,
+    QTextCharFormat,
     QFontMetrics,
     QColor,
 )
@@ -26,7 +27,7 @@ from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
-from .highlight import MarkerHighlighter
+from .highlight import MarkerHighlighter, MARKER_PROPERTY, marked_ranges
 
 
 class NotepadHelpLabel(HelpLabel):
@@ -195,9 +196,6 @@ class NotepadOutput(QTextEdit):
         self._restore_attempts = 0
         self._pending_scroll_pos = None
 
-        # highlight state (using QSyntaxHighlighter for rendering)
-        self._highlights = []  # list of (start, length)
-
         # timers/slots must be available even if later connections fail
         self._save_timer = QTimer(self)
         self._save_timer.setSingleShot(True)
@@ -205,7 +203,7 @@ class NotepadOutput(QTextEdit):
         self._save_timer.timeout.connect(self._persist)
 
         # highlighter
-        self._highlighter = MarkerHighlighter(self.document(), self.get_highlights, self.get_highlight_color)
+        self._highlighter = MarkerHighlighter(self.document(), self.get_highlight_color)
 
         # schedule guard for column-focus sync
         self._column_focus_sync_scheduled = False
@@ -346,8 +344,12 @@ class NotepadOutput(QTextEdit):
             if self.finder is not None:
                 self.finder.text_changed()
             self.last_scroll_pos = self._vscroll.value()
-            if self.initialized and not self.toPlainText():
-                QTimer.singleShot(0, lambda: self.clear_highlights(persist=False))  # if empty, reset highlights
+            if self.document().isEmpty():
+                # Reset insertion style, not saved formatting: undo must still
+                # restore the removed text together with its markers.
+                fmt = self.currentCharFormat()
+                fmt.setProperty(MARKER_PROPERTY, False)
+                self.setCurrentCharFormat(fmt)
             self.schedule_save()
 
     def _on_scrollbar_value_changed(self, value: int):
@@ -577,17 +579,36 @@ class NotepadOutput(QTextEdit):
         self._persist()
 
     def get_highlights(self):
-        """Return current highlights as list of (start, length)"""
-        return list(self._highlights)
+        """Serialize live marker positions in the existing (start, length) format."""
+        ranges = []
+        block = self.document().begin()
+        while block.isValid():
+            ranges.extend(marked_ranges(block))
+            block = block.next()
+        return self._merge_ranges(ranges)
 
     def set_highlights(self, highlights):
-        """Set highlights and repaint"""
-        self._highlights = self._merge_ranges(self._sanitize_ranges(highlights))
+        """Restore persisted ranges as text metadata, without creating undo steps."""
+        ranges = self._merge_ranges(self._sanitize_ranges(highlights))
+        if ranges == self.get_highlights():
+            return
+        document = self.document()
+        undo_enabled = document.isUndoRedoEnabled()
+        document.setUndoRedoEnabled(False)
+        try:
+            self._format_marker(0, document.characterCount() - 1, False)
+            for start, length in ranges:
+                self._format_marker(start, length, True)
+        finally:
+            document.setUndoRedoEnabled(undo_enabled)
         self._highlighter.rehighlight()
 
     def clear_highlights(self, persist: bool = True):
-        """Clear all highlights"""
-        self._highlights = []
+        """Clear all highlights (undoable like other formatting actions)."""
+        self._format_marker(0, self.document().characterCount() - 1, False)
+        fmt = self.currentCharFormat()
+        fmt.setProperty(MARKER_PROPERTY, False)
+        self.setCurrentCharFormat(fmt)
         self._highlighter.rehighlight()
         if persist:
             self._persist()
@@ -666,38 +687,31 @@ class NotepadOutput(QTextEdit):
                 merged.append([s, se])
         return [(s, e - s) for s, e in merged]
 
+    def _format_marker(self, start, length, enabled):
+        """Native character properties follow edits, including undo and redo."""
+        end = min(start + length, self.document().characterCount() - 1)
+        start = max(0, start)
+        if start >= end:
+            return
+        cursor = QTextCursor(self.document())
+        cursor.setPosition(start)
+        cursor.setPosition(end, QTextCursor.KeepAnchor)
+        fmt = QTextCharFormat()
+        fmt.setProperty(MARKER_PROPERTY, enabled)
+        cursor.mergeCharFormat(fmt)
+
     def _add_highlight(self, rng):
-        """Add a highlight range and merge"""
-        s, l = int(rng[0]), int(rng[1])
-        if l <= 0:
+        start, length = int(rng[0]), int(rng[1])
+        if length <= 0:
             return
-        self._highlights.append((s, l))
-        self._highlights = self._merge_ranges(self._sanitize_ranges(self._highlights))
+        self._format_marker(start, length, True)
         self.schedule_save()
 
-    def _remove_range_from_highlights(self, s, l):
-        """Subtract a range from all highlights"""
-        if l <= 0:
+    def _remove_range_from_highlights(self, start, length):
+        if length <= 0:
             return
-        start = s
-        end = s + l
-        result = []
-        for hs, hl in self._highlights:
-            he = hs + hl
-            if he <= start or hs >= end:
-                result.append((hs, hl))
-                continue
-            if hs < start:
-                result.append((hs, start - hs))
-            if he > end:
-                result.append((end, he - end))
-        self._highlights = self._merge_ranges(self._sanitize_ranges(result))
+        self._format_marker(start, length, False)
         self.schedule_save()
 
-    def _selection_overlaps_any_highlight(self, s, e):
-        """Check if selection overlaps any highlight"""
-        for hs, hl in self._highlights:
-            he = hs + hl
-            if not (he <= s or hs >= e):
-                return True
-        return False
+    def _selection_overlaps_any_highlight(self, start, end):
+        return any(hs < end and hs + length > start for hs, length in self.get_highlights())

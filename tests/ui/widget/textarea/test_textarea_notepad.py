@@ -1,6 +1,10 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
+from PySide6.QtWidgets import QWidget
+from PySide6.QtGui import QTextCursor
+
 from pygpt_net.ui.widget.textarea.notepad import NotepadOutput, NotepadWidget
 
 
@@ -39,67 +43,114 @@ def test_merge_ranges_merges_overlapping_and_adjacent_ranges():
     ]
 
 
-def test_add_highlight_merges_and_schedules_save():
-    widget = SimpleNamespace(
-        _highlights=[(0, 3)],
-        _sanitize_ranges=lambda ranges: NotepadOutput._sanitize_ranges(SimpleNamespace(), ranges),
-        _merge_ranges=lambda ranges: NotepadOutput._merge_ranges(SimpleNamespace(), ranges),
-        schedule_save=MagicMock(),
-    )
-    NotepadOutput._add_highlight(widget, (2, 5))
-    assert widget._highlights == [(0, 7)]
-    widget.schedule_save.assert_called_once_with()
+@pytest.fixture
+def editor(qapp):
+    window = QWidget()
+    window.core = MagicMock()
+    window.controller = MagicMock()
+    window.core.config.data = {'font_size': 12}
+    window.core.config.get.return_value = 12
+    window.core.notepad.locked = False
+    widget = NotepadOutput(window)
+    widget.setPlainText('0123456789abcdefghij01234')
+    yield widget
+    widget._save_timer.stop()
+    window.deleteLater()
+    qapp.processEvents()
 
 
-def test_add_highlight_ignores_non_positive_length():
-    widget = SimpleNamespace(_highlights=[], schedule_save=MagicMock())
-    NotepadOutput._add_highlight(widget, (2, 0))
-    assert widget._highlights == []
-    widget.schedule_save.assert_not_called()
+def edit(editor, start, end, text=''):
+    cursor = editor.textCursor()
+    cursor.setPosition(start)
+    cursor.setPosition(end, QTextCursor.KeepAnchor)
+    cursor.insertText(text)
+    editor.setTextCursor(cursor)
 
 
-def test_remove_range_from_highlights_splits_existing_range():
-    widget = SimpleNamespace(
-        _highlights=[(0, 10), (20, 5)],
-        _sanitize_ranges=lambda ranges: NotepadOutput._sanitize_ranges(SimpleNamespace(), ranges),
-        _merge_ranges=lambda ranges: NotepadOutput._merge_ranges(SimpleNamespace(), ranges),
-        schedule_save=MagicMock(),
-    )
-    NotepadOutput._remove_range_from_highlights(widget, 3, 4)
-    assert widget._highlights == [(0, 3), (7, 3), (20, 5)]
-    widget.schedule_save.assert_called_once_with()
+def test_mark_and_unmark_merge_split_and_undo(editor):
+    editor.set_highlights([(0, 3)])
+    editor._add_highlight((2, 5))
+    assert editor.get_highlights() == [(0, 7)]
+    editor._remove_range_from_highlights(3, 2)
+    assert editor.get_highlights() == [(0, 3), (5, 2)]
+    editor.undo()
+    assert editor.get_highlights() == [(0, 7)]
+    editor.undo()
+    assert editor.get_highlights() == [(0, 3)]
 
 
-def test_remove_range_from_highlights_handles_full_and_non_overlapping_subtractions():
-    helper = SimpleNamespace()
-    widget = SimpleNamespace(
-        _highlights=[(5, 5)],
-        _sanitize_ranges=lambda ranges: NotepadOutput._sanitize_ranges(helper, ranges),
-        _merge_ranges=lambda ranges: NotepadOutput._merge_ranges(helper, ranges),
-        schedule_save=MagicMock(),
-    )
-    NotepadOutput._remove_range_from_highlights(widget, 0, 20)
-    assert widget._highlights == []
-
-    widget._highlights = [(5, 5)]
-    widget.schedule_save.reset_mock()
-    NotepadOutput._remove_range_from_highlights(widget, 20, 2)
-    assert widget._highlights == [(5, 5)]
-    widget.schedule_save.assert_called_once_with()
+def test_zero_length_marking_does_not_change_ranges(editor):
+    editor.set_highlights([(0, 3)])
+    editor._add_highlight((2, 0))
+    editor._remove_range_from_highlights(1, 0)
+    assert editor.get_highlights() == [(0, 3)]
 
 
-def test_remove_range_ignores_non_positive_length():
-    widget = SimpleNamespace(_highlights=[(0, 3)], schedule_save=MagicMock())
-    NotepadOutput._remove_range_from_highlights(widget, 1, 0)
-    assert widget._highlights == [(0, 3)]
-    widget.schedule_save.assert_not_called()
+def test_selection_overlap_detects_any_intersection(editor):
+    editor.set_highlights([(0, 5), (10, 3)])
+    assert editor._selection_overlaps_any_highlight(4, 6)
+    assert not editor._selection_overlaps_any_highlight(5, 10)
+    assert editor._selection_overlaps_any_highlight(11, 12)
 
 
-def test_selection_overlap_detects_any_intersection():
-    widget = SimpleNamespace(_highlights=[(0, 5), (10, 3)])
-    assert NotepadOutput._selection_overlaps_any_highlight(widget, 4, 6) is True
-    assert NotepadOutput._selection_overlaps_any_highlight(widget, 5, 10) is False
-    assert NotepadOutput._selection_overlaps_any_highlight(widget, 11, 12) is True
+@pytest.mark.parametrize('start,end,text,expected', [
+    (0, 0, 'abc', [(8, 5)]),
+    (0, 3, '', [(2, 5)]),
+    (7, 7, 'abc', [(5, 8)]),
+    (7, 9, '', [(5, 3)]),
+    (3, 7, '', [(3, 3)]),
+    (8, 12, '', [(5, 3)]),
+    (4, 11, '', []),
+    (12, 14, 'abc', [(5, 5)]),
+    (6, 9, 'abcde', [(5, 7)]),
+])
+def test_markers_follow_edits_and_undo_redo(editor, start, end, text, expected):
+    editor.set_highlights([(5, 5)])
+    original = editor.toPlainText()
+    edit(editor, start, end, text)
+    assert editor.get_highlights() == expected
+    editor.undo()
+    assert editor.toPlainText() == original
+    assert editor.get_highlights() == [(5, 5)]
+    editor.redo()
+    assert editor.get_highlights() == expected
+
+
+def test_delete_everything_then_undo_restores_markers(editor, qapp):
+    editor.set_highlights([(5, 5)])
+    edit(editor, 0, len(editor.toPlainText()))
+    assert editor.get_highlights() == []
+    editor.undo()
+    qapp.processEvents()  # no queued clear is allowed to wipe restored markers
+    assert editor.get_highlights() == [(5, 5)]
+    editor.redo()
+    edit(editor, 0, 0, 'new text')
+    assert editor.get_highlights() == []
+
+
+def test_multiline_unicode_markers_survive_serialization_and_render_full_characters(editor):
+    editor.setPlainText('a😀b\nc😀d\nend')
+    editor.set_highlights([(1, 9)])
+    assert editor.get_highlights() == [(1, 9)]
+    edit(editor, 0, 0, '😀\n')
+    assert editor.get_highlights() == [(4, 9)]
+    saved_text, saved_ranges = editor.toPlainText(), editor.get_highlights()
+    editor.setPlainText(saved_text)
+    editor.set_highlights(saved_ranges)
+    assert editor.get_highlights() == saved_ranges
+    editor._highlighter.rehighlight()
+    block = editor.document().findBlock(4)
+    formats = block.layout().formats()
+    assert any(fmt.start == 1 and fmt.length == 3 for fmt in formats)
+
+
+def test_restored_markers_are_not_a_separate_undo_step(editor):
+    editor.set_highlights([(5, 5)])
+    assert not editor.document().isUndoAvailable()
+    editor.clear_highlights()
+    assert editor.get_highlights() == []
+    editor.undo()
+    assert editor.get_highlights() == [(5, 5)]
 
 
 def test_persist_stops_timer_and_saves_current_notepad():

@@ -12,55 +12,48 @@
 from PySide6.QtGui import (
     QTextCharFormat,
     QSyntaxHighlighter,
+    QTextFormat,
 )
 
 
-class MarkerHighlighter(QSyntaxHighlighter):
-    def __init__(self, document, ranges_provider, colors_provider):
-        """
-        Syntax highlighter for marking ranges.
+MARKER_PROPERTY = QTextFormat.UserProperty + 1
 
-        :param document: QTextDocument
-        :param ranges_provider: callable returning list of (start, length)
-        :param colors_provider: callable returning (text_color: QColor|None, bg_color: QColor|None)
-        """
+
+def marked_ranges(block):
+    """Yield Qt/UTF-16 positions from persistent character formatting."""
+    fragment_it = block.begin()
+    while not fragment_it.atEnd():
+        fragment = fragment_it.fragment()
+        if fragment.isValid() and fragment.charFormat().boolProperty(MARKER_PROPERTY):
+            yield fragment.position(), fragment.length()
+        fragment_it += 1
+    # Qt stores the paragraph separator's format on the following block.
+    following = block.next()
+    if following.isValid() and following.charFormat().boolProperty(MARKER_PROPERTY):
+        yield following.position() - 1, 1
+
+
+class MarkerHighlighter(QSyntaxHighlighter):
+    def __init__(self, document, colors_provider):
         super().__init__(document)
-        self._ranges_provider = ranges_provider
         self._colors_provider = colors_provider
 
     def set_colors_provider(self, colors_provider):
-        """Set a new provider for highlight colors"""
+        """Set a new provider for highlight colors."""
         self._colors_provider = colors_provider
         self.rehighlight()
 
     def highlightBlock(self, text: str):
-        """Apply formatting to ranges intersecting current block"""
-        ranges = self._ranges_provider() or []
-        if not ranges:
-            return
-
-        text_color, bg_color = (None, None)
-        try:
-            text_color, bg_color = self._colors_provider()
-        except Exception:
-            pass
-
+        """Render marker metadata without changing the document or undo history."""
+        text_color, bg_color = self._colors_provider()
         fmt = QTextCharFormat()
         if bg_color is not None:
             fmt.setBackground(bg_color)
         if text_color is not None:
             fmt.setForeground(text_color)
-
-        block_start = self.currentBlock().position()
-        block_len = len(text)
-        for s, l in ranges:
-            if l <= 0:
-                continue
-            rel_start = s - block_start
-            rel_end = (s + l) - block_start
-            if rel_end <= 0 or rel_start >= block_len:
-                continue
-            rel_start = max(0, rel_start)
-            length = min(block_len - rel_start, rel_end - rel_start)
+        block = self.currentBlock()
+        for start, length in marked_ranges(block):
+            relative = start - block.position()
+            length = min(length, block.length() - 1 - relative)
             if length > 0:
-                self.setFormat(rel_start, length, fmt)
+                self.setFormat(relative, length, fmt)
