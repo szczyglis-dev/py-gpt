@@ -1915,19 +1915,9 @@ class IndexedFileSystemModel(QFileSystemModel):
             pass
 
     def hasChildren(self, parent=QModelIndex()) -> bool:
-        """Hide expand indicators for directories that are actually empty."""
-        if parent.isValid():
-            try:
-                path = self.filePath(parent.siblingAtColumn(0))
-                if path and self.isDir(parent.siblingAtColumn(0)):
-                    with os.scandir(path) as entries:
-                        return next(entries, None) is not None
-            except OSError:
-                # Keep QFileSystemModel's lazy/default behavior when the directory
-                # cannot be inspected (permissions, transient mount, etc.).
-                pass
-            except Exception:
-                pass
+        """Use Qt's asynchronous directory cache instead of reading disk on paint."""
+        if parent.isValid() and not self.canFetchMore(parent):
+            return self.rowCount(parent) > 0
         return super().hasChildren(parent)
 
     def refresh_path(self, path):

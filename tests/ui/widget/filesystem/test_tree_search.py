@@ -72,6 +72,7 @@ def test_manual_expansion_survives_lazy_loading_and_search_refresh(qapp, tmp_pat
         explorer.search.setText("project")
         _wait_until(lambda: not search.pending and search.accepted is not None)
         model, tree = explorer.model, explorer.treeView
+        generation = search.generation
         for path in [nested.parent, nested]:
             index = model.index(str(path))
             assert index.isValid()
@@ -80,6 +81,7 @@ def test_manual_expansion_survives_lazy_loading_and_search_refresh(qapp, tmp_pat
             _wait_until(lambda: model.rowCount(index) > 0 and not search.pending)
             search.apply()
             assert tree.isExpanded(index)
+            assert search.generation == generation, "Lazy model loading must not restart the disk scan"
             child = model.index(0, 0, index)
             assert not tree.isRowHidden(child.row(), index)
 
@@ -99,7 +101,81 @@ def test_manual_expansion_survives_lazy_loading_and_search_refresh(qapp, tmp_pat
         search.cancelled.set()
         search.timer.stop()
         search.apply_timer.stop()
+        search.batch_timer.stop()
         QThreadPool.globalInstance().waitForDone(5000)
         explorer.close()
+        explorer.deleteLater()
+        qapp.processEvents()
+
+
+def test_scan_counts_matches_in_worker_and_keeps_relative_unicode_patterns(tmp_path):
+    nested = _files(tmp_path)
+    path = nested / 'Zażółć.TXT'
+    path.write_text('text')
+    accepted, directories, count = find_paths(str(tmp_path), 'project/assets/images/*.txt', include_count=True)
+    assert count == 2
+    assert str(path) in accepted
+    assert str(nested) in directories
+    assert find_paths(str(tmp_path), 'ZAŻÓŁĆ', include_count=True)[2] == 1
+    assert find_paths(str(tmp_path), 'project', include_count=True)[2] == 1
+
+
+def test_scan_can_cancel_inside_large_directory(monkeypatch, tmp_path):
+    from pygpt_net.ui.widget.filesystem import search as module
+    monkeypatch.setattr(module.os, 'walk', lambda *a, **kw: [(str(tmp_path), [], ['file.txt'] * 10000)])
+
+    class CancelDuringScan:
+        checks = 0
+
+        def is_set(self):
+            self.checks += 1
+            return self.checks > 10
+
+    cancelled = CancelDuringScan()
+    assert find_paths(str(tmp_path), '*.txt', cancelled) is None
+    assert cancelled.checks == 11
+
+
+def test_large_result_application_yields_to_ui_and_new_query_cancels_old_batches(qapp, tmp_path):
+    from PySide6.QtCore import QTimer
+    for number in range(600):
+        (tmp_path / f'{number}.txt').touch()
+    explorer = QWidget()
+    explorer.directory = str(tmp_path)
+    explorer.search = QLineEdit(explorer)
+    explorer.search_status = QLabel(explorer)
+    explorer.searching_text = 'Searching'
+    explorer.model = QFileSystemModel(explorer)
+    explorer.treeView = QTreeView(explorer)
+    explorer.treeView.setModel(explorer.model)
+    root = explorer.model.setRootPath(str(tmp_path))
+    explorer.treeView.setRootIndex(root)
+    search = TreeSearch(explorer)
+    try:
+        _wait_until(lambda: explorer.model.rowCount(root) == 600)
+        _wait_until(lambda: not search._applying and not search.apply_timer.isActive())
+        search.accepted = {str(tmp_path)}
+        heartbeat = []
+        QTimer.singleShot(0, lambda: heartbeat.append(search._applying))
+        search.apply()
+        assert search._applying
+        _wait_until(lambda: not search._applying)
+        assert heartbeat == [True], 'The UI event loop must run before all rows are filtered'
+        assert all(explorer.treeView.isRowHidden(row, root) for row in range(600))
+        search.accepted = None
+        search.apply()
+        assert search._applying
+        explorer.search.setText('new query')
+        assert search.pending and not search._applying
+        assert not search.batch_timer.isActive()
+        explorer.search.clear()
+        _wait_until(lambda: not search._applying)
+        assert not any(explorer.treeView.isRowHidden(row, root) for row in range(600))
+    finally:
+        search.cancelled.set()
+        search.timer.stop()
+        search.apply_timer.stop()
+        search.batch_timer.stop()
+        QThreadPool.globalInstance().waitForDone(5000)
         explorer.deleteLater()
         qapp.processEvents()

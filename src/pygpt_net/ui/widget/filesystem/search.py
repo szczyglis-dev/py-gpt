@@ -2,7 +2,10 @@
 import fnmatch
 import os
 import threading
-from PySide6.QtCore import QObject, Signal, QRunnable, QThreadPool, QTimer
+import time
+import re
+from collections import deque
+from PySide6.QtCore import QObject, Signal, QRunnable, QThreadPool, QTimer, QPersistentModelIndex, QModelIndex
 from pygpt_net.utils import trans
 
 
@@ -13,40 +16,61 @@ def matches_path(path, root, pattern):
     return fnmatch.fnmatchcase(candidate, pattern) if any(c in pattern for c in '*?[') else pattern in candidate
 
 
-def find_paths(root, pattern, cancelled=None):
+def find_paths(root, pattern, cancelled=None, include_count=False):
     root = os.path.abspath(root)
+    pattern = pattern.casefold()
+    relative = '/' in pattern
+    wildcard = re.compile(fnmatch.translate(pattern)).match if any(c in pattern for c in '*?[') else None
+
+    def matches(candidate):
+        candidate = candidate.casefold()
+        return bool(wildcard(candidate)) if wildcard else pattern in candidate
+
     accepted = {root}
     directories = {root}
-    # Visibility and automatic expansion are separate: expose a matched
-    # directory's entire subtree, but expand only paths leading to matches.
     exposed = set()
+    count = 0
     for parent, dirs, files in os.walk(root, followlinks=False):
         if cancelled is not None and cancelled.is_set():
             return None
-        if parent in exposed:
-            accepted.update(os.path.join(parent, name) for name in dirs + files)
-            exposed.update(os.path.join(parent, name) for name in dirs)
+        prefix = os.path.relpath(parent, root).replace(os.sep, '/') if relative else ''
+        prefix = prefix + '/' if prefix and prefix != '.' else ''
+        expose = parent in exposed
+        dir_names = set(dirs)
         for name in dirs + files:
+            if cancelled is not None and cancelled.is_set():
+                return None
             path = os.path.join(parent, name)
-            if not matches_path(path, root, pattern):
+            is_dir = name in dir_names
+            if expose:
+                accepted.add(path)
+                if is_dir:
+                    exposed.add(path)
+            if not matches(prefix + name):
                 continue
+            count += 1
             accepted.add(path)
-            if name in dirs:
+            if is_dir:
                 directories.add(path)
                 exposed.add(path)
-                # Include immediate entries even for symlinks, which os.walk
-                # deliberately does not follow.
-                try:
-                    with os.scandir(path) as children:
-                        accepted.update(os.path.join(path, child.name) for child in children)
-                except OSError:
-                    pass
+                # Normal directories are read once by os.walk. Only matched
+                # symlinks need a separate immediate listing (never recurse).
+                if os.path.islink(path):
+                    try:
+                        with os.scandir(path) as children:
+                            for child in children:
+                                if cancelled is not None and cancelled.is_set():
+                                    return None
+                                accepted.add(child.path)
+                                count += bool(matches(prefix + name + '/' + child.name if relative else child.name))
+                    except OSError:
+                        pass
             ancestor = parent
             while ancestor not in directories:
                 accepted.add(ancestor)
                 directories.add(ancestor)
                 ancestor = os.path.dirname(ancestor)
-    return accepted, directories
+    return (accepted, directories, count) if include_count else (accepted, directories)
 
 
 class SearchSignals(QObject):
@@ -60,7 +84,7 @@ class SearchTask(QRunnable):
         self.generation, self.signals, self.cancelled = generation, signals, cancelled
 
     def run(self):
-        result = find_paths(self.root, self.pattern, self.cancelled)
+        result = find_paths(self.root, self.pattern, self.cancelled, include_count=True)
         if not self.cancelled.is_set():
             self.signals.finished.emit(self.generation, result)
 
@@ -70,6 +94,10 @@ class TreeSearch(QObject):
         super().__init__(explorer)
         self.explorer = explorer
         self.generation = 0
+        self.loaded_directories = set()
+        self._apply_queue = deque()
+        self._applying = False
+        self._reapply = False
         self.previous_pattern = ""
         self.pending = False
         self.collapse_on_apply = False
@@ -88,14 +116,40 @@ class TreeSearch(QObject):
         self.apply_timer = QTimer(self)
         self.apply_timer.setSingleShot(True)
         self.apply_timer.timeout.connect(self.apply)
+        self.batch_timer = QTimer(self)
+        self.batch_timer.setSingleShot(True)
+        self.batch_timer.timeout.connect(self.apply_batch)
         explorer.search.textChanged.connect(self.changed)
-        explorer.model.directoryLoaded.connect(lambda *_: self.apply_timer.start(0))
-        explorer.model.rowsInserted.connect(self.files_changed)
+        explorer.model.directoryLoaded.connect(self.directory_loaded)
+        explorer.model.rowsInserted.connect(self.rows_inserted)
         explorer.model.rowsRemoved.connect(self.files_changed)
         explorer.model.fileRenamed.connect(self.files_changed)
         explorer.model.layoutChanged.connect(lambda *_: self.apply_timer.start(0))
+        explorer.model.modelReset.connect(self.model_reset)
         # Stop any outstanding scan when the explorer is destroyed.
         explorer.destroyed.connect(lambda *_: self.cancelled.set())
+
+    def directory_loaded(self, path):
+        self.loaded_directories.add(path)
+        self.apply_timer.start(0)
+
+    def rows_inserted(self, parent, *_):
+        # QFileSystemModel emits rowsInserted while lazily populating folders.
+        # Those rows were already scanned; restarting here causes scan loops.
+        if self.explorer.model.filePath(parent) in self.loaded_directories:
+            self.files_changed()
+        else:
+            self.apply_timer.start(0)
+
+    def model_reset(self):
+        self.loaded_directories.clear()
+        self.stop_applying()
+
+    def stop_applying(self):
+        self.batch_timer.stop()
+        self._apply_queue.clear()
+        self._applying = False
+        self._reapply = False
 
     def files_changed(self, *_):
         self.apply_timer.start(0)
@@ -103,6 +157,7 @@ class TreeSearch(QObject):
             self.changed()
 
     def changed(self, *_):
+        self.stop_applying()
         self.pending = True
         self.cancelled.set()
         self.generation += 1
@@ -139,6 +194,7 @@ class TreeSearch(QObject):
         self.apply()
 
     def start(self):
+        self.stop_applying()
         pattern = self.explorer.search.text().strip()
         self.cancelled.set()
         self.generation += 1
@@ -159,43 +215,69 @@ class TreeSearch(QObject):
         if generation != self.generation or result is None:
             return
         self.pending = False
-        self.accepted, self.directories = result
-        root = self.explorer.directory
-        pattern = self.explorer.search.text().strip()
-        count = sum(matches_path(path, root, pattern) for path in self.accepted if path != root)
+        self.accepted, self.directories, count = result
         self.explorer.search_status.setText(str(count) if count else trans('files.search.empty'))
         self.apply()
 
     def apply(self):
         if self.pending:
             return
+        if self._applying:
+            self._reapply = True
+            return
+        tree = self.explorer.treeView
+        root = self.explorer.model.index(self.explorer.directory)
+        if self.collapse_on_apply:
+            tree.collapseAll()
+            self.collapse_on_apply = False
+        if root.isValid():
+            self._apply_queue.append((QPersistentModelIndex(root), 0, 1))
+            self._applying = True
+            self.apply_batch()
+
+    def apply_batch(self):
+        """Yield to typing/painting between short portions of tree filtering."""
+        if self.pending:
+            self.stop_applying()
+            return
         model = self.explorer.model
         tree = self.explorer.treeView
-        root = model.index(self.explorer.directory)
-
-        def visit(parent):
-            for row in range(model.rowCount(parent)):
-                index = model.index(row, 0, parent)
-                path = model.filePath(index)
-                visible = self.accepted is None or path in self.accepted
-                tree.setRowHidden(row, parent, not visible)
-                if model.isDir(index) and visible:
-                    depth = len(os.path.relpath(path, self.explorer.directory).split(os.sep))
-                    within_depth = self.expansion_depth is None or depth <= self.expansion_depth
-                    if (self.expand_all_requested or (self.auto_expand and within_depth and self.accepted is not None and path in self.directories)) and not os.path.islink(path):
-                        if model.canFetchMore(index):
-                            model.fetchMore(index)
-                        tree.expand(index)
-                    # Do not collapse manually opened descendants when lazy
-                    # loading or a filesystem notification reapplies the filter.
-                    visit(index)
+        deadline = time.monotonic() + 0.006
+        processed = 0
         updates_enabled = tree.updatesEnabled()
         tree.setUpdatesEnabled(False)
         try:
-            if self.collapse_on_apply:
-                tree.collapseAll()
-                self.collapse_on_apply = False
-            if root.isValid():
-                visit(root)
+            while self._apply_queue:
+                persistent, row, depth = self._apply_queue.popleft()
+                parent = QModelIndex(persistent)
+                if not parent.isValid():
+                    continue
+                while row < model.rowCount(parent):
+                    index = model.index(row, 0, parent)
+                    path = model.filePath(index)
+                    visible = self.accepted is None or path in self.accepted
+                    if tree.isRowHidden(row, parent) == visible:
+                        tree.setRowHidden(row, parent, not visible)
+                    if model.isDir(index) and visible:
+                        within_depth = self.expansion_depth is None or depth <= self.expansion_depth
+                        expand = self.expand_all_requested or (self.auto_expand and within_depth
+                            and self.accepted is not None and path in self.directories)
+                        if expand and not model.fileInfo(index).isSymLink():
+                            if model.canFetchMore(index):
+                                model.fetchMore(index)
+                            if not tree.isExpanded(index):
+                                tree.expand(index)
+                        if model.rowCount(index):
+                            self._apply_queue.append((QPersistentModelIndex(index), 0, depth + 1))
+                    row += 1
+                    processed += 1
+                    if processed >= 200 or time.monotonic() >= deadline:
+                        self._apply_queue.appendleft((persistent, row, depth))
+                        self.batch_timer.start(1)
+                        return
         finally:
             tree.setUpdatesEnabled(updates_enabled)
+        self._applying = False
+        if self._reapply:
+            self._reapply = False
+            self.apply_timer.start(0)
