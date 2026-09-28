@@ -37,6 +37,27 @@ def clear_sent_annotations(ctx):
 class AnnotationMixin:
     annotation_source = "canvas_web"
 
+    def _annotation_palette(self):
+        """Resolve colors from the application theme, independent of page content."""
+        is_dark = self.window is None or self.window.controller.theme.is_dark_theme()
+        if is_dark:
+            return dict(
+                scheme='dark', editor='rgba(27,28,32,.98)', card='rgba(26,27,31,.96)',
+                text='#f7f7f8', title='#d8b4fe', input='#17181b', inputText='#fff',
+                controlBorder='rgba(255,255,255,.18)', secondary='#2a2b30',
+                secondaryText='#fff', close='#ddd', hover='rgba(255,255,255,.10)',
+                editorShadow='0 12px 34px rgba(0,0,0,.38)',
+                cardShadow='0 8px 28px rgba(0,0,0,.32)',
+            )
+        return dict(
+            scheme='light', editor='rgba(255,255,255,.98)', card='rgba(255,255,255,.96)',
+            text='#24212b', title='#6d28d9', input='#fff', inputText='#24212b',
+            controlBorder='rgba(36,33,43,.22)', secondary='#f3f0f7',
+            secondaryText='#24212b', close='#62586e', hover='rgba(109,40,217,.10)',
+            editorShadow='0 12px 34px rgba(36,33,43,.16)',
+            cardShadow='0 8px 28px rgba(36,33,43,.14)',
+        )
+
     def clear_sent_annotations(self, ids):
         flags = {'canvas_web': CLEAR_ANNOTATION_CANVAS,
                  'chat': CLEAR_ANNOTATION_CTX, 'files': CLEAR_ANNOTATION_FILE}
@@ -79,6 +100,7 @@ class AnnotationMixin:
         """Return JS for the fast, non-modal annotation editor rendered in-page."""
         script = r"""(() => {
           const backend = __BACKEND__;
+          const palette = __PALETTE__;
           const px = __X__, py = __Y__;
           const preferSelection = __PREFER_SELECTION__;
           const selectedHint = __SELECTED_HINT__;
@@ -160,21 +182,21 @@ class AnnotationMixin:
           editor.setAttribute('data-pygpt-ui', 'annotation-editor');
           Object.assign(editor.style, {
             position:'fixed', zIndex:'2147483647', width:'min(360px,calc(100vw - 20px))',
-            boxSizing:'border-box', padding:'10px', background:'rgba(27,28,32,.98)',
-            color:'#f7f7f8', border:'1px solid rgba(168,85,247,.9)', borderRadius:'10px',
-            boxShadow:'0 12px 34px rgba(0,0,0,.38)', fontFamily:'system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+            boxSizing:'border-box', padding:'10px', background:palette.editor,
+            color:palette.text, colorScheme:palette.scheme, border:'1px solid rgba(168,85,247,.9)', borderRadius:'10px',
+            boxShadow:palette.editorShadow, fontFamily:'system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
             fontSize:'12px', lineHeight:'1.35', pointerEvents:'auto'
           });
           const title = document.createElement('div');
           title.textContent = selection ? __TITLE_SELECTION__ : __TITLE_ELEMENT__;
-          Object.assign(title.style, {fontWeight:'700', color:'#d8b4fe', margin:'0 0 7px 1px'});
+          Object.assign(title.style, {fontWeight:'700', color:palette.title, margin:'0 0 7px 1px'});
           const textarea = document.createElement('textarea');
           textarea.placeholder = selection ? __PROMPT_SELECTION__ : __PROMPT_ELEMENT__;
           textarea.rows = 4;
           Object.assign(textarea.style, {
             display:'block', width:'100%', minHeight:'82px', maxHeight:'220px', resize:'vertical',
-            boxSizing:'border-box', padding:'8px 9px', border:'1px solid rgba(255,255,255,.18)',
-            borderRadius:'7px', outline:'none', background:'#17181b', color:'#fff',
+            boxSizing:'border-box', padding:'8px 9px', border:'1px solid ' + palette.controlBorder,
+            borderRadius:'7px', outline:'none', background:palette.input, color:palette.inputText,
             font:'12px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'
           });
           const actions = document.createElement('div');
@@ -184,8 +206,8 @@ class AnnotationMixin:
             b.type = 'button'; b.textContent = label;
             Object.assign(b.style, {
               minWidth:'66px', height:'29px', padding:'0 10px', borderRadius:'6px', cursor:'pointer',
-              border: primary ? '1px solid #8b5cf6' : '1px solid rgba(255,255,255,.18)',
-              background: primary ? '#7c3aed' : '#2a2b30', color:'#fff', font:'600 12px system-ui,sans-serif'
+              border: primary ? '1px solid #8b5cf6' : '1px solid ' + palette.controlBorder,
+              background: primary ? '#7c3aed' : palette.secondary, color: primary ? '#fff' : palette.secondaryText, font:'600 12px system-ui,sans-serif'
             });
             return b;
           };
@@ -224,7 +246,8 @@ class AnnotationMixin:
           setTimeout(() => textarea.focus({preventScroll:true}), 0);
           return true;
         })()"""
-        return script.replace('__BACKEND__', json.dumps(str(backend or 'qt'))) \
+        return script.replace('__PALETTE__', json.dumps(self._annotation_palette())) \
+            .replace('__BACKEND__', json.dumps(str(backend or 'qt'))) \
             .replace('__X__', str(int(x))) \
             .replace('__Y__', str(int(y))) \
             .replace('__PREFER_SELECTION__', 'true' if prefer_selection else 'false') \
@@ -324,6 +347,7 @@ class AnnotationMixin:
         return r"""(() => {
           const items = __DATA__;
           const backend = __BACKEND__;
+          const palette = __PALETTE__;
           try { if (typeof window.__pygptAnnotationCleanup === 'function') window.__pygptAnnotationCleanup(); } catch (_) {}
           window.__pygptAnnotationCleanup = null;
           let root = document.getElementById('__pygpt_annotations_root');
@@ -381,16 +405,16 @@ class AnnotationMixin:
 
             const card = document.createElement('div');
             card.className = '__pygpt_annotation_card';
-            Object.assign(card.style, {position:'fixed', boxSizing:'border-box', padding:'10px 34px 10px 11px', background:'rgba(26,27,31,.96)', color:'#f7f7f8', border:'1px solid rgba(168,85,247,.85)', borderRadius:'9px', boxShadow:'0 8px 28px rgba(0,0,0,.32)', fontSize:'12px', lineHeight:'1.38', whiteSpace:'pre-wrap', overflowWrap:'anywhere', maxHeight:'min(280px,40vh)', overflowY:'auto', pointerEvents:'auto'});
+            Object.assign(card.style, {position:'fixed', boxSizing:'border-box', padding:'10px 34px 10px 11px', background:palette.card, color:palette.text, colorScheme:palette.scheme, border:'1px solid rgba(168,85,247,.85)', borderRadius:'9px', boxShadow:palette.cardShadow, fontSize:'12px', lineHeight:'1.38', whiteSpace:'pre-wrap', overflowWrap:'anywhere', maxHeight:'min(280px,40vh)', overflowY:'auto', pointerEvents:'auto'});
             const title = document.createElement('div');
             title.textContent = __ANNOTATION_TITLE__ + ' #' + item.id;
-            Object.assign(title.style, {fontWeight:'700', color:'#d8b4fe', marginBottom:'4px'});
+            Object.assign(title.style, {fontWeight:'700', color:palette.title, marginBottom:'4px'});
             const body = document.createElement('div');
             body.textContent = esc(item.note || item.selection || __ANNOTATION_TITLE__);
             const close = document.createElement('button');
             close.type = 'button'; close.textContent = '×'; close.title = __REMOVE_ANNOTATION__;
-            Object.assign(close.style, {position:'absolute', right:'6px', top:'5px', width:'24px', height:'24px', border:'0', borderRadius:'5px', background:'transparent', color:'#ddd', fontSize:'20px', lineHeight:'20px', cursor:'pointer', padding:'0'});
-            close.onmouseenter = () => close.style.background='rgba(255,255,255,.10)';
+            Object.assign(close.style, {position:'absolute', right:'6px', top:'5px', width:'24px', height:'24px', border:'0', borderRadius:'5px', background:'transparent', color:palette.close, fontSize:'20px', lineHeight:'20px', cursor:'pointer', padding:'0'});
+            close.onmouseenter = () => close.style.background=palette.hover;
             close.onmouseleave = () => close.style.background='transparent';
             close.onclick = (ev) => {
               ev.preventDefault(); ev.stopPropagation();
@@ -424,6 +448,7 @@ class AnnotationMixin:
           };
           return items.length;
         })()""".replace('__DATA__', data) \
+            .replace('__PALETTE__', json.dumps(self._annotation_palette())) \
             .replace('__BACKEND__', backend) \
             .replace('__ANNOTATION_TITLE__', json.dumps(trans('ui.annotation_title', domain='plugin.canvas_web'), ensure_ascii=False)) \
             .replace('__REMOVE_ANNOTATION__', json.dumps(trans('ui.remove_annotation', domain='plugin.canvas_web'), ensure_ascii=False))
