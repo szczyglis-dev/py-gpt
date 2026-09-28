@@ -23,7 +23,7 @@ class Tray:
     REGION_CAPTURE_HIDE_DELAY_MS = 75
     RECENT_CONTEXTS_LIMIT = 5
     RECENT_CONTEXT_TITLE_LIMIT = 20
-    AGENT_NOTIFICATION_TEXT_LIMIT = 500
+    AGENT_NOTIFICATION_TEXT_LIMIT = 100
 
     def __init__(self, window=None):
         """
@@ -159,6 +159,11 @@ class Tray:
         menu.addAction(tray_menu['update'])
         menu.addAction(tray_menu['exit'])
         menu.aboutToShow.connect(self.refresh_recent_contexts)
+        # Populate dynamic entries before QSystemTrayIcon sees the menu for the
+        # first time. Otherwise Qt can cache geometry for the shorter, empty
+        # menu and show an internal scroll area on the first opening.
+        self.refresh_recent_contexts()
+        menu.adjustSize()
         self.icon.activated.connect(w.tray_toggle)
         self.icon.setContextMenu(menu)
         self.icon.show()
@@ -221,6 +226,13 @@ class Tray:
         if self.recent_separator_top is not None:
             self.recent_separator_top.setVisible(True)
         self.recent_separator_bottom.setVisible(bool(self.recent_actions))
+
+        # Recent actions are rebuilt from aboutToShow. Force QMenu to recalculate
+        # its geometry immediately so the native tray popup opens at the full
+        # required height instead of keeping the previous cached height.
+        self.menu.ensurePolished()
+        self.menu.adjustSize()
+        self.menu.updateGeometry()
 
     def open_recent_context(self, ctx_id):
         """Restore the window and activate/load a recent conversation."""
