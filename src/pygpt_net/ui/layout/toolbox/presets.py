@@ -142,28 +142,36 @@ class Presets:
         tree = self.window.ui.nodes.get('toolbox.skills.list')
         if tree is None:
             return
+        try:
+            skills = [skill for skill in self.window.core.skills.list_installed()
+                      if str(skill.get('name') or '').strip()]
+        except Exception:
+            # Keep the current rows when the registry is temporarily unavailable.
+            return
+        skill_ids = [str(skill['name']).strip() for skill in skills]
+        current_ids = [tree.topLevelItem(row).data(0, QtCore.Qt.UserRole)
+                       for row in range(tree.topLevelItemCount())]
         self._skills_refreshing = True
         try:
-            tree.clear()
-            try:
-                skills = self.window.core.skills.list_installed()
-            except Exception:
-                skills = []
-            for skill in skills:
-                skill_id = str(skill.get('name') or '').strip()
-                if not skill_id:
-                    continue
-                item = QTreeWidgetItem(tree)
-                item.setData(0, QtCore.Qt.UserRole, skill_id)
-                item.setText(0, str(skill.get('display_name') or skill_id))
-                description = str(skill.get('description') or '').strip()
-                if description:
-                    item.setToolTip(0, description)
-                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                item.setCheckState(
-                    0,
-                    Qt.Checked if skill.get('enabled') else Qt.Unchecked,
-                )
+            with QtCore.QSignalBlocker(tree):
+                # A checkbox's itemChanged handler synchronously reaches this
+                # refresh through Skills.set_enabled(). Clearing the tree there
+                # deletes the item still used by Qt's delegate/model event stack.
+                # State-only changes must preserve items (and scroll position).
+                if current_ids != skill_ids:
+                    tree.clear()
+                    for skill_id in skill_ids:
+                        item = QTreeWidgetItem(tree)
+                        item.setData(0, QtCore.Qt.UserRole, skill_id)
+                        item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                for row, skill in enumerate(skills):
+                    item = tree.topLevelItem(row)
+                    item.setText(0, str(skill.get('display_name') or skill_ids[row]))
+                    item.setToolTip(0, str(skill.get('description') or '').strip())
+                    item.setCheckState(
+                        0,
+                        Qt.Checked if skill.get('enabled') else Qt.Unchecked,
+                    )
         finally:
             self._skills_refreshing = False
 
