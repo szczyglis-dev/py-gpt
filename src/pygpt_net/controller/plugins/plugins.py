@@ -498,11 +498,10 @@ class Plugins:
                     fn()
 
     def _status_tooltip(self, header_key: str, items=None) -> str:
-        """Build a localized status tooltip with a visible header."""
-        header = str(trans(header_key)).strip()
+        """Build a compact status tooltip containing only status items."""
         if items:
-            return f"{header}:\n\n" + "\n".join(items)
-        return f"{header}:"
+            return "\n".join(items)
+        return ""
 
     def update_info(self):
         """Update plugin/MCP/Skill and annotation counters below the chat input."""

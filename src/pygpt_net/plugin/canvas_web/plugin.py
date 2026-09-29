@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 19:30:00                  #
+# Updated Date: 2026.09.29 20:35:00                  #
 # ================================================== #
 
 import os
@@ -16,6 +16,7 @@ from PySide6.QtCore import Slot
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base.plugin import BasePlugin
+from pygpt_net.utils import trans
 
 from .config import Config
 
@@ -59,11 +60,27 @@ class Plugin(BasePlugin):
     def init_options(self):
         self.config.from_defaults(self)
 
-    def clear_browser_history(self):
-        """Delete the persistent Canvas browser address history for the active workdir."""
-        tool = self.window.tools.get("web_browser") if self.window is not None else None
-        if tool is not None:
-            tool.clear_browser_history()
+    def clear_browser_history(self, force: bool = False):
+        """Confirm and delete persistent Canvas browser address history."""
+        if self.window is None:
+            return
+
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type="canvas.history.clear",
+                id="",
+                msg=trans("delete_history.confirm", domain="plugin.canvas_web"),
+            )
+            return
+
+        tool = self.window.tools.get("web_browser")
+        if tool is None:
+            return
+
+        tool.clear_browser_history()
+        self.window.update_status(
+            trans("delete_history.cleared", domain="plugin.canvas_web")
+        )
 
     def handle(self, event: Event, *args, **kwargs):
         name = event.name
