@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -373,6 +373,15 @@ class Plugins:
                 widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
             elif t == 'cmd':
                 widgets[key] = OptionCmd(self.window, plugin, parent, key, option)  # command
+            elif t == 'button':
+                button = QPushButton()
+                button.setAutoDefault(False)
+                callback = option.get('callback')
+                if isinstance(callback, str):
+                    callback = getattr(plugin, callback, None)
+                if callable(callback):
+                    button.clicked.connect(lambda checked=False, cb=callback: cb())
+                widgets[key] = button
 
         return widgets
 
@@ -421,8 +430,8 @@ class Plugins:
         :param option: option dict
         :return: QVBoxLayout
         """
-        one_column_types = ('textarea', 'dict', 'bool', 'cmd')
-        no_label_types = ('bool', 'cmd')
+        one_column_types = ('textarea', 'dict', 'bool', 'cmd', 'button')
+        no_label_types = ('bool', 'cmd', 'button')
         no_desc_types = 'cmd'
         allow_locale = True
 
@@ -454,6 +463,10 @@ class Plugins:
                 # txt_tooltip = txt_desc
 
         txt_desc = trans_placeholder_apply(txt_desc)
+
+        if option['type'] == 'button':
+            widget.setText(txt_title)
+            widget.setToolTip(txt_desc)
 
         """
         if option['type'] not in no_desc_types:

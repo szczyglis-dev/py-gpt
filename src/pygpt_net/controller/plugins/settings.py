@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 from typing import Any
@@ -141,6 +141,8 @@ class Settings:
             options = plugin.setup()
             dst = plugins_cfg.setdefault(pid, {})
             for key, opt in options.items():
+                if opt.get('type') == 'button':
+                    continue
                 value = controller_cfg.get_value(
                     parent_id=f'plugin.{pid}',
                     key=key,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 16:45:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 import copy
@@ -79,7 +79,7 @@ class BasePlugin(QObject):
         Add plugin configuration option
 
         :param name: option name (ID, key)
-        :param type: option type (text, textarea, bool, int, float, dict, combo)
+        :param type: option type (text, textarea, bool, int, float, dict, combo, button)
         :param kwargs: additional keyword arguments for option properties
         :return: added option config dict
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 16:45:00                  #
+# Updated Date: 2026.09.29 19:40:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
@@ -743,6 +743,8 @@ class Plugins:
                 cfg_plugins[pid] = {}
             dest = cfg_plugins[pid]
             for key, opt in plugin.options.items():
+                if opt.get('type') == 'button':
+                    continue
                 if opt.get('type') == 'cmd':
                     value = opt.get('value')
                     dest[key] = bool(value.get('enabled', False)) if isinstance(value, dict) else bool(value)

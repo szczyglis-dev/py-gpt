@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 10:00:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
-from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap, QDesktopServices, QShortcut, QKeySequence
+from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap, QDesktopServices, QShortcut, QKeySequence, QPalette, QStandardItemModel, QStandardItem
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QWidget, QSizePolicy,
-    QScrollArea, QMenu, QFrame, QStackedLayout, QLabel,
+    QScrollArea, QMenu, QFrame, QStackedLayout, QLabel, QCompleter,
 )
 from PySide6.QtWebEngineCore import QWebEnginePage
 
@@ -23,6 +23,16 @@ from pygpt_net.utils import trans
 
 
 CANVAS_LOCALE_DOMAIN = "plugin.canvas_web"
+
+
+class AddressHistoryCompleter(QCompleter):
+    """Completer that displays a friendly label but inserts the raw URL."""
+
+    def pathFromIndex(self, index):
+        url = index.data(Qt.UserRole)
+        if url:
+            return str(url)
+        return super().pathFromIndex(index)
 
 
 def add_html_file_actions(menu, tool, parent):
@@ -68,6 +78,11 @@ class ToolWidget:
         self.nav_bar = None
         self.nav_layout = None
         self.address_bar = None
+        self.address_completer = None
+        self.address_history_model = None
+        self._address_history_entries = []
+        self._address_history_labels = []
+        self._address_history_lookup = {}
         self.btn_back = None
         self.btn_next = None
         self.btn_reload = None
@@ -163,6 +178,18 @@ class ToolWidget:
         )
         self.address_bar.setFixedHeight(nav_height - 8)
         self.address_bar.returnPressed.connect(self._on_address_enter)
+        self.address_history_model = QStandardItemModel(self.address_bar)
+        self.address_completer = AddressHistoryCompleter(self.address_history_model, self.address_bar)
+        self.address_completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.address_completer.setCompletionRole(Qt.DisplayRole)
+        self.address_completer.setCompletionMode(QCompleter.PopupCompletion)
+        self.address_completer.setFilterMode(Qt.MatchContains)
+        self.address_completer.setModelSorting(QCompleter.UnsortedModel)
+        self.address_completer.setMaxVisibleItems(12)
+        self.address_bar.setCompleter(self.address_completer)
+        self.address_bar.textEdited.connect(self._on_address_text_edited)
+        self.address_completer.activated[str].connect(self._on_history_selected)
+        self._setup_address_history_popup_palette()
 
         self.btn_back.clicked.connect(lambda: self.tool.runtime_call("canvas_prev", {"__ui": True}))
         self.btn_next.clicked.connect(lambda: self.tool.runtime_call("canvas_next", {"__ui": True}))
@@ -224,14 +251,144 @@ class ToolWidget:
     def _on_address_enter(self):
         if self.address_bar is None:
             return
+        self._hide_address_history_popup()
         text = self.address_bar.text().strip()
         if text:
-            self.tool.open_address(text)
+            value = self._address_history_lookup.get(text, text)
+            if value != text:
+                self.address_bar.setText(value)
+            self.tool.open_address(value)
+
+    @staticmethod
+    def _history_label(entry: dict) -> str:
+        """Return a compact popup label without the HTTP(S) scheme."""
+        url = str(entry.get("url") or "").strip()
+        display_url = url
+        lowered = display_url.lower()
+        if lowered.startswith("https://"):
+            display_url = display_url[8:]
+        elif lowered.startswith("http://"):
+            display_url = display_url[7:]
+        title = " ".join(str(entry.get("title") or "").split())
+        display_url = display_url.rstrip("/")
+        if len(title) > 30:
+            title = title[:30].rstrip() + "…"
+        return f"{title} - {display_url}" if title else display_url
+
+    def _setup_address_history_popup_palette(self):
+        """Force the completer popup to use readable application palette colors."""
+        if self.address_completer is None or self.address_bar is None:
+            return
+        popup = self.address_completer.popup()
+        if popup is None:
+            return
+        palette = self.address_bar.palette()
+        bg = palette.color(QPalette.Base).name()
+        fg = palette.color(QPalette.Text).name()
+        highlight = palette.color(QPalette.Highlight)
+        sel_bg = highlight.name()
+        sel_fg = palette.color(QPalette.HighlightedText).name()
+        hover_bg = f"rgba({highlight.red()}, {highlight.green()}, {highlight.blue()}, 45)"
+        popup.setMouseTracking(True)
+        if popup.viewport() is not None:
+            popup.viewport().setMouseTracking(True)
+        popup.setStyleSheet(
+            "QAbstractItemView {"
+            f" background-color: {bg}; color: {fg};"
+            " border: 0; outline: 0;"
+            " border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;"
+            "}"
+            "QAbstractItemView::item { padding: 4px 6px; }"
+            "QAbstractItemView::item:hover {"
+            f" background-color: {hover_bg}; color: {fg};"
+            "}"
+            "QAbstractItemView::item:selected {"
+            f" background-color: {sel_bg}; color: {sel_fg};"
+            "}"
+        )
+
+    def _hide_address_history_popup(self):
+        """Hide the history completer without changing the address text."""
+        if self.address_completer is None:
+            return
+        popup = self.address_completer.popup()
+        if popup is not None:
+            popup.hide()
+
+    def _on_history_selected(self, value: str):
+        """Open the URL represented by a selected persistent-history row."""
+        value = str(value or "").strip()
+        # Compatibility fallback if a Qt style/platform emits the display label.
+        value = self._address_history_lookup.get(value, value)
+        if not value:
+            return
+        self._hide_address_history_popup()
+        if self.address_bar is not None:
+            self.address_bar.setText(value)
+        self.tool.open_address(value)
+        # QCompleter may try to restore its popup after activation on some Qt
+        # styles/platforms. Hide it once more after that event is processed.
+        QTimer.singleShot(0, self._hide_address_history_popup)
+
+    def _on_address_text_edited(self, text: str):
+        """Show history suggestions only after the user enters non-empty text."""
+        if self.address_completer is None:
+            return
+        value = str(text or "")
+        popup = self.address_completer.popup()
+        if not value.strip() or not self._address_history_labels:
+            if popup is not None:
+                popup.hide()
+            return
+        self.address_completer.setCompletionPrefix(value)
+        if popup is not None and self.address_bar is not None:
+            popup.setMinimumWidth(self.address_bar.width())
+        self._setup_address_history_popup_palette()
+        self.address_completer.complete()
+
+    def update_address_history(self, entries):
+        """Refresh title + URL completion rows while preserving newest-first order."""
+        normalized = []
+        labels = []
+        lookup = {}
+        for item in entries or []:
+            if isinstance(item, str):
+                item = {"url": item, "title": ""}
+            if not isinstance(item, dict):
+                continue
+            url = str(item.get("url") or "").strip()
+            if not url:
+                continue
+            entry = {"url": url, "title": str(item.get("title") or "").strip()}
+            label = self._history_label(entry)
+            # Very rare duplicate labels are made unique without changing the URL.
+            base = label
+            suffix = 2
+            while label in lookup and lookup[label] != url:
+                label = f"{base} ({suffix})"
+                suffix += 1
+            normalized.append(entry)
+            labels.append(label)
+            lookup[label] = url
+        if normalized == self._address_history_entries and labels == self._address_history_labels:
+            return
+        self._address_history_entries = normalized
+        self._address_history_labels = labels
+        self._address_history_lookup = lookup
+        if self.address_history_model is not None:
+            self.address_history_model.clear()
+            for entry, label in zip(normalized, labels):
+                item = QStandardItem(label)
+                item.setEditable(False)
+                item.setData(entry["url"], Qt.UserRole)
+                self.address_history_model.appendRow(item)
 
     def _sync_from_runtime(self):
         state = self.tool.current_state()
+        self._hide_address_history_popup()
         if self.address_bar is not None:
             self.address_bar.setText(state.get("url", ""))
+        self.update_address_history(self.tool.get_browser_history_entries())
         if self.btn_back is not None:
             self.btn_back.setEnabled(bool(state.get("can_go_back")))
         if self.btn_next is not None:
@@ -795,10 +952,11 @@ class ViewportEventFilter(QObject):
 
 
 class AddressLineEdit(QLineEdit):
-    def __init__(self, on_return_callback=None, on_reload_callback=None, *args, **kwargs):
+    def __init__(self, on_return_callback=None, on_reload_callback=None, on_click_callback=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._on_return_callback = on_return_callback
         self._on_reload_callback = on_reload_callback
+        self._on_click_callback = on_click_callback
         self._select_all_on_click = True
         self._context_selection = None
 
@@ -843,6 +1001,8 @@ class AddressLineEdit(QLineEdit):
             # so defer selection until that processing has completed. Subsequent
             # clicks while the field stays focused behave normally.
             QTimer.singleShot(0, self.selectAll)
+        if event.button() == Qt.LeftButton and callable(self._on_click_callback):
+            QTimer.singleShot(0, self._on_click_callback)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.RightButton:

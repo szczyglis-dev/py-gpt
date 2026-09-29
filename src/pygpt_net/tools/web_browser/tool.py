@@ -7,7 +7,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 10:00:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 import json
@@ -16,6 +16,7 @@ import re
 import threading
 import time
 import uuid
+from datetime import datetime, timezone
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -99,6 +100,7 @@ class WebBrowser(AnnotationMixin, BaseTool):
     """Single persistent browser runtime exposed through one Canvas tab."""
 
     HISTORY_LIMIT = 30
+    BROWSER_HISTORY_FILE = "browser_history.json"
 
     BLANK_CANVAS_HTML_LIGHT = """<!doctype html>
 <html>
@@ -262,7 +264,14 @@ body {
         self._history_loading = False
         self._source_reload_pending = False
 
+        # Persistent address history is intentionally separate from the Canvas
+        # Back/Forward history above. It stores only visited HTTP(S) URLs and is
+        # profile/workdir-scoped in browser_history.json.
+        self.browser_history = []
+        self._browser_history_lock = threading.RLock()
+
     def setup(self):
+        self._load_browser_history()
         self.update()
 
     def post_setup(self):
@@ -271,6 +280,7 @@ body {
         pass
 
     def on_reload(self):
+        self._load_browser_history()
         self.update()
         # Canvas is profile-scoped. If a runtime already exists, discard the
         # previous profile's page/session state and start the new profile from
@@ -306,6 +316,209 @@ body {
             return default if value is None else value
         except Exception:
             return default
+
+    def _browser_history_path(self) -> str:
+        """Return the persistent browser-history file for the active workdir/profile."""
+        return os.path.join(self.window.core.config.get_user_path(), self.BROWSER_HISTORY_FILE)
+
+    def _browser_history_limit(self) -> int:
+        """Return the configured persistent history limit with a safe clamp."""
+        try:
+            value = int(self._opt("history_limit", 100) or 100)
+        except (TypeError, ValueError):
+            value = 100
+        return max(1, min(value, 10000))
+
+    def _browser_history_enabled(self) -> bool:
+        return bool(self._opt("store_history", True))
+
+    @staticmethod
+    def _normalize_browser_history_url(url: str) -> str:
+        """Return an HTTP(S) URL eligible for persistent address history."""
+        value = str(url or "").strip()
+        if not value:
+            return ""
+        try:
+            parsed = QUrl(value)
+            if parsed.scheme().lower() not in ("http", "https"):
+                return ""
+        except Exception:
+            return ""
+        return value
+
+    def _load_browser_history(self):
+        """Load, sanitize, sort and trim persistent HTTP(S) address history."""
+        entries = []
+        path = self._browser_history_path()
+        try:
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+                if isinstance(raw, dict):
+                    raw = raw.get("entries", [])
+                if isinstance(raw, list):
+                    entries = raw
+        except (OSError, ValueError, TypeError):
+            entries = []
+
+        cleaned = []
+        for item in entries:
+            if isinstance(item, str):
+                url = self._normalize_browser_history_url(item)
+                timestamp = ""
+            elif isinstance(item, dict):
+                url = self._normalize_browser_history_url(item.get("url", ""))
+                timestamp = str(item.get("timestamp") or "")
+                title = str(item.get("title") or "").strip()
+            else:
+                continue
+            if not url:
+                continue
+            if isinstance(item, str):
+                title = ""
+            cleaned.append({"url": url, "timestamp": timestamp, "title": title})
+
+        # ISO-8601 UTC timestamps sort lexicographically. Empty/malformed legacy
+        # timestamps naturally fall to the end. De-duplicate after sorting so the
+        # newest visit wins.
+        cleaned.sort(key=lambda item: item.get("timestamp", ""), reverse=True)
+        unique = []
+        seen = set()
+        for item in cleaned:
+            url = item["url"]
+            if url in seen:
+                continue
+            seen.add(url)
+            unique.append(item)
+            if len(unique) >= self._browser_history_limit():
+                break
+        with self._browser_history_lock:
+            self.browser_history = unique
+        if os.path.exists(path) and entries != unique:
+            self._save_browser_history()
+        self._notify_browser_history()
+
+    def _save_browser_history(self):
+        """Persist the current address history atomically."""
+        path = self._browser_history_path()
+        directory = os.path.dirname(path)
+        os.makedirs(directory, exist_ok=True)
+        with self._browser_history_lock:
+            payload = {
+                "version": 1,
+                "entries": list(self.browser_history[:self._browser_history_limit()]),
+            }
+        tmp = path + ".tmp"
+        try:
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+                f.write("\n")
+            os.replace(tmp, path)
+        except OSError:
+            try:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+            except OSError:
+                pass
+
+    def _record_browser_history(self, url: str, title: str = ""):
+        """Move one visited HTTP(S) URL to the top and persist its timestamp/title."""
+        if not self._browser_history_enabled():
+            return
+        url = self._normalize_browser_history_url(url)
+        if not url:
+            return
+        timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        title = str(title or "").strip()
+        limit = self._browser_history_limit()
+        with self._browser_history_lock:
+            previous = next((item for item in self.browser_history if item.get("url") == url), None)
+            if not title and previous is not None:
+                title = str(previous.get("title") or "").strip()
+            items = [item for item in self.browser_history if item.get("url") != url]
+            items.insert(0, {"url": url, "timestamp": timestamp, "title": title})
+            self.browser_history = items[:limit]
+        self._save_browser_history()
+        self._notify_browser_history()
+
+    def _update_browser_history_title(self, url: str, title: str):
+        """Update the last known title for an existing history URL without reordering it."""
+        if not self._browser_history_enabled():
+            return
+        url = self._normalize_browser_history_url(url)
+        title = str(title or "").strip()
+        if not url or not title:
+            return
+        changed = False
+        with self._browser_history_lock:
+            for item in self.browser_history:
+                if item.get("url") == url:
+                    if item.get("title", "") != title:
+                        item["title"] = title
+                        changed = True
+                    break
+        if changed:
+            self._save_browser_history()
+            self._notify_browser_history()
+
+    def get_browser_history_entries(self) -> list:
+        """Return persistent history entries in newest-first order for address UI."""
+        with self._browser_history_lock:
+            return [dict(item) for item in self.browser_history if item.get("url")]
+
+    def get_browser_history_urls(self) -> list:
+        """Return persistent history URLs in newest-first order."""
+        return [item.get("url", "") for item in self.get_browser_history_entries()]
+
+    def clear_browser_history(self):
+        """Delete persistent address history for the active workdir and refresh UI."""
+        with self._browser_history_lock:
+            self.browser_history = []
+        path = self._browser_history_path()
+        for candidate in (path, path + ".tmp"):
+            try:
+                if os.path.exists(candidate):
+                    os.remove(candidate)
+            except OSError:
+                pass
+        self._notify_browser_history()
+
+    def apply_browser_history_settings(self):
+        """Apply changed history limit/settings without touching Canvas Back/Forward state."""
+        limit = self._browser_history_limit()
+        changed = False
+        with self._browser_history_lock:
+            if len(self.browser_history) > limit:
+                self.browser_history = self.browser_history[:limit]
+                changed = True
+        if changed:
+            self._save_browser_history()
+        self._notify_browser_history()
+
+    def _notify_browser_history(self):
+        owner = self.surface_owner
+        if owner is not None:
+            try:
+                owner.update_address_history(self.get_browser_history_entries())
+            except Exception:
+                pass
+
+    def _on_qt_url_changed(self, url: QUrl):
+        value = url.toString() if url is not None else ""
+        if value:
+            self.virtual_url = value
+        self._notify_state()
+
+    def _on_qt_title_changed(self, title: str):
+        """Persist the latest page title for a real HTTP(S) navigation."""
+        if self.surface is not None and self._current_canvas_history_is_url():
+            self._update_browser_history_title(self.surface.web.url().toString(), title)
+        self._notify_state()
+
+    def _current_canvas_history_is_url(self) -> bool:
+        if not (0 <= self.canvas_history_index < len(self.canvas_history)):
+            return False
+        return self.canvas_history[self.canvas_history_index].get("kind") == "url"
 
     def _sandbox_enabled(self) -> bool:
         """Return whether Playwright is explicitly enabled in plugin settings."""
@@ -412,8 +625,8 @@ body {
         self.pw_frame_timer.timeout.connect(self._poll_playwright_frame)
         self.hidden_host.hide()
         try:
-            self.surface.web.urlChanged.connect(lambda _url: self._notify_state())
-            self.surface.web.titleChanged.connect(lambda _title: self._notify_state())
+            self.surface.web.urlChanged.connect(self._on_qt_url_changed)
+            self.surface.web.titleChanged.connect(self._on_qt_title_changed)
         except Exception:
             pass
         # The start page is loaded only when the Canvas runtime is actually
@@ -1632,6 +1845,7 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             self.blank_canvas_active = True
             self.virtual_url = "about:blank"
             self.pw_page.on("framenavigated", self._on_playwright_navigated)
+            self.pw_page.on("load", lambda: self._on_playwright_loaded())
             if self.pw_frame_timer is not None and not self.pw_frame_timer.isActive():
                 self.pw_frame_timer.start()
             self._refresh_playwright_frame()
@@ -1656,6 +1870,16 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
         self.pw_history_index = -1
         self.pw_history_mode = None
 
+    def _on_playwright_loaded(self):
+        """Persist the final document title after a Playwright page load."""
+        if self.pw_page is None or not self._current_canvas_history_is_url():
+            return
+        try:
+            self._update_browser_history_title(self.pw_page.url, self.pw_page.title())
+        except Exception:
+            pass
+        self._notify_state()
+
     def _on_playwright_navigated(self, frame):
         if self.pw_page is None:
             return
@@ -1671,6 +1895,12 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             self._history_update_current_url(url)
         else:
             self._history_record_navigation(url)
+        if self._current_canvas_history_is_url():
+            try:
+                title = self.pw_page.title() if self.pw_page is not None else ""
+            except Exception:
+                title = ""
+            self._record_browser_history(url, title)
         mode = self.pw_history_mode
         if mode == "back":
             if self.pw_history_index > 0:
@@ -1835,6 +2065,12 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             self._history_loading = False
         elif not self.blank_canvas_active:
             self._history_record_navigation(self.virtual_url)
+        if success and self._current_canvas_history_is_url():
+            try:
+                title = self.surface.web.title()
+            except Exception:
+                title = ""
+            self._record_browser_history(self.virtual_url, title)
         self._update_qt_virtual_cursor()
         self._render_annotations()
         self._notify_state()

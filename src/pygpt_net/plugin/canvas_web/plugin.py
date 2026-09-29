@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 12:30:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 import os
@@ -59,6 +59,12 @@ class Plugin(BasePlugin):
     def init_options(self):
         self.config.from_defaults(self)
 
+    def clear_browser_history(self):
+        """Delete the persistent Canvas browser address history for the active workdir."""
+        tool = self.window.tools.get("web_browser") if self.window is not None else None
+        if tool is not None:
+            tool.clear_browser_history()
+
     def handle(self, event: Event, *args, **kwargs):
         name = event.name
         data = event.data
@@ -77,6 +83,10 @@ class Plugin(BasePlugin):
                 return
             if self.get_option_value("annotation_prompt"):
                 data["value"] = self.append_runtime_context(data.get("value", ""), ctx=ctx)
+        elif name == Event.PLUGIN_SETTINGS_CHANGED:
+            tool = self.window.tools.get("web_browser") if self.window is not None else None
+            if tool is not None:
+                tool.apply_browser_history_settings()
 
     def has_conversation_annotations(self, ctx=None):
         """Canvas retrieval must not compete with chat/file feedback in the prompt."""
