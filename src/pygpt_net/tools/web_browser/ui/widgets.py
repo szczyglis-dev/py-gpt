@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 12:00:00                  #
+# Updated Date: 2026.09.29 09:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
@@ -753,14 +753,40 @@ class AddressLineEdit(QLineEdit):
         super().__init__(*args, **kwargs)
         self._on_return_callback = on_return_callback
         self._select_all_on_click = True
+        self._context_selection = None
 
     def focusOutEvent(self, event):
         # The next mouse visit starts a new address-editing interaction.
         self._select_all_on_click = True
         super().focusOutEvent(event)
 
+    def _remember_context_selection(self):
+        self._context_selection = (
+            self.selectionStart(),
+            self.selectionLength(),
+            self.cursorPosition(),
+        )
+
+    def _restore_context_selection(self):
+        if self._context_selection is None:
+            return
+        selection_start, selection_length, cursor_position = self._context_selection
+        if selection_start >= 0 and selection_length > 0:
+            self.setSelection(selection_start, selection_length)
+        else:
+            self.deselect()
+            self.setCursorPosition(cursor_position)
+
     def mousePressEvent(self, event):
-        """Select the whole address on the first click in an editing interaction."""
+        """Select all on first LMB click; RMB must not alter cursor/selection."""
+        if event.button() == Qt.RightButton:
+            # Do not pass RMB to QLineEdit at all. Depending on platform/style,
+            # the native press/release handling may move the cursor or clear the
+            # selection before QContextMenuEvent arrives, which disables Copy.
+            self._remember_context_selection()
+            event.accept()
+            return
+
         select_all = self._select_all_on_click and event.button() == Qt.LeftButton
         if event.button() == Qt.LeftButton:
             self._select_all_on_click = False
@@ -770,6 +796,23 @@ class AddressLineEdit(QLineEdit):
             # so defer selection until that processing has completed. Subsequent
             # clicks while the field stays focused behave normally.
             QTimer.singleShot(0, self.selectAll)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.RightButton:
+            # Keep the whole RMB gesture inert with regard to the editor state.
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+    def contextMenuEvent(self, event):
+        # Restore once more immediately before creating the standard menu: its
+        # Copy action is enabled from the selection state at creation time.
+        self._restore_context_selection()
+        menu = self.createStandardContextMenu()
+        menu.exec(event.globalPos())
+        menu.deleteLater()
+        self._context_selection = None
+        event.accept()
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
