@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -24,7 +24,7 @@ class Confirm:
     def accept(
             self,
             type: str,
-            id: Optional[str] = None,
+            id: Optional[Any] = None,
             parent_object: Any = None
     ):
         """
@@ -34,10 +34,35 @@ class Confirm:
         :param id: dialog object id
         :param parent_object: dialog parent object
         """
-        self.window.ui.dialog['confirm'].close()
+        # Computer Use safety is an asynchronous pause/resume gate. Hide the
+        # shared dialog first (instead of close()) so its closeEvent cannot turn
+        # an accepted decision into a second, rejected decision.
+        if type == 'computer.safety':
+            self.window.ui.dialog['confirm'].hide()
+            self.window.controller.chat.command.confirm_pending_safety_confirmation(id)
+            return
+
+        confirm_dialog = self.window.ui.dialog['confirm']
+        dont_show_again = (
+            type == 'agent.infinity.run'
+            and confirm_dialog.is_dont_show_again_checked()
+        )
+        confirm_dialog.close()
+
+        # Chat with Agents workflows editor
+        if type == 'agents_v2.editor.delete':
+            self.window.controller.agents_v2.editor.delete(id, force=True)
+        elif type == 'agents_v2.editor.defaults':
+            self.window.controller.agents_v2.editor.load_defaults(force=True, agent_id=id)
+        elif type == 'agents_v2.editor.close':
+            self.window.controller.agents_v2.editor.close(force=True)
+
+        # settings: Chat with Agents custom prompts (legacy UI path)
+        elif type == 'settings.agent.v2.prompt.defaults':
+            self.window.controller.settings.editor.load_agent_prompt_default(id, force=True)
 
         # app
-        if type == 'app.log.clear':
+        elif type == 'app.log.clear':
             self.window.ui.dialogs.app_log.clear(force=True)
 
         # presets
@@ -77,15 +102,13 @@ class Confirm:
 
         # agent infinity loop run
         elif type == 'agent.infinity.run':
+            if dont_show_again:
+                self.window.controller.agent.common.disable_infinity_loop_confirm()
             self.window.controller.chat.input.send_input(force=True)
 
         # interpreter
         elif type == 'interpreter.clear':
             self.window.tools.get("interpreter").clear(True)
-
-        # html canvas
-        elif type == 'html_canvas.clear':
-            self.window.tools.get("html_canvas").clear(True)
 
         # translator
         elif type == 'translator.clear':
@@ -107,10 +130,6 @@ class Confirm:
         # audio cache clear
         elif type == 'audio.cache.clear':
             self.window.controller.audio.clear_cache(True)
-
-        # restore default CSS
-        elif type == 'restore.css':
-            self.window.controller.layout.restore_default_css(force=True)
 
         # profiles
         elif type == 'profile.reset':
@@ -174,7 +193,13 @@ class Confirm:
 
         # tab close all
         elif type == 'tab.close_all':
-            self.window.controller.ui.tabs.close_all(id, 0, True)  # by type
+            if isinstance(id, dict):
+                tab_type = id.get('type')
+                column_idx = id.get('column_idx', 0)
+            else:
+                tab_type = id
+                column_idx = 0
+            self.window.controller.tabs.close_all(tab_type, column_idx, True)
 
         # editor
         elif type == 'editor.changed.clear':
@@ -243,6 +268,18 @@ class Confirm:
         elif type == 'settings.editor.defaults.app':
             self.window.controller.settings.editor.load_editor_defaults_app(True)
 
+        # sandbox / Docker rebuilds
+        elif type == 'tools.sandbox.rebuild.ipython_docker':
+            self.window.controller.tools.rebuild_ipython_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.python_legacy_docker':
+            self.window.controller.tools.rebuild_python_legacy_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.system_docker':
+            self.window.controller.tools.rebuild_system_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.python_builtin':
+            self.window.controller.tools.rebuild_python_builtin(force=True)
+        elif type == 'tools.sandbox.rebuild.system_builtin':
+            self.window.controller.tools.rebuild_system_builtin(force=True)
+
         # plugins
         elif type == 'plugin.settings.defaults.user':
             self.window.controller.plugins.settings.load_defaults_user(True)
@@ -280,6 +317,12 @@ class Confirm:
             self.window.controller.idx.indexer.clear(id, True)
         elif type == 'idx.truncate':
             self.window.controller.idx.indexer.truncate(id, True)
+        elif type == 'idx.project.truncate':
+            self.window.controller.idx.indexer.truncate_project(id, True)
+        elif type == 'idx.projects.truncate':
+            self.window.controller.idx.indexer.truncate_projects(True)
+        elif type == 'idx.settings.truncate':
+            self.window.controller.idx.indexer.truncate(id, True)
 
         # index tool
         elif type == 'idx.tool.truncate':
@@ -301,6 +344,13 @@ class Confirm:
         """
         Confirm dialog dismiss
         """
+        # No, Escape and the window close button all reject a pending Computer
+        # Use safety operation. hide() avoids recursively re-entering closeEvent.
+        if type == 'computer.safety':
+            self.window.ui.dialog['confirm'].hide()
+            self.window.controller.chat.command.reject_pending_safety_confirmation(id)
+            return
+
         # Keep original logic...
         if type == 'editor.changed.clear':
             self.window.tools.get("editor").clear(id=id, force=True)
@@ -331,9 +381,16 @@ class Confirm:
         if type == 'ctx':
             self.window.controller.ctx.update_name(id, name)
         elif type == 'ctx.group':
-            self.window.controller.ctx.update_group_name(id, name, True)
+            use_shared, workdir = self.window.ui.dialog['rename'].get_project_workdir_settings()
+            self.window.controller.ctx.update_group_name(
+                id, name, True,
+                use_shared_workdir=use_shared,
+                workdir=workdir,
+            )
         elif type == 'tab':
-            self.window.controller.ui.tabs.update_name(id, name, True)
+            self.window.controller.tabs.update_name(id, name, True)
+        elif type == 'tab.pid':
+            self.window.controller.tabs.update_name_by_pid(id, name, True)
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':
@@ -365,7 +422,12 @@ class Confirm:
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.create(id, name)
         elif type == 'ctx.group':
-            self.window.controller.ctx.create_group(name, id)
+            use_shared, workdir = self.window.ui.dialog['create'].get_project_workdir_settings()
+            self.window.controller.ctx.create_group(
+                name, id,
+                use_shared_workdir=True if use_shared is None else use_shared,
+                workdir=workdir,
+            )
         elif type == 'agent.builder.agent':
             self.window.tools.get("agent_builder").add_agent(name)        
         elif type == 'remote_store.new':

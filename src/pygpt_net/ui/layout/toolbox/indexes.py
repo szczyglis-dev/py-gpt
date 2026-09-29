@@ -6,17 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:25:00                  #
+# Updated Date: 2026.09.28 11:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
-from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
+from pygpt_net.ui.widget.element.labels import TitleLabel, HelpLabel
 from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.ui.widget.lists.index_combo import IndexCombo
-from pygpt_net.ui.widget.lists.llama_mode_combo import LlamaModeCombo
 from pygpt_net.utils import trans
 
 
@@ -72,7 +71,7 @@ class Indexes:
         header.addWidget(nodes['indexes.label'])
         header.addStretch(1)
         header.addWidget(nodes['indexes.new'], alignment=Qt.AlignRight)
-        header.setContentsMargins(5, 0, 0, 0)
+        header.setContentsMargins(5, 0, 5, 0)
 
         nodes[self.id] = IndexList(self.window, self.id)
         nodes[self.id].selection_locked = self.window.controller.idx.change_locked
@@ -83,7 +82,7 @@ class Indexes:
         layout = QVBoxLayout()
         layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes[self.id])
-        layout.setContentsMargins(2, 5, 5, 5)
+        layout.setContentsMargins(2, 5, 0, 5)
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         nodes[self.id].setModel(self.window.ui.models[self.id])
@@ -113,22 +112,7 @@ class Indexes:
         )
         nodes['indexes.select'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         nodes['indexes.select'].setMinimumWidth(0)
-
-        option = {
-            "name": "llama.idx.mode",
-            "label": "toolbox.llama_index.mode",
-            "search": False,
-            "keys": self.window.controller.idx.get_modes_keys(),
-            "value": "chat",
-        }
-        nodes['llama_index.mode.select'] = LlamaModeCombo(
-            self.window,
-            'global',
-            'llama.idx.mode',
-            option,
-        )
-        nodes['llama_index.mode.select'].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
-        nodes['llama_index.mode.select'].setMinimumWidth(0)
+        nodes['indexes.select'].setToolTip(trans('toolbox.indexes.select.tooltip'))
 
         nodes['indexes.new'] = QPushButton(self._settings_icon, "")
         # Configure compact, borderless settings button for options row
@@ -139,11 +123,11 @@ class Indexes:
         nodes['indexes.new'].setFixedSize(icon_size, icon_size)
         nodes['indexes.new'].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         nodes['indexes.new'].setFocusPolicy(Qt.NoFocus)
+        nodes['indexes.new'].setCursor(Qt.PointingHandCursor)
         nodes['indexes.new'].setToolTip(trans('toolbox.indexes.edit.tooltip'))
         nodes['indexes.new'].clicked.connect(self._open_llama_index_settings)
 
         nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
-        nodes['llama_index.mode.label'] = TitleLabel(trans("toolbox.llama_index.mode.label"))
 
         idx_layout = QHBoxLayout()
         idx_layout.addWidget(nodes['indexes.label'])
@@ -157,21 +141,10 @@ class Indexes:
         idx_widget.setMinimumHeight(55)
         idx_widget.setMinimumWidth(0)
         idx_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-
-        mode_layout = QHBoxLayout()
-        mode_layout.addWidget(nodes['llama_index.mode.label'])
-        mode_layout.addWidget(nodes['llama_index.mode.select'])
-        mode_layout.setContentsMargins(0, 0, 0, 10)
-        mode_layout.setStretch(1, 1)
-        mode_widget = QWidget()
-        mode_widget.setLayout(mode_layout)
-        mode_widget.setMinimumHeight(55)
-        mode_widget.setMinimumWidth(0)
-        mode_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        nodes['idx.select.widget'] = idx_widget
 
         rows = QVBoxLayout()
         rows.addWidget(idx_widget)
-        rows.addWidget(mode_widget)
 
         nodes['idx.options'] = QWidget()
         nodes['idx.options'].setLayout(rows)

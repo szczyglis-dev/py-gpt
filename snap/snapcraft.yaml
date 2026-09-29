@@ -1,12 +1,11 @@
 name: pygpt
 base: core24  # Ubuntu 24.04
-version: '2.8.7'
-summary: Desktop AI Assistant - o1, gpt-4, gpt-4-vision, chat, assistant, vision.
+version: '2.8.34'
+summary: Desktop AI Assistant - chat, assistant, vision, agents, and more.
 
 description: |
   **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction
-  with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5,
-  through the OpenAI API. The application also integrates with alternative LLMs.
+  with OpenAI, Google, Anthropic, xAI, Ollama models.
 
 grade: stable
 confinement: strict
@@ -28,6 +27,11 @@ parts:
 
     python-requirements:
       - requirements.txt
+
+    # Built-in sandbox runtime manager. Keep this explicit so the
+    # uv executable is always staged even before requirements.txt is regenerated.
+    python-packages:
+      - uv==0.12.15
 
     stage-packages:
       - libasound2t64
@@ -180,6 +184,12 @@ apps:
       QML2_IMPORT_PATH: "$SNAP/lib/python3.12/site-packages/PySide6/Qt/qml:$SNAP/qml"
 
       PATH: "$SNAP_COMMON/docker-executables/bin:$PATH"
+
+      # Built-in sandbox: uv is bundled with the snap. Reuse the snap
+      # Python as the venv base because strict confinement may prevent
+      # executing a separately downloaded interpreter.
+      PYGPT_UV_BIN: "$SNAP/bin/uv"
+      PYGPT_SANDBOX_PYTHON: "$SNAP/bin/python3"
 
       QTWEBENGINE_DISABLE_SANDBOX: "1"
 

@@ -11,6 +11,8 @@
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from tests.mocks import mock_window
 from pygpt_net.controller.idx.indexer import Indexer
 
@@ -52,13 +54,17 @@ def test_index_ctx_meta(mock_window):
 
 
 def test_index_ctx_current(mock_window):
-    """Test index ctx current"""
+    """Current-context indexing uses the cursor scoped to store + index."""
     mock_window.update_status = MagicMock()
-    mock_window.core.config.set("llama.idx.db.last", 12345)
+    mock_window.core.idx.resolve_idx = MagicMock(return_value="base")
+    mock_window.core.idx.get_current_store = MagicMock(return_value="test_store")
+    mock_window.core.idx.ctx.get_updated_ts = MagicMock(return_value=12345)
     idx = Indexer(mock_window)
     idx.index_ctx_from_ts = MagicMock()
-    mock_window.threadpool.start = MagicMock()
+
     idx.index_ctx_current("base")
+
+    mock_window.core.idx.ctx.get_updated_ts.assert_called_once_with("test_store", "base")
     idx.index_ctx_from_ts.assert_called_once_with("base", 12345, force=False, silent=False)
 
 
@@ -111,13 +117,16 @@ def test_index_file_confirm(mock_window):
 
 
 def test_index_file(mock_window):
-    """Test index file"""
+    """File indexing resolves the runtime index before dispatching the job."""
     mock_window.update_status = MagicMock()
+    mock_window.core.idx.resolve_idx = MagicMock(return_value="base")
     idx = Indexer(mock_window)
-    idx.tmp_idx = "base"
     idx.index_path = MagicMock()
+
     idx.index_file("file.txt", "base", True)
-    idx.index_path.assert_called_once_with("file.txt", "base")
+
+    mock_window.core.idx.resolve_idx.assert_called_once_with("base")
+    idx.index_path.assert_called_once_with("file.txt", "base", show_loader=False)
 
 
 def test_clear_by_idx(mock_window):
@@ -130,15 +139,94 @@ def test_clear_by_idx(mock_window):
 
 
 def test_clear(mock_window):
-    """Test clear"""
+    """Clear resolves an index and removes both storage and local tracking."""
     mock_window.update_status = MagicMock()
+    mock_window.core.idx.resolve_idx = MagicMock(return_value="base")
     mock_window.core.idx.clear = MagicMock()
     mock_window.core.idx.remove_index = MagicMock(return_value=True)
     idx = Indexer(mock_window)
     idx.update_explorer = MagicMock()
+
     idx.clear("base", True)
+
+    mock_window.core.idx.remove_index.assert_called_once_with("base")
     mock_window.core.idx.clear.assert_called_once_with("base")
     idx.update_explorer.assert_called_once()
+
+
+def test_resolve_idx_virtual_project(mock_window):
+    """The controller resolves __project__ before a worker is queued."""
+    mock_window.core.idx.resolve_idx = MagicMock(return_value="proj_9")
+    mock_window.core.idx.project.is_virtual = MagicMock(return_value=True)
+    idx = Indexer(mock_window)
+
+    assert idx.resolve_idx("__project__") == "proj_9"
+
+
+def test_resolve_idx_virtual_project_outside_project_raises(mock_window):
+    """Using __project__ without an active project fails explicitly."""
+    mock_window.core.idx.resolve_idx = MagicMock(return_value=None)
+    mock_window.core.idx.project.is_virtual = MagicMock(return_value=True)
+    idx = Indexer(mock_window)
+
+    with pytest.raises(RuntimeError, match="outside a project"):
+        idx.resolve_idx("__project__")
+
+
+def test_index_project_queues_project_worker(mock_window):
+    """Project updates use a dedicated db_project worker and physical proj_<id> index."""
+    mock_window.core.idx.project.get_idx_id = MagicMock(return_value="proj_12")
+    mock_window.threadpool.start = MagicMock()
+    idx = Indexer(mock_window)
+
+    idx.index_project(12, from_last=True, sync=False, silent=True)
+
+    worker = mock_window.threadpool.start.call_args.args[0]
+    assert worker.type == "db_project"
+    assert worker.content == 12
+    assert worker.idx == "proj_12"
+    assert worker.replace is True
+    assert worker.silent is True
+
+
+def test_truncate_project_requires_confirmation(mock_window):
+    """Truncating one project asks for confirmation before destructive work."""
+    idx = Indexer(mock_window)
+
+    idx.truncate_project(15, force=False)
+
+    kwargs = mock_window.ui.dialogs.confirm.call_args.kwargs
+    assert kwargs["type"] == "idx.project.truncate"
+    assert kwargs["id"] == 15
+    mock_window.core.idx.truncate_project.assert_not_called()
+
+
+def test_truncate_project_force_removes_project_index(mock_window):
+    """Confirmed project truncation delegates to the core and refreshes the UI."""
+    mock_window.core.idx.truncate_project = MagicMock(return_value=True)
+    mock_window.controller.ctx.update_and_restore = MagicMock()
+    idx = Indexer(mock_window)
+    idx.update_explorer = MagicMock()
+
+    idx.truncate_project(15, force=True)
+
+    mock_window.core.idx.truncate_project.assert_called_once_with(15)
+    idx.update_explorer.assert_called_once()
+    mock_window.controller.ctx.update_and_restore.assert_called_once()
+
+
+def test_truncate_projects_force_removes_all_project_indexes(mock_window):
+    """Confirmed batch truncation delegates to the project-index registry cleanup."""
+    mock_window.core.idx.truncate_projects = MagicMock(return_value=True)
+    mock_window.controller.ctx.update_and_restore = MagicMock()
+    idx = Indexer(mock_window)
+    idx.update_explorer = MagicMock()
+
+    idx.truncate_projects(force=True)
+
+    mock_window.core.idx.truncate_projects.assert_called_once()
+    idx.update_explorer.assert_called_once()
+    mock_window.controller.ctx.update_and_restore.assert_called_once()
 
 
 def test_handle_error(mock_window):

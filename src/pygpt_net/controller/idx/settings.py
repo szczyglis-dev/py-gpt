@@ -12,7 +12,7 @@
 import datetime
 from typing import Dict, Any
 
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu, QLayout
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu, QLayout, QComboBox, QPushButton, QFrame
 
 from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
@@ -34,7 +34,7 @@ class Settings:
 
         :return: list of tab IDs
         """
-        return ["update"]
+        return ["update", "clear_truncate"]
 
     def append(
             self,
@@ -87,6 +87,66 @@ class Settings:
             content["update"].addWidget(self.window.ui.nodes['idx.db.last_updated'])
             content["update"].addWidget(self.window.ui.nodes['idx.api.warning'])
 
+        self._append_clear_truncate(content)
+
+    def _append_clear_truncate(self, content: Dict[str, QLayout]):
+        if "clear_truncate" not in content:
+            return
+        layout = content["clear_truncate"]
+        warning = TitleLabel(trans('settings.llama.truncate.warning'))
+        warning.setWordWrap(True)
+        layout.addWidget(warning)
+
+        row = QHBoxLayout()
+        combo = QComboBox()
+        configured = {}
+        for item in self.window.core.config.get('llama.idx.list') or []:
+            idx_id = item.get('id')
+            if idx_id:
+                configured[idx_id] = item.get('name') or idx_id
+        known = set(configured.keys())
+        try:
+            known.update(
+                self.window.core.idx.get_provider().get_index_ids(
+                    self.window.core.idx.get_current_store()
+                )
+            )
+        except Exception as e:
+            self.window.core.debug.log(e)
+        for idx_id in sorted(known, key=lambda value: str(configured.get(value, value)).lower()):
+            if self.window.core.idx.project.is_project_idx(idx_id):
+                continue
+            name = configured.get(idx_id, idx_id)
+            combo.addItem(f"{name} ({idx_id})", idx_id)
+        self.window.ui.nodes['idx.settings.truncate.combo'] = combo
+        btn = QPushButton(trans('settings.llama.truncate.btn'))
+        btn.clicked.connect(self.truncate_selected)
+        row.addWidget(combo, 1)
+        row.addWidget(btn)
+        layout.addLayout(row)
+
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line)
+
+        project_warning = HelpLabel(trans('settings.llama.truncate.projects.desc'), self.window)
+        project_warning.setWordWrap(True)
+        layout.addWidget(project_warning)
+        project_btn = QPushButton(trans('settings.llama.truncate.projects.btn'))
+        project_btn.clicked.connect(lambda: self.window.controller.idx.indexer.truncate_projects(False))
+        layout.addWidget(project_btn)
+
+    def truncate_selected(self):
+        combo = self.window.ui.nodes.get('idx.settings.truncate.combo')
+        if combo is None or combo.count() == 0:
+            return
+        idx = combo.currentData()
+        if not idx:
+            return
+        msg = trans('settings.llama.truncate.confirm').replace('{idx}', str(idx))
+        self.window.ui.dialogs.confirm(type='idx.settings.truncate', id=idx, msg=msg)
+
     def update_text_last_updated(self):
         """Update last updated text"""
         last_str = trans('settings.llama.extra.db.never')
@@ -118,13 +178,6 @@ class Settings:
         info = trans('settings.llama.extra.loaders') + ":\n\nFiles:\n" + files_str + "\n\nWeb/external:\n" + web_str
         self.window.ui.nodes['idx.db.settings.loaders'].setText(info)
 
-    def update_idx_choices(self):
-        """Update index choices"""
-        option = self.window.controller.settings.editor.get_option("agent.idx")
-        option["keys"] = self.window.controller.config.placeholder.get_idx()
-        self.window.ui.config["config"]["agent.idx"].combo.clear()
-        self.window.ui.config["config"]["agent.idx"].option = option
-        self.window.ui.config["config"]["agent.idx"].update()
 
     def idx_db_all_context_menu(self, parent, pos):
         """

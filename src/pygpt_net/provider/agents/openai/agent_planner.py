@@ -9,17 +9,13 @@
 # Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import re
-from typing import Dict, Any, Tuple, Optional, List
+from typing import Dict, Any, Tuple, Optional, List, TYPE_CHECKING
 
-from pydantic import BaseModel, Field
-
-from agents import (
-    Agent as OpenAIAgent,
-    Runner,
-    RunConfig,
-    TResponseInputItem,
-)
+if TYPE_CHECKING:
+    from agents import Agent as OpenAIAgent, TResponseInputItem
+    from .agent_planner_models import Plan, PlanRefinement, SubTask
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
@@ -32,10 +28,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.api.openai.agents.client import get_custom_model_provider, set_openai_env
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
-from pygpt_net.provider.api.openai.agents.response import StreamHandler
-from pygpt_net.provider.api.openai.agents.experts import get_experts
 from pygpt_net.utils import trans
 
 from ..base import BaseAgent
@@ -46,28 +38,13 @@ from ..base import BaseAgent
 # dataclasses are wrapped under a top-level ``response`` key by AgentOutputSchema,
 # while BaseModel subclasses are emitted as the JSON object directly. Keeping the
 # schema shape identical to the prompt avoids a conflicting structured-output contract.
-class SubTask(BaseModel):
-    name: str = Field(..., description="The name of the sub-task.")
-    input: str = Field(..., description="The input prompt for the sub-task.")
-    expected_output: str = Field(..., description="The expected output of the sub-task.")
-    dependencies: List[str] = Field(
-        ...,
-        description="Names of sub-tasks that must be completed before this sub-task.",
-    )
 
 
-class Plan(BaseModel):
-    sub_tasks: List[SubTask] = Field(..., description="The sub-tasks in the plan.")
 
 
-class PlanRefinement(BaseModel):
-    is_done: bool = Field(..., description="Whether the overall task is already satisfied.")
-    reason: Optional[str] = Field(..., description="Why the plan is complete or needs an update.")
-    plan: Optional[Plan] = Field(
-        ...,
-        description="Replacement for the remaining plan, or null when no update is required.",
-    )
 
+
+__all__ = ["Agent", "SubTask", "Plan", "PlanRefinement"]
 
 class Agent(BaseAgent):
     # System prompts used as templates, exposed in options (planner.initial_prompt, refine.prompt).
@@ -360,6 +337,10 @@ Overall Task: {task}
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         # Keep a stable display name; fallback to translated 'Executor' if no preset
@@ -371,7 +352,10 @@ Overall Task: {task}
 
         # Use prompt from options if provided; fallback to internal default.
         step_prompt = self.get_option(preset, "step", "prompt") if preset else None
-        base_instructions = step_prompt or self.PROMPT
+        base_instructions = self.append_system_prompt_extra(
+            step_prompt or self.PROMPT,
+            kwargs,
+        )
 
         allow_local_tools = bool(kwargs.get("allow_local_tools", False))
         allow_remote_tools = bool(kwargs.get("allow_remote_tools", False))
@@ -407,6 +391,8 @@ Overall Task: {task}
         except Exception:
             pass
 
+        cfg["instructions"] = self.append_security_rule(cfg.get("instructions", ""))
+        append_reasoning_model_settings(cfg, window, model)
         return OpenAIAgent(**cfg)
 
     def get_planner(
@@ -417,14 +403,24 @@ Overall Task: {task}
             tools: list,
             allow_local_tools: bool = False,
             allow_remote_tools: bool = False,
+            system_prompt_extra: str = "",
     ) -> OpenAIAgent:
         """
         Return Agent provider instance producing a structured Plan.
         """
+        from .agent_planner_models import Plan
+
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         kwargs = {
             "name": "StructuredPlanner",
             # Minimal instructions; the full template is injected as user content.
-            "instructions": "Return a JSON object matching the provided schema.",
+            "instructions": self.append_system_prompt_extra(
+                "Return a JSON object matching the provided schema.",
+                {"system_prompt_extra": system_prompt_extra},
+            ),
             "model": window.core.agents.provider.get_openai_model(model),
             "output_type": Plan,
         }
@@ -437,6 +433,7 @@ Overall Task: {task}
             allow_remote_tools=allow_remote_tools,
         )
         kwargs.update(tool_kwargs)  # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     def get_refiner(
@@ -447,13 +444,23 @@ Overall Task: {task}
             tools: list,
             allow_local_tools: bool = False,
             allow_remote_tools: bool = False,
+            system_prompt_extra: str = "",
     ) -> OpenAIAgent:
         """
         Return Agent provider instance producing a structured PlanRefinement.
         """
+        from .agent_planner_models import PlanRefinement
+
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         kwargs = {
             "name": "PlanRefiner",
-            "instructions": "Refine remaining plan steps and return a strict JSON object as instructed.",
+            "instructions": self.append_system_prompt_extra(
+                "Refine remaining plan steps and return a strict JSON object as instructed.",
+                {"system_prompt_extra": system_prompt_extra},
+            ),
             "model": window.core.agents.provider.get_openai_model(model),
             "output_type": PlanRefinement,
         }
@@ -466,6 +473,7 @@ Overall Task: {task}
             allow_remote_tools=allow_remote_tools,
         )
         kwargs.update(tool_kwargs)
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     async def run(
@@ -492,6 +500,13 @@ Overall Task: {task}
         :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
+        from .agent_planner_models import Plan, PlanRefinement, SubTask
+
+        from agents import Runner, RunConfig
+        from pygpt_net.provider.api.openai.agents.client import get_custom_model_provider, set_openai_env
+        from pygpt_net.provider.api.openai.agents.response import StreamHandler
+        from pygpt_net.provider.api.openai.agents.experts import get_experts
+
         final_output = ""
         response_id = None
         model = agent_kwargs.get("model", ModelItem())
@@ -500,6 +515,7 @@ Overall Task: {task}
         max_steps = int(agent_kwargs.get("max_iterations", 10))
         tools = agent_kwargs.get("function_tools", [])
         preset = context.preset
+        system_prompt_extra = self.get_system_prompt_extra(agent_kwargs)
 
         # add experts
         experts = get_experts(
@@ -507,18 +523,20 @@ Overall Task: {task}
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
         if experts:
             agent_kwargs["handoffs"] = experts
 
-        # Executor must have access to the same tool set as planner/refiner.
-        # If not explicitly provided, inherit allow_* flags from planner options.
+        # Executor/step has its own tool policy. Explicit runtime overrides still
+        # win, otherwise use the dedicated preset flags instead of inheriting the
+        # planner agent's tool permissions.
         exec_allow_local_tools = agent_kwargs.get("allow_local_tools")
         exec_allow_remote_tools = agent_kwargs.get("allow_remote_tools")
         if exec_allow_local_tools is None:
-            exec_allow_local_tools = bool(self.get_option(preset, "planner", "allow_local_tools"))
+            exec_allow_local_tools = bool(self.get_option(preset, "step", "allow_local_tools"))
         if exec_allow_remote_tools is None:
-            exec_allow_remote_tools = bool(self.get_option(preset, "planner", "allow_remote_tools"))
+            exec_allow_remote_tools = bool(self.get_option(preset, "step", "allow_remote_tools"))
 
         # executor agent (FunctionAgent equivalent)
         agent_exec_kwargs = dict(agent_kwargs)
@@ -527,14 +545,12 @@ Overall Task: {task}
         agent = self.get_agent(window, agent_exec_kwargs)
 
         # options
-        planner_model_name = self.get_option(preset, "planner", "model")
-        planner_model = window.core.models.get(planner_model_name) if planner_model_name else agent_kwargs.get("model",
-                                                                                                               ModelItem())
+        planner_model = self.resolve_model_option(window, preset, "planner", model)
         planner_allow_local_tools = bool(self.get_option(preset, "planner", "allow_local_tools"))
         planner_allow_remote_tools = bool(self.get_option(preset, "planner", "allow_remote_tools"))
         planner_prompt_tpl = self.get_option(preset, "planner", "initial_prompt") or self.DEFAULT_INITIAL_PLAN_PROMPT
 
-        refine_model_name = self.get_option(preset, "refine", "model") or planner_model_name
+        refine_model = self.resolve_model_option(window, preset, "refine", model)
         refine_allow_local_tools = bool(self.get_option(preset, "refine", "allow_local_tools"))
         refine_allow_remote_tools = bool(self.get_option(preset, "refine", "allow_remote_tools"))
         refine_prompt_tpl = self.get_option(preset, "refine", "prompt") or self.DEFAULT_PLAN_REFINE_PROMPT
@@ -567,6 +583,7 @@ Overall Task: {task}
             tools=tools,
             allow_local_tools=planner_allow_local_tools,
             allow_remote_tools=planner_allow_remote_tools,
+            system_prompt_extra=system_prompt_extra,
         )
 
         plan_prompt = self._render_prompt(
@@ -755,14 +772,14 @@ Overall Task: {task}
                     remaining_sub_tasks=remaining_text,
                     task=query,
                 )
-                model_refiner = window.core.models.get(refine_model_name) if refine_model_name else planner_model
                 refiner = self.get_refiner(
                     window=window,
-                    model=model_refiner,
+                    model=refine_model,
                     preset=preset,
                     tools=tools,
                     allow_local_tools=refine_allow_local_tools,
                     allow_remote_tools=refine_allow_remote_tools,
+                    system_prompt_extra=system_prompt_extra,
                 )
 
                 refinement: Optional[PlanRefinement] = None
@@ -872,6 +889,18 @@ Overall Task: {task}
                         "description": trans("agent.planner.step.prompt.desc"),
                         "default": self.PROMPT,
                     },
+                    "allow_local_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
+                        "default": True,
+                    },
+                    "allow_remote_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
+                        "default": True,
+                    },
                 }
             },
             "planner": {
@@ -881,7 +910,12 @@ Overall Task: {task}
                         "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
-                        "default": "gpt-4o",
+                        "default": "gpt-5.6-luna",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "initial_prompt": {
                         "type": "textarea",
@@ -910,7 +944,12 @@ Overall Task: {task}
                         "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
-                        "default": "gpt-4o",
+                        "default": "gpt-5.6-luna",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",
@@ -939,3 +978,16 @@ Overall Task: {task}
                 }
             },
         }
+
+def __getattr__(name):
+    # Preserve the previous module-level schema imports without loading Pydantic
+    # during provider registration.
+    if name in {"SubTask", "Plan", "PlanRefinement"}:
+        from .agent_planner_models import Plan, PlanRefinement, SubTask
+        return {
+            "SubTask": SubTask,
+            "Plan": Plan,
+            "PlanRefinement": PlanRefinement,
+        }[name]
+    raise AttributeError(name)
+

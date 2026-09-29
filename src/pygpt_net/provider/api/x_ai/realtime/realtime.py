@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+from functools import cached_property
 from typing import Optional, Dict, Any
 
 from pygpt_net.core.bridge import BridgeContext
@@ -19,7 +20,6 @@ from pygpt_net.core.realtime.shared.session import extract_last_session_id
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import trans
 
-from .client import xAIIRealtimeClient
 
 class Realtime:
 
@@ -32,10 +32,14 @@ class Realtime:
         :param window: Window instance
         """
         self.window = window
-        self.handler = xAIIRealtimeClient(window)
         self.prev_auto_turn = False
         self.prev_vad_silence = 2000
         self.prev_vad_prefix = 300
+
+    @cached_property
+    def handler(self):
+        from .client import xAIIRealtimeClient
+        return xAIIRealtimeClient(self.window)
 
     def begin(
             self,
@@ -96,10 +100,15 @@ class Realtime:
                         tool_results = json.loads(tool_results)
                     except Exception:
                         pass
+                    # The tool-result send can synchronously wait for the follow-up
+                    # model response. Bind the continuation context first, otherwise
+                    # that response is written/rendered against the previous tool-call
+                    # context and can replace the preceding message.
+                    self.handler.update_ctx(context.ctx)
+                    self.window.controller.realtime.manager.update_ctx(context.ctx)
                     self.handler.send_tool_results_sync({
                         tool_call_id: tool_results
                     })
-                    self.handler.update_ctx(context.ctx)
                     return True  # do not start new session, just send tool results
 
         # Resolve last session ID from history only (no fallback)
@@ -138,6 +147,7 @@ class Realtime:
         if auto_turn and self.handler.is_session_active() and (context.prompt.strip() == "" or context.prompt == "..."):
             self.handler.update_session_tools_sync(tools, remote_tools)
             self.handler.update_ctx(context.ctx)
+            self.window.controller.realtime.manager.update_ctx(context.ctx)
             self.window.update_status(trans("speech.listening"))
             return True # do not send new request if session is active
 

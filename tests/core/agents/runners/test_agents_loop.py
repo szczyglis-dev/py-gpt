@@ -15,6 +15,7 @@ from types import SimpleNamespace
 from pygpt_net.core.agents.runners.loop import Loop
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.item.model import ModelItem
+from pygpt_net.item.ctx import CtxItem
 
 
 class ModelItemStub(ModelItem):
@@ -127,21 +128,11 @@ class FakeWindow:
         self.controller = controller
 
 
-class FakeCtx:
+class FakeCtx(CtxItem):
     def __init__(self, meta_id="MID", model="eval-model"):
+        super().__init__(mode="agent_llama")
         self.meta = SimpleNamespace(id=meta_id)
         self.model = model
-        self.extra = {}
-        self.internal = None
-        self.results = None
-        self.input = None
-        self.output = None
-
-    def set_input(self, text):
-        self.input = text
-
-    def set_output(self, text):
-        self.output = text
 
 
 class FakeResponseCtx:
@@ -348,7 +339,7 @@ def test_handle_evaluation_score_negative(loop, signals):
     ctx = FakeCtx()
     res = loop.handle_evaluation(ctx, "ignored", -1, signals)
     assert res is True
-    assert loop.set_status_calls and loop.set_status_calls[-1][1].endswith("-1%")
+    assert loop.set_status_calls == []
     assert loop.send_response_calls[-1][2] == KernelEvent.APPEND_END
     assert len(loop.set_idle_calls) == 1
 
@@ -396,7 +387,7 @@ def test_handle_evaluation_proceeds_next_step_non_openai(loop, window, signals):
     assert call_ctx.preset is preset
     assert call_extra == {"agent_idx": preset.idx, "agent_provider": preset.agent_provider}
     assert isinstance(call_ctx.model, ModelItem)
-    assert getattr(call_ctx.model, "name", None) == "default-model"
+    assert getattr(call_ctx.model, "name", None) == "eval-m"
     assert loop.set_status_calls and loop.set_status_calls[-1][1].endswith("50%")
 
 

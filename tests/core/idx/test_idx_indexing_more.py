@@ -16,7 +16,11 @@ import datetime
 import os
 from types import SimpleNamespace
 
+FIXED_TS = 1735689600
+
 module = importlib.import_module("pygpt_net.core.idx.indexing")
+llama_core_mod = importlib.import_module("llama_index.core")
+llama_schema_mod = importlib.import_module("llama_index.core.schema")
 Indexing = module.Indexing
 class DocumentFake:
     def __init__(self, text='', metadata=None):
@@ -81,6 +85,7 @@ def make_window(store=None):
     packer.unpack = Mock(return_value=None)
     filesystem = SimpleNamespace()
     filesystem.packer = packer
+    filesystem.get_data_dir = Mock(side_effect=lambda ctx=None: config.get_user_dir('data'))
     db = SimpleNamespace()
     db.get_db = Mock(return_value=None)
     models = SimpleNamespace()
@@ -103,8 +108,8 @@ def window():
 
 @pytest.fixture(autouse=True)
 def patch_module(monkeypatch):
-    monkeypatch.setattr(module, 'Document', DocumentFake)
-    monkeypatch.setattr(module, 'SimpleDirectoryReader', FakeDirectoryReader)
+    monkeypatch.setattr(llama_schema_mod, 'Document', DocumentFake)
+    monkeypatch.setattr(llama_core_mod, 'SimpleDirectoryReader', FakeDirectoryReader)
     return None
 
 @pytest.fixture
@@ -219,8 +224,9 @@ def test_is_allowed_dir_and_file(window, indexing, tmp_path):
 def test_get_documents_dir_and_file_and_custom(monkeypatch, indexing, tmp_path, window):
     d = tmp_path / 'folder'
     d.mkdir()
+    (d / 'nested.txt').write_text('x')
     docs = [DocumentFake(text='a', metadata={})]
-    monkeypatch.setattr(module, 'SimpleDirectoryReader', lambda *args, **kwargs: SimpleNamespace(load_data=Mock(return_value=docs)))
+    monkeypatch.setattr(llama_core_mod, 'SimpleDirectoryReader', lambda *args, **kwargs: SimpleNamespace(load_data=Mock(return_value=docs)))
     res = indexing.get_documents(str(d))
     assert isinstance(res, list) and res[0].text == 'a'
     f = tmp_path / 'file.md'
@@ -303,7 +309,7 @@ def test_index_files_recursive_dir_and_file(monkeypatch, tmp_path, window):
     assert str(f) in indexed2
 
 def test_db_methods_get_data_and_ids(monkeypatch, indexing, window):
-    rows = [SimpleNamespace(_asdict=lambda: {'text': 't', 'input_ts': int(datetime.datetime.now().timestamp()), 'meta_id': 1, 'item_id': 2})]
+    rows = [SimpleNamespace(_asdict=lambda: {'text': 't', 'input_ts': FIXED_TS, 'meta_id': 1, 'item_id': 2})]
     class Conn:
         def __enter__(self):
             return self
@@ -327,7 +333,7 @@ def test_db_methods_get_data_and_ids(monkeypatch, indexing, window):
     window.core.db.get_db = Mock(return_value=dbobj2)
     ids = indexing.get_db_meta_ids_from_ts(0)
     assert ids == [5]
-    rows3 = [SimpleNamespace(_asdict=lambda: {'text': 'x', 'input_ts': int(datetime.datetime.now().timestamp()), 'meta_id': 7, 'item_id': 8})]
+    rows3 = [SimpleNamespace(_asdict=lambda: {'text': 'x', 'input_ts': FIXED_TS, 'meta_id': 7, 'item_id': 8})]
     class Conn3:
         def __enter__(self):
             return self
@@ -423,8 +429,18 @@ def test_apply_rate_limit_sleep_and_no_sleep(monkeypatch, indexing, window):
     indexing.window.core.config.s['llama.idx.embeddings.limit.rpm'] = '0'
     indexing.apply_rate_limit()
     indexing.window.core.config.s['llama.idx.embeddings.limit.rpm'] = '2'
-    now = datetime.datetime.now()
-    indexing.last_call = now - datetime.timedelta(seconds=5)
+    real_datetime = datetime.datetime
+    fixed_now = real_datetime(2025, 1, 1, 12, 0, 0)
+
+    class FixedDateTime(real_datetime):
+        @classmethod
+        def now(cls, tz=None):
+            if tz is None:
+                return fixed_now
+            return fixed_now.replace(tzinfo=datetime.timezone.utc).astimezone(tz)
+
+    monkeypatch.setattr(module.datetime, 'datetime', FixedDateTime)
+    indexing.last_call = fixed_now - datetime.timedelta(seconds=5)
     slept = {}
     def fake_sleep(sec):
         slept['val'] = sec

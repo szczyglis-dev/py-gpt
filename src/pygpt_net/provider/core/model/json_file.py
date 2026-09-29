@@ -193,6 +193,7 @@ class JsonFileProvider(BaseProvider):
             'extra': item.extra,
             'imported': item.imported,
             'provider': item.provider,
+            'reasoning_effort': item.reasoning_effort,
             'tool_calls': item.tool_calls,
         }
 
@@ -234,6 +235,8 @@ class JsonFileProvider(BaseProvider):
             item.imported = data['imported']
         if 'provider' in data:
             item.provider = data['provider']
+        if 'reasoning_effort' in data:
+            item.reasoning_effort = bool(data['reasoning_effort'])
         if 'tool_calls' in data:
             item.tool_calls = data['tool_calls']
 

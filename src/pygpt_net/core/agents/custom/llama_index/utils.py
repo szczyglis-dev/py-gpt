@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.25 14:00:00                  #
+# Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -59,23 +59,29 @@ def resolve_node_runtime(
     option_get: OptionGetter,
     default_model: ModelItem,
     base_prompt: Optional[str],
+    system_prompt_extra: Optional[str] = None,
     schema_allow_local: Optional[bool],
     schema_allow_remote: Optional[bool],
     default_allow_local: bool,
     default_allow_remote: bool,
 ) -> NodeRuntime:
-    model_name = option_get(node.id, "model", None)
+    # Per-node model selection is opt-in; by default inherit the active model.
     model_item: ModelItem = default_model
-    try:
-        if model_name:
-            cand = window.core.models.get(model_name)
-            if cand:
-                model_item = cand
-    except Exception:
-        model_item = default_model
+    if bool(option_get(node.id, "model_overwrite", False)):
+        model_name = option_get(node.id, "model", None)
+        try:
+            if model_name:
+                cand = window.core.models.get(model_name)
+                if cand:
+                    model_item = cand
+        except Exception:
+            model_item = default_model
 
     prompt_opt = option_get(node.id, "prompt", None)
     instructions = (prompt_opt or getattr(node, "instruction", None) or base_prompt or "").strip()
+    extra = str(system_prompt_extra or "").strip()
+    if extra and extra not in instructions:
+        instructions = f"{instructions}\n\n{extra}" if instructions else extra
 
     # Role resolve (optional)
     role_opt = option_get(node.id, "role", None)
@@ -147,6 +153,9 @@ def to_li_chat_messages(items: List[TResponseInputItem]) -> List[ChatMessage]:
         return []
     msgs: List[ChatMessage] = []
     for it in items or []:
+        if isinstance(it, ChatMessage):
+            msgs.append(it)
+            continue
         if not isinstance(it, dict):
             continue
         role = str(it.get("role", "")).lower()
@@ -189,14 +198,23 @@ def coerce_li_tools(function_tools: List[Any]) -> List[Any]:
     return tools_out
 
 
-def resolve_llm(window, node_model: ModelItem, base_llm: Any, stream: bool) -> Any:
-    """
-    Best practice in your app: if per-node model set -> window.core.idx.llm.get(model, stream),
-    else reuse the base_llm provided from the app.
-    """
+def resolve_llm(
+        window,
+        node_model: ModelItem,
+        base_llm: Any,
+        stream: bool,
+        computer_runtime=None,
+        allow_remote_tools: bool = True,
+) -> Any:
+    """Resolve a per-node LLM while preserving remote-tool permissions."""
     try:
         if node_model and hasattr(node_model, "name") and getattr(window.core, "idx", None):
-            return window.core.idx.llm.get(node_model, stream=stream)
+            return window.core.idx.llm.get_agent(
+                node_model,
+                stream=stream,
+                allow_remote_tools=allow_remote_tools,
+                computer_runtime=computer_runtime if allow_remote_tools else None,
+            )
     except Exception:
         pass
     return base_llm
@@ -234,6 +252,9 @@ def extract_agent_text(ret: Any) -> str:
             content = getattr(msg, "content", None) or getattr(msg, "text", None)
             if isinstance(content, str):
                 return content
+        content = getattr(resp, "content", None)
+        if isinstance(content, str):
+            return content
         text = getattr(resp, "text", None)
         if isinstance(text, str):
             return text

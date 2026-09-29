@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 23:00:00                  #
+# Updated Date: 2026.09.22 13:11:00                  #
 # ================================================== #
 
 import asyncio
@@ -16,6 +16,7 @@ from typing import Optional, Callable, Awaitable, Tuple, List, Any
 
 from google.genai import types as gtypes  # for Schema/FunctionDeclaration/FunctionResponse compatibility
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 from pygpt_net.core.types import MODE_AUDIO
 from pygpt_net.item.ctx import CtxItem
@@ -28,6 +29,7 @@ from pygpt_net.core.realtime.shared.tools import build_function_responses_payloa
 from pygpt_net.core.realtime.shared.text import coalesce_text
 from pygpt_net.core.realtime.shared.turn import TurnMode, apply_turn_mode_google
 from pygpt_net.core.realtime.shared.session import set_ctx_rt_handle
+from pygpt_net.core.realtime.shared.computer import image_bytes, normalize_image_paths
 
 
 class GoogleLiveClient:
@@ -124,7 +126,19 @@ class GoogleLiveClient:
         Run one turn: open session if needed, send prompt/audio, receive until turn complete.
         """
         self._ensure_background_loop()
+
+        # A persistent realtime session keeps one receiver loop alive across
+        # multiple user turns. Refresh the per-turn binding on *every* run, not
+        # only when the socket/session is first opened. Otherwise the receiver
+        # keeps calling the callbacks captured by the first RealtimeWorker: live
+        # deltas are then rendered into that old CtxItem while response.done is
+        # persisted into the current one. The mismatch becomes visible as text
+        # streaming inside an earlier message until the WebView is reloaded.
         self._ctx = ctx
+        self._on_text = on_text
+        self._on_audio = on_audio
+        self._should_stop = should_stop or (lambda: False)
+        self._last_opts = opts
 
         # If a different resumable handle is provided, reset the session to resume there
         try:
@@ -891,15 +905,21 @@ class GoogleLiveClient:
                                 self._last_tool_calls = list(self._rt_state["tool_calls"])
                                 turn_finished = True  # let the app run tools now
 
-                            # Text part
+                            # Plain model_turn text is intentionally not emitted for AUDIO Live sessions.
+                            # The session requests output_audio_transcription, which is the authoritative
+                            # transcript of the audio actually spoken by the model. model_turn.parts[].text
+                            # may contain internal/thought text and can also duplicate the spoken transcript.
+                            # Keep processing structured parts (tools, code, images, etc.) below, but expose
+                            # normal assistant text only through server_content.output_transcription above.
                             txt = getattr(p, "text", None) or (p.get("text") if isinstance(p, dict) else None)
-                            if txt and self._on_text:
-                                s = str(txt)
-                                self._turn_text_parts.append(s)
-                                try:
-                                    await self._on_text(s)
-                                except Exception:
-                                    pass
+                            if txt and self.debug:
+                                is_thought = bool(
+                                    getattr(p, "thought", False)
+                                    if not isinstance(p, dict)
+                                    else p.get("thought", False)
+                                )
+                                kind = "thought" if is_thought else "model_turn text"
+                                print(f"[google.live] suppressed {kind}: {str(txt)[:200]}")
 
                             # Code execution parts
                             ex = getattr(p, "executable_code", None) or (p.get("executable_code") if isinstance(p, dict) else None)
@@ -955,6 +975,7 @@ class GoogleLiveClient:
                                             save_path = self.window.core.image.gen_unique_path(self._ctx)
                                             with open(save_path, "wb") as f:
                                                 f.write(img_bytes)
+                                            self.window.core.filesystem.materialize_runtime_artifact(save_path, ctx=self._ctx)
                                             self._rt_state["image_paths"].append(save_path)
                                             if not isinstance(self._ctx.images, list):
                                                 self._ctx.images = []
@@ -969,9 +990,36 @@ class GoogleLiveClient:
                         except Exception:
                             pass
 
-                    # Turn complete signal
+                    # Turn completion follows google-genai 2.23+ semantics:
+                    # when interaction_status is set to a concrete value, IDLE is
+                    # authoritative. For older SDKs (or UNSPECIFIED status), keep
+                    # the historical turn_complete fallback.
                     try:
-                        if bool(getattr(sc, "turn_complete", None) or getattr(sc, "turnComplete", None)):
+                        turn_complete = bool(
+                            getattr(sc, "turn_complete", None)
+                            or getattr(sc, "turnComplete", None)
+                        )
+                        interaction_status = (
+                            getattr(sc, "interaction_status", None)
+                            or getattr(sc, "interactionStatus", None)
+                        )
+                        if interaction_status is not None:
+                            status_value = (
+                                getattr(interaction_status, "value", None)
+                                or getattr(interaction_status, "name", None)
+                                or interaction_status
+                            )
+                            status_name = str(status_value).rsplit(".", 1)[-1].upper()
+                            if status_name not in (
+                                "UNSPECIFIED",
+                                "INTERACTION_STATUS_UNSPECIFIED",
+                                "NONE",
+                                "",
+                            ):
+                                turn_finished = status_name == "IDLE"
+                            elif turn_complete:
+                                turn_finished = True
+                        elif turn_complete:
                             turn_finished = True
                     except Exception:
                         pass
@@ -1096,7 +1144,7 @@ class GoogleLiveClient:
             # Emit end-of-turn event for audio pipeline symmetry with OpenAI
             try:
                 if self._last_opts and hasattr(self._last_opts, "rt_signals"):
-                    self._last_opts.rt_signals.response.emit(RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
+                    safe_emit(self._last_opts.rt_signals, "response", RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
                         "ctx": self._ctx,
                     }))
             except Exception:
@@ -1240,13 +1288,14 @@ class GoogleLiveClient:
         results,
         continue_turn: bool = True,
         wait_for_done: bool = True,
+        image_paths=None,
     ):
         """
         Send tool results back to the Live session (FunctionResponse list).
         """
         self._ensure_background_loop()
         return await self._run_on_owner(
-            self._send_tool_results_internal(results, continue_turn, wait_for_done)
+            self._send_tool_results_internal(results, continue_turn, wait_for_done, image_paths)
         )
 
     def send_tool_results_sync(
@@ -1255,13 +1304,14 @@ class GoogleLiveClient:
         continue_turn: bool = True,
         wait_for_done: bool = True,
         timeout: float = 20.0,
+        image_paths=None,
     ):
         """
         Synchronous wrapper for send_tool_results().
         """
         self._ensure_background_loop()
         return self._bg.run_sync(
-            self._send_tool_results_internal(results, continue_turn, wait_for_done),
+            self._send_tool_results_internal(results, continue_turn, wait_for_done, image_paths),
             timeout=timeout
         )
 
@@ -1270,6 +1320,7 @@ class GoogleLiveClient:
         results,
         continue_turn: bool,
         wait_for_done: bool,
+        image_paths=None,
     ):
         """
         Internal implementation of send_tool_results.
@@ -1295,6 +1346,15 @@ class GoogleLiveClient:
             self._send_lock = asyncio.Lock()
         async with self._send_lock:
             try:
+                # Blocking Live function calls keep model generation paused until
+                # FunctionResponse arrives. Queue the visual desktop state first,
+                # then send the response that resumes the turn, avoiding a race in
+                # which Gemini could continue before receiving the screenshot.
+                for path in normalize_image_paths(image_paths):
+                    data, mime = image_bytes(path)
+                    await self._session.send_realtime_input(
+                        video=gtypes.Blob(data=data, mime_type=mime)
+                    )
                 await self._session.send_tool_response(function_responses=fn_responses)
             except Exception as e:
                 raise RuntimeError(f"send_tool_response failed: {e}") from e
@@ -1419,28 +1479,52 @@ class GoogleLiveClient:
                 except Exception:
                     return None
 
-        prompt = (getattr(um_obj, "prompt_token_count", None)
+        prompt = (getattr(um_obj, "total_input_tokens", None)
+                  or getattr(um_obj, "prompt_token_count", None)
                   or getattr(um_obj, "promptTokenCount", None)
                   or getattr(um_obj, "prompt_tokens", None)
+                  or getattr(um_obj, "input_tokens", None)
                   or None)
-        total = (getattr(um_obj, "total_token_count", None)
+        total = (getattr(um_obj, "total_tokens", None)
+                 or getattr(um_obj, "total_token_count", None)
                  or getattr(um_obj, "totalTokenCount", None)
-                 or getattr(um_obj, "total_tokens", None)
                  or None)
-        candidates = (getattr(um_obj, "candidates_token_count", None)
+        explicit_output = getattr(um_obj, "total_output_tokens", None)
+        candidates = (explicit_output
+                      if explicit_output is not None else
+                      getattr(um_obj, "candidates_token_count", None)
                       or getattr(um_obj, "candidatesTokenCount", None)
+                      or getattr(um_obj, "completion_tokens", None)
                       or getattr(um_obj, "output_tokens", None)
                       or None)
-        reasoning = (getattr(um_obj, "candidates_reasoning_token_count", None)
+        reasoning = (getattr(um_obj, "total_thought_tokens", None)
+                     or getattr(um_obj, "thoughts_token_count", None)
+                     or getattr(um_obj, "candidates_reasoning_token_count", None)
                      or getattr(um_obj, "candidatesReasoningTokenCount", None)
                      or getattr(um_obj, "reasoning_tokens", None)
                      or 0)
+        cached = (getattr(um_obj, "total_cached_tokens", None)
+                  or getattr(um_obj, "cached_content_token_count", None)
+                  or 0)
+        tool_use = (getattr(um_obj, "total_tool_use_tokens", None) or 0)
         p = as_int(prompt)
         t = as_int(total)
         c = as_int(candidates)
         r = as_int(reasoning) or 0
-        out_total = max(0, (t or 0) - (p or 0)) if (t is not None and p is not None) else c
-        self._rt_state["usage_payload"] = {"in": p, "out": out_total, "reasoning": r, "total": t}
+        explicit_out = as_int(explicit_output)
+        out_total = (
+            explicit_out
+            if explicit_out is not None
+            else max(0, (t or 0) - (p or 0)) if (t is not None and p is not None) else c
+        )
+        self._rt_state["usage_payload"] = {
+            "in": p,
+            "out": out_total,
+            "reasoning": r,
+            "cached": as_int(cached) or 0,
+            "tool_use": as_int(tool_use) or 0,
+            "total": t,
+        }
 
     def _collect_google_citations_from_server_content(self, sc: Any):
         """
@@ -1938,7 +2022,7 @@ class GoogleLiveClient:
             return
         try:
             if self._last_opts and hasattr(self._last_opts, "rt_signals"):
-                self._last_opts.rt_signals.response.emit(
+                safe_emit(self._last_opts.rt_signals, "response", 
                     RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT, {"ctx": self._ctx})
                 )
             self._rt_state["auto_commit_signaled"] = True

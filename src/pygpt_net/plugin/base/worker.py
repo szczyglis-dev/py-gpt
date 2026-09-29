@@ -6,13 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
+
+import json
 
 from typing import Optional, Any, Dict, List
 
 from PySide6.QtCore import QRunnable
 from typing_extensions import deprecated
+
+from pygpt_net.core.agents_v2.tool_bridge import mark_pending
+from pygpt_net.core.qt import safe_emit
 
 from .plugin import BasePlugin
 from .signals import BaseSignals
@@ -44,19 +49,21 @@ class BaseWorker(QRunnable):
             except RuntimeError:
                 pass
 
+    def _emit(self, name: str, *args) -> bool:
+        """Safely emit a worker signal if its QObject still exists."""
+        return safe_emit(self.signals, name, *args)
+
     def debug(self, msg: str):
         """
         Emit debug signal
 
         :param msg: debug message
         """
-        if self.signals is not None and hasattr(self.signals, "debug"):
-            self.signals.debug.emit(msg)
+        self._emit("debug", msg)
 
     def destroyed(self):
         """Emit destroyed signal"""
-        if self.signals is not None and hasattr(self.signals, "destroyed"):
-            self.signals.destroyed.emit()
+        self._emit("destroyed")
 
     def error(self, err: Any):
         """
@@ -64,8 +71,7 @@ class BaseWorker(QRunnable):
 
         :param err: error message
         """
-        if self.signals is not None and hasattr(self.signals, "error"):
-            self.signals.error.emit(err)
+        self._emit("error", err)
 
     def log(self, msg: str):
         """
@@ -75,8 +81,7 @@ class BaseWorker(QRunnable):
         """
         if self.is_threaded():
             return
-        if self.signals is not None and hasattr(self.signals, "log"):
-            self.signals.log.emit(msg)
+        self._emit("log", msg)
 
     @deprecated("From 2.1.29: BaseWorker.response() is deprecated, use BaseWorker.reply() instead")
     def response(
@@ -105,13 +110,16 @@ class BaseWorker(QRunnable):
         :param response: response (dict)
         :param extra_data: extra data
         """
-        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
+        # Legacy agents historically called the plugin handler directly. Agents
+        # v2 must not do that from a QRunnable thread: emit the Qt signal instead
+        # so QObject slots and REPLY_ADD are delivered on the receiver thread.
         if self.ctx is not None and self.ctx.agent_call and self.plugin is not None:
-            self.plugin.handle_finished(response, self.ctx, extra_data)
-            return
+            extra = self.ctx.extra if isinstance(self.ctx.extra, dict) else {}
+            if not extra.get("agents_v2_async_tool"):
+                self.plugin.handle_finished(response, self.ctx, extra_data)
+                return
 
-        if self.signals is not None and hasattr(self.signals, "finished"):
-            self.signals.finished.emit(response, self.ctx, extra_data)
+        self._emit("finished", response, self.ctx, extra_data)
 
     def reply_more(
             self,
@@ -124,18 +132,19 @@ class BaseWorker(QRunnable):
         :param responses: list of responses dicts  TODO: add ResponseContext
         :param extra_data: extra data
         """
-        # if tool call from agent_llama mode, then send direct reply to plugin -> dispatcher -> reply
-        if self.ctx.agent_call and self.plugin is not None:
-            self.plugin.handle_finished_more(responses, self.ctx, extra_data)
-            return
+        # See reply(): Agents v2 routes completion through Qt's queued signal
+        # path so plugin result handling never runs directly on a worker thread.
+        if self.ctx is not None and self.ctx.agent_call and self.plugin is not None:
+            extra = self.ctx.extra if isinstance(self.ctx.extra, dict) else {}
+            if not extra.get("agents_v2_async_tool"):
+                self.plugin.handle_finished_more(responses, self.ctx, extra_data)
+                return
 
-        if self.signals is not None and hasattr(self.signals, "finished_more"):
-            self.signals.finished_more.emit(responses, self.ctx, extra_data)
+        self._emit("finished_more", responses, self.ctx, extra_data)
 
     def started(self):
         """Emit started signal"""
-        if self.signals is not None and hasattr(self.signals, "started"):
-            self.signals.started.emit()
+        self._emit("started")
 
     def status(self, msg: str):
         """
@@ -145,13 +154,11 @@ class BaseWorker(QRunnable):
         """
         if self.is_threaded():
             return
-        if self.signals is not None and hasattr(self.signals, "status"):
-            self.signals.status.emit(msg)
+        self._emit("status", msg)
 
     def stopped(self):
         """Emit stopped signal"""
-        if self.signals is not None and hasattr(self.signals, "stopped"):
-            self.signals.stopped.emit()
+        self._emit("stopped")
 
     def is_threaded(self) -> bool:
         """
@@ -195,7 +202,16 @@ class BaseWorker(QRunnable):
         if "params" in item and isinstance(item["params"], dict):
             for k in append_params:
                 if k in item["params"]:
-                    data[k] = str(item["params"][k])
+                    value = item["params"][k]
+                    try:
+                        # Keep JSON-native types intact in the request echoed
+                        # with the tool result. In particular, list-valued
+                        # paths must remain JSON arrays instead of becoming a
+                        # Python repr string such as "['file.txt']".
+                        data[k] = json.loads(json.dumps(value, ensure_ascii=False))
+                    except (TypeError, ValueError, OverflowError):
+                        # Keep the old safety net for non-JSON internal values.
+                        data[k] = str(value)
         return data
 
     def make_response(
@@ -225,16 +241,22 @@ class BaseWorker(QRunnable):
         """Validate host-side plugin file read access."""
         if self.plugin is None or self.plugin.window is None:
             return path
-        return self.plugin.window.core.security.ensure_read(path, sandbox=sandbox)
+        return self.plugin.window.core.security.ensure_read(path, sandbox=sandbox, ctx=self.ctx)
 
     def security_write(self, path: str, sandbox: bool = False) -> str:
         """Validate host-side plugin file write access."""
         if self.plugin is None or self.plugin.window is None:
             return path
-        return self.plugin.window.core.security.ensure_write(path, sandbox=sandbox)
+        return self.plugin.window.core.security.ensure_write(path, sandbox=sandbox, ctx=self.ctx)
+
+    def get_workdir(self) -> str:
+        """Return the data workdir bound to this tool-call context."""
+        if self.plugin is None or self.plugin.window is None:
+            return ""
+        return self.plugin.window.core.filesystem.get_data_dir(ctx=self.ctx)
 
     def security_command(self, command: str, sandbox: bool = False):
-        """Validate host-side plugin system command access."""
+        """Validate plugin system-command access for any execution backend."""
         if self.plugin is None or self.plugin.window is None:
             return []
         return self.plugin.window.core.security.ensure_command(command, sandbox=sandbox)
@@ -299,8 +321,19 @@ class BaseWorker(QRunnable):
         self.run()
 
     def run_async(self):
-        """Run asynchronous"""
+        """Run asynchronous."""
+        # Agents v2 waits for the plugin reply instead of for dispatch() to
+        # return. Mark the context so the Qt-side bridge knows an asynchronous
+        # worker has actually been scheduled and must not complete the tool call
+        # prematurely.
+        try:
+            if self.ctx is not None and isinstance(self.ctx.extra, dict) \
+                    and self.ctx.extra.get("agents_v2_async_tool"):
+                mark_pending(self.ctx, True)
+        except Exception:
+            pass
         if self.window:
             self.window.threadpool.start(self)
         else:
             self.run()
+

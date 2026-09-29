@@ -6,26 +6,27 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.21 07:00:00                  #
+# Updated Date: 2026.09.27 17:35:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import datetime
 import os
 import time
 
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict, Any
+from typing import TYPE_CHECKING, Optional, Tuple, List, Dict, Any
 
 from sqlalchemy import text
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core.schema import Document
-from llama_index.core import SimpleDirectoryReader
 
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.utils import parse_args, pack_arg
 
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
+    from llama_index.core.schema import Document
 
 class Indexing:
     def __init__(self, window=None):
@@ -255,7 +256,7 @@ class Indexing:
         :param path: file path
         :return: True if excluded
         """
-        data_dir = self.window.core.config.get_user_dir("data")
+        data_dir = self.window.core.filesystem.get_data_dir()
         tmp_dir = self.window.core.config.get_user_dir("tmp")
         # interpreter/canvas temporary files; keep legacy data paths excluded too
         names = [
@@ -307,16 +308,31 @@ class Indexing:
         :param loader_kwargs: additional keyword arguments for loader
         :return: list of documents
         """
+        from llama_index.core import SimpleDirectoryReader
+
         # TODO: if .zip then unpack here, and return path to /tmp
         if not silent:
             self.window.core.idx.log(f"Reading documents from path: {path}")
         if os.path.isdir(path):
-            reader = SimpleDirectoryReader(
-                input_dir=path,
-                recursive=True,
-                exclude_hidden=False,
-            )
-            documents = reader.load_data()
+            # Do not let SimpleDirectoryReader choose its own default readers here.
+            # That bypasses PyGPT's registered/configured loaders (notably the
+            # video/audio loader) and may instantiate optional readers such as
+            # LlamaIndex VideoAudioReader, which requires a local Whisper install.
+            # Route every file through get_documents() instead, so the same loader
+            # selection and exclusion rules are used for files and directories.
+            documents = []
+            for root, dirs, files in os.walk(path):
+                dirs.sort()
+                files.sort()
+                for name in files:
+                    file_path = os.path.join(root, name)
+                    documents.extend(self.get_documents(
+                        file_path,
+                        force=force,
+                        silent=silent,
+                        loader_kwargs=loader_kwargs,
+                    ))
+            return documents
         else:
             # get extension
             ext = os.path.splitext(path)[1][1:].lower()
@@ -629,6 +645,8 @@ class Indexing:
         :param updated_ts: timestamp
         :return: list of documents
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -701,6 +719,8 @@ class Indexing:
         :param updated_ts: timestamp from which to get data
         :return: list of documents
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -730,6 +750,106 @@ class Indexing:
                 )
                 documents.append(doc)
         return documents
+
+    def get_project_db_data(
+            self,
+            group_id: int,
+            idx: str,
+            last_item: int = 0
+    ) -> List[Document]:
+        """Get project conversation items after the project cursor.
+
+        Contexts indexed manually into the same project index are skipped when
+        their tracked idx_ctx timestamp is newer than the context item. This
+        prevents a later project-wide incremental update from inserting the
+        manually indexed conversation a second time.
+        """
+        from llama_index.core.schema import Document
+
+        db = self.window.core.db.get_db()
+        documents = []
+        store = self.window.core.idx.get_current_store()
+        stmt = text("""
+            SELECT
+                'Human: ' || ctx_item.input || '\nAssistant: ' || ctx_item.output AS text,
+                ctx_item.input_ts AS input_ts,
+                ctx_item.meta_id AS meta_id,
+                ctx_item.id AS item_id
+            FROM ctx_item
+            INNER JOIN ctx_meta ON ctx_item.meta_id = ctx_meta.id
+            WHERE ctx_meta.group_id = :group_id
+              AND ctx_item.id > :last_item
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM idx_ctx
+                  WHERE idx_ctx.store = :store
+                    AND idx_ctx.idx = :idx
+                    AND idx_ctx.meta_id = ctx_item.meta_id
+                    AND idx_ctx.updated_ts >= MAX(
+                        COALESCE(ctx_item.input_ts, 0),
+                        COALESCE(ctx_item.output_ts, 0)
+                    )
+              )
+            ORDER BY ctx_item.id ASC
+        """).bindparams(
+            group_id=int(group_id),
+            idx=str(idx),
+            store=str(store),
+            last_item=int(last_item or 0),
+        )
+        with db.connect() as connection:
+            for row in connection.execute(stmt):
+                data = row._asdict()
+                doc = Document(
+                    text=data["text"],
+                    metadata={
+                        "ctx_date": str(datetime.datetime.fromtimestamp(int(data["input_ts"]))),
+                        "ctx_id": data["meta_id"],
+                        "item_id": data["item_id"],
+                        "project_id": int(group_id),
+                        "indexed_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    },
+                )
+                documents.append(doc)
+        return documents
+
+    def index_db_project(
+            self,
+            idx: str,
+            index: BaseIndex,
+            group_id: int,
+            last_item: int = 0
+    ) -> Tuple[int, List[str], int, int]:
+        """Index one project's DB context incrementally by ctx_item ID."""
+        errors = []
+        n = 0
+        max_meta = 0
+        max_item = int(last_item or 0)
+        try:
+            documents = self.get_project_db_data(group_id, idx, last_item)
+            self.window.core.idx.log(
+                f"Indexing project {group_id} to {idx} from item: {last_item}"
+            )
+            for d in documents:
+                if self.is_stopped():
+                    break
+                self.index_document(index, d)
+                meta_id = int(d.metadata.get("ctx_id", 0) or 0)
+                item_id = int(d.metadata.get("item_id", 0) or 0)
+                self.window.core.ctx.idx.set_meta_as_indexed(
+                    meta_id, idx, d.id_, update_timestamp=False
+                )
+                max_meta = max(max_meta, meta_id)
+                max_item = max(max_item, item_id)
+                n += 1
+                self.window.core.idx.log(
+                    f"Inserted project DB document: {n} / {len(documents)}, "
+                    f"item: {item_id}, id: {d.id_}"
+                )
+        except Exception as e:
+            errors.append(str(e))
+            self.window.core.debug.log(e)
+        return n, errors, max_meta, max_item
 
     def index_db_by_meta_id(
             self,

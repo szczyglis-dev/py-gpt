@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.23 15:00:00                  #
+# Updated Date: 2026.09.21 10:10:00                  #
 # ================================================== #
 
 import os
@@ -33,6 +33,15 @@ class Model:
 
     def _ensure_current_model_map(self):
         return self.window.core.config.data.setdefault('current_model', {})
+
+    def _refresh_reasoning_effort(self):
+        """Refresh the runtime reasoning-effort selector in the chat input."""
+        try:
+            node = self.window.ui.nodes.get('input')
+            if node is not None and hasattr(node, 'update_reasoning_effort'):
+                node.update_reasoning_effort()
+        except (AttributeError, RuntimeError):
+            pass
 
     def handle(self, event: BaseEvent):
         """
@@ -106,17 +115,24 @@ class Model:
         mode = cfg.get('mode')
         cfg.set('model', model)
         self._ensure_current_model_map()[mode] = model
+        self._refresh_reasoning_effort()
 
         w.dispatch(Event(Event.MODEL_SELECT, {'value': model}))
-        w.controller.ui.update()
-        w.dispatch(AppEvent(AppEvent.MODEL_SELECTED))
 
+        # Persist the runtime model selection before refreshing the UI. Preset
+        # refresh may re-apply the active preset, so saving afterwards could
+        # temporarily restore its previous model and desynchronize the combo,
+        # config and preset. This also updates virtual ``current.<mode>``
+        # presets, making them remember the last runtime model just like RAG.
         preset = cfg.get('preset')
         if preset and preset != "*":
             preset_data = w.core.presets.get_by_id(mode, preset)
             if preset_data:
                 preset_data.model = model
                 w.core.presets.save(preset)
+
+        w.controller.ui.update()
+        w.dispatch(AppEvent(AppEvent.MODEL_SELECTED))
 
         ctx = w.core.ctx
         ctx.model = model
@@ -163,6 +179,7 @@ class Model:
         w = self.window
         w.core.config.set('model', model)
         self._ensure_current_model_map()[mode] = model
+        self._refresh_reasoning_effort()
 
     def set_by_idx(self, mode: str, idx: int):
         """
@@ -175,6 +192,7 @@ class Model:
         model = w.core.models.get_by_idx(idx, mode)
         w.core.config.set('model', model)
         self._ensure_current_model_map()[mode] = model
+        self._refresh_reasoning_effort()
         w.dispatch(Event(Event.MODEL_SELECT, {'value': model}))
 
     def select_on_list(self, model: str):
@@ -209,19 +227,26 @@ class Model:
         mode = w.core.config.get('mode')
         mode_items = self._get_visible_by_mode(mode)
         if not mode_items:
+            self._refresh_reasoning_effort()
             return
-        if model not in mode_items:
+
+        resolved = w.core.models.resolve_model_key(mode, model)
+        if resolved in mode_items:
+            model = resolved
+        else:
             current_models = w.core.config.get('current_model') or {}
-            if (
-                mode in current_models
-                and current_models[mode]
-                and current_models[mode] in mode_items
-            ):
-                model = current_models[mode]
+            stored = current_models.get(mode) if isinstance(current_models, dict) else None
+            resolved = w.core.models.resolve_model_key(mode, stored)
+            if resolved in mode_items:
+                model = resolved
             else:
                 model = next(iter(mode_items))
+
+        if w.core.config.get('model') != model:
             w.core.config.set('model', model)
+        if self._ensure_current_model_map().get(mode) != model:
             self._ensure_current_model_map()[mode] = model
+        self._refresh_reasoning_effort()
 
     def switch_inline(
             self,

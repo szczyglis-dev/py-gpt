@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.05 17:00:00                  #
+# Updated Date: 2026.09.21 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 
 from pygpt_net.utils import trans
+
 
 class Tools:
     def __init__(self, window=None):
@@ -30,13 +31,19 @@ class Tools:
         self.window.controller.remote_store.toggle_editor()
 
     def _rebuild_ipython(self, checked=False):
-        self.window.core.plugins.get("cmd_code_interpreter").builder.build_and_restart()
+        self.window.controller.tools.rebuild_ipython_docker()
 
     def _rebuild_python_legacy(self, checked=False):
-        self.window.core.plugins.get("cmd_code_interpreter").docker.build_and_restart()
+        self.window.controller.tools.rebuild_python_legacy_docker()
 
     def _rebuild_system(self, checked=False):
-        self.window.core.plugins.get("cmd_system").docker.build_and_restart()
+        self.window.controller.tools.rebuild_system_docker()
+
+    def _rebuild_python_builtin(self, checked=False):
+        self.window.controller.tools.rebuild_python_builtin()
+
+    def _rebuild_system_builtin(self, checked=False):
+        self.window.controller.tools.rebuild_system_builtin()
 
     def setup(self):
         """Setup tools menu"""
@@ -47,6 +54,12 @@ class Tools:
         ui_menu['menu.tools'] = window.menuBar().addMenu(trans("menu.tools"))
         menu_tools = ui_menu['menu.tools']
 
+        # Canvas is a first-class visual tool, so keep it next to Painter
+        # instead of grouping it with the remaining dynamically registered
+        # tool actions below the separator.
+        actions = window.tools.setup_menu_actions()
+        canvas_action = actions.pop("tools.web_browser", None)
+
         for key, val in tab_tools.items():
             label_key, icon_name, type_ = val[0], val[1], val[2]
             action = QAction(QIcon(f":/icons/{icon_name}.svg"), trans(f"output.tab.{label_key}"), window)
@@ -55,15 +68,16 @@ class Tools:
             ui_menu[key] = action
             menu_tools.addAction(action)
 
-        actions = window.tools.setup_menu_actions()
-        if len(actions) == 0:
-            return
+            if key == 'tools.painter' and canvas_action is not None:
+                ui_menu['tools.web_browser'] = canvas_action
+                menu_tools.addAction(canvas_action)
 
-        menu_tools.addSeparator()
+        if actions:
+            menu_tools.addSeparator()
 
-        for key, action in actions.items():
-            ui_menu[key] = action
-            menu_tools.addAction(action)
+            for key, action in actions.items():
+                ui_menu[key] = action
+                menu_tools.addAction(action)
 
         # ------------------------------------------------- #
 
@@ -75,18 +89,48 @@ class Tools:
         # ------------------------------------------------- #
 
         menu_tools.addSeparator()
-        ui_menu['menu.tools.docker'] = menu_tools.addMenu("Docker")
+        ui_menu['menu.tools.docker'] = menu_tools.addMenu(trans("menu.tools.sandbox_docker"))
         menu_docker = ui_menu['menu.tools.docker']
 
         reload_icon = QIcon(":/icons/reload.svg")
-        ui_menu['menu.tools.ipython.rebuild'] = QAction(reload_icon, "Rebuild IPython Docker Image", window)
+        ui_menu['menu.tools.ipython.rebuild'] = QAction(
+            reload_icon,
+            trans("menu.tools.sandbox_docker.ipython.rebuild"),
+            window,
+        )
         menu_docker.addAction(ui_menu['menu.tools.ipython.rebuild'])
         ui_menu['menu.tools.ipython.rebuild'].triggered.connect(self._rebuild_ipython)
 
-        ui_menu['menu.tools.python_legacy.rebuild'] = QAction(reload_icon, "Rebuild Python (Legacy) Docker Image", window)
+        ui_menu['menu.tools.python_legacy.rebuild'] = QAction(
+            reload_icon,
+            trans("menu.tools.sandbox_docker.python_legacy.rebuild"),
+            window,
+        )
         menu_docker.addAction(ui_menu['menu.tools.python_legacy.rebuild'])
         ui_menu['menu.tools.python_legacy.rebuild'].triggered.connect(self._rebuild_python_legacy)
 
-        ui_menu['menu.tools.system.rebuild'] = QAction(reload_icon, "Rebuild System Sandbox Docker Image", window)
+        ui_menu['menu.tools.system.rebuild'] = QAction(
+            reload_icon,
+            trans("menu.tools.sandbox_docker.system.rebuild"),
+            window,
+        )
         menu_docker.addAction(ui_menu['menu.tools.system.rebuild'])
         ui_menu['menu.tools.system.rebuild'].triggered.connect(self._rebuild_system)
+
+        menu_docker.addSeparator()
+
+        ui_menu['menu.tools.python_builtin.rebuild'] = QAction(
+            reload_icon,
+            trans("menu.tools.sandbox_docker.python_builtin.rebuild"),
+            window,
+        )
+        menu_docker.addAction(ui_menu['menu.tools.python_builtin.rebuild'])
+        ui_menu['menu.tools.python_builtin.rebuild'].triggered.connect(self._rebuild_python_builtin)
+
+        ui_menu['menu.tools.system_builtin.rebuild'] = QAction(
+            reload_icon,
+            trans("menu.tools.sandbox_docker.system_builtin.rebuild"),
+            window,
+        )
+        menu_docker.addAction(ui_menu['menu.tools.system_builtin.rebuild'])
+        ui_menu['menu.tools.system_builtin.rebuild'].triggered.connect(self._rebuild_system_builtin)

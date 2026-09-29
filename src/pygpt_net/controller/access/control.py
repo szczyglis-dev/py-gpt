@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.28 09:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import re
@@ -246,19 +246,19 @@ class Control:
 
         # tab change
         elif event.name == ControlEvent.TAB_NEXT:
-            self.window.controller.ui.tabs.next_tab()
+            self.window.controller.tabs.next_tab()
         elif event.name == ControlEvent.TAB_PREV:
-            self.window.controller.ui.tabs.prev_tab()
+            self.window.controller.tabs.prev_tab()
 
         # tabs: by names
         elif event.name == ControlEvent.TAB_CHAT:
-            self.window.controller.ui.tabs.switch_tab(Tab.TAB_CHAT)
+            self.window.controller.tabs.switch_tab(Tab.TAB_CHAT)
         elif event.name == ControlEvent.TAB_FILES:
-            self.window.controller.ui.tabs.switch_tab(Tab.TAB_FILES)
+            self.window.controller.tabs.switch_tab(Tab.TAB_FILES)
         elif event.name == ControlEvent.TAB_CALENDAR:
-            self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_CALENDAR)
+            self.window.controller.tabs.switch_tab(Tab.TAB_TOOL_CALENDAR)
         elif event.name == ControlEvent.TAB_DRAW:
-            self.window.controller.ui.tabs.switch_tab(Tab.TAB_TOOL_PAINTER)
+            self.window.controller.tabs.switch_tab(Tab.TAB_TOOL_PAINTER)
 
         # tabs: notepads
         elif event.name == ControlEvent.TAB_NOTEPAD:

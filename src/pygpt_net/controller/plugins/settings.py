@@ -70,12 +70,22 @@ class Settings:
 
     def open_plugin(self, id: str):
         """
-        Open plugin settings dialog
+        Open plugin settings dialog and select the requested plugin.
 
         :param id: plugin id
         """
         self.current_plugin = id
         self.open()
+
+        # Building the dialog selects its first tab by default, which can
+        # overwrite current_plugin on the first open. Resolve the requested
+        # stable plugin id after setup and explicitly select it.
+        idx = self.window.controller.plugins.get_tab_idx(id)
+        tabs = self.window.ui.tabs.get('plugin.settings')
+        if tabs is None or idx is None:
+            return
+        tabs.setCurrentIndex(idx)
+        self.window.controller.plugins.set_by_tab(idx)
 
     def init(self):
         """Initialize plugin settings options"""
@@ -84,8 +94,15 @@ class Settings:
             self.current_plugin = next(iter(plugins))
         cfg = self.window.controller.config
         for pid, plugin in plugins.items():
-            options = plugin.setup()
-            cfg.load_options(f'plugin.{pid}', options)
+            try:
+                options = plugin.setup()
+            except Exception as e:
+                self.window.core.debug.error(e)
+                options = plugin.options
+            try:
+                cfg.load_options(f'plugin.{pid}', options)
+            except Exception as e:
+                self.window.core.debug.error(e)
         self.window.controller.layout.restore_plugin_settings()
 
     def refresh_option(self, id: str, key: str):
@@ -129,14 +146,24 @@ class Settings:
                     key=key,
                     option=opt,
                 )
-                plugin.options[key]['value'] = value
-                dst[key] = value
+                if opt.get('type') == 'cmd':
+                    enabled = bool(value.get('enabled', False)) if isinstance(value, dict) else bool(value)
+                    current = plugin.options[key].get('value')
+                    if isinstance(current, dict):
+                        current['enabled'] = enabled
+                    dst[key] = enabled
+                else:
+                    plugin.options[key]['value'] = value
+                    dst[key] = value
 
         stale = set(plugins_cfg.keys()) - set(plugins.keys())
         for pid in stale:
             plugins_cfg.pop(pid, None)
 
         window.controller.plugins.presets.save_current()
+        # MCP servers can also be edited through the generic plugin settings
+        # dictionary, so keep the active preset snapshot synchronized here too.
+        window.controller.presets.sync_mcp_from_global()
         window.core.config.save()
         self.close()
 

@@ -103,10 +103,10 @@ def test_close_window(mock_window):
     assert mock_window.core.settings.active['test'] is False
 
 
-def test_open_config_dir(mock_window):
+def test_open_config_dir(mock_window, monkeypatch):
     """Test open config dir"""
     settings = Settings(mock_window)
-    os.path.exists = MagicMock(return_value=True)
+    monkeypatch.setattr(os.path, 'exists', MagicMock(return_value=True))
     mock_window.controller.files.open_dir = MagicMock()
     mock_window.core.config.path = 'test'
     settings.open_config_dir()

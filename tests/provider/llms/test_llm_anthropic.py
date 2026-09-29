@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock, patch, mock_open, Mock
 
 from tests.mocks import mock_window
-from pygpt_net.provider.llms.anthropic import AnthropicLLM as Wrapper
+from pygpt_net.provider.llms.anthropic.provider import AnthropicLLM as Wrapper
 
 
 def test_completion(mock_window):

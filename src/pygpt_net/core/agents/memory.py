@@ -37,7 +37,7 @@ class Memory:
         """
         messages = []
 
-        input_prompt = context.ctx.input
+        input_prompt = context.ctx.final_input
         history = context.history
         mode = context.mode
         model = context.model
@@ -93,7 +93,7 @@ class Memory:
         """
         messages = []
 
-        input_prompt = context.ctx.input
+        input_prompt = context.ctx.final_input
         history = context.history
         mode = context.mode
         model = context.model
@@ -120,7 +120,7 @@ class Memory:
             # extract only input and output messages, skip step messages
             for item in items:
                 # count if last item
-                is_last_item = item == items[-1] if items else False
+                is_last_item = item is items[-1] if items else False
                 if item.extra is not None and type(item.extra) == dict:
                     # agent input
                     if item.extra.get("agent_input", False):

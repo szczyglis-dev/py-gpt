@@ -6,89 +6,117 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.28 16:00:00                  #
+# Updated Date: 2026.09.07 00:30:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
 
-# from langchain.schema import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from tests.mocks import mock_window_conf
-# from pygpt_net.core.chain.chat import Chat
+from pygpt_net.core.chain.chat import Chat
+from pygpt_net.core.types import MODE_CHAT
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 
-def test_build(mock_window_conf):
-    """
-    Test build chat messages
-    items = []
-    ctx_item = CtxItem()
-    ctx_item.input = 'user message'
-    items.append(ctx_item)
+def _configure_build_window(window, history):
+    window.core.tokens = MagicMock()
+    window.core.tokens.from_user.return_value = 7
+    window.core.tokens.from_langchain_messages.return_value = 23
+    window.core.ctx = MagicMock()
+    window.core.ctx.get_history.return_value = history
 
-    ctx_item = CtxItem()
-    ctx_item.output = 'AI message'
-    items.append(ctx_item)
+    def config_get(key, default=None):
+        return {
+            "max_total_tokens": 100,
+            "use_context": True,
+        }.get(key, default)
+
+    window.core.config.get.side_effect = config_get
+
+
+def test_build(mock_window_conf):
+    """Build chat messages from system prompt, history and current prompt."""
+    first = CtxItem()
+    first.input = "user message"
+    second = CtxItem()
+    second.output = "AI message"
+    history = [first, second]
+    _configure_build_window(mock_window_conf, history)
 
     chat = Chat(mock_window_conf)
-    chat.window.core.config.get.return_value = True
-    mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
-    chat.window.core.ctx.get_history.return_value = items
+    model = ModelItem("test-model")
+    model.ctx = 80
 
-    model = ModelItem()
     messages = chat.build(
-        prompt='test_prompt',
-        system_prompt='test_system_prompt',
+        prompt="test_prompt",
+        system_prompt="test_system_prompt",
         model=model,
     )
+
     assert len(messages) == 4
     assert isinstance(messages[0], SystemMessage)
     assert isinstance(messages[1], HumanMessage)
     assert isinstance(messages[2], AIMessage)
-    assert messages[0].content == 'test_system_prompt'
-    assert messages[1].content == 'user message'
-    assert messages[2].content == 'AI message'
-    assert messages[3].content == 'test_prompt'
-
-    """
+    assert isinstance(messages[3], HumanMessage)
+    assert [message.content for message in messages] == [
+        "test_system_prompt",
+        "user message",
+        "AI message",
+        "test_prompt",
+    ]
+    mock_window_conf.core.ctx.get_history.assert_called_once_with(
+        None,
+        "test-model",
+        "langchain",
+        7,
+        80,
+    )
+    mock_window_conf.core.tokens.from_langchain_messages.assert_called_once_with(
+        messages,
+        "test-model",
+    )
+    assert chat.get_used_tokens() == 23
 
 
 def test_send(mock_window_conf):
-    """
-    Test chat
-    
-    model = ModelItem()
-    model.name = 'test'
-    model.langchain = {'provider': 'test'}
+    """Send initializes the selected provider and invokes the built chat payload."""
+    model = ModelItem("test-model")
+    model.langchain = {"provider": "test"}
 
-    mock_window_conf.core.models.get.return_value = model
+    provider = MagicMock()
+    llm = MagicMock()
+    llm.invoke.return_value = "test_response"
+    provider.chat.return_value = llm
+    mock_window_conf.core.llm = MagicMock()
+    mock_window_conf.core.llm.llms = {"test": provider}
+
     chat = Chat(mock_window_conf)
-    chat.build = MagicMock()
-    chat.build.return_value = 'test_messages'
-    mock_chat_instance = MagicMock()
-    mock_chat_instance.invoke.return_value = 'test_response'
+    chat.build = MagicMock(return_value="test_messages")
 
-    chat.window.core.llm.llms = {'test': MagicMock()}
-    chat.window.core.llm.llms['test'].chat = MagicMock(return_value=mock_chat_instance)
     response = chat.send(
-        prompt='test_prompt',
-        system_prompt='test_system_prompt',
-        ai_name='AI',
-        user_name='User',
+        prompt="test_prompt",
+        system_prompt="test_system_prompt",
+        ai_name="AI",
+        user_name="User",
         model=model,
     )
-    assert response == 'test_response'
+
+    assert response == "test_response"
+    provider.init.assert_called_once_with(
+        mock_window_conf,
+        model,
+        "langchain",
+        MODE_CHAT,
+    )
+    provider.chat.assert_called_once_with(mock_window_conf, model, False)
     chat.build.assert_called_once_with(
-        prompt='test_prompt',
-        system_prompt='test_system_prompt',
+        prompt="test_prompt",
+        system_prompt="test_system_prompt",
         model=model,
         history=None,
-        ai_name='AI',
-        user_name='User',
+        ai_name="AI",
+        user_name="User",
     )
-    chat.window.core.llm.llms['test'].chat.assert_called_once_with(
-        mock_window_conf, model, False
-    )
-    mock_chat_instance.invoke.assert_called_once_with('test_messages')
-    """
+    llm.invoke.assert_called_once_with("test_messages")

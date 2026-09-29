@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 19:00:00                  #
+# Updated Date: 2026.09.05 12:30:00                  #
 # ================================================== #
 
 import os
@@ -140,3 +140,27 @@ def test_save_editor(mock_window):
             'w',
             encoding='utf-8'
         )
+
+
+def test_save_editor_config_reloads_runtime_custom_providers(mock_window):
+    settings = Settings(mock_window)
+    data = '{"api_custom_providers": []}'
+    mock_window.ui.editor['config'].toPlainText = MagicMock(return_value=data)
+    mock_window.ui.dialog['config.editor'].file = 'config.json'
+    mock_window.core.config.get_user_path = MagicMock(return_value='/tmp/pygpt-test')
+    mock_window.core.config.load_config = MagicMock()
+    mock_window.core.llm.sync_custom = MagicMock()
+    mock_window.ui.dialogs.alert = MagicMock()
+
+    with patch('os.path.isfile', return_value=False), \
+            patch('builtins.open', mock_open()) as mock_file, \
+            patch('pygpt_net.core.settings.settings.QApplication.processEvents'):
+        settings.save_editor()
+
+    mock_file.assert_called_once_with(
+        os.path.join('/tmp/pygpt-test', 'config.json'),
+        'w',
+        encoding='utf-8',
+    )
+    mock_window.core.config.load_config.assert_called_once_with()
+    mock_window.core.llm.sync_custom.assert_called_once_with(force=True)

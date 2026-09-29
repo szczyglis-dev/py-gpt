@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:40:00
+# Updated Date: 2026.09.18 13:45:00
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -48,17 +48,19 @@ class Nodes:
         elif type == 'font.ctx.list':
             nodes[key].setStyleSheet(theme.style('font.ctx.list'))
 
-    def apply_all(self):
-        """Apply stylesheets to nodes"""
+    def apply_all(self, dispatch_theme: bool = True):
+        """Apply stylesheets to nodes.
+
+        :param dispatch_theme: emit renderer theme-change event for web output
+        """
         w = self.window
         ui = w.ui
         ctrl = w.controller
-        engine = ctrl.chat.render.get_engine()
-
         nodes = {
             'font.chat.input': [
                 'input',
                 'input_extra',
+                'prompt.model',
             ],
             'font.chat.output': [
                 'output',
@@ -81,15 +83,11 @@ class Nodes:
                 'preset.presets.new',
                 'preset.prompt',
                 'preset.prompt.label',
-                'preset.temperature.label',
                 'preset.use',
                 'prompt.label',
                 'prompt.mode',
                 'prompt.mode.label',
-                'prompt.model',
                 'prompt.model.label',
-                'temperature.label',
-                'toolbox.prompt.label',
                 'toolbox.preset.ai_name.label',
                 'toolbox.preset.user_name.label',
                 'vision.capture.auto',
@@ -101,7 +99,7 @@ class Nodes:
 
         # apply to nodes
         apply_ref = self.apply
-        skip_output = engine != 'legacy'
+        skip_output = True
         for t, keys in nodes.items():
             for k in keys:
                 if skip_output and k == "output":
@@ -114,8 +112,14 @@ class Nodes:
         if ui.notepad:
             for np in ui.notepad.values():
                 ta = np.textarea
-                ta.setStyleSheet(style_output)
+                ta.apply_theme_style()
                 ta.value = size
+
+        files = ui.nodes.get('output_files')
+        if files is not None:
+            viewer = files.preview.viewer
+            if hasattr(viewer, 'restore_zoom'):
+                viewer.restore_zoom()
 
         # apply to calendar
         note = ui.calendar.get('note')
@@ -123,7 +127,7 @@ class Nodes:
             note.setStyleSheet(style_output)
             note.value = size
 
-        # plain text/markdown
+        # plain-text output
         output_plain = ui.nodes.get('output_plain', {})
         for obj in output_plain.values():
             try:
@@ -134,22 +138,19 @@ class Nodes:
 
         # ------------------------
 
-        # zoom, (Chromium, web engine)
+        # WebEngine zoom/theme update.
         output_nodes = ui.nodes.get('output', {})
-        if engine == 'web':
-            zoom = w.core.config.get('zoom')
-            for obj in output_nodes.values():
-                try:
-                    obj.value = zoom
-                    obj.update_zoom()
-                except Exception:
-                    pass
+        zoom = w.core.config.get('zoom')
+        for obj in output_nodes.values():
+            try:
+                obj.value = zoom
+                obj.update_zoom()
+            except Exception:
+                pass
+        input_container = ui.nodes.get('input.container')
+        if input_container is not None and hasattr(input_container, 'sync_width'):
+            input_container.sync_width()
+        if dispatch_theme:
             w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
-
-        # font size, legacy (markdown)
-        elif engine == 'legacy':
-            for obj in output_nodes.values():
-                obj.value = size
-                obj.update()
 
         w.tools.setup_theme()  # update tools

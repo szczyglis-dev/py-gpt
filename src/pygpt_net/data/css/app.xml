@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+  <!-- Shared QSS dimensions. Theme app.xml files may override these values. -->
+  <dimension name="appRadius">10px</dimension>
+</resources>

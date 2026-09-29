@@ -66,6 +66,15 @@ class Ctx:
             meta_id=meta_id,
         )
 
+    def get_updated_ts(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: Optional[int] = None
+    ) -> int:
+        """Return the per-index context tracking timestamp."""
+        return self.provider.get_ctx_updated_ts(store_id, idx, meta_id)
+
     def get_doc_id(
             self,
             store_id: str,
@@ -88,6 +97,8 @@ class Ctx:
 
     def update(
             self,
+            store_id: str,
+            idx: str,
             meta_id: int,
             doc_id: str
     ) -> bool:
@@ -99,6 +110,8 @@ class Ctx:
         :return: True if ctx meta was updated
         """
         return self.provider.update_ctx_meta(
+            store_id=store_id,
+            idx=idx,
             meta_id=meta_id,
             doc_id=doc_id,
         )

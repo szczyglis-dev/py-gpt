@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2026.09.19 17:40:00                  #
 # ================================================== #
 
 from typing import List
 
-from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
+from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
     QCheckBox, QHeaderView, QHBoxLayout, QAbstractItemView
@@ -53,15 +53,25 @@ class OptionDict(QWidget):
 
         # setup dict model
         headers = list(self.keys.keys())
+        header_labels = {}
+        secret_headers = set()
+        for key, field in self.keys.items():
+            if isinstance(field, dict):
+                label = field.get("label")
+                if label:
+                    header_labels[key] = trans(label)
+                if field.get("secret", False):
+                    secret_headers.add(key)
 
         self.list = OptionDictItems(self)
         max_height_delegate = MaxHeightDelegate(40, self.list)
         self.list.setItemDelegate(max_height_delegate)
-        self.model = OptionDictModel(self.items, headers)
+        self.model = OptionDictModel(self.items, headers, header_labels=header_labels, secret_headers=secret_headers)
         self.model.dataChanged.connect(self.model.saveData)
 
         # append dict model
         self.list.setModel(self.model)
+        self.list.configure_columns()
 
         # init layout
         self.init_layout()
@@ -101,6 +111,17 @@ class OptionDict(QWidget):
         new_index = self.model.index(count, 0)
         self.list.setCurrentIndex(new_index)
         self.list.scrollTo(new_index)
+
+        # Let the new row render first, then open its editor automatically.
+        QTimer.singleShot(
+            0,
+            lambda: self.window.ui.dialogs.open_dictionary_editor(
+                f"{self.parent_id}.{self.id}",
+                self.option,
+                empty,
+                count,
+            ),
+        )
 
     def edit_item(self, event):
         """
@@ -202,9 +223,22 @@ class OptionDictItems(QTreeView):
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
+        # Dictionary options can contain many fields (MCP servers are a
+        # good example). Keep sections interactive and horizontal scrolling
+        # enabled, but stretch the final real section into any spare viewport
+        # space. Otherwise QHeaderView leaves a blank header area after the
+        # last column which looks like an extra, header-only column.
         header = self.header()
         header.setStretchLastSection(True)
-        header.setSectionResizeMode(QHeaderView.Stretch)
+        header.setCascadingSectionResizes(False)
+        header.setMinimumSectionSize(56)
+        header.setDefaultSectionSize(180)
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setTextElideMode(Qt.TextElideMode.ElideRight)
+        self.setWordWrap(False)
+        self.setUniformRowHeights(True)
 
         self._icon_edit = QIcon(":/icons/edit.svg")
         self._icon_delete = QIcon(":/icons/delete.svg")
@@ -229,6 +263,37 @@ class OptionDictItems(QTreeView):
                 elif item == "hidden":
                     continue
             idx += 1
+
+
+    def configure_columns(self):
+        """Apply useful initial widths without preventing manual resizing."""
+        header = self.header()
+        metrics = self.fontMetrics()
+        for column, (key, field) in enumerate(self.parent.keys.items()):
+            field_type = field.get("type") if isinstance(field, dict) else field
+            explicit_width = field.get("width") if isinstance(field, dict) else None
+
+            if isinstance(explicit_width, int) and explicit_width > 0:
+                width = explicit_width
+            elif field_type == "bool":
+                width = 76
+            elif field_type in ("int", "float"):
+                width = 100
+            elif field_type == "combo":
+                width = 160
+            elif field_type == "textarea":
+                width = 280
+            else:
+                width = 190
+
+            # Do not let translated/long headers be clipped by the initial
+            # width. Values may still be wider; the user can drag the section
+            # boundary and the horizontal scrollbar keeps the rest reachable.
+            label = self.parent.model.headerData(column, Qt.Horizontal, Qt.DisplayRole)
+            if label is not None:
+                width = max(width, metrics.horizontalAdvance(str(label)) + 28)
+            self.setColumnWidth(column, width)
+            header.setSectionResizeMode(column, QHeaderView.ResizeMode.Interactive)
 
     def contextMenuEvent(self, event):
         """
@@ -262,10 +327,12 @@ class OptionDictItems(QTreeView):
 
 
 class OptionDictModel(QAbstractItemModel):
-    def __init__(self, items, headers, parent=None):
+    def __init__(self, items, headers, parent=None, header_labels=None, secret_headers=None):
         super(OptionDictModel, self).__init__(parent)
         self.items = items
         self.headers = headers
+        self.header_labels = header_labels or {}
+        self.secret_headers = secret_headers or set()
         self.checkbox_key = 'enabled'
 
     def headerData(self, section, orientation, role):
@@ -278,6 +345,8 @@ class OptionDictModel(QAbstractItemModel):
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             title = self.headers[section]
+            if title in self.header_labels:
+                return self.header_labels[title]
             if title == "id":
                 return title.upper()
             else:
@@ -314,10 +383,20 @@ class OptionDictModel(QAbstractItemModel):
             return Qt.Checked if value else Qt.Unchecked
         if role == Qt.EditRole and index.column() == 0 and self.headers[index.column()] == "enabled":
             return self.items[index.row()].get('enabled', False)
+        if role == Qt.ToolTipRole:
+            entry = self.items[index.row()]
+            key = self.headers[index.column()]
+            value = entry.get(key, "")
+            if key in self.secret_headers and value:
+                return "••••••••"
+            return str(value) if value not in (None, "") else None
         if role == Qt.DisplayRole or role == Qt.EditRole:
             entry = self.items[index.row()]
             key = self.headers[index.column()]
-            return entry.get(key, "")
+            value = entry.get(key, "")
+            if role == Qt.DisplayRole and key in self.secret_headers and value:
+                return "••••••••"
+            return value
         return None
 
     def setData(self, index, value, role=Qt.EditRole):

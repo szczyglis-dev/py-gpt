@@ -168,10 +168,12 @@ class ModelImporter(QWidget):
         layout = QHBoxLayout()
         arrows_layout = QVBoxLayout()
         self.window.ui.nodes["models.importer.add"] = QPushButton(">")
+        self.window.ui.nodes["models.importer.add"].setToolTip(trans("models.importer.add.tooltip"))
         self.window.ui.nodes["models.importer.add"].clicked.connect(
             lambda: self.window.controller.model.importer.add()
         )
         self.window.ui.nodes["models.importer.remove"] = QPushButton("<")
+        self.window.ui.nodes["models.importer.remove"].setToolTip(trans("models.importer.remove.tooltip"))
         self.window.ui.nodes["models.importer.remove"].clicked.connect(
             lambda: self.window.controller.model.importer.remove()
         )

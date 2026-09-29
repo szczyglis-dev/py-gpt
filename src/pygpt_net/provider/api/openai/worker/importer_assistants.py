@@ -12,6 +12,7 @@
 import os
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from pygpt_net.core.qt import safe_emit
 
 
 class Importer(QObject):
@@ -118,7 +119,7 @@ class ImportWorker(QRunnable):
                 self.import_assistants()
 
         except Exception as e:
-            self.signals.error.emit(self.mode, e)
+            safe_emit(self.signals, "error", self.mode, e)
 
         finally:
             self.cleanup()
@@ -146,11 +147,11 @@ class ImportWorker(QRunnable):
             self.import_files(True)
 
             if not silent:
-                self.signals.finished.emit("assistants", self.store_id, len(items))
+                safe_emit(self.signals, "finished", "assistants", self.store_id, len(items))
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("assistants", e)
+            safe_emit(self.signals, "error", "assistants", e)
             return False
 
     def import_vector_stores(self, silent: bool = False) -> bool:
@@ -167,11 +168,11 @@ class ImportWorker(QRunnable):
             self.window.core.api.openai.store.import_stores(items, callback=self.callback)
             self.window.core.remote_store.openai.import_items(items)
             if not silent:
-                self.signals.finished.emit("vector_stores", self.store_id, len(items))
+                safe_emit(self.signals, "finished", "vector_stores", self.store_id, len(items))
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("vector_stores", e)
+            safe_emit(self.signals, "error", "vector_stores", e)
             return False
 
     def import_files(self, silent: bool = False) -> bool:
@@ -196,11 +197,11 @@ class ImportWorker(QRunnable):
                 )  # import store files
                 num = len(items)
             if not silent:
-                self.signals.finished.emit("import_files", self.store_id, num)
+                safe_emit(self.signals, "finished", "import_files", self.store_id, num)
             return True
         except Exception as e:
             self.log("API error: {}".format(e))
-            self.signals.error.emit("import_files", e)
+            safe_emit(self.signals, "error", "import_files", e)
         return False
 
     def callback(self, msg: str):
@@ -217,7 +218,7 @@ class ImportWorker(QRunnable):
 
         :param msg: message
         """
-        self.signals.log.emit(self.mode, msg)
+        safe_emit(self.signals, "log", self.mode, msg)
 
     def cleanup(self):
         """Cleanup resources after worker execution."""

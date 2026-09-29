@@ -4,7 +4,7 @@ Extending PyGPT
 Overview
 --------
 
-PyGPT exposes extension points through ``pygpt_net.app.run()``. A custom launcher can register additional:
+PyGPT exposes integration points through ``pygpt_net.app.run()``. A custom launcher can register additional:
 
 * plugins,
 * GUI tools,
@@ -16,7 +16,7 @@ PyGPT exposes extension points through ``pygpt_net.app.run()``. A custom launche
 * web search providers,
 * agent providers.
 
-The repository's ``examples`` directory contains tutorial implementations for every extension type:
+The repository's ``examples`` directory contains tutorial implementations for every add-on type:
 
 * ``examples/custom_launcher.py``
 * ``examples/example_plugin.py``
@@ -31,13 +31,289 @@ The repository's ``examples`` directory contains tutorial implementations for ev
 
 The examples are intentionally small and are the recommended starting point for custom integrations.
 
-Registration in a custom launcher
----------------------------------
+External Add-ons
+-------------------
+
+PyGPT can load profile-scoped external add-ons directly from ``%workdir%/addons``. This is the recommended way to distribute Python add-ons that must work with both source installations and compiled PyInstaller builds, because the add-on code remains outside the application bundle and is imported by the embedded Python runtime at startup.
+
+Supported add-on types are:
+
+* ``plugin`` -> ``addons/plugins``
+* ``llm`` -> ``addons/llms``
+* ``vector_store`` -> ``addons/vector_stores``
+* ``loader`` -> ``addons/loaders``
+* ``audio_input`` -> ``addons/audio_input``
+* ``audio_output`` -> ``addons/audio_output``
+* ``web`` -> ``addons/web``
+* ``tool`` -> ``addons/tools``
+* ``agent`` -> ``addons/agents``
+* ``theme`` -> ``addons/themes``
+* ``locale`` -> ``addons/locale``
+
+The Python add-on types are registered into the same runtime registries as built-in components. Themes and locale packages are mirrored into the existing profile ``css`` and ``locale`` locations so the normal theme/translation loaders continue to be used.
+
+Installing ready-made Add-ons
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Open ``Config -> Install Add-on...``. The **Installed** tab shows add-on name, description, author, version, type, trusted status and official status. Right-click an installed item and choose **Uninstall** to remove it after confirmation.
+
+The installer supports:
+
+* **Import from ZIP** - the archive must contain exactly one add-on package; normal archive/repository wrapper directories are allowed as long as exactly one ``manifest.json`` is present.
+* **Import from directory** - select a local directory whose root contains ``manifest.json``.
+* **Import from GitHub** - paste a GitHub repository URL, a ``/tree/<ref>/<path>`` URL, or a direct repository-subdirectory URL such as ``https://github.com/owner/repo/plugins/example_plugin``.
+* **Explore** - browse the configured public add-ons registry and install selected entries.
+
+The default registry is:
+
+``https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json``
+
+You can change the registry URL in the **Explore** tab. A normal GitHub repository URL in the short ``github.com/<owner>/<repo>/<file>.json`` form is accepted by PyGPT and resolved to raw content internally.
+
+.. warning::
+
+   External Python add-ons execute with the same process permissions as PyGPT. They can import Python modules, access files available to the process, use the network, and call any APIs exposed by installed dependencies. The **trusted** and **official** flags are registry metadata, not a sandbox or a security guarantee. Review source code and repository ownership before installing an add-on.
+
+Python add-ons are loaded on application startup. After installing or uninstalling one, restart PyGPT before relying on the runtime change. If you switch to another profile with a different set of Python add-ons, restart PyGPT so the process-level runtime registry is rebuilt from that profile. Theme and locale add-ons can be synchronized during profile reload because they use the existing profile theme/locale loaders.
+
+An invalid add-on never aborts the whole application startup. Missing manifests, unsupported manifest versions, incompatible minimum PyGPT versions, broken imports, invalid entry points and registration errors are skipped individually and reported as ``[Add-ons] WARNING`` messages in the console/log output.
+
+Add-on directory layout
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A plugin installed manually can look like this:
+
+.. code-block:: text
+
+   %workdir%/addons/
+   └── plugins/
+       └── my_plugin/
+           ├── manifest.json
+           ├── plugin.py
+           └── helpers/
+               └── api.py
+
+The directory name must match the manifest ``id``. The parent directory must match the manifest ``type``. For example, an add-on with ``"type": "audio_input"`` belongs in ``addons/audio_input/<id>``.
+
+Every package requires a ``manifest.json``. Packages without a valid manifest are ignored.
+
+Manifest format
+~~~~~~~~~~~~~~~
+
+Manifest version ``1`` uses the following base structure:
+
+.. code-block:: json
+
+   {
+     "manifest_version": 1,
+     "id": "my_plugin",
+     "type": "plugin",
+     "name": "My Plugin",
+     "description": "Example external PyGPT plugin.",
+     "version": "1.2.0",
+     "min_app_version": "2.8.32",
+     "author": "Example Author",
+     "contact": {
+       "email": "author@example.com",
+       "repo": "https://github.com/example/my-pygpt-add-on",
+       "www": "https://example.com"
+     },
+     "entrypoint": "plugin.py:Plugin",
+     "external_dependencies": [
+       {"name": "example-package", "version": ">=1.0,<2.0"}
+     ]
+   }
+
+Required fields are ``manifest_version``, ``id``, ``type``, ``name``, ``description``, ``version``, ``min_app_version``, ``author`` and ``contact``. Python/runtime add-on types additionally require ``entrypoint``.
+
+``id`` must contain only lowercase letters, digits, ``.``, ``_`` and ``-`` and must start with a letter or digit. ``version`` and ``min_app_version`` use normal PEP 440-compatible version strings.
+
+Add-on IDs should be globally unique. For add-ons intended for distribution, use a GitHub-derived naming convention such as ``<github_user>_<repo_name>_<addon_name>`` and normalize it to the characters allowed above. For example: ``szczyglis_dev_py_gpt_example_plugin``. Keep the ID stable across releases so updates replace the existing installation instead of creating a second add-on.
+
+``contact`` may be a string, object or list. Using an object is recommended so an email address, repository and website can be declared separately.
+
+``external_dependencies`` is reserved for dependency management. Version 1 accepts either simple strings or objects with at least ``name`` and optionally fields such as ``version``. PyGPT validates and displays this metadata but **does not install external dependencies yet**. Add-on authors must currently document/install those dependencies separately.
+
+Entrypoints
+~~~~~~~~~~~
+
+An entry point uses ``relative/module.py:Symbol`` syntax. The symbol may be:
+
+* a class - PyGPT instantiates it without arguments;
+* a zero-argument factory function - PyGPT calls it;
+* a factory returning a list/tuple of compatible objects.
+
+A manifest can also use an array of entry points when one add-on package intentionally registers multiple components of the same add-on type:
+
+.. code-block:: json
+
+   {
+     "entrypoint": [
+       "providers.py:PrimaryProvider",
+       "providers.py:SecondaryProvider"
+     ]
+   }
+
+The resulting object must inherit the same base class required by the built-in launcher registration method. The mapping is:
+
+.. code-block:: text
+
+   plugin       -> pygpt_net.plugin.base.plugin.BasePlugin
+   llm          -> pygpt_net.provider.llms.base.BaseLLM
+   vector_store -> pygpt_net.provider.vector_stores.base.BaseStore
+   loader       -> pygpt_net.provider.loaders.base.BaseLoader
+   audio_input  -> pygpt_net.provider.audio_input.base.BaseProvider
+   audio_output -> pygpt_net.provider.audio_output.base.BaseProvider
+   web          -> pygpt_net.provider.web.base.BaseProvider
+   tool         -> pygpt_net.tools.base.BaseTool
+   agent        -> pygpt_net.provider.agents.base.BaseAgent
+
+The add-on loader creates an isolated Python package namespace for each installed add-on. Relative imports inside an add-on package are therefore supported without adding the whole ``addons`` directory to global ``sys.path``.
+
+Creating an external plugin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a minimal plugin:
+
+.. code-block:: python
+
+   from pygpt_net.plugin.base.plugin import BasePlugin
+
+
+   class Plugin(BasePlugin):
+       def __init__(self):
+           super().__init__()
+           self.id = "my_external_plugin"
+           self.name = "My External Plugin"
+           self.description = "Loaded from %workdir%/addons."
+           self.type = ["cmd"]
+
+Save it as ``plugin.py`` next to the manifest and set ``"entrypoint": "plugin.py:Plugin"``. The normal plugin API, options, commands and event hooks are identical to those used by built-in plugins.
+
+Creating other provider types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For other add-on families, subclass the same base class used by the corresponding built-in provider and implement the methods required by that interface. External objects are passed to the existing ``Launcher.add_llm()``, ``add_vector_store()``, ``add_loader()``, ``add_audio_input()``, ``add_audio_output()``, ``add_web()``, ``add_tool()`` or ``add_agent()`` path, so registration behavior is the same as for custom instances supplied to ``pygpt_net.app.run()``.
+
+The repository contains ready-to-copy examples under ``examples`` for every supported type, including a theme and locale package. These examples are deliberately minimal and are intended to verify discovery/registration before implementing a real backend.
+
+Theme Add-ons
+~~~~~~~~~~~~~~~~
+
+A theme package uses ``"type": "theme"`` and does not require an entry point. Put theme files either directly in the add-on root or in a ``theme`` subdirectory:
+
+.. code-block:: text
+
+   addons/themes/my-theme-dark/
+   ├── manifest.json
+   └── theme/
+       ├── app.css
+       ├── app.xml
+       └── chat.css
+
+The add-on ID becomes the theme directory ID under ``%workdir%/css``. The normal ``-dark`` / ``-light`` theme naming and compatibility rules described later in this document still apply.
+
+Locale Add-ons
+~~~~~~~~~~~~~~~~~
+
+A locale package uses ``"type": "locale"`` and does not require an entry point. Put one or more normal PyGPT locale ``.ini`` files in a ``locale`` subdirectory:
+
+.. code-block:: text
+
+   addons/locale/my-locale-pack/
+   ├── manifest.json
+   └── locale/
+       ├── locale.en.ini
+       └── locale.pl.ini
+
+They are installed into the profile ``%workdir%/locale`` directory and are handled by the existing locale override mechanism.
+
+GitHub repositories and monorepos
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A standalone add-on repository should keep ``manifest.json`` in its repository root. A repository containing multiple add-ons may keep them in subdirectories such as:
+
+.. code-block:: text
+
+   plugins/example_plugin/manifest.json
+   tools/example_tool/manifest.json
+   themes/example-theme-dark/manifest.json
+
+Users can paste a normal GitHub tree URL that includes the subdirectory, for example ``https://github.com/owner/repo/tree/main/plugins/example_plugin``. PyGPT also accepts a direct repository-subdirectory URL such as ``https://github.com/owner/repo/plugins/example_plugin`` and resolves that path against the repository default branch. Registry entries can specify the repository and path separately with ``github_url`` and ``github_path``. For add-ons stored directly in the official ``py-gpt-addons`` repository, ``github_url`` may be omitted and only ``github_path``/``path`` (for example ``./plugins/example_plugin``) is required.
+
+Publishing in the official registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The official registry repository is ``https://github.com/szczyglis-dev/py-gpt-addons``. To publish an add-on, host the add-on source on GitHub, verify that its root contains a valid ``manifest.json``, and submit a pull request adding an item to ``addons.json``.
+
+A registry entry can look like this:
+
+.. code-block:: json
+
+   {
+     "id": "example_plugin",
+     "name": "Example Plugin",
+     "description": "Short catalog description.",
+     "author": "Example Author",
+     "version": "1.0.0",
+     "type": "plugin",
+     "github_url": "https://github.com/example/pygpt-add-ons",
+     "github_path": "plugins/example_plugin",
+     "ref": "main",
+     "trusted": false,
+     "official": false
+   }
+
+``github_path`` is optional when ``github_url`` points directly at a standalone add-on repository. Conversely, when an entry points to a directory inside the official ``py-gpt-addons`` repository, ``github_url`` can be omitted and ``github_path`` or ``path`` can contain a relative path such as ``./plugins/example_plugin``. ``ref`` is also optional; when omitted, PyGPT resolves the repository's default branch. ``trusted`` and ``official`` are registry-maintainer metadata and should not be self-declared as a security guarantee by third-party authors.
+
+The top-level registry document has this shape:
+
+.. code-block:: json
+
+   {
+     "addons": [
+       { ... },
+       { ... }
+     ]
+   }
+
+A compact entry for an add-on committed directly to the official registry repository can use only a relative path:
+
+.. code-block:: json
+
+   {
+     "id": "example_plugin",
+     "name": "Example Plugin",
+     "description": "Example stored in the official registry repository.",
+     "author": "Example Author",
+     "version": "1.0.0",
+     "type": "plugin",
+     "path": "./plugins/example_plugin",
+     "trusted": true,
+     "official": true
+   }
+
+When preparing the pull request, include a short description, add-on type, repository link, manifest/version information, dependency notes, and any security-sensitive capabilities such as filesystem, network, shell, desktop-control or credential access.
+
+Registry files for Agent Skills and MCP Connectors are hosted in the same repository as ``skills.json`` and ``mcp_connectors.json``. PyGPT still retains its bundled Skills/MCP catalogs as an offline fallback when the default online catalogs cannot be loaded.
+
+Profile portability
+~~~~~~~~~~~~~~~~~~~
+
+The ``addons`` directory is part of profile configuration export/import. Exporting **Config files** therefore carries installed add-on packages and their local registry metadata together with the profile. Code add-ons are rediscovered on the next application startup after the imported profile is activated.
+
+Legacy custom launcher registration
+-----------------------------------
+
+The external Add-ons manager is the normal choice for redistributable profile-scoped packages. A custom launcher remains supported when you control application startup directly or need to construct add-on objects programmatically.
+
+Registering components programmatically
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``pygpt_net.app.run()`` first registers PyGPT's built-in components and then appends custom instances
 provided through keyword arguments.
 
-A minimal launcher can register only one extension type:
+A minimal launcher can register only one add-on type:
 
 .. code-block:: python
 
@@ -50,7 +326,7 @@ A minimal launcher can register only one extension type:
        ],
    )
 
-A larger launcher can register all currently supported extension families:
+A larger launcher can register all currently supported add-on families:
 
 .. code-block:: python
 
@@ -86,11 +362,13 @@ A larger launcher can register all currently supported extension families:
 
 ``run()`` owns the application lifecycle and should normally be called only once.
 
-Every extension ID should be unique. Reusing a built-in ID may replace or shadow a built-in entry in the
-corresponding registry.
+Every add-on ID should be unique. Reusing a built-in ID may replace or shadow a built-in entry in the
+corresponding registry. For distributable add-ons, prefer the GitHub-derived convention
+``<github_user>_<repo_name>_<addon_name>`` (for example
+``szczyglis_dev_py_gpt_example_plugin``) to reduce collisions between independent authors and repositories.
 
 During application initialization PyGPT attaches the main ``window`` or owning plugin to registered
-objects. Do not assume those references are already available inside your extension's ``__init__()``
+objects. Do not assume those references are already available inside your add-on's ``__init__()``
 unless the relevant base class explicitly provides them.
 
 Plugins and GUI Tools are different
@@ -104,6 +382,126 @@ make it a callable model function.
 
 Use a plugin when the model should call functionality as a tool/command. Use a GUI Tool when you want to
 extend the desktop application's interface or provide a standalone utility.
+
+Custom themes and styles
+------------------------
+
+PyGPT themes use one directory per theme ID. Bundled theme assets are stored below
+``pygpt_net/data/css`` using the same filenames for every theme:
+
+.. code-block:: text
+
+   data/css/
+   ├── app.css
+   ├── chat.css
+   ├── chat.wide.css
+   ├── fix_windows.css
+   ├── fix_windows.dark.css
+   ├── fix_windows.light.css
+   ├── dark/
+   │   ├── app.css
+   │   ├── app.xml
+   │   └── chat.css
+   ├── light/
+   │   ├── app.css
+   │   ├── app.xml
+   │   └── chat.css
+   └── ...
+
+The files have the following roles:
+
+* ``app.css`` at the root is the global native Qt stylesheet and is always loaded first.
+* ``<theme-id>/app.css`` contains native Qt overrides for one theme.
+* ``<theme-id>/app.xml`` defines the qt-material color palette for that theme.
+* ``chat.css`` at the root is the global WebEngine chat stylesheet and is used by both the
+  **Standard** and **Wide** chat layouts.
+* ``<theme-id>/chat.css`` contains chat/WebEngine overrides for one theme.
+* ``chat.wide.css`` is a small global override loaded only when the **Wide** chat layout is selected.
+
+User themes
+~~~~~~~~~~~
+
+Profile-specific themes can be placed below ``%workdir%/css`` with exactly the same layout. The
+name of the directory is the persistent theme ID. For a new custom theme, append ``-dark`` or
+``-light`` to the directory name to declare its compatibility type. The suffix controls runtime
+Dark/Light behavior but is normally omitted from the **Themes** menu title. For example,
+``my_custom-dark`` is shown as **My Custom**.
+
+For example:
+
+.. code-block:: text
+
+   %workdir%/css/
+   └── my_custom-dark/
+       ├── app.css
+       ├── app.xml
+       └── chat.css
+
+Only files that exist are loaded. Therefore a custom theme may contain only ``chat.css``, only
+``app.css``, or a complete set of files. The runtime compatibility type is built dynamically from
+the active profile theme list: bundled IDs use their built-in type, a new ID ending in ``-light`` is
+Light-compatible, and a new ID ending in ``-dark`` is Dark-compatible. New custom IDs without either
+suffix remain Dark-compatible for backward compatibility.
+
+The compatibility type is not only a CSS fallback. It is the runtime Dark/Light classification used
+by the application for qt-material inversion, platform-specific fixes, widget behavior, the legacy
+renderer, and fallback assets. A completely new custom theme inherits the bundled ``light`` or
+``dark`` CSS/XML base matching this runtime type, then applies files from its own directory. If a new
+theme does not provide ``app.xml``, the corresponding bundled Light or Dark material palette is used.
+
+The ``-dark`` / ``-light`` suffix is part of the theme ID stored in configuration but is removed from
+the normal display name. Thus ``paper-light`` is shown as **Paper**. If both ``paper-dark`` and
+``paper-light`` exist at the same time, PyGPT disambiguates them in the menu as **Paper (Dark)** and
+**Paper (Light)**.
+
+A profile theme can also use the same ID as a bundled theme, for example:
+
+.. code-block:: text
+
+   %workdir%/css/ocean/chat.css
+
+In that case the user files override/extend the bundled ``ocean`` theme and keep the built-in
+``ocean`` compatibility type. For CSS, PyGPT layers the files in this order so later files can
+override earlier rules:
+
+#. bundled ``data/css/app.css`` or ``data/css/chat.css``;
+#. bundled ``data/css/<theme-id>/app.css`` or ``chat.css`` (or the Dark/Light compatibility base for a new custom ID);
+#. profile ``%workdir%/css/app.css`` or ``chat.css`` when present;
+#. profile ``%workdir%/css/<theme-id>/app.css`` or ``chat.css`` when present.
+
+For the **Wide** chat layout, ``chat.wide.css`` is appended after the normal ``chat.css`` layers.
+A profile-level ``%workdir%/css/chat.wide.css`` can add final Wide-specific overrides.
+
+For ``app.xml`` there is no layering: ``%workdir%/css/<theme-id>/app.xml`` replaces the bundled XML
+for that theme. If it is absent, the bundled XML is used when available; a new custom theme falls
+back to the bundled ``light`` or ``dark`` XML selected by its runtime compatibility type.
+
+The built-in themes are discovered from their directories, and profile theme directories are added
+to the same **Themes** menu. Theme discovery is refreshed when the theme/profile is reloaded; a
+restart also refreshes the list.
+
+A minimal custom ``app.xml`` can look like this:
+
+.. code-block:: xml
+
+   <resources>
+     <color name="primaryColor">#62d4ff</color>
+     <color name="primaryLightColor">#9ce6ff</color>
+     <color name="secondaryColor">#111820</color>
+     <color name="secondaryLightColor">#18232d</color>
+     <color name="secondaryDarkColor">#0b1016</color>
+     <color name="primaryTextColor">#ffffff</color>
+     <color name="secondaryTextColor">#c8d5df</color>
+   </resources>
+
+Normal CSS syntax can be used in profile styles. qt-material placeholders such as
+``{QTMATERIAL_PRIMARYCOLOR}`` and ``{QTMATERIAL_PRIMARYLIGHTCOLOR}`` are also expanded when
+available.
+
+While developing or adjusting a custom theme, you can reload CSS without restarting PyGPT. Open the
+**Logger** from the application's debug tools and enter the ``css`` command in its console. PyGPT will
+reload the active theme CSS immediately, which makes it convenient to edit ``app.css`` or ``chat.css``
+and preview changes iteratively.
 
 Adding a custom model
 ---------------------
@@ -328,7 +726,7 @@ a newer related event. This is noted below.
 * ``AUDIO_INPUT_TOGGLE`` - enables or disables speech/audio input. ``data["value"]`` is the requested
   boolean state.
 
-* ``AUDIO_INPUT_TRANSCRIBE`` - asks the active Audio Input provider to transcribe an existing audio file.
+* ``AUDIO_INPUT_TRANSCRIBE`` - asks the active Audio input provider to transcribe an existing audio file.
   ``data["path"]`` contains the file path. ``event.ctx`` may be a temporary context when transcription is
   initiated from the Transcript tool.
 
@@ -336,12 +734,12 @@ a newer related event. This is noted below.
   identify the context whose playback is being stopped.
 
 * ``AUDIO_OUTPUT_TOGGLE`` - compatibility/reserved generic hook for changing audio-output state. Current
-  UI code normally enables/disables the Audio Output plugin through the plugin controller.
+  UI code normally enables/disables the Audio output plugin through the plugin controller.
 
 * ``AUDIO_PLAYBACK`` - requests playback of an already generated audio file. ``data["audio_file"]``
   contains the path and ``event.ctx`` identifies the related context when available.
 
-* ``AUDIO_READ_TEXT`` - asks the Audio Output provider to synthesize/read text. ``data["text"]`` contains
+* ``AUDIO_READ_TEXT`` - asks the Audio output provider to synthesize/read text. ``data["text"]`` contains
   the text and ``data["cache_file"]`` may contain a preferred cache path. ``event.ctx`` identifies the
   related context.
 
@@ -353,7 +751,7 @@ a newer related event. This is noted below.
   identifies the tool-call context.
 
 * ``CMD_INLINE`` - inline-command equivalent of ``CMD_EXECUTE``. It is used by plugins that intentionally
-  expose inline commands independently of the normal ``+ Tools`` path.
+  expose inline commands independently of the normal ``Tools`` switch.
 
 * ``CMD_SYNTAX`` - asks enabled plugins to publish normal command/tool definitions. Plugins append command
   definitions to ``data["cmd"]``. Depending on the call site, ``data`` can also contain ``prompt``,
@@ -521,7 +919,7 @@ Event debug logging
 
 Event flow can be inspected by enabling:
 
-``Config -> Settings -> Debug -> Log and debug events``
+``Config -> Settings -> Debug -> Log events``
 
 Adding a custom GUI Tool
 ------------------------
@@ -621,9 +1019,8 @@ For embeddings, implement ``get_embeddings_model()`` and return a LlamaIndex ``B
 
 Depending on its purpose, a wrapper can implement:
 
-* ``llama()`` - return a LlamaIndex LLM for Chat with Files / LlamaIndex agents.
+* ``llama()`` - return a LlamaIndex LLM for RAG and LlamaIndex agents.
 * ``get_embeddings_model()`` - return a LlamaIndex embedding model.
-* ``get_openai_agent_provider()`` - optionally provide a model adapter for OpenAI Agents.
 * ``get_models()`` - optionally expose provider-side model discovery.
 
 Legacy ``chat()`` and ``completion()`` methods remain in the base interface for compatibility, but current
@@ -819,7 +1216,7 @@ Adding a web search provider
 ----------------------------
 
 Web search providers are registered with ``web=[...]``. They provide a search-engine implementation used
-by the Web Search plugin.
+by the Web search plugin.
 
 A provider normally defines its own settings and implements ``search()``:
 
@@ -854,50 +1251,13 @@ See ``examples/example_web_search.py`` for a complete Google Custom Search tutor
 Adding a custom agent
 ---------------------
 
-Agent providers are registered with ``agents=[...]``. Built-in providers live under
-``pygpt_net.provider.agents`` and include LlamaIndex and OpenAI Agents workflows.
+Agent providers are registered with ``agents=[...]``. The selectable **Custom agents** mode is LlamaIndex-backed; built-in implementations live under ``pygpt_net.provider.agents.llama_index``.
 
-The simplest safe extension is often to subclass an existing workflow and customize one stage:
+For a completely new provider, derive from ``pygpt_net.provider.agents.base.BaseAgent`` and implement the current provider contract. A provider typically defines its ID, agent type/workflow mode, configuration options, and ``get_agent()`` implementation that returns the runtime workflow/agent object used by PyGPT.
 
-.. code-block:: python
+For workflow experimentation that does not require a new Python provider, prefer the built-in **Custom agent builder**, which can construct and save node-based Custom agents workflows directly from the UI.
 
-   from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentBase
-
-
-   class ExampleAgent(OpenAIAgentBase):
-       def __init__(self, *args, **kwargs):
-           super().__init__(*args, **kwargs)
-           self.id = "example_agent"
-           self.name = "Example custom agent"
-
-       def get_agent(self, window, kwargs):
-           kwargs = dict(kwargs or {})
-
-           current = str(
-               kwargs.get("system_prompt") or ""
-           ).strip()
-
-           prefix = (
-               "You are running through the custom "
-               "ExampleAgent provider."
-           )
-
-           kwargs["system_prompt"] = (
-               f"{prefix}\n\n{current}"
-               if current
-               else prefix
-           )
-
-           return super().get_agent(window, kwargs)
-
-The inherited ``run()`` keeps the existing OpenAI Agents execution lifecycle, streaming, tools, response
-IDs and PyGPT bridge integration. Override ``run()`` only when a different execution engine/lifecycle is
-actually required.
-
-For a completely new runtime, derive from ``pygpt_net.provider.agents.base.BaseAgent`` and implement the
-current provider contract.
-
-See ``examples/example_agent.py``.
+See ``examples/example_agent.py`` for the current extension pattern and use the base interfaces as the source of truth for method signatures.
 
 Source code as API reference
 ----------------------------

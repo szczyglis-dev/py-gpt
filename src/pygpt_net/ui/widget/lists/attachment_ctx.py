@@ -13,7 +13,7 @@ from functools import partial
 
 from PySide6.QtCore import Qt, QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, QResizeEvent
-from PySide6.QtWidgets import QMenu, QAbstractItemView
+from PySide6.QtWidgets import QMenu, QAbstractItemView, QHeaderView
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
@@ -48,16 +48,27 @@ class AttachmentCtxList(BaseList):
 
         self.header = self.header()
         self.header.setStretchLastSection(False)
+        self.active_column_width = 58
 
         self.column_proportion = 0.3
+        self.configureColumns()
+
+    def configureColumns(self):
+        """Keep the Active column fixed and compact."""
+        self.header.setSectionResizeMode(0, QHeaderView.Fixed)
         self.adjustColumnWidths()
 
     def adjustColumnWidths(self):
-        total_width = self.width()
-        first_column_width = int(total_width * self.column_proportion)
-        self.setColumnWidth(0, first_column_width)
-        for column in range(1, 4):
-            self.setColumnWidth(column, (total_width - first_column_width) // (4 - 1))
+        total_width = max(0, self.viewport().width())
+        active_width = self.active_column_width
+        remaining = max(0, total_width - active_width)
+        name_width = int(remaining * self.column_proportion)
+        other_width = max(1, (remaining - name_width) // 4)
+
+        self.setColumnWidth(0, active_width)
+        self.setColumnWidth(1, name_width)
+        for column in range(2, 6):
+            self.setColumnWidth(column, other_width)
 
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)

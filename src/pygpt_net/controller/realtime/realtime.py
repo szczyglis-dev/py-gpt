@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.07 23:00:00                  #
+# Updated Date: 2026.09.25 12:55:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -40,6 +40,9 @@ class Realtime:
         self.current_active = None # openai | google
         self.allowed_modes = [MODE_AUDIO]
         self.manual_commit_sent = False
+        self._continuation_text_started = set()
+        self._realtime_follow_checked = set()
+        self._playback_ctx = None
 
     def setup(self):
         """Setup realtime core, signals, etc. in main thread"""
@@ -53,7 +56,7 @@ class Realtime:
         """
         mode = self.window.core.config.get("mode")
         if mode == MODE_AUDIO:
-            if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_NOTEPAD:
+            if self.window.controller.tabs.get_current_type() != Tab.TAB_NOTEPAD:
                 return True
         return False
 
@@ -75,14 +78,25 @@ class Realtime:
 
         # audio output chunk: send to audio output handler
         if event.name == RealtimeEvent.RT_OUTPUT_AUDIO_DELTA:
-            self.set_idle()
             payload = event.data.get("payload", None)
             if payload and not is_muted:  # do not play if muted
+                ctx = payload.get("ctx", None)
+                self._interrupt_superseded_playback(ctx)
+                if ctx is not None:
+                    self._playback_ctx = ctx
                 self.window.core.audio.output.handle_realtime(payload, self.signals)
+
+        # audio playback really started: hide only the WebView request loader.
+        # Keep the kernel BUSY until the realtime turn actually finishes.
+        elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START:
+            ctx = self._playback_ctx
+            if ctx is not None:
+                self.window.dispatch(RenderEvent(RenderEvent.STATE_IDLE, {
+                    "meta": ctx.meta,
+                }))
 
         # audio input chunk: send to the active realtime client
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_DELTA:
-            self.set_idle()
             if self.current_active == "google":
                 self.window.core.api.google.realtime.handle_audio_input(event)
             elif self.current_active == "openai":
@@ -93,6 +107,7 @@ class Realtime:
         # begin: first text chunk or audio chunk received, start rendering
         elif event.name == RealtimeEvent.RT_OUTPUT_READY:
             ctx = event.data.get('ctx', None)
+            self._playback_ctx = None
             if ctx:
                 self.window.dispatch(RenderEvent(RenderEvent.STREAM_BEGIN, {
                     "meta": ctx.meta,
@@ -122,19 +137,63 @@ class Realtime:
 
         # text delta: append text chunk to the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TEXT_DELTA:
-            self.set_idle()
             ctx = event.data.get('ctx', None)
             chunk = event.data.get('chunk', "")
             if chunk and ctx:
-                self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
-                    "meta": ctx.meta,
-                    "ctx": ctx,
-                    "chunk": chunk,
-                    "begin": False,
-                }))
+                # First visible content from a newer response is a barge-in point:
+                # stop any still-audible previous response immediately.
+                self._interrupt_superseded_playback(ctx)
+
+                # Realtime starts its provider stream almost immediately after the
+                # input row is queued in the WebView. The loader can still change
+                # document height in that window and Chromium may transiently leave
+                # ScrollManager in MANUAL although the user was at the bottom. Before
+                # the first visible text delta only, recover FOLLOW if the viewport is
+                # still physically near the bottom. Never force a user who scrolled up.
+                follow_key = id(ctx)
+                if follow_key not in self._realtime_follow_checked:
+                    self._realtime_follow_checked.add(follow_key)
+                    try:
+                        renderer = self.window.controller.chat.render.instance()
+                        restore_follow = getattr(
+                            renderer,
+                            "resume_auto_follow_if_near_bottom",
+                            None,
+                        )
+                        if callable(restore_follow):
+                            restore_follow(ctx.meta)
+                    except Exception:
+                        pass
+
+                # A tool-result response is an ephemeral continuation of the same
+                # durable user turn. Reuse the normal chat stream continuation
+                # renderer so the completed tool row stays in chronological order
+                # and the follow-up text is appended as a new partial instead of
+                # replacing the previous assistant content.
+                if getattr(ctx, "turn_parent", None) is not None:
+                    key = id(ctx)
+                    begin = key not in self._continuation_text_started
+                    # Realtime owns a different worker lifecycle than Chat, so it
+                    # must not call Stream.handleChunk(): that slot intentionally
+                    # rejects chunks without an active chat StreamWorker/PID. Use
+                    # the shared continuation renderer directly instead.
+                    self.window.controller.chat.stream.append_continuation_chunk(
+                        ctx,
+                        chunk,
+                        begin,
+                    )
+                    self._continuation_text_started.add(key)
+                else:
+                    self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
+                        "meta": ctx.meta,
+                        "ctx": ctx,
+                        "chunk": chunk,
+                        "begin": False,
+                    }))
 
         # audio end: on stop audio playback
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_END:
+            self._playback_ctx = None
             self.set_idle()
             self.window.controller.chat.common.unlock_input()
             if self.is_loop():
@@ -144,11 +203,11 @@ class Realtime:
         elif event.name == RealtimeEvent.RT_OUTPUT_TURN_END:
             self.set_idle()
             ctx = event.data.get('ctx', None)
-            if ctx:
-                self.end_turn(ctx)
-            if self.window.controller.audio.is_recording():
-                self.window.update_status(trans("speech.listening"))
-            self.window.controller.chat.common.unlock_input()
+            finished = self.end_turn(ctx) if ctx else True
+            if finished:
+                if self.window.controller.audio.is_recording():
+                    self.window.update_status(trans("speech.listening"))
+                self.window.controller.chat.common.unlock_input()
 
         # volume change: update volume in audio output handler
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_VOLUME_CHANGED:
@@ -160,6 +219,7 @@ class Realtime:
 
         # error: audio output error
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_ERROR:
+            self._playback_ctx = None
             self.set_idle()
             error = event.data.get("error")
             self.window.core.debug.log(error)
@@ -178,6 +238,22 @@ class Realtime:
 
         elif event.name == AppEvent.CTX_SELECTED:
             QTimer.singleShot(0, lambda: self.reset())
+
+    def _interrupt_superseded_playback(self, ctx) -> None:
+        """
+        Stop buffered audio from an older response when new response content arrives.
+
+        The comparison is deliberately based on the CtxItem object carried by
+        realtime events, so chunks belonging to the same response keep using the
+        same playback session.
+        """
+        if ctx is None or self._playback_ctx is None or ctx is self._playback_ctx:
+            return
+        try:
+            self.window.core.audio.output.interrupt_realtime()
+        except Exception:
+            pass
+        self._playback_ctx = None
 
     def next_turn(self):
         """Start next turn in loop mode (if enabled)"""
@@ -223,28 +299,73 @@ class Realtime:
 
     def end_turn(self, ctx):
         """
-        End of realtime turn - finalize the response
+        End of realtime turn - finalize the response.
+
+        Tool calls are intermediate rounds of the same durable CtxItem. A realtime
+        tool-result response therefore follows the same continuation lifecycle as
+        streamed chat: merge the ephemeral response into its parent, materialize
+        completed tools, and call handle_end() only when no next tool is pending.
 
         :param ctx: Context instance
         """
         self.set_idle()
         if not ctx:
-            return
+            return True
+
+        source_ctx = ctx
+        self._continuation_text_started.discard(id(source_ctx))
+        self._realtime_follow_checked.discard(id(source_ctx))
+        is_continuation = getattr(source_ctx, "turn_parent", None) is not None
+        closes_tool_series = bool(
+            is_continuation
+            and self.window.core.ctx.continuation_closes_tool_series(source_ctx)
+        )
+        if is_continuation:
+            ctx = self.window.core.ctx.merge_continuation(source_ctx)
+
+        self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }))
+
         self.window.controller.chat.output.handle_after(
             ctx=ctx,
             mode=MODE_AUDIO,
             stream=True,
         )
-        self.window.controller.chat.output.post_handle(
+
+        if is_continuation and closes_tool_series:
+            # Match normal chat semantics: consecutive tool-only realtime rounds
+            # keep one animated Tool row alive. Materialize/clear it only when the
+            # provider emits visible non-tool output or ends the tool series.
+            self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+                "reason": "realtime_tool_series_boundary",
+            }))
+            self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                "meta": ctx.meta,
+                "ctx": ctx,
+            }))
+
+        finished = self.window.controller.chat.output.post_handle(
             ctx=ctx,
             mode=MODE_AUDIO,
             stream=True,
         )
+        if not finished:
+            # command.handle() has started the tool and emitted TOOL_BEGIN. Keep the
+            # turn/request open; handle_end() would close the lifecycle and can
+            # wipe that status before the tool result arrives.
+            self.set_busy()
+            return False
+
         self.window.controller.chat.output.handle_end(
             ctx=ctx,
             mode=MODE_AUDIO,
         )
         self.window.controller.chat.common.show_response_tokens(ctx)
+        return True
 
     def shutdown(self):
         """Shutdown all realtime threads and async loops"""
@@ -267,6 +388,9 @@ class Realtime:
 
     def reset(self):
         """Reset realtime session"""
+        self._continuation_text_started.clear()
+        self._realtime_follow_checked.clear()
+        self._playback_ctx = None
         try:
             self.window.core.api.openai.realtime.reset()
         except Exception as e:

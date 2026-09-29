@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.09.22 12:22:00                  #
 # ================================================== #
 
 import os
+from functools import cached_property
 from typing import Optional, Dict, Any
-
-from google.genai import types as gtypes
-from google import genai
 
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
@@ -28,18 +26,6 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
-from .chat import Chat
-from .computer import Computer
-from .vision import Vision
-from .tools import Tools
-from .audio import Audio
-from .image import Image
-from .realtime import Realtime
-from .remote_tools import RemoteTools
-from .store import Store
-from .video import Video
-from .music import Music
-
 class ApiGoogle:
     def __init__(self, window=None):
         """
@@ -48,26 +34,70 @@ class ApiGoogle:
         :param window: Window instance
         """
         self.window = window
-        self.chat = Chat(window)
-        self.vision = Vision(window)
-        self.tools = Tools(window)
-        self.audio = Audio(window)
-        self.image = Image(window)
-        self.realtime = Realtime(window)
-        self.video = Video(window)
-        self.music = Music(window)
-        self.computer = Computer(window)
-        self.remote_tools = RemoteTools(window)
-        self.store = Store(window)
-        self.client: Optional[genai.Client] = None
+        self.client = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
+
+    @cached_property
+    def chat(self):
+        from .chat import Chat
+        return Chat(self.window)
+
+    @cached_property
+    def vision(self):
+        from .vision import Vision
+        return Vision(self.window)
+
+    @cached_property
+    def tools(self):
+        from .tools import Tools
+        return Tools(self.window)
+
+    @cached_property
+    def audio(self):
+        from .audio import Audio
+        return Audio(self.window)
+
+    @cached_property
+    def image(self):
+        from .image import Image
+        return Image(self.window)
+
+    @cached_property
+    def realtime(self):
+        from .realtime import Realtime
+        return Realtime(self.window)
+
+    @cached_property
+    def video(self):
+        from .video import Video
+        return Video(self.window)
+
+    @cached_property
+    def music(self):
+        from .music import Music
+        return Music(self.window)
+
+    @cached_property
+    def computer(self):
+        from .computer import Computer
+        return Computer(self.window)
+
+    @cached_property
+    def remote_tools(self):
+        from .remote_tools import RemoteTools
+        return RemoteTools(self.window)
+
+    @cached_property
+    def store(self):
+        from .store import Store
+        return Store(self.window)
 
     def get_client(
             self,
             mode: str = MODE_CHAT,
             model: ModelItem = None
-    ) -> genai.Client:
+    ):
         """
         Get or create Google GenAI client
 
@@ -75,6 +105,9 @@ class ApiGoogle:
         :param model: ModelItem
         :return: genai.Client instance
         """
+        from google import genai
+        from google.genai import types as gtypes
+
         if not model:
             model = ModelItem()
             model.provider = "google"
@@ -89,7 +122,10 @@ class ApiGoogle:
             )
             filtered["http_options"] = http_options
 
-        # setup VertexAI if enabled
+        # Setup Gemini Enterprise Agent Platform / Vertex backend. Keep the
+        # legacy ``vertexai`` client flag here because google-genai 2.x still
+        # supports it as an alias and this also preserves compatibility with
+        # older SDK releases used by existing PyGPT installations.
         use_vertex = self.setup_env()
         if use_vertex:
             filtered["vertexai"] = True
@@ -102,6 +138,10 @@ class ApiGoogle:
             return self.client
 
         self.last_client_args = filtered
+        self.window.core.api.logger.log_input(
+            type="client.init", provider="google", kwargs=filtered,
+            model=getattr(model, "id", None), path="genai.Client",
+        )
         self.client = genai.Client(**filtered)
 
         return self.client
@@ -243,7 +283,6 @@ class ApiGoogle:
             ctx = context.ctx
             prompt = context.prompt
             system_prompt = context.system_prompt
-            temperature = context.temperature
             history = context.history
             functions = context.external_functions
             model = context.model or self.window.core.models.from_defaults()
@@ -266,17 +305,26 @@ class ApiGoogle:
                 attachments=context.attachments,
                 multimodal_ctx=context.multimodal_ctx,
             )
+            from google import genai
+
             cfg = genai.types.GenerateContentConfig(
-                temperature=temperature if temperature is not None else self.window.core.config.get('temperature'),
-                top_p=self.window.core.config.get('top_p'),
                 max_output_tokens=context.max_tokens if context.max_tokens else None,
                 system_instruction=system_prompt if system_prompt else None,
                 tools=tools if tools else None,
             )
-            resp = client.models.generate_content(
-                model=model.id,
-                contents=inputs,
-                config=cfg,
+            request_kwargs = {
+                "model": model.id,
+                "contents": inputs,
+                "config": cfg,
+            }
+            self.window.core.api.logger.log_input(
+                type="models.generate_content", provider="google",
+                kwargs=request_kwargs, input=inputs, history=history, extra=extra,
+                model=model.id, path="client.models.generate_content",
+            )
+            resp = client.models.generate_content(**request_kwargs)
+            self.window.core.api.logger.log_output(
+                type="models.generate_content", provider="google", output=resp, model=model.id,
             )
 
             if ctx:
@@ -292,8 +340,9 @@ class ApiGoogle:
 
     def setup_env(self) -> bool:
         """
-        Setup environment variables for VertexAI via Google GenAI API
+        Setup environment variables for Google GenAI Enterprise/Vertex backend.
 
+        - GOOGLE_GENAI_USE_ENTERPRISE
         - GOOGLE_GENAI_USE_VERTEXAI
         - GOOGLE_CLOUD_PROJECT
         - GOOGLE_CLOUD_LOCATION
@@ -303,14 +352,19 @@ class ApiGoogle:
         """
         config = self.window.core.config
         use_vertex = False
-        if config.get("api_native_google.use_vertex", False):
+        if self.window.core.llm.get_config("google", "use_vertex", False):
             use_vertex = True
+            # 2.x prefers the Enterprise name. Keep the legacy alias in sync
+            # for google-genai 1.x and integrations which still inspect it.
+            os.environ["GOOGLE_GENAI_USE_ENTERPRISE"] = "1"
             os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
-            os.environ["GOOGLE_CLOUD_PROJECT"] = config.get("api_native_google.cloud_project", "")
-            os.environ["GOOGLE_CLOUD_LOCATION"] = config.get("api_native_google.cloud_location", "us-central1")
-            if config.get("api_native_google.app_credentials", ""):
-                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.get("api_native_google.app_credentials", "")
+            os.environ["GOOGLE_CLOUD_PROJECT"] = self.window.core.llm.get_config("google", "cloud_project", "")
+            os.environ["GOOGLE_CLOUD_LOCATION"] = self.window.core.llm.get_config("google", "cloud_location", "us-central1")
+            if self.window.core.llm.get_config("google", "app_credentials", ""):
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.window.core.llm.get_config("google", "app_credentials", "")
         else:
+            if os.environ.get("GOOGLE_GENAI_USE_ENTERPRISE"):
+                del os.environ["GOOGLE_GENAI_USE_ENTERPRISE"]
             if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
                 del os.environ["GOOGLE_GENAI_USE_VERTEXAI"]
             if os.environ.get("GOOGLE_CLOUD_PROJECT"):

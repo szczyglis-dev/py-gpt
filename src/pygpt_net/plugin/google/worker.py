@@ -1387,13 +1387,13 @@ class Worker(BaseWorker):
         :return: prepared path
         """
         if path in [".", "./"]:
-            return self.plugin.window.core.config.get_user_dir('data')
+            return self.get_workdir()
 
         if self.is_absolute_path(path):
             return path
         else:
             return os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
+                self.get_workdir(),
                 path,
             )
 

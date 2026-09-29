@@ -28,6 +28,7 @@ def test_wheel_during_drawing_increases_brush_size():
     widget = MagicMock()
     widget._mouseDown = True
     widget.drawing = True
+    widget.has_active_text_edit.return_value = False
     widget.window.controller.painter.common.step_brush_size = MagicMock()
     event = _wheel_event(120)
 
@@ -44,6 +45,7 @@ def test_wheel_during_drawing_decreases_brush_size():
     widget = MagicMock()
     widget._mouseDown = True
     widget.drawing = True
+    widget.has_active_text_edit.return_value = False
     widget.window.controller.painter.common.step_brush_size = MagicMock()
     event = _wheel_event(-120)
 
@@ -58,6 +60,8 @@ def test_escape_cancels_active_drawing():
     widget = MagicMock()
     widget.drawing = True
     widget.cropping = False
+    widget._handle_painter_shortcut.return_value = False
+    widget.has_active_text_edit.return_value = False
     event = MagicMock()
     event.key.return_value = Qt.Key_Escape
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.06 01:00:00                  #
+# Updated Date: 2026.09.22 11:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -14,6 +14,7 @@ from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 from pygpt_net.core.types import (
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX,
     MODE_ASSISTANT,
@@ -22,8 +23,10 @@ from pygpt_net.core.types import (
     MODE_CHAT,
     MODE_RESEARCH,
     MODE_COMPUTER,
+    MODE_COMPLETION,
 )
 from pygpt_net.core.events import KernelEvent, Event
+from pygpt_net.core.qt import safe_emit
 
 
 class BridgeSignals(QObject):
@@ -46,6 +49,11 @@ class BridgeWorker(QRunnable):
         self.extra = None
         self.mode = None
 
+
+    def _emit(self, name: str, *args) -> bool:
+        """Safely emit a bridge Qt signal during late worker teardown."""
+        return safe_emit(self.signals, name, *args)
+
     @Slot()
     def run(self):
         """Run bridge worker"""
@@ -63,6 +71,12 @@ class BridgeWorker(QRunnable):
 
             # POST PROMPT END: handle post prompt end event
             self.handle_post_prompt_end()
+
+            # Apply the global prompt-injection annotation after all late system
+            # prompt hooks so external-context warnings remain the final policy.
+            self.context.system_prompt = core.security.append_prompt_injection_guard(
+                self.context.system_prompt, ensure_last=True, mode=self.mode
+            )
 
             # Langchain
             if self.mode == MODE_LANGCHAIN:
@@ -83,6 +97,18 @@ class BridgeWorker(QRunnable):
                     extra=self.extra,
                     signals=self.signals,
                 )
+
+            # Agents v2 (new isolated orchestration runtime)
+            elif self.mode == MODE_AGENT_V2:
+                result = core.agents_v2.runner.call(
+                    context=self.context,
+                    extra=self.extra,
+                    signals=self.signals,
+                )
+                if result:
+                    self.cleanup()
+                    return
+                self.extra["error"] = str(core.agents_v2.runner.get_error())
 
             # Agents (OpenAI, Llama)
             elif self.mode in (
@@ -112,68 +138,68 @@ class BridgeWorker(QRunnable):
                 else:
                     self.extra["error"] = str(core.agents.runner.get_error())
 
-            # API SDK: chat, completion, vision, image, assistants
-            else:
-                sdk = "openai"  # default to OpenAI SDK
+            # Completion normally uses the LlamaIndex completion provider so all
+            # configured backends share one path. Keep one narrow exception for
+            # OpenAI's legacy instruct model: without active chat-style RAG it
+            # must use the native OpenAI SDK Completions endpoint. A selected RAG
+            # index is intentionally ignored when Completion "As chat" is off.
+            elif self.mode == MODE_COMPLETION \
+                    and self.context.model is not None:
                 model = self.context.model
-                if model.provider == "google":
-                    if core.config.get("api_native_google", False):
-                        sdk = "google"
-                elif model.provider == "anthropic":
-                    if core.config.get("api_native_anthropic", False):
-                        sdk = "anthropic"
-                elif model.provider == "x_ai":
-                    if core.config.get("api_native_xai", False):
-                        sdk = "x_ai"
+                completion_as_chat = bool(
+                    core.config.get("completion.as_chat", True)
+                )
+                native_openai_completion = (
+                    model.provider == "openai"
+                    and model.id == "gpt-3.5-turbo-instruct"
+                    and (
+                        not completion_as_chat
+                        or not core.idx.is_valid(self.context.idx)
+                    )
+                )
+                if native_openai_completion:
+                    core.debug.info(
+                        "[bridge] Using native OpenAI SDK completion provider."
+                    )
+                    result = core.bridge.call_api(
+                        context=self.context,
+                        extra=self.extra,
+                        rt_signals=self.rt_signals,
+                        signals=self.signals,
+                    )
+                else:
+                    core.debug.info("[bridge] Using LlamaIndex completion provider.")
+                    result = core.idx.completion.call(
+                        context=self.context,
+                        extra=self.extra,
+                    )
 
-                # call appropriate SDK
-                if sdk == "google":
-                    core.debug.info("[bridge] Using Google SDK.")
-                    result = core.api.google.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "anthropic":
-                    core.debug.info("[bridge] Using Anthropic SDK.")
-                    result = core.api.anthropic.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "x_ai":
-                    core.debug.info("[bridge] Using xAI SDK.")
-                    result = core.api.xai.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "openai":
-                    core.debug.info("[bridge] Using OpenAI SDK.")
-                    result = core.api.openai.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
+            # API/provider dispatch with the same LlamaIndex fallback as quick calls.
+            else:
+                result = core.bridge.call_api(
+                    context=self.context,
+                    extra=self.extra,
+                    rt_signals=self.rt_signals,
+                    signals=self.signals,
+                )
         except Exception as e:
-            if self.signals:
+            if self.extra is not None:
                 self.extra["error"] = e
-                event = KernelEvent(KernelEvent.RESPONSE_FAILED, {
-                    'context': self.context,
-                    'extra': self.extra,
-                })
-                self.signals.response.emit(event)
-                self.cleanup()
-                return
-
-        # send response to main thread
-        if self.signals:
-            name = KernelEvent.RESPONSE_OK if result else KernelEvent.RESPONSE_ERROR
-            event = KernelEvent(name, {
+            event = KernelEvent(KernelEvent.RESPONSE_FAILED, {
                 'context': self.context,
                 'extra': self.extra,
             })
-            self.signals.response.emit(event)
+            self._emit("response", event)
+            self.cleanup()
+            return
+
+        # send response to main thread
+        name = KernelEvent.RESPONSE_OK if result else KernelEvent.RESPONSE_ERROR
+        event = KernelEvent(name, {
+            'context': self.context,
+            'extra': self.extra,
+        })
+        self._emit("response", event)
 
         self.cleanup()
 
@@ -239,6 +265,12 @@ class BridgeWorker(QRunnable):
         if not self.window.controller.chat.attachment.has_context(ctx.meta):
             return
 
+        attachment = self.window.controller.chat.attachment
+        project_initial = bool(
+            self.window.core.attachments.context.is_project_share_enabled(ctx.meta)
+            and attachment.is_initial_turn(ctx, self.context.history)
+        )
+
         # determine if only current attachment content should be appended
         only_current = self.window.core.config.get("ctx.attachment.append_once", False)  # force single append
         auto_detect = self.window.core.config.get("ctx.attachment.auto_append", True) # auto-detect if allowed
@@ -246,23 +278,27 @@ class BridgeWorker(QRunnable):
             if self.allowed_single_append(self.context):
                 only_current = True
 
-        # if group additional context exists, append it to current additional context
-        if only_current and ctx.meta.group:
-            if ctx.meta.group.additional_ctx is None:
-                ctx.meta.group.additional_ctx = []
-            if ctx.meta.additional_ctx_current is None:
-                ctx.meta.additional_ctx_current = []
-            ctx.meta.additional_ctx_current.extend(ctx.meta.group.additional_ctx)
+        # A new conversation inside a shared project has no locally uploaded
+        # ``additional_ctx_current`` yet.  For append-once providers expose the
+        # existing project attachments on the first turn only; subsequent turns
+        # rely on provider conversation continuity.
+        if only_current and project_initial:
+            attachment.include_project_attachments_in_current(ctx.meta)
 
-        ad_context = self.window.controller.chat.attachment.get_context(
+        ad_context = attachment.get_context(
             ctx,
             self.context.history,
             only_current=only_current
         )
+        # UI/history association is intentionally narrower than model context:
+        # only attachments sent in this turn are rendered under the message,
+        # except that the first turn of a shared project shows the project's
+        # already available attachments once.
+        attachment.bind_current_to_ctx(ctx, include_project=project_initial)
         ad_mode = self.window.controller.chat.attachment.get_mode()
         if ad_context:
             self.context.prompt += f"\n\n{ad_context}"  # append to input text
             if (ad_mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT
-                    or self.mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]):
+                    or self.mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2]):
                 ctx.hidden_input = ad_context  # store for future use, only if query context
                 # if full context or summary, then whole extra context will be applied to current input

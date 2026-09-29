@@ -10,7 +10,10 @@
 # ================================================== #
 
 from __future__ import annotations
-from typing import Any, Dict, Tuple, Optional, List
+from typing import Any, Dict, Tuple, Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from agents import TResponseInputItem
 
 from pygpt_net.core.types import AGENT_TYPE_OPENAI, AGENT_MODE_OPENAI
 from pygpt_net.item.ctx import CtxItem
@@ -20,13 +23,9 @@ from pygpt_net.item.preset import PresetItem
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
 
-from agents import TResponseInputItem
 
 from ..base import BaseAgent
 
-from pygpt_net.core.agents.custom.logging import NullLogger, StdLogger
-from pygpt_net.core.agents.custom.runner import FlowOrchestrator
-from pygpt_net.core.agents.custom.utils import make_option_getter
 
 
 class Agent(BaseAgent):
@@ -49,6 +48,10 @@ class Agent(BaseAgent):
         use_partial_ctx: Optional[bool] = False,
         schema: Optional[list] = None,
     ) -> Tuple[CtxItem, str, str]:
+        from pygpt_net.core.agents.custom.logging import NullLogger, StdLogger
+        from pygpt_net.core.agents.custom.runner import FlowOrchestrator
+        from pygpt_net.core.agents.custom.utils import make_option_getter
+
         agent_kwargs = agent_kwargs or {}
         messages = messages or []
 
@@ -58,6 +61,7 @@ class Agent(BaseAgent):
         function_tools: list = agent_kwargs.get("function_tools", [])
 
         base_prompt = self.get_option(preset, "base", "prompt")
+        system_prompt_extra = self.get_system_prompt_extra(agent_kwargs)
         allow_local_tools_default = bool(self.get_option(preset, "base", "allow_local_tools"))
         allow_remote_tools_default = bool(self.get_option(preset, "base", "allow_remote_tools"))
         max_iterations = int(self.get_option(preset, "base", "max_iterations") or agent_kwargs.get("max_iterations", 20))
@@ -81,6 +85,7 @@ class Agent(BaseAgent):
             stream=stream,
             use_partial_ctx=use_partial_ctx or False,
             base_prompt=base_prompt,
+            system_prompt_extra=system_prompt_extra,
             allow_local_tools_default=allow_local_tools_default,
             allow_remote_tools_default=allow_remote_tools_default,
             function_tools=function_tools,

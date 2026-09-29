@@ -59,7 +59,7 @@ class AgentFactoryLI:
             router_instr = build_router_instruction(agent_name, node.id, allowed_routes, friendly_map)
             instr = router_instr + "\n\n" + instr if instr else router_instr
 
-        node_tools = tools if (node_runtime.allow_local_tools or node_runtime.allow_remote_tools) else []
+        node_tools = tools if node_runtime.allow_local_tools else []
 
         # Prefer FunctionAgent if the underlying LLM supports function-calling (recommended by LI).
         # This yields more direct compliance with system_prompt for simple single-output tasks.
@@ -69,10 +69,7 @@ class AgentFactoryLI:
         except Exception:
             is_fc_model = False
 
-        if multi_output:
-            agent_cls = FunctionAgent  # routers: keep JSON compliance
-        else:
-            agent_cls = FunctionAgent if is_fc_model else ReActAgent
+        agent_cls = FunctionAgent if is_fc_model else ReActAgent
 
         kwargs: Dict[str, Any] = {
             "name": agent_name,

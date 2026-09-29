@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.17 19:20:00
 # ================================================== #
 
 import os
@@ -107,7 +107,7 @@ class Body:
             stylesheet += "pre { color: #000; }"
 
         stylesheet += """
-          body {max-width: 100%; } 
+          body { max-width: 100%; font-size: 0.9rem; } 
           pre { margin-top: 0; margin-bottom: 0.25rem; } 
           a:hover { cursor: pointer; }
           .output-image { max-width: 100%; height: auto; }
@@ -122,7 +122,7 @@ class Body:
         """
         classes = []
         classes_str = ""
-        style = self.window.core.config.get("theme.style", "blocks")
+        style = self.window.core.config.get("theme.style", "standard")
         if self.window.core.config.get('render.blocks'):
             classes.append("display-blocks")
         if self.window.core.config.get('ctx.edit_icons'):
@@ -170,35 +170,42 @@ class Body:
                 bridge.log(text);
             }
         }
-        function sanitize(content) {
-            var parser = new DOMParser();
-            var doc = parser.parseFromString(content, "text/html");
-            var codeElements = doc.querySelectorAll('code, pre');
-            codeElements.forEach(function(element) {
-                var html = element.outerHTML;
-                var newHtml = html.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;');
-                element.outerHTML = newHtml;
-            });
-            return doc.documentElement.outerHTML;
-        }
         function highlightCode() {
             document.querySelectorAll('pre code').forEach(el => {
                 if (!el.classList.contains('hljs')) hljs.highlightElement(el);
             });
         }
+        function scrollCodeBlockToBottom(target) {
+            if (!target) {
+                return;
+            }
+            const pre = target.tagName === 'PRE' ? target : target.closest('pre');
+            if (!pre) {
+                return;
+            }
+            const apply = function() {
+                pre.scrollTop = pre.scrollHeight;
+            };
+            apply();
+            requestAnimationFrame(apply);
+        }
         function scrollToBottom() {
-            getScrollPosition();  // store using bridge
+            // Always follow interpreter output. Do not depend on the previous
+            // stored position: on initial restore it may already equal the
+            // document height even though the view itself is still at the top.
             if (scrollTimeout !== null) {
                 return;
             }
-            if (document.body.scrollHeight > prevScroll) {
-                scrollTimeout = setTimeout(function() {
-                    window.scrollTo(0, document.body.scrollHeight);
-                    prevScroll = document.body.scrollHeight;
-                    getScrollPosition();  // store using bridge
-                    scrollTimeout = null;
-                }, 30);
-            }
+            scrollTimeout = setTimeout(function() {
+                const height = Math.max(
+                    document.body ? document.body.scrollHeight : 0,
+                    document.documentElement ? document.documentElement.scrollHeight : 0
+                );
+                window.scrollTo(0, height);
+                prevScroll = height;
+                getScrollPosition();  // store using bridge
+                scrollTimeout = null;
+            }, 30);
         }
         
         // ----------------------------------
@@ -210,11 +217,14 @@ class Body:
                 pre.classList.add('type-' + type);
                 const code = document.createElement('code');
                 code.classList.add('language-python');
-                code.innerHTML = sanitize(content);
+                code.textContent = content;
                 pre.appendChild(code);
                 element.appendChild(pre);
             }
             highlightCode();
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
+            }
             scrollToBottom();
         }
         function replaceOutput(content) {
@@ -225,11 +235,14 @@ class Body:
                 const pre = document.createElement('pre');
                 const code = document.createElement('code');
                 code.classList.add('language-python');
-                code.innerHTML = sanitize(content);
+                code.textContent = content;
                 pre.appendChild(code);
                 element.appendChild(pre);
             }
             highlightCode();
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
+            }
             scrollToBottom();
         }
         function beginOutput(type) {
@@ -255,21 +268,31 @@ class Body:
                     }
                 }
             }
-            highlightCode()
+            highlightCode();
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
+            }
         }
         function appendToOutput(content) {
             const element = document.getElementById('_append_output_');
             if (element) {
-                const nodes = element.querySelectorAll('pre code');
-                if (nodes.length === 0) {
-                    appendBegin();
-                    const pre = document.querySelector('pre');
-                    const code = pre.querySelector('code');
-                    code.innerHTML = content;
-                } else {
-                    const last = nodes[nodes.length - 1];
-                    last.innerHTML += content;
+                let pre = element.lastElementChild;
+                let code = pre && pre.tagName === 'PRE' ? pre.querySelector('code') : null;
+                if (!code) {
+                    beginOutput('stdout');
+                    code = element.lastElementChild.querySelector('code');
                 }
+                // Append only the delta; innerHTML += reparses the complete
+                // output on every chunk and destroys highlighted child nodes.
+                const tail = code.lastChild;
+                if (tail && tail.nodeType === Node.TEXT_NODE) {
+                    tail.appendData(content);
+                } else {
+                    code.appendChild(document.createTextNode(content));
+                }
+            }
+            if (element) {
+                scrollCodeBlockToBottom(element.lastElementChild);
             }
             scrollToBottom();
         }
@@ -283,9 +306,11 @@ class Body:
                 img.classList.add('output-image');
                 img.alt = 'Output Image';
                 img.title = 'Output Image';
+                img.addEventListener('load', scrollToBottom, {once: true});
                 a.appendChild(img);
                 element.appendChild(a);
             }
+            scrollToBottom();
         }
         
         function clearOutput() {

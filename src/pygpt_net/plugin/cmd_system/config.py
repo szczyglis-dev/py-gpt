@@ -6,10 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.23 07:00:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
+from pygpt_net.core.sandbox import BUILTIN_OS_PACKAGES, builtin_packages_to_text
+
+
+from .dockerfile import SYSTEM_DOCKERFILE
+from .sandbox import SandboxMode
 
 
 class Config(BaseConfig):
@@ -23,12 +28,7 @@ class Config(BaseConfig):
 
         :param plugin: plugin instance
         """
-        dockerfile = 'FROM python:3.9-alpine'
-        dockerfile += '\n\n'
-        dockerfile += 'RUN mkdir /data'
-        dockerfile += '\n\n'
-        dockerfile += '# Data directory, bound as a volume to the local \'data/\' directory'
-        dockerfile += '\nWORKDIR /data'
+        dockerfile = SYSTEM_DOCKERFILE
 
         volumes_keys = {
             "enabled": "bool",
@@ -38,7 +38,7 @@ class Config(BaseConfig):
         volumes_items = [
             {
                 "enabled": True,
-                "docker": "/data",
+                "docker": "/mnt/data",
                 "host": "{workdir}",
             },
         ]
@@ -49,14 +49,33 @@ class Config(BaseConfig):
         }
         ports_items = []
 
-        # Sandbox / sys_exec (original)
         plugin.add_option(
-            "sandbox_docker",
+            "sandbox",
+            type="combo",
+            value=SandboxMode.DISABLED.value,
+            label="Sandbox",
+            description="Disabled runs system commands directly on the host (unsafe). Built-in runs commands in a dedicated uv-managed CPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option. The system-command whitelist/blacklist applies in every execution mode.",
+            keys=SandboxMode.options(),
+            tab="general",
+        )
+        plugin.add_option(
+            "builtin_packages",
+            type="textarea",
+            value=builtin_packages_to_text(BUILTIN_OS_PACKAGES),
+            label="Packages to install",
+            description="Python package requirements installed in the Built-in sandbox used by the System / OS plugin. Enter one package specification per line. Re-create the Built-in venv to apply changes immediately; otherwise it will be recreated automatically on the next Built-in sandbox use.",
+            tab="builtin_sandbox",
+        )
+
+        # Sandbox options
+        plugin.add_option(
+            "docker_run_as_root",
             type="bool",
             value=False,
-            label="Sandbox (docker container)",
-            description="Executes commands in sandbox (docker container). "
-                        "Docker must be installed and running.",
+            label="Run as root",
+            description="Run the Docker sandbox as root. When disabled, the stock sandbox image runs as the "
+                        "unprivileged 'pygpt' user and passwordless sudo can be used for commands that require "
+                        "root privileges.",
             tab="sandbox",
         )
         plugin.add_option(
@@ -120,9 +139,19 @@ class Config(BaseConfig):
             description="Automatically append current working directory to sys_exec command",
             tab="general",
         )
+        plugin.add_option(
+            "attach_output",
+            type="bool",
+            value=True,
+            label="Connect to the Python interpreter window",
+            description="Attach sys_exec command input/output to the Python interpreter window.",
+            tab="general",
+        )
         plugin.add_cmd(
             "sys_exec",
             instruction="execute ANY system command, script or app in user's environment. "
+                        "Execution is non-interactive: do not run commands that prompt or wait for stdin; pass all "
+                        "required answers/options in the command itself. "
                         "Do not use this command to install Python libraries, use IPython environment and IPython commands instead.",
             params=[
                 {
@@ -133,7 +162,7 @@ class Config(BaseConfig):
                 },
             ],
             enabled=True,
-            description="Allows system commands execution",
+            description="Allows system command execution through the selected backend. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="general",
         )
 

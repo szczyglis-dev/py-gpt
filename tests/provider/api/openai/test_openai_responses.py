@@ -41,7 +41,14 @@ def dummy_window():
     window.core = SimpleNamespace()
     window.core.config = SimpleNamespace()
     window.core.config.get = lambda key, default=None: config_dict.get(key, default)
+    window.core.llm = SimpleNamespace()
+    window.core.llm.get_config = lambda provider, key, default=None: (
+        config_dict.get("api_use_responses", default)
+        if provider == "openai" and key == "responses_api"
+        else default
+    )
     window.core.api = SimpleNamespace()
+    window.core.api.logger = SimpleNamespace(log_input=MagicMock(), log_output=MagicMock())
     window.core.api.openai = SimpleNamespace()
     window.core.api.openai.get_client = MagicMock()
     window.core.api.openai.tools = SimpleNamespace()
@@ -54,9 +61,13 @@ def dummy_window():
     window.core.api.openai.audio = SimpleNamespace()
     window.core.api.openai.audio.build_content = MagicMock(side_effect=lambda content, multimodal_ctx: "audio_" + content)
     window.core.api.openai.computer = SimpleNamespace()
-    window.core.api.openai.computer.handle_action = MagicMock(return_value=(["dummy_tool_call"], True))
+    window.core.api.openai.computer.get_actions = MagicMock(side_effect=lambda item: list(getattr(item, "actions", None) or ([getattr(item, "action")] if getattr(item, "action", None) is not None else [])))
+    window.core.api.openai.computer.handle_actions = MagicMock(return_value=(["dummy_tool_call"], True))
+    window.core.api.openai.computer.store_pending_safety_checks = MagicMock()
     window.core.api.openai.container = SimpleNamespace()
     window.core.api.openai.container.download_files = MagicMock()
+    window.core.models = SimpleNamespace()
+    window.core.models.get_reasoning_effort = MagicMock(return_value=None)
     window.core.tokens = SimpleNamespace()
     window.core.tokens.from_messages = MagicMock(return_value=5)
     window.core.tokens.from_user = MagicMock(return_value=10)
@@ -64,6 +75,11 @@ def dummy_window():
     window.core.ctx.get_history = MagicMock(return_value=[])
     window.core.ctx.get_current_meta = MagicMock(return_value=None)
     window.core.ctx.save = MagicMock()
+    window.core.context_manager = SimpleNamespace(
+        mark_request_generation=MagicMock(),
+        enabled=MagicMock(return_value=False),
+        should_break_server_chain=MagicMock(return_value=False),
+    )
     window.core.attachments = SimpleNamespace()
     window.core.attachments.native = SimpleNamespace()
     window.core.attachments.native.get_refs = MagicMock(return_value=[])
@@ -72,6 +88,8 @@ def dummy_window():
     window.core.command.unpack_tool_calls_chunks = MagicMock()
     window.core.image = SimpleNamespace()
     window.core.image.gen_unique_path = MagicMock(return_value="dummy_image.png")
+    window.core.filesystem = SimpleNamespace()
+    window.core.filesystem.materialize_runtime_artifact = MagicMock()
     window.core.debug = SimpleNamespace()
     window.core.debug.info = MagicMock()
     window.core.debug.error = MagicMock()
@@ -271,14 +289,16 @@ def test_is_enabled(responses_instance, dummy_window, dummy_model):
     dummy_window.controller.agent.legacy.enabled = MagicMock(return_value=True)
     dummy_window.core.config.get = lambda key, default=None: False if key == "agent.api_use_responses" else True
     res = responses_instance.is_enabled(dummy_model, MODE_CHAT, MODE_CHAT, is_expert_call=False)
-    assert res is False
-    dummy_window.controller.agent.experts.enabled = MagicMock(return_value=True)
+    assert res is True
+    dummy_window.controller.agent.legacy.enabled = MagicMock(return_value=False)
+    # Expert manager requests use the global Responses setting. Legacy
+    # experts.* transport switches no longer gate this code path.
     dummy_window.core.config.get = lambda key, default=None: False if key == "experts.api_use_responses" else True
     res = responses_instance.is_enabled(dummy_model, MODE_CHAT, MODE_CHAT, is_expert_call=False)
-    assert res is False
+    assert res is True
     dummy_window.core.config.get = lambda key, default=None: False if key == "experts.internal.api_use_responses" else True
     res = responses_instance.is_enabled(dummy_model, MODE_CHAT, MODE_CHAT, is_expert_call=True)
-    assert res is False
+    assert res is True
     preset = PresetItem()
     preset.remote_tools = ["tool"]
     res = responses_instance.is_enabled(dummy_model, MODE_CHAT, MODE_CHAT, is_expert_call=True, preset=preset)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Dict, List
@@ -41,6 +41,44 @@ class Tools:
         """Reload tools"""
         pass
 
+    def _confirm_sandbox_rebuild(self, dialog_type: str):
+        self.window.ui.dialogs.confirm(
+            type=dialog_type,
+            id="",
+            msg=trans("confirm.tools.sandbox.rebuild"),
+            modal=True,
+        )
+
+    def rebuild_ipython_docker(self, force: bool = False):
+        if not force:
+            self._confirm_sandbox_rebuild("tools.sandbox.rebuild.ipython_docker")
+            return
+        self.window.core.plugins.get("cmd_code_interpreter").builder.build_and_restart()
+
+    def rebuild_python_legacy_docker(self, force: bool = False):
+        if not force:
+            self._confirm_sandbox_rebuild("tools.sandbox.rebuild.python_legacy_docker")
+            return
+        self.window.core.plugins.get("cmd_code_interpreter").docker.build_and_restart()
+
+    def rebuild_system_docker(self, force: bool = False):
+        if not force:
+            self._confirm_sandbox_rebuild("tools.sandbox.rebuild.system_docker")
+            return
+        self.window.core.plugins.get("cmd_system").docker.build_and_restart()
+
+    def rebuild_python_builtin(self, force: bool = False):
+        if not force:
+            self._confirm_sandbox_rebuild("tools.sandbox.rebuild.python_builtin")
+            return
+        self.window.core.plugins.get("cmd_code_interpreter").rebuild_builtin_sandbox()
+
+    def rebuild_system_builtin(self, force: bool = False):
+        if not force:
+            self._confirm_sandbox_rebuild("tools.sandbox.rebuild.system_builtin")
+            return
+        self.window.core.plugins.get("cmd_system").rebuild_builtin_sandbox()
+
     def open_tab(self, type: int):
         """
         Open first tab by type
@@ -49,7 +87,7 @@ class Tools:
         """
         idx = self.window.core.tabs.get_min_idx_by_type(type)
         if idx is not None:
-            self.window.controller.ui.tabs.switch_tab_by_idx(idx)
+            self.window.controller.tabs.switch_tab_by_idx(idx)
 
     def append_tab_menu(
             self,
@@ -75,6 +113,13 @@ class Tools:
             tool = tools[id]
             if not tool.has_tab:
                 continue
+            # Do not offer an action that cannot create anything. Single-instance
+            # tools (e.g. Canvas, Agent Workflow and Python/OS) disappear from
+            # Add tool as soon as their application-wide tab already exists.
+            if getattr(tool, "single_instance", False):
+                existing = self.window.controller.tabs.get_first_tab_by_tool(id)
+                if existing is not None:
+                    continue
             icon = tool.tab_icon
             title = trans(tool.tab_title)
             if hasattr(parent, 'add_tab'):

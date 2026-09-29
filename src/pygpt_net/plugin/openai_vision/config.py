@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 17:30:00                  #
+# Updated Date: 2026.09.10 09:50:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -33,13 +33,12 @@ class Config(BaseConfig):
             type="combo",
             use="models",
             use_params={
-                "mode": ["chat"],
                 "input": ["image"],
             },
             value="gpt-4o",
             label="Model",
-            description="Image-capable Chat model used temporarily for vision analysis. "
-                        "It can use any supported provider; default: gpt-4o",
+            description="Image-capable model used temporarily for vision analysis. "
+                        "Availability is determined by Image input support; default: gpt-4o",
             tooltip="Model",
         )
         plugin.add_option(

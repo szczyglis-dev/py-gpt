@@ -141,6 +141,11 @@ class Loop(BaseRunner):
             return True  # abort if stopped
 
         score = int(score)
+        if score < 0:
+            self.send_response(ctx, signals, KernelEvent.APPEND_END)
+            self.set_idle(signals)
+            return True
+
         msg = "{score_label}: {score}%".format(
             score_label=trans('eval.score'),
             score=str(score)
@@ -150,10 +155,6 @@ class Loop(BaseRunner):
         if self.is_verbose():
             print("[Evaluation] Score:", score)
 
-        if score < 0:
-            self.send_response(ctx, signals, KernelEvent.APPEND_END)
-            self.set_idle(signals)
-            return True
         good_score = self.window.core.config.get("agent.llama.loop.score", 75)
         if self.is_verbose():
             print("[Evaluation] Score needed:", good_score)
@@ -192,12 +193,20 @@ class Loop(BaseRunner):
         self.send_response(step_ctx, signals, KernelEvent.APPEND_DATA)
 
         # call next run
-        context = BridgeContext()
-        context.ctx = step_ctx
-        context.history = self.window.core.ctx.all(meta_id=ctx.meta.id)
-        context.prompt = instruction  # use instruction as prompt
         preset = self.window.controller.presets.get_current()
-        context.preset = preset
+        model = self.window.core.models.get(ctx.model)
+        if model is None:
+            model = self.window.core.models.get(self.window.core.config.get('model'))
+        context = BridgeContext(
+            ctx=step_ctx,
+            history=self.window.core.ctx.all(meta_id=ctx.meta.id),
+            mode=ctx.mode,
+            model=model,
+            preset=preset,
+            prompt=instruction,
+            stream=bool(self.window.core.config.get("stream", False)),
+            system_prompt=getattr(ctx, "agents_v2_system_prompt", "") or "",
+        )
         extra = {
             "agent_idx": preset.idx,
             "agent_provider": preset.agent_provider,
@@ -207,7 +216,6 @@ class Loop(BaseRunner):
         if self.is_verbose():
             print("[Evaluation] Instruction:", instruction)
             print("[Evaluation] Running next step...")
-        context.model = self.window.core.models.get(self.window.core.config.get('model'))
         return self.window.core.agents.runner.call(context, extra, signals)
 
     def is_verbose(self) -> bool:

@@ -246,7 +246,7 @@ def _splash_main(conn, title="PyGPT", message="Loading…"):
         lbl_logo.setAlignment(QtCore.Qt.AlignCenter)
         try:
             logo_path = os.path.abspath(
-                os.path.join(Config().get_app_path(), "data", "logo.png")
+                os.path.join(Config().get_app_path(), "data", "logo_splash.png")
             )
             logo_pixmap = QtGui.QPixmap(logo_path)
             if not logo_pixmap.isNull():

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 17:00:00                  #
+# Updated Date: 2026.09.05 13:54:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List, Optional
@@ -43,6 +43,7 @@ class OpenAIWorkflow(BaseRunner):
             history: List[CtxItem] = None,
             stream: bool = False,
             schema: Optional[List] = None,
+            workflow_bridge: Any = None,
     ) -> bool:
         """
         Run OpenAI agents
@@ -60,12 +61,38 @@ class OpenAIWorkflow(BaseRunner):
         :return: True if success
         """
         if self.is_stopped():
+            if workflow_bridge is not None:
+                workflow_bridge.stop()
             return True  # abort if stopped
 
         if "llm" in agent_kwargs:
             agent_kwargs["llm"] = None  # clear llm if provided, as it is not used in OpenAI workflow
 
         self.set_busy(signals)
+
+        def sync_workflow_agent(item: CtxItem):
+            if workflow_bridge is None or item is None:
+                return
+            try:
+                name = item.get_agent_name()
+            except Exception:
+                name = None
+            if name:
+                workflow_bridge.agent_running(name)
+
+        if workflow_bridge is not None:
+            workflow_bridge.status("running_task")
+
+        # A number of OpenAI agent providers emit an empty ``on_step`` before
+        # starting a request only to prepare the next agent/header.  That is not
+        # response data and must not hide the global loading indicator.  Keep a
+        # small per-run state so the loader stays visible until the first real
+        # payload from every agent/step.
+        response_state = {"waiting": True}
+
+        def set_waiting():
+            response_state["waiting"] = True
+            self.set_busy(signals)
 
         # append input to messages
         context = agent_kwargs.get("context", BridgeContext())
@@ -86,7 +113,16 @@ class OpenAIWorkflow(BaseRunner):
             :param ctx: CtxItem
             :param begin: whether this is the first step
             """
-            self.send_stream(ctx, signals, begin)
+            sync_workflow_agent(ctx)
+            chunk = ctx.stream if isinstance(ctx.stream, str) else ""
+            if not chunk.strip():
+                # Empty pre-flight steps are used by multi-agent providers to
+                # set the next agent name.  They are not response data.
+                return
+
+            first_data = response_state["waiting"]
+            self.send_stream(ctx, signals, begin or first_data)
+            response_state["waiting"] = False
 
         def on_stop(ctx: CtxItem):
             """
@@ -94,6 +130,8 @@ class OpenAIWorkflow(BaseRunner):
 
             :param ctx: CtxItem
             """
+            if workflow_bridge is not None:
+                workflow_bridge.stop()
             self.set_idle(signals)
             self.end_stream(ctx, signals)
 
@@ -109,9 +147,11 @@ class OpenAIWorkflow(BaseRunner):
             :param ctx: CtxItem
             :param wait: if True, flush current output to before buffer and clear current buffer
             """
+            sync_workflow_agent(ctx)
             ctx.stream = "\n"
             self.send_stream(ctx, signals, False)
             self.next_stream(ctx, signals)
+            set_waiting()
 
         def on_next_ctx(
                 ctx: CtxItem,
@@ -132,6 +172,7 @@ class OpenAIWorkflow(BaseRunner):
             :param stream: is streaming enabled
             :return: CtxItem - the next context item in the cycle
             """
+            sync_workflow_agent(ctx)
             # finish current stream
             ctx.stream = "\n"
             ctx.extra["agent_output"] = True  # allow usage in history
@@ -163,6 +204,12 @@ class OpenAIWorkflow(BaseRunner):
                 next_ctx.extra["agent_finish_evaluate"] = True  # mark as feedback response (ignored in loop evaluation)
 
             self.send_response(next_ctx, signals, KernelEvent.APPEND_DATA)
+            if not finish:
+                # APPEND_DATA finalizes/renders the previous partial context and
+                # its normal chat pipeline emits STATE_IDLE.  Re-enter BUSY
+                # afterwards because the workflow is already waiting for the
+                # next agent/step.
+                set_waiting()
             return next_ctx
 
         def on_error(error: Any):
@@ -171,6 +218,8 @@ class OpenAIWorkflow(BaseRunner):
 
             :param error: Exception raised during processing
             """
+            if workflow_bridge is not None:
+                workflow_bridge.fail(error)
             self.set_idle(signals)
             self.set_error(error)
 
@@ -183,6 +232,7 @@ class OpenAIWorkflow(BaseRunner):
             on_error=on_error,
             on_next=on_next,
             on_next_ctx=on_next_ctx,
+            workflow=workflow_bridge,
         )
         run_kwargs = {
             "window": self.window,
@@ -200,11 +250,12 @@ class OpenAIWorkflow(BaseRunner):
         if schema:
             run_kwargs["schema"] = schema
 
-        # split response messages to separated context items
-        run_kwargs["use_partial_ctx"] = self.window.core.config.get("agent.openai.response.split", True)
+        # Legacy OpenAI workflow always stores split response messages.
+        run_kwargs["use_partial_ctx"] = True
 
         # run agent
         ctx, output, response_id = await run(**run_kwargs)
+        sync_workflow_agent(ctx)
 
         if not ctx.partial or self.is_stopped():
             response_ctx = self.make_response(ctx, prompt, output, response_id)
@@ -212,6 +263,11 @@ class OpenAIWorkflow(BaseRunner):
         else:
             ctx.partial = False  # last part, not partial anymore
 
+        if workflow_bridge is not None:
+            if self.is_stopped():
+                workflow_bridge.stop()
+            else:
+                workflow_bridge.finish(output)
         self.set_idle(signals)
         return True
 
@@ -242,11 +298,5 @@ class OpenAIWorkflow(BaseRunner):
 
         if ctx.agent_final_response:  # only if not empty
             response_ctx.extra["output"] = ctx.agent_final_response
-
-        # if there are tool outputs, img, files, append it to the response context
-        if ctx.use_agent_final_response:
-            self.window.core.agents.tools.append_tool_outputs(response_ctx)
-        else:
-            self.window.core.agents.tools.extract_tool_outputs(response_ctx)
 
         return response_ctx

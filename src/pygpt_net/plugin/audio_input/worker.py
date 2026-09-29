@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import os.path
@@ -16,6 +16,7 @@ import audioop
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
@@ -73,9 +74,9 @@ class Worker(BaseWorker):
                     and not provider.should_keep_model_in_memory()
                     and hasattr(provider, "release_model")):
                 provider.release_model()
-            self.signals.model_ready.emit(model_name)
+            safe_emit(self.signals, "model_ready", model_name)
         except Exception as e:
-            self.signals.model_prepare_failed.emit(str(e))
+            safe_emit(self.signals, "model_prepare_failed", str(e))
             raise
 
     def handle_file(self):
@@ -85,7 +86,7 @@ class Worker(BaseWorker):
             if os.path.exists(self.path):
                 transcript = self.plugin.get_provider().transcribe(self.path)
                 if transcript is not None and transcript.strip() != '':
-                    self.signals.transcribed.emit(self.path, transcript)
+                    safe_emit(self.signals, "transcribed", self.path, transcript)
                 else:
                     self.status('Error: No transcript.')
         except Exception as e:
@@ -103,10 +104,10 @@ class Worker(BaseWorker):
                 self.status(trans('audio.speak.wait'))
 
                 # if multimodal audio, then only return path to audio file and do not transcribe
-                tab = self.window.controller.ui.tabs.get_current_tab()
+                tab = self.window.controller.tabs.get_current_tab()
                 if tab.type == Tab.TAB_CHAT:
                     if self.plugin.window.controller.chat.audio.enabled():
-                        self.signals.on_realtime.emit(self.path)
+                        safe_emit(self.signals, "on_realtime", self.path)
                         self.status('')
                         return
 

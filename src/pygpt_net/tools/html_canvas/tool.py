@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.05 21:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import os
@@ -16,6 +16,7 @@ from PySide6.QtCore import QTimer, Slot
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog, QWidget
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
 from pygpt_net.tools.base import BaseTool, TabWidget
@@ -45,6 +46,7 @@ class HtmlCanvas(BaseTool):
         self.is_edit = False
         self.auto_opened = False
         self.file_output = ".canvas.html"
+        self._base_dir = None
         self.signals = ToolSignals()
 
     def setup(self):
@@ -109,6 +111,12 @@ class HtmlCanvas(BaseTool):
         """
         return os.path.join(self.window.core.config.get_user_dir("tmp"), self.file_output)
 
+    def get_base_dir(self) -> str:
+        """Return the host data directory used to resolve relative canvas assets."""
+        if self._base_dir:
+            return self._base_dir
+        return self.window.core.filesystem.get_data_dir()
+
     def get_dialog_id(self) -> str:
         """
         Get dialog ID
@@ -117,18 +125,21 @@ class HtmlCanvas(BaseTool):
         """
         return self.dialog_id
 
-    def set_output(self, output: str):
+    def set_output(self, output: str, base_dir: str = None):
         """
-        Set output HTML
+        Set output HTML.
 
         :param output: Output HTML code
+        :param base_dir: Host data directory used for relative canvas assets
         """
+        if base_dir:
+            self._base_dir = os.path.abspath(str(base_dir))
         path = self.get_current_path()
         with open(path, "w", encoding="utf-8") as f:
             f.write(output)
         if os.path.exists(path):
-            self.signals.reload.emit(path)
-        self.signals.update.emit(output)
+            safe_emit(self.signals, "reload", path)
+        safe_emit(self.signals, "update", output)
 
     def set_url(self, url: str):
         """
@@ -136,7 +147,7 @@ class HtmlCanvas(BaseTool):
 
         :param url: URL to load
         """
-        self.signals.url.emit(url)
+        safe_emit(self.signals, "url", url)
 
     def reload_output(self):
         """Reload output data"""
@@ -219,20 +230,20 @@ class HtmlCanvas(BaseTool):
 
         :param load: Load output data
         """
-        if self.window.controller.ui.tabs.is_current_tool(self.id):
-            tool_col = self.window.controller.ui.tabs.get_tool_column(self.id)
-            current_col = self.window.controller.ui.tabs.column_idx
+        if self.window.controller.tabs.is_current_tool(self.id):
+            tool_col = self.window.controller.tabs.get_tool_column(self.id)
+            current_col = self.window.controller.tabs.get_current_column_idx()
             if tool_col == 1 and tool_col != current_col:
-                self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                self.window.controller.tabs.enable_split_screen(True)  # enable split screen
             return # do not open if already opened in tab
-        elif self.window.controller.ui.tabs.is_tool(self.id):
-            tab = self.window.controller.ui.tabs.get_first_tab_by_tool(self.id)
+        elif self.window.controller.tabs.is_tool(self.id):
+            tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
             if tab:
                 tool_col = tab.column_idx
-                current_col = self.window.controller.ui.tabs.column_idx
-                self.window.controller.ui.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
+                current_col = self.window.controller.tabs.get_current_column_idx()
+                self.window.controller.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
                 if tool_col == 1 and tool_col != current_col:
-                    self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                    self.window.controller.tabs.enable_split_screen(True)  # enable split screen
                 return
         if not self.auto_opened:
             self.auto_opened = True

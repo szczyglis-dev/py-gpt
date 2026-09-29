@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.09.27 22:10:00                  #
 # ================================================== #
 
 from typing import Optional, List, Union
+import copy
+import time
 
 from PySide6.QtCore import QModelIndex, QTimer
 from PySide6.QtGui import QStandardItem
@@ -115,9 +117,16 @@ class Ctx:
         else:
             id = core.config.get('ctx')
             if id is not None:
-                # Keep previously selected id; if it's not in the current page
-                # we will inject a placeholder into the list (see update_list).
-                core.ctx.set_current(id)
+                # Keep a previously selected context even when it is outside
+                # the paginated list, but verify that it actually belongs to
+                # the database active for this profile. get_meta_by_id() can
+                # lazily load an off-page meta; a stale profile-local ID must
+                # never survive a profile/workdir switch as the current ctx.
+                meta = core.ctx.get_meta_by_id(id)
+                if meta is not None:
+                    core.ctx.set_current(id)
+                else:
+                    core.ctx.set_current(core.ctx.get_first())
             else:
                 core.ctx.set_current(core.ctx.get_first())
 
@@ -206,9 +215,29 @@ class Ctx:
         :param id: context meta id
         :param force: force select
         """
-        prev_id = self.window.core.ctx.get_current()
-        self.window.core.ctx.set_current(id)
-        meta = self.window.core.ctx.get_meta_by_id(id)
+        core_ctx = self.window.core.ctx
+        prev_id = core_ctx.get_current()
+        meta = core_ctx.get_meta_by_id(id)
+
+        # A context that is already open owns a concrete chat tab. Navigate to
+        # that tab instead of loading the context into whichever chat tab is
+        # currently active. This also reveals the right split-screen column
+        # when the matching tab is open there but the column is hidden.
+        if meta is not None and self.window.controller.tabs.focus_chat_by_data_id(id):
+            # The normal tab-change handler synchronizes core.ctx. Keep a safe
+            # fallback for an unusual stale/unloaded tab state.
+            if core_ctx.get_current() != id:
+                self.load(id)
+            if prev_id != id or force:
+                self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
+            self.set_group(meta.group_id)
+            self.window.controller.chat.attachment.update()
+            self.window.controller.files.update_explorer(reload=True)
+            self.set_selected(id)
+            self.clean_memory()  # clean memory
+            return
+
+        core_ctx.set_current(id)
         if prev_id != id or force:
             self.load(id)
             self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
@@ -218,12 +247,16 @@ class Ctx:
 
         self.common.focus_chat(meta)
         self.window.controller.chat.attachment.update()
+        self.window.controller.files.update_explorer(reload=True)
         self.set_selected(id)
         self.clean_memory()  # clean memory
 
     def select_on_list_only(self, id: int):
         """
-        Select ctx by id only on list
+        Select ctx by id only on list.
+
+        This path is also used when a loaded chat tab becomes active, so keep
+        the Files tool synchronized with the newly selected context/project.
 
         :param id: context meta id
         """
@@ -235,6 +268,7 @@ class Ctx:
         self.reload_config(all=False)
         self.update(reload=False, all=True, select=False)
         self.set_selected(id)
+        self.window.controller.files.update_explorer(reload=True)
 
     def select_by_idx(self, idx: int):
         """
@@ -319,13 +353,15 @@ class Ctx:
     def new(
             self,
             force: bool = False,
-            group_id: Optional[Union[int, list]] = None
+            group_id: Optional[Union[int, list]] = None,
+            tab_pid: Optional[int] = None,
     ):
         """
         Create new ctx
 
         :param force: force context creation
         :param group_id: group ID
+        :param tab_pid: explicit chat tab PID that owns the new context
         """
         if not force and self.context_change_locked():
             return
@@ -351,8 +387,14 @@ class Ctx:
 
         meta = self.window.core.ctx.new(group_id)
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
-        self.update()
 
+        # Bind before the first render event. This makes a newly created context
+        # belong to the tab that requested it even if another widget receives
+        # focus while the UI is being refreshed.
+        if meta is not None and tab_pid is not None:
+            self.window.core.ctx.output.store(meta, pid=tab_pid)
+
+        self.update()
         self.fresh_output(meta)  # render reset
 
         if not force:
@@ -369,7 +411,12 @@ class Ctx:
         self.common.focus_chat(meta)
 
         if meta is not None:
-            self.window.controller.ui.tabs.update_title_current(meta.name)
+            if tab_pid is not None:
+                tab = self.window.core.tabs.get_tab_by_pid(tab_pid)
+                if tab is not None:
+                    self.window.controller.tabs.update_title_by_tab(tab, meta.name)
+            else:
+                self.window.controller.tabs.update_title_current(meta.name)
 
         self.window.dispatch(AppEvent(AppEvent.CTX_CREATED))
         self.select(meta.id)
@@ -473,11 +520,34 @@ class Ctx:
             restore_model,
         )
 
-    def refresh_output(self):
-        """Refresh output"""
+    def refresh_output(self, meta: Optional[CtxMeta] = None):
+        """
+        Refresh one chat output.
+
+        A renderer reload can be triggered while keyboard focus is in another
+        split-screen column (for example Code Interpreter).  In that case the
+        reload must use the meta that owns the response, not whichever context
+        happens to be globally/currently selected by the UI.
+
+        :param meta: Context meta to rebuild; current meta when omitted
+        """
+        core_ctx = self.window.core.ctx
+        if meta is None:
+            meta = core_ctx.get_current_meta()
+        if meta is None:
+            return
+
+        # Use the already loaded in-memory container only when it belongs to the
+        # requested meta. For an off-focus chat, load its full history directly
+        # without changing the globally selected context.
+        if core_ctx.get_current() == meta.id:
+            items = core_ctx.get_items()
+        else:
+            items = core_ctx.all(meta.id)
+
         data = {
-            "meta": self.window.core.ctx.get_current_meta(),
-            "items": self.window.core.ctx.get_items(),
+            "meta": meta,
+            "items": items,
             "clear": True,
         }
         event = RenderEvent(RenderEvent.CTX_APPEND, data)
@@ -489,7 +559,9 @@ class Ctx:
             restore_model: bool = True,
             select_idx: Optional[int] = None,
             new_tab: Optional[bool] = False,
-            no_fresh: bool = False
+            no_fresh: bool = False,
+            tab_pid: Optional[int] = None,
+            target_column_idx: Optional[int] = None,
     ):
         """
         Load ctx data
@@ -499,11 +571,48 @@ class Ctx:
         :param select_idx: select index on list after loading
         :param new_tab: open in new tab
         :param no_fresh: do not fresh output
+        :param tab_pid: explicit chat tab PID to bind/load into
+        :param target_column_idx: explicit destination column for ``new_tab``
         """
+        if self.context_change_locked():
+            request_meta = self.window.core.ctx.output.get_request_meta()
+            request_meta_id = getattr(request_meta, "id", None)
+            if request_meta_id is None or id != request_meta_id:
+                return
+
+        tabs_ctrl = self.window.controller.tabs
         if new_tab:
-            col_idx = self.window.controller.ui.tabs.column_idx
-            self.window.controller.ui.tabs.create_new_on_tab = False
-            self.window.controller.ui.tabs.new_tab(col_idx)
+            col_idx = (tabs_ctrl.get_current_column_idx()
+                       if target_column_idx is None else int(target_column_idx))
+            tab = tabs_ctrl.open_chat_context(id, col_idx)
+            if tab is not None:
+                tab_pid = tab.pid
+        elif tab_pid is None:
+            # Resolve a concrete chat before changing core.ctx or dispatching any
+            # render event. This removes focus-dependent routing from ctx.load().
+            tab = tabs_ctrl.get_preferred_chat_tab(target_column_idx)
+            if tab is None:
+                # Hard fallback: the UI normally keeps at least one chat tab,
+                # but loading a context must also be safe when that invariant is
+                # temporarily broken (restore/profile mutation/etc.). Create the
+                # destination deterministically in the first column and bind the
+                # requested context directly -- do not create an extra empty ctx.
+                tab = tabs_ctrl.open_chat_context(id, 0)
+            if tab is not None:
+                tab_pid = tab.pid
+                tabs_ctrl.bind_chat(tab, id)
+        else:
+            # Callers that already resolved the destination still go through the
+            # same binding step. The renderer must see meta -> PID before FRESH.
+            tab = self.window.core.tabs.get_tab_by_pid(tab_pid)
+            if tab is not None:
+                tabs_ctrl.bind_chat(tab, id)
+            elif tabs_ctrl.get_preferred_chat_tab(0) is None:
+                # Also recover from a stale explicit PID when no chat tab exists.
+                tab = tabs_ctrl.open_chat_context(id, 0)
+                if tab is not None:
+                    tab_pid = tab.pid
+                    tabs_ctrl.bind_chat(tab, id)
 
         self.window.core.ctx.clear_thread()
         self.window.core.ctx.select(id, restore_model=restore_model)
@@ -516,9 +625,12 @@ class Ctx:
 
         self.reload_config()
         self.update(reload=False, all=True)
+        # Loading a context can also happen from an output-tab switch. Keep
+        # the Files root/workdir in sync even when the ctx list was not clicked.
+        self.window.controller.files.update_explorer(reload=True)
 
         if meta is not None:
-            self.window.controller.ui.tabs.on_load_ctx(meta)
+            self.window.controller.tabs.on_load_ctx(meta, pid=tab_pid)
 
         if select_idx is not None:
             self.select(id)
@@ -548,7 +660,7 @@ class Ctx:
         self.update(reload=False, all=True)
 
         if meta is not None:
-            self.window.controller.ui.tabs.on_load_ctx(meta)
+            self.window.controller.tabs.on_load_ctx(meta)
 
     def reload_config(self, all: bool = True):
         """
@@ -561,6 +673,8 @@ class Ctx:
 
         thread = ctx.get_thread()
         mode = ctx.get_mode()
+        if mode is not None:
+            mode = ctrl.mode._normalize_mode(mode)
         model = ctx.get_model()
         assistant_id = ctx.get_assistant()
         preset = ctx.get_preset()
@@ -622,7 +736,6 @@ class Ctx:
             )
             return
         updated = False
-        updated_current = False
         ids = id if isinstance(id, list) else [id]
         for id in ids:
             try:
@@ -631,39 +744,24 @@ class Ctx:
                 self.window.core.debug.log(e)
                 print("Error deleting ctx data from indexes", e)
 
-            if self.window.core.ctx.get_current() == id:
-                items = self.window.core.ctx.all()  # TODO: get by meta id(s)
-                self.window.core.history.remove_items(items)
-                updated_current = True
             self.window.core.attachments.context.delete_by_meta_id(id)
             self.window.core.ctx.remove(id)
             self.remove_selected(id)
 
             if self.window.core.ctx.get_current() == id:
                 self.window.core.ctx.clear_current()
-                event = RenderEvent(RenderEvent.CLEAR_OUTPUT)
-                self.window.dispatch(event)
             updated = True
 
         if updated:
+            # Keep chat tabs whose contexts were deleted, but detach their
+            # bindings and clear their concrete outputs by PID. This works for
+            # single and bulk deletes without depending on active focus/column.
+            self.window.controller.tabs.detach_chat_contexts(ids)
             self.update_and_restore()
-            if updated_current:
-                self.window.controller.ui.tabs.update_title_current("...")
 
     def delete_meta_from_idx(self, id: int):
-        """
-        Delete meta from indexes
-
-        :param id: ctx meta id
-        """
-        meta = self.window.core.ctx.get_meta_by_id(id)
-        if meta is None:
-            return
-
-        if meta.indexed is not None and meta.indexed > 0:
-            for store_id in list(meta.indexes):
-                for idx in list(meta.indexes[store_id]):
-                    self.window.core.ctx.idx.remove_meta_from_indexed(store_id, id, idx)
+        """Delete every tracked vector document for a context meta."""
+        self.window.core.idx.remove_context_data(meta_id=int(id))
 
     def delete_item(
             self,
@@ -697,13 +795,13 @@ class Ctx:
             force: bool = False
     ):
         """
-        Delete an exact inclusive range of context items belonging to one
-        tool-call chain.
+        Delete an exact inclusive range belonging to one grouped response
+        sequence (tool-call chain or agent-output turn).
 
         Unlike remove_items_from(), this never touches messages after end_id.
 
-        :param start_id: first ctx item id in the chain
-        :param end_id: final response ctx item id in the chain
+        :param start_id: first ctx item id in the grouped sequence
+        :param end_id: final ctx item id in the grouped sequence
         :param force: force delete
         """
         if not force:
@@ -739,20 +837,65 @@ class Ctx:
                 has_request = "<tool>" in output and "</tool>" in output
             return has_request
 
-        # Validate the range at click time. This keeps stale or manually crafted
-        # extra-delete-chain URLs from deleting unrelated messages.
-        if start_index > 0 and is_tool_reply_transition(
-                items[start_index - 1],
-                items[start_index]
-        ):
-            return
-        for i in range(start_index, end_index):
-            if not is_tool_reply_transition(items[i], items[i + 1]):
-                return
-        if end_index + 1 < len(items) and is_tool_reply_transition(
-                items[end_index],
-                items[end_index + 1]
-        ):
+        def is_agent_turn_marker(item) -> bool:
+            extra = getattr(item, "extra", None)
+            if not isinstance(extra, dict):
+                return False
+            return bool(
+                extra.get("agent_output")
+                or extra.get("agent_input")
+                or extra.get("agent_step")
+            )
+
+        def is_user_turn(item) -> bool:
+            if item is None or getattr(item, "hidden", False) or getattr(item, "internal", False):
+                return False
+            value = getattr(item, "input", None)
+            return bool(value is not None and str(value).strip())
+
+        def is_exact_tool_chain() -> bool:
+            if start_index > 0 and is_tool_reply_transition(
+                    items[start_index - 1],
+                    items[start_index]
+            ):
+                return False
+            for i in range(start_index, end_index):
+                if not is_tool_reply_transition(items[i], items[i + 1]):
+                    return False
+            if end_index + 1 < len(items) and is_tool_reply_transition(
+                    items[end_index],
+                    items[end_index + 1]
+            ):
+                return False
+            return True
+
+        def is_exact_agent_sequence() -> bool:
+            # Renderer-generated agent deletion starts at the opening visible user
+            # row (or at item 0 for malformed legacy history without one) and ends
+            # immediately before the next visible user turn.
+            if not any(
+                    is_agent_turn_marker(items[i])
+                    for i in range(start_index, end_index + 1)
+            ):
+                return False
+
+            # No second visible user turn may exist inside the grouped range.
+            for i in range(start_index + 1, end_index + 1):
+                if is_user_turn(items[i]):
+                    return False
+
+            if not is_user_turn(items[start_index]) and start_index != 0:
+                return False
+
+            # Reject stale live footers: once another non-user item was appended,
+            # the old end_id is no longer the complete agent sequence.
+            if end_index + 1 < len(items) and not is_user_turn(items[end_index + 1]):
+                return False
+            return True
+
+        # Validate the requested range at click time. This keeps stale/manually
+        # crafted extra-delete-chain URLs from removing unrelated messages.
+        if not is_exact_tool_chain() and not is_exact_agent_sequence():
             return
 
         # Snapshot the exact range before modifying the underlying container.
@@ -779,15 +922,19 @@ class Ctx:
             return
 
         try:
-            self.window.core.idx.ctx.truncate()
+            # Remove conversation documents from every tracked vector store,
+            # while preserving file/external documents in the same indexes.
+            self.window.core.idx.remove_context_data()
+            # ctx_item IDs are reset below; old project cursors must not survive
+            # or new conversations could be skipped after IDs start from 1.
+            self.window.core.idx.project.clear_states()
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Error truncating ctx index db", e)
+            print("Error cleaning context index data", e)
 
         self.group_id = None
         self.unselect()
         self.window.core.ctx.truncate()
-        self.window.core.history.truncate()
         self.window.core.attachments.context.truncate()
         self.clear_selected()
         self.update()
@@ -808,15 +955,18 @@ class Ctx:
             return
 
         try:
-            self.window.core.idx.ctx.truncate()
+            # First remove whole project indexes while idx_ctx still tells us
+            # which vector-store backend each virtual project index belongs to.
+            # Then remove the remaining conversation documents from global indexes.
+            self.window.core.idx.truncate_projects()
+            self.window.core.idx.remove_context_data()
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Error truncating ctx index db", e)
+            print("Error cleaning context/project index data", e)
 
         self.group_id = None
         self.unselect()
         self.window.core.ctx.truncate()
-        self.window.core.history.truncate()
         self.window.core.ctx.truncate_groups()
         self.window.core.attachments.context.truncate()
         self.clear_selected()
@@ -947,13 +1097,19 @@ class Ctx:
         else:
             self.update(reload=True, all=False, no_scroll=True)
 
+        tabs_changed = False
         for id in ctx_id:
             if id not in self.window.core.ctx.get_meta():
                 continue
             meta = self.window.core.ctx.get_meta_by_id(id)
             if meta is not None:
-                if id == self.window.core.ctx.get_current():
-                    self.window.controller.ui.tabs.update_title_current(meta.name)
+                if self.window.controller.tabs.sync_chat_titles(meta.id):
+                    tabs_changed = True
+
+        if tabs_changed:
+            # Context summaries/renames are durable metadata. Keep every open
+            # non-custom chat tab in sync and persist the labels immediately.
+            self.window.core.tabs.save()
 
     def update_name_current(self, name: str):
         """
@@ -1039,7 +1195,10 @@ class Ctx:
 
         :return: True if locked
         """
-        return self.window.controller.chat.input.generating
+        return (
+            self.window.controller.chat.input.generating
+            or self.window.core.ctx.output.has_request()
+        )
 
     def select_index_by_id(self, id: int):
         """
@@ -1205,6 +1364,8 @@ class Ctx:
             self.group_id = group_id
             updated = True
 
+        if updated:
+            self.window.controller.files.update_explorer(reload=True)
         if updated and update:
             QTimer.singleShot(
                 10,
@@ -1224,6 +1385,7 @@ class Ctx:
             updated = True
         if updated:
             self.group_id = None
+            self.window.controller.files.update_explorer(reload=True)
             QTimer.singleShot(
                 10,
                 lambda: self.update_and_restore()
@@ -1238,16 +1400,25 @@ class Ctx:
 
         :param meta_id: int
         """
-        self.window.ui.dialog['create'].id = 'ctx.group'
-        self.window.ui.dialog['create'].input.setText("")
-        self.window.ui.dialog['create'].current = meta_id
-        self.window.ui.dialog['create'].show()
+        dialog = self.window.ui.dialog['create']
+        dialog.id = 'ctx.group'
+        dialog.input.setText("")
+        dialog.current = meta_id
+        dialog.set_project_mode(
+            True,
+            use_shared=True,
+            workdir=self.window.core.filesystem.get_shared_data_dir(),
+            edit=False,
+        )
+        dialog.show()
         self.window.ui.dialog['create'].input.setFocus()
 
     def create_group(
             self,
             name: Optional[str] = None,
-            meta_id: Optional[Union[int, list]] = None
+            meta_id: Optional[Union[int, list]] = None,
+            use_shared_workdir: bool = True,
+            workdir: Optional[str] = None,
     ):
         """
         Make directory
@@ -1261,6 +1432,10 @@ class Ctx:
             )
             return
         group = self.window.core.ctx.make_group(name)
+        group.extra = {
+            "use_shared_workdir": bool(use_shared_workdir),
+            "workdir": str(workdir or "").strip(),
+        }
         id = self.window.core.ctx.insert_group(group)
         if id is not None:
             ids = meta_id if isinstance(meta_id, list) else [meta_id] if meta_id is not None else []
@@ -1273,62 +1448,142 @@ class Ctx:
             "Project '{}' created.".format(name)
         )
         self.window.ui.dialog['create'].close()
-        # self.select_group(id)
         self.group_id = id
+
+        # A newly created project should be immediately usable: keep it
+        # expanded, create a fresh context inside it and switch to that context.
+        # Existing contexts passed via meta_id remain in the project as before.
+        if id is not None:
+            self.window.ui.nodes['ctx.list'].expanded_items.add(id)
+            self.store_expanded_groups()
+            self.new(group_id=id)
+
+    def duplicate_group(self, id: int):
+        """Duplicate a project and rebuild its project index only if the source has one."""
+        group = self.window.core.ctx.get_group_by_id(id)
+        if group is None:
+            return
+        new_group = self.window.core.ctx.make_group(group.name + " (copy)")
+        new_group.extra = copy.deepcopy(getattr(group, "extra", {}) or {})
+        new_group_id = self.window.core.ctx.insert_group(new_group)
+        if new_group_id is None:
+            return
+
+        source_metas = [
+            meta for meta in self.window.core.ctx.get_meta().values()
+            if getattr(meta, 'group_id', None) == id
+        ]
+        for meta in source_metas:
+            new_meta_id = self.window.core.ctx.duplicate(meta.id)
+            if new_meta_id is not None:
+                new_meta = self.window.core.ctx.get_meta_by_id(new_meta_id)
+                if new_meta is not None:
+                    # A duplicate must not inherit source index bookkeeping.
+                    # Its project index is rebuilt below as proj_<new_group_id>.
+                    new_meta.indexes = {}
+                    new_meta.indexed = None
+                    self.window.core.ctx.idx.get_provider().update_meta_indexes_by_id(
+                        new_meta_id, new_meta
+                    )
+                    self.window.core.ctx.idx.clear_meta_indexed_by_id(new_meta_id)
+                self.window.core.attachments.context.duplicate(meta.id, new_meta_id)
+                self.move_to_group(new_meta_id, new_group_id, update=False)
+
+        # Do not create empty project indexes just because a project was copied.
+        # Reindex the duplicated contexts only when the source project had state.
+        source_project_idx = self.window.core.idx.project.get_idx_id(id)
+        if (self.window.core.idx.project.get(id) is not None
+                or self.window.core.idx.storage.exists(source_project_idx)):
+            self.window.controller.idx.indexer.duplicate_project_index(
+                id, new_group_id, silent=True
+            )
+        self.group_id = new_group_id
+        self.update_and_restore()
+        self.window.update_status(
+            trans('action.group.duplicated').replace('{id}', str(new_group_id))
+        )
+
+    def update_project_index(self, group_id: int):
+        self.window.controller.idx.indexer.index_project(
+            int(group_id), from_last=True, sync=False, silent=False
+        )
+
+    def truncate_project_index(self, group_id: int):
+        self.window.controller.idx.indexer.truncate_project(int(group_id), False)
+
+    def edit_group(
+            self,
+            id: Union[int, list],
+    ):
+        """Open project settings (name and optional project data workdir)."""
+        ids = id if isinstance(id, list) else [id]
+        group = None
+        for tmp_id in ids:
+            group = self.window.core.ctx.get_group_by_id(tmp_id)
+            if group is not None:
+                break
+        if group is None:
+            return
+
+        extra = getattr(group, "extra", None) or {}
+        use_shared = bool(extra.get("use_shared_workdir", True))
+        workdir = str(extra.get("workdir") or "").strip()
+        dialog = self.window.ui.dialog['rename']
+        dialog.id = 'ctx.group'
+        dialog.input.setText(group.name)
+        dialog.current = id
+        dialog.set_project_mode(
+            True,
+            use_shared=use_shared,
+            workdir=workdir,
+            edit=True,
+            # Multi-project editing keeps the old bulk-name behavior without
+            # accidentally overwriting different workdir settings.
+            allow_workdir=len(ids) == 1,
+        )
+        dialog.show()
 
     def rename_group(
             self,
             id: Union[int, list],
             force: bool = False
     ):
-        """
-        Rename group
-
-        :param id: group ID or list of IDs
-        :param force: force rename
-        """
-        ids = id if isinstance(id, list) else [id]
+        """Backward-compatible alias for project editing."""
         if not force:
-            is_group = False
-            name = ""
-            for tmp_id in ids:
-                group = self.window.core.ctx.get_group_by_id(tmp_id)
-                if group is not None:
-                    is_group = True
-                    name = group.name
-                    break
-            if not is_group:
-                return
-            self.window.ui.dialog['rename'].id = 'ctx.group'
-            self.window.ui.dialog['rename'].input.setText(name)
-            self.window.ui.dialog['rename'].current = id
-            self.window.ui.dialog['rename'].show()
+            self.edit_group(id)
 
     def update_group_name(
             self,
             id: Union[int, list],
             name: str,
-            close: bool = True
+            close: bool = True,
+            use_shared_workdir: Optional[bool] = None,
+            workdir: Optional[str] = None,
     ):
-        """
-        Update group name
-
-        :param id: group ID or list of IDs
-        :param name: group name
-        :param close: close rename dialog
-        """
+        """Update project name and, for a single project edit, its data workdir."""
         updated = False
         ids = id if isinstance(id, list) else [id]
-        for id in ids:
-            group = self.window.core.ctx.get_group_by_id(id)
-            if group is not None:
-                group.name = name
-                self.window.core.ctx.update_group(group)
-                updated = True
+        for group_id in ids:
+            group = self.window.core.ctx.get_group_by_id(group_id)
+            if group is None:
+                continue
+            group.name = name
+            group.updated = int(time.time())
+            if use_shared_workdir is not None:
+                extra = getattr(group, "extra", None)
+                if not isinstance(extra, dict):
+                    extra = {}
+                extra["use_shared_workdir"] = bool(use_shared_workdir)
+                extra["workdir"] = str(workdir or "").strip()
+                group.extra = extra
+            self.window.core.ctx.update_group(group)
+            updated = True
         if updated:
             if close:
                 self.window.ui.dialog['rename'].close()
             self.update_and_restore()
+            # The Files tool root follows the active conversation immediately.
+            self.window.controller.files.update_explorer(reload=True)
 
     def get_group_name(self, id: int) -> str:
         """
@@ -1379,6 +1634,10 @@ class Ctx:
         for id in ids:
             group = self.window.core.ctx.get_group_by_id(id)
             if group is not None:
+                try:
+                    self.window.core.idx.truncate_project(id)
+                except Exception as e:
+                    self.window.core.debug.log(e)
                 self.window.core.ctx.remove_group(group, all=False)
                 if self.group_id == id:
                     self.group_id = None
@@ -1410,6 +1669,14 @@ class Ctx:
         for id in ids:
             group = self.window.core.ctx.get_group_by_id(id)
             if group is not None:
+                try:
+                    # Project truncate removes the isolated index including any
+                    # project files. Then remove these conversations from every
+                    # remaining (global) index before deleting their DB rows.
+                    self.window.core.idx.truncate_project(id)
+                    self.window.core.idx.remove_context_data(group_id=int(id))
+                except Exception as e:
+                    self.window.core.debug.log(e)
                 self.window.core.ctx.remove_group(group, all=True)
                 if self.group_id == id:
                     self.group_id = None
@@ -1429,20 +1696,6 @@ class Ctx:
                 self.window.controller.chat.log("Calling for prepare context name...")
                 self.prepare_name(ctx)  # async
                 return True
-        return False
-
-    def store_history(self, ctx: CtxItem, type: str) -> bool:
-        """
-        Store ctx in history if enabled
-
-        :param ctx: CtxItem
-        :param type: input|output
-        :return: Tru if stored
-        """
-        # store to history
-        if self.window.core.config.get('store_history'):
-            self.window.core.history.append(ctx, type)
-            return True
         return False
 
     def reload(self):

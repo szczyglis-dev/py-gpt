@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:25:00                  #
+# Updated Date: 2026.09.19 22:25:00                  #
 # ================================================== #
 
 import json
@@ -26,7 +26,8 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "idx_llama_index"
-        self.name = "Llama-index (inline)"
+        self.is_common_plugin = True
+        self.name = "RAG (inline)"
         self.description = "Integrates Llama-index storage in any chat"
         self.prefix = "Idx"
         self.allowed_cmds = [
@@ -163,7 +164,6 @@ class Plugin(BasePlugin):
             system_prompt=sys_prompt,
             model=model,
             max_tokens=self.get_option_value("prepare_question_max_tokens"),
-            temperature=0.0,
         )
         event = KernelEvent(KernelEvent.CALL, {
             'context': bridge_context,
@@ -175,6 +175,34 @@ class Plugin(BasePlugin):
             prepared_question = response
         return prepared_question
 
+    def get_effective_idx(self, idx: str = None) -> str:
+        """Return effective retrieval index selection.
+
+        Explicit indexes are preserved. For the configured default selection,
+        the virtual current-project ID is controlled exclusively by the
+        ``use_project_index`` option and is ignored if left behind in an older
+        saved bool-list value.
+        """
+        if idx is not None:
+            return idx
+
+        if self.get_option_value("use_project_index"):
+            project_idx = self.window.core.idx.get_current_project_idx(virtual=True)
+            if project_idx is not None:
+                return project_idx
+
+        value = self.get_option_value("idx")
+        if value is None:
+            return ""
+        virtual_id = self.window.core.idx.project.VIRTUAL_ID
+        indexes = []
+        for item in str(value).split(","):
+            item = item.strip()
+            if not item or item == "_" or item == virtual_id or item in indexes:
+                continue
+            indexes.append(item)
+        return ",".join(indexes)
+
     def get_from_retrieval(self, query: str, idx: str = None) -> str:
         """
         Get response from retrieval
@@ -183,15 +211,22 @@ class Plugin(BasePlugin):
         :param idx: index to query, if None then use default index
         :return: response
         """
-        if idx is None:
-            idx = self.get_option_value("idx")
-        indexes = idx.split(",")
-        response = ""
+        idx = self.get_effective_idx(idx)
+        indexes = [item.strip() for item in idx.split(",") if item.strip()]
+        responses = []
+        seen = set()
         for index in indexes:
             response = self.window.core.idx.chat.query_retrieval(query, index)
-            if response is not None and response != "":
-                break
-        return response
+            value = str(response or "").strip()
+            if not value or value in seen:
+                continue
+            seen.add(value)
+            responses.append(value)
+
+        # Do not stop at the first configured index. With score-independent
+        # retrieval every non-empty index can return candidates, so stopping
+        # early would silently hide context from the remaining indexes.
+        return "\n\n---\n\n".join(responses)
 
     def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
         """
@@ -239,8 +274,7 @@ class Plugin(BasePlugin):
         """
         doc_ids = []
         metas = []
-        if idx is None:
-            idx = self.get_option_value("idx")
+        idx = self.get_effective_idx(idx)
         model = self.window.core.models.from_defaults()
 
         if self.get_option_value("model_query") is not None:

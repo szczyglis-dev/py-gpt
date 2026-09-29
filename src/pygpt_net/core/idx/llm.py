@@ -6,23 +6,25 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.09.11 14:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import os.path
-from typing import Optional, Union, List, Dict
+from typing import TYPE_CHECKING, Optional, Union, List, Dict
 
-from llama_index.core.llms.llm import BaseLLM
-from llama_index.core.multi_modal_llms import MultiModalLLM
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.llms.openai import OpenAI
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
-    MODEL_DEFAULT_MINI, MODE_CHAT,
+    MODEL_DEFAULT_MINI, MODE_CHAT, MODE_COMPLETION,
 )
 from pygpt_net.item.model import ModelItem
+from pygpt_net.core.provider.llm import LlamaIndexLLMProxy
 
+if TYPE_CHECKING:
+    from llama_index.core.llms.llm import BaseLLM
+    from llama_index.core.multi_modal_llms import MultiModalLLM
+    from llama_index.core.base.embeddings.base import BaseEmbedding
 
 class Llm:
     def __init__(self, window=None):
@@ -35,18 +37,21 @@ class Llm:
         self.default_model = MODEL_DEFAULT_MINI
         self.default_embed = "openai"
         self.initialized = False
+        self.provider_proxy = LlamaIndexLLMProxy(window)
 
     def init(self):
         """Init base ENV vars"""
-        os.environ['OPENAI_API_KEY'] = str(self.window.core.config.get('api_key'))
-        os.environ['OPENAI_API_BASE'] = str(self.window.core.config.get('api_endpoint'))
-        os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.config.get('organization_key'))
+        os.environ['OPENAI_API_KEY'] = str(self.window.core.llm.get_config('openai', 'api_key', ''))
+        os.environ['OPENAI_API_BASE'] = str(self.window.core.llm.get_config('openai', 'api_base', ''))
+        os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.llm.get_config('openai', 'organization', ''))
 
     def get(
             self,
             model: Optional[ModelItem] = None,
             multimodal: bool = False,
-            stream: bool = False
+            stream: bool = False,
+            computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> Union[BaseLLM, MultiModalLLM]:
         """
         Get LLM provider
@@ -54,6 +59,8 @@ class Llm:
         :param model: Model item
         :param multimodal: Allow multi-modal flag (True to get multimodal provider if available)
         :param stream: Stream mode (True to enable streaming)
+        :param computer_runtime: Shared provider-native Computer Use runtime adapter
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: Llama LLM instance
         """
         # TMP: deprecation warning fix
@@ -67,29 +74,193 @@ class Llm:
         llm = None
         if model is not None:
             provider = model.get_provider()
-            if provider in self.window.core.llm.llms:
+            llm_provider = self.window.core.llm.get(provider)
+            if llm_provider is not None:
+                self.provider_proxy.prepare(model)
                 # init env vars
-                self.window.core.llm.llms[provider].init(
+                llm_provider.init(
                     window=self.window,
                     model=model,
                     mode=MODE_LLAMA_INDEX,
                     sub_mode="",
                 )
-                # get llama LLM instance
-                llm = self.window.core.llm.llms[provider].llama(
-                    window=self.window,
-                    model=model,
-                    stream=stream,
-                )
+                # Some LlamaIndex callers need a provider-owned client-side
+                # continuation loop for native Computer Use. Keep this opt-in so
+                # all other callers retain the regular provider.
+                if computer_runtime is not None:
+                    runtime = computer_runtime
+                    runtime_for_model = getattr(computer_runtime, "for_model", None)
+                    if callable(runtime_for_model):
+                        runtime = runtime_for_model(model)
+                    llm = llm_provider.llama_with_computer_runtime(
+                        window=self.window,
+                        model=model,
+                        stream=stream,
+                        computer_runtime=runtime,
+                        force_computer_use=force_computer_use,
+                    )
+                else:
+                    llm = llm_provider.llama(
+                        window=self.window,
+                        model=model,
+                        stream=stream,
+                    )
+            elif self.window.core.llm.is_custom_provider(provider):
+                raise RuntimeError(f"Custom provider is not configured: {provider}")
 
         # default model
         if llm is None:
             self.init()  # init env vars
-            llm = OpenAI(
-                temperature=0.0,
-                model=self.default_model,
+            fallback_args = {"temperature": 0.0, "model": self.default_model}
+            self.window.core.api.logger.log_input(
+                type="llama_index.llm.create", provider="openai",
+                kwargs=fallback_args, model=self.default_model,
+                path="llama_index.llms.openai.OpenAI",
             )
+            from llama_index.llms.openai import OpenAI
+            llm = OpenAI(**fallback_args)
         return llm
+
+    def get_completion(
+            self,
+            model: Optional[ModelItem] = None,
+            stream: bool = False,
+    ) -> BaseLLM:
+        """Return a LlamaIndex provider configured for plain-text completion."""
+        if not self.initialized:
+            self.initialized = True
+
+        llm = None
+        if model is not None:
+            provider = model.get_provider()
+            llm_provider = self.window.core.llm.get(provider)
+            if llm_provider is not None:
+                self.provider_proxy.prepare(model)
+                llm_provider.init(
+                    window=self.window,
+                    model=model,
+                    mode=MODE_LLAMA_INDEX,
+                    sub_mode=MODE_COMPLETION,
+                )
+                llm = llm_provider.llama_completion(
+                    window=self.window,
+                    model=model,
+                    stream=stream,
+                )
+            elif self.window.core.llm.is_custom_provider(provider):
+                raise RuntimeError(f"Custom provider is not configured: {provider}")
+
+        if llm is None:
+            raise RuntimeError("LlamaIndex completion provider is not configured")
+        return llm
+
+    def get_agent(
+            self,
+            model: Optional[ModelItem] = None,
+            stream: bool = False,
+            allow_remote_tools: bool = True,
+            computer_runtime=None,
+            force_computer_use: bool = False,
+    ) -> BaseLLM:
+        """
+        Get a LlamaIndex LLM configured for agent workflows.
+
+        This path lets each provider attach its native/server-side remote tools
+        directly to the LLM request while keeping the regular LlamaIndex path
+        unchanged.
+
+        :param model: Model item
+        :param stream: Stream mode
+        :param allow_remote_tools: Allow provider-native remote tools
+        :param computer_runtime: Optional shared Computer Use runtime to bind
+        :param force_computer_use: Force provider-native Computer Use remote tool
+        :return: LlamaIndex LLM instance
+        """
+        if not self.initialized:
+            self.initialized = True
+
+        llm = None
+        if model is not None:
+            provider = model.get_provider()
+            llm_provider = self.window.core.llm.get(provider)
+            if llm_provider is not None:
+                self.provider_proxy.prepare(model)
+                # LlamaIndex provider settings/env are still the source of the
+                # model credentials for agent workflows.
+                llm_provider.init(
+                    window=self.window,
+                    model=model,
+                    mode=MODE_LLAMA_INDEX,
+                    sub_mode="",
+                )
+                llm = llm_provider.llama_agent(
+                    window=self.window,
+                    model=model,
+                    stream=stream,
+                    allow_remote_tools=allow_remote_tools,
+                    force_computer_use=force_computer_use,
+                )
+            elif self.window.core.llm.is_custom_provider(provider):
+                raise RuntimeError(f"Custom provider is not configured: {provider}")
+
+        if llm is None:
+            self.init()
+            fallback_args = {"temperature": 0.0, "model": self.default_model}
+            self.window.core.api.logger.log_input(
+                type="llama_index.llm.create", provider="openai",
+                kwargs=fallback_args, model=self.default_model,
+                path="llama_index.llms.openai.OpenAI",
+            )
+            from llama_index.llms.openai import OpenAI
+            llm = OpenAI(**fallback_args)
+
+        # Provider agent adapters (OpenAI Responses, Google GenAI, Anthropic)
+        # own the provider-native Computer Use continuation loop. Bind the same
+        # tiny runtime contract used by Chat with Files/Agents v2, without making
+        # individual legacy agent runners know anything about provider protocols.
+        if computer_runtime is not None:
+            runtime = computer_runtime
+            runtime_for_model = getattr(computer_runtime, "for_model", None)
+            if callable(runtime_for_model) and model is not None:
+                runtime = runtime_for_model(model)
+            binder = getattr(llm, "bind_computer_runtime", None)
+            if not callable(binder):
+                binder = getattr(llm, "bind_agents_v2_runtime", None)
+            if callable(binder):
+                binder(runtime)
+        return llm
+
+    def get_default_embeddings_model(self, provider: str) -> str:
+        """Return the globally configured default embedding model for provider."""
+        defaults = self.window.core.config.get("llama.idx.embeddings.default", []) or []
+        for item in defaults:
+            if not isinstance(item, dict):
+                continue
+            if item.get("provider") != provider:
+                continue
+            return str(item.get("model") or "").strip()
+        return ""
+
+    def prepare_embeddings_config(self, provider: str, args: Optional[List[Dict]]) -> List[Dict]:
+        """Treat embedding args as overrides and fill only a missing model name."""
+        config = [dict(item) if isinstance(item, dict) else item for item in (args or [])]
+        if self.extract_model_name_from_args(config):
+            return config
+
+        model_name = self.get_default_embeddings_model(provider)
+        if not model_name:
+            return config
+
+        for item in config:
+            if isinstance(item, dict) and item.get("name") in ("model", "model_name"):
+                item["value"] = model_name
+                return config
+        config.append({
+            "name": "model_name",
+            "type": "str",
+            "value": model_name,
+        })
+        return config
 
     def get_embeddings_provider(self) -> BaseEmbedding:
         """
@@ -98,19 +269,22 @@ class Llm:
         :return: Llama embeddings provider instance
         """
         provider = self.window.core.config.get("llama.idx.embeddings.provider", self.default_embed)
-        env = self.window.core.config.get("llama.idx.embeddings.env", [])
-        args = self.window.core.config.get("llama.idx.embeddings.args", [])
+        env = self.window.core.config.get("llama.idx.embeddings.env", []) or []
+        args = self.window.core.config.get("llama.idx.embeddings.args", []) or []
 
-        if provider is None or provider not in self.window.core.llm.llms:
+        llm_provider = self.window.core.llm.get(provider) if provider is not None else None
+        if llm_provider is None:
             provider = self.default_embed
+            llm_provider = self.window.core.llm.get(provider)
 
-        self.window.core.llm.llms[provider].init_embeddings(
+        args = self.prepare_embeddings_config(provider, args)
+        llm_provider.init_embeddings(
             window=self.window,
             env=env,
         )
         model_name = self.extract_model_name_from_args(args)
         self.window.core.idx.log(f"Embeddings: using global provider: {provider}, model_name: {model_name}")
-        return self.window.core.llm.llms[provider].get_embeddings_model(
+        return llm_provider.get_embeddings_model(
             window=self.window,
             config=args,
         )
@@ -120,6 +294,8 @@ class Llm:
             model: Optional[ModelItem] = None,
             stream: bool = False,
             auto_embed: bool = False,
+            computer_runtime=None,
+            force_computer_use: bool = False,
     ):
         """
         Get service context + embeddings provider
@@ -127,9 +303,16 @@ class Llm:
         :param model: Model item (for query)
         :param stream: Stream mode (True to enable streaming)
         :param auto_embed: Auto-detect embeddings provider based on model capabilities
+        :param computer_runtime: Shared provider-native Computer Use runtime adapter
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: Service context instance
         """
-        llm = self.get(model=model, stream=stream)
+        llm = self.get(
+            model=model,
+            stream=stream,
+            computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
+        )
         if not auto_embed:
             embed_model = self.get_embeddings_provider()
         else:
@@ -153,12 +336,13 @@ class Llm:
 
         # try to get custom args from config for the model provider
         is_custom_provider = False
-        defaults = self.window.core.config.get("llama.idx.embeddings.default", [])
+        defaults = self.window.core.config.get("llama.idx.embeddings.default", []) or []
         for item in defaults:
+            if not isinstance(item, dict):
+                continue
             provider = item.get("provider", "")
             if provider and provider == model.provider:
                 is_custom_provider = True
-                client_args = self.window.core.models.prepare_client_args(MODE_CHAT, model)
                 model_name = item.get("model", "")
                 if not model_name:
                     model_name = model.id  # fallback to model id if not set in config (Ollama, etc)
@@ -169,32 +353,40 @@ class Llm:
                         "value": model_name,
                     }
                 ]
-                if model.provider != "ollama":
-                    args.append(
-                        {
+
+                # Keep model-specific OpenAI-compatible overrides in the
+                # auto-embedding path. Provider-global credentials/endpoints
+                # are resolved by the provider itself; these two values are
+                # intentionally added only when the model explicitly overrides
+                # them. This is relevant for Local AI and runtime custom
+                # providers, where a model may point at another endpoint.
+                if (model.provider == "local_ai"
+                        or self.window.core.llm.is_custom_provider(model.provider)):
+                    custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
+                    custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+                    if custom_api_key:
+                        args.append({
                             "name": "api_key",
                             "type": "str",
-                            "value": client_args.get("api_key", ""),
-                        }
-                    )
-                if model.provider == "local_ai":
-                    custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
+                            "value": custom_api_key,
+                        })
                     if custom_api_endpoint:
-                        args.append(
-                            {
-                                "name": "api_base",
-                                "type": "str",
-                                "value": custom_api_endpoint,
-                            }
-                        )
+                        args.append({
+                            "name": "api_base",
+                            "type": "str",
+                            "value": custom_api_endpoint,
+                        })
+
                 self.window.core.idx.log(f"Embeddings: trying to use {model.provider}, model_name: {model_name}")
                 break
 
         if is_custom_provider:
-            embed_model = self.window.core.llm.llms[model.provider].get_embeddings_model(
-                window=self.window,
-                config=args,
-            )
+            llm_provider = self.window.core.llm.get(model.provider)
+            if llm_provider is not None:
+                embed_model = llm_provider.get_embeddings_model(
+                    window=self.window,
+                    config=args,
+                )
         if not embed_model:
             self.window.core.idx.log(f"Embeddings: not configured for {model.provider}. Fallback: using global provider.")
             embed_model = self.get_embeddings_provider()
@@ -208,8 +400,10 @@ class Llm:
         :return: Model name if configured
         """
         model_name = ""
-        for item in args:
-            if item.get("name") in ["model", "model_name"]:
+        for item in args or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("name") in ["model", "model_name"] and item.get("value"):
                 model_name = item.get("value")
                 break
         return model_name

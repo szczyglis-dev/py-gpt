@@ -9,6 +9,8 @@
 # Updated Date: 2024.01.12 08:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
+
 from pygpt_net.ui.widget.lists.base import BaseList
 
 
@@ -25,7 +27,14 @@ class PluginList(BaseList):
         self.id = id
 
     def click(self, val):
-        idx = val.row()
+        plugin_id = val.data(Qt.UserRole)
+        if plugin_id:
+            idx = self.window.controller.plugins.get_tab_idx(plugin_id)
+        else:
+            # Compatibility fallback for an older list model.
+            idx = val.row()
+        if idx is None:
+            return
         self.window.ui.tabs['plugin.settings'].setCurrentIndex(idx)
         self.window.controller.plugins.set_by_tab(idx)
 

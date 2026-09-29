@@ -3,7 +3,6 @@
   "ai_name": "",
   "user_name": "",
   "prompt": "You are a helpful assistant. Use markdown for code blocks.",
-  "temperature": 1.0,
   "chat": false,
   "completion": false,
   "img": false,
@@ -16,7 +15,7 @@
   "experts": [],
   "enabled": true,
   "__meta__": {
-    "version": "2.2.7",
+    "version": "2.8.19",
     "app.version": "2.2.7",
     "updated_at": "2024-05-01T00:00:00"
   }

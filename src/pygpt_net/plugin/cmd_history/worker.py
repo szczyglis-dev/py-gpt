@@ -11,6 +11,7 @@
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -99,10 +100,10 @@ class Worker(BaseWorker):
         :return: response item
         """
         id = int(self.get_param(item, "id", 0))
-        prompt = "Summary this conversation"
+        query = "Provide the most relevant context needed to continue this previous conversation."
         if self.has_param(item, "summary_query"):
-            prompt = self.get_param(item, "summary_query")
-        result = self.plugin.get_summary(id, prompt)
+            query = self.get_param(item, "summary_query")
+        result = self.plugin.get_summary(id, query)
         return self.make_response(item, result)
 
     def cmd_get_day_note(self, item: dict) -> dict:
@@ -129,7 +130,7 @@ class Worker(BaseWorker):
         month = int(self.get_param(item, "month", 0))
         day = int(self.get_param(item, "day", 0))
         note = self.get_param(item, "note", "")
-        self.signals.updated.emit()
+        safe_emit(self.signals, "updated")
         result = self.plugin.add_day_note(year, month, day, note)
         return self.make_response(item, result)
 
@@ -144,7 +145,7 @@ class Worker(BaseWorker):
         month = int(self.get_param(item, "month", 0))
         day = int(self.get_param(item, "day", 0))
         note = self.get_param(item, "content", "")
-        self.signals.updated.emit()
+        safe_emit(self.signals, "updated")
         result = self.plugin.update_day_note(year, month, day, note)
         return self.make_response(item, result)
 
@@ -158,7 +159,7 @@ class Worker(BaseWorker):
         year = int(self.get_param(item, "year", 0))
         month = int(self.get_param(item, "month", 0))
         day = int(self.get_param(item, "day", 0))
-        self.signals.updated.emit()
+        safe_emit(self.signals, "updated")
         result = self.plugin.remove_day_note(year, month, day)
         return self.make_response(item, result)
 

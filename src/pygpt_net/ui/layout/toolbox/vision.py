@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QCheckBox
 
+from pygpt_net.ui.widget.element.labels import ElideLabel
 from pygpt_net.utils import trans
 
 
@@ -43,7 +44,7 @@ class Vision:
         nodes['vision.capture.auto'].toggled.connect(camera.toggle_auto)
         nodes['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
 
-        nodes['vision.capture.label'] = QLabel(trans('vision.capture.options.title'), parent=options)
+        nodes['vision.capture.label'] = ElideLabel(trans('vision.capture.options.title'), window=options)
 
         cols = QHBoxLayout()
         cols.addWidget(nodes['vision.capture.enable'])

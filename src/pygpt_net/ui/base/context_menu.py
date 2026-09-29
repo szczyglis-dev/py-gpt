@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 00:00:00                  #
+# Updated Date: 2026.09.25 10:30:00                  #
 # ================================================== #
 from typing import Union
 
+from PySide6.QtCore import QDateTime, QLocale
 from PySide6.QtWidgets import QMenu
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QTextCursor
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
@@ -76,11 +77,68 @@ class ContextMenu:
 
         return menu
 
+    def get_insert_datetime_menu(self, parent, target) -> QMenu:
+        """
+        Get insert date/time menu with values generated from the current local date/time.
+
+        :param parent: Parent menu
+        :param target: Target QTextEdit-compatible widget
+        :return: Menu
+        """
+        menu = QMenu(trans('text.context_menu.insert_datetime'), parent)
+        now = QDateTime.currentDateTime()
+        formats = ('datetime', 'date', 'time')
+
+        cursor = target.textCursor()
+        cursor_position = cursor.position()
+        cursor_anchor = cursor.anchor()
+
+        for format_id in formats:
+            action = QAction(self.format_datetime(format_id, now), menu)
+            action.triggered.connect(
+                lambda checked=False, format_id=format_id, position=cursor_position, anchor=cursor_anchor:
+                    self.insert_datetime(target, format_id, position, anchor)
+            )
+            menu.addAction(action)
+
+        return menu
+
+    def format_datetime(self, format_id: str, now: QDateTime = None) -> str:
+        """Format date/time using the application language for the weekday name."""
+        if now is None:
+            now = QDateTime.currentDateTime()
+
+        lang = self.window.core.config.get_lang() if self.window is not None else 'en'
+        locale = QLocale(lang)
+        weekday = locale.dayName(now.date().dayOfWeek(), QLocale.FormatType.ShortFormat).rstrip('.')
+        if weekday:
+            weekday = weekday[:1].upper() + weekday[1:]
+
+        time_text = now.toString('HH:mm')
+        if format_id == 'time':
+            return time_text
+
+        date_text = now.toString('yyyy.MM.dd')
+        if format_id == 'date':
+            return f"{weekday}, {date_text}"
+        return f"{weekday}, {date_text} {time_text}"
+
+    def insert_datetime(self, target, format_id: str, position: int, anchor: int):
+        """Insert the current date/time at the cursor position captured when the menu was opened."""
+        cursor = QTextCursor(target.document())
+        cursor.setPosition(anchor)
+        cursor.setPosition(position, QTextCursor.KeepAnchor)
+        cursor.insertText(self.format_datetime(format_id))
+        target.setTextCursor(cursor)
+        target.ensureCursorVisible()
+        target.setFocus()
+
     def get_copy_to_menu(
             self,
             parent,
             selected_text: str = None,
-            excluded: list = None
+            excluded: list = None,
+            selected_text_provider=None,
     ) -> QMenu:
         """
         Get copy to menu
@@ -88,6 +146,7 @@ class ContextMenu:
         :param parent: Parent menu
         :param selected_text: Selected text
         :param excluded: Excluded items
+        :param selected_text_provider: Optional callable resolving text when an action is triggered
         :return: Menu
         """
         excluded = set(excluded) if excluded else set()
@@ -96,14 +155,23 @@ class ContextMenu:
         ctrl = window.controller
         tools = window.tools
 
+        def resolved_text():
+            if callable(selected_text_provider):
+                try:
+                    value = selected_text_provider()
+                except Exception:
+                    value = ""
+                return "" if value is None else str(value)
+            return "" if selected_text is None else str(selected_text)
+
         if 'input' not in excluded:
             action = QAction(self._ICON_INPUT, trans('text.context_menu.copy_to.input'), menu)
-            action.triggered.connect(lambda checked=False: ctrl.chat.common.append_to_input(selected_text))
+            action.triggered.connect(lambda checked=False: ctrl.chat.common.append_to_input(resolved_text()))
             menu.addAction(action)
 
         if 'calendar' not in excluded:
             action = QAction(self._ICON_SCHEDULE, trans('text.context_menu.copy_to.calendar'), menu)
-            action.triggered.connect(lambda checked=False: ctrl.calendar.note.append_text(selected_text))
+            action.triggered.connect(lambda checked=False: ctrl.calendar.note.append_text_today(resolved_text()))
             menu.addAction(action)
 
         if 'notepad' not in excluded:
@@ -112,24 +180,16 @@ class ContextMenu:
                 for tab in tabs:
                     action = QAction(self._ICON_PASTE, tab.title, menu)
                     action.triggered.connect(
-                        lambda checked=False, tab=tab: ctrl.notepad.append_text(selected_text, tab.data_id)
+                        lambda checked=False, tab=tab: ctrl.notepad.append_text(resolved_text(), tab.data_id)
                     )
                     menu.addAction(action)
 
-        if 'interpreter' not in excluded:
-            add_edit = 'interpreter_edit' not in excluded
-            add_input = 'interpreter_input' not in excluded
-            if add_edit or add_input:
-                menu.addSeparator()
-                interpreter = tools.get("interpreter")
-                if add_edit:
-                    action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.code'), menu)
-                    action.triggered.connect(lambda checked=False: interpreter.append_to_edit(selected_text))
-                    menu.addAction(action)
-                if add_input:
-                    action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.input'), menu)
-                    action.triggered.connect(lambda checked=False: interpreter.append_to_input(selected_text))
-                    menu.addAction(action)
+        if 'interpreter' not in excluded and 'interpreter_input' not in excluded:
+            menu.addSeparator()
+            interpreter = tools.get("interpreter")
+            action = QAction(self._ICON_CODE, trans('text.context_menu.copy_to.python.input'), menu)
+            action.triggered.connect(lambda checked=False: interpreter.append_to_input(resolved_text()))
+            menu.addAction(action)
 
         if 'translator' not in excluded:
             add_left = 'translator_left' not in excluded
@@ -139,11 +199,11 @@ class ContextMenu:
                 translator = tools.get("translator")
                 if add_left:
                     action = QAction(self._ICON_TRANSLATOR, trans('text.context_menu.copy_to.translator_left'), menu)
-                    action.triggered.connect(lambda checked=False: translator.append_content("left", selected_text))
+                    action.triggered.connect(lambda checked=False: translator.append_content("left", resolved_text()))
                     menu.addAction(action)
                 if add_right:
                     action = QAction(self._ICON_TRANSLATOR, trans('text.context_menu.copy_to.translator_right'), menu)
-                    action.triggered.connect(lambda checked=False: translator.append_content("right", selected_text))
+                    action.triggered.connect(lambda checked=False: translator.append_content("right", resolved_text()))
                     menu.addAction(action)
 
         return menu

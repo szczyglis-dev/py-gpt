@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.07.22 00:00:00                  #
+# ================================================== #
+
+from __future__ import annotations
+
+from typing import Optional, Dict, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+
+from pygpt_net.core.types import (
+    MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
+)
+from pygpt_net.provider.llms.base import BaseLLM
+from pygpt_net.item.model import ModelItem
+
+
+class EdenAILLM(BaseLLM):
+    def __init__(self, *args, **kwargs):
+        super(EdenAILLM, self).__init__(*args, **kwargs)
+        self.id = "edenai"
+        self.name = "Eden AI"
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str",
+                    "default": "",
+                    "secret": True,
+                    "urls": {"API Keys": "https://app.edenai.run/admin/api-settings/features-preferences"},
+                },
+                "api_base": {
+                    "type": "str",
+                    "default": "https://api.edenai.run/v3",
+                },
+            }
+        }
+
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
+        """
+        Return provider instance for embeddings
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        return OpenAILikeEmbedding(**args)
+
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
+        """
+        Return LLM provider instance for llama
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: LLM provider instance
+        """
+        from llama_index.llms.openai_like import OpenAILike
+        args = self.prepare_openai_compatible_args(window, model)
+        if "is_chat_model" not in args:
+            args["is_chat_model"] = True
+        if "is_function_calling_model" not in args:
+            args["is_function_calling_model"] = model.tool_calls
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
+        return OpenAILike(**args)

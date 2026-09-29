@@ -6,15 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2026.09.05 21:40:00
 # ================================================== #
 
 import copy
 import os
 from typing import Optional, List, Dict, Tuple
 
-from httpx_socks import SyncProxyTransport
-from openai import DefaultHttpxClient
 from packaging.version import Version
 
 from pygpt_net.core.types import (
@@ -32,6 +30,12 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.json_file import JsonFileProvider
 
 from .ollama import Ollama
+from pygpt_net.core.types.reasoning import (
+    choose_effort,
+    get_model_efforts,
+    legacy_base_key,
+    normalize_effort,
+)
 
 class Models:
     def __init__(self, window=None):
@@ -129,6 +133,83 @@ class Models:
         """
         return self.items.get(key)
 
+    @staticmethod
+    def _mode_compatible(item: ModelItem, mode: Optional[str]) -> bool:
+        """Treat deprecated Chat-with-Files capability as Chat-compatible."""
+        if mode is None:
+            return True
+        if mode == MODE_CHAT:
+            return any(m in item.mode for m in (MODE_CHAT, MODE_LLAMA_INDEX))
+        return mode in item.mode
+
+    def resolve_model_key(
+            self,
+            mode: Optional[str],
+            model: Optional[str]
+    ) -> Optional[str]:
+        """Resolve a stored model key, including pre-2.8.17 effort suffixes.
+
+        Exact keys always win.  For backward compatibility an unavailable key
+        ending in ``-low``, ``-medium``, ``-high`` or ``-xhigh`` is retried
+        after trimming that suffix.
+        """
+        if not model:
+            return None
+        key = str(model)
+        item = self.items.get(key)
+        if item is not None and self._mode_compatible(item, mode):
+            return key
+
+        base_key = legacy_base_key(key)
+        if base_key:
+            item = self.items.get(base_key)
+            if item is not None and self._mode_compatible(item, mode):
+                return base_key
+        return None
+
+    def get_reasoning_efforts(
+            self,
+            model: Optional[ModelItem] = None
+    ) -> List[str]:
+        """Return runtime reasoning-effort values available for a model."""
+        if isinstance(model, str):
+            model = self.get(model)
+        if model is None:
+            model = self.get(self.window.core.config.get("model"))
+        return get_model_efforts(model)
+
+    def get_reasoning_effort(
+            self,
+            model: Optional[ModelItem] = None,
+    ) -> Optional[str]:
+        """Return the effective runtime effort for the selected model.
+
+        The persisted value is one global user preference.  When a model does
+        not support that exact level we choose the nearest supported value for
+        this request/UI only; model changes never rewrite the global preference.
+        """
+        efforts = self.get_reasoning_efforts(model)
+        if not efforts:
+            return None
+        cfg = self.window.core.config
+        return choose_effort(cfg.get("model.reasoning_effort", "high"), efforts)
+
+    def set_reasoning_effort(
+            self,
+            effort: str,
+            model: Optional[ModelItem] = None,
+            persist: bool = True,
+    ) -> bool:
+        """Set the single global reasoning-effort state if valid for the model."""
+        effort = normalize_effort(effort)
+        if not effort or effort not in self.get_reasoning_efforts(model):
+            return False
+        cfg = self.window.core.config
+        cfg.set("model.reasoning_effort", effort)
+        if persist:
+            cfg.save()
+        return True
+
     def get_ids(self) -> List[str]:
         """
         Return models ids
@@ -167,7 +248,9 @@ class Models:
         :param mode: mode name
         :return: True if model is allowed for mode
         """
-        return model in self.items and mode in self.items[model].mode
+        if model not in self.items:
+            return False
+        return self._mode_compatible(self.items[model], mode)
 
     def get_id(
             self,
@@ -207,7 +290,7 @@ class Models:
         :param mode: mode name
         :return: models dict for mode
         """
-        return {k: v for k, v in self.items.items() if mode in v.mode}
+        return {k: v for k, v in self.items.items() if self._mode_compatible(v, mode)}
 
     def get_next(
             self,
@@ -338,7 +421,7 @@ class Models:
         :return: True if model exists for mode
         """
         item = self.items.get(model)
-        return bool(item and mode in item.mode)
+        return bool(item and self._mode_compatible(item, mode))
 
     def get_default(self, mode: str) -> Optional[str]:
         """
@@ -431,7 +514,7 @@ class Models:
         :return: mode (supported)
         """
         prev_mode = mode
-        if model.is_supported(MODE_CHAT) and mode != MODE_LLAMA_INDEX:
+        if model.is_supported(MODE_CHAT):
             if prev_mode != MODE_CHAT:
                 self.window.core.debug.info(
                     "WARNING: Switching to chat mode (model not supported in: {})".format(prev_mode))
@@ -440,14 +523,8 @@ class Models:
         if model.is_supported(MODE_RESEARCH):
             if prev_mode != MODE_RESEARCH:
                 self.window.core.debug.info(
-                    "WARNING: Switching to research mode (model not supported in: {})".format(mode))
-            mode = MODE_RESEARCH
-
-        elif model.is_supported(MODE_LLAMA_INDEX):
-            if prev_mode != MODE_LLAMA_INDEX:
-                self.window.core.debug.info(
-                    "WARNING: Switching to llama_index mode (model not supported in: {})".format(mode))
-            mode = MODE_LLAMA_INDEX
+                    "WARNING: Switching to research mode (model not supported in: {})".format(prev_mode))
+            return MODE_RESEARCH
 
         return mode
 
@@ -457,20 +534,22 @@ class Models:
             model: ModelItem = None
     ) -> Dict[str, str]:
         """
-        Prepare chat client arguments
+        Prepare chat client arguments from the registered provider config.
 
         :param mode: mode name
         :param model: ModelItem
         :return: client arguments dict
         """
         cfg = self.window.core.config
-        args = {
-            "api_key": cfg.get('api_key'),
-            "organization": cfg.get('organization_key'),
-        }
-
-        if cfg.has('api_endpoint'):
-            endpoint = cfg.get('api_endpoint')
+        llm = self.window.core.llm
+        openai_provider = llm.get("openai")
+        args = {}
+        if openai_provider is not None:
+            args["api_key"] = openai_provider.get_config("api_key")
+            organization = openai_provider.get_config("organization")
+            if organization:
+                args["organization"] = organization
+            endpoint = openai_provider.get_config("api_base")
             if endpoint:
                 args["base_url"] = endpoint
 
@@ -478,63 +557,46 @@ class Models:
             proxy = cfg.get('api_proxy')
             if proxy and cfg.get('api_proxy.enabled', False):
                 args["api_proxy"] = proxy
+                from httpx_socks import SyncProxyTransport
+                from openai import DefaultHttpxClient
+
                 transport = SyncProxyTransport.from_url(proxy)
                 args["http_client"] = DefaultHttpxClient(transport=transport)
 
         if model is not None:
-            if model.provider == "x_ai":
-                args["api_key"] = cfg.get('api_key_xai', "")
-                args["base_url"] = cfg.get('api_endpoint_xai', "")
-                self.window.core.debug.info("[api] Using client: xAI")
-            elif model.provider == "perplexity":
-                args["api_key"] = cfg.get('api_key_perplexity', "")
-                args["base_url"] = cfg.get('api_endpoint_perplexity', "")
-                self.window.core.debug.info("[api] Using client: Perplexity")
-            elif model.provider == "google":
-                args["api_key"] = cfg.get('api_key_google', "")
-                args["base_url"] = cfg.get('api_endpoint_google', "")
-                self.window.core.debug.info("[api] Using client: Google")
-            elif model.provider == "anthropic":
-                args["api_key"] = cfg.get('api_key_anthropic', "")
-                args["base_url"] = cfg.get('api_endpoint_anthropic', "")
-                self.window.core.debug.info("[api] Using client: Anthropic")
-            elif model.provider == "deepseek_api":
-                args["api_key"] = cfg.get('api_key_deepseek', "")
-                args["base_url"] = cfg.get('api_endpoint_deepseek', "")
-                self.window.core.debug.info("[api] Using client: Deepseek API")
-            elif model.provider == "mistral_ai":
-                args["api_key"] = cfg.get('api_key_mistral', "")
-                args["base_url"] = cfg.get('api_endpoint_mistral', "")
-                self.window.core.debug.info("[api] Using client: Mistral AI API")
-            elif model.provider == "huggingface_router":
-                args["api_key"] = cfg.get('api_key_hugging_face', "")
-                args["base_url"] = cfg.get('api_endpoint_hugging_face', "")
-                self.window.core.debug.info("[api] Using client: HuggingFace Router API")
-            elif model.provider == "open_router":
-                args["api_key"] = cfg.get('api_key_open_router', "")
-                args["base_url"] = cfg.get('api_endpoint_open_router', "")
-                self.window.core.debug.info("[api] Using client: OpenRouter API")
-            elif model.provider == "forge":
-                args["api_key"] = cfg.get('api_key_forge', "") or os.environ.get("FORGE_API_KEY", "")
-                args["base_url"] = cfg.get('api_endpoint_forge', "") or os.environ.get(
-                    "FORGE_API_BASE", "https://api.forge.tensorblock.co/v1"
-                )
-                self.window.core.debug.info("[api] Using client: Forge API")
-            elif model.provider == "edenai":
-                args["api_key"] = cfg.get('api_key_edenai', "")
-                args["base_url"] = cfg.get('api_endpoint_edenai', "")
-                self.window.core.debug.info("[api] Using client: Eden AI API")
-            elif model.provider == "ollama":
+            if model.provider == "ollama":
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"
                 self.window.core.debug.info("[api] Using client: Ollama")
             elif model.provider == "llmman":
-                from pygpt_net.provider.llms.llmman import LlmmanLLM
+                from pygpt_net.provider.llms.llmman.provider import LlmmanLLM
                 args["api_key"] = "llmman"
                 args["base_url"] = LlmmanLLM.get_base_url() + "/v1"
                 self.window.core.debug.info("[api] Using client: llmman")
+            elif llm.is_custom_provider(model.provider):
+                provider = llm.get(model.provider)
+                if provider is None:
+                    raise RuntimeError(f"Custom provider is not configured: {model.provider}")
+                if getattr(provider, "is_runtime_custom", False):
+                    args["api_key"] = provider.get_api_key()
+                    args["base_url"] = provider.api_base
+                    self.window.core.debug.info(
+                        f"[api] Using client: custom provider ({provider.name})"
+                    )
             else:
-                self.window.core.debug.info("[api] Using client: OpenAI (default)")
+                provider = llm.get(model.provider)
+                if provider is not None:
+                    if provider.has_config("api_key"):
+                        args["api_key"] = provider.get_config("api_key", "")
+                    if provider.has_config("api_base"):
+                        base_url = provider.get_config("api_base", "")
+                        if base_url:
+                            args["base_url"] = base_url
+                        else:
+                            args.pop("base_url", None)
+                    self.window.core.debug.info(f"[api] Using client: {provider.name}")
+                else:
+                    self.window.core.debug.info("[api] Using client: OpenAI (default)")
 
             custom_api_key = (getattr(model, "custom_api_key", "") or "").strip()
             custom_api_endpoint = (getattr(model, "custom_api_endpoint", "") or "").strip()
@@ -546,8 +608,7 @@ class Models:
                 self.window.core.debug.info("[api] Applying model-specific API configuration")
 
             if model.provider != "openai":
-                if "organization" in args:
-                    del args["organization"]
+                args.pop("organization", None)
         else:
             self.window.core.debug.info("[api] No model provided, using default OpenAI client")
         return args
@@ -584,15 +645,7 @@ class Models:
         :param model: ModelItem
         :return: True if tool call is allowed, False otherwise
         """
-        if mode == MODE_LLAMA_INDEX:
-            if model.provider == "google":
-                stream = self.window.core.config.get('stream', False)
-                use_react = self.window.core.config.get("llama.idx.react", False)
-                if stream:
-                    return bool(use_react)
-        if model.tool_calls:
-            return True
-        return False
+        return model.tool_calls
 
     def get_version(self) -> str:
         """

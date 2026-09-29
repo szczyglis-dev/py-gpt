@@ -6,13 +6,51 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.09.20 13:00:00                  #
 # ================================================== #
 
 import os
 import builtins
 import io
 import platform
+import sys
+
+
+def _run_frozen_ipykernel() -> bool:
+    """
+    Dispatch a Jupyter kernel child process inside a PyInstaller bundle.
+
+    ``jupyter_client`` starts the native Python kernel using
+    ``sys.executable -m ipykernel_launcher -f <connection_file>``. In a
+    frozen application ``sys.executable`` points to the PyGPT executable,
+    not to a standalone Python interpreter, so handle that invocation before
+    importing the Qt application.
+    """
+    if not getattr(sys, "frozen", False):
+        return False
+    if len(sys.argv) < 3 or sys.argv[1:3] != ["-m", "ipykernel_launcher"]:
+        return False
+
+    # Match argv as seen by ipykernel_launcher when run by a real Python
+    # interpreter: program name followed by e.g. ``-f connection.json``.
+    del sys.argv[1:3]
+    from ipykernel import kernelapp
+
+    kernelapp.launch_new_instance()
+    return True
+
+
+if _run_frozen_ipykernel():
+    raise SystemExit(0)
+
+
+# Optional startup import tracing. Keep this before all PyGPT/Qt imports so
+# --trace-imports can show what actually pulls heavy dependencies in.
+if "--trace-imports" in sys.argv:
+    from pygpt_net.core.import_trace import enable_from_argv
+
+    _import_tracer = enable_from_argv(sys.argv)
+
 
 import pygpt_net.icons_rc
 
@@ -91,9 +129,9 @@ def run(**kwargs):
     You can provide custom plugin instances, LLM wrappers, vector store providers, and more to the launcher.
     This is useful for extending PyGPT with your own plugins, vector storage, LLMs, or other data providers.
 
-    --- HOW TO REGISTER CUSTOM EXTENSIONS ---
+    --- HOW TO REGISTER CUSTOM ADD-ONS ---
 
-    1. First, create a custom launcher file, such as "custom_launcher.py," and register your extensions in it.
+    1. First, create a custom launcher file, such as "custom_launcher.py," and register your add-ons in it.
 
     To register a custom plugin, create the custom launcher (e.g., "custom_launcher.py") and:
 
@@ -223,6 +261,7 @@ def run(**kwargs):
         from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
         from pygpt_net.plugin.cmd_system import Plugin as CmdSystemPlugin
         from pygpt_net.plugin.cmd_web import Plugin as CmdWebPlugin
+        from pygpt_net.plugin.canvas_web import Plugin as CanvasWebPlugin
         from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
         from pygpt_net.plugin.extra_prompt import Plugin as ExtraPromptPlugin
         from pygpt_net.plugin.experts import Plugin as ExpertsPlugin
@@ -230,6 +269,7 @@ def run(**kwargs):
         from pygpt_net.plugin.openai_dalle import Plugin as ImageGenerationPlugin
         from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
         from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
+        from pygpt_net.plugin.memory import Plugin as MemoryPlugin
         from pygpt_net.plugin.agent import Plugin as AgentPlugin
         from pygpt_net.plugin.mailer import Plugin as MailerPlugin
         from pygpt_net.plugin.google import Plugin as GooglePlugin
@@ -246,13 +286,11 @@ def run(**kwargs):
         from pygpt_net.plugin.mcp import Plugin as MCPPlugin
         from pygpt_net.plugin.wolfram import Plugin as WolframPlugin
         from pygpt_net.plugin.osm import Plugin as OSMPlugin
+        from pygpt_net.plugin.jev import Plugin as JevPlugin
 
         # agents (Llama-index)
-        from pygpt_net.provider.agents.llama_index.legacy.openai_assistant import OpenAIAssistantAgent
         from pygpt_net.provider.agents.llama_index.planner_workflow import PlannerAgent as PlannerWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.openai_workflow import OpenAIAgent as OpenAIWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.react_workflow import ReactWorkflowAgent
-        from pygpt_net.provider.agents.llama_index.codeact_workflow import CodeActAgent
+        from pygpt_net.provider.agents.llama_index.modes import ModeAgent as LlamaModeAgent
         from pygpt_net.provider.agents.llama_index.supervisor_workflow import SupervisorAgent as LlamaSupervisorAgent
         from pygpt_net.provider.agents.llama_index.flow_from_schema import Agent as LlamaCustomAgent  # builder schema
 
@@ -269,24 +307,25 @@ def run(**kwargs):
         from pygpt_net.provider.agents.openai.flow_from_schema import Agent as OpenAICustomAgent  # builder schema
 
         # LLM wrapper providers (langchain, llama-index, embeddings)
-        from pygpt_net.provider.llms.anthropic import AnthropicLLM
-        from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
-        from pygpt_net.provider.llms.deepseek_api import DeepseekApiLLM
-        from pygpt_net.provider.llms.google import GoogleLLM
-        # from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
-        from pygpt_net.provider.llms.hugging_face_api import HuggingFaceApiLLM
-        from pygpt_net.provider.llms.hugging_face_router import HuggingFaceRouterLLM
-        from pygpt_net.provider.llms.llmman import LlmmanLLM
-        from pygpt_net.provider.llms.local import LocalLLM
-        from pygpt_net.provider.llms.mistral import MistralAILLM
-        from pygpt_net.provider.llms.ollama import OllamaLLM
-        from pygpt_net.provider.llms.openai import OpenAILLM
-        from pygpt_net.provider.llms.perplexity import PerplexityLLM
-        from pygpt_net.provider.llms.x_ai import xAILLM
-        from pygpt_net.provider.llms.open_router import OpenRouterLLM
-        from pygpt_net.provider.llms.litellm import LiteLLMProvider
-        from pygpt_net.provider.llms.forge import ForgeLLM
-        from pygpt_net.provider.llms.edenai import EdenAILLM
+        from pygpt_net.provider.llms.anthropic.provider import AnthropicLLM
+        from pygpt_net.provider.llms.azure_openai.provider import AzureOpenAILLM
+        from pygpt_net.provider.llms.deepseek.provider import DeepseekApiLLM
+        from pygpt_net.provider.llms.google.provider import GoogleLLM
+        from pygpt_net.provider.llms.hugging_face.api import HuggingFaceApiLLM
+        from pygpt_net.provider.llms.hugging_face.router import HuggingFaceRouterLLM
+        from pygpt_net.provider.llms.llmman.provider import LlmmanLLM
+        from pygpt_net.provider.llms.local.provider import LocalLLM
+        from pygpt_net.provider.llms.mistral.provider import MistralAILLM
+        from pygpt_net.provider.llms.ollama.provider import OllamaLLM
+        from pygpt_net.provider.llms.openai.provider import OpenAILLM
+        from pygpt_net.provider.llms.perplexity.provider import PerplexityLLM
+        from pygpt_net.provider.llms.x_ai.provider import xAILLM
+        from pygpt_net.provider.llms.open_router.provider import OpenRouterLLM
+        from pygpt_net.provider.llms.litellm.provider import LiteLLMProvider
+        from pygpt_net.provider.llms.forge.provider import ForgeLLM
+        from pygpt_net.provider.llms.edenai.provider import EdenAILLM
+        from pygpt_net.provider.llms.voyage.config import VoyageConfigLLM
+        from pygpt_net.provider.llms.jev.config import JevConfigLLM
 
         # vector store providers (llama-index)
         from pygpt_net.provider.vector_stores.chroma import ChromaProvider
@@ -354,10 +393,10 @@ def run(**kwargs):
         from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
         from pygpt_net.tools.media_player import MediaPlayer as MediaPlayerTool
         from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
-        from pygpt_net.tools.html_canvas import HtmlCanvas as HtmlCanvasTool
         from pygpt_net.tools.translator import Translator as TranslatorTool
         from pygpt_net.tools.web_browser import WebBrowser as WebBrowserTool
         from pygpt_net.tools.agent_builder import AgentBuilder as AgentBuilderTool
+        from pygpt_net.tools.agent_workflow import AgentWorkflow as AgentWorkflowTool
 
         launcher.init()
 
@@ -439,11 +478,13 @@ def run(**kwargs):
         launcher.add_plugin(VoiceControlPlugin())
         launcher.add_plugin(AgentPlugin())
         launcher.add_plugin(RealTimePlugin())
+        launcher.add_plugin(MemoryPlugin())
         launcher.add_plugin(ExpertsPlugin())
         launcher.add_plugin(ExtraPromptPlugin())
         launcher.add_plugin(AudioInputPlugin())
         launcher.add_plugin(AudioOutputPlugin())
         launcher.add_plugin(CmdWebPlugin())
+        launcher.add_plugin(CanvasWebPlugin())
         launcher.add_plugin(CmdFilesPlugin())
         launcher.add_plugin(CmdCodeInterpreterPlugin())
         launcher.add_plugin(CmdSystemPlugin())
@@ -471,6 +512,7 @@ def run(**kwargs):
         launcher.add_plugin(MCPPlugin())
         launcher.add_plugin(WolframPlugin())
         launcher.add_plugin(OSMPlugin())
+        launcher.add_plugin(JevPlugin())
 
         # register custom plugins
         plugins = kwargs.get('plugins', None)
@@ -496,6 +538,8 @@ def run(**kwargs):
         launcher.add_llm(OpenRouterLLM())
         launcher.add_llm(ForgeLLM())
         launcher.add_llm(EdenAILLM())
+        launcher.add_llm(VoyageConfigLLM())
+        launcher.add_llm(JevConfigLLM())
         launcher.add_llm(LiteLLMProvider())
 
         # register LLMs
@@ -503,6 +547,9 @@ def run(**kwargs):
         if isinstance(llms, list):
             for llm in llms:
                 launcher.add_llm(llm)
+
+        # register runtime OpenAI-compatible providers saved in Settings
+        launcher.window.core.llm.sync_custom(force=True)
 
         # register base vector store providers (llama-index)
         launcher.add_vector_store(ChromaProvider())
@@ -519,14 +566,14 @@ def run(**kwargs):
                 launcher.add_vector_store(store)
 
         # register base agents
-        # launcher.add_agent(OpenAIAgent())  # llama-index
-        launcher.add_agent(OpenAIWorkflowAgent())  # llama-index
-        launcher.add_agent(OpenAIAssistantAgent())  # llama-index
-        # launcher.add_agent(PlannerAgent())  # llama-index
         launcher.add_agent(PlannerWorkflowAgent())  # llama-index
-        # launcher.add_agent(ReactAgent())  # llama-index
-        launcher.add_agent(ReactWorkflowAgent())  # llama-index
-        launcher.add_agent(CodeActAgent())  # llama-index
+        launcher.add_agent(LlamaModeAgent("base"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("experts"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("feedback"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("experts_feedback"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("b2b"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("evolve"))  # llama-index
+        launcher.add_agent(LlamaModeAgent("researcher"))  # llama-index
         launcher.add_agent(LlamaSupervisorAgent())  # llama-index
         launcher.add_agent(LlamaCustomAgent())  # llama-index
         launcher.add_agent(OpenAIAgentsBase())  # openai-agents
@@ -553,16 +600,25 @@ def run(**kwargs):
         launcher.add_tool(TextEditorTool())
         launcher.add_tool(AudioTranscriberTool())
         launcher.add_tool(CodeInterpreterTool())
-        launcher.add_tool(HtmlCanvasTool())
         launcher.add_tool(TranslatorTool())
         launcher.add_tool(WebBrowserTool())
         launcher.add_tool(AgentBuilderTool())
+        launcher.add_tool(AgentWorkflowTool())
 
         # register custom tools
         tools = kwargs.get('tools', None)
         if isinstance(tools, list):
             for tool in tools:
                 launcher.add_tool(tool)
+
+        # register profile-scoped external add-ons
+        # Broken or incompatible add-ons are isolated and reported as warnings.
+        # The external loader itself is also non-fatal: third-party code must not
+        # prevent PyGPT from reaching the normal application startup path.
+        try:
+            launcher.window.core.extensions.load_into_launcher(launcher)
+        except Exception as exc:
+            print(f"[Add-ons] WARNING: External add-on loader failed: {exc}")
 
         # run the app
         launcher.run()

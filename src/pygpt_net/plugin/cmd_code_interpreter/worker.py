@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.11 14:00:00                  #
+# Updated Date: 2026.09.20 10:35:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
@@ -18,7 +18,6 @@ class WorkerSignals(BaseSignals):
     output = Signal(object, str)
     output_begin = Signal(str)
     output_end = Signal(str)
-    html_output = Signal(object)
     ipython_output = Signal(object)
     build_finished = Signal()
     clear = Signal()
@@ -33,10 +32,38 @@ class Worker(BaseWorker):
         self.plugin = None
         self.cmds = None
         self.ctx = None
+        self.backend = None
+
+    def get_backend(self):
+        """Return the backend fixed for this worker run, or resolve it lazily."""
+        if self.backend is not None:
+            return self.backend
+        return self.plugin.get_execution_backend()
+
+    @staticmethod
+    def _is_builtin_preparing(response) -> bool:
+        """Keep first-use preparation visible even for normally silent calls."""
+        if not isinstance(response, dict):
+            return False
+        result = response.get("result")
+        return isinstance(result, dict) and bool(result.get("builtin_sandbox_preparing"))
 
     @Slot()
     def run(self):
+        signals = self.signals
+        backend = None
+        interpreter = None
         try:
+            # Runner and kernel objects are shared by plugin workers. Bind Qt
+            # signals in the worker thread so overlapping tool calls cannot
+            # replace another worker's signal source while it is restarting.
+            if self.plugin is not None and signals is not None:
+                backend = self.plugin.get_execution_backend()
+                self.backend = backend
+                interpreter = self.plugin.get_interpreter()
+                self.plugin.runner.attach_signals(signals)
+                interpreter.attach_signals(signals)
+
             responses = []
             for item in self.cmds:
                 if self.is_stopped():
@@ -46,51 +73,31 @@ class Worker(BaseWorker):
                     if (item["cmd"] in self.plugin.allowed_cmds
                             and (self.plugin.has_cmd(item["cmd"]) or 'force' in item)):
 
-                        if item["cmd"] == "code_execute_file":
-                            response = self.cmd_code_execute_file(item)
+                        if item["cmd"] == "python_exec_file":
+                            response = self.cmd_python_exec_file(item)
 
-                        elif item["cmd"] == "code_execute":
-                            response = self.cmd_code_execute(item)
-                            if "silent" in item:
+                        elif item["cmd"] == "python_exec":
+                            response = self.cmd_python_exec(item)
+                            if "silent" in item and not self._is_builtin_preparing(response):
                                 response = None
 
-                        elif item["cmd"] == "code_execute_all":
-                            response = self.cmd_code_execute_all(item)
-                            if "silent" in item:
-                                response = None
-
-                        elif item["cmd"] == "ipython_execute_new":
-                            response = self.cmd_ipython_execute_new(item)
-                            if "silent" in item:
+                        elif item["cmd"] == "ipython_exec":
+                            response = self.cmd_ipython_exec(item)
+                            if "silent" in item and not self._is_builtin_preparing(response):
                                 self.ctx.bag = response  # store tmp response
                                 response = None
 
-                        elif item["cmd"] == "ipython_execute":
-                            response = self.cmd_ipython_execute(item)
-                            if "silent" in item:
-                                self.ctx.bag = response  # store tmp response
-                                response = None
+                        elif item["cmd"] == "ipython_sys_exec":
+                            response = self.cmd_ipython_sys_exec(item)
+
+                        elif item["cmd"] == "python_sys_exec":
+                            response = self.cmd_python_sys_exec(item)
 
                         elif item["cmd"] == "ipython_kernel_restart":
                             response = self.cmd_ipython_kernel_restart(item)
-                            if "silent" in item:
+                            if "silent" in item and not self._is_builtin_preparing(response):
                                 self.ctx.bag = response  # store tmp response
                                 response = None
-
-                        elif item["cmd"] == "get_python_output":
-                            response = self.cmd_get_python_output(item)
-
-                        elif item["cmd"] == "get_python_input":
-                            response = self.cmd_get_python_input(item)
-
-                        elif item["cmd"] == "clear_python_output":
-                            response = self.cmd_clear_python_output(item)
-
-                        elif item["cmd"] == "render_html_output":
-                            response = self.cmd_render_html_output(item)
-
-                        elif item["cmd"] == "get_html_output":
-                            response = self.cmd_get_html_output(item)
 
                         if response:
                             responses.append(response)
@@ -109,17 +116,27 @@ class Worker(BaseWorker):
         except Exception as e:
             self.error(e)
         finally:
+            if self.plugin is not None:
+                try:
+                    self.plugin.runner.detach_signals(signals)
+                except Exception:
+                    pass
+                try:
+                    if interpreter is not None:
+                        interpreter.detach_signals(signals)
+                except Exception:
+                    pass
             self.cleanup()
 
-    def cmd_ipython_execute_new(self, item: dict) -> dict:
+    def cmd_ipython_exec(self, item: dict) -> dict:
         """
-        Execute code in IPython interpreter (new kernel)
+        Execute code in IPython interpreter (current kernel)
 
         :param item: command item
         :return: response item
         """
         try:
-            result = self.plugin.runner.ipython_execute_new(
+            result = self.plugin.runner.ipython_exec(
                 ctx=self.ctx,
                 item=item,
                 request=self.from_request(item),
@@ -130,18 +147,29 @@ class Worker(BaseWorker):
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_ipython_execute(self, item: dict) -> dict:
-        """
-        Execute code in IPython interpreter (current kernel)
-
-        :param item: command item
-        :return: response item
-        """
+    def cmd_ipython_sys_exec(self, item: dict) -> dict:
+        """Execute a system command in the selected IPython execution backend."""
+        request = self.from_request(item)
         try:
-            result = self.plugin.runner.ipython_execute(
+            result = self.get_backend().ipython_sys_exec(
                 ctx=self.ctx,
                 item=item,
-                request=self.from_request(item),
+                request=request,
+            )
+        except Exception as e:
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
+
+    def cmd_python_sys_exec(self, item: dict) -> dict:
+        """Execute a system command in the selected standard Python backend."""
+        request = self.from_request(item)
+        try:
+            result = self.get_backend().python_sys_exec(
+                ctx=self.ctx,
+                item=item,
+                request=request,
             )
         except Exception as e:
             result = self.throw_error(e)
@@ -168,167 +196,40 @@ class Worker(BaseWorker):
         extra = {
             'plugin': "cmd_code_interpreter",
         }
-        # self.cmd_clear_python_output(item)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_code_execute_file(self, item: dict) -> dict:
-        """
-        Execute code command from existing file
-
-        :param item: command item
-        :return: response item
-        """
+    def cmd_python_exec_file(self, item: dict) -> dict:
+        """Execute Python code from an existing file using the selected backend."""
         request = self.from_request(item)
         try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.code_execute_file_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
-            else:
-                result = self.plugin.runner.code_execute_file_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
+            result = self.get_backend().python_exec_file(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+            )
         except Exception as e:
             result = self.throw_error(e)
 
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_code_execute(self, item: dict) -> dict:
-        """
-        Execute code command
-
-        :param item: command item
-        :return: response item
-        """
+    def cmd_python_exec(self, item: dict) -> dict:
+        """Execute Python code using the selected backend."""
         request = self.from_request(item)
         try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.code_execute_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
-            else:
-                result = self.plugin.runner.code_execute_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                )
+            result = self.get_backend().python_exec(
+                ctx=self.ctx,
+                item=item,
+                request=request,
+                all=bool(item.get("all", False)),
+            )
         except Exception as e:
             result = self.throw_error(e)
 
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
-    def cmd_code_execute_all(self, item: dict) -> dict:
-        """
-        Execute all code command
-
-        :param item: command item
-        :return: response item
-        """
-        request = self.from_request(item)
-        try:
-            if not self.plugin.runner.is_sandbox():
-                result = self.plugin.runner.code_execute_host(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                    all=True,
-                )
-            else:
-                result = self.plugin.runner.code_execute_sandbox(
-                    ctx=self.ctx,
-                    item=item,
-                    request=request,
-                    all=True,
-                )
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_get_python_output(self, item: dict) -> dict:
-        """
-        Get python output
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            result = self.plugin.window.tools.get("interpreter").get_current_output()
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_get_python_input(self, item: dict) -> dict:
-        """
-        Get python input (edit code)
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            result = self.plugin.window.tools.get("interpreter").get_current_history()
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def cmd_clear_python_output(self, item: dict) -> dict:
-        """
-        Clear python output
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            self.signals.clear.emit()
-            result = "OK"
-        except Exception as e:
-            result = self.throw_error(e)
-        return self.make_response(item, result)
-
-    def cmd_render_html_output(self, item: dict) -> dict:
-        """
-        Show output in HTML canvas
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            if self.has_param(item, "html"):
-                self.plugin.runner.send_html_output(self.get_param(item, "html")) # handle in main thread
-            result = "OK"
-        except Exception as e:
-            result = self.throw_error(e)
-        return self.make_response(item, result)
-
-    def cmd_get_html_output(self, item: dict) -> dict:
-        """
-        Get HTML canvas output
-
-        :param item: command item
-        :return: response item
-        """
-        try:
-            result = self.plugin.window.tools.get("html_canvas").get_output()
-        except Exception as e:
-            result = self.throw_error(e)
-
-        extra = self.prepare_extra(item, result)
-        return self.make_response(item, result, extra=extra)
-
-    def prepare_extra(self, item: dict, result: dict) -> dict:
+    def prepare_extra(self, item: dict, result) -> dict:
         """
         Prepare extra data for response
 
@@ -343,19 +244,21 @@ class Worker(BaseWorker):
             'code': {}
         }
         lang = "python"
-        if cmd in ["render_html_output", "get_html_output"]:
-            lang = "html"
-        elif cmd in ["sys_exec"]:
+        if cmd in ["ipython_sys_exec", "python_sys_exec", "sys_exec"]:
             lang = "bash"
         if "params" in item and "code" in item["params"]:
             extra["code"]["input"] = {}
             extra["code"]["input"]["lang"] = lang
             extra["code"]["input"]["content"] = str(item["params"]["code"])
-        if "result" in result:
+        elif cmd in ["ipython_sys_exec", "python_sys_exec"] and "params" in item and "command" in item["params"]:
+            extra["code"]["input"] = {}
+            extra["code"]["input"]["lang"] = "bash"
+            extra["code"]["input"]["content"] = str(item["params"]["command"])
+        if isinstance(result, dict) and "result" in result:
             extra["code"]["output"] = {}
             extra["code"]["output"]["lang"] = lang
             extra["code"]["output"]["content"] = str(result["result"])
-        if "context" in result:
+        if isinstance(result, dict) and "context" in result:
             extra["context"] = str(result["context"])
         return extra
 

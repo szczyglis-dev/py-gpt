@@ -10,9 +10,12 @@
 # ================================================== #
 
 import json
+import os
 from typing import Optional, List, Dict, Any
 
 from sqlalchemy import text
+
+from pygpt_net.utils import trans
 
 
 class Viewer:
@@ -25,6 +28,10 @@ class Viewer:
         self.database = database
         self.tables = {}
         self.auto_backup = True
+        # One safety copy per application session is enough for DB Viewer edits.
+        # Keep the first pre-edit database state instead of overwriting it on every
+        # subsequent manual mutation.
+        self._session_backup_created = False
 
     def fetch_data(
             self,
@@ -142,17 +149,67 @@ class Viewer:
         """
         return self.database.window.ui.debug["db"].browser.is_auto_backup()
 
+    def _ensure_session_backup(self) -> bool:
+        """Create the DB Viewer safety backup once per application session.
+
+        If automatic backup is enabled but cannot be created, the manual write is
+        cancelled. This prevents a low-disk-space condition from silently turning
+        a protected edit into an unprotected one.
+        """
+        if not self.is_auto_backup() or self._session_backup_created:
+            return True
+
+        db_path = self.database.db_path
+        if not db_path or not os.path.exists(db_path):
+            return True
+
+        backup_path = os.path.join(self.database.window.core.config.path, 'db.sqlite.backup')
+        filesystem = self.database.window.core.filesystem
+
+        try:
+            required = os.path.getsize(db_path)
+            free = filesystem.get_free_disk_space(backup_path, human_readable=False)
+            # make_backup() removes the previous backup before copying. Its bytes
+            # are therefore reclaimable for the replacement copy.
+            reclaimable = os.path.getsize(backup_path) if os.path.exists(backup_path) else 0
+            available = int(free) + int(reclaimable)
+        except Exception as e:
+            self.log(f"[DB] Could not check free disk space before backup: {e}")
+            self.database.window.ui.dialogs.alert(str(e))
+            return False
+
+        if required > available:
+            self.database.window.ui.dialogs.alert(
+                trans("dialog.workdir.result.no_free_space").format(
+                    required=filesystem.sizeof_fmt(required),
+                    free=filesystem.sizeof_fmt(available),
+                )
+            )
+            self.log(
+                f"[DB] Auto-backup aborted: not enough disk space "
+                f"(required={required}, available={available})"
+            )
+            return False
+
+        created_path = self.database.make_backup()
+        if not created_path:
+            self.database.window.ui.dialogs.alert(
+                "Could not create database backup. Manual save was cancelled."
+            )
+            return False
+
+        self._session_backup_created = True
+        self.log(f"[DB] Created session DB backup: {created_path}")
+        return True
+
     def delete_row(self, data: Dict[str, Any]):
         """
         Delete row from the database.
 
         :param data: Dictionary with table and row_id keys
         """
-        if self.is_auto_backup():
-            backup_path = self.database.make_backup()
-            if backup_path:
-                msg = f"[DB] Created DB backup: {backup_path}"
-                self.log(msg)
+        if not self._ensure_session_backup():
+            return
 
         tables = self.database.get_tables()
         primary_key = tables[data['table']]['primary_key']
@@ -198,11 +255,8 @@ class Viewer:
             except:
                 pass
 
-        if self.is_auto_backup():
-            backup_path = self.database.make_backup()
-            if backup_path:
-                msg = f"[DB] Created DB backup: {backup_path}"
-                self.log(msg)
+        if not self._ensure_session_backup():
+            return
 
         with self.database.get_db().begin() as conn:
             conn.execute(
@@ -221,11 +275,8 @@ class Viewer:
         :param data: Dictionary with table key
         :param reset: Reset table sequence
         """
-        if self.is_auto_backup():
-            backup_path = self.database.make_backup()
-            if backup_path:
-                msg = f"[DB] Created DB backup: {backup_path}"
-                self.log(msg)
+        if not self._ensure_session_backup():
+            return
 
         with self.database.get_db().begin() as conn:
             conn.execute(text(f"DELETE FROM {data['table']}"))

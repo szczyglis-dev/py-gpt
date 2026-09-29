@@ -1,0 +1,19 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<resources>
+  <color name="primaryColor">#29d8ff</color>
+  <color name="primaryLightColor">#7de8ff</color>
+  <color name="secondaryColor">#061018</color>
+  <color name="secondaryLightColor">#0d1a24</color>
+  <color name="secondaryDarkColor">#04080d</color>
+  <color name="primaryTextColor">#d9f7ff</color>
+  <color name="secondaryTextColor">#9bd7e8</color>
+  <!-- Semantic application palette; consumed by {APP_*} QSS tokens. -->
+  <color name="appSurface">#061018</color>
+  <color name="appControlBackground">#101f29</color>
+  <color name="appListBackground">#0d1a24</color>
+  <color name="appTextColor">#d9f7ff</color>
+  <color name="appMutedTextColor">#7096a8</color>
+  <color name="appBorderColor">#213642</color>
+  <color name="appFocusBorderColor">#3b6478</color>
+  <color name="appFocusBackground">#172c38</color>
+</resources>

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 16:00:00                  #
+# Updated Date: 2026.09.21 14:55:00
 # ================================================== #
 
 import datetime
@@ -15,14 +15,15 @@ import shutil
 import uuid
 from typing import Any, Optional, Dict
 
-from PySide6.QtCore import Slot, Qt
-from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout, QScrollArea, QFrame
+from PySide6.QtCore import Slot, Qt, QTimer
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QHBoxLayout, QScrollArea, QFrame, QTreeWidgetItem
 from PySide6.QtGui import QImageReader
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -38,16 +39,34 @@ from pygpt_net.core.types import (
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 
-from .experts import Experts
-
 class Editor:
 
-    TAB_IDX = {
-        "general": 0,
-        "personalize": 1,
-        "experts": 2,
-        "remote_tools": 3,
+    # Build-time order of the static preset pages. Runtime mode switches no
+    # longer hide pages with QTabWidget.setTabVisible(): on some Qt/platform
+    # combinations a hidden tab can keep an empty slot in QTabBar. Instead we
+    # retain the page widgets and physically rebuild the visible tab set.
+    TAB_ORDER = (
+        "general",
+        "personalize",
+        "remote_tools",
+        "mcp",
+        "experts",
+        "skills",
+        "options",
+    )
+    TAB_LABELS = {
+        "general": "preset.tab.general",
+        "personalize": "preset.tab.personalize",
+        "remote_tools": "preset.tab.remote_tools",
+        "mcp": "preset.tab.mcp",
+        "experts": "preset.tab.experts",
+        "skills": "preset.tab.skills",
+        "options": "preset.tab.options",
     }
+    TAB_BUILD_IDX = {name: idx for idx, name in enumerate(TAB_ORDER)}
+    # Kept for compatibility with code which asks for the current index. Hidden
+    # pages are represented by -1 after the first runtime rebuild.
+    TAB_IDX = dict(TAB_BUILD_IDX)
 
     def __init__(self, window=None):
         """
@@ -56,9 +75,16 @@ class Editor:
         :param window: Window instance
         """
         self.window = window
+        from .experts import Experts
         self.experts = Experts(window)
         self.built = False
         self.tab_options_idx = {}
+        # Strong references to all static preset tab pages. QTabWidget::removeTab
+        # does not delete a page, but keeping the refs here makes that lifetime
+        # explicit and lets us reinsert pages deterministically on every mode
+        # switch.
+        self.tab_pages = {}
+        self.TAB_IDX = dict(self.TAB_BUILD_IDX)
         self.opened = False
         self.tmp_avatar = None
         self.options = {
@@ -90,7 +116,8 @@ class Editor:
             "description": {
                 "type": "text",
                 "label": "preset.description",
-                "placeholder": "preset.description.desc",
+                "description": "preset.description.desc",
+                "placeholder": "preset.description.placeholder",
             },
             MODE_IMAGE: {
                 "type": "bool",
@@ -124,9 +151,9 @@ class Editor:
                 "type": "bool",
                 "label": "preset.agent",
             },
-            MODE_AGENT_OPENAI: {
+            MODE_AGENT_V2: {
                 "type": "bool",
-                "label": "preset.agent_openai",
+                "label": "preset.agent_v2",
             },
             MODE_AUDIO: {
                 "type": "bool",
@@ -140,10 +167,6 @@ class Editor:
             # "type": "bool",
             # "label": "preset.assistant",
             # },
-            MODE_LLAMA_INDEX: {
-                "type": "bool",
-                "label": "preset.llama_index",
-            },
             MODE_COMPUTER: {
                 "type": "bool",
                 "label": "preset.computer",
@@ -153,19 +176,40 @@ class Editor:
                 "type": "combo",
                 "use": "models",
             },
+            "plugin_preset": {
+                "label": "preset.plugin_preset",
+                "description": "preset.plugin_preset.desc",
+                "type": "combo",
+            },
+            "plugin_preset_use": {
+                "type": "bool",
+                "label": "preset.plugin_preset_use",
+                "description": "preset.plugin_preset_use.desc",
+            },
+            "model_use": {
+                "type": "bool",
+                "label": "preset.model_use",
+                "description": "preset.model_use.desc",
+            },
+            "idx_use": {
+                "type": "bool",
+                "label": "preset.idx_use",
+                "description": "preset.idx_use.desc",
+            },
             "remote_tools": {
                 "label": "toolbox.remote_tools.label",
                 "type": "bool_list",
                 "use": "remote_tools_openai",
             },
-            "temperature": {
-                "type": "float",
-                "slider": True,
-                "label": "preset.temperature",
-                "min": 0,
-                "max": 2,
-                "step": 1,
-                "multiplier": 100,
+            "mcp_use": {
+                "type": "bool",
+                "label": "preset.use_list",
+                "description": "preset.use_list.desc",
+            },
+            "agent_skills_use": {
+                "type": "bool",
+                "label": "preset.use_list",
+                "description": "preset.use_list.desc",
             },
             "prompt": {
                 "type": "textarea",
@@ -177,6 +221,16 @@ class Editor:
                 "label": "preset.idx",
                 "description": "preset.idx.desc",
                 "use": "idx",
+            },
+            "agent_v2_allow_local_tools": {
+                "type": "bool",
+                "label": "preset.agent_v2.allow_local_tools",
+                "description": "preset.agent_v2.allow_local_tools.desc",
+            },
+            "agent_v2_allow_remote_tools": {
+                "type": "bool",
+                "label": "preset.agent_v2.allow_remote_tools",
+                "description": "preset.agent_v2.allow_remote_tools.desc",
             },
             "agent_provider": {
                 "type": "combo",
@@ -201,11 +255,7 @@ class Editor:
                 }
             },
         }
-        self.hidden_by_mode = {  # hidden fields by mode
-            MODE_CHAT: ["idx"],
-            MODE_AGENT_LLAMA: ["temperature"],
-            MODE_AGENT_OPENAI: ["temperature"],
-        }
+        self.hidden_by_mode = {}  # visibility is controlled by controller.ui.mode
         self.id = "preset"
         self.current = None
         self.current_id = None
@@ -247,7 +297,11 @@ class Editor:
 
     def setup(self):
         """Setup preset editor"""
-        # update after agents register
+        # The dialog widgets are created before the built-in LLM providers are
+        # registered. Refresh the model choices now, after provider
+        # registration, so provider grouping is complete (including runtime
+        # custom providers).
+        self.update_models_list()
         self.append_extra_config()
         self.update_providers_list()
 
@@ -256,84 +310,205 @@ class Editor:
         self.window.ui.add_hook("update.preset.agent_provider", self.hook_update)
         self.window.ui.add_hook("update.preset.agent_provider_openai", self.hook_update)
 
-    def toggle_extra_options(self):
-        """Toggle extra options in preset editor"""
-        if not self.tab_options_idx:
+    def fit_splitter_to_content(self):
+        """Minimize the upper preset pane and give all remaining height to the prompt."""
+        splitter = self.window.ui.splitters.get('editor.presets')
+        if splitter is None or splitter.count() < 2:
             return
-        mode = self.window.core.config.get('mode')
-        tabs = self.window.ui.tabs['preset.editor.extra']
-        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
-            tabs.setTabVisible(0, True)  # show base prompt
-            for opt_id in self.tab_options_idx:  # hide all tabs
-                for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() > tab_idx:
-                        tabs.setTabVisible(tab_idx, False)
-            return
-        else:
-            for opt_id in self.tab_options_idx:  # hide all tabs
-                for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() > tab_idx:
-                        tabs.setTabVisible(tab_idx, False)
 
-            self.toggle_extra_options_by_provider()
+        def fit():
+            # Preset fields are shown/hidden dynamically. Recompute layout
+            # minima after Qt has applied the current mode and size the upper
+            # pane to the smallest height that can contain its visible fields.
+            # The prompt pane receives every remaining pixel.
+            if splitter.count() < 2:
+                return
+
+            upper = splitter.widget(0)
+            lower = splitter.widget(1)
+            if upper is None or lower is None:
+                return
+
+            upper_layout = upper.layout()
+            lower_layout = lower.layout()
+            if upper_layout is not None:
+                upper_layout.invalidate()
+                upper_layout.activate()
+            if lower_layout is not None:
+                lower_layout.invalidate()
+                lower_layout.activate()
+
+            upper.updateGeometry()
+            lower.updateGeometry()
+
+            upper_min = upper.minimumSizeHint().height()
+            if upper_layout is not None:
+                upper_min = max(upper_min, upper_layout.minimumSize().height())
+            upper_min = max(0, upper_min)
+
+            available = splitter.height() - splitter.handleWidth()
+            if available <= 0:
+                return
+
+            # Do not use upper.sizeHint() here. It is a preferred size and may
+            # retain extra vertical space from a previously visible preset mode.
+            # QSplitter will still enforce the real widget minimums if the
+            # dialog is too short.
+            lower_height = max(1, available - upper_min)
+            splitter.setSizes([upper_min, lower_height])
+
+        # A zero-delay pass handles ordinary mode switches. The second pass is
+        # intentional: EditorDialog is resized/shown after preset data is loaded,
+        # so the final window geometry may not exist during the first layout pass.
+        QTimer.singleShot(0, fit)
+        QTimer.singleShot(75, fit)
+
+    def _set_extra_tabs_visible(self, visible_indices, preferred=None):
+        """Apply extra-tab visibility without leaving QTabBar horizontally scrolled.
+
+        The target tab is made visible and selected *before* obsolete tabs are
+        hidden.  QTabBar can otherwise retain the scroll offset of a previously
+        selected provider tab, which clips the left edge of the next title.
+        """
+        tabs = self.window.ui.tabs.get('preset.editor.extra')
+        if not tabs or tabs.count() == 0:
+            return
+
+        visible = sorted({
+            idx for idx in visible_indices
+            if isinstance(idx, int) and 0 <= idx < tabs.count()
+        })
+        if not visible:
+            return
+
+        current = tabs.currentIndex()
+        if preferred in visible:
+            target = preferred
+        elif current in visible:
+            target = current
+        else:
+            target = visible[0]
+
+        # Critical ordering: position/select the destination while the previous
+        # tab geometry still exists.  Only then hide tabs that are no longer
+        # relevant.  This makes Qt reset the tab-bar viewport deterministically.
+        tabs.setTabVisible(target, True)
+        tabs.setCurrentIndex(target)
+        tabs.tabBar().setCurrentIndex(target)
+
+        visible_set = set(visible)
+        for idx in range(tabs.count()):
+            tabs.setTabVisible(idx, idx in visible_set)
+
+        tabs.setCurrentIndex(target)
+        tabs.tabBar().setCurrentIndex(target)
+        self._normalize_extra_tabs()
+
+    def _normalize_extra_tabs(self):
+        """Keep the active visible extra-options tab fully in view."""
+        tabs = self.window.ui.tabs.get('preset.editor.extra')
+        if not tabs:
+            return
+
+        def normalize():
+            if not tabs or tabs.count() == 0:
+                return
+            visible = [
+                i for i in range(tabs.count())
+                if tabs.isTabVisible(i) and tabs.isTabEnabled(i)
+            ]
+            if not visible:
+                return
+
+            current = tabs.currentIndex()
+            target = current if current in visible else visible[0]
+            bar = tabs.tabBar()
+
+            bar.setExpanding(False)
+            bar.setElideMode(Qt.ElideNone)
+            bar.setUsesScrollButtons(len(visible) > 1)
+
+            # Do not use the old currentIndex=-1 workaround here.  Changing the
+            # QTabBar index independently from QTabWidget could itself leave the
+            # bar with stale scroll geometry after dynamic hide/show operations.
+            tabs.setCurrentIndex(target)
+            bar.setCurrentIndex(target)
+            bar.updateGeometry()
+            tabs.updateGeometry()
+            bar.update()
+            tabs.update()
+
+        # Visibility changes and final dialog geometry are asynchronous in Qt.
+        # The first pass fixes normal switches; the second one handles a dialog
+        # that has just been shown or resized.
+        QTimer.singleShot(0, normalize)
+        QTimer.singleShot(75, normalize)
+
+    def toggle_extra_options(self):
+        """Toggle extra options in preset editor."""
+        mode = self.window.core.config.get('mode')
+
+        # All modes except the legacy provider-agent editors use only the base
+        # prompt tab.  Select it before hiding provider tabs so its title always
+        # starts at the left edge of QTabBar.
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
+
+        self.toggle_extra_options_by_provider()
 
     def toggle_extra_options_by_provider(self):
-        """Toggle extra options in preset editor by provider"""
+        """Toggle extra options in preset editor by provider."""
         tabs = self.window.ui.tabs['preset.editor.extra']
 
         if not self.tab_options_idx:
-            tabs.setTabVisible(0, True)  # base prompt
+            self._set_extra_tabs_visible([0], preferred=0)
             return
 
         mode = self.window.core.config.get('mode')
-        key_agent = ""
+        if mode not in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-        if mode in [MODE_AGENT_OPENAI, MODE_AGENT_LLAMA]:
-            key_agent = "agent_provider_openai" if mode == MODE_AGENT_OPENAI else "agent_provider"
+        key_agent = "agent_provider_openai" if mode == MODE_AGENT_OPENAI else "agent_provider"
 
-            # 1) try from UI
-            current_provider = self.window.controller.config.get_value(
-                parent_id=self.id,
-                key=key_agent,
-                option=self.options[key_agent],
-            )
+        # 1) try from UI
+        current_provider = self.window.controller.config.get_value(
+            parent_id=self.id,
+            key=key_agent,
+            option=self.options[key_agent],
+        )
 
-            # 2) fallback to current preset
-            if not current_provider or current_provider == "_":
-                preset = self.window.core.presets.get_by_uuid(self.current)
-                if preset:
-                    current_provider = getattr(preset, key_agent, None)
+        # 2) fallback to current preset
+        if not current_provider or current_provider == "_":
+            preset = self.window.core.presets.get_by_uuid(self.current)
+            if preset:
+                current_provider = getattr(preset, key_agent, None)
 
-            # 3) if still not set -> show base prompt
-            if not current_provider or current_provider == "_":
-                tabs.setTabVisible(0, True)
-                return
+        # 3) if still not set -> show base prompt
+        if not current_provider or current_provider == "_":
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-            # first hide all tabs
-            for opt_id in self.tab_options_idx:
-                for tab_idx in self.tab_options_idx[opt_id]:
-                    if tabs.count() > tab_idx:
-                        tabs.setTabVisible(tab_idx, False)
+        agent = self.window.core.agents.provider.get(current_provider, mode)
+        if not agent:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-            # hide base prompt
-            tabs.setTabVisible(0, False)
+        option_tabs = agent.get_options()
+        provider_tabs = [
+            idx for idx in self.tab_options_idx.get(current_provider, [])
+            if 0 <= idx < tabs.count()
+        ]
+        if not option_tabs or not provider_tabs:
+            self._set_extra_tabs_visible([0], preferred=0)
+            return
 
-            # show tabs for current provider
-            for tab_idx in self.tab_options_idx.get(current_provider, []):
-                if tabs.count() > tab_idx:
-                    tabs.setTabVisible(tab_idx, True)
-
-            # if not found, show base prompt
-            agent = self.window.core.agents.provider.get(current_provider, mode)
-            if not agent:
-                tabs.setTabVisible(0, True)
-                return
-            option_tabs = agent.get_options()
-            if not option_tabs:
-                tabs.setTabVisible(0, True)
-        else:
-            # not agent mode -> show base prompt
-            tabs.setTabVisible(0, True)
+        # Preserve the currently selected provider tab when it still belongs to
+        # this provider; otherwise select its first option tab.
+        current = tabs.currentIndex()
+        preferred = current if current in provider_tabs else provider_tabs[0]
+        self._set_extra_tabs_visible(provider_tabs, preferred=preferred)
 
     def load_extra_options(self, preset: PresetItem):
         """
@@ -534,6 +709,37 @@ class Editor:
             preset.extra = {}
         preset.extra[id] = data_dict
 
+    def _build_agent_options_layout(self, schema_options: dict, options_layouts: dict) -> QVBoxLayout:
+        """Compose an agent option tab, keeping model override controls inline."""
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 10, 0, 10)
+
+        consumed = set()
+        if "model" in options_layouts and "model_overwrite" in options_layouts:
+            model_row = QHBoxLayout()
+            model_row.addLayout(options_layouts["model"], 1)
+            model_row.addLayout(options_layouts["model_overwrite"], 0)
+            model_row.setStretch(0, 1)
+            layout.addLayout(model_row)
+            consumed.update({"model", "model_overwrite"})
+
+        checkbox_layout = QHBoxLayout()
+        has_checkboxes = False
+        for key, opt_layout in options_layouts.items():
+            if key in consumed:
+                continue
+            opt_schema = schema_options.get(key, {})
+            if opt_schema.get("type") == "bool":
+                checkbox_layout.addLayout(opt_layout)
+                has_checkboxes = True
+            else:
+                layout.addLayout(opt_layout)
+
+        layout.addStretch(1)
+        if has_checkboxes:
+            layout.addLayout(checkbox_layout)
+        return layout
+
     def append_extra_config(self):
         """Build extra configuration for the preset editor dialog"""
         if self.built:
@@ -562,18 +768,7 @@ class Editor:
                 title = option.get('label', '')
                 config_id = "agent." + id + "." + option_tab_id
                 widgets, options = build_option_widgets(config_id, option['options'])
-                layout = QVBoxLayout()
-                layout.setContentsMargins(0, 10, 0, 10)
-
-                checkbox_layout = QHBoxLayout()
-                for key in options:
-                    opt_layout = options[key]
-                    if option['options'][key]['type'] == 'bool':
-                        checkbox_layout.addLayout(opt_layout)   # checkbox
-                    else:
-                        layout.addLayout(opt_layout)
-                layout.addStretch(1)
-                layout.addLayout(checkbox_layout)
+                layout = self._build_agent_options_layout(option['options'], options)
 
                 # wrap the tab content in a scroll area to avoid vertical overlaps
                 tab_content = QWidget()
@@ -638,6 +833,47 @@ class Editor:
             new_map[a_id].append(i)
 
         self.tab_options_idx = new_map
+
+    def update_models_list(self):
+        """Refresh model choices in the preset editor."""
+        config = self.window.ui.config.get(self.id, {})
+        widget = config.get("model")
+        if widget is None or not hasattr(widget, "set_keys"):
+            return
+        keys = self.window.controller.config.placeholder.apply_by_id("models")
+        widget.set_keys(keys, lock=True)
+
+    def update_plugin_presets_list(self, selected_value=Ellipsis):
+        """Refresh plugin-preset choices and keep only currently available IDs."""
+        config = self.window.ui.config.get(self.id, {})
+        widget = config.get("plugin_preset")
+        if widget is None or not hasattr(widget, "set_keys"):
+            return
+
+        keys = {"_": "preset.plugin_preset.none"}
+        try:
+            presets = self.window.controller.plugins.presets.get_presets()
+        except Exception:
+            presets = {}
+        for preset_id, data in presets.items():
+            name = str(data.get("name", preset_id)) if isinstance(data, dict) else str(preset_id)
+            keys[str(preset_id)] = name
+
+        self.options["plugin_preset"]["keys"] = keys
+        current = widget.get_value() if selected_value is Ellipsis else selected_value
+        target = str(current) if current not in (None, "", "_") else "_"
+        if target not in keys:
+            target = "_"
+
+        widget.set_keys(keys, lock=True)
+        index = widget.combo.findData(target)
+        previous_locked = widget.locked
+        widget.locked = True
+        try:
+            widget.combo.setCurrentIndex(index)
+            widget.current_id = target if index >= 0 else None
+        finally:
+            widget.locked = previous_locked
 
     def update_custom_agent_options(self, agent_id: str):
         """
@@ -744,19 +980,8 @@ class Editor:
             # Build new option widgets into UI config under config_id.
             widgets, options_layouts = build_option_widgets(config_id, schema_options)
 
-            # Create layouts similar to initial build (checkboxes at bottom row).
-            layout = QVBoxLayout()
-            layout.setContentsMargins(0, 10, 0, 10)
-
-            checkbox_layout = QHBoxLayout()
-            for key, opt_layout in options_layouts.items():
-                opt_schema = schema_options.get(key, {})
-                if opt_schema.get('type') == 'bool':
-                    checkbox_layout.addLayout(opt_layout)
-                else:
-                    layout.addLayout(opt_layout)
-            layout.addStretch(1)
-            layout.addLayout(checkbox_layout)
+            # Keep model + overwrite toggle in one row; group other bools below.
+            layout = self._build_agent_options_layout(schema_options, options_layouts)
 
             # Assemble tab widget wrapped into a scroll area.
             tab_content = QWidget()
@@ -868,6 +1093,27 @@ class Editor:
             self.window.controller.config.placeholder.apply_by_id('agent_provider_openai')
         )
 
+    def update_indexes_list(self, selected_value=Ellipsis):
+        """Refresh project-aware RAG choices and keep a valid selection."""
+        keys = self.window.controller.config.placeholder.apply_by_id('idx')
+        self.options['idx']['keys'] = keys
+        widget = self.window.ui.config[self.id]['idx']
+        current = widget.get_value() if selected_value is Ellipsis else selected_value
+        widget.set_keys(keys, lock=True)
+
+        target = current if current not in (None, '', '-') else '_'
+        index = widget.combo.findData(target)
+        if index < 0:
+            target = '_'
+            index = widget.combo.findData(target)
+        previous_locked = widget.locked
+        widget.locked = True
+        try:
+            widget.combo.setCurrentIndex(index)
+            widget.current_id = target if index >= 0 else None
+        finally:
+            widget.locked = previous_locked
+
     def hook_update(
             self,
             key: str,
@@ -911,6 +1157,15 @@ class Editor:
             preset = self.window.core.presets.get_by_idx(idx, mode)
         self.init(preset)
         self.window.ui.dialogs.open_editor('editor.preset.presets', idx, width=800)
+        # open_editor() applies the dialog size only after init(). Re-apply the
+        # tab map against the shown widget as a second safety pass, then repeat
+        # once on the next event-loop turn after Qt has finalized visibility.
+        self.sync_tabs_for_mode()
+        QTimer.singleShot(0, self.sync_tabs_for_mode)
+        # Re-run the geometry-sensitive fixes against the actual shown dialog
+        # dimensions.
+        self.fit_splitter_to_content()
+        self._normalize_extra_tabs()
 
     def reload_all(self, all: bool = False):
         """
@@ -919,6 +1174,7 @@ class Editor:
         :param all: reload all custom agent options
         """
         self.update_providers_list()
+        self.update_plugin_presets_list()
         if all:
             self.reload_all_custom_agent_options()
             if self.opened:
@@ -941,7 +1197,6 @@ class Editor:
 
         if id is None:
             self.current = None  # RESET HERE is always required for new/avatar update
-            self.experts.update_list()
             self.window.ui.config[self.id]['idx'].set_value("_")  # reset idx combo if new preset
 
         if id is not None and id != "":
@@ -982,7 +1237,7 @@ class Editor:
             # elif mode == MODE_ASSISTANT:
                 # data.assistant = True
             elif mode == MODE_LLAMA_INDEX:
-                data.llama_index = True
+                data.chat = True
             elif mode == MODE_EXPERT:
                 data.expert = True
             elif mode == MODE_AGENT:
@@ -991,6 +1246,8 @@ class Editor:
                 data.agent_llama = True
             elif mode == MODE_AGENT_OPENAI:
                 data.agent_openai = True
+            elif mode == MODE_AGENT_V2:
+                data.agent_v2 = True
             elif mode == MODE_AUDIO:
                 data.audio = True
             elif mode == MODE_RESEARCH:
@@ -1000,9 +1257,27 @@ class Editor:
 
         options = {}
         data_dict = data.to_dict()
+        # Present legacy Chat with Files presets as Chat in the editor. Research
+        # remains a separate mode. Saving the preset normalizes the legacy flag.
+        if data_dict.get(MODE_LLAMA_INDEX):
+            data_dict[MODE_CHAT] = True
+        if mode == MODE_EXPERT:
+            # Expert presets are agents with a fixed Experts mode, just like
+            # Chat with Agents presets are fixed to Agents v2. Do not expose or
+            # trust legacy mode switches in this editor.
+            for mode_key in (
+                    MODE_CHAT, MODE_COMPLETION, MODE_IMAGE, MODE_LLAMA_INDEX,
+                    MODE_EXPERT, MODE_AGENT_LLAMA, MODE_AGENT, MODE_AGENT_OPENAI,
+                    MODE_AGENT_V2, MODE_AUDIO, MODE_RESEARCH, MODE_COMPUTER):
+                data_dict[mode_key] = False
+            data_dict[MODE_EXPERT] = True
         for key in self.options:
             options[key] = self.options[key]
             options[key]['value'] = data_dict[key]
+
+        # refresh dynamic RAG choices (includes Current project when applicable)
+        self.update_indexes_list(data_dict.get('idx'))
+        self.update_plugin_presets_list(data_dict.get('plugin_preset'))
 
         # load options
         self.window.controller.config.load_options(
@@ -1010,14 +1285,14 @@ class Editor:
             options,
         )
 
+        # MCP/Skills are dynamic installed-item lists, not static config fields.
+        self.refresh_runtime_lists(data)
+
         # load extra options
         self.load_extra_options(data)
 
         # toggle extra options
         self.toggle_extra_options()
-
-        # update experts list, after ID loaded
-        self.experts.update_list()
 
         # setup avatar config
         self.update_avatar_config(data)
@@ -1033,6 +1308,16 @@ class Editor:
         self.toggle_extra_options_by_provider()
         if id is None:
             self.append_default_prompt()
+
+        # Re-apply the complete top-level tab map on every editor init. This is
+        # intentionally redundant with Mode.update(): the editor may be opened
+        # after several mode switches and must never inherit stale tab state.
+        self.sync_tabs_for_mode(mode)
+
+        # The preset layout is mode-dependent.  Re-fit the vertical splitter
+        # after all current-mode widgets have settled so the lower prompt pane
+        # immediately consumes all unused height.
+        self.fit_splitter_to_content()
 
     def save(
             self,
@@ -1057,12 +1342,12 @@ class Editor:
             MODE_IMAGE,
             # MODE_VISION,
             # MODE_LANGCHAIN,
-            MODE_LLAMA_INDEX,
             MODE_EXPERT,
             MODE_AGENT_LLAMA,
             MODE_AGENT,
-            MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
             MODE_AUDIO,
+            MODE_RESEARCH,
             MODE_COMPUTER,
         ]
 
@@ -1106,17 +1391,19 @@ class Editor:
             )
             return
 
-        # check if at least one mode is selected
-        is_mode = False
+        # check if at least one mode is selected. Expert mode is fixed by the
+        # editor and therefore does not depend on the hidden mode checkboxes.
+        is_mode = mode == MODE_EXPERT
         get_value = self.window.controller.config.get_value
-        for check in modes:
-            if get_value(
-                parent_id=self.id,
-                key=check,
-                option=self.options[check],
-            ):
-                is_mode = True
-                break
+        if not is_mode:
+            for check in modes:
+                if get_value(
+                    parent_id=self.id,
+                    key=check,
+                    option=self.options[check],
+                ):
+                    is_mode = True
+                    break
         if mode != MODE_AGENT and not is_mode:
             self.window.ui.dialogs.alert(
                 trans('alert.preset.no_chat_completion')
@@ -1134,20 +1421,30 @@ class Editor:
         else:
             self.tmp_avatar = None
 
-        # if agent, assign experts and select only agent mode
+        # Agent-style preset editors have a fixed mode; do not persist stale
+        # mode flags from older/general preset layouts.
         curr_mode = self.window.core.config.get('mode')
-        if curr_mode == MODE_AGENT:
+        if curr_mode == MODE_EXPERT:
+            itm = self.window.core.presets.items[preset_id]
+            itm.reset_modes()
+            itm.expert = True
+        elif curr_mode == MODE_AGENT:
             itm = self.window.core.presets.items[preset_id]
             itm.reset_modes()
             itm.agent = True
-        elif curr_mode == MODE_AGENT_LLAMA:
+        elif curr_mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+            itm = self.window.core.presets.items[preset_id]
+            # Migrated legacy presets can be used by both engines. Preserve
+            # that pairing while still dropping unrelated stale mode flags.
+            llama = itm.agent_llama or curr_mode == MODE_AGENT_LLAMA
+            openai = itm.agent_openai or curr_mode == MODE_AGENT_OPENAI
+            itm.reset_modes()
+            itm.agent_llama = llama
+            itm.agent_openai = openai
+        elif curr_mode == MODE_AGENT_V2:
             itm = self.window.core.presets.items[preset_id]
             itm.reset_modes()
-            itm.agent_llama = True
-        elif curr_mode == MODE_AGENT_OPENAI:
-            itm = self.window.core.presets.items[preset_id]
-            itm.reset_modes()
-            itm.agent_openai = True
+            itm.agent_v2 = True
 
         # apply changes to current active preset
         current = self.window.core.config.get('preset')
@@ -1200,6 +1497,7 @@ class Editor:
         """
         get_value = self.window.controller.config.get_value
         data_dict = {}
+        mode = self.window.core.config.get('mode')
         for key in self.options:
             if key == "tool.function":
                 continue  # assigned separately
@@ -1212,9 +1510,17 @@ class Editor:
             data_dict['name'] = id + " " + trans('preset.untitled')
         if data_dict['model'] == '_':
             data_dict['model'] = None
+        if data_dict['plugin_preset'] == '_':
+            data_dict['plugin_preset'] = None
 
         preset = self.window.core.presets.items[id]
         preset.from_dict(data_dict)
+        preset.mcp = self.get_checked_runtime_ids('mcp')
+        preset.agent_skills = self.get_checked_runtime_ids('skills')
+        # Chat with Files is no longer a selectable preset mode. If an old
+        # LlamaIndex preset is edited, its visible Chat checkbox becomes the
+        # canonical mode and the legacy flag is removed on save.
+        preset.llama_index = False
         preset.filename = id
         preset.tools = {
             'function': [],  # functions are assigned separately (below)
@@ -1236,7 +1542,7 @@ class Editor:
         config.set('ai_name', preset.ai_name)
         config.set('user_name', preset.user_name)
         config.set('prompt', preset.prompt)
-        config.set('temperature', preset.temperature)
+        self.window.controller.presets.apply_lists_from_preset(preset.filename)
 
     @Slot()
     def from_current(self):
@@ -1263,16 +1569,19 @@ class Editor:
         )
         apply_value(
             parent_id=self.id,
-            key="temperature",
-            option=self.options["temperature"],
-            value=get_config('temperature'),
-        )
-        apply_value(
-            parent_id=self.id,
             key="model",
             option=self.options["model"],
             value=get_config('model'),
         )
+        self.update_indexes_list(get_config('llama.idx.current'))
+        apply_value(
+            parent_id=self.id,
+            key="plugin_preset",
+            option=self.options["plugin_preset"],
+            value=get_config('preset.plugins') or '_',
+        )
+        self.set_runtime_list_selection('mcp', self.window.core.connectors.get_active_ids())
+        self.set_runtime_list_selection('skills', self.window.core.skills.get_enabled_ids())
 
     def update_from_global(self, key: str, value: Any):
         """
@@ -1419,23 +1728,230 @@ class Editor:
             value="",
         )
 
-    def toggle_tab(self, name: str, show: bool = True):
-        """
-        Show experts tab
+    def refresh_runtime_lists(self, preset: PresetItem):
+        """Rebuild dynamic preset MCP/Skills lists from currently available items."""
+        mcp_tree = self.window.ui.nodes.get('preset.editor.mcp.list')
+        if mcp_tree is not None:
+            mcp_tree.clear()
+            selected = set(getattr(preset, 'mcp', []) or [])
+            try:
+                servers = self.window.core.connectors.get_servers()
+            except Exception:
+                servers = []
+            for server in servers:
+                item_id = self.window.core.connectors.get_server_id(server)
+                if not item_id:
+                    continue
+                item = QTreeWidgetItem(mcp_tree)
+                item.setData(0, Qt.UserRole, item_id)
+                item.setText(0, item_id)
+                address = str(server.get('server_address') or '').strip()
+                if address:
+                    item.setToolTip(0, address)
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(0, Qt.Checked if item_id in selected else Qt.Unchecked)
 
-        :param name: name of the tab
-        :param show: Show or hide experts tab
+        skills_tree = self.window.ui.nodes.get('preset.editor.skills.list')
+        if skills_tree is not None:
+            skills_tree.clear()
+            selected = set(getattr(preset, 'agent_skills', []) or [])
+            try:
+                skills = self.window.core.skills.list_installed()
+            except Exception:
+                skills = []
+            for skill in skills:
+                item_id = str(skill.get('name') or '').strip()
+                if not item_id:
+                    continue
+                item = QTreeWidgetItem(skills_tree)
+                item.setData(0, Qt.UserRole, item_id)
+                item.setText(0, str(skill.get('display_name') or item_id))
+                description = str(skill.get('description') or '').strip()
+                if description:
+                    item.setToolTip(0, description)
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(0, Qt.Checked if item_id in selected else Qt.Unchecked)
+
+    def get_checked_runtime_ids(self, kind: str) -> list:
+        """Return checked textual IDs from a dynamic preset list."""
+        node_id = 'preset.editor.mcp.list' if kind == 'mcp' else 'preset.editor.skills.list'
+        tree = self.window.ui.nodes.get(node_id)
+        if tree is None:
+            return []
+        out = []
+        for row in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(row)
+            if item.checkState(0) != Qt.Checked:
+                continue
+            item_id = str(item.data(0, Qt.UserRole) or '').strip()
+            if item_id:
+                out.append(item_id)
+        return out
+
+    def set_runtime_list_selection(self, kind: str, ids):
+        """Set checked items in a dynamic preset list using available textual IDs only."""
+        selected = {str(item).strip() for item in (ids or []) if str(item).strip()}
+        node_id = 'preset.editor.mcp.list' if kind == 'mcp' else 'preset.editor.skills.list'
+        tree = self.window.ui.nodes.get(node_id)
+        if tree is None:
+            return
+        for row in range(tree.topLevelItemCount()):
+            item = tree.topLevelItem(row)
+            item_id = str(item.data(0, Qt.UserRole) or '').strip()
+            item.setCheckState(0, Qt.Checked if item_id in selected else Qt.Unchecked)
+
+    def _ensure_tab_pages(self) -> bool:
+        """Capture all static preset tab pages before runtime tab rebuilding."""
+        tabs = self.window.ui.tabs.get('preset.editor.tabs')
+        if tabs is None:
+            return False
+
+        if all(name in self.tab_pages for name in self.TAB_ORDER):
+            return True
+
+        # The dialog is initially built with every static page in TAB_ORDER.
+        # Capture that complete set once. After this point some pages may be
+        # removed from QTabWidget, but the widgets remain alive in tab_pages.
+        if tabs.count() < len(self.TAB_ORDER):
+            return False
+
+        pages = {}
+        for name, idx in self.TAB_BUILD_IDX.items():
+            page = tabs.widget(idx)
+            if page is None:
+                return False
+            pages[name] = page
+        self.tab_pages = pages
+        return True
+
+    def _tab_name_for_widget(self, widget) -> Optional[str]:
+        """Return logical preset tab name for a page widget."""
+        if widget is None:
+            return None
+        for name, page in self.tab_pages.items():
+            if page is widget:
+                return name
+        return None
+
+    def _current_visible_tab_names(self):
+        """Return logical names currently inserted into the preset QTabWidget."""
+        tabs = self.window.ui.tabs.get('preset.editor.tabs')
+        if tabs is None or not self._ensure_tab_pages():
+            return []
+        out = []
+        for idx in range(tabs.count()):
+            name = self._tab_name_for_widget(tabs.widget(idx))
+            if name is not None:
+                out.append(name)
+        return out
+
+    def _rebuild_static_tabs(self, visible_names, preferred: Optional[str] = None):
+        """Physically rebuild the top-level preset tabs.
+
+        Using removeTab()/addTab() instead of setTabVisible() avoids a Qt tab-bar
+        artefact where a hidden page can keep an empty-width/blank slot after
+        repeated mode switches. The page widgets themselves are retained.
         """
-        tabs = self.window.ui.tabs['preset.editor.tabs']
-        idx = self.TAB_IDX[name]
-        if tabs is not None:
-            if show:
+        tabs = self.window.ui.tabs.get('preset.editor.tabs')
+        if tabs is None or not self._ensure_tab_pages():
+            return
+
+        visible_set = set(visible_names)
+        ordered = [name for name in self.TAB_ORDER if name in visible_set]
+        if not ordered:
+            ordered = ["general"]
+
+        current_name = self._tab_name_for_widget(tabs.currentWidget())
+        target_name = preferred if preferred in ordered else current_name
+        if target_name not in ordered:
+            target_name = ordered[0]
+
+        updates_enabled = tabs.updatesEnabled()
+        signals_blocked = tabs.signalsBlocked()
+        tabs.setUpdatesEnabled(False)
+        tabs.blockSignals(True)
+        try:
+            # Remove every page currently managed by QTabWidget. removeTab does
+            # not delete the page widget; tab_pages keeps an explicit reference.
+            while tabs.count() > 0:
+                tabs.removeTab(tabs.count() - 1)
+
+            for name in ordered:
+                page = self.tab_pages[name]
+                idx = tabs.addTab(page, trans(self.TAB_LABELS[name]))
                 tabs.setTabEnabled(idx, True)
-                tabs.setTabVisible(idx, True)
-                self.experts.update_tab()
-            else:
-                tabs.setTabEnabled(idx, False)
-                tabs.setTabVisible(idx, False)
+
+            target_idx = tabs.indexOf(self.tab_pages[target_name])
+            if target_idx < 0:
+                target_idx = 0
+            tabs.setCurrentIndex(target_idx)
+        finally:
+            tabs.blockSignals(signals_blocked)
+            tabs.setUpdatesEnabled(updates_enabled)
+
+        # Keep compatibility mapping synchronized with the actual runtime tab
+        # positions. A page not present in this mode has no valid QTabWidget index.
+        self.TAB_IDX = {
+            name: tabs.indexOf(self.tab_pages[name])
+            for name in self.TAB_ORDER
+        }
+
+        bar = tabs.tabBar()
+        bar.updateGeometry()
+        bar.update()
+        tabs.updateGeometry()
+        tabs.update()
+
+    def retranslate_tabs(self):
+        """Refresh titles of currently inserted preset tabs."""
+        tabs = self.window.ui.tabs.get('preset.editor.tabs')
+        if tabs is None or not self._ensure_tab_pages():
+            return
+        for idx in range(tabs.count()):
+            name = self._tab_name_for_widget(tabs.widget(idx))
+            if name is not None:
+                tabs.setTabText(idx, trans(self.TAB_LABELS[name]))
+
+    def sync_tabs_for_mode(self, mode: Optional[str] = None):
+        """Rebuild the complete preset tab set from the current app mode."""
+        if mode is None:
+            mode = self.window.core.config.get('mode')
+
+        visible = {
+            "general": True,
+            "personalize": mode not in (
+                MODE_AGENT_V2, MODE_EXPERT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI,
+            ),
+            # Legacy Remote tools tab is intentionally disabled. Agent tool
+            # access is configured by mode-specific controls instead.
+            "remote_tools": False,
+            # MCP can be stored by every preset mode.
+            "mcp": True,
+            "experts": mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI),
+            # Skills are per-preset only for Chat with Agents.
+            "skills": mode == MODE_AGENT_V2,
+            # Options is shared by every preset mode and is physically added
+            # after every other visible page, so it always stays last.
+            "options": True,
+        }
+        names = [name for name in self.TAB_ORDER if visible.get(name, False)]
+        self._rebuild_static_tabs(names)
+        if visible["experts"] and "preset.editor.experts" in self.window.ui.nodes:
+            self.experts.update_list()
+
+    def toggle_tab(self, name: str, show: bool = True):
+        """Show or hide one preset tab using the same physical rebuild path."""
+        if name not in self.TAB_ORDER:
+            return
+        current = self._current_visible_tab_names()
+        if not current:
+            return
+        visible = set(current)
+        if show:
+            visible.add(name)
+        else:
+            visible.discard(name)
+        self._rebuild_static_tabs(visible)
 
     def reload_all_custom_agent_options(self, purge_missing_from_preset: bool = False):
         """
@@ -1538,18 +2054,8 @@ class Editor:
                     # Build UI widgets for this option group
                     widgets, options_layouts = build_option_widgets(config_id, schema_options)
 
-                    # Layout: non-bool vertically, bools grouped in bottom row
-                    layout = QVBoxLayout()
-                    layout.setContentsMargins(0, 10, 0, 10)
-                    checkbox_layout = QHBoxLayout()
-                    for key, opt_layout in options_layouts.items():
-                        opt_schema = schema_options.get(key, {})
-                        if opt_schema.get('type') == 'bool':
-                            checkbox_layout.addLayout(opt_layout)
-                        else:
-                            layout.addLayout(opt_layout)
-                    layout.addStretch(1)
-                    layout.addLayout(checkbox_layout)
+                    # Keep model + overwrite toggle in one row; group other bools below.
+                    layout = self._build_agent_options_layout(schema_options, options_layouts)
 
                     # Create tab widget wrapped in a scroll area and tag with metadata
                     tab_content = QWidget()

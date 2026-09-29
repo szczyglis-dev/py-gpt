@@ -118,12 +118,13 @@ def test_save(mock_window):
         mock_window.ui.status.assert_called_once()  # should update status
 
 
-def test_delete(mock_window):
+def test_delete(mock_window, monkeypatch):
     image = Image(mock_window)
     # image.window.ui.dialogs.confirm = MagicMock()
-    os.remove = MagicMock()
+    remove_mock = MagicMock()
+    monkeypatch.setattr(os, 'remove', remove_mock)
     image.delete('path', force=True)
     # image.window.ui.dialogs.confirm.assert_called_once()
-    os.remove.assert_called_once_with('path')
+    remove_mock.assert_called_once_with('path')
 
 """

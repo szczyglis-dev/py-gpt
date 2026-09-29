@@ -381,17 +381,14 @@ class Files:
         assistant_id = self.window.core.config.get('assistant')
         thread_id = self.window.core.config.get('assistant_thread')
         if assistant_id is None or assistant_id == "":
-            self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
+            self.window.ui.tabs['input'].set_compact_tab_count(2, 0)
             return
         assistant = self.window.core.assistants.get_by_id(assistant_id)
         if assistant is None:
+            self.window.ui.tabs['input'].set_compact_tab_count(2, 0)
             return  # no assistant
         num_files = self.window.core.remote_store.openai.files.count_by_store_or_thread(assistant.vector_store, thread_id)
-        suffix = ''
-        # append num of files
-        if num_files > 0:
-            suffix = f' ({num_files})'
-        self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
+        self.window.ui.tabs['input'].set_compact_tab_count(2, num_files)
 
     def handle_received_ids(
             self,

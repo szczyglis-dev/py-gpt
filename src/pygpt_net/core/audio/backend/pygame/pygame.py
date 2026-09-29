@@ -6,19 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 04:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 import time
 import wave
-import numpy as np
 from typing import List, Tuple
 from collections import deque
 from threading import Lock
 
 from PySide6.QtCore import QTimer
+from pygpt_net.core.qt import safe_emit
 
-from ..shared import f32_to_s16le, build_rt_input_delta_event
+from ..shared import f32_to_s16le, build_rt_input_delta_event, InputLevelMeter
 
 class PygameBackend:
     MIN_FRAMES = 25  # minimum frames to start transcription
@@ -61,6 +61,9 @@ class PygameBackend:
         self.selected_device = None
         self.initialized = False
         self.mode = "input"  # input|control
+
+        # Immediate speech-band input meter.
+        self._input_meter = InputLevelMeter()
 
         # --- REALTIME INPUT (mic -> dispatcher) ---
         self._rt_signals = None           # set with set_rt_signals()
@@ -232,6 +235,7 @@ class PygameBackend:
 
     def reset_audio_level(self):
         """Reset the audio level bar (if available)."""
+        self._input_meter.reset()
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
@@ -358,6 +362,7 @@ class PygameBackend:
         # Use the last captured chunk.
         last_chunk = self.frames[-1]
         try:
+            import numpy as np
             # Interpret the bytes as float32 samples.
             samples = np.frombuffer(last_chunk, dtype=np.float32)
         except Exception:
@@ -365,12 +370,14 @@ class PygameBackend:
         if samples.size == 0:
             return
 
-        # Compute RMS
-        rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
-
-        # For float32 audio, the range is approximately -1.0 to 1.0.
-        level = min(max(rms, 0.0), 1.0)
-        level_percent = int(level * 100)
+        # Float32 capture uses full scale 1.0. Meter only the current
+        # chunk's speech-band energy; no smoothing or adaptive noise logic.
+        level_percent = self._input_meter.update(
+            samples,
+            sample_rate=self.rate,
+            full_scale=1.0,
+            channels=self.channels,
+        )
 
         QTimer.singleShot(0, lambda: self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode))
 
@@ -393,6 +400,7 @@ class PygameBackend:
         """
         full_data = b"".join(self.frames)
         try:
+            import numpy as np
             data_array = np.frombuffer(full_data, dtype=np.float32)
         except Exception as e:
             print("Error converting audio data:", e)
@@ -429,7 +437,7 @@ class PygameBackend:
 
         # Emit a playback signal.
         if signals is not None:
-            signals.playback.emit(event_name)
+            safe_emit(signals, "playback", event_name)
 
         # Load audio and force its format to match mixer pre_init.
         audio = AudioSegment.from_file(audio_file)
@@ -500,14 +508,14 @@ class PygameBackend:
                 volume_percentage = 0
 
             if signals is not None:
-                signals.volume_changed.emit(volume_percentage)
+                safe_emit(signals, "volume_changed", volume_percentage)
 
             pygame.time.delay(delay_ms)
             data = wf.readframes(chunk_size)
 
         wf.close()
         if signals is not None:
-            signals.volume_changed.emit(0)
+            safe_emit(signals, "volume_changed", 0)
 
     def stop_playback(self, signals=None):
         """
@@ -585,7 +593,7 @@ class PygameBackend:
                 final=bool(final),
             )
             # Ensure emission on the Qt thread
-            QTimer.singleShot(0, lambda: self._rt_signals.response.emit(event))
+            QTimer.singleShot(0, lambda: safe_emit(self._rt_signals, "response", event))
         except Exception:
             pass
 

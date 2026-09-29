@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 14:30:00                  #
+# Updated Date: 2026.09.05 12:30:00                  #
 # ================================================== #
 import os
 import json
@@ -31,7 +31,7 @@ class FakeCoreCtx:
         return self.first_item
 
 class FakeFilesystem:
-    def extract_local_url(self, url):
+    def extract_local_url(self, url, ctx=None):
         return (url, "/local" + url)
 
 class FakeMarkdown:
@@ -79,10 +79,17 @@ def body_instance(fake_window):
     return b
 
 def test_is_timestamp_enabled():
-    config_data = {"app_path": "/fake/app", "output_timestamp": True}
+    config_data = {"app_path": "/fake/app", "output_timestamp": True, "render.plain": True}
     win = FakeWindow(config_data)
     b = Body(win)
     assert b.is_timestamp_enabled() is True
+
+    config_data["render.plain"] = False
+    win = FakeWindow(config_data)
+    b = Body(win)
+    assert b.is_timestamp_enabled() is False
+
+    config_data["render.plain"] = True
     config_data["output_timestamp"] = False
     win = FakeWindow(config_data)
     b = Body(win)
@@ -146,20 +153,22 @@ def test_get_image_html():
     html = b.get_image_html(url, 1, 2)
     assert 'extra-src-img-box' in html
     assert 'img.png' in html
+    assert '>img.png<' not in html
 
 
 def test_get_video_html_uses_file_url_for_source(monkeypatch):
     config_data = {"app_path": "/fake/app"}
     win = FakeWindow(config_data)
     monkeypatch.setattr(os.path, "exists", lambda _: False)
-    win.core.filesystem.extract_local_url = lambda _: (
+    win.core.filesystem.extract_local_url = lambda _, ctx=None: (
         "file:///tmp/video/test.mp4",
         "/tmp/video/test.mp4",
     )
     b = Body(win)
     html = b.get_image_html("/tmp/video/test.mp4")
     assert '<source src="file:///tmp/video/test.mp4" type="video/mp4">' in html
-    assert 'bridge://play_video/file:///tmp/video/test.mp4' in html
+    assert 'bridge://play_video/' not in html
+    assert '>test.mp4<' not in html
 
 
 def test_build_extras_dicts_uses_browser_url_for_media_path(monkeypatch):
@@ -168,7 +177,7 @@ def test_build_extras_dicts_uses_browser_url_for_media_path(monkeypatch):
     monkeypatch.setattr(os.path, "exists", lambda _: False)
     file_url = "file:///tmp/video/test.mp4"
     native_path = "/tmp/video/test.mp4"
-    win.core.filesystem.extract_local_url = lambda _: (file_url, native_path)
+    win.core.filesystem.extract_local_url = lambda _, ctx=None: (file_url, native_path)
     b = Body(win)
     ctx = CtxItem()
     ctx.images = [native_path]

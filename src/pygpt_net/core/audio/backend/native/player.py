@@ -14,8 +14,8 @@ from typing import Optional, Callable
 import os
 from PySide6.QtCore import QObject, QTimer, QUrl
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from pygpt_net.core.qt import safe_emit
 
-from ..shared import compute_envelope_from_file
 
 class NativePlayer(QObject):
     """
@@ -56,7 +56,7 @@ class NativePlayer(QObject):
         self.stop_timers()
         if signals is not None:
             try:
-                signals.volume_changed.emit(0)
+                safe_emit(signals, "volume_changed", 0)
             except Exception:
                 pass
 
@@ -72,7 +72,7 @@ class NativePlayer(QObject):
         index = int(pos / self.chunk_ms)
         volume = self.envelope[index] if index < len(self.envelope) else 0
         if signals is not None:
-            signals.volume_changed.emit(volume)
+            safe_emit(signals, "volume_changed", volume)
 
     def play_after(
         self,
@@ -118,6 +118,7 @@ class NativePlayer(QObject):
                     if self.player.playbackState() == QMediaPlayer.StoppedState:
                         self.stop(signals=signals)
 
+        from ..shared.envelope import compute_envelope_from_file
         self.envelope = compute_envelope_from_file(audio_file, chunk_ms=self.chunk_ms)
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)
@@ -135,5 +136,5 @@ class NativePlayer(QObject):
         self.playback_timer.start()
         self.volume_timer.start()
         if signals is not None:
-            signals.volume_changed.emit(0)
-            signals.playback.emit(event_name)
+            safe_emit(signals, "volume_changed", 0)
+            safe_emit(signals, "playback", event_name)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.17 17:00:00                  #
+# Updated Date: 2026.09.04 14:55:00                  #
 # ================================================== #
 
 from pygpt_net.core.docker import Docker as BaseDocker
@@ -24,10 +24,12 @@ class Docker(BaseDocker):
 
     def build(self):
         """Run image build"""
+        self.plugin.migrate_docker_defaults()
         self.builder.build_image()
 
     def build_and_restart(self):
         """Run image build and restart container"""
+        self.plugin.migrate_docker_defaults()
         self.builder.build_image(restart=True)
 
     def get_dockerfile(self) -> str:
@@ -54,10 +56,40 @@ class Docker(BaseDocker):
         """
         return self.plugin.get_option_value('container_name')
 
-    def get_local_data_dir(self) -> str:
+    def get_local_data_dir(self, ctx=None) -> str:
         """
         Get the local data directory.
 
         :return: Local data directory.
         """
-        return self.plugin.window.core.config.get_user_dir("data")
+        return self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
+
+    def get_volumes(self, ctx=None) -> dict:
+        """Return data volume plus the application's shared temporary directory."""
+        volumes = super().get_volumes(ctx=ctx)
+        tmp_dir = self.plugin.window.core.config.get_user_dir("tmp")
+        volumes[tmp_dir] = {
+            "bind": "/mnt/tmp",
+            "mode": "rw",
+        }
+        return volumes
+
+    def create_container(self, name: str, ctx=None):
+        """Recreate legacy containers that do not expose /mnt/tmp yet."""
+        try:
+            client = self.get_docker_client()
+            container = client.containers.get(name)
+            container.reload()
+            has_tmp_mount = any(
+                mount.get("Destination") == "/mnt/tmp"
+                for mount in container.attrs.get("Mounts", [])
+            )
+            if not has_tmp_mount:
+                if container.status == "running":
+                    container.stop()
+                    container.wait()
+                container.remove()
+        except Exception:
+            pass
+        return super().create_container(name, ctx=ctx)
+

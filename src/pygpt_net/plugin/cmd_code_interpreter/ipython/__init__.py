@@ -11,3 +11,4 @@
 
 from .local_kernel import LocalKernel
 from .docker_kernel import DockerKernel
+from .builtin_kernel import BuiltinKernel

@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from pygpt_net.core.qt import safe_emit
 
 
 class IndexWorkerSignals(QObject):
@@ -44,6 +45,15 @@ class IndexWorker(QRunnable):
             # log
             self.log("Indexing data...")
             self.log(f"Idx: {self.idx}, type: {self.type}, content: {self.content}, from_ts: {self.from_ts}")
+
+            # Resolve runtime-only project alias once at worker start so an
+            # asynchronous completion cannot accidentally switch projects.
+            if self.idx is not None:
+                requested_idx = self.idx
+                resolved_idx = self.window.core.idx.resolve_idx(requested_idx)
+                if self.window.core.idx.project.is_virtual(requested_idx) and resolved_idx is None:
+                    raise RuntimeError("Current project index requested outside a project")
+                self.idx = resolved_idx
 
             # execute indexing
             if self.type == "file":
@@ -87,6 +97,28 @@ class IndexWorker(QRunnable):
                     self.idx,
                     self.content,
                 )
+            elif self.type == "db_project":
+                result, errors = self.window.core.idx.index_project(
+                    int(self.content),
+                    from_last=bool(self.replace),
+                )
+            elif self.type == "project_duplicate":
+                source_group_id, target_group_id = self.content
+                result, errors = self.window.core.idx.duplicate_project_index(
+                    int(source_group_id), int(target_group_id)
+                )
+            elif self.type == "file_remove":
+                result = []
+                errors = []
+                paths = self.content if isinstance(self.content, list) else [self.content]
+                for path in paths:
+                    if self.window.controller.idx.is_stopped():
+                        break
+                    try:
+                        self.window.core.idx.remove_file(self.idx, path)
+                        result.append(path)
+                    except Exception as e:
+                        errors.append(f"{path}: {e}")
             elif self.type == "web":
                 result, errors = self.window.core.idx.index_web(
                     idx=self.idx,
@@ -97,7 +129,7 @@ class IndexWorker(QRunnable):
                 )
 
             self.log("Finished indexing.")
-            self.signals.finished.emit(
+            safe_emit(self.signals, "finished", 
                 self.idx,
                 result,
                 errors,
@@ -106,7 +138,7 @@ class IndexWorker(QRunnable):
 
         except Exception as e:
             self.window.core.debug.error(e)
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)
 
         finally:
             self.cleanup()
@@ -134,4 +166,4 @@ class IndexWorker(QRunnable):
         self.window.core.debug.info(msg, not is_log)
         if is_log:
             print(f"[LlamaIndex] {msg}")
-        self.window.idx_logger_message.emit(msg)
+        safe_emit(self.window, "idx_logger_message", msg)

@@ -32,6 +32,16 @@ class Indexer(QObject):
         self.window = window
         self.worker = None
         self.tmp_idx = None
+        self.tmp_show_loader = False
+        self._file_loader_active = False
+
+    def resolve_idx(self, idx: str):
+        """Resolve the runtime project alias before an async job is queued."""
+        requested_idx = idx
+        resolved_idx = self.window.core.idx.resolve_idx(requested_idx)
+        if self.window.core.idx.project.is_virtual(requested_idx) and resolved_idx is None:
+            raise RuntimeError("Current project index requested outside a project")
+        return resolved_idx
 
     def update_explorer(self):
         """Update file explorer view"""
@@ -51,6 +61,33 @@ class Indexer(QObject):
         idx_data['last_ts'] = int(datetime.datetime.now().timestamp())
         self.window.core.config.set('llama.idx.status', idx_data)
         self.window.core.config.save()
+
+    def _start_file_index_ui(self, show_loader: bool = False):
+        """Start UI state for file indexing."""
+        self.window.controller.idx.on_idx_start(show_global_stop=not show_loader)
+        if not show_loader:
+            return
+
+        dialog = self.window.ui.dialogs.show_loader(
+            message=trans('dialog.loader.wait'),
+            show_cancel=True,
+            on_cancel=self.window.controller.idx.force_stop,
+            modal=True,
+        )
+        self._file_loader_active = dialog is not None
+
+        # Fail safe: if the loader could not be opened, keep the existing STOP
+        # control available instead of leaving the indexing job uncancellable.
+        if dialog is None:
+            self.window.controller.ui.stop_action = "idx"
+            self.window.controller.ui.show_global_stop()
+
+    def _finish_file_index_ui(self):
+        """Close the manual file-index loader if it is active."""
+        if not self._file_loader_active:
+            return
+        self._file_loader_active = False
+        self.window.ui.dialogs.finish_loader()
 
     def index_ctx_meta_confirm(self, ctx_idx: int):
         """
@@ -81,6 +118,7 @@ class Indexer(QObject):
         :param idx: index name
         :param force: force index
         """
+        idx = self.resolve_idx(idx)
         if not force:
             self.tmp_idx = idx  # store tmp index name (for confirmation)
             content = f"{trans('idx.confirm.db.content')}\n{trans('idx.token.warn')}"
@@ -95,7 +133,8 @@ class Indexer(QObject):
         worker.window = self.window
         self.window.update_status(trans('idx.status.indexing'))
 
-        # batch indexing
+        # batch indexing: use a cursor scoped to the selected index.
+        store = self.window.core.idx.get_current_store()
         if isinstance(meta_id, list):
             ts_batch = {}
             ids = []
@@ -104,7 +143,7 @@ class Indexer(QObject):
                 if meta is None:
                     continue
                 ids.append(mid)
-                ts_batch[mid] = meta.indexed
+                ts_batch[mid] = self.window.core.idx.ctx.get_updated_ts(store, idx, mid)
             worker.content = ids
             worker.idx = idx
             worker.type = "db_meta_batch"
@@ -112,10 +151,12 @@ class Indexer(QObject):
         else:
             # single indexing
             meta = self.window.core.ctx.get_meta_by_id(meta_id)
+            if meta is None:
+                return
             worker.content = meta_id
             worker.idx = idx
             worker.type = "db_meta"
-            worker.from_ts = meta.indexed
+            worker.from_ts = self.window.core.idx.ctx.get_updated_ts(store, idx, meta_id)
 
         worker.signals.finished.connect(self.handle_finished_db_meta)
         worker.signals.error.connect(self.handle_error)
@@ -136,9 +177,9 @@ class Indexer(QObject):
         :param force: force index
         :param silent: silent mode
         """
-        from_ts = 0
-        if self.window.core.config.has('llama.idx.db.last'):
-            from_ts = int(self.window.core.config.get('llama.idx.db.last'))
+        idx = self.resolve_idx(idx)
+        store = self.window.core.idx.get_current_store()
+        from_ts = self.window.core.idx.ctx.get_updated_ts(store, idx)
 
         if not silent and force:
             self.window.update_status(trans('idx.status.indexing'))
@@ -163,12 +204,15 @@ class Indexer(QObject):
         :param idx: index name
         :param sync: sync mode
         """
+        idx = self.resolve_idx(idx)
         worker = IndexWorker()
         worker.window = self.window
         worker.content = meta.id
         worker.idx = idx
         worker.type = "db_meta"
-        worker.from_ts = meta.indexed
+        worker.from_ts = self.window.core.idx.ctx.get_updated_ts(
+            self.window.core.idx.get_current_store(), idx, meta.id
+        )
         worker.silent = True
         worker.signals.finished.connect(self.handle_finished_db_meta)
         worker.signals.error.connect(self.handle_error)
@@ -178,6 +222,86 @@ class Indexer(QObject):
             self.worker.run()
         else:
             self.window.threadpool.start(self.worker)
+
+    def index_project(
+            self,
+            group_id: int,
+            from_last: bool = True,
+            sync: bool = False,
+            silent: bool = False
+    ):
+        """Index a project incrementally (or rebuild from scratch)."""
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = int(group_id)
+        worker.idx = self.window.core.idx.project.get_idx_id(group_id)
+        worker.type = "db_project"
+        worker.replace = bool(from_last)
+        worker.silent = silent
+        worker.signals.finished.connect(self.handle_finished_db_meta)
+        worker.signals.error.connect(self.handle_error)
+        self.worker = worker
+        if not silent:
+            self.window.update_status(trans('idx.status.indexing'))
+            self.window.controller.idx.on_idx_start()
+        if sync:
+            worker.run()
+        else:
+            self.window.threadpool.start(worker)
+
+    def duplicate_project_index(
+            self, source_group_id: int, target_group_id: int, silent: bool = True
+    ):
+        """Rebuild the target project index from a duplicated source project."""
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = (int(source_group_id), int(target_group_id))
+        worker.idx = self.window.core.idx.project.get_idx_id(target_group_id)
+        worker.type = "project_duplicate"
+        worker.silent = silent
+        worker.signals.finished.connect(self.handle_finished_db_meta)
+        worker.signals.error.connect(self.handle_error)
+        self.worker = worker
+        if not silent:
+            self.window.update_status(trans('idx.status.indexing'))
+            self.window.controller.idx.on_idx_start()
+        self.window.threadpool.start(worker)
+
+    def truncate_project(self, group_id: int, force: bool = False):
+        """Confirm and truncate one project index."""
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='idx.project.truncate',
+                id=int(group_id),
+                msg=trans('idx.project.truncate.confirm'),
+            )
+            return
+        try:
+            self.window.core.idx.truncate_project(int(group_id))
+            self.update_explorer()
+            self.window.controller.ctx.update_and_restore()
+            self.window.update_status(trans('idx.status.truncate.success'))
+        except Exception as e:
+            self.window.core.debug.log(e)
+            self.window.update_status(str(e))
+
+    def truncate_projects(self, force: bool = False):
+        """Confirm and truncate every tracked project index."""
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='idx.projects.truncate',
+                id=None,
+                msg=trans('idx.projects.truncate.confirm'),
+            )
+            return
+        try:
+            self.window.core.idx.truncate_projects()
+            self.update_explorer()
+            self.window.controller.ctx.update_and_restore()
+            self.window.update_status(trans('idx.status.truncate.success'))
+        except Exception as e:
+            self.window.core.debug.log(e)
+            self.window.update_status(str(e))
 
     def index_ctx_from_ts_confirm(self, ts: int):
         """
@@ -212,6 +336,7 @@ class Indexer(QObject):
         :param force: force index
         :param silent: silent mode
         """
+        idx = self.resolve_idx(idx)
         self.tmp_idx = idx  # store tmp index name (for confirmation)
         if not force:
             content = trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn')
@@ -240,7 +365,8 @@ class Indexer(QObject):
             path: str,
             idx: str = "base",
             replace: bool = False,
-            recursive: bool = False
+            recursive: bool = False,
+            show_loader: bool = False,
     ):
         """
         Index all files in path (threaded)
@@ -249,7 +375,9 @@ class Indexer(QObject):
         :param idx: index name
         :param replace: replace index
         :param recursive: recursive indexing
+        :param show_loader: show the cancellable loader instead of global STOP
         """
+        idx = self.resolve_idx(idx)
         self.window.update_status(trans('idx.status.indexing'))
 
         worker = IndexWorker()
@@ -261,17 +389,17 @@ class Indexer(QObject):
         worker.recursive = recursive
         worker.signals.finished.connect(self.handle_finished_file)
         worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(worker)
         self.worker = worker
-
-        self.window.controller.idx.on_idx_start()  # on start
+        self._start_file_index_ui(show_loader)
+        self.window.threadpool.start(worker)
 
     def index_paths(
             self,
             paths: List[str],
             idx: str = "base",
             replace: bool = False,
-            recursive: bool = False
+            recursive: bool = False,
+            show_loader: bool = False,
     ):
         """
         Index all files in path (threaded)
@@ -280,7 +408,9 @@ class Indexer(QObject):
         :param idx: index name
         :param replace: replace index
         :param recursive: recursive indexing
+        :param show_loader: show the cancellable loader instead of global STOP
         """
+        idx = self.resolve_idx(idx)
         self.window.update_status(trans('idx.status.indexing'))
 
         worker = IndexWorker()
@@ -293,10 +423,9 @@ class Indexer(QObject):
         worker.silent = False
         worker.signals.finished.connect(self.handle_finished_file)
         worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(worker)
         self.worker = worker
-
-        self.window.controller.idx.on_idx_start()  # on start
+        self._start_file_index_ui(show_loader)
+        self.window.threadpool.start(worker)
 
     def index_all_files(
             self,
@@ -309,8 +438,9 @@ class Indexer(QObject):
         :param idx: index name
         :param force: force index
         """
+        idx = self.resolve_idx(idx)
         self.tmp_idx = idx  # store tmp index name (for confirmation)
-        path = self.window.core.config.get_user_dir('data')
+        path = self.window.core.filesystem.get_data_dir()
         if not force:
             content = trans('idx.confirm.files.content').replace('{dir}', path) \
                       + "\n" + trans('idx.token.warn')
@@ -328,9 +458,11 @@ class Indexer(QObject):
 
         :param path: path to file or directory or list of paths
         """
-        # get stored index name
+        # get stored index name and UI mode
         if self.tmp_idx is None:
             return
+        show_loader = bool(self.tmp_show_loader)
+        self.tmp_show_loader = False
         self.window.update_status(trans('idx.status.indexing'))
         if isinstance(path, list):
             self.index_paths(
@@ -338,15 +470,17 @@ class Indexer(QObject):
                 self.tmp_idx,
                 replace=False,
                 recursive=False,
+                show_loader=show_loader,
             )
             return
-        self.index_path(path, self.tmp_idx)
+        self.index_path(path, self.tmp_idx, show_loader=show_loader)
 
     def index_file(
             self,
             path: Union[str, list],
             idx: str = "base",
-            force: bool = False
+            force: bool = False,
+            show_loader: bool = False,
     ):
         """
         Index file or directory (threaded)
@@ -354,8 +488,11 @@ class Indexer(QObject):
         :param path: path to file or directory or list of paths
         :param idx: index name
         :param force: force index
+        :param show_loader: show the cancellable loader instead of global STOP
         """
+        idx = self.resolve_idx(idx)
         self.tmp_idx = idx  # store tmp index name (for confirmation)
+        self.tmp_show_loader = bool(show_loader)
         if not force:
             dir_srt = str(path)
             # strip to max 50 chars
@@ -370,61 +507,64 @@ class Indexer(QObject):
             )
             return
         if isinstance(path, list):
+            self.tmp_show_loader = False
             self.index_paths(
                 path,
                 idx,
                 replace=False,
                 recursive=False,
+                show_loader=show_loader,
             )
             return
-        self.index_path(path, idx)
+        self.tmp_show_loader = False
+        self.index_path(path, idx, show_loader=show_loader)
 
     def index_file_remove_confirm(self, path: Union[str, list]):
         """
-        Remove file (force execute)
+        Remove file (force execute, threaded)
 
         :param path: path to indexed file or directory or list of paths
         """
-        # get stored index name
         if self.tmp_idx is None:
             return
 
-        dir_srt = str(path)
-        # strip to max 50 chars
-        if len(dir_srt) > 50:
-            dir_srt = dir_srt[:25] + "..." + dir_srt[-25:]
-
-        paths = []
-        if isinstance(path, list):
-            paths = path
-        else:
-            paths = [path]
-        for path in paths:
-            self.window.core.idx.remove_file(
-                self.tmp_idx,
-                path,
-            )
-        self.window.update_status(trans('status.deleted') + ": " + dir_srt)
+        idx = self.tmp_idx
+        show_loader = bool(self.tmp_show_loader)
         self.tmp_idx = None
-        self.update_explorer()  # update file status in explorer
+        self.tmp_show_loader = False
+
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = path
+        worker.idx = idx
+        worker.type = "file_remove"
+        worker.signals.finished.connect(self.handle_finished_file_remove)
+        worker.signals.error.connect(self.handle_error)
+        self.worker = worker
+
+        self._start_file_index_ui(show_loader)
+        self.window.threadpool.start(worker)
 
     def index_file_remove(
             self,
-            path: str,
+            path: Union[str, list],
             idx: str = "base",
-            force: bool = False
+            force: bool = False,
+            show_loader: bool = False,
     ):
         """
         Remove file or directory from index
 
         :param path: path to file or directory
         :param idx: index name
-        :param force: force index
+        :param force: force removal
+        :param show_loader: show the cancellable loader instead of global STOP
         """
-        self.tmp_idx = idx  # store tmp index name (for confirmation)
+        idx = self.resolve_idx(idx)
+        self.tmp_idx = idx
+        self.tmp_show_loader = bool(show_loader)
         if not force:
             dir_srt = str(path)
-            # strip to max 50 chars
             if len(dir_srt) > 50:
                 dir_srt = dir_srt[:25] + "..." + dir_srt[-25:]
             content = trans('idx.confirm.file.remove.content').replace('{dir}', dir_srt)
@@ -435,7 +575,6 @@ class Indexer(QObject):
             )
             return
         self.index_file_remove_confirm(path)
-        self.window.tools.get("indexer").refresh()
 
     def index_web(
             self,
@@ -454,6 +593,7 @@ class Indexer(QObject):
         :param config: loader config
         :param replace: replace index
         """
+        idx = self.resolve_idx(idx)
         worker = IndexWorker()
         worker.window = self.window
         worker.content = None
@@ -484,6 +624,7 @@ class Indexer(QObject):
         :param meta_id: meta id or list of ids
         :param force: force index
         """
+        idx = self.resolve_idx(idx)
         if not force:
             self.tmp_idx = idx  # store tmp index name (for confirmation)
             content = "Remove context data from index?"
@@ -520,7 +661,7 @@ class Indexer(QObject):
 
         :param idx: on list idx
         """
-        self.clear(self.window.core.idx.get_by_idx(idx))
+        self.truncate(self.window.core.idx.get_by_idx(idx))
 
     def clear(
             self,
@@ -533,6 +674,7 @@ class Indexer(QObject):
         :param idx: index name
         :param force: force clear
         """
+        idx = self.resolve_idx(idx)
         path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
         if not force:
             content = trans('idx.confirm.clear.content').replace('{dir}', path)
@@ -578,6 +720,7 @@ class Indexer(QObject):
         :param idx: index name
         :param force: force clear
         """
+        idx = self.resolve_idx(idx)
         path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
         if not force:
             content = trans('idx.confirm.clear.content').replace('{dir}', path)
@@ -622,6 +765,7 @@ class Indexer(QObject):
 
         :param err: error message
         """
+        self._finish_file_index_ui()
         self.window.ui.dialogs.alert(err)
         self.window.update_status(str(err))
         self.window.core.debug.log(err)
@@ -691,14 +835,15 @@ class Indexer(QObject):
             if not silent:
                 self.window.update_status(msg)
                 self.window.ui.dialogs.alert(msg)
-        else:
+        elif not silent:
             self.window.update_status(trans('idx.status.empty'))
 
-        if len(errors) > 0:
+        if len(errors) > 0 and not silent:
             self.window.ui.dialogs.alert("\n".join(errors))
 
         self.window.tools.get("indexer").refresh()
-        self.window.controller.idx.on_idx_end()  # on end
+        if not silent:
+            self.window.controller.idx.on_idx_end()  # on end
         self.window.controller.ctx.select_by_current()
 
     @Slot(str, object, object, bool)
@@ -717,6 +862,7 @@ class Indexer(QObject):
         :param errors: errors
         :param silent: silent mode (no msg and status update)
         """
+        self._finish_file_index_ui()
         num = len(files)
         if num > 0:
             msg = f"{trans('idx.status.success')}  {num}"
@@ -735,6 +881,30 @@ class Indexer(QObject):
         self.window.tools.get("indexer").on_finish_files()
         self.window.tools.get("indexer").refresh()
         self.window.controller.idx.on_idx_end()  # on end
+
+    @Slot(str, object, object, bool)
+    def handle_finished_file_remove(
+            self,
+            idx: str,
+            paths: List[str],
+            errors: List[str],
+            silent: bool = False
+    ):
+        """Handle manual file removal from an index."""
+        self._finish_file_index_ui()
+
+        if paths:
+            label = str(paths if len(paths) > 1 else paths[0])
+            if len(label) > 50:
+                label = label[:25] + "..." + label[-25:]
+            self.window.update_status(trans('status.deleted') + ": " + label)
+
+        if errors:
+            self.window.ui.dialogs.alert("\n".join(errors))
+
+        self.update_explorer()
+        self.window.tools.get("indexer").refresh()
+        self.window.controller.idx.on_idx_end()
 
     @Slot(str, object, object, bool)
     def handle_finished_web(

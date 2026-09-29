@@ -63,7 +63,7 @@ class Files:
         :return: file id
         """
         path = os.path.normpath(path)
-        root_path = os.path.normpath(self.window.core.config.get_user_dir('data'))
+        root_path = os.path.normpath(self.window.core.filesystem.get_data_dir())
         path = path.replace(root_path, '')
         path = path.replace("\\", "/").strip(r'\/')
         return path
@@ -107,6 +107,14 @@ class Files:
             idx=idx,
             file_id=file_id,
         )
+
+    def get_status(self, store_id: str, file_id: str) -> list:
+        """Return compact status rows for one file."""
+        return self.provider.get_file_status(store_id, file_id)
+
+    def get_record(self, store_id: str, idx: str, file_id: str) -> Optional[dict]:
+        """Return one indexed-file DB record."""
+        return self.provider.get_file_record(store_id, idx, file_id)
 
     def update(
             self,

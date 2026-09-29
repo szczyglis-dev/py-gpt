@@ -16,6 +16,7 @@ from pygpt_net.item.ctx import CtxItem
 
 class WorkerSignals(QObject):
     updated = Signal(int, object, str)
+    finished = Signal(int, bool)
 
 
 class Summarizer:
@@ -27,29 +28,46 @@ class Summarizer:
         """
         self.window = window
         self.worker = None
+        self.pending = set()
 
     def summarize(
             self,
             id: int,
             ctx: CtxItem
-    ):
+    ) -> bool:
         """
         Summarize context
 
         :param id: CtxMeta ID
         :param ctx: CtxItem
+        :return: True if a new summarizer worker was started
         """
+        if id is None or id in self.pending:
+            return False
+
+        # Mark the context synchronously before starting the worker. Streaming
+        # workflow partials can call prepare_summary() repeatedly while the
+        # first partial is being persisted; only the first call may start a
+        # summarizer.
+        self.pending.add(id)
+
         # make copy of ctx
         ctx_copy = CtxItem()
         ctx_copy.from_dict(ctx.to_dict())
-        self.start_worker(id, ctx_copy)
+        try:
+            self.start_worker(id, ctx_copy)
+        except Exception:
+            self.pending.discard(id)
+            raise
+        return True
 
     def summarizer(
             self,
             id: int,
             ctx: CtxItem,
             window,
-            updated_signal: Signal
+            updated_signal: Signal,
+            finished_signal: Signal
     ):
         """
         Summarize worker callback
@@ -58,11 +76,19 @@ class Summarizer:
         :param ctx: CtxItem
         :param window: Window instance
         :param updated_signal: WorkerSignals: updated signal
+        :param finished_signal: WorkerSignals: finished signal
         """
-        title = window.core.api.openai.summarizer.summary_ctx(ctx)
-        if title:
-            updated_signal.emit(id, ctx, title)
-            updated_signal.disconnect()
+        has_title = False
+        try:
+            title = window.core.api.openai.summarizer.summary_ctx(ctx)
+            if title:
+                has_title = True
+                updated_signal.emit(id, ctx, title)
+        finally:
+            # On success handle_update() releases the guard only after the meta
+            # has been marked initialized. On failure/empty output release it
+            # here, which also lets the normal end-of-turn fallback retry.
+            finished_signal.emit(id, has_title)
 
     def start_worker(
             self,
@@ -75,14 +101,24 @@ class Summarizer:
         :param id: CtxMeta ID
         :param ctx: CtxItem
         """
-        self.worker = Worker(self.summarizer)
-        self.worker.signals = WorkerSignals()
-        self.worker.signals.updated.connect(self.handle_update)
-        self.worker.kwargs['id'] = id
-        self.worker.kwargs['ctx'] = ctx
-        self.worker.kwargs['window'] = self.window
-        self.worker.kwargs['updated_signal'] = self.worker.signals.updated
-        self.window.threadpool.start(self.worker)
+        worker = Worker(self.summarizer)
+        worker.signals = WorkerSignals()
+        worker.signals.updated.connect(self.handle_update)
+        worker.signals.finished.connect(self.handle_finished)
+        worker.kwargs['id'] = id
+        worker.kwargs['ctx'] = ctx
+        worker.kwargs['window'] = self.window
+        worker.kwargs['updated_signal'] = worker.signals.updated
+        worker.kwargs['finished_signal'] = worker.signals.finished
+        self.worker = worker
+        self.window.threadpool.start(worker)
+
+    @Slot(int, bool)
+    def handle_finished(self, id: int, has_title: bool):
+        """Release failed/empty summary attempts so the end fallback can retry."""
+        if not has_title:
+            self.pending.discard(id)
+            self.worker = None
 
     @Slot(int, object, str)
     def handle_update(
@@ -107,6 +143,7 @@ class Summarizer:
             title,
             refresh=refresh,
         )
+        self.pending.discard(id)
         self.window.controller.chat.common.focus_input()  # restore focus
         self.worker = None
 

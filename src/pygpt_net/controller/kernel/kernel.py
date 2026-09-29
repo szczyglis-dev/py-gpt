@@ -6,21 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 13:00:00                  #
+# Updated Date: 2026.09.19 12:30:00                  #
 # ================================================== #
 
 import threading
 from typing import Any, Dict, Optional, Union, List
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import QEventLoop, Slot
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.types import (
-    MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
-    MODE_EXPERT,
     MODE_LLAMA_INDEX,
 )
 from pygpt_net.core.events import KernelEvent, RenderEvent, BaseEvent, RealtimeEvent, Event
@@ -30,6 +29,13 @@ from pygpt_net.utils import trans
 
 from .reply import Reply
 from .stack import Stack
+
+
+# Backward-compatible event name. Some incremental patch installs may
+# still have an older KernelEvent class without this constant.
+AGENT_V2_FINAL_BEGIN = getattr(
+    KernelEvent, "AGENT_V2_FINAL_BEGIN", "kernel.agent_v2.final_begin"
+)
 
 
 class Kernel:
@@ -65,16 +71,22 @@ class Kernel:
             KernelEvent.APPEND_END,
             KernelEvent.LIVE_APPEND,
             KernelEvent.LIVE_CLEAR,
+            KernelEvent.AGENT_V2_BEGIN,
+            AGENT_V2_FINAL_BEGIN,
+            KernelEvent.AGENT_V2_APPEND,
+            KernelEvent.AGENT_V2_STATUS,
+            KernelEvent.AGENT_V2_TOOL_EXEC,
+            KernelEvent.AGENT_V2_END,
         )
     )
-    _STACK_ADD_EVENTS = frozenset((KernelEvent.TOOL_CALL, KernelEvent.AGENT_CONTINUE, KernelEvent.AGENT_CALL))
+    _STACK_ADD_EVENTS = frozenset((KernelEvent.TOOL_CALL, KernelEvent.AGENT_CONTINUE))
     _CALL_EVENTS = frozenset((KernelEvent.CALL, KernelEvent.FORCE_CALL))
     _QUEUE_EVENTS_ALL = _REQUEST_EVENTS | _OUTPUT_EVENTS | _STACK_ADD_EVENTS | _CALL_EVENTS
 
     _ASYNC_DISABLED_MODES = frozenset(
-        (MODE_ASSISTANT, MODE_AGENT, MODE_EXPERT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_LLAMA_INDEX)
+        (MODE_ASSISTANT, MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2, MODE_LLAMA_INDEX)
     )
-    _THREADED_MODES = frozenset((MODE_AGENT_LLAMA, MODE_AGENT_OPENAI))
+    _THREADED_MODES = frozenset((MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2))
 
     def __init__(self, window=None):
         """
@@ -92,7 +104,12 @@ class Kernel:
         self.state = self.STATE_IDLE
         self.not_stop_on_events = [
             KernelEvent.APPEND_DATA,
+            KernelEvent.AGENT_V2_STATUS,
+            AGENT_V2_FINAL_BEGIN,
+            KernelEvent.AGENT_V2_TOOL_EXEC,
+            KernelEvent.AGENT_V2_END,
             KernelEvent.INPUT_USER,
+            KernelEvent.SEND_INIT,
             KernelEvent.FORCE_CALL,
             KernelEvent.STATUS,
             Event.AUDIO_INPUT_RECORD_TOGGLE,
@@ -141,7 +158,9 @@ class Kernel:
         extra = data.get("extra")
         response = data.get("response")
 
-        if name in self._INPUT_EVENTS:
+        if name == KernelEvent.SEND_INIT:
+            response = self.send_init(event)
+        elif name in self._INPUT_EVENTS:
             response = self.input(context, extra, event)
         elif name in self._QUEUE_EVENTS_ALL:
             response = self.queue(context, extra, event)
@@ -153,6 +172,71 @@ class Kernel:
             self.set_status(data.get("status"))
 
         data["response"] = response
+
+    def send_init(self, event: KernelEvent):
+        """Enter and paint the user-visible busy state before preprocessing."""
+        w = self.window
+        data = event.data or {}
+        meta = data.get("meta") or w.core.ctx.output.get_request_meta()
+
+        # A new manual request explicitly resumes a kernel stopped by the
+        # previous turn. Do this here so the init event itself owns the complete
+        # UI transition and the preprocessing worker can start immediately.
+        self.halt = False
+        w.controller.chat.input.generating = True
+        w.controller.chat.common.sync_send_stop_buttons()
+
+        # Realtime has its own explicit response-activity boundary: first visible
+        # text token or actual audio playback. Do not delay its loader, otherwise
+        # a fast first token can cancel the pending show before the spinner ever
+        # becomes visible. The input gate still guarantees correct placement
+        # below the newly materialized user row.
+        loading_delay_ms = 100
+        try:
+            if w.controller.realtime.is_enabled():
+                loading_delay_ms = 0
+        except Exception:
+            pass
+
+        self.set_state(KernelEvent(KernelEvent.STATE_BUSY, {
+            "id": data.get("id", "chat"),
+            "msg": data.get("msg", trans("status.sending")),
+            "meta": meta,
+            # The chat output loader belongs visually *after* the user row.
+            # Arm it now, but do not let it enter layout before APPEND_INPUT has
+            # materialized the row. Non-realtime requests retain the short delay
+            # that avoids flashing the loader for very fast responses.
+            "loading_delay_ms": loading_delay_ms,
+            "loading_wait_for_input": True,
+        }))
+
+        if data.get("clear", False):
+            w.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
+
+        # PRE-SEND button/status state must become visible before any following
+        # work starts.  The WebView loader itself is intentionally delayed until
+        # the input row is materialized, so there is no reason to wait for a
+        # Chromium paint here.
+        self.flush_send_init_ui()
+        return True
+
+    def flush_send_init_ui(self):
+        """Flush PRE-SEND widget/WebEngine updates before continuing the send."""
+        app = QApplication.instance()
+        if app is None:
+            return
+
+        try:
+            # First submit all already-posted widget updates and WebEngine IPC.
+            QApplication.sendPostedEvents()
+            QApplication.processEvents(QEventLoop.AllEvents)
+
+            # Drain updates produced during the first UI turn as well.
+            QApplication.sendPostedEvents()
+            QApplication.processEvents(QEventLoop.AllEvents)
+        except RuntimeError:
+            # The application may already be shutting down / deleting widgets.
+            pass
 
     def input(
         self,
@@ -188,7 +272,12 @@ class Kernel:
         elif name in self._OUTPUT_EVENTS:
             return self.output(context, extra, event)
         elif name in self._STACK_ADD_EVENTS:
-            return self.stack.add(context.reply_context)
+            result = self.stack.add(context.reply_context)
+            # Evaluator feedback arrives after the previous output lifecycle
+            # drained the stack. Resume it here, on the signal receiver thread.
+            if name == KernelEvent.AGENT_CONTINUE and (extra or {}).get("execute"):
+                self.stack.handle()
+            return result
         elif name in self._CALL_EVENTS:
             return self.call(context, extra, event)
 
@@ -273,6 +362,27 @@ class Kernel:
             return resp.live_append(context, extra)
         elif name == KernelEvent.LIVE_CLEAR:
             return resp.live_clear(context, extra)
+        elif name == KernelEvent.AGENT_V2_BEGIN:
+            return resp.agent_v2_begin(context, extra)
+        elif name == AGENT_V2_FINAL_BEGIN:
+            return resp.agent_v2_final_begin(context, extra)
+        elif name == KernelEvent.AGENT_V2_APPEND:
+            return resp.agent_v2_append(
+                context, extra, event.data.get("chunk", ""),
+                event.data.get("begin", False), event.data.get("part_begin", False),
+                event.data.get("part_uuid"),
+            )
+        elif name == KernelEvent.AGENT_V2_STATUS:
+            return resp.agent_v2_status(context, extra, event.data.get("status", ""))
+        elif name == KernelEvent.AGENT_V2_TOOL_EXEC:
+            return resp.agent_v2_tool_exec(context, extra, event.data.get("request"))
+        elif name == KernelEvent.AGENT_V2_END:
+            return resp.agent_v2_end(
+                context,
+                extra,
+                event.data.get("final_answer", ""),
+                event.data.get("artifacts") or {},
+            )
 
     def restart(self):
         """
@@ -315,24 +425,38 @@ class Kernel:
         tray = w.ui.tray
         is_main = self.is_main_thread()
 
+        # Keep renderer state scoped to the chat that emitted the kernel state.
+        # Falling back to whichever context is globally selected is unsafe with
+        # two visible chat columns.
+        state_meta = event.data.get("meta")
+        if state_meta is None and event.ctx is not None:
+            state_meta = getattr(event.ctx, "meta", None)
+        if state_meta is None:
+            state_meta = w.core.ctx.output.get_request_meta()
+        render_data = {"meta": state_meta} if state_meta is not None else {}
+        if "loading_delay_ms" in event.data:
+            render_data["loading_delay_ms"] = event.data.get("loading_delay_ms")
+        if "loading_wait_for_input" in event.data:
+            render_data["loading_wait_for_input"] = event.data.get("loading_wait_for_input")
+
         if name == KernelEvent.STATE_BUSY:
             self.busy = True
             self.state = self.STATE_BUSY
             tray.set_icon(self.STATE_BUSY)
             if not self.halt and is_main:
-                w.dispatch(RenderEvent(RenderEvent.STATE_BUSY))
+                w.dispatch(RenderEvent(RenderEvent.STATE_BUSY, render_data))
         elif name == KernelEvent.STATE_IDLE:
             self.busy = False
             self.state = self.STATE_IDLE
             tray.set_icon(self.STATE_IDLE)
             if is_main:
-                w.dispatch(RenderEvent(RenderEvent.STATE_IDLE))
+                w.dispatch(RenderEvent(RenderEvent.STATE_IDLE, render_data))
         elif name == KernelEvent.STATE_ERROR:
             self.busy = False
             self.state = self.STATE_ERROR
             tray.set_icon(self.STATE_ERROR)
             if is_main:
-                w.dispatch(RenderEvent(RenderEvent.STATE_ERROR))
+                w.dispatch(RenderEvent(RenderEvent.STATE_ERROR, render_data))
 
         msg = event.data.get("msg", None)
         if msg is not None:
@@ -377,13 +501,17 @@ class Kernel:
         :param ctx: CtxItem: The context item containing information about the current operation.
         :return: bool: True if asynchronous operations are allowed, False otherwise.
         """
-        if self.window.core.config.get("mode") in self._ASYNC_DISABLED_MODES:
+        # Agents v2 tool calls are awaited by the orchestration runtime, but the
+        # underlying plugin itself must remain asynchronous. This lets plugin
+        # QRunnables (image generation, Files I/O, Code Interpreter, web, etc.)
+        # run off the Qt GUI thread while the agent waits for REPLY_ADD.
+        extra = getattr(ctx, "extra", None)
+        if isinstance(extra, dict) and extra.get("agents_v2_async_tool"):
+            return True
+        mode = getattr(ctx, "mode", None) or self.window.core.config.get("mode")
+        if mode in self._ASYNC_DISABLED_MODES:
             return False
         if ctx.agent_call:
-            return False
-        controller = self.window.controller
-        agent = controller.agent
-        if agent.legacy.enabled() or agent.experts.enabled():
             return False
         return True
 

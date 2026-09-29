@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import re
@@ -18,6 +18,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.core.text.web_finder import WebFinder
 from pygpt_net.utils import trans
@@ -232,7 +233,7 @@ class HtmlOutput(QWebEngineView):
             # audio read
             action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
             action.triggered.connect(
-                lambda: self.signals.audio_read.emit(selected_text)
+                lambda: safe_emit(self.signals, "audio_read", selected_text)
             )
             menu.addAction(action)
 
@@ -243,7 +244,7 @@ class HtmlOutput(QWebEngineView):
             # save as (selected)
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_selection_as'), self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(selected_text, 'txt')
+                lambda: safe_emit(self.signals, "save_as", selected_text, 'txt')
             )
             menu.addAction(action)
         else:
@@ -255,14 +256,14 @@ class HtmlOutput(QWebEngineView):
             # save as (all) - plain
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (text)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
+                lambda: safe_emit(self.signals, "save_as", re.sub(r'\n{2,}', '\n\n', self.plain), 'txt')
             )
             menu.addAction(action)
 
             # save as (all) - html
             action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as') + " (html)", self)
             action.triggered.connect(
-                lambda: self.signals.save_as.emit(re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
+                lambda: safe_emit(self.signals, "save_as", re.sub(r'\n{2,}', '\n\n', self.html_content), 'html')
             )
             menu.addAction(action)
 
@@ -360,7 +361,7 @@ class HtmlOutput(QWebEngineView):
         elif (event.type() == event.Type.MouseButtonPress):
             if self.tab:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         elif event.type() == QEvent.KeyPress:
             if event.key() == Qt.Key_F and (event.modifiers() & Qt.ControlModifier):
                 self.find_open()
@@ -450,7 +451,7 @@ class CustomWebEnginePage(QWebEnginePage):
         :param line_number: line number
         :param source_id: source ID
         """
-        self.signals.js_message.emit(line_number, message, source_id)  # handled in debug controller
+        safe_emit(self.signals, "js_message", line_number, message, source_id)  # handled in debug controller
 
     def cleanup(self):
         """Cleanup method to release resources"""

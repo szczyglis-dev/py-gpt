@@ -17,6 +17,8 @@ class DummyCtxItem:
     def __init__(self, input_value="", output_value="", extra=None):
         self.input = input_value
         self.output = output_value
+        self.final_input = input_value
+        self.final_output = output_value
         self.extra = extra
 
 @pytest.fixture
@@ -24,7 +26,7 @@ def dummy_window():
     class DummyLoop:
         def __init__(self):
             self.next_instruction = None
-            self.prev_score = None
+            self.prev_score = -1
 
     class DummyRunner:
         def __init__(self):
@@ -79,7 +81,7 @@ def test_get_main_task(evaluation):
         DummyCtxItem(input_value="Another input", extra={"agent_input": True}),
     ]
     result = evaluation.get_main_task(history)
-    assert result == "Main task"
+    assert result == "Another input"
 
 def test_get_main_task_no_agent_input(evaluation):
     history = [DummyCtxItem(input_value="Ignored", extra={"other_key": True})]
@@ -92,7 +94,7 @@ def test_get_final_response(evaluation):
         DummyCtxItem(output_value="Final response", extra={"agent_finish": True}),
     ]
     result = evaluation.get_final_response(history)
-    assert result == "Intermediate\n\nFinal response"
+    assert result == "Final response"
 
 def test_get_prompt_score(evaluation):
     history = [
@@ -101,8 +103,10 @@ def test_get_prompt_score(evaluation):
         DummyCtxItem(output_value="Agent final answer", extra={"agent_finish": True}),
     ]
     result = evaluation.get_prompt_score(history)
-    expected = "Task: Task description; Input: User follow-up; Output: Agent final answer"
-    assert result == expected
+    expected = "Task: User follow-up; Input: User follow-up; Output: Agent final answer"
+    assert result.startswith(expected)
+    assert "## Evaluation policy:" in result
+    assert "Call send_feedback exactly once." in result
 
 def test_get_prompt_complete(evaluation):
     history = [
@@ -111,15 +115,17 @@ def test_get_prompt_complete(evaluation):
         DummyCtxItem(output_value="Agent final answer", extra={"agent_finish": True}),
     ]
     result = evaluation.get_prompt_complete(history)
-    expected = "Complete - Task: Task description; Input: User follow-up; Output: Agent final answer"
-    assert result == expected
+    expected = "Complete - Task: User follow-up; Input: User follow-up; Output: Agent final answer"
+    assert result.startswith(expected)
+    assert "## Evaluation policy:" in result
+    assert "Call send_feedback exactly once." in result
 
 def test_get_tools(evaluation):
     tools = evaluation.get_tools()
     assert len(tools) == 1
     # Call the feedback function from the tool and verify evaluation update.
     feedback = tools[0].fn("Test instruction", 85)
-    assert feedback == "OK. Feedback has been sent."
+    assert feedback == "Feedback recorded. Do not call send_feedback again; finish the evaluation now."
     core = evaluation.window.core
     assert core.agents.runner.loop.next_instruction == "Test instruction"
     assert core.agents.runner.loop.prev_score == 85

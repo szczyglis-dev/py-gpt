@@ -99,15 +99,30 @@ class IndexCombo(BaseCombo):
         menu.addAction(actions['delete'])
         menu.exec_(parent.mapToGlobal(pos))
 
+    def _current_project_group_id(self):
+        if self.current_id != self.window.core.idx.project.VIRTUAL_ID:
+            return None
+        return self.window.core.idx.project.get_current_group_id()
+
     def action_idx_db_all(self):
-        """Idx action handler"""
-        if self.current_id is not None:
-            self.window.controller.idx.indexer.index_ctx_from_ts(self.current_id, 0)
+        """Idx action handler."""
+        if self.current_id is None:
+            return
+        group_id = self._current_project_group_id()
+        if group_id is not None:
+            self.window.controller.idx.indexer.index_project(group_id, from_last=False)
+            return
+        self.window.controller.idx.indexer.index_ctx_from_ts(self.current_id, 0)
 
     def action_idx_db_update(self):
-        """Idx action handler"""
-        if self.current_id is not None:
-            self.window.controller.idx.indexer.index_ctx_current(self.current_id)
+        """Idx action handler."""
+        if self.current_id is None:
+            return
+        group_id = self._current_project_group_id()
+        if group_id is not None:
+            self.window.controller.idx.indexer.index_project(group_id, from_last=True)
+            return
+        self.window.controller.idx.indexer.index_ctx_current(self.current_id)
 
     def action_idx_files_all(self):
         """Idx action handler"""
@@ -120,11 +135,21 @@ class IndexCombo(BaseCombo):
             self.window.controller.settings.open_section('llama-index')
 
     def action_clear(self):
-        """Clear idx action handler"""
-        if self.current_id is not None:
-            self.window.controller.idx.indexer.clear(self.current_id)
+        """Clear idx action handler."""
+        if self.current_id is None:
+            return
+        group_id = self._current_project_group_id()
+        if group_id is not None:
+            self.window.controller.idx.indexer.truncate_project(group_id)
+            return
+        self.window.controller.idx.indexer.clear(self.current_id)
 
     def action_truncate(self):
-        """Truncate idx action handler"""
-        if self.current_id is not None:
-            self.window.controller.idx.indexer.clear(self.current_id)
+        """Truncate idx action handler."""
+        if self.current_id is None:
+            return
+        group_id = self._current_project_group_id()
+        if group_id is not None:
+            self.window.controller.idx.indexer.truncate_project(group_id)
+            return
+        self.window.controller.idx.indexer.truncate(self.current_id)

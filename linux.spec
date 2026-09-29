@@ -1,12 +1,49 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import os, glob
+import os, glob, shutil
 from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
     collect_dynamic_libs,
+    copy_metadata,
 )
 import PySide6
+
+
+def add_data_tree(datas, src_root, dest_root):
+    """
+    Add all files below src_root recursively while preserving directory layout
+    below dest_root in the PyInstaller bundle.
+    """
+    for root, _, files in os.walk(src_root):
+        rel = os.path.relpath(root, src_root)
+        dest = dest_root if rel == "." else os.path.join(dest_root, rel)
+        for filename in files:
+            datas.append((os.path.join(root, filename), dest))
+
+
+def find_uv_binary():
+    """Locate uv installed in the build environment for bundling."""
+    candidates = []
+    try:
+        import uv
+        try:
+            candidates.append(os.fspath(uv.find_uv_bin()))
+        except (AttributeError, FileNotFoundError, OSError):
+            pass
+    except ImportError:
+        pass
+    found = shutil.which('uv')
+    if found:
+        candidates.append(found)
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return [(path, '.')]
+    raise RuntimeError("uv executable not found; install uv==0.12.15 in the PyInstaller build environment")
+
+
+uv_bins = find_uv_binary()
+
 
 RT_HOOK_PATH = os.path.abspath('rt_wayland.py')
 if not os.path.exists(RT_HOOK_PATH):
@@ -35,17 +72,95 @@ for subdir in ('wayland-graphics-integration-client', 'wayland-shell-integration
             qt_binaries.append((p, os.path.join('PySide6', 'plugins', subdir)))
 
 dyn_bins = []
+try:
+    dyn_bins += collect_dynamic_libs('litellm')
+except Exception:
+    pass
 for pkg in ('onnxruntime', 'tokenizers', 'tiktoken'):
     try:
         dyn_bins += collect_dynamic_libs(pkg)
     except Exception:
         pass
 
+# ipykernel imports debugpy during kernel initialization. debugpy's vendored
+# pydevd runtime contains native extensions with names such as
+# ``*_cython*.so`` (not only ``lib*.so``), so collect them explicitly.
+try:
+    dyn_bins += collect_dynamic_libs(
+        'debugpy',
+        search_patterns=['*.so', '*.dylib', '*.dll', '*.pyd'],
+    )
+except Exception:
+    pass
+
 datas = []
+
+# LiteLLM relies heavily on dynamic imports and importlib.resources.
+# Collect the complete package data tree (tokenizer JSON/cache files, model map,
+# templates, etc.) instead of chasing individual runtime resources.
+try:
+    datas += collect_data_files('litellm')
+except Exception:
+    pass
+
+# LiteLLM checks its installed distribution metadata at runtime.
+try:
+    datas += copy_metadata('litellm')
+except Exception:
+    pass
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')
 datas += collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql'])
+# Local IPython kernel runtime for PyInstaller builds.  In particular,
+# ipykernel/resources is used by jupyter_client's native python3 kernelspec.
+# jupyter_client discovers the built-in local provisioner through package
+# entry-point metadata, so its dist-info must be present in the bundle.
+datas += copy_metadata('jupyter_client')
+for pkg in ('ipykernel', 'IPython', 'jupyter_client', 'jupyter_core'):
+    try:
+        datas += collect_data_files(pkg)
+    except Exception:
+        pass
+
+# debugpy._vendored uses os.listdir() and temporarily prepends the physical
+# ``debugpy/_vendored/pydevd`` directory to sys.path. The vendored Python
+# sources therefore must exist as real files in the frozen distribution;
+# keeping them only in PyInstaller's PYZ archive is not sufficient.
+try:
+    datas += collect_data_files(
+        'debugpy',
+        include_py_files=True,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
+
+# OpenAI Agents SDK 0.18.x ships runtime resources (for example sandbox
+# memory prompts) that are loaded from the filesystem via pathlib. Keep these
+# files as physical data in the frozen distribution.
+try:
+    datas += collect_data_files(
+        'agents',
+        include_py_files=False,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
+
+# Preserve distribution metadata used by importlib.metadata/version checks.
+try:
+    datas += copy_metadata('openai-agents')
+except Exception:
+    pass
+
+# CSS themes use a recursive directory layout (data/css/<theme-id>/...).
+# Preserve the complete tree in the frozen application.
+add_data_tree(
+    datas,
+    'src/pygpt_net/data/css',
+    'data/css',
+)
 
 datas += [
     ('src/pygpt_net/data/config/presets/*', 'data/config/presets'),
@@ -59,9 +174,9 @@ datas += [
     ('src/pygpt_net/data/icons/chat/*', 'data/icons/chat'),
     ('src/pygpt_net/data/locale/*', 'data/locale'),
     ('src/pygpt_net/data/audio/*', 'data/audio'),
-    ('src/pygpt_net/data/css/*', 'data/css'),
-    ('src/pygpt_net/data/themes/*', 'data/themes'),
     ('src/pygpt_net/data/fixtures/*', 'data/fixtures'),
+    ('src/pygpt_net/data/skills/*', 'data/skills'),
+    ('src/pygpt_net/data/connectors/*', 'data/connectors'),
     ('src/pygpt_net/data/fonts/Lato/*', 'data/fonts/Lato'),
     ('src/pygpt_net/data/fonts/SpaceMono/*', 'data/fonts/SpaceMono'),
     ('src/pygpt_net/data/fonts/MonaspaceArgon/*', 'data/fonts/MonaspaceArgon'),
@@ -74,6 +189,7 @@ datas += [
     ('src/pygpt_net/data/languages.csv', 'data'),
     ('src/pygpt_net/data/banners.json', 'data'),
     ('src/pygpt_net/data/logo.png', 'data'),
+    ('src/pygpt_net/data/logo_splash.png', 'data'),
     ('src/pygpt_net/data/icon.ico', 'data'),
     ('src/pygpt_net/data/icon_tray_idle.ico', 'data'),
     ('src/pygpt_net/data/icon_tray_busy.ico', 'data'),
@@ -126,23 +242,39 @@ hiddenimports = [
     'pydub',
     'tweepy',
     'ipykernel',
+    'ipykernel_launcher',
+    'ipykernel.kernelapp',
     'IPython.core.display',
     'IPython.core.interactiveshell',
     'jupyter_client',
+    'aiosqlite',
+    'sqlalchemy.dialects.sqlite.aiosqlite',
 ]
 for pkg in [
-    'chromadb', 'chromadb.migrations', 'chromadb.telemetry',
+    'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
-    'httpx', 'httpx_socks', 'nbconvert',
+    'httpx', 'httpx_socks', 'nbconvert', 'aiosqlite',
+    # OpenAI Agents SDK imports parts of the sandbox/runtime stack lazily.
+    'agents',
+    # Kernel modules are partly imported lazily/dynamically at runtime.
+    'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
+    'debugpy', 'zmq.backend.cython',
 ]:
     hiddenimports += collect_submodules(pkg)
+
+# LiteLLM selects providers/backends lazily via dynamic imports, so static
+# Analysis cannot discover the full import graph. Include every LiteLLM submodule.
+try:
+    hiddenimports += collect_submodules('litellm', on_error='ignore')
+except Exception:
+    pass
 
 block_cipher = None
 
 a = Analysis(
     ['src/pygpt_net/app.py'],
     pathex=['src', 'src/pygpt_net'],
-    binaries=qt_binaries + dyn_bins,
+    binaries=qt_binaries + dyn_bins + uv_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

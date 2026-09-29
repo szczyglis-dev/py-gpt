@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 20:00:00                  #
+# Updated Date: 2026.09.14 12:00:00                  #
 # ================================================== #
 
 import os
@@ -34,7 +34,13 @@ class Settings:
         self.height = 500
 
     def setup(self):
-        """Set up settings editor"""
+        """Set up settings editor."""
+        # LLM providers are registered after the first bootstrap settings load.
+        # Materialize their defaults once and rebuild the dynamic API section
+        # immediately before the Settings widgets are created.
+        self.window.core.llm.sync_provider_configs(save=True)
+        self.window.core.settings.load()
+        self.editor.load_config_options()
         self.profile.setup()
         self.editor.setup()
 
@@ -110,9 +116,12 @@ class Settings:
             self.editor.init(id)
             self.window.core.settings.active[id] = True
 
-            # if no API key, focus on API key input
-            if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
-                self.window.ui.config['config']['api_key'].setFocus()
+            # if no OpenAI API key, focus on its dynamically generated field
+            provider = self.window.core.llm.get('openai')
+            option_id = self.window.core.llm.get_settings_option_id('openai', 'api_key')
+            if (provider is not None and not provider.get_config('api_key')
+                    and option_id in self.window.ui.config.get('config', {})):
+                self.window.ui.config['config'][option_id].setFocus()
 
             self.window.controller.layout.restore_settings()  # restore previous selected settings tab
 
@@ -159,11 +168,8 @@ class Settings:
         id = 'editor'
         current_file = self.window.ui.dialog['config.editor'].file
 
-        # show/hide restart required label
-        if file.endswith('.css'):
-            self.window.ui.nodes['dialog.editor.label'].setVisible(False)
-        else:
-            self.window.ui.nodes['dialog.editor.label'].setVisible(True)
+        # JSON config edits may require a reload/restart.
+        self.window.ui.nodes['dialog.editor.label'].setVisible(True)
 
         if id in self.window.core.settings.active and self.window.core.settings.active[id]:
             if current_file == file:
@@ -187,16 +193,8 @@ class Settings:
         self.update()
 
     def prepare_file_editor(self, file: str):
-        """
-        Prepare file editor
-
-        :param file: JSON/CSS file to load
-        """
-        return  # allow defaults to all files
-        if file.endswith('.css'):
-            self.window.ui.nodes['editor.btn.default'].setVisible(True)
-        else:
-            self.window.ui.nodes['editor.btn.default'].setVisible(False)
+        """Prepare the JSON config editor."""
+        return
 
     def close(self, id: str):
         """
@@ -229,9 +227,11 @@ class Settings:
             self.window.update_status('Config directory not exists: {}'.format(self.window.core.config.path))
 
     def welcome_settings(self):
-        """Open settings at first launch (if no API key yet)"""
+        """Open settings at first launch (if no API key yet)."""
         self.open_section("api_keys")
-        self.window.ui.config['config']['api_key'].setFocus()
+        option_id = self.window.core.llm.get_settings_option_id('openai', 'api_key')
+        if option_id in self.window.ui.config.get('config', {}):
+            self.window.ui.config['config'][option_id].setFocus()
         self.window.ui.dialogs.close('info.start')
 
     def reload(self):

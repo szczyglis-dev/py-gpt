@@ -1,16 +1,15 @@
-Work modes
-==========
+Modes
+=====
 
 Chat
 -----
 
-**+ Inline Vision and Image generation**
+In **PyGPT**, this mode lets you chat with models such as ``GPT-6 Astra/Luna/Sol``, ``GPT-5.6``, ``Claude``, ``Gemini``, ``Grok``, ``Sonar (Perplexity)``, ``DeepSeek``, and many others, including local models running through ``Ollama``.
 
-In **PyGPT**, this mode lets you chat with models such as ``GPT-5``, ``GPT-4``, ``o1``, ``o3``, ``Claude``, ``Gemini``, ``Grok``, ``Perplexity (Sonar)``, ``DeepSeek``, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible APIs, including ``Responses API`` and ``ChatCompletions API`` compatible endpoints where supported.
+The Chat mode supports regular conversations as well as more advanced tasks, including calling tools, executing Python code, using external integrations through MCP, searching the web, uploading and analyzing attachments, working with images, and generating new images. Depending on the selected model and enabled tools, it can also perform multi-step tasks that combine several of these capabilities in a single conversation.
 
+PyGPT, in this and other modes, can use native SDKs provided by popular AI providers such as OpenAI, Google, Anthropic, and xAI. It also supports OpenAI-compatible ``Chat Completions API`` endpoints, custom providers, and providers available through LlamaIndex integrations. Both cloud-based and locally hosted models are supported, allowing PyGPT to work with a wide range of commercial, self-hosted, and local AI backends.
 
-.. note::
-   This mode uses the provider SDK directly. If there's no native client built into the app, models like Sonar or local Ollama models such as Qwen 3.6 and Gemma 4 are supported in Chat mode via LlamaIndex or OpenAI-compatible API endpoints. The app automatically switches to these endpoints when using non-OpenAI models. You can enable or disable the use of the native API SDK (per provider) in ``Settings -> API Keys``. If the native SDK is disabled, the OpenAI SDK will be used via the compatible ChatCompletions API endpoint.
 
    Currently built-in native clients:
 
@@ -19,157 +18,207 @@ In **PyGPT**, this mode lets you chat with models such as ``GPT-5``, ``GPT-4``, 
    - Google GenAI SDK
    - xAI SDK
 
-Local ``Ollama`` models are also supported.
-
-The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
-
-Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the ``Files and Attachments`` section for more information on how to use attachments.
+The main window is divided into several sections: tabs at the top, the main chat area in the center, the user input at the bottom, conversation history on the left, and the Toolbox with additional tools and options on the right. PyGPT also supports split-screen mode, allowing you to work with multiple conversations side by side.
 
 .. image:: images/v2_mode_chat.png
    :width: 800
 
-**Vision:** If the currently selected model cannot accept image input, enable the ``Vision (inline)`` plugin in the Plugins menu. When compatible image content is detected, PyGPT temporarily routes that turn through Chat using the image-capable model configured in the plugin. The plugin model is selected by capabilities rather than by provider, so supported OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible, and other configured models can be used.
+At the bottom of the chat window, PyGPT also shows an estimated number of tokens that will be sent to the model, as well as the number of tokens used for each generated response.
 
+**Attachments:** You can attach and upload files from the input area. See :doc:`Files and Attachments <attachments>` for supported formats and attachment modes.
 
-.. image:: images/v3_vision_plugins.png
+.. image:: images/attachment.png
    :width: 400
 
-With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
+**RAG:** At the bottom of the toolbox, use the ``RAG`` selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select ``---`` to use the normal Chat provider path. See :doc:`indexing` for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
+
+.. image:: images/rag.png
+   :width: 400
+
+**Vision:** If the selected model is multimodal and supports image input, vision is available natively by default. For models without native vision support, enable the ``Vision (inline)`` plugin to automatically route image analysis through a configured vision-capable model.
+
+Images can be analyzed in real time from attachments, the camera enabled from the ``Audio / Video`` menu, or screenshots captured directly from the application. You can also use the built-in drawing tool to quickly sketch, annotate images, add arrows and markings, and send the result directly for analysis.
 
 .. image:: images/v3_vision_chat.png
    :width: 800
 
+**Image generation:** If you want to generate images directly in chat, enable the ``Image generation (inline)`` plugin in the Plugins menu. The plugin allows you to generate images in Chat mode.
 
-**Image generation:** If you want to generate images directly in chat you must enable plugin ``Image generation (inline)`` in the Plugins menu. Plugin allows you to generate images in Chat mode:
+For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in ``Config -> Settings -> Remote Tools``. When available, this lets the model generate images natively without the inline plugin.
 
-.. image:: images/v3_img_chat.png
-   :width: 800
+Agents
+----------------
 
-Chat with Files (LlamaIndex)
------------------------------
+**Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the more experimental ``Custom agents`` mode and the separate ``Autonomous mode``.
 
-This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates ``LlamaIndex`` into the chat interface, allowing for immediate querying of your indexed documents.
+The **Workflow** selector below the system prompt controls how the workflow operates. The default workflow is **Chat**.
 
-.. tip::
-   If you do not want to call tools/commands, disable the checkbox ``+Tools``. It will speed up the response time when using local models. You can also enable the ReAct agent for tool calls in: ``Settings -> Indexes / LlamaIndex -> Chat -> Use ReAct agent for Tool calls in Chat with Files mode``. Stream mode is disabled if the ReAct agent and ``+Tools`` checkbox are active.
+Agent modes
+^^^^^^^^^^^
 
-**Querying single files**
+**Chat**
+   The default mode. The primary agent responds directly and can delegate tasks to workers when useful.
 
-You can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with LlamaIndex``.
+**Orchestrator**
+   Coordinates specialist workers for structured, multi-step tasks. The default limit is ``16`` workers; set **Max workers (Chat / Orchestrator)** to ``0`` for no limit.
 
-**For example:**
-
-If you have a file: ``data/my_cars.txt`` with content ``My car is red.``
-
-You can ask for: ``Query the file my_cars.txt about what color my car is.``
-
-And you will receive the response: ``Red``.
-
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option ``Auto index reading files`` in plugin settings. Remember to enable ``+ Tools`` checkbox to allow usage of tools and commands from plugins.
-
-**Using Chat with Files mode**
-
-In this mode, you are querying the whole index, stored in a vector store database.
-To start, you need to index (embed) the files you want to use as additional context.
-Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
-
-https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
-
-For a visualization from OpenAI's page, see this picture:
-
-.. image:: images/vectors.png
-
-Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
-
-To index your files, simply copy or upload them into the ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with Files (LlamaIndex, inline)`` plugin.
-
-Built-in file loaders: 
-
-**Files:**
-
-* CSV files (csv)
-* Epub files (epub)
-* Excel .xlsx spreadsheets (xlsx)
-* HTML files (html, htm)
-* IPYNB Notebook files (ipynb)
-* Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
-* JSON files (json)
-* Markdown files (md)
-* PDF documents (pdf)
-* Plain-text files (txt)
-* Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
-* Word .docx documents (docx)
-* XML files (xml)
-
-**Web/external content:**
-
-* Bitbucket
-* ChatGPT Retrieval Plugin
-* GitHub Issues
-* GitHub Repository
-* Google Calendar
-* Google Docs
-* Google Drive 
-* Google Gmail
-* Google Keep
-* Google Sheets
-* Microsoft OneDrive
-* RSS
-* SQL Database
-* Sitemap (XML)
-* Twitter/X posts
-* Webpages (crawling any webpage content)
-* YouTube (transcriptions)
-
-You can configure data loaders in ``Settings -> Indexes / LlamaIndex -> Data Loaders`` by providing list of keyword arguments for specified loaders.
-You can also develop and provide your own custom loader and register it within the application.
-
-LlamaIndex is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings -> Indexes / LlamaIndex`` section.
+**Swarm**
+   Launches a group of workers and reports aggregate progress. If no worker count is requested, the orchestrator chooses a small team. Swarm has no built-in worker-count limit.
 
 .. warning::
-   Remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
+   Large swarms can generate high API/token usage and many concurrent tool operations. Use a reasonable worker count, especially when tools can modify files or execute commands.
 
-.. tip::
-   Using the Chat with Files mode, you have default access to files manually indexed from the /data directory. However, you can use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
+Autonomous execution
+^^^^^^^^^^^^^^^^^^^^
 
-**Token limit:** When you use ``Chat with Files`` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "+ Tools" option to reduce the number of tokens used by the system prompt.
+The selected workflow continues across intermediate checkpoints until it completes, needs user input, is stopped, or reaches a configured limit. Agents can use available tools, inspect results and verify work before returning the final response.
 
-**Available vector stores** (provided by ``LlamaIndex``):
+Iteration limits apply to internal agent cycles rather than user conversation turns. Reaching a limit may return incomplete work; ``0`` disables the corresponding application-level limit.
 
-* ChromaVectorStore
-* ElasticsearchStore
-* PineconeVectorStore
-* QdrantVectorStore
-* RedisVectorStore
-* SimpleVectorStore
+Swarm collaboration
+^^^^^^^^^^^^^^^^^^^
 
-You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Indexes / LlamaIndex`` window. See the section: ``Configuration / Vector stores`` for configuration reference.
+Swarm workers can exchange messages, share findings and coordinate work while the workflow is running. Peer messages are treated as worker output, not as user instructions or authorization.
 
-**Configuring data loaders**
+Agent Workflows
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In the ``Settings -> Indexes / LlamaIndex -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance. See the section: ``Configuration / Data Loaders`` for configuration reference.
+Open ``Config -> Agent Workflows...`` or use the settings icon in the Agents toolbox. The built-in **Chat**, **Orchestrator**, and **Swarm** profiles cannot be deleted. Their prompts can be customized, while their runtime type remains fixed.
 
+Use **New** to create a custom profile with a name, system prompt, and **Runtime**: **Primary agent**, **Orchestrator**, or **Swarm**. The selected runtime controls how the profile delegates work and which workflow tools are available.
 
-Chat with Audio
----------------
-This mode works like Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and better audio communication.
+Custom profiles use only the prompt you provide. **From defaults** loads the built-in prompt for the selected runtime as a starting point. Older custom profiles without a runtime setting continue to use **Orchestrator**.
 
-Currently, in beta. 
+The editor also includes a Help reference for workflow tools and runtime context placeholders.
 
-At this moment, only OpenAI real-time models (via the Realtime API) and Google Gemini real-time models (via the Live API) are supported.
+Agent Workflow monitor
+^^^^^^^^^^^^^^^^^^^^^^
+
+The built-in **Agent Workflow** tool provides a real-time view of an active Agents run. It groups the primary agent/orchestrator and worker agents into a readable tree and shows timestamped run events such as status updates, worker creation, task execution and tool calls. Tool rows can be expanded to inspect input/output, and each agent exposes a **Details** panel with the runtime metadata available for that agent, including prompts and task/input information.
+
+Open the monitor from ``Tools -> Agent Workflow`` or pin it as an output tab. It is included in the default second-column tab layout and is revealed automatically on the first actual Agents run.
+
+The monitor is runtime-only. Every new top-level agent run clears the previous view automatically, and **Clear view** can clear it manually. The tool does not replace persisted conversation history, the full-workflow rendering option, or Debug workflow logging.
+
+Project instructions with ``.agents/``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Agents can use an optional ``%workdir%/.agents/`` directory for project-specific instructions and agent resources. PyGPT does **not** read or append these files automatically. When **Add support for .agents directory** is enabled in ``Settings -> Agents and experts -> Agents`` (default: on), PyGPT checks the active conversation/project workdir when the run starts. If ``.agents/`` exists, the top-level Agents prompt receives the directory layout and tells the agent to inspect the relevant files itself. If it does not exist, the prompt only mentions that the agent may create ``.agents/`` and keep persistent work notes under ``.agents/memories/``.
+
+Example layout:
+
+.. code-block:: text
+
+   .agents/
+   ├── agents.md            # additional instructions
+   ├── system-prompt.md     # system prompt
+   ├── mcp.json             # MCP server configuration
+   ├── skills/
+   │   └── code-review/
+   │       └── skill.md     # skill definition
+   ├── agents/
+   │   └── code-reviewer/
+   │       └── agent.md     # sub-agent profile
+   ├── tasks/
+   │   └── daily-code-review/
+   │       └── task.md      # repeat task
+   └── memories/
+       └── project-arch.md  # persistent memory for agents
+
+The agent may create or update its own persistent project notes in ``.agents/memories/``. Reading and writing still depends on the filesystem/tools exposed to that agent and the normal PyGPT security rules. The existence check is performed once per run against the active host workdir, including a project-specific workdir. The same convention can be enabled independently for **Custom agents** in ``Settings -> Agents and experts -> Custom agents``.
+
+Tools and provider capabilities
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Agents can use both local and provider-side capabilities:
+
+* **Local tools** from enabled PyGPT plugins can be made available to the primary agent/orchestrator and workers.
+* **Remote tools** exposed by the selected provider can be made available when supported by the provider/model and enabled in PyGPT.
+* Local and remote tools can be enabled or disabled independently in the Agents preset with ``Allow local tools`` and ``Allow remote tools``.
+* Models with native function calling use it when available. For compatible models without native function calling, the runtime can use a ReAct agent as a fallback.
+
+Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
+
+Settings
+^^^^^^^^
+
+Agent-related application settings are available under ``Settings -> Agents and experts``. The **Agents** section contains settings intended for this workflow. ``Add support for .agents directory`` is enabled by default and adds the directory-usage guidance described above. ``Show full tool-chain in Agents`` is disabled by default. When enabled, the final response stores and displays the complete chain of normal tool calls performed during the workflow, with a separate expandable Request/Response pair for each tool call. Internal orchestration and worker-management tools are excluded.
+
+The global ``Chats -> Render -> Display tool calls JSON`` option must also be enabled for expandable request/response blocks to be shown. If it is disabled, tool execution remains unchanged and live tool activity is represented by one aggregated ``Tool/Tools`` status row.
+
+``Display full agent workflow`` is disabled by default. When enabled, completed Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This setting controls UI rendering only; it does not change what is stored in the database or the separate ``Restore full workflow history on next request`` policy used for model-facing history.
+
+``Restore full workflow history on next request`` controls how completed Agents turns are replayed to the main agent on later requests. It is enabled by default for backward compatibility. When enabled, PyGPT rebuilds the ordered workflow from durable partials and restores intermediate main-agent output together with persisted worker results. This provides richer continuity but can use substantially more input tokens. When disabled, PyGPT restores only the authoritative final response from each completed Agents turn. The full workflow remains stored in the database and available to the UI; it is simply omitted from later model-facing history, reducing token usage at the cost of less detailed workflow context.
+
+The same policy is used by the live history token estimate and by Advanced Context Handling when it sizes and snapshots durable history for checkpoints. With final-response-only history selected, those checkpoint snapshots use the final response rather than reintroducing the full stored workflow. Compact rolling memory created inside a currently running long workflow remains available so Advanced Context Handling can keep that active run coherent.
+
+The runtime worker-count and iteration limits are configurable in the same section:
+
+* ``Max iterations (Chat / Orchestrator)`` - main-agent iteration limit for Chat and Orchestrator. Default: ``48``.
+* ``Max workers (Chat / Orchestrator)`` - maximum number of worker agents that can be created in Chat and Orchestrator workflows. Default: ``16``; set ``0`` for unlimited. This setting does not limit Swarm size.
+* ``Max iterations (Swarm)`` - main-agent/orchestrator iteration limit for Swarm. Default: ``4096``.
+* ``Worker max iterations`` - per-worker iteration limit in all Agents modes. Default: ``24``.
+
+For every limit, ``0`` means **unlimited**. The three iteration settings control internal agent reasoning/tool-call cycles, not user conversation turns; the worker limit controls how many worker agents may be created in a Chat or Orchestrator workflow. Higher or unlimited values may substantially increase API calls, token consumption, execution time, and tool activity. Swarm keeps its separately declared worker count and is not constrained by the Chat/Orchestrator worker limit.
+
+Options specific to older agent implementations are kept in the **Options** tab. ``Display full agent output in chat view`` controls full output rendering for legacy agent modes, while ``Display a tray notification when the goal is achieved`` controls legacy agent completion notifications. These options do not control the Agents tool-chain display.
+
+RAG, attachments and artifacts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a valid index is selected in the Agents preset, a ``query_index`` RAG tool is exposed to the workflow. User attachments and extracted attachment context are shared with the active workflow and its workers. When the selected model supports image input, current image attachments are also supplied as native image blocks.
+
+Files, images, URLs and attachments produced by workers, local tools, or supported provider-side tools are collected by the runtime and propagated to the main user-visible response.
+
+Memory
+^^^^^^
+
+The user-facing primary agent or orchestrator keeps hidden conversation history across turns in the current conversation/preset. This history is subject to the normal PyGPT/model token-window policy. For completed Agents turns, the ``Restore full workflow history on next request`` setting determines whether later requests receive the full persisted workflow or only the final response. Worker memory inside the active workflow is runtime-local and can be retained when the same worker is reused during that workflow.
+
+Worker lifecycle by mode
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Chat**
+   The primary agent delegates individual tasks to workers when useful. The normal interaction remains a direct chat with the primary agent, so the full worker-management lifecycle is not the main user-facing workflow.
+
+**Orchestrator**
+   The orchestrator explicitly manages workers with operations for creating, updating, running, inspecting, waiting for, stopping, and removing them. The workflow cannot be finalized while required worker activity remains unresolved.
+
+**Swarm**
+   Swarm extends the orchestrator lifecycle with swarm initialization and aggregate swarm-status reporting. The runtime tracks the requested swarm size, numbers workers for status output, and reports collective progress while the swarm is active.
+
+Recommended use cases
+^^^^^^^^^^^^^^^^^^^^^
+
+Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-stage work such as coding and file operations, research with independent verification, RAG-assisted tasks, implementation plus testing, or workflows that combine several tools. Use **Swarm** only when a task genuinely benefits from many parallel, independent workers and you intentionally want to choose the swarm size yourself.
+
+Agent Skills
+^^^^^^^^^^^^
+
+**Agent Skills** extend Agents with reusable ``SKILL.md`` instruction packages containing procedures, references, scripts and assets. Enabled skills are discovered from compact metadata and loaded only when needed. See :doc:`skills` for installation, supported formats, runtime behavior and security notes.
+
+Realtime + audio
+----------------
+This mode provides native, low-latency voice conversations with **OpenAI Realtime**, **Google Gemini Live**, and **xAI Grok** real-time models. Audio is streamed directly between PyGPT and the selected provider without the regular audio input/output plugins.
+
+The audio toolbox provides two options for controlling voice turns:
+
+* **Auto (VAD)** - enables automatic voice activity detection. While you speak, microphone audio is streamed to the active real-time model/provider, which detects when speech starts and when you stop speaking. The turn is then committed automatically and the model can respond without requiring you to manually stop the recording.
+* **Loop** - automatically starts microphone recording again after the model finishes playing its audio response. This enables continuous back-and-forth voice conversation without having to click the microphone button before every next turn. When used together with **Auto (VAD)**, each new turn can start automatically and end automatically when you stop speaking.
+
 
 Research
-----------------------
+--------
 
-This mode (when using Sonar and R1 models) operates using the Perplexity API: https://perplexity.ai.
+## Research
 
-It allows for deep web searching and utilizes Sonar models, available in ``Perplexity AI``.
+**Research** is a provider-aware mode designed for models and APIs specialized in web research, information gathering, and deep-research workflows. It is intended for tasks that require searching multiple sources, collecting and comparing information, and producing more comprehensive, source-grounded answers.
 
-It requires a Perplexity API key, which can be generated at: https://perplexity.ai.
+Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**. The exact workflow, available tools, and research capabilities depend on the selected provider and model.
 
-From version ``2.5.27`` also OpenAI deep-research models are available in this mode.
+.. warning::
+   Regular tool calls are temporarily disabled in **Research** mode. RAG can still be selected, but support is provider/model-dependent and may not work correctly with some research models or provider-specific research APIs. Verify the response when indexed RAG context is required.
+
 
 Completion
 ----------
@@ -179,30 +228,24 @@ Similar to chat mode, on the right-hand side of the interface, there are conveni
 
 Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-.. note::
-   From version ``2.0.107`` the davinci models are deprecated and has been replaced with ``gpt-3.5-turbo-instruct`` model.
-
 
 Image and video generation
 --------------------------
 
-**PyGPT** enables quick and easy image creation with image-generation models such as ``gpt-image``, ``Imagen``, ``Gemini``, ``Nano Banana`` and ``Grok``, as well as video generation using models such as ``Veo`` and ``Sora``.
-Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in ``Image generation`` mode or ask the model for the best prompt.
+**PyGPT** enables quick and easy image and video generation using models such as ``gpt-image``, ``Imagen``, ``Gemini``, ``Nano Banana``, and ``Grok`` for images, as well as ``Veo`` and ``Sora`` for video.
+
+Generating images and videos works similarly to a chat conversation: you provide a prompt, the selected model generates the requested media, and PyGPT downloads, saves, and displays the result in the application. In ``Image and video`` mode, you can either send a raw prompt directly to the model or ask PyGPT to prepare and optimize the prompt for you.
+
 
 .. image:: images/v3_img.png
    :width: 800
 
-Image generation using image models is also available in every mode via plugin ``Image Generation (inline)``. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
 
-If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
-Plugin allows you to generate images in Chat mode:
+To generate images directly inside a chat, enable **Image generation (inline)** in the Plugins menu.
 
-.. image:: images/v3_img_chat.png
-   :width: 800
+For supported models/providers, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation is available natively in supported work modes without the inline plugin.
 
-For OpenAI models, you can also enable remote image generation in ``Config -> Settings -> Remote Tools``. If enabled, image generation will be available natively within the conversation, without plugins, in Chat mode.
-
-To use ``Imagen`` models you must enable ``VertexAI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
+**Tip:** To use ``Imagen`` models you must enable ``Use Vertex AI`` in ``Config -> Settings -> API Keys -> Google -> Advanced options``.
 
 **Remix, Edit, or Extend**
 
@@ -217,258 +260,20 @@ If **Raw Mode** is disabled, a model will generate the best prompt for you based
 
 **Image storage**
 
-Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
-You also have the options to delete it or view it in full size in your web browser.
+Generated images and videos are automatically saved to the working directory, under the ``img`` or ``video`` folder depending on the media type. You can also quickly save generated media to another location, open a preview, view it in full size, or remove it when it is no longer needed.
 
-.. tip::
-   Use presets to save your prepared prompts. 
-   This lets you quickly use them again for generating new images later on.
-
-The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
-prompts for creating new images.
-
-Images are stored in ``img`` directory in PyGPT's user data folder.
-
-
-
-Agent (LlamaIndex) 
--------------------
-
-Mode that allows the use of agents offered by ``LlamaIndex``.
-
-Includes built-in agents (Workflow):
-
-* FunctionAgent
-* ReAct
-* Structured Planner (sub-tasks)
-* CodeAct (connected to Code Interpreter plugin)
-* Supervisor + worker
-
-In the future, the list of built-in agents will be expanded.
-
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agents Builder``.
-
-You can also create your own agent by creating a new provider that inherits from ``pygpt_net.provider.agents.base``.
-
-**Tools and Plugins**
-
-In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
-
-**RAG - using indexes**
-
-If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
-
-Multimodality is currently unavailable, only text is supported. Vision support will be added in the future.
-
-**Loop / Evaluate Mode**
-
-You can run the agent in autonomous mode, in a loop, and with evaluation of the current output. When you enable the ``Loop / Evaluate`` checkbox, after the final response is given, the quality of the answer will be rated on a percentage scale of ``0% to 100%`` by another agent. If the response receives a score lower than the one expected (set using a slider at the bottom right corner of the screen, with a default value ``75%``), a prompt will be sent to the agent requesting improvements and enhancements to the response.
-
-Setting the expected (required) score to ``0%`` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
-
-You can choose between two methods of evaluation:
-
-- By the percentage of tasks completed
-- By the accuracy (score) of the final response
-
-You can set the limit of steps in such a loop by going to ``Settings -> Agents and experts -> LlamaIndex agents -> Max evaluation steps``. The default value is ``3``, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
-
-You can change the prompts used for evaluating the response in ``Settings -> Prompts -> Agent: evaluation prompt in loop``. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
-
-Agent (OpenAI)
---------------
-
-The mode operates on the ``openai-agents`` library integrated into the application:
-
-https://github.com/openai/openai-agents-python
-
-It allows running agents for OpenAI models and models compatible with the OpenAI.
-
-In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the ``openai_agents_experts`` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
-
-**Agent types (workflows/patterns):**
-
-* ``Agent with experts`` - uses attached experts as sub-agents
-* ``Agent with experts + feedback`` - uses attached experts as sub-agents + feedback agent in a loop
-* ``Agent with feedback`` - single agent + feedback agent in a loop
-* ``Planner`` - planner agent, 3 sub-agents inside: planner, base agent + feedback
-* ``Research bot`` - researcher, 3 sub-agents inside: planner, searcher and writer as base agent
-* ``Simple agent`` - a single agent.
-* ``Evolve`` - in each generation (cycle), the best response from a given parent agent is selected; in the next generation, the cycle repeats.
-* ``B2B`` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
-* ``Supervisor + Worker`` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
-
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the ``Tools -> Agents Builder``.
-
-There are also predefined presets added as examples:
-
-* ``Coder``
-* ``Experts agent``
-* ``Planner``
-* ``Researcher``
-* ``Simple agent``
-* ``Writer with Feedback``
-* ``2 bots``
-* ``Supervisor + worker``
-
-In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
-
-Remote tools for experts can be selected separately for each expert in the preset configuration.
-
-Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
-
-In agents with feedback and plans, tools can be allowed in a preset configuration for each agent. They also have separate prompts that can be configured in presets.
-
-**Description of how different types of agents work:**
-
-Below is a pattern for how different types of agents work. You can use these patterns to create agents for different tasks by modifying the appropriate prompts in the preset for the specific task.
-
-**Simple Agent**
-
-* The agent completes its task and then stops working.
-
-**Agent with Feedback**
-
-* The first agent answers a question.
-* The second agent (feedback) evaluates the answer and, if necessary, goes back to the first agent to enforce corrections.
-* The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Agent with Experts**
-
-* The agent completes the assigned task on its own or delegates it to the most suitable expert (another agent).
-
-**Agent with Experts + Feedback**
-
-* The first agent answers a question or delegates it to the most suitable expert.
-* The second agent (feedback) evaluates and, if necessary, goes back to the first agent to enforce corrections.
-* The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Research Bot**
-
-* The first agent (planner) prepares a list of phrases to search.
-* The second agent (search) finds information based on the phrases and creates a summary.
-* The third agent (writer) prepares a report based on the summary.
-
-**Planner**
-
-* The first agent (planner) breaks down a task into sub-tasks and sends the list to the second agent.
-* The second agent performs the task based on the prepared task list.
-* The third agent, responsible for feedback, evaluates, requests corrections if needed, and sends the request back to the first agent. The cycle repeats.
-
-**Evolve**
-
-* You select the number of agents (parents) to operate in each generation (iteration).
-* Each agent prepares a separate answer to a question.
-* The best agent (producing the best answer) in a generation is selected by the next agent (chooser).
-* Another agent (feedback) verifies the best answer and suggests improvements.
-* A request for improving the best answer is sent to a new pair of agents (new parents).
-* From this new pair, the best answer is selected again in the next generation, and the cycle repeats.
-
-**B2B**
-
-* A human provides a topic for discussion.
-* Bot 1 generates a response and sends it to Bot 2.
-* Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
-* The human can interrupt the loop at any time and update the entire discussion.
-
-
-**Supervisor + Worker**
-
-* A human provides a query to the Supervisor.
-* The Supervisor prepares instructions for the Worker and sends them to the Worker.
-* The Worker completes the task and returns the result to the Supervisor.
-* If the task is completed, the Supervisor returns the result to the user. If not, the Supervisor sends another instruction to the Worker to complete the task or asks the user if there are any questions.
-* The cycle repeats until the task is completed.
-
-.. tip::
-   Starting from version ``2.5.97``, you can assign and use Experts in all of the agent types.
-
-**Limitations:**
-
-* When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
-
-
-Agent (Autonomous)
--------------------
-
-This is an older version of the Agent mode, still available as legacy. However, it is recommended to use the newer mode: ``Agent (LlamaIndex)``.
-
-.. warning::
-   **Please use this mode with caution!** - autonomous mode, when connected with other plugins, may produce unexpected results!
-
-The mode activates autonomous mode, where AI begins a conversation with itself. 
-You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
-in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
-
-.. warning::
-   Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
-
-This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into 
-subtasks that the model will autonomously perform one after another until the goal is achieved. 
-
-You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
-
-All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, 
-vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system. All currently enabled plugins are automatically available to the Agent.
-
-When the ``Auto-stop`` option is enabled, the agent will attempt to stop once the goal has been reached.
-
-In opposition to ``Auto-stop``, when the ``Always continue...`` option is enabled, the agent will use the "always continue" prompt to generate additional reasoning and automatically proceed to the next step, even if it appears that the task has been completed.
-
-**Options**
-
-The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
-You can choose which internal mode the agent should use in the settings:
-
-.. code-block:: ini
-
-   Settings / Agent (autonomous) / Sub-mode to use
-
-Default mode is: ``Chat``.
-
-If you want to use the LlamaIndex mode when running the agent, you can also specify which index ``LlamaIndex`` should use with the option:
-
-.. code-block:: ini
-
-   Settings / Agent (autonomous) / Index to use
-
-Experts (Co-op, co-operation mode)
-----------------------------------
-
-Expert mode allows for the creation of experts (using presets) and then consulting them during a conversation. In this mode, a primary base context is created for conducting the conversation. From within this context, the model can make requests to an expert to perform a task and return the results to the main thread. When an expert is called in the background, a separate context is created for them with their own memory. This means that each expert, during the life of one main context, also has access to their own memory via their separate, isolated context.
-
-**In simple terms - you can imagine an expert as a separate, additional instance of the model running in the background, which can be called at any moment for assistance, with its own context and memory, as well as its own specialized instructions in a given subject.**
-
-Experts do not share contexts with one another, and the only point of contact between them is the main conversation thread. In this main thread, the model acts as a manager of experts, who can exchange data between them as needed.
-
-An expert is selected based on the name in the presets; for example, naming your expert as: ID = python_expert, name = "Python programmer" will create an expert whom the model will attempt to invoke for matters related to Python programming. You can also manually request to refer to a given expert:
-
-.. code-block:: ini
-
-   Call the Python expert to generate some code.
-
-Experts can be activated or deactivated - to enable or disable use RMB context menu to select the ``Enable/Disable`` options from the presets list. Only enabled experts are available to use in the thread.
-
-Experts can also be used in ``Agent (autonomous)`` mode - by creating a new agent using a preset. Simply move the appropriate experts to the active list to automatically make them available for use by the agent.
-
-You can also use experts in "inline" mode - by activating the ``Experts (inline)`` plugin. This allows for the use of experts in any mode, such as normal chat.
-
-Expert mode, like agent mode, is a "virtual" mode - you need to select a target mode of operation for it, which can be done in the settings at ``Settings / Agent (autonomous) / Sub-mode for experts``.
-
-You can also ask for a list of active experts at any time:
-
-.. code-block:: ini
-
-   Give me a list of active experts.
-
+By default, images are stored in the base-profile ``img`` directory. If **Store images, captures, and uploads in the workdir data directory** is enabled, generated images are stored under the active ``data`` workdir instead, including a custom project data workdir when one is active.
 
 Computer use
 -------------
-This mode allows for autonomous computer control.
 
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. 
+.. warning::
+   **Computer use can give the model full control of your computer.** The model can move the mouse, type, click, open applications, read visible content, and perform actions with your user permissions. Use this mode only for tasks you trust and supervise sensitive operations.
 
-The ``Computer use`` remote tool is used here: https://platform.openai.com/docs/guides/tools-computer-use, combined with the ``Mouse and Keyboard`` plugin.
+Computer use lets supported models operate the desktop or browser through mouse and keyboard actions.
+
+
+PyGPT uses the selected provider's native ``Computer use`` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in ``Mouse and keyboard`` integration.
 
 **Example of use:**
 
@@ -485,16 +290,127 @@ You can change the environment in which the navigation mode operates by using th
 * Windows
 * Mac
 
-You can run this mode in Sandbox (using ``Playwright`` browsers) - to do it, just enable the ``Sandbox`` switch in the toolbox. Playwright browsers must be installed on your system. To do so, run:
+You can run this mode in a browser sandbox powered by ``Playwright``. The Playwright package and at least one browser engine must be installed in an environment accessible to PyGPT. For example, to install Chromium:
 
 .. code-block:: ini
 
    pip install playwright
-   playwright install <chromium|firefox|webkit>
+   playwright install chromium
 
-After that, set the path to directory with installed browsers in ``Mouse and Keyborad`` plugin settings option: ``Sandbox / Browsers directory``.
+You can install another supported engine instead with ``playwright install firefox`` or ``playwright install webkit``.
 
-Compiled binary and Snap versions have ``chromium`` preinstalled in the package.
+Then open ``Plugins -> Settings -> Mouse and keyboard -> Sandbox (Playwright)`` and configure the sandbox:
+
+* set ``Engine`` to the installed browser engine, for example ``chromium``;
+* leave ``Browsers directory`` empty when using Playwright's default browser location, or set it to the custom directory where the Playwright browsers are installed;
+* optionally configure ``Headless mode``, browser arguments, home URL and viewport size.
+
+Finally, enable the ``Sandbox`` switch in the Computer use toolbox when you want Computer use to run inside the Playwright browser sandbox.
 
 .. tip::
-   **DO NOT** enable the ``Mouse and Keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.
+   **DO NOT** enable the ``Mouse and keyboard`` plugin in ``Computer use`` mode — it is already connected to ``Computer use`` mode in the background.
+
+Experts
+-------
+
+**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Agents**. There is no separate legacy execution engine for an Expert.
+
+Each enabled Expert is exposed to the current conversation as a regular ``expert_call`` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result.
+
+In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while ``expert_call`` adds the ability to delegate work to specialized agents.
+
+Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
+
+How to use Experts
+~~~~~~~~~~~~~~~~~~
+
+1. Switch to **Experts** mode and create or edit an Expert preset. Give it a clear ID/name and specialized instructions, then enable it.
+2. Start a conversation in **Experts** mode, or enable the **Experts (inline)** plugin to make the same Experts available in another supported chat mode.
+3. Ask the model to use the Expert in natural language. For example:
+
+.. code-block:: ini
+
+   Ask the Python programmer expert to review this code and suggest a fix.
+
+The main model can then invoke ``expert_call`` automatically, use the returned result in its own answer, and call other tools or Experts if the task requires it. You do not need to manually start a separate Expert session. Defining and enabling the Expert is enough for it to become available to the model.
+
+Experts can be activated or deactivated from the preset list using the RMB context menu and the ``Enable/Disable`` actions. Only enabled Experts are exposed through ``expert_call``.
+
+The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same ``expert_call`` tool in supported chat modes and executes the selected Expert through the same **Agents / Agents v2** runtime.
+
+
+Autonomous mode
+---------------
+
+``Autonomous mode`` is a single-agent loop for tasks that should continue across multiple model passes without requiring a new user message after every step. The same model keeps working on the original request, reviews the accumulated result, performs additional useful work or verification, and continues until the run is stopped by its configured rules. It does not create or orchestrate worker agents.
+
+The current implementation is **Chat-backed**. Autonomous requests use the same bridge, provider routing, API selection, native tool/function-call settings, and normal tool execution flow as standard ``Chat``.
+
+RAG / index routing
+~~~~~~~~~~~~~~~~~~~
+
+Autonomous uses the same global ``RAG`` selector shown at the bottom of the toolbox. If no index is selected, it follows normal Chat routing. Selecting a valid index routes the run through the LlamaIndex RAG runtime with that index. Select ``---`` to keep normal Chat routing.
+
+Run controls
+~~~~~~~~~~~~
+
+* **Max run steps (iterations)** limits the number of autonomous model passes. Set it to ``0`` for an unlimited loop. Tool calls and their results are handled inside the normal tool flow and do not represent a separate user turn.
+* **Auto-stop** allows the agent to terminate the run early when it determines that the original goal is complete, or when a run-control condition requires stopping. When Auto-stop is disabled, the agent is not given the internal completion-control tool; the loop is then governed by the configured run limit or a manual/application stop.
+* **Always continue** keeps the run open-ended and instructs the agent to continue exploring useful in-scope refinements instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the configured iteration limit, so the run continues until it is stopped externally.
+* **Dynamic continuous prompt** is enabled by default. After each completed Autonomous pass, PyGPT makes a hidden, tool-free call to the same selected model and uses it as a judge. The judge receives the original user input plus a configurable tail of recent Assistant responses from the current Autonomous run, identifies the highest-value remaining correction, verification, or refinement, and returns only the instruction for the next pass. That instruction is displayed in the live conversation as a localized ``Judge:`` pseudo-input, but it does not create a new user turn. If the judge call fails or returns an empty result, PyGPT falls back to the normal static continuation prompt.
+* **Responses to judge** controls how many of the most recent Autonomous Assistant responses are included in that hidden judge request. The original user input is always included. The default is ``3``; set it to ``0`` to include every Assistant response produced since the current user input. Tool rounds belonging to one Autonomous provider pass are grouped into that pass rather than counted as separate judge responses.
+* **Auto-stop** and **Always continue** are mutually exclusive. Enabling either one immediately disables the other; both may also be disabled.
+
+When the run limit is set to ``0``, PyGPT shows an infinite-loop confirmation because an unattended run can generate substantial API usage, token consumption, and repeated tool actions.
+
+.. warning::
+   Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
+
+
+Custom agents
+-------------
+
+**Custom agents** is a flexible, slightly older LlamaIndex-based agent mode. For most multi-agent tasks, the newer **Agents** mode is recommended because it provides the current primary agent runtime, workflow monitor, worker management, and newer orchestration features.
+
+The mode remains available for experimentation with non-standard agent workflow patterns and direct workflow construction. Built-in patterns include:
+
+* Simple / function agent
+* Agent with experts
+* Agent with feedback
+* Agent with experts + feedback
+* Structured planner
+* Researcher
+* Bot-to-bot (B2B)
+* Evolve
+* Supervisor + worker
+
+
+You can create your own workflow constructions with the visual node editor in ``Tools -> Custom agent builder``. This makes it possible to experiment with custom graphs, routing, shared memory, bot-to-bot flows, Evolve-style loops, and other non-standard agent designs without implementing the complete workflow graph by hand.
+
+You can also create your own agent provider by inheriting from ``pygpt_net.provider.agents.base``.
+
+Tools and Plugins
+^^^^^^^^^^^^^^^^^
+
+Commands from active plugins can be exposed to Custom agents as tools according to the selected workflow and preset configuration.
+
+``Add support for .agents directory`` is enabled by default in ``Settings -> Agents and experts -> Custom agents``. At the start of a Custom agent run, PyGPT checks the active workdir. When ``.agents/`` exists, the agent receives the same project-directory guidance as Agents; otherwise it receives only the short note about optionally creating ``.agents/`` and using ``.agents/memories/``. Files are read by the agent when needed rather than preloaded by PyGPT.
+
+RAG - using indexes
+^^^^^^^^^^^^^^^^^^^
+
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG workflow automatically.
+
+Custom agents currently supports text input only; multimodal input is not available.
+
+Loop / Evaluate Mode
+^^^^^^^^^^^^^^^^^^^^
+
+You can run a Custom agent in an autonomous evaluate/improve loop. When ``Loop / Evaluate`` is enabled, another agent evaluates the current result and requests improvements until the configured score or completion threshold is reached, the step limit is reached, or the run is stopped.
+
+You can choose between two evaluation methods:
+
+* By the percentage of tasks completed
+* By the accuracy (score) of the final response
+
+The loop limit is configured in ``Settings -> Agents and experts -> Custom agents -> Max evaluation steps in loop``. Set it to ``0`` for no application-level limit. Evaluation prompts can be adjusted in ``Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]``.

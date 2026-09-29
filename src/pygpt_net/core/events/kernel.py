@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.09.19 12:30:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -31,6 +31,7 @@ class KernelEvent(BaseEvent):
     # input
     INPUT_SYSTEM = "kernel.input.system"
     INPUT_USER = "kernel.input.user"
+    SEND_INIT = "kernel.send.init"
 
     # queue
     AGENT_CALL = "kernel.agent.call"
@@ -61,3 +62,11 @@ class KernelEvent(BaseEvent):
 
     LIVE_APPEND = "kernel.live.append"
     LIVE_CLEAR = "kernel.live.clear"
+
+    # Agents v2: one durable stream + one replace-in-place status line
+    AGENT_V2_BEGIN = "kernel.agent_v2.begin"
+    AGENT_V2_FINAL_BEGIN = "kernel.agent_v2.final_begin"
+    AGENT_V2_APPEND = "kernel.agent_v2.append"
+    AGENT_V2_STATUS = "kernel.agent_v2.status"
+    AGENT_V2_TOOL_EXEC = "kernel.agent_v2.tool_exec"
+    AGENT_V2_END = "kernel.agent_v2.end"

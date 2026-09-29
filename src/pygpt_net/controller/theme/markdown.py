@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 13:00:00                  #
+# Updated Date: 2026.09.19 22:10:00                  #
 # ================================================== #
-
-import os
 
 from pygpt_net.core.events import RenderEvent
 
@@ -40,20 +38,10 @@ class Markdown:
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
 
-    def set_default(self):
-        """Set default markdown CSS"""
-        self.css['markdown'] = self.get_default()
-
     def apply(self):
-        """Apply CSS to renderers"""
-        if 'output' in self.window.ui.nodes:
-            for pid in self.window.ui.nodes['output']:
-                try:
-                    self.window.ui.nodes['output'][pid].setStyleSheet(self.css['markdown'])  # plain text, always apply
-                except Exception as e:
-                    pass
+        """Apply WebEngine renderer theme styles."""
         event = RenderEvent(RenderEvent.ON_THEME_CHANGE)
-        self.window.dispatch(event)  # per current engine
+        self.window.dispatch(event)
 
     def get_web_css(self) -> str:
         """
@@ -61,7 +49,9 @@ class Markdown:
 
         :return: stylesheet
         """
-        web_style = self.window.core.config.get("theme.style", "blocks")
+        web_style = self.window.controller.theme.common.normalize_style(
+            self.window.core.config.get("theme.style", "standard")
+        )
         if "web" not in self.css or self.web_style != web_style:
             self.load()
         if "web" in self.css:
@@ -81,110 +71,26 @@ class Markdown:
         self.window.dispatch(event)
 
     def load(self):
-        """Load markdown styles"""
-        parents = [
-            "markdown",
-            "web",
-        ]
-        web_style = self.window.core.config.get("theme.style", "blocks")
-        for base_name in parents:
-            suffix = ""
-            if base_name == 'web':
-                suffix = "-" + web_style
-                self.web_style = web_style
-            theme = str(self.window.core.config.get('theme'))
-            name = str(base_name)
-            if theme.startswith('light'):
-                color = '.light'
-            else:
-                color = '.dark'
-                if base_name == 'web' and theme.endswith('darkest'):
-                    color = '.darkest'
+        """Load chat renderer CSS layers."""
+        common = self.window.controller.theme.common
+        theme = common.normalize_theme(self.window.core.config.get("theme"))
+        web_style = common.normalize_style(
+            self.window.core.config.get("theme.style", common.STYLE_STANDARD)
+        )
+        self.web_style = web_style
 
-            # load CSS, app + user
-            file_base = name + suffix + '.css'
-            file_color = name + suffix + color + '.css'
-            paths = []
-            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_base))
-            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', file_color))
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', file_base))
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', file_color))
-            content = ''
-            for path in paths:
-                if os.path.exists(path) and os.path.isfile(path):
-                    with open(path, 'r') as file:
-                        content += file.read()
+        # chat.css is the base for both Standard and Wide. The Wide style only
+        # appends the small, theme-independent chat.wide.css override.
+        paths = list(common.get_theme_asset_paths(theme, "chat.css"))
+        if web_style == common.STYLE_WIDE:
+            paths.extend(common.get_global_asset_paths("chat.wide.css"))
 
-            self.css[base_name] = content  # always append default raw in case of errors in env vars
+        content_parts = []
+        for path in paths:
             try:
-                self.css[base_name] = content.format(**os.environ)  # replace env vars
-            except KeyError as e:  # ignore missing env vars
+                with open(path, "r", encoding="utf-8") as file:
+                    content_parts.append(file.read())
+            except OSError:
                 pass
 
-    def get_default(self) -> str:
-        """
-        Set default markdown CSS
-
-        :return: default CSS
-        """
-        colors = {
-            "dark": {
-                "a": "#fff",
-                "msg-user": "#d9d9d9",
-                "msg-bot": "#fff",
-                "cmd": "#4d4d4d",
-                "ts": "#d0d0d0",
-                "pre-bg": "#202225",
-                "pre": "#fff",
-                "code": "#fff",
-            },
-            "light": {
-                "a": "#000",
-                "msg-user": "#444444",
-                "msg-bot": "#000",
-                "cmd": "#4d4d4d",
-                "ts": "#4d4d4d",
-                "pre-bg": "#e9e9e9",
-                "pre": "#000",
-                "code": "#000",
-            }
-        }
-
-        theme = self.window.core.config.get('theme')
-        styles = colors['dark']
-        if theme.startswith('light'):
-            styles = colors['light']
-
-        return """
-        a {{
-            color: {a};
-        }}
-        .msg-user {{
-            color: {msg-user} !important;
-            white-space: pre-wrap;
-            width: 100%;
-            max-width: 100%;
-        }}
-        .msg-bot {{
-            color: {msg-bot} !important;
-            white-space: pre-wrap;
-            width: 100%;
-            max-width: 100%;
-        }}
-        .cmd {{
-            color: {cmd};
-        }}
-        .ts {{
-            color: {ts};
-        }}
-        .list {{
-        }}
-        pre {{
-            color: {pre};
-            background-color: {pre-bg};
-            font-family: 'Lato';
-            display: block;
-        }}
-        code {{
-            color: {pre};
-        }}""".format_map(styles)
+        self.css["web"] = common.format_css("".join(content_parts))

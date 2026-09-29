@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
-# ================================================== #
 
 from unittest.mock import MagicMock
 
@@ -16,152 +8,130 @@ from tests.mocks import mock_window
 from pygpt_net.controller.chat.render import Render
 
 
-def test_get_renderer(mock_window):
-    """Test get renderer"""
+def _render_with_active_renderer(mock_window):
+    render = Render(mock_window)
+    active = MagicMock()
+    render.renderer = active
+    return render, active
+
+
+def test_get_renderers(mock_window):
+    """Only the supported plain-text and WebEngine renderers are created."""
     render = Render(mock_window)
     assert render.web_renderer is not None
-    assert render.markdown_renderer is not None
+    assert render.plaintext_renderer is not None
+    assert not hasattr(render, "markdown_renderer")
+
+
+def test_setup_selects_plaintext_or_web_renderer(mock_window):
+    render = Render(mock_window)
+
+    mock_window.core.config.set("render.plain", True)
+    render.setup()
+    assert render.renderer is render.plaintext_renderer
+
+    mock_window.core.config.set("render.plain", False)
+    render.setup()
+    assert render.renderer is render.web_renderer
 
 
 def test_begin(mock_window):
-    """Test begin render"""
-    render = Render(mock_window)
-    render.web_renderer.begin = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     meta = MagicMock()
     ctx = MagicMock()
+
     render.begin(meta, ctx)
-    render.markdown_renderer.begin.assert_called_once()
+
+    mock_window.core.ctx.output.pin_render_pid.assert_called_once_with(meta)
+    active.begin.assert_called_once_with(meta, ctx, False)
 
 
 def test_end(mock_window):
-    """Test end render"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     meta = MagicMock()
     ctx = MagicMock()
+
     render.end(meta, ctx)
-    render.markdown_renderer.end.assert_called_once()
+
+    active.end.assert_called_once_with(meta, ctx, False)
 
 
 def test_stream_begin(mock_window):
-    """Test stream begin render"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     meta = MagicMock()
     ctx = MagicMock()
     render.stream_begin(meta, ctx)
-    render.markdown_renderer.stream_begin.assert_called_once()
+    active.stream_begin.assert_called_once_with(meta, ctx)
 
 
 def test_stream_end(mock_window):
-    """Test stream end render"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     meta = MagicMock()
     ctx = MagicMock()
     render.stream_end(meta, ctx)
-    render.markdown_renderer.stream_end.assert_called_once()
+    active.stream_end.assert_called_once_with(meta, ctx)
 
 
 def test_clear_output(mock_window):
-    """Test clear render"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
-    meta = MagicMock()
-    ctx = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     render.clear_output()
-    render.markdown_renderer.clear_output.assert_called_once()
+    active.clear_output.assert_called_once_with(None)
 
 
 def test_clear_input(mock_window):
-    """Test clear input"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
-    meta = MagicMock()
-    ctx = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     render.clear_input()
-    render.markdown_renderer.clear_input.assert_called_once()
+    active.clear_input.assert_called_once_with()
 
 
 def test_reset(mock_window):
-    """Test reset render"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
-    meta = MagicMock()
-    ctx = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     render.reset()
-    render.markdown_renderer.reset.assert_called_once()
+    active.reset.assert_called_once_with(None)
 
 
 def test_reload(mock_window):
-    """Test reload render"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
-    meta = MagicMock()
-    ctx = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     render.reload()
-    render.markdown_renderer.reload.assert_called_once()
+    active.reload.assert_called_once_with(None)
 
 
 def test_append_context(mock_window):
-    """Test append context items"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     ctx = CtxItem()
     meta = MagicMock()
     items = [ctx]
     render.append_context(meta, items)
-    render.markdown_renderer.append_context.assert_called_once()
+    active.append_context.assert_called_once_with(meta, items, True)
 
 
 def test_append_input(mock_window):
-    """Test append input"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     ctx = CtxItem()
     meta = MagicMock()
     render.append_input(meta, ctx)
-    render.markdown_renderer.append_input.assert_called_once()
+    active.append_input.assert_called_once_with(meta, ctx, flush=True, append=False)
 
 
 def test_append_output(mock_window):
-    """Test append output"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     ctx = CtxItem()
     meta = MagicMock()
     render.append_output(meta, ctx)
-    render.markdown_renderer.append_output.assert_called_once()
+    active.append_output.assert_called_once_with(meta, ctx)
 
 
 def test_append_extra(mock_window):
-    """Test append extra"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     ctx = CtxItem()
     meta = MagicMock()
     render.append_extra(meta, ctx)
-    render.markdown_renderer.append_extra.assert_called_once()
+    active.append_extra.assert_called_once_with(meta, ctx, False)
 
 
 def test_append_chunk(mock_window):
-    """Test append chunk"""
-    render = Render(mock_window)
-    render.web_renderer = MagicMock()
-    render.markdown_renderer = MagicMock()
+    render, active = _render_with_active_renderer(mock_window)
     ctx = CtxItem()
     meta = MagicMock()
     render.append_chunk(meta, ctx, "test")
-    render.markdown_renderer.append_chunk.assert_called_once()
+    active.append_chunk.assert_called_once_with(meta, ctx, "test", False)

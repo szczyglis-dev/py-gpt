@@ -97,44 +97,62 @@ class Idx:
             doc_id: Optional[str] = None
     ) -> bool:
         """
-        Remove ctx meta from indexed
+        Remove ctx meta from indexed storage and tracking.
 
-        :param store: store name
-        :param id: ctx meta ID
-        :param idx: index name
-        :param doc_id: document ID (optional)
-        :return: True if removed
+        Project-only context indexing does not necessarily set indexed_ts, so
+        cleanup must be based on idx_ctx/indexes_json rather than that cursor.
         """
-        # get meta
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is None:
-            return False
+            meta = self.get_provider().get_meta_by_id(id)
 
-        # remove from ctx index db
+        doc_ids = []
+        if doc_id:
+            doc_ids.append(doc_id)
+        if meta is not None and isinstance(meta.indexes, dict):
+            if store in meta.indexes and idx in meta.indexes[store]:
+                value = meta.indexes[store][idx]
+                if isinstance(value, dict):
+                    doc_ids.extend(value.keys())
+                elif isinstance(value, (list, tuple, set)):
+                    doc_ids.extend(value)
+
+        # Fallback to idx_ctx if indexes_json is stale or incomplete.
+        if not doc_ids:
+            try:
+                tracked = self.window.core.idx.ctx.get_doc_id(store, idx, id)
+                if tracked:
+                    doc_ids.append(tracked)
+            except Exception:
+                pass
+
+        for tracked_doc_id in list(dict.fromkeys(doc_ids)):
+            try:
+                self.window.core.idx.remove_doc(
+                    idx, tracked_doc_id, store_id=store
+                )
+            except Exception as e:
+                self.window.core.debug.log(e)
+
+        # Remove from idx tracking DB even when vector storage is already gone.
         self.window.core.idx.ctx.remove(store, idx, id)
 
-        # remove document from idx storage
-        if store in meta.indexes:
-            if idx in list(meta.indexes[store]):
-                for doc_id in meta.indexes[store][idx]:
-                    self.window.core.idx.remove_doc(idx, doc_id)
+        if meta is None:
+            return True
 
-        # remove index data from meta indexes
         self.remove_idx_data_from_meta(meta, store, idx)
-
-        # update indexes in db
         self.get_provider().update_meta_indexes_by_id(id, meta)
-
-        # clear indexed timestamp if no indexes left
         if not meta.indexes:
             self.clear_meta_indexed_by_id(id)
+            self.window.core.ctx.update_indexed_ts_by_id(id, 0)
         return True
 
     def set_meta_as_indexed(
             self,
             id: int,
             idx: str,
-            doc_id: str
+            doc_id: str,
+            update_timestamp: bool = True
     ) -> bool:
         """
         Set ctx meta as indexed
@@ -163,13 +181,17 @@ class Idx:
         else:
             # update document id in index db if already indexed, by meta id
             self.window.core.idx.ctx.update(
+                store_id=store,
+                idx=idx,
                 meta_id=id,  # ctx meta id
                 doc_id=doc_id,  # document id
             )
 
-        # update ctx meta indexed timestamp
-        self.get_provider().set_meta_indexed_by_id(id, ts)
-        self.window.core.ctx.update_indexed_ts_by_id(id, ts)
+        # Project indexes have their own incremental cursor in idx_proj; do not
+        # move the global ctx_meta.indexed_ts cursor when indexing a project.
+        if update_timestamp:
+            self.get_provider().set_meta_indexed_by_id(id, ts)
+            self.window.core.ctx.update_indexed_ts_by_id(id, ts)
 
         # append index data to ctx meta object
         self.store_idx_data_in_meta(meta, store, idx, doc_id)

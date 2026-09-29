@@ -9,12 +9,15 @@
 # Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
-import os
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-import markdown
-from mdx_math import MathExtension
-from bs4 import BeautifulSoup
-from bs4.element import NavigableString
+import os
+import re
+
+if TYPE_CHECKING:
+    from bs4 import BeautifulSoup
+
 from pygpt_net.utils import trans
 
 
@@ -35,13 +38,14 @@ class Parser:
         self._icon_base = None
         self._icon_paths = None
 
-    def _make_soup(self, html: str) -> BeautifulSoup:
+    def _make_soup(self, html: str) -> "BeautifulSoup":
         """
         Create BeautifulSoup instance from HTML string
 
         :param html: HTML string to parse
         :return: BeautifulSoup instance
         """
+        from bs4 import BeautifulSoup
         return BeautifulSoup(html, self._soup_parser)
 
     def _get_icon_paths(self) -> dict:
@@ -64,6 +68,9 @@ class Parser:
 
     def init(self):
         """Initialize markdown parser"""
+        import markdown
+        from mdx_math import MathExtension
+        
         if self.md is None:
             self.md = markdown.Markdown(extensions=[
                 'fenced_code',
@@ -96,8 +103,18 @@ class Parser:
         :param text: markdown text
         :return: markdown text with prepared paths
         """
-        # Replace sandbox paths with file paths
-        return text.replace("](sandbox:", "](file://") if "](sandbox:" in text else text
+        # Resolve model-facing sandbox paths against the current PyGPT workdir.
+        # The old sandbox: -> file:// replacement turned sandbox:/img/x.png
+        # into file:///img/x.png (host filesystem root), which is incorrect.
+        if "sandbox:" not in text.lower():
+            return text
+        fs = self.window.core.filesystem
+        return re.sub(
+            r'\(sandbox:([^)]+)\)',
+            lambda m: f'({fs.get_local_url("sandbox:" + m.group(1))})',
+            text,
+            flags=re.IGNORECASE,
+        )
 
     def parse(self, text: str, reset: bool = True) -> str:
         """
@@ -181,6 +198,8 @@ class Parser:
 
         :param soup: BeautifulSoup instance
         """
+        from bs4.element import NavigableString
+
         for li in soup.find_all('li'):
             for item in li.contents:
                 if isinstance(item, NavigableString) and item.strip() == '':

@@ -14,16 +14,27 @@ from types import SimpleNamespace
 from unittest.mock import Mock, MagicMock
 import pytest
 
+from pygpt_net.core.types import MODE_LLAMA_INDEX
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
+
 chat_mod = importlib.import_module("pygpt_net.core.idx.chat")
+context_mod = importlib.import_module("pygpt_net.core.idx.context")
+response_mod = importlib.import_module("pygpt_net.core.idx.response")
+llama_memory_mod = importlib.import_module("llama_index.core.memory")
+llama_llms_mod = importlib.import_module("llama_index.core.llms")
+llama_prompts_mod = importlib.import_module("llama_index.core.prompts")
 Chat = chat_mod.Chat
 
 class FakeModelItem:
     def __init__(self, id="fake-model"):
         self.id = id
+        self.provider = "openai"
 
 class FakeCtx:
     def __init__(self, input_text="hi"):
         self.input = input_text
+        self.final_input = input_text
         self.stream = None
         self.input_tokens = None
         self.output_tokens = None
@@ -71,6 +82,10 @@ class FakeResponseClass:
         self.from_llm_stream = Mock()
         self.from_index = Mock()
         self.from_llm = Mock()
+        self.collect_llm_urls = Mock(return_value=[])
+        self.stream_with_llm_artifacts = Mock(
+            side_effect=lambda ctx, llm, stream: stream
+        )
 
 def make_window(config_map=None):
     cfg = config_map or {}
@@ -85,6 +100,12 @@ def make_window(config_map=None):
             return "/tmp/userdir"
     tokens = SimpleNamespace(from_llama_messages=Mock(return_value="TOKENS"))
     debug = SimpleNamespace(info=Mock())
+    project = SimpleNamespace(
+        is_virtual=lambda value: value == "__project__",
+        get_group_id_from_idx=lambda value: int(value.split("_", 1)[1])
+        if isinstance(value, str) and value.startswith("proj_") else None,
+        ensure=Mock(),
+    )
     idx = SimpleNamespace(
         llm=SimpleNamespace(
             get=Mock(),
@@ -93,23 +114,30 @@ def make_window(config_map=None):
         indexing=SimpleNamespace(
             index_files=Mock(),
             index_urls=Mock()
-        )
+        ),
+        resolve_idx=lambda value: "proj_7" if value == "__project__" else value,
+        project=project,
     )
-    models = SimpleNamespace(is_tool_call_allowed=lambda mode, model: True, from_defaults=lambda: FakeModelItem())
+    models = SimpleNamespace(
+        is_tool_call_allowed=lambda mode, model: True,
+        from_defaults=lambda: FakeModelItem(),
+        get_num_ctx=Mock(return_value=0),
+    )
     plugins = SimpleNamespace(get_option=lambda a,b: False)
     agents = SimpleNamespace(provider=SimpleNamespace(get=Mock()), tools=SimpleNamespace(prepare=Mock()), runner=SimpleNamespace(llama_workflow=SimpleNamespace(run=Mock())))
-    return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents), idx_logger_message=Mock())
+    api = SimpleNamespace(logger=SimpleNamespace(log_input=Mock(), log_output=Mock()))
+    return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents, api=api), idx_logger_message=Mock())
 
 def make_chat(monkeypatch, config_map=None, storage=None):
-    monkeypatch.setattr(chat_mod, "Context", FakeContextClass)
-    monkeypatch.setattr(chat_mod, "Response", FakeResponseClass)
+    monkeypatch.setattr(context_mod, "Context", FakeContextClass)
+    monkeypatch.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window(config_map=config_map)
     storage = storage or Mock()
     return Chat(window=win, storage=storage)
 
 def test_init_creates_components(monkeypatch):
-    monkeypatch.setattr(chat_mod, "Context", FakeContextClass)
-    monkeypatch.setattr(chat_mod, "Response", FakeResponseClass)
+    monkeypatch.setattr(context_mod, "Context", FakeContextClass)
+    monkeypatch.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window()
     storage = Mock()
     c = Chat(window=win, storage=storage)
@@ -154,7 +182,10 @@ def test_query_stream_true_and_false(monkeypatch):
     chat.get_custom_prompt = Mock(return_value=None)
     chat.get_metadata = Mock(return_value={"m":"v"})
     ctx_item = FakeCtx("hello")
-    context = SimpleNamespace(idx="idx", model=FakeModelItem(), system_prompt_raw="sys", stream=True, ctx=ctx_item)
+    context = SimpleNamespace(
+        idx="idx", model=FakeModelItem(), system_prompt_raw="sys",
+        stream=True, ctx=ctx_item, prompt="hello with attachment context",
+    )
     index = Mock()
     engine = Mock()
     resp = FakeResponseObj(response=None, response_gen="GEN", source_nodes=[FakeNode("id1","t",0.9,{"k":"v"})])
@@ -165,15 +196,20 @@ def test_query_stream_true_and_false(monkeypatch):
     chat.window.core.tokens.from_llama_messages = Mock(return_value=123)
     r = chat.query(context)
     assert r is True
+    engine.query.assert_called_once_with("hello with attachment context")
     assert ctx_item._meta == {"m":"v"}
     assert ctx_item.stream == "GEN"
     assert ctx_item.input_tokens == 123
     ctx_item2 = FakeCtx("hey")
-    context2 = SimpleNamespace(idx="idx", model=FakeModelItem(), system_prompt_raw="sys", stream=False, ctx=ctx_item2)
+    context2 = SimpleNamespace(
+        idx="idx", model=FakeModelItem(), system_prompt_raw="sys",
+        stream=False, ctx=ctx_item2, prompt=None,
+    )
     resp2 = FakeResponseObj(response="ANSWER", response_gen=None, source_nodes=[FakeNode("id2","tx",0.8,{"k":"v"})])
     engine.query = Mock(return_value=resp2)
     r2 = chat.query(context2)
     assert r2 is True
+    engine.query.assert_called_once_with("hey")
     assert ctx_item2._meta == {"m":"v"}
     assert ctx_item2.input_tokens == 123
     assert ctx_item2._output == ("ANSWER", "")
@@ -182,7 +218,10 @@ def test_query_returns_false_when_no_response(monkeypatch):
     chat = make_chat(monkeypatch)
     monkeypatch.setattr(chat_mod, "ModelItem", FakeModelItem)
     ctx_item = FakeCtx("x")
-    context = SimpleNamespace(idx="idx", model=FakeModelItem(), system_prompt_raw="", stream=False, ctx=ctx_item)
+    context = SimpleNamespace(
+        idx="idx", model=FakeModelItem(), system_prompt_raw="",
+        stream=False, ctx=ctx_item, prompt=None,
+    )
     index = Mock()
     engine = Mock()
     engine.query = Mock(return_value=None)
@@ -194,7 +233,10 @@ def test_query_returns_false_when_no_response(monkeypatch):
 def test_retrieval_builds_output_and_metadata(monkeypatch):
     chat = make_chat(monkeypatch)
     ctx_item = FakeCtx("q")
-    context = SimpleNamespace(idx="idx", model=FakeModelItem(), stream=False, ctx=ctx_item)
+    context = SimpleNamespace(
+        idx="idx", model=FakeModelItem(), stream=False, ctx=ctx_item,
+        prompt="retrieval with attachment context",
+    )
     node1 = SimpleNamespace(text="T1", score=0.9)
     node2 = SimpleNamespace(text="T2", score=0.5)
     retriever = SimpleNamespace(retrieve=Mock(return_value=[node1, node2]))
@@ -204,16 +246,23 @@ def test_retrieval_builds_output_and_metadata(monkeypatch):
     chat.get_metadata = Mock(return_value={"m": "v"})
     res = chat.retrieval(context)
     assert res is True
+    retriever.retrieve.assert_called_once_with("retrieval with attachment context")
     assert "**Score: 0.9**" in ctx_item._output[0]
     assert ctx_item._meta == {"m": "v"}
 
 def test_is_stream_allowed_behavior(monkeypatch):
     chat = make_chat(monkeypatch)
     win = chat.window
-    win.core.config._m.update({"cmd": True, "llama.idx.react": True})
-    assert chat.is_stream_allowed() is False
-    win.core.config._m.update({"cmd": False, "llama.idx.react": True})
-    assert chat.is_stream_allowed() is True
+    model = FakeModelItem()
+    win.core.config._m.update({"cmd": True})
+    win.core.models.is_tool_call_allowed = Mock(return_value=False)
+    assert chat.is_stream_allowed(model) is True
+    win.core.models.is_tool_call_allowed.assert_not_called()
+
+    win.core.models.is_tool_call_allowed.reset_mock()
+    win.core.config._m.update({"cmd": False})
+    assert chat.is_stream_allowed(model) is True
+    win.core.models.is_tool_call_allowed.assert_not_called()
 
 def test_query_file_indexes_and_cleans_tmp(monkeypatch):
     storage = Mock()
@@ -275,24 +324,38 @@ def test_query_web_indexes_and_cleans_tmp(monkeypatch):
 def test_query_retrieval_returns_text_when_found(monkeypatch):
     chat = make_chat(monkeypatch)
     monkeypatch.setattr(chat_mod, "ModelItem", FakeModelItem)
+    model = FakeModelItem()
     index = Mock()
-    retriever = SimpleNamespace(retrieve=Mock(return_value=[FakeNode("nid","TXT",0.9)]))
-    index.as_retriever = Mock(return_value=retriever)
-    chat.get_index = Mock(return_value=(index, Mock()))
-    out = chat.query_retrieval(query="q", idx="i", model=FakeModelItem())
-    assert out == "TXT"
+    llm = Mock()
+    prepared = SimpleNamespace(packed_chunks=["[Source 1]\nTXT"])
+    chat.get_index = Mock(return_value=(index, llm))
+    chat.prepare_rag_context = Mock(return_value=prepared)
+
+    out = chat.query_retrieval(query="q", idx="i", model=model)
+
+    assert out == "[Source 1]\nTXT"
+    chat.prepare_rag_context.assert_called_once_with(
+        index=index,
+        llm=llm,
+        query="q",
+        history=[],
+        chat_mode="context",
+        system_prompt="",
+        model=model,
+        tools=None,
+    )
 
 def test_get_memory_buffer_uses_chat_memory(monkeypatch):
     chat = make_chat(monkeypatch)
-    monkeypatch.setattr(chat_mod, "ChatMemoryBuffer", SimpleNamespace(from_defaults=Mock(return_value="MEMBUF")))
+    monkeypatch.setattr(llama_memory_mod, "ChatMemoryBuffer", SimpleNamespace(from_defaults=Mock(return_value="MEMBUF")))
     res = chat.get_memory_buffer(history=["a"], llm="LLM")
     assert res == "MEMBUF"
 
 def test_get_custom_prompt_none_and_nonempty(monkeypatch):
     chat = make_chat(monkeypatch)
-    monkeypatch.setattr(chat_mod, "ChatPromptTemplate", lambda msgs: {"msgs": msgs})
-    monkeypatch.setattr(chat_mod, "ChatMessage", lambda role, content: {"role": role, "content": content})
-    monkeypatch.setattr(chat_mod, "MessageRole", SimpleNamespace(SYSTEM="system", USER="user"))
+    monkeypatch.setattr(llama_prompts_mod, "ChatPromptTemplate", lambda msgs: {"msgs": msgs})
+    monkeypatch.setattr(llama_llms_mod, "ChatMessage", lambda role, content: {"role": role, "content": content})
+    monkeypatch.setattr(llama_llms_mod, "MessageRole", SimpleNamespace(SYSTEM="system", USER="user"))
     assert chat.get_custom_prompt(None) is None
     res = chat.get_custom_prompt("SYS_PROMPT")
     assert isinstance(res, dict)
@@ -313,14 +376,30 @@ def test_get_index_creates_empty_and_returns_existing(monkeypatch):
     idx2, llm2 = chat.get_index("name", FakeModelItem(), stream=True)
     assert idx2 == "IDX"
 
+
+def test_get_index_resolves_virtual_project_and_registers_it(monkeypatch):
+    storage = Mock()
+    storage.exists = Mock(return_value=True)
+    storage.get = Mock(return_value="PROJECT_IDX")
+    chat = make_chat(monkeypatch, storage=storage)
+    monkeypatch.setattr(chat_mod, "ModelItem", FakeModelItem)
+    chat.window.core.idx.llm.get_service_context = Mock(return_value=("LLM", "EMBED"))
+
+    index, llm = chat.get_index("__project__", FakeModelItem(), stream=False)
+
+    assert index == "PROJECT_IDX"
+    storage.exists.assert_called_once_with("proj_7")
+    storage.get.assert_called_once_with("proj_7", "LLM", "EMBED")
+    chat.window.core.idx.project.ensure.assert_called_once_with(7)
+
 def test_get_metadata_filters_and_limits():
     chat = make_chat(lambda m: None) if False else make_chat
     # create instance directly without monkeypatch for this utility method
     chat = make_chat(__import__("pytest").MonkeyPatch().context()) if False else make_chat
     # Use a Chat instance created by monkeypatch fixture for method access
     mp = pytest.MonkeyPatch()
-    mp.setattr(chat_mod, "Context", FakeContextClass)
-    mp.setattr(chat_mod, "Response", FakeResponseClass)
+    mp.setattr(context_mod, "Context", FakeContextClass)
+    mp.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window()
     storage = Mock()
     c = Chat(window=win, storage=storage)

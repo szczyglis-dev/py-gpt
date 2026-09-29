@@ -23,7 +23,7 @@ class Info:
         self.window = window
 
         # prepare info ids
-        self.ids = ['about', 'changelog', 'license']
+        self.ids = ['about', 'changelog', 'license', 'system_info']
         self.active = {}
 
         # prepare active
@@ -52,6 +52,8 @@ class Info:
         else:
             if id == 'about':
                 self.window.ui.dialogs.about.prepare()
+            elif id == 'system_info':
+                self.window.ui.dialogs.system_info.prepare()
             self.window.ui.dialogs.open(
                 'info.' + id,
                 width=width,
@@ -71,7 +73,6 @@ class Info:
         if url:
             if self.window.core.config.get("ctx.urls.internal", False):
                 self.window.tools.get("web_browser").set_url(url)
-                self.window.tools.get("web_browser").auto_open(load=False)
             else:
                 QDesktopServices.openUrl(QUrl(url))
 

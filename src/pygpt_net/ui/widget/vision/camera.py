@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.27 18:00:00                  #
+# Updated Date: 2026.09.14 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QTimer, QEasingCurve, QPropertyAnimation, QSequentialAnimationGroup, QAbstractAnimation
@@ -24,10 +24,19 @@ class VideoContainer(QWidget):
         """
         super(VideoContainer, self).__init__()
         self.window = window
-        self.setStyleSheet("background-color: #000000;")
+        # Keep camera styling scoped to the preview widgets. An unqualified
+        # stylesheet propagates to Qt's internal QTipLabel and can make the
+        # native tooltip unreadable (notably on Windows).
+        self.setObjectName("cameraVideoContainer")
+        self.setStyleSheet(
+            "#cameraVideoContainer { background-color: #000000; }"
+        )
         self.layout = QVBoxLayout()
         self.video = VideoLabel(window=self.window)
-        self.video.setStyleSheet("background-color: #000000; border: 1px solid #000")
+        self.video.setObjectName("cameraVideoLabel")
+        self.video.setStyleSheet(
+            "#cameraVideoLabel { background-color: #000000; border: 1px solid #000; }"
+        )
         self.layout.addWidget(self.video)
         self.setLayout(self.layout)
 

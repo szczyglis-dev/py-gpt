@@ -228,7 +228,6 @@ class Voice:
             system_prompt="You are a helpful assistant",
             model=model,  # model instance
             max_tokens=0,
-            temperature=0.0,
         )
         event = KernelEvent(KernelEvent.CALL, {
             'context': bridge_context,

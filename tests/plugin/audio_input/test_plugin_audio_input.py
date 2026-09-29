@@ -249,7 +249,7 @@ def test_ensure_provider_ready_local_starts_prepare(mock_window):
     plugin.get_provider = MagicMock(return_value=provider)
     plugin.set_status = MagicMock()
 
-    with patch("pygpt_net.plugin.audio_input.plugin.Worker") as worker_cls:
+    with patch("pygpt_net.plugin.audio_input.worker.Worker") as worker_cls:
         worker = worker_cls.return_value
         result = plugin.ensure_provider_ready()
 
@@ -276,7 +276,7 @@ def test_ensure_provider_ready_local_already_preparing(mock_window):
     provider.get_model_name.return_value = "small"
     plugin.get_provider = MagicMock(return_value=provider)
 
-    with patch("pygpt_net.plugin.audio_input.plugin.Worker") as worker_cls:
+    with patch("pygpt_net.plugin.audio_input.worker.Worker") as worker_cls:
         result = plugin.ensure_provider_ready()
 
     assert result is False

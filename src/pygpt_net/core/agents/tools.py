@@ -6,21 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 02:00:00                  #
+# Updated Date: 2026.09.05 14:45:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import json
-from typing import List, Dict, Any
+from typing import TYPE_CHECKING, List, Dict, Any
 
-from agents import (
-    FunctionTool as OpenAIFunctionTool,
-    RunContextWrapper,
-)
-from llama_index.core.chat_engine.types import AgentChatResponse
-from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.events import Event
 from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
@@ -28,22 +22,27 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.item.ctx import CtxItem
 
+if TYPE_CHECKING:
+    from agents import FunctionTool as OpenAIFunctionTool
+    from llama_index.core.chat_engine.types import AgentChatResponse
+    from llama_index.core.tools import BaseTool
+    from agents import RunContextWrapper
 
 class Tools:
 
-    def __init__(self, window=None):
+    def __init__(self, window=None, executor=None):
         """
         Agent tools
 
         :param window: Window instance
         """
         self.window = window
+        self.executor = executor  # per-run asynchronous plugin bridge
         self.cmd_blacklist = []
         self.verbose = False
-        self.code_execute_fn = CodeExecutor(window)
-        self.last_tool_output = None
         self.agent_idx = None  # agent index, used for query engine tool
         self.context = None  # BridgeContext instance, used for tool execution
+        self.computer_runtime = None  # shared provider-native Computer Use runtime
 
     def prepare(
             self,
@@ -92,15 +91,27 @@ class Tools:
         :param verbose: verbose mode
         :return: list of tools
         """
+        from llama_index.core.tools import QueryEngineTool, ToolMetadata
+
         tool = None
 
-        # add query engine tool if idx is provided
+        # add query engine tool if idx is provided. Resolve the virtual
+        # Current project ID only at runtime, keeping normal configured index
+        # IDs untouched.
         idx = extra.get("agent_idx", None)
         if self.window.core.idx.is_valid(idx):
+            storage_idx = idx
+            if self.window.core.idx.project.is_virtual(idx) is True:
+                storage_idx = self.window.core.idx.resolve_idx(idx)
+            if storage_idx is None:
+                return tool
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=context.model)
-            index = self.window.core.idx.storage.get(idx, llm, embed_model)  # get index
+            index = self.window.core.idx.storage.get(storage_idx, llm, embed_model)
             if index is not None:
-                query_engine = index.as_query_engine(similarity_top_k=3)
+                query_engine = index.as_query_engine(
+                    llm=llm,
+                    similarity_top_k=3,
+                )
                 tool = [
                     QueryEngineTool(
                         query_engine=query_engine,
@@ -124,14 +135,25 @@ class Tools:
         :param verbose: verbose mode
         :return: OpenAIFunctionTool instance
         """
-        async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
-            name = run_ctx.tool_name
+        from agents import FunctionTool as OpenAIFunctionTool, RunContextWrapper
+
+        async def run_function(_run_ctx, args: str) -> str:
+            # openai-agents 0.18.x passes a plain RunContextWrapper when the
+            # callback explicitly declares that type; tool_name lives only on
+            # ToolContext. This tool has a fixed name, so do not depend on the
+            # SDK-specific richer context here.
+            name = TOOL_QUERY_ENGINE_NAME
             print(f"[Plugin] Tool call: {name} with args: {args}")
             cmd = {
                 "cmd": name,
                 "params": json.loads(args)  # args should be a JSON string
             }
             return self.tool_exec(name, cmd["params"])
+
+        # ``from __future__ import annotations`` stores annotations as strings.
+        # RunContextWrapper is imported locally to keep the Agents SDK optional,
+        # so expose the concrete runtime type to introspection explicitly.
+        run_function.__annotations__["_run_ctx"] = RunContextWrapper[Any]
 
         schema = {"type": "object", "properties": {
             "query": {
@@ -161,6 +183,9 @@ class Tools:
         :param force: force to get functions even if not needed
         :return: List of BaseTool instances
         """
+        from llama_index.core.tools import FunctionTool
+        from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
+
         tools = []
         functions = self.window.core.command.get_functions(force=force)
         for item in functions:
@@ -172,12 +197,33 @@ class Tools:
                 description = item['desc']
                 schema = json.loads(item['params'])  # from JSON to dict
 
-                def make_func(name, description):
+                def make_func(name, description, tool_schema):
                     def func(**kwargs):
                         self.log(f"[Plugin] Tool call: {name} {kwargs}")
+                        call_args = dict(kwargs or {})
+                        for wrapper in ("params", "arguments"):
+                            wrapped = call_args.get(wrapper)
+                            if isinstance(wrapped, dict) and len(call_args) == 1:
+                                call_args = dict(wrapped)
+                                break
+
+                        required = list((tool_schema or {}).get("required") or [])
+                        missing = [
+                            key for key in required
+                            if key not in call_args or call_args.get(key) is None
+                        ]
+                        if missing:
+                            return json.dumps({
+                                "error": "Missing required tool parameter(s).",
+                                "tool": name,
+                                "missing": missing,
+                                "required": required,
+                                "received": sorted(call_args.keys()),
+                            }, ensure_ascii=False)
+
                         cmd = {
                             "cmd": name,
-                            "params": kwargs,
+                            "params": call_args,
                         }
                         response = self.window.controller.plugins.apply_cmds_all(
                             ctx,  # current ctx
@@ -189,16 +235,30 @@ class Tools:
                     func.__doc__ = description
                     return func
 
-                func = make_func(name, description)
-                metadata = PluginToolMetadata(
+                func = make_func(name, description, schema)
+                metadata = JsonSchemaToolMetadata(
                     name=name,
                     description=description,
+                    schema=schema,
                 )
-                metadata.schema = schema
-                tool = FunctionTool(
-                    fn=func,
-                    metadata=metadata,
-                )
+                async_fn = None
+                if self.executor is not None:
+                    def make_async(tool_name, tool_schema):
+                        async def invoke(**kwargs):
+                            args = dict(kwargs)
+                            for wrapper in ("params", "arguments"):
+                                if len(args) == 1 and isinstance(args.get(wrapper), dict):
+                                    args = dict(args[wrapper])
+                                    break
+                            required = list(tool_schema.get("required") or [])
+                            missing = [key for key in required if args.get(key) is None]
+                            if missing:
+                                return json.dumps({"error": "Missing required tool parameter(s).",
+                                                   "tool": tool_name, "missing": missing})
+                            return await self.executor(tool_name, args)
+                        return invoke
+                    async_fn = make_async(name, schema)
+                tool = FunctionTool(fn=func, async_fn=async_fn, metadata=metadata)
                 tools.append(tool)
             except Exception as e:
                 self.window.core.debug.log(e)
@@ -218,6 +278,8 @@ class Tools:
         :param force: force to get functions even if not needed
         :return: List of OpenAIFunctionTool instances
         """
+        from agents import FunctionTool as OpenAIFunctionTool, RunContextWrapper
+
         tools = []
         functions = self.window.core.command.get_functions(force=force)
         blacklist = []
@@ -228,15 +290,21 @@ class Tools:
                     continue
                 description = item['desc']
 
-                async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
-                    name = run_ctx.tool_name
-                    print(f"[Plugin] Tool call: {name} with args: {args}")
-                    cmd = {
-                        "cmd": name,
-                        "params": json.loads(args)  # args should be a JSON string
-                    }
-                    return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+                def make_run_function(tool_name: str):
+                    async def run_function(_run_ctx, args: str) -> str:
+                        # Capture the tool name explicitly. In openai-agents
+                        # 0.18.x RunContextWrapper itself has no ``tool_name``
+                        # attribute; that metadata belongs to ToolContext.
+                        print(f"[Plugin] Tool call: {tool_name} with args: {args}")
+                        cmd = {
+                            "cmd": tool_name,
+                            "params": json.loads(args)  # args should be a JSON string
+                        }
+                        return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+                    run_function.__annotations__["_run_ctx"] = RunContextWrapper[Any]
+                    return run_function
 
+                run_function = make_run_function(name)
                 schema = json.loads(item['params'])  # from JSON to dict
                 extra = ""
                 # fix schema for OpenAI FunctionTool
@@ -393,10 +461,18 @@ class Tools:
                 return "Context is not set for query_engine tool."
             if not self.window.core.idx.is_valid(self.agent_idx):
                 return "Agent index is not set for query_engine tool."
+            storage_idx = self.agent_idx
+            if self.window.core.idx.project.is_virtual(storage_idx) is True:
+                storage_idx = self.window.core.idx.resolve_idx(storage_idx)
+            if storage_idx is None:
+                return "Agent index is not set for query_engine tool."
             llm, embed_model = self.window.core.idx.llm.get_service_context(model=self.context.model)
-            index = self.window.core.idx.storage.get(self.agent_idx, llm, embed_model)  # get index
+            index = self.window.core.idx.storage.get(storage_idx, llm, embed_model)
             if index is not None:
-                query_engine = index.as_query_engine(similarity_top_k=3)
+                query_engine = index.as_query_engine(
+                    llm=llm,
+                    similarity_top_k=3,
+                )
                 response = query_engine.query(params["query"])
                 print(f"[Plugin] Query engine response: {response}")
                 self.log(f"[Plugin] Query engine response: {response}")
@@ -441,67 +517,6 @@ class Tools:
             data.append(item)
         return data
 
-    def get_last_tool_output(self) -> dict:
-        """
-        Get last tool output
-
-        :return: last tool output
-        """
-        if self.last_tool_output is None:
-            return {}
-        return self.last_tool_output
-
-    def has_last_tool_output(self) -> bool:
-        """
-        Check if there is a last tool output
-
-        :return: True if last tool output exists, False otherwise
-        """
-        return self.last_tool_output is not None
-
-    def clear_last_tool_output(self):
-        """Clear last tool output"""
-        self.last_tool_output = None
-
-    def append_tool_outputs(self, ctx: CtxItem, clear: bool = True):
-        """
-        Append tool outputs to context
-
-        :param ctx: CtxItem
-        :param clear: clear last tool output after appending
-        """
-        if self.has_last_tool_output():
-            outputs = [self.get_last_tool_output()]
-            ctx.extra["tool_output"] = outputs
-            if outputs is not None:
-                response = ""
-                for output in outputs:
-                    if ("code" in output and "output" in output["code"] and
-                            "content" in output["code"]["output"]):
-                        response += str(output["code"]["output"]["content"])
-                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
-            if clear:
-                self.clear_last_tool_output()  # clear after use
-
-    def extract_tool_outputs(self, ctx: CtxItem, clear: bool = True):
-        """
-        Append tool outputs to context
-
-        :param ctx: CtxItem
-        :param clear: clear last tool output after appending
-        """
-        if self.has_last_tool_output():
-            outputs = [self.get_last_tool_output()]
-            if outputs is not None:
-                response = ""
-                for output in outputs:
-                    if ("code" in output and "output" in output["code"] and
-                            "content" in output["code"]["output"]):
-                        response += str(output["code"]["output"]["content"])
-                self.window.core.filesystem.parser.extract_data_files(ctx, response) # img, files
-            if clear:
-                self.clear_last_tool_output()  # clear after use
-
     def set_idx(self, agent_idx: str):
         """
         Set agent index for query engine tool
@@ -518,6 +533,10 @@ class Tools:
         """
         self.context = context
 
+    def set_computer_runtime(self, runtime):
+        """Set shared provider-native Computer Use runtime for legacy agents."""
+        self.computer_runtime = runtime
+
     def log(self, msg: str):
         """
         Log message
@@ -527,101 +546,3 @@ class Tools:
         if self.verbose:
             print(msg)
             self.window.core.debug.add(msg)
-
-class PluginToolMetadata(ToolMetadata):
-    def __init__(self, name: str, description: str):
-        super().__init__(name=name, description=description)
-        self.schema = None
-
-    def get_parameters_dict(self) -> Dict[str, Any]:
-        """
-        Get parameters dictionary
-
-        :return: parameters
-        """
-        parameters = {
-            k: v
-            for k, v in self.schema.items()
-            if k in ["type", "properties", "required", "definitions"]
-        }
-        return parameters
-
-class CodeExecutor:
-    """Code executor for codeAct agent"""
-
-    def __init__(self, window = None):
-        """
-        Initialize the code executor.
-
-        :param window: Window instance
-        """
-        self.window = window
-
-    def execute(self, code: str) -> str:
-        """
-        Execute Python code and capture output and return values.
-
-        :param code: Python code to execute
-        :return: Output from the code execution
-        """
-        if not self.window.core.command.is_cmd():
-            return "Tool execution is not enabled. Abort execution and ask user for tool enable."
-
-        self.window.core.agents.tools.last_tool_output = None
-        if code == "/restart":
-            commands = [
-                {
-                    "cmd": "ipython_kernel_restart",
-                    "params": {},
-                    "silent": True,
-                    "force": True,
-                }
-            ]
-        else:
-            commands = [
-                {
-                    "cmd": "ipython_execute",
-                    "params": {
-                        "code": code,
-                        "path": ".interpreter.current.py",
-                    },
-                    "silent": True,
-                    "force": True,
-                }
-            ]
-        event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
-            'silent': True,
-        })
-        event.ctx = CtxItem()  # tmp
-        event.ctx.async_disabled = True  # disable async for this event
-        self.window.controller.command.dispatch_only(event)
-
-        # if restart command was executed, return success message
-        if code == "/restart":
-            return "IPython kernel restarted successfully."
-
-        response = event.ctx.bag  # tmp response
-        output = ""
-
-        # store tool output if available
-        if "code" in response:
-            if "output" in response["code"]:
-                output = response["code"]["output"]["content"]
-                tool_output = {
-                    "cmd": "ipython_execute",
-                    "code": {
-                        "input": {
-                            "content": response["code"]["input"]["content"],
-                            "lang": "python"
-                        },
-                        "output": {
-                            "content": response["code"]["output"]["content"],
-                            "lang": "python"
-                        }
-                    },
-                    "plugin": response["plugin"],
-                    "result": response["result"]
-                }
-                self.window.core.agents.tools.last_tool_output = tool_output
-        return output

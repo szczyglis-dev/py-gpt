@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.13 19:55:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -29,6 +29,7 @@ class Audio:
         m = w.ui.menu
 
         title = trans("menu.audio")
+        txt_section_audio = trans("menu.audio.section.audio")
         txt_output = trans("menu.audio.output")
         txt_input = trans("menu.audio.input")
         txt_ctrl_plugin = trans("menu.audio.control.plugin")
@@ -51,6 +52,17 @@ class Audio:
             m['menu.audio'] = menu
         else:
             menu.setTitle(title)
+
+        section_audio = m.get('menu.audio.section.audio')
+        if section_audio is None:
+            section_audio = QAction(txt_section_audio, w)
+            section_audio.setEnabled(False)
+            section_font = section_audio.font()
+            section_font.setBold(True)
+            section_audio.setFont(section_font)
+            m['menu.audio.section.audio'] = section_audio
+        else:
+            section_audio.setText(txt_section_audio)
 
         act_output = m.get('audio.output')
         if act_output is None:
@@ -103,6 +115,8 @@ class Audio:
             act_stop.setIcon(icon_stop)
 
         if is_new_menu:
+            menu.addAction(section_audio)
+            menu.addSeparator()
             menu.addAction(act_input)
             menu.addAction(act_output)
             menu.addSeparator()

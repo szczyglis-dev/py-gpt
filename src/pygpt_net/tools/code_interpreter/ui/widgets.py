@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 02:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -21,11 +21,207 @@ from pygpt_net.utils import trans
 
 from .html import HtmlOutput, CustomWebEnginePage
 
+class InterpreterInputSplitter(QSplitter):
+    """Vertical output/input splitter with persistent input height."""
+
+    DEFAULT_INPUT_HEIGHT = 100
+
+    def __init__(self, window, config_key: str, legacy_splitter_id: str = None):
+        super().__init__(Qt.Vertical)
+        self.window = window
+        self.config_key = config_key
+        self.legacy_splitter_id = legacy_splitter_id
+        self._restoring = False
+        self._restore_scheduled = False
+        self.splitterMoved.connect(self._on_splitter_moved)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.schedule_restore()
+
+    def resizeEvent(self, event):
+        old_size = event.oldSize()
+        new_size = event.size()
+        super().resizeEvent(event)
+        became_visible = (old_size.width() <= 0 or old_size.height() <= 0) \
+            and new_size.width() > 0 and new_size.height() > 0
+        if became_visible:
+            self.schedule_restore()
+
+    def schedule_restore(self):
+        """Restore after Qt has finished laying out the splitter."""
+        if self._restore_scheduled:
+            return
+        self._restore_scheduled = True
+        QtCore.QTimer.singleShot(0, self._restore)
+
+    def _restore(self):
+        self._restore_scheduled = False
+        total = self.size().height()
+        if total <= 0 or self.count() < 2:
+            return
+
+        input_height = self._load_input_height()
+        if input_height <= 0:
+            input_height = self.DEFAULT_INPUT_HEIGHT
+
+        # Keep the requested input height in pixels; output receives the rest.
+        actual_input = min(input_height, max(1, total - 1))
+        output_height = max(1, total - actual_input)
+        self._restoring = True
+        try:
+            self.setSizes([output_height, actual_input])
+        finally:
+            self._restoring = False
+
+    def _load_input_height(self) -> int:
+        config = self.window.core.config
+        if config.has(self.config_key):
+            self._drop_legacy_splitter_state()
+            try:
+                return max(0, int(config.get(self.config_key)))
+            except (TypeError, ValueError):
+                pass
+
+        # Migrate the old tab splitter value stored in layout.splitters.
+        if self.legacy_splitter_id and config.has('layout.splitters'):
+            data = config.get('layout.splitters') or {}
+            sizes = data.get(self.legacy_splitter_id)
+            if isinstance(sizes, (list, tuple)) and len(sizes) >= 2:
+                try:
+                    value = max(0, int(sizes[1]))
+                    if value > 0:
+                        config.set(self.config_key, value)
+                        self._drop_legacy_splitter_state()
+                        return value
+                except (TypeError, ValueError):
+                    pass
+
+        return self.DEFAULT_INPUT_HEIGHT
+
+    def _drop_legacy_splitter_state(self):
+        if not self.legacy_splitter_id:
+            return
+        config = self.window.core.config
+        if not config.has('layout.splitters'):
+            return
+        data = config.get('layout.splitters') or {}
+        if self.legacy_splitter_id not in data:
+            return
+        data = dict(data)
+        data.pop(self.legacy_splitter_id, None)
+        config.set('layout.splitters', data)
+
+    @Slot(int, int)
+    def _on_splitter_moved(self, pos: int, index: int):
+        if self._restoring or self.count() < 2:
+            return
+        sizes = self.sizes()
+        if len(sizes) < 2 or sizes[1] <= 0:
+            return
+        self.window.core.config.set(self.config_key, int(sizes[1]))
+
+
+class InterpreterHistorySplitter(QSplitter):
+    """Horizontal output/history splitter with persistent history width."""
+
+    DEFAULT_HISTORY_WIDTH = 0
+
+    def __init__(self, window, config_key: str, legacy_splitter_id: str = None):
+        super().__init__(Qt.Horizontal)
+        self.window = window
+        self.config_key = config_key
+        self.legacy_splitter_id = legacy_splitter_id
+        self._restoring = False
+        self._restore_scheduled = False
+        self.splitterMoved.connect(self._on_splitter_moved)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.schedule_restore()
+
+    def resizeEvent(self, event):
+        old_size = event.oldSize()
+        new_size = event.size()
+        super().resizeEvent(event)
+        became_visible = (old_size.width() <= 0 or old_size.height() <= 0) \
+            and new_size.width() > 0 and new_size.height() > 0
+        if became_visible:
+            self.schedule_restore()
+
+    def schedule_restore(self):
+        """Restore after Qt has finished laying out the splitter."""
+        if self._restore_scheduled:
+            return
+        self._restore_scheduled = True
+        QtCore.QTimer.singleShot(0, self._restore)
+
+    def _restore(self):
+        self._restore_scheduled = False
+        total = self.size().width()
+        if total <= 0 or self.count() < 2:
+            return
+
+        history_width = self._load_history_width()
+        actual_history = min(max(0, history_width), max(0, total - 1))
+        output_width = max(1, total - actual_history)
+        self._restoring = True
+        try:
+            self.setSizes([output_width, actual_history])
+        finally:
+            self._restoring = False
+
+    def _load_history_width(self) -> int:
+        config = self.window.core.config
+        if config.has(self.config_key):
+            self._drop_legacy_splitter_state()
+            try:
+                return max(0, int(config.get(self.config_key)))
+            except (TypeError, ValueError):
+                return self.DEFAULT_HISTORY_WIDTH
+
+        # Migrate the old dialog value stored in layout.splitters.
+        if self.legacy_splitter_id and config.has('layout.splitters'):
+            data = config.get('layout.splitters') or {}
+            sizes = data.get(self.legacy_splitter_id)
+            if isinstance(sizes, (list, tuple)) and len(sizes) >= 2:
+                try:
+                    value = max(0, int(sizes[1]))
+                    config.set(self.config_key, value)
+                    self._drop_legacy_splitter_state()
+                    return value
+                except (TypeError, ValueError):
+                    pass
+
+        return self.DEFAULT_HISTORY_WIDTH
+
+    def _drop_legacy_splitter_state(self):
+        if not self.legacy_splitter_id:
+            return
+        config = self.window.core.config
+        if not config.has('layout.splitters'):
+            return
+        data = config.get('layout.splitters') or {}
+        if self.legacy_splitter_id not in data:
+            return
+        data = dict(data)
+        data.pop(self.legacy_splitter_id, None)
+        config.set('layout.splitters', data)
+
+    @Slot(int, int)
+    def _on_splitter_moved(self, pos: int, index: int):
+        if self._restoring or self.count() < 2:
+            return
+        sizes = self.sizes()
+        if len(sizes) < 2:
+            return
+        self.window.core.config.set(self.config_key, max(0, int(sizes[1])))
+
 
 class ToolWidget:
     def __init__(self, window=None, tool=None):
         """
-        Python Code Interpreter
+        Python Interpreter
 
         :param window: Window instance
         :param tool: Tool instance
@@ -110,15 +306,19 @@ class ToolWidget:
             )
             self.history.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
             self.history.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
-            self.label_output = QLabel(trans("interpreter.edit_label.output"))
-            self.label_history = QLabel(trans("interpreter.edit_label.edit"))
-            self.checkbox_all = QCheckBox(trans("interpreter.all"))
+            self.label_output = QLabel("")
+            self.label_history = QLabel("")
+            self.checkbox_all = QCheckBox("")
+            self.tool.add_lang_mapping(self.label_output, "interpreter.edit_label.output")
+            self.tool.add_lang_mapping(self.label_history, "interpreter.edit_label.edit")
+            self.tool.add_lang_mapping(self.checkbox_all, "interpreter.all")
             self.checkbox_all.setChecked(True)
             self.checkbox_all.clicked.connect(
                 lambda: self.tool.toggle_all(self)
             )
 
-        self.checkbox_auto_clear = QCheckBox(trans("interpreter.auto_clear"))
+        self.checkbox_auto_clear = QCheckBox("")
+        self.tool.add_lang_mapping(self.checkbox_auto_clear, "interpreter.auto_clear")
         self.checkbox_auto_clear.setChecked(False)
         self.checkbox_auto_clear.clicked.connect(
             lambda: self.tool.toggle_auto_clear(self)
@@ -130,18 +330,24 @@ class ToolWidget:
             lambda: self.tool.toggle_ipython(self)
         )
 
-        self.btn_clear = QPushButton(trans("interpreter.btn.clear"))
+        self.btn_clear = QPushButton("")
+        self.tool.add_lang_mapping(self.btn_clear, "interpreter.btn.clear")
         self.btn_clear.clicked.connect(
             lambda: self.tool.clear(self)
         )
 
-        self.btn_send = QPushButton(trans("interpreter.btn.send"))
+        self.btn_send = QPushButton("")
+        self.tool.add_lang_mapping(self.btn_send, "interpreter.btn.send")
         self.btn_send.clicked.connect(
             lambda: self.tool.send_input(self)
         )
 
         self.input = PythonInput(self.window, self.tool, self)
-        self.input.setPlaceholderText(trans("interpreter.input.placeholder"))
+        self.tool.add_lang_mapping(
+            self.input,
+            "interpreter.input.placeholder",
+            "setPlaceholderText",
+        )
         self.input.excluded_copy_to = ["interpreter_input"]
 
         left_layout = QVBoxLayout()
@@ -152,7 +358,14 @@ class ToolWidget:
         left_widget = QWidget()
         left_widget.setLayout(left_layout)
 
-        self.window.ui.splitters['interpreter.columns'] = QSplitter(Qt.Horizontal)
+        if all:
+            self.window.ui.splitters['interpreter.columns'] = InterpreterHistorySplitter(
+                self.window,
+                config_key='interpreter.dialog.splitter.history.width',
+                legacy_splitter_id='interpreter.columns',
+            )
+        else:
+            self.window.ui.splitters['interpreter.columns'] = QSplitter(Qt.Horizontal)
         self.window.ui.splitters['interpreter.columns'].addWidget(left_widget)
 
         if all:
@@ -164,6 +377,10 @@ class ToolWidget:
             right_widget.setLayout(right_layout)
             right_widget.setMinimumWidth(300)
             self.window.ui.splitters['interpreter.columns'].addWidget(right_widget)
+            self.window.ui.splitters['interpreter.columns'].setCollapsible(1, True)
+            self.window.ui.splitters['interpreter.columns'].setStretchFactor(0, 1)
+            self.window.ui.splitters['interpreter.columns'].setStretchFactor(1, 0)
+            self.window.ui.splitters['interpreter.columns'].schedule_restore()
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.btn_clear)
@@ -181,13 +398,22 @@ class ToolWidget:
         edit_widget.setLayout(edit_layout)
 
         splitter_id = 'interpreter'
+        config_key = 'interpreter.splitter.input.height'
+        legacy_splitter_id = 'interpreter'
         if all:
             splitter_id = 'interpreter_dialog'
-        self.window.ui.splitters[splitter_id] = QSplitter(Qt.Vertical)
+            config_key = 'interpreter.dialog.splitter.input.height'
+            legacy_splitter_id = None
+        self.window.ui.splitters[splitter_id] = InterpreterInputSplitter(
+            self.window,
+            config_key=config_key,
+            legacy_splitter_id=legacy_splitter_id,
+        )
         self.window.ui.splitters[splitter_id].addWidget(edit_widget)
         self.window.ui.splitters[splitter_id].addWidget(self.input)
-        self.window.ui.splitters[splitter_id].setStretchFactor(0, 9)
-        self.window.ui.splitters[splitter_id].setStretchFactor(1, 1)
+        self.window.ui.splitters[splitter_id].setStretchFactor(0, 1)
+        self.window.ui.splitters[splitter_id].setStretchFactor(1, 0)
+        self.window.ui.splitters[splitter_id].schedule_restore()
 
         # connect signals
         self.tool.signals.update.connect(self.set_output)
@@ -224,7 +450,7 @@ class ToolWidget:
 
         :return: Nodes
         """
-        return self.output.buffer_output
+        return self.output.get_nodes()
 
     @Slot(list)
     def restore_nodes(self, nodes: list):
@@ -234,6 +460,7 @@ class ToolWidget:
         :param nodes: Nodes
         """
         self.output.restore_nodes(nodes)
+        self.output.trim_nodes(self.tool.get_output_max_entries())
 
     @Slot(str)
     def begin_output(self, type: str = "stdout"):
@@ -259,6 +486,8 @@ class ToolWidget:
         if not self.output:
             return
         self.output.end_output(type=type, ctx=ctx)
+        if self.output.trim_nodes(self.tool.get_output_max_entries()):
+            self.tool.save_output()
 
     @Slot(str, str)
     def set_output(self, output: str, type="stdout", live: bool = True):
@@ -279,12 +508,7 @@ class ToolWidget:
         if type == "stdout" and data == "":
             return # do not append empty output
         if live:
-            s = data
-            while s:
-                head, sep, s = s.partition("\n")
-                self.output.append_output(head)
-                if sep:  # New line if LF
-                    self.output.append_output("\n")
+            self.output.append_output(data)
         else:
             self.output.set_output(data)
 
@@ -431,7 +655,7 @@ class PythonInput(QTextEdit):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None and not self.widget.is_dialog:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def update_stylesheet(self, data: str):
@@ -525,7 +749,7 @@ class PythonOutput(BaseCodeEditor):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def clear_content(self):

@@ -13,6 +13,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_CHAT,
     MODE_COMPLETION,
     MODE_LANGCHAIN,
@@ -38,6 +39,7 @@ class Vision:
             MODE_AGENT,
             MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
             MODE_RESEARCH,
         ]
 

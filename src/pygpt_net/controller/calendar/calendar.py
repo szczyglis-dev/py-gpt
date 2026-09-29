@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 11:00:00                  #
+# Updated Date: 2026.09.26 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.tabs.tab import Tab
@@ -116,6 +116,48 @@ class Calendar:
         self.note.update_content(year, month, day)
         self.note.update_label(year, month, day)
 
+    def toggle_note_popup(
+            self,
+            year: int,
+            month: int,
+            day: int,
+            anchor_rect=None
+    ):
+        """Open, switch or close the floating day-note editor."""
+        popup = self.window.ui.calendar.get('note.popup')
+        if popup is None:
+            return
+
+        if popup.isVisible() and popup.is_date(year, month, day):
+            # Keep the editor open when the same day is selected again.
+            # The popup is closed explicitly with its close button only.
+            popup.raise_()
+            popup.activateWindow()
+            if popup.editor is not None:
+                popup.editor.setFocus()
+            return
+
+        self.selected_year = year
+        self.selected_month = month
+        self.selected_day = day
+
+        self.note.update_content(year, month, day)
+        self.note.update_label(year, month, day)
+        popup.set_date(year, month, day)
+
+        if anchor_rect is None:
+            select = self.window.ui.calendar.get('select')
+            if select is not None:
+                anchor_rect = select.get_cell_global_rect(year, month, day)
+
+        popup.show_for(anchor_rect)
+
+    def close_note_popup(self):
+        """Close the floating day-note editor."""
+        popup = self.window.ui.calendar.get('note.popup')
+        if popup is not None:
+            popup.hide()
+
     def on_ctx_select(
             self,
             year: int,
@@ -142,7 +184,7 @@ class Calendar:
 
         :return: True if calendar tab is active
         """
-        return self.window.controller.ui.tabs.get_current_type() == Tab.TAB_TOOL_CALENDAR
+        return self.window.controller.tabs.get_current_type() == Tab.TAB_TOOL_CALENDAR
 
     def reload(self):
         """Reload calendar"""

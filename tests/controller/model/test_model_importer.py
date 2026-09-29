@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.26 20:00:00                  #
+# Updated Date: 2026.09.05 12:30:00                  #
 # ================================================== #
 import os
 import pytest
@@ -78,6 +78,9 @@ def mock_window():
         "azure_openai": "Azure OpenAI", 
         "perplexity": "Perplexity"
     })
+    llm.is_custom_provider = MagicMock(
+        side_effect=lambda provider_id: isinstance(provider_id, str) and provider_id.startswith("custom_")
+    )
     window.core.llm = llm
     models = MagicMock()
     models.items = {}
@@ -309,10 +312,9 @@ def test_update_title_other(importer, mock_window):
     importer.update_title()
     mock_window.ui.nodes["models.importer.url"].setText.assert_called_with("Test Provider Name")
 
-def test_update_title_ollama(importer, mock_window):
+def test_update_title_ollama(importer, mock_window, monkeypatch):
     importer.provider = "ollama"
-    if "OLLAMA_API_BASE" in os.environ:
-        del os.environ["OLLAMA_API_BASE"]
+    monkeypatch.delenv("OLLAMA_API_BASE", raising=False)
     importer.update_title()
     mock_window.ui.nodes["models.importer.url"].setText.assert_called_with("http://localhost:11434")
 
@@ -421,6 +423,42 @@ def test_get_provider_available(importer, mock_window):
     mock_window.core.models.create_empty.side_effect = fake_create_empty
     result = importer.get_provider_available()
     assert "modelX" in result
+
+def test_get_provider_available_custom_provider_keeps_credentials_out_of_model(importer, mock_window):
+    from pygpt_net.item.model import ModelItem
+
+    importer.provider = "custom_my_api_12345678"
+    fake_llm = MagicMock()
+    fake_llm.get_models.return_value = [{"id": "custom-model", "name": "Custom Model"}]
+    mock_window.core.llm.get.return_value = fake_llm
+    mock_window.core.models.create_empty.side_effect = lambda append=False: (ModelItem(), "id")
+
+    result = importer.get_provider_available()
+
+    assert "custom-model" in result
+    model = result["custom-model"]
+    assert model.provider == importer.provider
+    assert model.tool_calls is True
+    # Importer no longer duplicates model/provider defaults into LlamaIndex.
+    # Empty config means "inherit normal provider/model settings at runtime".
+    assert model.llama_index == {}
+
+
+def test_get_providers_option_includes_runtime_custom_provider(importer, mock_window, monkeypatch):
+    custom_id = "custom_my_api_12345678"
+    mock_window.core.llm.get_choices.return_value = {
+        "openai": "OpenAI",
+        custom_id: "My API",
+        "perplexity": "Perplexity",
+    }
+    monkeypatch.setattr("pygpt_net.utils.trans", lambda s: s)
+
+    option = importer.get_providers_option()
+    choices = {key: value for item in option["keys"] for key, value in item.items()}
+
+    assert choices[custom_id] == "My API"
+    assert "perplexity" not in choices
+
 
 def test_get_ollama_available_success(importer, mock_window):
     importer.provider = "ollama"

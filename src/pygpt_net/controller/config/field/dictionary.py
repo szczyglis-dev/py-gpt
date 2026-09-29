@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2026.09.26 19:30:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List, Union
@@ -156,6 +156,14 @@ class Dictionary:
             else:
                 if "label" not in item:
                     item["label"] = f"{prefix}{key}"
+
+            # Dictionary field schemas use the same string type aliases as
+            # provider-owned settings. The generic config widgets render
+            # string inputs as ``text``, so normalize aliases before the
+            # editor builds its widgets/rows.
+            if item.get("type") in ("str", "string"):
+                item["type"] = "text"
+
             options[key] = item
         return options
 

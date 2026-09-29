@@ -15,9 +15,11 @@ from typing import Optional, List
 from PySide6.QtGui import QTextCursor, QTextBlockFormat
 
 from pygpt_net.core.render.base import BaseRenderer
+from pygpt_net.core.text.mentions import to_display_text as mentions_to_display_text
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.utils import trans
 
 from .body import Body
 from .helpers import Helpers
@@ -212,15 +214,16 @@ class Renderer(BaseRenderer):
         """
         if item.input is None or item.input == "":
             return
+        display_input = mentions_to_display_text(item.input)
         if self.is_timestamp_enabled() and item.input_timestamp is not None:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = f"{item.input_name} "
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            text = f"{name}{hour} > {item.input}"
+            text = f"{name}{hour} > {display_input}"
         else:
-            text = f"> {item.input}"
+            text = f"> {display_input}"
         self.append_raw(meta, item, text.strip())
         self.to_end(meta)
 
@@ -276,7 +279,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.add(image)
-                    self.append_raw(meta, item, self.body.get_image_html(image, n, c))
+                    self.append_raw(meta, item, self.body.get_image_html(image, n, c, ctx=item))
                     pd.images_appended.append(image)
                     already.add(image)
                     n += 1
@@ -292,7 +295,7 @@ class Renderer(BaseRenderer):
                     continue
                 try:
                     appended.add(file)
-                    self.append_raw(meta, item, self.body.get_file_html(file, n, c))
+                    self.append_raw(meta, item, self.body.get_file_html(file, n, c, ctx=item))
                     n += 1
                 except Exception as e:
                     pass
@@ -447,8 +450,36 @@ class Renderer(BaseRenderer):
         :param item: context item
         """
         self.append_input(meta, item)
-        self.append_output(meta, item)
+        if not self.append_inline_messages_timeline(meta, item):
+            self.append_output(meta, item)
         self.append_extra(meta, item)
+
+
+    def append_inline_messages_timeline(self, meta: CtxMeta, item: CtxItem) -> bool:
+        """Render partial outputs with UI-only inline messages interleaved."""
+        parts = list(getattr(item, "parts", None) or [])
+        has_inline_messages = any(
+            bool(self.get_inline_messages(
+                part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            ))
+            for part in parts
+        )
+        if not has_inline_messages:
+            return False
+
+        for part in parts:
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            for message in self.get_inline_messages(extra):
+                msg_type = str(message.get("type") or "message")
+                label = self.get_inline_message_label(msg_type)
+                self.append_raw(
+                    meta, item,
+                    f"> {label}: {str(message.get('text') or '').strip()}",
+                )
+            output = str(getattr(part, "output", None) or "").strip()
+            if output:
+                self.append_raw(meta, item, output)
+        return True
 
     def append(
             self,
@@ -506,9 +537,9 @@ class Renderer(BaseRenderer):
             self.pids[pid].images_appended = []
             self.pids[pid].urls_appended = []
 
-    def reload(self):
+    def reload(self, meta: Optional[CtxMeta] = None):
         """Reload output, called externally only on theme change to redraw content"""
-        self.window.controller.ctx.refresh_output()  # if clear all and appends all items again
+        self.window.controller.ctx.refresh_output(meta)  # rebuild the requested chat only
 
     def clear_output(self, meta: Optional[CtxMeta] = None):
         """

@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczyglinski                  #
+# Updated Date: 2026.09.15 20:45:00                  #
+# ================================================== #
+
+from types import SimpleNamespace
+
+from .editor import AgentEditor
+from .mode import AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
+from .strategy import get_agent_strategy
+
+
+class _PromptPreviewRuntime:
+    """Lightweight, side-effect-free runtime view used by the live token counter.
+
+    It intentionally reuses RuntimePromptBuilder/RuntimeContext instead of copying
+    Agents v2 prompt composition into core.tokens. No agent, LLM, memory or tool
+    runtime is created.
+    """
+
+    MAX_WORKERS_DEFAULT = 16
+
+    def __init__(
+            self,
+            window,
+            model,
+            preset,
+            ctx,
+            attachments,
+            index_id,
+            bridge_system_prompt: str,
+    ):
+        from .context import RuntimeContext
+        from .prompt_builder import RuntimePromptBuilder
+        from .prompts import agents_directory_exists
+
+        self.window = window
+        self.model = model
+        self.preset = preset
+        self.context = SimpleNamespace(
+            ctx=ctx,
+            attachments=attachments or {},
+            idx=index_id,
+        )
+        selected_agent_id, self.agent_mode, self.agent_definition = (
+            window.core.agents_v2.editor.resolve_selection(
+                window.core.config.get(AGENT_MODE_CONFIG_KEY, AGENT_MODE_CONFIG_DEFAULT)
+            )
+        )
+        self.agent_id = selected_agent_id
+        self.strategy = get_agent_strategy(self.agent_mode)
+        self.allow_local_tools = bool(
+            getattr(preset, "agent_v2_allow_local_tools", True)
+        )
+        self.allow_remote_tools = bool(
+            getattr(preset, "agent_v2_allow_remote_tools", True)
+        )
+        # The preset controller loads preset.idx into the shared RAG selector.
+        # Preview must mirror the real runtime and use the current toolbox value,
+        # including an explicit clear performed after preset selection.
+        self.index_id = index_id
+        if self.index_id in ("_", "-"):
+            self.index_id = None
+
+        # Preflight happens before the user turn starts, so retrieval has not run
+        # yet. The normal <rag_access> envelope is still composed when an index is
+        # selected; only request-specific retrieved text is absent at this point.
+        self.rag_context_text = ""
+        self.bridge_system_prompt = str(bridge_system_prompt or "").strip()
+
+        self.context_api = RuntimeContext(self)
+        self.shared_context_text = self.context_api._build_shared_context()
+        self.runtime_system_context = self.context_api._build_runtime_system_context()
+        self.agents_directory_exists = agents_directory_exists(window, ctx=ctx)
+        self.prompt_api = RuntimePromptBuilder(self)
+
+    @property
+    def is_swarm_mode(self) -> bool:
+        return self.agent_mode == AgentMode.SWARM
+
+    @property
+    def max_workers_configured(self) -> int:
+        try:
+            value = int(
+                self.window.core.config.get(
+                    "agent.v2.max_workers",
+                    self.MAX_WORKERS_DEFAULT,
+                )
+            )
+        except (TypeError, ValueError):
+            value = self.MAX_WORKERS_DEFAULT
+        return max(0, value)
+
+    def verbose_log(self, *args, **kwargs):
+        # Live token updates must not produce Agents v2 workflow/debug entries.
+        return None
+
+    def verbose_text(self, *args, **kwargs):
+        return None
+
+    def has_rag_index(self) -> bool:
+        return self.context_api.has_rag_index()
+
+    def _rag_prompt_context(self) -> str:
+        return self.context_api._rag_prompt_context()
+
+    def main_agent_prompt(self) -> str:
+        return self.prompt_api.main_agent_prompt()
+
+
+class AgentsV2:
+    def __init__(self, window=None):
+        self.window = window
+        self._runner = None
+        self._memory_store = None
+        self.editor = AgentEditor(window)
+
+    @property
+    def runner(self):
+        """Create the Agents v2 runner only when an Agents v2 request is executed."""
+        if self._runner is None:
+            from .runner import Runner
+            self._runner = Runner(self.window)
+        return self._runner
+
+    @property
+    def memory_store(self):
+        """Create the Agents v2 memory adapter only when history is queried."""
+        if self._memory_store is None:
+            from .memory import AgentsV2MemoryStore
+            self._memory_store = AgentsV2MemoryStore(self.window)
+        return self._memory_store
+
+    def build_main_system_prompt_preview(
+            self,
+            system_prompt: str,
+            model,
+            current_ctx=None,
+    ) -> str:
+        """Compose the main Agents v2 system prompt for preflight token count.
+
+        This runs before any user input is dispatched. It deliberately creates no
+        AgentsV2Runtime/agent/LLM; it only feeds the current UI/runtime state into
+        the same RuntimePromptBuilder used by the real turn.
+        """
+        if model is None:
+            return str(system_prompt or "")
+
+        preset = self.window.controller.presets.get_current()
+        try:
+            attachments = dict(self.window.core.attachments.get_all("agent_v2"))
+        except Exception:
+            attachments = {}
+        try:
+            index_id = self.window.controller.idx.get_current()
+        except Exception:
+            index_id = None
+
+        preview = _PromptPreviewRuntime(
+            window=self.window,
+            model=model,
+            preset=preset,
+            ctx=current_ctx,
+            attachments=attachments,
+            index_id=index_id,
+            bridge_system_prompt=system_prompt,
+        )
+        return preview.main_agent_prompt()
+
+    def count_current_history_tokens(
+            self,
+            model,
+            used_tokens: int = 0,
+            max_tokens: int = 0,
+    ):
+        """Return token usage for the history actually replayed by Agents v2."""
+        if model is None:
+            return 0, 0
+        core_ctx = self.window.core.ctx
+        master_ctx = core_ctx.get_last_item()
+        if master_ctx is None:
+            items = core_ctx.get_items()
+            if items:
+                master_ctx = items[-1]
+        if master_ctx is None or master_ctx.meta is None:
+            return 0, 0
+        return self.memory_store.count_history_tokens(
+            master_ctx,
+            model=model,
+            used_tokens=used_tokens,
+            max_tokens=max_tokens,
+        )

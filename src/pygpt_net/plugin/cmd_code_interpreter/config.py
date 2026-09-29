@@ -6,10 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.14 18:00:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
+from pygpt_net.core.sandbox import BUILTIN_PYTHON_PACKAGES, builtin_packages_to_text
+
+
+from .dockerfile import IPYTHON_DOCKERFILE, PYTHON_LEGACY_DOCKERFILE
+from .sandbox import SandboxMode
 
 
 class Config(BaseConfig):
@@ -23,51 +28,42 @@ class Config(BaseConfig):
 
         :param plugin: plugin instance
         """
-        dockerfile = '''
-        # Tip: After making changes to this Dockerfile, you must rebuild the image to apply the changes(Menu -> Tools -> Rebuild IPython Docker Image)
-
-        FROM python:3.9
-
-        # You can customize the packages installed by default here:
-        # ========================================================
-        RUN pip install jupyter ipykernel
-        # ========================================================
-
-        RUN mkdir /data
-
-        # Expose the necessary ports for Jupyter kernel communication
-        EXPOSE 5555 5556 5557 5558 5559
-
-        # Data directory, bound as a volume to the local 'data' directory
-        WORKDIR /data
-
-        # Start the IPython kernel with specified ports and settings
-        CMD ["ipython", "kernel", \
-        "--ip=0.0.0.0", \
-        "--transport=tcp", \
-        "--shell=5555", \
-        "--iopub=5556", \
-        "--stdin=5557", \
-        "--control=5558", \
-        "--hb=5559", \
-        "--Session.key=19749810-8febfa748186a01da2f7b28c", \
-        "--Session.signature_scheme=hmac-sha256"]
-        '''
-
-        dockerfile_legacy = 'FROM python:3.9-alpine'
-        dockerfile_legacy += '\n\n'
-        dockerfile_legacy += 'RUN mkdir /data'
-        dockerfile_legacy += '\n\n'
-        dockerfile_legacy += '# Data directory, bound as a volume to the local \'data/\' directory'
-        dockerfile_legacy += '\nWORKDIR /data'
+        dockerfile = IPYTHON_DOCKERFILE
+        dockerfile_legacy = PYTHON_LEGACY_DOCKERFILE
 
         plugin.add_option(
-            "sandbox_ipython",
+            "use_ipython",
+            type="bool",
+            value=True,
+            label="Use IPython",
+            description="Use the IPython interpreter. When disabled, use the standard Python interpreter.",
+            tab="general",
+        )
+        plugin.add_option(
+            "sandbox",
+            type="combo",
+            value=SandboxMode.BUILTIN.value,
+            label="Sandbox",
+            description="Disabled runs Python/IPython directly on the host (unsafe). Built-in runs a dedicated uv-managed CPython/IPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option. System-command whitelist/blacklist rules apply to the dedicated system-command tools in every execution mode.",
+            keys=SandboxMode.options(),
+            tab="general",
+        )
+        plugin.add_option(
+            "builtin_packages",
+            type="textarea",
+            value=builtin_packages_to_text(BUILTIN_PYTHON_PACKAGES),
+            label="Packages to install",
+            description="Python package requirements installed in the Built-in sandbox. Enter one package specification per line. Re-create the Built-in venv to apply changes immediately; otherwise it will be recreated automatically on the next Built-in sandbox use.",
+            tab="builtin_sandbox",
+        )
+        plugin.add_option(
+            "ipython_run_as_root",
             type="bool",
             value=False,
-            label="Sandbox (docker container)",
-            description="Executes commands in sandbox (docker container). "
-                        "Docker must be installed and running.",
+            label="Run as root",
+            description="Run the IPython Docker sandbox as root. When disabled, the stock sandbox image runs as "
+                        "the unprivileged 'pygpt' user and passwordless sudo can be used for commands that require "
+                        "root privileges.",
             tab="ipython",
         )
         plugin.add_option(
@@ -108,8 +104,12 @@ class Config(BaseConfig):
             tab="ipython",
         )
         plugin.add_cmd(
-            "ipython_execute",
+            "ipython_exec",
             instruction="execute Python code in IPython interpreter (in current kernel) and get output. "
+                        "Execution is non-interactive: never use input(), getpass(), or code that waits for stdin; "
+                        "provide required values directly in code. Shell commands invoked with ! are also "
+                        "non-interactive. Kernel failure is recovered automatically once; do not call "
+                        "ipython_kernel_restart repeatedly. "
                         "Tip: when generating plots or other image data always print path to generated image at "
                         "the end and provide local path (prefixed with file://, not sandbox:) to the user.",
             params=[
@@ -124,23 +124,26 @@ class Config(BaseConfig):
             description="Allows Python code execution in IPython interpreter (in current kernel)",
             tab="ipython",
         )
-        """
         plugin.add_cmd(
-            "ipython_execute_new",
-            instruction="execute Python code in the IPython interpreter in a new kernel and get the output. Use this option only if a kernel restart is required; otherwise, use `ipython_execute` to run the code in the current session",
+            "ipython_sys_exec",
+            instruction="execute a system/shell command in the IPython interpreter environment. "
+                        "When a sandbox is selected, execute the command inside the selected sandbox runtime; "
+                        "when sandboxing is disabled, execute it on the host. Use this for operating-system "
+                        "commands and command-line tools; use ipython_exec "
+                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
+                        "for stdin; pass all required answers/options in the command itself.",
             params=[
                 {
-                    "name": "code",
+                    "name": "command",
                     "type": "str",
-                    "description": "code to execute in IPython interpreter, usage of !magic commands is allowed",
+                    "description": "system/shell command to execute",
                     "required": True,
                 },
             ],
             enabled=True,
-            description="Allows Python code execution in IPython interpreter (in new kernel)",
+            description="Allows system command execution in the IPython environment. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="ipython",
         )
-        """
 
         volumes_keys = {
             "enabled": "bool",
@@ -150,7 +153,7 @@ class Config(BaseConfig):
         volumes_items = [
             {
                 "enabled": True,
-                "docker": "/data",
+                "docker": "/mnt/data",
                 "host": "{workdir}",
             },
         ]
@@ -163,7 +166,8 @@ class Config(BaseConfig):
 
         plugin.add_cmd(
             "ipython_kernel_restart",
-            instruction="restart IPython kernel",
+            instruction="manually restart IPython kernel only after a real kernel failure when automatic recovery "
+                        "did not recover it. Never call this command repeatedly or in a retry loop",
             params=[],
             enabled=True,
             description="Allows to restart IPython kernel",
@@ -210,12 +214,13 @@ class Config(BaseConfig):
             advanced=True,
         )
         plugin.add_option(
-            "sandbox_docker",
+            "docker_run_as_root",
             type="bool",
             value=False,
-            label="Sandbox (docker container)",
-            description="Executes commands in sandbox (docker container). "
-                        "Docker must be installed and running.",
+            label="Run as root",
+            description="Run the Python Docker sandbox as root. When disabled, the stock sandbox image runs as "
+                        "the unprivileged 'pygpt' user and passwordless sudo can be used for commands that require "
+                        "root privileges.",
             tab="python_legacy",
         )
         plugin.add_option(
@@ -283,8 +288,18 @@ class Config(BaseConfig):
             "attach_output",
             type="bool",
             value=True,
-            label="Connect to the Python code interpreter window",
-            description="Attach code input/output to the Python code interpreter window.",
+            label="Connect to the Python interpreter window",
+            description="Attach code input/output to the Python interpreter window.",
+            tab="general",
+        )
+        plugin.add_option(
+            "output_max_entries",
+            type="int",
+            value=15,
+            min=0,
+            max=10000,
+            label="Max interpreter window entries",
+            description="Maximum number of input/output blocks kept in the Python interpreter window. Set to 0 for no limit.",
             tab="general",
         )
         plugin.add_option(
@@ -298,30 +313,26 @@ class Config(BaseConfig):
 
         # commands
         plugin.add_cmd(
-            "code_execute",
-            instruction="save generated Python code and execute it",
+            "python_exec",
+            instruction="execute Python code. "
+                        "Execution is non-interactive: never use input(), getpass(), or code that waits for "
+                        "stdin; provide required values directly in code.",
             params=[
-                {
-                    "name": "path",
-                    "type": "str",
-                    "description": "path to save",
-                    "default": ".interpreter.current.py",
-                    "required": True,
-                },
                 {
                     "name": "code",
                     "type": "str",
-                    "description": "code",
+                    "description": "Python code to execute",
                     "required": True,
                 },
             ],
-            enabled=False,
-            description="Allows Python code execution (generate and execute from file)",
+            enabled=True,
+            description="Allows direct Python code execution",
             tab="python_legacy",
         )
         plugin.add_cmd(
-            "code_execute_file",
-            instruction="execute Python code from existing file",
+            "python_exec_file",
+            instruction="execute Python code from existing file. Execution is non-interactive; files that wait for "
+                        "stdin will receive EOF instead of blocking the tool call.",
             params=[
                 {
                     "name": "path",
@@ -330,69 +341,27 @@ class Config(BaseConfig):
                     "required": True,
                 },
             ],
-            enabled=False,
+            enabled=True,
             description="Allows Python code execution from existing file",
             tab="python_legacy",
         )
         plugin.add_cmd(
-            "code_execute_all",
-            instruction="run all Python code from my interpreter",
+            "python_sys_exec",
+            instruction="execute a system/shell command in the standard Python interpreter environment. "
+                        "When a sandbox is selected, execute the command inside the selected sandbox runtime; "
+                        "when sandboxing is disabled, execute it on the host. Use this for operating-system "
+                        "commands and command-line tools; use python_exec/python_exec_file "
+                        "for Python code. Execution is non-interactive: do not run commands that prompt or wait "
+                        "for stdin; pass all required answers/options in the command itself.",
             params=[
                 {
-                    "name": "code",
+                    "name": "command",
                     "type": "str",
-                    "description": "code to append and execute",
+                    "description": "system/shell command to execute",
                     "required": True,
                 },
             ],
-            enabled=False,
-            description="Allows Python code execution (generate and execute from file)",
+            enabled=True,
+            description="Allows system command execution in the standard Python environment. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="python_legacy",
-        )
-        plugin.add_cmd(
-            "get_python_output",
-            instruction="get output from my Python interpreter",
-            params=[],
-            enabled=True,
-            description="Allows to get output from last executed code",
-            tab="general",
-        )
-        plugin.add_cmd(
-            "get_python_input",
-            instruction="get all input code from my Python interpreter",
-            params=[],
-            enabled=True,
-            description="Allows to get input from Python interpreter",
-            tab="general",
-        )
-        plugin.add_cmd(
-            "clear_python_output",
-            instruction="clear output from my Python interpreter",
-            params=[],
-            enabled=True,
-            description="Allows to clear output from last executed code",
-            tab="general",
-        )
-        plugin.add_cmd(
-            "render_html_output",
-            instruction="send HTML/JS code to HTML built-in browser (HTML Canvas) and render it",
-            params=[
-                {
-                    "name": "html",
-                    "type": "str",
-                    "description": "HTML/JS code",
-                    "required": True,
-                },
-            ],
-            enabled=True,
-            description="Allows to render HTML/JS code in HTML Canvas",
-            tab="html_canvas",
-        )
-        plugin.add_cmd(
-            "get_html_output",
-            instruction="get current output from HTML Canvas",
-            params=[],
-            enabled=True,
-            description="Allows to get current output from HTML Canvas",
-            tab="html_canvas",
         )

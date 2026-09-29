@@ -1,0 +1,28 @@
+{
+  "extensions": [
+    {
+      "id": "example_plugin",
+      "name": "Example Plugin",
+      "description": "Add-on stored inside the official registry repository.",
+      "author": "PyGPT example",
+      "version": "1.0.0",
+      "type": "plugin",
+      "path": "./plugins/example_plugin",
+      "trusted": true,
+      "official": true
+    },
+    {
+      "id": "third_party_plugin",
+      "name": "Third-party Plugin",
+      "description": "Add-on hosted in another GitHub repository.",
+      "author": "Third-party author",
+      "version": "1.0.0",
+      "type": "plugin",
+      "github_url": "https://github.com/example/pygpt-addons",
+      "github_path": "plugins/third_party_plugin",
+      "ref": "main",
+      "trusted": false,
+      "official": false
+    }
+  ]
+}

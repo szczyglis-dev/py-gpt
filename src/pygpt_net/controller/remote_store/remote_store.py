@@ -151,7 +151,7 @@ class RemoteStore:
         if provider == "openai":
             self.window.controller.assistant.editor.update_store_list()  # update stores list in assistant dialog
 
-    def after_update(self, provider: str, store: RemoteStoreItem):
+    def after_update(self, provider: str, store: Optional[RemoteStoreItem] = None):
         """Hook: called after store update (per provider)."""
         if provider == "openai":
             self.window.controller.assistant.editor.update_store_list()

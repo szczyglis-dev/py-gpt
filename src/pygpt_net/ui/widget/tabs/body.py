@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Any
@@ -163,7 +163,7 @@ class TabBody(QTabWidget):
             # handle column focus
             if self.owner is not None:
                 col_idx = self.owner.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def to_dict(self) -> dict:

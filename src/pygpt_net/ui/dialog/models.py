@@ -13,9 +13,9 @@ import copy
 from typing import Dict, List, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItemModel, QIcon, QAction
+from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
-    QSplitter, QSizePolicy, QMenuBar
+    QSplitter, QSizePolicy
 
 from pygpt_net.ui.widget.dialog.model import ModelDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
@@ -41,12 +41,6 @@ class Models:
         """
         self.window = window
         self.dialog_id = "models.editor"
-        self.menu_bar = None
-
-        # Keep menu objects alive and correctly parented
-        self._file_menu = None
-        self._menu_actions: Dict[str, QAction] = {}
-
         # Internal state for filtering/mapping
         self._filter_text: str = ""
         self._filtered_ids: List[str] = []     # current list of model keys displayed in the view (order matters)
@@ -217,33 +211,6 @@ class Models:
         self.window.ui.dialog[self.dialog_id] = ModelDialog(self.window, self.dialog_id)
         self.window.ui.dialog[self.dialog_id].setLayout(layout)
 
-        self.menu_bar = QMenuBar(self.window.ui.dialog[self.dialog_id])
-        self.menu_bar.setNativeMenuBar(False)
-        self._file_menu = self.menu_bar.addMenu(trans("menu.file"))
-
-        # open importer
-        self._menu_actions["import"] = QAction(
-            QIcon(":/icons/download.svg"),
-            trans("action.import"),
-            self.window.ui.dialog[self.dialog_id],
-        )
-        self._menu_actions["import"].triggered.connect(
-            lambda checked=False: self.window.controller.model.importer.open()
-        )
-        self._menu_actions["close"] = QAction(
-            QIcon(":/icons/logout.svg"),
-            trans("menu.file.exit"),
-            self.window.ui.dialog[self.dialog_id],
-        )
-        self._menu_actions["close"].triggered.connect(
-            lambda checked=False: self.window.ui.dialog[self.dialog_id].close()
-        )
-
-        # add actions
-        self._file_menu.addAction(self._menu_actions["import"])
-        self._file_menu.addAction(self._menu_actions["close"])
-        layout.setMenuBar(self.menu_bar)
-
         self.window.ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.models.editor'))
 
         # restore current opened tab if idx is set
@@ -255,6 +222,83 @@ class Models:
         else:
             if self.window.controller.model.editor.current is None:
                 self.window.controller.model.editor.set_by_tab(0)
+
+    def retranslate(self):
+        """Refresh all model-editor texts after a runtime language change."""
+        ui = self.window.ui
+        nodes = ui.nodes
+
+        static_nodes = {
+            'models.editor.btn.new': 'dialog.models.editor.btn.new',
+            'models.editor.btn.import': 'dialog.models.editor.btn.import',
+            'models.editor.btn.defaults.user': 'dialog.models.editor.btn.defaults.user',
+            'models.editor.btn.defaults.app': 'dialog.models.editor.btn.defaults.app',
+            'models.editor.btn.save': 'dialog.models.editor.btn.save',
+        }
+        for node_id, key in static_nodes.items():
+            node = nodes.get(node_id)
+            if node is not None:
+                node.setText(trans(key))
+
+        dialog = ui.dialog.get(self.dialog_id)
+        if dialog is not None:
+            dialog.setWindowTitle(trans('dialog.models.editor'))
+
+        group = ui.groups.get('models.editor.advanced')
+        if group is not None:
+            group.box.setText(trans('settings.advanced.collapse'))
+
+        search = nodes.get('models.editor.search')
+        if search is not None:
+            search.setPlaceholderText(trans('input.search.placeholder'))
+
+        # Option labels/descriptions and placeholder-backed values are created
+        # dynamically and therefore are not covered by the static locale-node
+        # mapper. Update them in place while preserving current values/checks.
+        config = ui.config.get('model', {})
+        for key, option in self.window.controller.model.editor.get_options().items():
+            label = trans(option['label'])
+            widget = config.get(key)
+            if option.get('type') == 'bool':
+                if widget is not None and hasattr(widget, 'setText'):
+                    widget.setText(label)
+            else:
+                label_node = nodes.get(f'model.{key}.label')
+                if label_node is not None:
+                    label_node.setText(label)
+
+            desc_key = option.get('description')
+            if desc_key:
+                desc_node = nodes.get(f'model.{key}.desc')
+                if desc_node is not None:
+                    desc_node.setText(trans(desc_key))
+
+            use = option.get('use')
+            if widget is not None and use and option.get('type') == 'bool_list':
+                params = option.get('use_params') if isinstance(option.get('use_params'), dict) else {}
+                keys = self.window.controller.config.placeholder.apply_by_id(use, params)
+                widget.option['keys'] = keys
+                widget.keys = keys
+                for item in keys:
+                    if not isinstance(item, dict):
+                        continue
+                    for item_id, item_label in item.items():
+                        widget.setText(item_id, item_label)
+                if getattr(widget, 'btn_select', None) is not None:
+                    widget.btn_select.setToolTip(trans('action.select_unselect_all'))
+            elif widget is not None and option.get('type') == 'dict':
+                if getattr(widget, 'add_btn', None) is not None:
+                    widget.add_btn.setText(trans('action.add'))
+
+        # Rebuild the provider filter because its synthetic "All" entry is
+        # translated at construction time. Preserve the active provider.
+        provider_combo = config.get('provider_global')
+        if provider_combo is not None:
+            current = provider_combo.get_value()
+            provider_keys = self.window.controller.config.placeholder.apply_by_id('llm_providers')
+            provider_keys.insert(0, {'-': trans('list.all')})
+            provider_combo.current_id = current
+            provider_combo.set_keys(provider_keys, lock=True)
 
     def _on_search_models(self, text: str):
         """

@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.15 00:00:00                  #
+# Updated Date: 2026.09.22 18:15:00                  #
 # ================================================== #
+
+import os
 
 from pygpt_net.core.docker import Docker as BaseDocker
 from pygpt_net.core.docker.builder import Builder
@@ -24,10 +26,12 @@ class Docker(BaseDocker):
 
     def build(self):
         """Run image build"""
+        self.plugin.migrate_docker_defaults()
         self.builder.build_image()
 
     def build_and_restart(self):
         """Run image build and restart container"""
+        self.plugin.migrate_docker_defaults()
         self.builder.build_image(restart=True)
         self.plugin.window.update_status("Please wait...")
 
@@ -55,32 +59,45 @@ class Docker(BaseDocker):
         """
         return self.plugin.get_option_value('container_name')
 
-    def get_local_data_dir(self) -> str:
+    def get_local_data_dir(self, ctx=None) -> str:
         """
         Get the local data directory.
 
         :return: Local data directory.
         """
-        return self.plugin.window.core.config.get_user_dir("data")
+        return self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
 
-    def get_volumes(self) -> dict:
+    def get_volumes(self, ctx=None) -> dict:
         """Return data volume plus the application's temporary directory."""
-        volumes = super().get_volumes()
+        volumes = super().get_volumes(ctx=ctx)
         tmp_dir = self.plugin.window.core.config.get_user_dir("tmp")
+        os.makedirs(tmp_dir, exist_ok=True)
         volumes[tmp_dir] = {
-            "bind": "/pygpt_tmp",
+            "bind": "/mnt/tmp",
             "mode": "rw",
         }
         return volumes
 
-    def create_container(self, name: str):
-        """Recreate an old container once if it does not have the tmp mount yet."""
+    def get_container_labels(self, ctx=None) -> dict:
+        """Return runtime labels, including the temporary mount contract.
+
+        The base Docker helper recreates an existing container whenever one of
+        these labels changes.  Keeping the tmp mount in the label set makes an
+        upgrade from older containers deterministic even when they are already
+        running.
+        """
+        labels = super().get_container_labels(ctx=ctx)
+        labels["pygpt.tmp_mount"] = "/mnt/tmp"
+        return labels
+
+    def create_container(self, name: str, ctx=None):
+        """Recreate an old container once if it does not expose /mnt/tmp yet."""
         try:
             client = self.get_docker_client()
             container = client.containers.get(name)
             container.reload()
             has_tmp_mount = any(
-                mount.get("Destination") == "/pygpt_tmp"
+                mount.get("Destination") == "/mnt/tmp"
                 for mount in container.attrs.get("Mounts", [])
             )
             if not has_tmp_mount:
@@ -90,4 +107,4 @@ class Docker(BaseDocker):
                 container.remove()
         except Exception:
             pass
-        return super().create_container(name)
+        return super().create_container(name, ctx=ctx)

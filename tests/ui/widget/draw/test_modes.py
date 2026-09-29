@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.03 20:31:00                  #
 # ================================================== #
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from PySide6.QtCore import QPoint
@@ -157,3 +158,70 @@ def test_circle_is_drawn_from_center():
     assert rect.center().y() == 100
     assert round(rect.width()) == 100
     assert round(rect.height()) == 100
+
+
+def test_free_draw_setup_painter_uses_erase_composition_and_transparent_pen():
+    widget = MagicMock()
+    widget._mode = "erase"
+    widget.brushSize = 7
+    widget.drawingLayer = MagicMock()
+    painter = MagicMock()
+    with patch("pygpt_net.ui.widget.draw.modes.free.QPainter", return_value=painter) as painter_cls, \
+         patch("pygpt_net.ui.widget.draw.modes.free.QPen", return_value="ERASER_PEN") as pen_cls:
+        result = FreeDrawMode()._setup_painter(widget)
+    assert result is painter
+    painter_cls.assert_called_once_with(widget.drawingLayer)
+    painter.setCompositionMode.assert_called_once_with(painter_cls.CompositionMode_Clear)
+    painter.setPen.assert_called_once_with("ERASER_PEN")
+    assert pen_cls.call_args.args[1] == 7
+
+
+def test_free_draw_setup_painter_uses_existing_pen_for_brush():
+    widget = MagicMock()
+    widget._mode = "brush"
+    widget._pen = MagicMock()
+    widget.drawingLayer = MagicMock()
+    painter = MagicMock()
+    with patch("pygpt_net.ui.widget.draw.modes.free.QPainter", return_value=painter) as painter_cls:
+        FreeDrawMode()._setup_painter(widget)
+    painter.setCompositionMode.assert_called_once_with(painter_cls.CompositionMode_SourceOver)
+    painter.setPen.assert_called_once_with(widget._pen)
+
+
+def test_shape_preview_draws_only_for_active_nonzero_geometry():
+    mode = LineDrawMode()
+    widget = MagicMock()
+    painter = MagicMock()
+
+    with patch.object(mode, "draw_shape") as draw_shape:
+        mode.paint_preview(widget, painter)
+        draw_shape.assert_not_called()
+        painter.setRenderHint.assert_not_called()
+
+        mode.start = QPoint(1, 1)
+        mode.current = QPoint(5, 5)
+        mode.active = True
+        mode.paint_preview(widget, painter)
+
+    draw_shape.assert_called_once_with(widget, painter)
+    painter.setRenderHint.assert_called_once()
+
+
+def test_circle_zero_radius_does_not_draw_ellipse():
+    widget = MagicMock(); widget.brushSize = 3; widget.brushColor = QColor("red")
+    painter = MagicMock()
+    point = SimpleNamespace(x=lambda: 5, y=lambda: 5)
+    mode = CircleDrawMode(); mode.start = point; mode.current = point
+    mode.draw_shape(widget, painter)
+    painter.drawEllipse.assert_not_called()
+
+
+def test_arrow_zero_length_does_not_draw():
+    widget = MagicMock(); widget.brushSize = 3; widget.brushColor = QColor("red")
+    painter = MagicMock()
+    point = SimpleNamespace(x=lambda: 5.0, y=lambda: 5.0)
+    mode = ArrowDrawMode(); mode.start = point; mode.current = point
+    with patch("pygpt_net.ui.widget.draw.modes.shapes.QPointF", side_effect=lambda value: value):
+        mode.draw_shape(widget, painter)
+    painter.drawLine.assert_not_called()
+    painter.drawPolygon.assert_not_called()

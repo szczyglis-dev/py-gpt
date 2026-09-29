@@ -9,7 +9,6 @@
 # Updated Date: 2025.08.31 23:00:00                  #
 # ================================================== #
 
-import numpy as np
 
 from PySide6.QtCore import Qt
 from PySide6.QtMultimedia import QAudioFormat, QAudioSink
@@ -23,7 +22,8 @@ class RealtimeSession(QObject):
             device,
             fmt: QAudioFormat,
             parent=None,
-            volume_emitter: callable = None
+            volume_emitter: callable = None,
+            playback_start_emitter: callable = None
     ):
         """
         Initialize the session.
@@ -71,6 +71,9 @@ class RealtimeSession(QObject):
 
         # simple volume metering (optional)
         self.volume_emitter = volume_emitter
+        self.playback_start_emitter = playback_start_emitter
+        self.playback_started = False
+        self.playback_pending = False
         self.vol_window_bytes = max(1, self.bytes_per_ms * 100)  # ~100 ms
         self.vol_buffer = bytearray()
         self.vol_timer = QTimer(self)
@@ -91,6 +94,7 @@ class RealtimeSession(QObject):
         if not data or self.io is None:
             return
         self.buffer.extend(data)
+        self.playback_pending = True
         # NOTE: try pump quickly (non-blocking)
         self._pump()
 
@@ -102,6 +106,31 @@ class RealtimeSession(QObject):
                 self.buffer.extend(self._silence(pad))
         self.final = True
         self._pump()
+
+    def interrupt(self) -> None:
+        """
+        Abort playback immediately and discard queued realtime audio.
+
+        Do not invoke on_stopped: an interrupted response was superseded by a
+        newer one, so it must not emit the normal RT_OUTPUT_AUDIO_END lifecycle.
+        """
+        self.on_stopped = None
+        self.final = True
+        try:
+            self.buffer.clear()
+        except Exception:
+            pass
+        try:
+            self.vol_buffer.clear()
+        except Exception:
+            pass
+        try:
+            if self.sink:
+                # reset() discards data already queued inside QAudioSink.
+                self.sink.reset()
+        except Exception:
+            pass
+        self.stop()
 
     def stop(self) -> None:
         """Stop the session and clean up."""
@@ -163,6 +192,14 @@ class RealtimeSession(QObject):
             written = self.io.write(chunk)
             if written and written > 0:
                 del self.buffer[:written]
+                if self.playback_pending and not self.playback_started:
+                    self.playback_started = True
+                    self.playback_pending = False
+                    try:
+                        if self.playback_start_emitter:
+                            self.playback_start_emitter()
+                    except Exception:
+                        pass
                 # simple volume window
                 self._vol_push(chunk[:self._align_down(written)])
 
@@ -223,6 +260,8 @@ class RealtimeSession(QObject):
             if not self.vol_buffer:
                 self.volume_emitter(0)
                 return
+
+            import numpy as np
 
             sf = self._sf
             if sf == QAudioFormat.SampleFormat.UInt8:

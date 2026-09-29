@@ -6,25 +6,41 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.05 02:00:00                  #
+# Updated Date: 2026.09.27 22:05:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QEvent, QTimer
+from PySide6.QtCore import Qt, QEvent, QTimer, QSize
 from PySide6.QtGui import (
     QAction,
     QIcon,
     QKeySequence,
     QTextCursor,
+    QTextCharFormat,
     QFontMetrics,
     QColor,
 )
-from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton
 
+from pygpt_net.core.events import Event
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
 from pygpt_net.ui.widget.element.labels import HelpLabel
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
-from .highlight import MarkerHighlighter
+from .highlight import MarkerHighlighter, MARKER_PROPERTY, marked_ranges
+
+
+class NotepadHelpLabel(HelpLabel):
+    """Help label that follows the full responsive width of the notepad tab."""
+
+    def __init__(self, text, window=None):
+        super().__init__(text, window)
+        self.setMinimumWidth(0)
+        policy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        # Preserve QLabel's height-for-width behaviour used by word wrapping.
+        # Without this flag the layout may reserve only a single text line.
+        policy.setHeightForWidth(True)
+        self.setSizePolicy(policy)
 
 
 class NotepadWidget(QWidget):
@@ -38,14 +54,43 @@ class NotepadWidget(QWidget):
         self.window = window
         self.id = 1  # assigned in setup
         self.textarea = NotepadOutput(self.window)
-        self.window.ui.nodes['tip.output.tab.notepad'] = HelpLabel(trans('tip.output.tab.notepad'), self.window)
+        self.window.ui.nodes['tip.output.tab.notepad'] = NotepadHelpLabel(
+            trans('tip.output.tab.notepad'),
+            self.window,
+        )
         self.opened = False
         self.tab = None
 
+        # When Chat Input is hidden on a Notepad tab, keep the simple audio
+        # input action available directly below the notepad. The wrapper owns
+        # the requested 15 px breathing room and disappears completely when
+        # simple audio input is disabled/advanced.
+        self.mic_button = QPushButton(self)
+        self.mic_button.setObjectName('notepadMicButton')
+        self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
+        self.mic_button.setIconSize(QSize(20, 20))
+        self.mic_button.setFixedSize(QSize(26, 26))
+        self.mic_button.setCursor(Qt.PointingHandCursor)
+        self.mic_button.setFocusPolicy(Qt.NoFocus)
+        self.mic_button.setFlat(True)
+        self.mic_button.setToolTip(trans('audio.note.btn.tooltip'))
+        self.mic_button.clicked.connect(self.toggle_microphone)
+
+        self.mic_container = QWidget(self)
+        mic_layout = QHBoxLayout(self.mic_container)
+        mic_layout.setContentsMargins(15, 15, 15, 15)
+        mic_layout.setSpacing(0)
+        mic_layout.addStretch(1)
+        mic_layout.addWidget(self.mic_button, 0, Qt.AlignCenter)
+        mic_layout.addStretch(1)
+        self.mic_container.setVisible(False)
+
         layout = QVBoxLayout()
-        layout.addWidget(self.textarea)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'])
+        layout.addWidget(self.textarea, 1)
+        layout.addWidget(self.mic_container, 0)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         self.setLayout(layout)
         self.setProperty('class', 'layout-notepad')
 
@@ -61,6 +106,23 @@ class NotepadWidget(QWidget):
     def scroll_to_bottom(self):
         """Scroll down"""
         self.textarea.scroll_to_bottom()
+
+    def toggle_microphone(self):
+        """Toggle simple microphone recording from the Notepad tab."""
+        self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
+
+    def set_mic_visible(self, visible: bool):
+        """Show/hide the dedicated Notepad microphone including its margins."""
+        self.mic_container.setVisible(bool(visible))
+
+    def set_mic_state(self, active: bool):
+        """Mirror the recording icon/tooltip used by ChatInput."""
+        if active:
+            self.mic_button.setIcon(QIcon(':/icons/mic_off.svg'))
+            self.mic_button.setToolTip(trans('audio.speak.btn.stop.tooltip'))
+        else:
+            self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
+            self.mic_button.setToolTip(trans('audio.note.btn.tooltip'))
 
     def setText(self, text: str):
         """
@@ -107,7 +169,7 @@ class NotepadOutput(QTextEdit):
         self.window = window
         self.finder = Finder(window, self)
         self.setAcceptRichText(False)
-        self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+        self.apply_theme_style()
 
         # Ensure the editor always accepts keyboard focus on single click
         self.setFocusPolicy(Qt.StrongFocus)
@@ -120,7 +182,9 @@ class NotepadOutput(QTextEdit):
         self.tab = None
         self.last_scroll_pos = None
         self.installEventFilter(self)
-        self.setProperty('class', 'layout-notepad')
+        self.setProperty('class', 'layout-notepad-output')
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.initialized = False
 
         metrics = QFontMetrics(self.font())
@@ -132,9 +196,6 @@ class NotepadOutput(QTextEdit):
         self._restore_attempts = 0
         self._pending_scroll_pos = None
 
-        # highlight state (using QSyntaxHighlighter for rendering)
-        self._highlights = []  # list of (start, length)
-
         # timers/slots must be available even if later connections fail
         self._save_timer = QTimer(self)
         self._save_timer.setSingleShot(True)
@@ -142,10 +203,48 @@ class NotepadOutput(QTextEdit):
         self._save_timer.timeout.connect(self._persist)
 
         # highlighter
-        self._highlighter = MarkerHighlighter(self.document(), self.get_highlights, self.get_highlight_color)
+        self._highlighter = MarkerHighlighter(self.document(), self.get_highlight_color)
 
         # schedule guard for column-focus sync
         self._column_focus_sync_scheduled = False
+
+    def minimumSizeHint(self):
+        """Never let the notepad enforce a minimum width on an output column."""
+        size = super().minimumSizeHint()
+        size.setWidth(0)
+        return size
+
+    def apply_theme_style(self):
+        """Apply chat-output typography and the plain-chat surface to the editor."""
+        size = self.window.core.config.get('font_size')
+        theme = self.window.controller.theme.common.normalize_theme(
+            self.window.core.config.get('theme')
+        )
+        # Match the preset-list surface in each built-in color theme.
+        backgrounds = {
+            'light': '#efefef',
+            'mint': '#e8f4ee',
+            'gray': '#2b2d34',
+            'gray_dark': '#222527',
+            'dark': '#202020',
+            'matrix': '#0d1710',
+            'flare': '#170d0d',
+            'retro': '#1c1233',
+            'ocean': '#0d1a24',
+            'sun': '#1b1206',
+        }
+        background = backgrounds.get(theme)
+        if background is None:
+            background = '#efefef' if self.window.controller.theme.common.is_light_theme_id(theme) else '#202020'
+        self.setStyleSheet(
+            'QTextEdit {'
+            f'font-size: {size}px;'
+            f'background-color: {background};'
+            'border: none;'
+            'border-radius: 10px;'
+            'padding: 13px 10px 10px 10px;'
+            '}'
+        )
 
     def on_delete(self):
         """On delete"""
@@ -212,7 +311,7 @@ class NotepadOutput(QTextEdit):
             return
         had_focus = self.hasFocus()
         try:
-            self.window.controller.ui.tabs.on_column_focus(idx)
+            self.window.controller.tabs.on_column_focus(idx)
         except Exception:
             # Keep the UI resilient even if external handler fails
             pass
@@ -245,8 +344,12 @@ class NotepadOutput(QTextEdit):
             if self.finder is not None:
                 self.finder.text_changed()
             self.last_scroll_pos = self._vscroll.value()
-            if self.initialized and not self.toPlainText():
-                QTimer.singleShot(0, lambda: self.clear_highlights(persist=False))  # if empty, reset highlights
+            if self.document().isEmpty():
+                # Reset insertion style, not saved formatting: undo must still
+                # restore the removed text together with its markers.
+                fmt = self.currentCharFormat()
+                fmt.setProperty(MARKER_PROPERTY, False)
+                self.setCurrentCharFormat(fmt)
             self.schedule_save()
 
     def _on_scrollbar_value_changed(self, value: int):
@@ -366,6 +469,10 @@ class NotepadOutput(QTextEdit):
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)
 
+        # Add insert date/time submenu
+        datetime_menu = self.window.ui.context_menu.get_insert_datetime_menu(menu, self)
+        menu.addMenu(datetime_menu)
+
         # Add zoom submenu
         zoom_menu = self.window.ui.context_menu.get_zoom_menu(self, "font_size", self.value, self.on_zoom_changed)
         menu.addMenu(zoom_menu)
@@ -392,23 +499,7 @@ class NotepadOutput(QTextEdit):
         self.finder.clear()  # clear finder
 
     def on_zoom_changed(self, value: int):
-        """
-        On font size changed
-
-        :param value: New font size
-        """
-        self.value = value
-        self.window.core.config.data['font_size'] = value
-        self.window.core.config.save()
-        option = self.window.controller.settings.editor.get_option('font_size')
-        option['value'] = self.value
-        self.window.controller.config.apply(
-                parent_id='config',
-                key='font_size',
-                option=option,
-        )
-        self.window.controller.ui.update_font_size()
-        self.last_scroll_pos = self._vscroll.value()
+        zoom_text(self, self.window, value, 'font_size')
 
     def keyPressEvent(self, e):
         """
@@ -423,39 +514,16 @@ class NotepadOutput(QTextEdit):
             super(NotepadOutput, self).keyPressEvent(e)
 
     def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
         if event.modifiers() & Qt.ControlModifier:
             delta = event.angleDelta().y()
-            if delta > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-                else:
-                    return
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-                else:
-                    return
-
-            self.window.core.config.data['font_size'] = self.value
-            self.window.core.config.save()
-            option = self.window.controller.settings.editor.get_option('font_size')
-            option['value'] = self.value
-            self.window.controller.config.apply(
-                parent_id='config',
-                key='font_size',
-                option=option,
-            )
-            self.window.controller.ui.update_font_size()
+            if delta:
+                value = max(self.min_font_size, min(self.max_font_size, self.value + (1 if delta > 0 else -1)))
+                if value != self.value:
+                    zoom_text(self, self.window, value, 'font_size')
             event.accept()
-            self.last_scroll_pos = self._vscroll.value()
         else:
-            super(NotepadOutput, self).wheelEvent(event)
-            self.last_scroll_pos = self._vscroll.value()
+            super().wheelEvent(event)
+        self.last_scroll_pos = self._vscroll.value()
 
     def mousePressEvent(self, e):
         """
@@ -511,17 +579,36 @@ class NotepadOutput(QTextEdit):
         self._persist()
 
     def get_highlights(self):
-        """Return current highlights as list of (start, length)"""
-        return list(self._highlights)
+        """Serialize live marker positions in the existing (start, length) format."""
+        ranges = []
+        block = self.document().begin()
+        while block.isValid():
+            ranges.extend(marked_ranges(block))
+            block = block.next()
+        return self._merge_ranges(ranges)
 
     def set_highlights(self, highlights):
-        """Set highlights and repaint"""
-        self._highlights = self._merge_ranges(self._sanitize_ranges(highlights))
+        """Restore persisted ranges as text metadata, without creating undo steps."""
+        ranges = self._merge_ranges(self._sanitize_ranges(highlights))
+        if ranges == self.get_highlights():
+            return
+        document = self.document()
+        undo_enabled = document.isUndoRedoEnabled()
+        document.setUndoRedoEnabled(False)
+        try:
+            self._format_marker(0, document.characterCount() - 1, False)
+            for start, length in ranges:
+                self._format_marker(start, length, True)
+        finally:
+            document.setUndoRedoEnabled(undo_enabled)
         self._highlighter.rehighlight()
 
     def clear_highlights(self, persist: bool = True):
-        """Clear all highlights"""
-        self._highlights = []
+        """Clear all highlights (undoable like other formatting actions)."""
+        self._format_marker(0, self.document().characterCount() - 1, False)
+        fmt = self.currentCharFormat()
+        fmt.setProperty(MARKER_PROPERTY, False)
+        self.setCurrentCharFormat(fmt)
         self._highlighter.rehighlight()
         if persist:
             self._persist()
@@ -600,38 +687,31 @@ class NotepadOutput(QTextEdit):
                 merged.append([s, se])
         return [(s, e - s) for s, e in merged]
 
+    def _format_marker(self, start, length, enabled):
+        """Native character properties follow edits, including undo and redo."""
+        end = min(start + length, self.document().characterCount() - 1)
+        start = max(0, start)
+        if start >= end:
+            return
+        cursor = QTextCursor(self.document())
+        cursor.setPosition(start)
+        cursor.setPosition(end, QTextCursor.KeepAnchor)
+        fmt = QTextCharFormat()
+        fmt.setProperty(MARKER_PROPERTY, enabled)
+        cursor.mergeCharFormat(fmt)
+
     def _add_highlight(self, rng):
-        """Add a highlight range and merge"""
-        s, l = int(rng[0]), int(rng[1])
-        if l <= 0:
+        start, length = int(rng[0]), int(rng[1])
+        if length <= 0:
             return
-        self._highlights.append((s, l))
-        self._highlights = self._merge_ranges(self._sanitize_ranges(self._highlights))
+        self._format_marker(start, length, True)
         self.schedule_save()
 
-    def _remove_range_from_highlights(self, s, l):
-        """Subtract a range from all highlights"""
-        if l <= 0:
+    def _remove_range_from_highlights(self, start, length):
+        if length <= 0:
             return
-        start = s
-        end = s + l
-        result = []
-        for hs, hl in self._highlights:
-            he = hs + hl
-            if he <= start or hs >= end:
-                result.append((hs, hl))
-                continue
-            if hs < start:
-                result.append((hs, start - hs))
-            if he > end:
-                result.append((end, he - end))
-        self._highlights = self._merge_ranges(self._sanitize_ranges(result))
+        self._format_marker(start, length, False)
         self.schedule_save()
 
-    def _selection_overlaps_any_highlight(self, s, e):
-        """Check if selection overlaps any highlight"""
-        for hs, hl in self._highlights:
-            he = hs + hl
-            if not (he <= s or hs >= e):
-                return True
-        return False
+    def _selection_overlaps_any_highlight(self, start, end):
+        return any(hs < end and hs + length > start for hs, length in self.get_highlights())

@@ -16,6 +16,7 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_AUDIO,
     MODE_CHAT,
     MODE_COMPLETION,
@@ -41,21 +42,42 @@ class Modes:
         self.provider = JsonFileProvider(window)
         self.initialized = False
         self.all = (
-            MODE_AGENT,
-            MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
             MODE_AUDIO,
             MODE_CHAT,
             MODE_COMPLETION,
             MODE_EXPERT,
+            MODE_AGENT,
             MODE_IMAGE,
             # MODE_LANGCHAIN,
             MODE_LLAMA_INDEX,
             # MODE_VISION,
             MODE_RESEARCH,
             MODE_COMPUTER,
+            MODE_AGENT_LLAMA,
         )
         self.items = {}
+
+    def get_ordered_keys(self) -> tuple[str, ...]:
+        """
+        Return mode IDs in the same order as the mode selector: regular
+        modes first and legacy modes last. Ordering inside each group follows
+        the source modes configuration.
+
+        :return: ordered mode IDs
+        """
+        regular = []
+        legacy = []
+        # Deprecated modes remain loaded for backward compatibility/runtime
+        # handling, but are intentionally absent from every UI selector that
+        # consumes this canonical ordered list.
+        hidden = {MODE_LLAMA_INDEX, MODE_AGENT_OPENAI}
+        for mode_id, item in self.items.items():
+            if mode_id in hidden:
+                continue
+            (legacy if item.legacy else regular).append(mode_id)
+        return tuple(regular + legacy)
 
     def get_by_idx(self, idx) -> str:
         """
@@ -64,7 +86,7 @@ class Modes:
         :param idx: index of mode
         :return: mode name
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         return keys[idx]
 
     def get_idx_by_name(self, name) -> int:
@@ -74,7 +96,7 @@ class Modes:
         :param name: mode name
         :return: mode index
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         return keys.index(name)
 
     def get_all(self) -> Dict[str, List[str]]:
@@ -100,7 +122,7 @@ class Modes:
         :param mode: current mode
         :return: next mode
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         idx = keys.index(mode)
         return keys[(idx + 1) % len(keys)]
 
@@ -111,7 +133,7 @@ class Modes:
         :param mode: current mode
         :return: previous mode
         """
-        keys = tuple(self.items)
+        keys = self.get_ordered_keys()
         idx = keys.index(mode)
         return keys[(idx - 1) % len(keys)]
 

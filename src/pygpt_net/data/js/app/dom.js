@@ -13,6 +13,7 @@ class DOMRefs {
     this._domOutputStreamRef = null; // WeakRef<HTMLDivElement> for '_append_output_'
     this._domStreamMsgRef = null;    // WeakRef<HTMLDivElement> for current '.msg'
     this._domStreamBoxRef = null;    // WeakRef<HTMLDivElement> for current '.msg-box'
+    this._streamOwnerHint = '';       // Durable msg id to claim when a live stream box is created.
   }
 
   // Cache frequently used elements by id (strong refs to fixed layout nodes).
@@ -41,6 +42,38 @@ class DOMRefs {
   resetEphemeral() {
     this._domStreamMsgRef = null;
     this._domStreamBoxRef = null;
+    this._streamOwnerHint = '';
+  }
+
+  // Remember the durable owner for a transient stream box. The box may not
+  // exist yet (Realtime starts its stream before the first text delta), so the
+  // hint is also applied lazily by getStreamMsg() when the box is created.
+  setStreamOwnerHint(ownerId) {
+    const value = String(ownerId || '');
+    this._streamOwnerHint = value;
+    if (!value) return false;
+    const box = this._deref(this._domStreamBoxRef);
+    return box ? this._applyStreamOwnerHint(box) : false;
+  }
+
+  _applyStreamOwnerHint(box) {
+    if (!box) return false;
+    const value = String(this._streamOwnerHint || '');
+    if (!value) return false;
+
+    const explicit = String((box.dataset && box.dataset.workflowParentId) || '');
+    const boxId = String(box.id || '');
+    const current = explicit || (boxId.startsWith('msg-bot-') ? boxId.slice('msg-bot-'.length) : '');
+    // Never steal a box that is already owned by another turn.
+    if (current && current !== value) return false;
+
+    box.dataset.workflowParentId = value;
+    const wantedId = `msg-bot-${value}`;
+    const existing = document.getElementById(wantedId);
+    // A continuation may already have a durable bot node with this id. In that
+    // case dataset ownership is enough; avoid creating duplicate DOM ids.
+    if (!existing || existing === box) box.id = wantedId;
+    return true;
   }
 
   // Release refs and restore default scroll behavior.
@@ -216,14 +249,114 @@ class DOMRefs {
     }
   }
 
-  // Get or create current streaming message container (.msg-box > .msg > .md-snapshot-root).
+  // Return/create the chronological body of one assistant message.
+  // Everything that is part of the workflow (text, tools, statuses and live
+  // partials) lives here. Message extras/actions stay outside this container.
+  getMsgTimeline(msg, create = true) {
+    if (!msg) return null;
+    let timeline = null;
+    try { timeline = msg.querySelector(':scope > .msg-timeline'); } catch (_) { timeline = msg.querySelector('.msg-timeline'); }
+    if (timeline || !create) return timeline;
+
+    timeline = document.createElement('div');
+    timeline.className = 'msg-timeline';
+
+    let anchor = null;
+    try {
+      anchor = msg.querySelector(':scope > .msg-tool-extra, :scope > .msg-extra, :scope > .action-icons');
+    } catch (_) {
+      anchor = msg.querySelector('.msg-tool-extra, .msg-extra, .action-icons');
+    }
+
+    // Migrate only known chronological children. This keeps compatibility with
+    // messages created by older runtime code without moving extras/actions.
+    const move = [];
+    for (const node of Array.from(msg.childNodes || [])) {
+      if (!node || node === timeline) continue;
+      if (node.nodeType !== Node.ELEMENT_NODE) continue;
+      const el = node;
+      if (
+        el.classList.contains('md-block') ||
+        el.classList.contains('md-snapshot-root') ||
+        el.classList.contains('msg-part') ||
+        el.classList.contains('tool-output') ||
+        el.classList.contains('workflow-status-list') ||
+        el.classList.contains('agents-v2-status-list')
+      ) move.push(el);
+    }
+
+    if (anchor) msg.insertBefore(timeline, anchor);
+    else msg.insertBefore(timeline, msg.firstChild || null);
+    for (const node of move) timeline.appendChild(node);
+    return timeline;
+  }
+
+  // Keep a stable action-footer footprint for the whole lifetime of a response.
+  // The slot itself never disappears: while a turn is active it is either an
+  // invisible placeholder or contains invisible real actions. END/STOP only
+  // changes visibility, so finalization cannot change message height.
+  _ensureStreamFooterPlaceholder(msg) {
+    if (!msg) return null;
+
+    // An older implementation also created an empty .msg-extra placeholder.
+    // It reserves unrelated padding and is not needed for action buttons, so
+    // remove it opportunistically when touching the message.
+    try {
+      for (const extra of Array.from(msg.querySelectorAll(':scope > .msg-extra[data-stream-footer-placeholder="1"]'))) {
+        extra.remove();
+      }
+    } catch (_) {}
+
+    let actions = null;
+    try { actions = msg.querySelector(':scope > .action-icons'); }
+    catch (_) { actions = msg.querySelector('.action-icons'); }
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'action-icons';
+      msg.appendChild(actions);
+    }
+
+    actions.dataset.footerSlot = '1';
+    if (!actions.children.length) this._setActionFooterPlaceholder(actions);
+    return actions;
+  }
+
+  // Fill an existing action slot with one invisible icon-shaped placeholder.
+  // It has exactly the same vertical footprint as the real action row.
+  _setActionFooterPlaceholder(actions) {
+    if (!actions) return null;
+    actions.replaceChildren();
+    actions.dataset.footerSlot = '1';
+    actions.dataset.streamFooterPlaceholder = '1';
+    actions.setAttribute('aria-hidden', 'true');
+
+    const link = document.createElement('a');
+    link.className = 'action-icon';
+    link.tabIndex = -1;
+    const cmd = document.createElement('span');
+    cmd.className = 'cmd';
+    const icon = document.createElement('img');
+    icon.className = 'action-img';
+    icon.alt = '';
+    cmd.appendChild(icon);
+    link.appendChild(cmd);
+    actions.appendChild(link);
+    return actions;
+  }
+
+  // Get or create current streaming message container
+  // (.msg-box > .msg > .msg-timeline > .md-snapshot-root).
   getStreamMsg(create, name_header) {
     const container = this.getStreamContainer();
     if (!container) return null;
 
     // Fast path: return cached current message if still connected.
     let msg = this._deref(this._domStreamMsgRef);
-    if (msg) return msg;
+    if (msg) {
+      try { this._applyStreamOwnerHint(msg.closest('.msg-box.msg-bot')); } catch (_) {}
+      this._ensureStreamFooterPlaceholder(msg);
+      return msg;
+    }
 
     // Try known current box first (if any).
     let box = this._deref(this._domStreamBoxRef);
@@ -239,6 +372,7 @@ class DOMRefs {
 
       const newBox = document.createElement('div');
       newBox.classList.add('msg-box', 'msg-bot');
+      this._applyStreamOwnerHint(newBox);
 
       if (name_header) {
         const name = document.createElement('div');
@@ -251,9 +385,11 @@ class DOMRefs {
       const newMsg = document.createElement('div');
       newMsg.classList.add('msg');
 
+      const timeline = this.getMsgTimeline(newMsg, true);
       const snap = document.createElement('div');
       snap.className = 'md-snapshot-root';
-      newMsg.appendChild(snap);
+      timeline.appendChild(snap);
+      this._ensureStreamFooterPlaceholder(newMsg);
 
       newBox.appendChild(newMsg);
       frag.appendChild(newBox);
@@ -267,17 +403,22 @@ class DOMRefs {
 
     // If a box exists but has no .msg or .md-snapshot-root, ensure it.
     if (box) {
+      this._applyStreamOwnerHint(box);
       try { msg = box.querySelector('.msg'); } catch (_) { msg = null; }
       if (!msg) {
         msg = document.createElement('div');
         msg.classList.add('msg');
         box.appendChild(msg);
       }
-      if (!msg.querySelector('.md-snapshot-root')) {
-        const snap = document.createElement('div');
+      const timeline = this.getMsgTimeline(msg, true);
+      let snap = timeline ? timeline.querySelector('.md-snapshot-root') : null;
+      if (!snap) {
+        snap = document.createElement('div');
         snap.className = 'md-snapshot-root';
-        msg.appendChild(snap);
+        if (timeline) timeline.appendChild(snap);
+        else msg.appendChild(snap);
       }
+      this._ensureStreamFooterPlaceholder(msg);
       this._domStreamBoxRef = (typeof WeakRef !== 'undefined') ? new WeakRef(box) : null;
       this._domStreamMsgRef = (typeof WeakRef !== 'undefined') ? new WeakRef(msg) : null;
     }

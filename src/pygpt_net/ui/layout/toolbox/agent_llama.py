@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QWidget
 
+from pygpt_net.ui.widget.element.labels import ElideLabel
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
@@ -49,7 +50,7 @@ class AgentLlama:
         nodes['agent.llama.loop.score'].setToolTip(trans("toolbox.agent.llama.loop.score.tooltip"))
         config_global['agent.llama.loop.score'] = nodes['agent.llama.loop.score']
 
-        nodes['agent.llama.loop.mode.label'] = QLabel(trans("toolbox.agent.llama.loop.mode.label"), parent=win)
+        nodes['agent.llama.loop.mode.label'] = ElideLabel(trans("toolbox.agent.llama.loop.mode.label"), window=win)
         nodes['agent.llama.loop.mode'] = OptionCombo(
             win,
             'global',
@@ -65,15 +66,12 @@ class AgentLlama:
         )
         config_global['agent.llama.loop.enabled'] = nodes['agent.llama.loop.enabled']
 
-        nodes['agent.llama.loop.label'] = QLabel(trans("toolbox.agent.llama.loop.label"), parent=win)
-
-        cols = QHBoxLayout()
-        cols.addWidget(config_global['agent.llama.loop.enabled'])
-        cols.addWidget(config_global['agent.llama.loop.score'])
+        nodes['agent.llama.loop.label'] = ElideLabel(trans("toolbox.agent.llama.loop.label"), window=win)
 
         rows = QVBoxLayout()
         rows.addWidget(nodes['agent.llama.loop.label'])
-        rows.addLayout(cols)
+        rows.addWidget(config_global['agent.llama.loop.enabled'])
+        rows.addWidget(config_global['agent.llama.loop.score'])
         rows.addWidget(nodes['agent.llama.loop.mode'])
 
         container.setLayout(rows)

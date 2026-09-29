@@ -57,6 +57,18 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_items(store_id)
 
+    def get_index_ids(self, store_id: str) -> list:
+        return self.storage.get_index_ids(store_id)
+
+    def get_file_status(self, store_id: str, file_id: str) -> list:
+        return self.storage.get_file_status(store_id, file_id)
+
+    def get_file_record(self, store_id: str, idx: str, file_id: str) -> Optional[dict]:
+        return self.storage.get_file_record(store_id, idx, file_id)
+
+    def get_files_by_index(self, store_id: str, idx: str) -> list:
+        return self.storage.get_files_by_index(store_id, idx)
+
     def append_file(
             self,
             store_id: str,
@@ -107,6 +119,26 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.insert_external(store_id, idx, data)
 
+    def get_ctx_meta_index_data(
+            self,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None
+    ) -> list:
+        return self.storage.get_ctx_meta_index_data(meta_id=meta_id, group_id=group_id)
+
+    def get_ctx_records(
+            self,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None
+    ) -> list:
+        return self.storage.get_ctx_records(meta_id=meta_id, group_id=group_id)
+
+    def remove_ctx_record(self, row_id: int) -> bool:
+        return self.storage.remove_ctx_record(row_id)
+
+    def get_index_stores(self, idx: str) -> list:
+        return self.storage.get_index_stores(idx)
+
     def is_meta_indexed(
             self,
             store_id: str,
@@ -122,6 +154,14 @@ class DbSqliteProvider(BaseProvider):
         :return: True if indexed
         """
         return self.storage.is_meta_indexed(store_id, idx, meta_id)
+
+    def get_ctx_updated_ts(
+            self,
+            store_id: str,
+            idx: str,
+            meta_id: Optional[int] = None
+    ) -> int:
+        return self.storage.get_ctx_updated_ts(store_id, idx, meta_id)
 
     def is_file_indexed(
             self,
@@ -224,6 +264,8 @@ class DbSqliteProvider(BaseProvider):
 
     def update_ctx_meta(
             self,
+            store_id: str,
+            idx: str,
             meta_id: int,
             doc_id: str
     ) -> bool:
@@ -233,7 +275,7 @@ class DbSqliteProvider(BaseProvider):
         :param: meta_id: context meta ID
         :param: doc_id: document ID
         """
-        return self.storage.update_ctx_meta(meta_id, doc_id)
+        return self.storage.update_ctx_meta(store_id, idx, meta_id, doc_id)
 
     def update_external(
             self,
@@ -366,6 +408,21 @@ class DbSqliteProvider(BaseProvider):
         :return: True if truncated
         """
         return self.storage.truncate_external(store_id, idx)
+
+    def get_project(self, group_id: int) -> Optional[dict]:
+        return self.storage.get_project(group_id)
+
+    def get_projects(self) -> list:
+        return self.storage.get_projects()
+
+    def upsert_project(self, group_id: int, idx_id: str, last_meta: int, last_item: int, last_update: int) -> bool:
+        return self.storage.upsert_project(group_id, idx_id, last_meta, last_item, last_update)
+
+    def remove_project(self, group_id: int) -> bool:
+        return self.storage.remove_project(group_id)
+
+    def truncate_projects(self) -> bool:
+        return self.storage.truncate_projects()
 
     def get_counters(
             self,

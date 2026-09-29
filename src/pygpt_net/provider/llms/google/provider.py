@@ -1,0 +1,373 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.10 12:48:00
+# ================================================== #
+
+from __future__ import annotations
+
+from typing import Optional, List, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+
+from pygpt_net.core.types import (
+    MODE_LLAMA_INDEX,
+    MODE_EMBEDDINGS,
+)
+from pygpt_net.provider.llms.base import BaseLLM
+from pygpt_net.item.model import ModelItem
+from pygpt_net.core.types.reasoning import get_google_thinking_kwargs
+
+
+
+def _get_google_types():
+    from google.genai import types as gtypes
+    return gtypes
+
+class GoogleLLM(BaseLLM):
+    def __init__(self, *args, **kwargs):
+        super(GoogleLLM, self).__init__(*args, **kwargs)
+        """
+        Required ENV variables:
+            - GOOGLE_API_KEY - API key for Google API
+        Required args:
+            - model: model name, e.g. gemini-1.5-pro
+            - api_key: API key for Google API
+        """
+        self.id = "google"
+        self.name = "Google"
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {
+            "settings": {
+                "api_key": {
+                    "type": "str", "default": "", "secret": True,
+                    "urls": {"API Keys": "https://aistudio.google.com/app/apikey"},
+                },
+                "api_base": {"type": "str", "default": "https://generativelanguage.googleapis.com/v1beta/openai"},
+                "extra": {
+                    "native": {
+                        "type": "bool", "default": True,
+                        "label": "settings.api_native_google",
+                        "desc": "settings.api_native_google.desc",
+                        "use_locale": True,
+                    },
+                    "use_vertex": {
+                        "type": "bool", "default": False,
+                        "label": "settings.api_native_google.use_vertex",
+                        "desc": "settings.api_native_google.use_vertex.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                    "cloud_project": {
+                        "type": "str", "default": "",
+                        "label": "settings.api_native_google.cloud_project",
+                        "desc": "settings.api_native_google.cloud_project.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                    "cloud_location": {
+                        "type": "str", "default": "us-central1",
+                        "label": "settings.api_native_google.cloud_location",
+                        "desc": "settings.api_native_google.cloud_location.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                    "app_credentials": {
+                        "type": "str", "default": "",
+                        "label": "settings.api_native_google.app_credentials",
+                        "desc": "settings.api_native_google.app_credentials.desc",
+                        "use_locale": True, "advanced": True,
+                    },
+                },
+            }
+        }
+
+    @staticmethod
+    def _generation_config_dict(value) -> dict:
+        """Normalize a Google GenerateContentConfig/dict for safe merging."""
+        if value is None:
+            return {}
+        if isinstance(value, dict):
+            return dict(value)
+        try:
+            return value.model_dump(exclude_none=True)
+        except Exception:
+            return {}
+
+    def _append_reasoning_effort(self, window, model: ModelItem, args: dict) -> None:
+        effort = window.core.models.get_reasoning_effort(model)
+        if not effort:
+            return
+        thinking = get_google_thinking_kwargs(model.id, effort)
+        if not thinking:
+            return
+        generation_config = self._generation_config_dict(args.get("generation_config"))
+        # llama-index-llms-google-genai 0.11.1 expects a typed
+        # GenerateContentConfig here and calls .model_dump() on it internally.
+        generation_config["thinking_config"] = _get_google_types().ThinkingConfig(**thinking)
+        args["generation_config"] = _get_google_types().GenerateContentConfig(**generation_config)
+
+    def llama_completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> LlamaBaseLLM:
+        """Return LlamaIndex completion provider without server-side chat tools."""
+        return self.llama(
+            window=window,
+            model=model,
+            stream=stream,
+            remote_tools=False,
+        )
+
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            remote_tools: bool = True
+    ) -> LlamaBaseLLM:
+        """
+        Return LLM provider instance for llama
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :param remote_tools: enable remote tools for Google GenAI
+        :return: LLM provider instance
+        """
+        from .capture import PyGPTGoogleGenAI
+        args = self.parse_args(model.llama_index, window)
+        if not args.get("model"):
+            model_id = str(model.id or "").strip()
+            if model_id and not model_id.startswith("models/"):
+                model_id = "models/" + model_id
+            args["model"] = model_id
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    (model.llama_index or {}).get("env", []),
+                    ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+                )
+                or self.get_config("api_key", "")
+            )
+
+        window.core.api.google.setup_env()  # setup VertexAI if configured
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        had_generation_config = "generation_config" in args
+        self._append_reasoning_effort(window, model, args)
+
+        # -----------------------------------------------------------
+        # Remote built-in tools for Google GenAI via LlamaIndex:
+        # - Google Search grounding (Tool(google_search=GoogleSearch()))
+        # - Code Execution (Tool(code_execution=ToolCodeExecution()))
+        # - Url Context (Tool(url_context=UrlContext)) on 2.x+
+        # We reuse native builder and forward tools into LlamaIndex.
+        # If 1 tool -> use 'built_in_tool', if >1 -> pack into generation_config.tools
+        # -----------------------------------------------------------
+        built_tools = []
+        if remote_tools:
+            try:
+                built_tools = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
+            except Exception as e:
+                window.core.debug.log(e)
+
+        if built_tools and not had_generation_config:
+            # A runtime thinking_config may have created generation_config after
+            # parsing the model args.  It must not suppress remote tools.  A
+            # user-supplied generation_config keeps the historical behavior.
+            if len(built_tools) == 1:
+                if "built_in_tool" not in args:
+                    args["built_in_tool"] = built_tools[0]
+            else:
+                generation_config = self._generation_config_dict(args.get("generation_config"))
+                if not generation_config.get("tools"):
+                    generation_config["tools"] = built_tools
+                    args["generation_config"] = _get_google_types().GenerateContentConfig(**generation_config)
+
+        # The pinned llama-index Google integration treats generation_config as
+        # a pydantic model, not a plain dict. Normalize user/model args too.
+        if isinstance(args.get("generation_config"), dict):
+            args["generation_config"] = _get_google_types().GenerateContentConfig(**args["generation_config"])
+
+        self.log_llama_create(window, model, args, "PyGPTGoogleGenAI", {"pygpt_remote_tools": built_tools})
+        return PyGPTGoogleGenAI(**args, pygpt_remote_tools=built_tools)
+
+    def llama_chat_with_files(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            computer_runtime=None,
+            force_computer_use: bool = False,
+    ) -> LlamaBaseLLM:
+        """Use the shared provider continuation adapter when Computer Use is active."""
+        remote = window.core.api.google.remote_tools
+        computer_enabled = (
+            remote.supports_computer_use(model)
+            if force_computer_use
+            else remote.is_computer_use_enabled(model)
+        )
+        if computer_enabled:
+            llm = self.llama_agent(
+                window=window,
+                model=model,
+                stream=stream,
+                allow_remote_tools=True,
+                force_computer_use=force_computer_use,
+            )
+            binder = getattr(llm, "bind_computer_runtime", None)
+            if callable(binder):
+                binder(computer_runtime)
+            return llm
+        return self.llama(window=window, model=model, stream=stream)
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
+    ) -> LlamaBaseLLM:
+        """Return Google GenAI configured for Agents v2.
+
+        Remote Google tools are merged with FunctionAgent tools at request time
+        by the adapter, and grounding URLs are collected for PyGPT artifacts.
+        """
+        from .agent import AgentGoogleGenAI
+
+        args = self.parse_args(model.llama_index, window)
+        if not args.get("model"):
+            model_id = str(model.id or "").strip()
+            if model_id and not model_id.startswith("models/"):
+                model_id = "models/" + model_id
+            args["model"] = model_id
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    (model.llama_index or {}).get("env", []),
+                    ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+                )
+                or self.get_config("api_key", "")
+            )
+
+        window.core.api.google.setup_env()
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self._append_reasoning_effort(window, model, args)
+
+        remote = []
+        if force_computer_use:
+            try:
+                if window.core.api.google.remote_tools.supports_computer_use(model):
+                    remote = [window.core.api.google.computer.get_tool()]
+            except Exception as e:
+                window.core.debug.log(e)
+        elif allow_remote_tools:
+            try:
+                remote = window.core.api.google.remote_tools.build_remote_tools(model=model) or []
+            except Exception as e:
+                window.core.debug.log(e)
+
+        if isinstance(args.get("generation_config"), dict):
+            args["generation_config"] = _get_google_types().GenerateContentConfig(**args["generation_config"])
+
+        self.log_llama_create(window, model, args, "AgentGoogleGenAI", {"pygpt_remote_tools": remote})
+        return AgentGoogleGenAI(
+            **args,
+            pygpt_remote_tools=remote,
+        )
+
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
+        """
+        Return provider instance for embeddings
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
+        from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
+        args = {}
+        if config is not None:
+            args = self.parse_args({
+                "args": config,
+            }, window)
+        if not args.get("api_key"):
+            args["api_key"] = (
+                self.get_env_override(
+                    window,
+                    window.core.config.get("llama.idx.embeddings.env", []) or [],
+                    ["GOOGLE_API_KEY", "GEMINI_API_KEY"],
+                )
+                or self.get_config("api_key", "")
+            )
+        if args.get("model") and not args.get("model_name"):
+            args["model_name"] = args.pop("model")
+
+        window.core.api.google.setup_env()  # setup VertexAI if configured
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        return GoogleGenAIEmbedding(**args)
+
+    def get_models(
+            self,
+            window,
+    ) -> List[Dict]:
+        """
+        Return list of models for the provider
+
+        :param window: window instance
+        :return: list of models
+        """
+        items = []
+        try:
+            client = window.core.api.google.get_client()
+            models_list = client.models.list()
+            for item in models_list:
+                id = item.name.replace("models/", "")
+                items.append({
+                    "id": id,
+                    "name": id,  # TODO: token limit get from API
+                })
+        except Exception as e:
+            window.core.debug.log(e)
+        return items
+
+    def inject_llamaindex_http_clients(self, args: dict, cfg) -> dict:
+        proxy = cfg.get("api_proxy")
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
+        if proxy:
+            http_options = _get_google_types().HttpOptions(
+                client_args={"proxy": proxy},
+                async_client_args={"proxy": proxy},
+            )
+            args["http_options"] = http_options
+        return args
+
+    def inject_llamaindex_embedding_http_clients(self, args: dict, cfg) -> dict:
+        if "http_options" in args:
+            return args
+        proxy = cfg.get("api_proxy")
+        if not cfg.get("api_proxy.enabled", False):
+            proxy = ""
+        options = {
+            "timeout": int(self.get_embeddings_timeout(cfg) * 1000),
+        }
+        if proxy:
+            options["client_args"] = {"proxy": proxy}
+            options["async_client_args"] = {"proxy": proxy}
+        args["http_options"] = _get_google_types().HttpOptions(**options)
+        return args

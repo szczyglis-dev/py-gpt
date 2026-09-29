@@ -72,3 +72,26 @@ def test_attach(mock_window):
     mock_window.core.attachments.save.assert_called_once()
     mock_window.controller.attachment.update.assert_called_once()
 
+
+
+def test_save_current_runtime_image_exports_composited_painter_without_persistent_attachment(mock_window, tmp_path):
+    """Runtime Painter capture saves the logical canvas but does not touch chat attachments."""
+    capture = Capture(mock_window)
+    painter = MagicMock()
+    painter.image.isNull.return_value = False
+    painter.image.save.return_value = True
+    mock_window.ui.painter = painter
+    runtime_root = tmp_path / "runtime_artifacts"
+    mock_window.core.filesystem.get_runtime_artifacts_dir.return_value = str(runtime_root)
+
+    path = capture.save_current_runtime_image()
+
+    assert path is not None
+    assert path.startswith(str(runtime_root))
+    assert path.endswith('.png')
+    assert 'painter-user-' in path
+    mock_window.core.filesystem.get_runtime_artifacts_dir.assert_called_once_with(create=True)
+    painter._ensure_composited_image.assert_called_once_with()
+    painter.image.save.assert_called_once_with(path, "PNG")
+    mock_window.core.attachments.new.assert_not_called()
+    mock_window.core.attachments.save.assert_not_called()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 17:40:00                  #
+# Updated Date: 2026.09.22 13:18:00
 # ================================================== #
 
 import io
@@ -15,25 +15,20 @@ from dataclasses import dataclass, field
 from typing import Optional, Any
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
-from openai.types.chat import ChatCompletionChunk
 
 from pygpt_net.core.events import RenderEvent
+from pygpt_net.core.types import MODE_AGENT
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.api.google.utils import capture_google_usage
 from pygpt_net.provider.api.reasoning import (
     close_stream_reasoning, cleanup_stream_reasoning, ensure_reasoning_metadata,
-    is_tagged_reasoning_model, persist_stream_reasoning,
-    strip_and_store_tagged_reasoning, strip_stream_reasoning,
+    is_realtime_reasoning_enabled, is_tagged_reasoning_model,
+    persist_stream_reasoning, strip_and_store_tagged_reasoning,
+    strip_stream_reasoning, strip_tagged_reasoning,
 )
 
 # Import provider-specific stream processors
-from pygpt_net.provider.api.openai import stream as openai_stream
-from pygpt_net.provider.api.google import stream as google_stream
-from pygpt_net.provider.api.anthropic import stream as anthropic_stream
-from pygpt_net.provider.api.x_ai import stream as xai_stream
-from pygpt_net.provider.api.llama_index import stream as llamaindex_stream
-from pygpt_net.provider.api.langchain import stream as langchain_stream
 
 class WorkerSignals(QObject):
     """
@@ -70,8 +65,35 @@ class WorkerState:
     generator: Any = None
     usage_vendor: Optional[str] = None
     usage_payload: dict = field(default_factory=dict)
+
+    # --- Google GenAI streaming / Interactions API ---
+    # WorkerState is slotted, therefore Google-specific state used across
+    # streaming chunks must be declared explicitly instead of attached lazily.
     google_stream_ref: Any = None
+    google_last_event_id: Optional[str] = None
+    google_interaction_id: Optional[str] = None
+    google_interaction_status: Optional[str] = None
+    google_interaction_pending_calls: dict = field(default_factory=dict)
+    google_interaction_steps: list = field(default_factory=list)
+    google_annotations: list = field(default_factory=list)
+    google_thought_summaries: list = field(default_factory=list)
+    google_function_results: list = field(default_factory=list)
+    google_code_results: list = field(default_factory=list)
+    google_url_context_calls: list = field(default_factory=list)
+    google_url_context_results: list = field(default_factory=list)
+    google_research_queries: list = field(default_factory=list)
+    google_search_results: list = field(default_factory=list)
+    google_file_search_calls: list = field(default_factory=list)
+    google_file_search_results: list = field(default_factory=list)
+    google_retrieval_calls: list = field(default_factory=list)
+    google_retrieval_results: list = field(default_factory=list)
+    google_server_tool_events: list = field(default_factory=list)
+    google_thought_signatures: list = field(default_factory=list)
+    google_downloaded_uris: set = field(default_factory=set)
+
     tool_calls: list[dict] = field(default_factory=list)
+    chunk_count: int = 0
+    chunk_types: dict[str, int] = field(default_factory=dict)
 
     # --- Provider reasoning/thinking trace ---
     reasoning_buffer: Optional[io.StringIO] = None
@@ -81,6 +103,7 @@ class WorkerState:
     reasoning_kind: Optional[str] = None
     reasoning_raw: bool = False
     reasoning_open: bool = False
+    reasoning_enabled: bool = True
 
     # --- XAI SDK only ---
     xai_last_response: Any = None  # holds final response from xai_sdk.chat.stream()
@@ -109,6 +132,7 @@ class StreamWorker(QRunnable):
         emit_chunk = self.signals.chunk.emit
 
         state = WorkerState()
+        state.reasoning_enabled = is_realtime_reasoning_enabled(win)
         state.generator = self.stream
         state.img_path = core.image.gen_unique_path(ctx)
 
@@ -140,6 +164,10 @@ class StreamWorker(QRunnable):
                             etype = chunk.event_type
                     else:
                         state.chunk_type = self._detect_chunk_type(chunk)
+
+                    state.chunk_count += 1
+                    chunk_label = str(etype or type(chunk).__name__)
+                    state.chunk_types[chunk_label] = state.chunk_types.get(chunk_label, 0) + 1
 
                     # process chunk according to type
                     response = self._process_chunk(ctx, core, state, chunk, etype)
@@ -188,7 +216,16 @@ class StreamWorker(QRunnable):
         :param ctx: Current context item
         :return: True if should stop
         """
-        if not ctrl.kernel.stopped():
+        parent = getattr(ctx, "turn_parent", None)
+        context_stopped = bool(
+            getattr(ctx, "stopped", False)
+            or (parent is not None and getattr(parent, "stopped", False))
+        )
+        stale_autonomous = bool(
+            getattr(ctx, "mode", None) == MODE_AGENT
+            and not ctrl.agent.legacy.is_ctx_current_run(ctx)
+        )
+        if not ctrl.kernel.stopped() and not context_stopped and not stale_autonomous:
             return False
 
         gen = state.generator
@@ -202,6 +239,11 @@ class StreamWorker(QRunnable):
                         pass
 
         ctx.msg_id = None
+        ctx.stopped = True
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra["response_interrupted"] = True
+        ctx.extra.pop("response_final", None)
         state.stopped = True
         return True
 
@@ -255,9 +297,14 @@ class StreamWorker(QRunnable):
             if not hasattr(chunk, "type") and not hasattr(chunk, "candidates"):
                 return ChunkType.LLAMA_CHAT
 
-        # fallback: OpenAI ChatCompletionChunk not caught above
-        if isinstance(chunk, ChatCompletionChunk):
-            return ChunkType.API_CHAT
+        # fallback: OpenAI ChatCompletionChunk not caught above. Import the
+        # SDK type only when structural detection did not identify the chunk.
+        try:
+            from openai.types.chat import ChatCompletionChunk
+            if isinstance(chunk, ChatCompletionChunk):
+                return ChunkType.API_CHAT
+        except ImportError:
+            pass
 
         return ChunkType.RAW
 
@@ -311,11 +358,13 @@ class StreamWorker(QRunnable):
         # OpenAI: partial image assembly
         if state.is_image and state.img_path:
             core.debug.info("[chat] OpenAI partial image assembled")
+            core.filesystem.materialize_runtime_artifact(state.img_path, ctx=ctx)
             ctx.images = [state.img_path]
 
         # Google: inline images
         if state.image_paths:
             core.debug.info("[chat] Google inline images found")
+            core.filesystem.materialize_runtime_artifacts(state.image_paths, ctx=ctx)
             if not isinstance(ctx.images, list) or not ctx.images:
                 ctx.images = list(state.image_paths)
             else:
@@ -328,6 +377,7 @@ class StreamWorker(QRunnable):
         # xAI: extract tool calls from final response if not already present
         if (not state.tool_calls) and (state.xai_last_response is not None):
             try:
+                from pygpt_net.provider.api.x_ai import stream as xai_stream
                 calls = xai_stream.xai_extract_tool_calls(state.xai_last_response)
                 if calls:
                     state.tool_calls = calls
@@ -337,6 +387,7 @@ class StreamWorker(QRunnable):
         # xAI: collect citations (final response) -> ctx.urls
         if state.xai_last_response is not None:
             try:
+                from pygpt_net.provider.api.x_ai import stream as xai_stream
                 cites = xai_stream.xai_extract_citations(state.xai_last_response) or []
                 if cites:
                     if ctx.urls is None:
@@ -374,11 +425,14 @@ class StreamWorker(QRunnable):
         model = core.models.get(ctx.model) if getattr(ctx, "model", None) else None
         if is_tagged_reasoning_model(model):
             provider = str(getattr(model, "provider", "") or "local")
-            output = strip_and_store_tagged_reasoning(
-                ctx,
-                output,
-                provider=provider,
-            )
+            if state.reasoning_enabled:
+                output = strip_and_store_tagged_reasoning(
+                    ctx,
+                    output,
+                    provider=provider,
+                )
+            else:
+                output = strip_tagged_reasoning(output)
         if state.out is not None:
             try:
                 state.out.close()
@@ -404,6 +458,7 @@ class StreamWorker(QRunnable):
         # xAI: usage from final response if still missing
         if (not state.usage_payload) and (state.xai_last_response is not None):
             try:
+                from pygpt_net.provider.api.x_ai import stream as xai_stream
                 up = xai_stream.xai_extract_usage(state.xai_last_response)
                 if up:
                     state.usage_payload = up
@@ -454,13 +509,43 @@ class StreamWorker(QRunnable):
         # Store provider-supplied readable reasoning separately from the actual
         # assistant output so it can be rendered after reload without polluting
         # subsequent model context.
-        persist_stream_reasoning(ctx, state)
-        if state.usage_payload:
-            ensure_reasoning_metadata(
-                ctx,
-                state.reasoning_provider or state.usage_vendor or "",
-                state.usage_payload.get("reasoning", 0),
+        if state.reasoning_enabled:
+            persist_stream_reasoning(ctx, state)
+            if state.usage_payload:
+                ensure_reasoning_metadata(
+                    ctx,
+                    state.reasoning_provider or state.usage_vendor or "",
+                    state.usage_payload.get("reasoning", 0),
+                )
+
+        # Emit one aggregate API output log for the whole stream. Individual
+        # deltas are intentionally never printed by the debug logger.
+        try:
+            provider = str(getattr(model, "provider", "") or "") if model is not None else ""
+            chunk_type = getattr(state.chunk_type, "value", str(state.chunk_type))
+            core.api.logger.log_output(
+                type=f"stream.{chunk_type}",
+                provider=provider,
+                output=ctx.output,
+                chunks=state.chunk_count,
+                chunk_types=state.chunk_types,
+                tool_calls=state.tool_calls,
+                usage=state.usage_payload or None,
+                error=state.error,
+                model=getattr(model, "id", getattr(ctx, "model", None)),
+                extra={"stopped": state.stopped},
             )
+        except Exception as e:
+            core.debug.log(e)
+
+        # Provider/stream errors are unfinished responses as well. Preserve that
+        # fact in the durable extra metadata so a later WebView/history rebuild
+        # may retain the last runtime statuses only for this newest broken turn.
+        if state.error:
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            ctx.extra["response_interrupted"] = True
+            ctx.extra.pop("response_final", None)
 
         core.ctx.update_item(ctx)
 
@@ -536,27 +621,35 @@ class StreamWorker(QRunnable):
         return self._process_raw(chunk)
 
     def _process_api_chat(self, ctx, state, chunk):
+        from pygpt_net.provider.api.openai import stream as openai_stream
         return openai_stream.process_api_chat(ctx, state, chunk)
 
     def _process_api_chat_responses(self, ctx, core, state, chunk, etype):
+        from pygpt_net.provider.api.openai import stream as openai_stream
         return openai_stream.process_api_chat_responses(ctx, core, state, chunk, etype)
 
     def _process_api_completion(self, chunk):
+        from pygpt_net.provider.api.openai import stream as openai_stream
         return openai_stream.process_api_completion(chunk)
 
     def _process_langchain_chat(self, chunk):
+        from pygpt_net.provider.api.langchain import stream as langchain_stream
         return langchain_stream.process_langchain_chat(chunk)
 
     def _process_llama_chat(self, state, chunk):
+        from pygpt_net.provider.api.llama_index import stream as llamaindex_stream
         return llamaindex_stream.process_llama_chat(state, chunk)
 
     def _process_google_chunk(self, ctx, core, state, chunk):
+        from pygpt_net.provider.api.google import stream as google_stream
         return google_stream.process_google_chunk(ctx, core, state, chunk)
 
     def _process_anthropic_chunk(self, ctx, core, state, chunk):
+        from pygpt_net.provider.api.anthropic import stream as anthropic_stream
         return anthropic_stream.process_anthropic_chunk(ctx, core, state, chunk)
 
     def _process_xai_sdk_chunk(self, ctx, core, state, item):
+        from pygpt_net.provider.api.x_ai import stream as xai_stream
         return xai_stream.process_xai_sdk_chunk(ctx, core, state, item)
 
     def _process_raw(self, chunk) -> Optional[str]:

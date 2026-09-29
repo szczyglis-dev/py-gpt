@@ -6,25 +6,32 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:40:00
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_ASSISTANT,
+    MODE_CHAT,
     MODE_EXPERT,
     MODE_IMAGE,
     MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_COMPUTER,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_COMPLETION,
     MODE_AUDIO,
+    MODE_RESEARCH,
 )
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event
 from pygpt_net.utils import trans
+
+
+AGENT_V2_MODE_CONFIG_KEY = "agent.v2.mode"
+AGENT_V2_MODE_DEFAULT = "chat"
 
 
 class Mode:
@@ -53,22 +60,44 @@ class Mode:
         is_agent = mode == MODE_AGENT
         is_agent_llama = mode == MODE_AGENT_LLAMA
         is_agent_openai = mode == MODE_AGENT_OPENAI
+        is_agent_v2 = mode == MODE_AGENT_V2
         is_expert = mode == MODE_EXPERT
         is_media = mode == MODE_IMAGE
-        is_llama_index = mode == MODE_LLAMA_INDEX
         is_completion = mode == MODE_COMPLETION
         is_audio = mode == MODE_AUDIO
 
         ctrl.ui.hide_input_extra()
 
+        # Agents v2 strategy selector lives below the system prompt. Keep it
+        # hidden in every other app mode and re-sync it from config whenever the
+        # toolbox mode is refreshed (e.g. after profile/config changes).
+        agent_v2_mode_widget = ui_nodes.get('agent.v2.mode.widget')
+        agent_v2_mode_combo = ui_nodes.get('agent.v2.mode')
+        if agent_v2_mode_widget is not None:
+            agent_v2_mode_widget.setVisible(is_agent_v2)
+        if is_agent_v2 and agent_v2_mode_combo is not None:
+            configured_agent_mode = str(
+                self.window.core.config.get(AGENT_V2_MODE_CONFIG_KEY, AGENT_V2_MODE_DEFAULT)
+                or AGENT_V2_MODE_DEFAULT
+            ).strip()
+            configured_agent_mode, _, _ = self.window.core.agents_v2.editor.resolve_selection(
+                configured_agent_mode
+            )
+            idx = agent_v2_mode_combo.findData(configured_agent_mode)
+            if idx < 0:
+                idx = agent_v2_mode_combo.findData(AGENT_V2_MODE_DEFAULT)
+            if idx >= 0 and idx != agent_v2_mode_combo.currentIndex():
+                blocked = agent_v2_mode_combo.blockSignals(True)
+                agent_v2_mode_combo.setCurrentIndex(idx)
+                agent_v2_mode_combo.blockSignals(blocked)
+
         # enable/disable system prompt edit - disable in agents (prompts are defined per agent in presets)
         if not is_agent_openai and not is_agent_llama:
-            presets_editor.toggle_tab("personalize", True)
+            # Preset-editor tab visibility is synchronized atomically below.
             if 'preset.prompt' in ui_nodes and ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(False)
-                ui_nodes['preset.prompt'].setPlaceholderText("")
+                ui_nodes['preset.prompt'].setPlaceholderText(f"{trans('toolbox.prompt')}...")
         else:
-            presets_editor.toggle_tab("personalize", False)
             if 'preset.prompt' in ui_nodes and not ui_nodes['preset.prompt'].isReadOnly():
                 ui_nodes['preset.prompt'].setReadOnly(True)
                 ui_nodes['preset.prompt'].setPlaceholderText(trans("toolbox.agent.preset.placeholder"))
@@ -98,10 +127,11 @@ class Mode:
         else:
             ui_nodes['env.widget'].setVisible(True)
 
-        # agents/experts/presets label visibility
-        show_agents_label = is_agent or is_agent_llama or is_agent_openai
+        # agents/experts/presets label visibility. Chat with Agents uses the
+        # toolbox tab title itself, so avoid duplicating an "Agents" header.
+        show_agents_label = is_agent or is_agent_llama or is_agent_openai or is_agent_v2
         if show_agents_label:
-            ui_nodes['preset.agents.label'].setVisible(True)
+            ui_nodes['preset.agents.label'].setVisible(not is_agent_v2)
             ui_nodes['preset.experts.label'].setVisible(False)
             ui_nodes['preset.presets.label'].setVisible(False)
         elif is_expert:
@@ -113,12 +143,26 @@ class Mode:
             ui_nodes['preset.experts.label'].setVisible(False)
             ui_nodes['preset.presets.label'].setVisible(True)
 
-        if is_expert:
-            ui_nodes['preset.editor.description'].setVisible(True)
-            presets_editor.toggle_tab("remote_tools", True)
-        else:
-            presets_editor.toggle_tab("remote_tools", False)
-            ui_nodes['preset.editor.description'].setVisible(False)
+        # Chat with Agents adds a second toolbox tab for the global Skills
+        # registry. In every other mode the previous single-list appearance is
+        # preserved by hiding both the Skills page and the tab bar.
+        presets_tabs = ui_nodes.get('presets.tabs')
+        if presets_tabs is not None:
+            presets_tabs.setTabVisible(1, is_agent_v2)
+            presets_tabs.tabBar().setVisible(is_agent_v2)
+            if not is_agent_v2 and presets_tabs.currentIndex() != 0:
+                presets_tabs.setCurrentIndex(0)
+            if is_agent_v2:
+                try:
+                    self.window.ui.toolbox.presets.refresh_skills()
+                except (AttributeError, RuntimeError):
+                    pass
+
+        # Rebuild the complete preset-tab visibility map from the current mode
+        # on every switch. Do not mutate individual tabs in separate branches: a
+        # partial update can otherwise leave hidden state from the previous mode.
+        ui_nodes['preset.editor.description'].setVisible(is_expert)
+        presets_editor.sync_tabs_for_mode(mode)
 
         if is_completion:
             ui_nodes['preset.editor.user_name'].setVisible(True)
@@ -130,41 +174,85 @@ class Mode:
         else:
             ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
 
+        # Autonomous mode uses the shared prompt editor for an additional
+        # system prompt. Its base-instruction location is explained directly
+        # below the textarea; hide that hint in every other preset mode.
+        ui_nodes['preset.prompt.agent.desc'].setVisible(is_agent)
+
         # prompt editor toolbox visibility
         if is_agent:
-            presets_editor.toggle_tab("experts", True)
-            ui_nodes['preset.editor.temperature'].setVisible(True)
-            ui_nodes['preset.editor.idx'].setVisible(False)
+            ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent"))
+        elif is_agent_v2:
+            ui_nodes['preset.editor.idx'].setVisible(True)
+            ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(True)
+            ui_nodes['preset.editor.modes'].setVisible(False)
+            ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_v2"))
+        elif is_expert:
+            ui_nodes['preset.editor.idx'].setVisible(True)
+            ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_provider_openai'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(True)
+            ui_nodes['preset.editor.modes'].setVisible(False)
+            ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
         elif is_agent_llama:
-            presets_editor.toggle_tab("experts", False)
-            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(True)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         elif is_agent_openai:
-            presets_editor.toggle_tab("experts", True)
-            ui_nodes['preset.editor.temperature'].setVisible(False)
             ui_nodes['preset.editor.idx'].setVisible(True)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(False)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt.agent_llama"))
         else:
-            if is_expert:
-                ui_nodes['preset.editor.idx'].setVisible(True)
-            else:
-                ui_nodes['preset.editor.idx'].setVisible(False)
-
-            presets_editor.toggle_tab("experts", False)
-            ui_nodes['preset.editor.temperature'].setVisible(True)
+            # RAG can be stored directly in presets for the regular modes that
+            # can consume it, plus Chat with Files itself. Completion keeps the
+            # runtime selector in the toolbox but intentionally has no preset field.
+            show_preset_rag = mode in (
+                MODE_CHAT, MODE_LLAMA_INDEX, MODE_RESEARCH, MODE_COMPUTER,
+            )
+            ui_nodes['preset.editor.idx'].setVisible(show_preset_rag)
             ui_nodes['preset.editor.agent_provider'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_local_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_allow_remote_tools'].setVisible(False)
+            ui_nodes['preset.editor.agent_v2_tools'].setVisible(False)
             ui_nodes['preset.editor.modes'].setVisible(True)
             ui_tabs['preset.editor.extra'].setTabText(0, trans("preset.prompt"))
 
+        # The upper preset editor pane changes height substantially between
+        # modes.  Re-fit it after every mode switch so no stale splitter size
+        # leaves an empty band above the prompt; the lower section receives all
+        # remaining dialog height in every preset mode.
+        presets_editor.fit_splitter_to_content()
+
         # media options visibility
+        # xAI image generation exposes aspect ratio separately from its 1K/2K
+        # resolution tier. Other image providers keep using explicit dimensions.
+        if 'image.aspect_ratio' in ui_nodes:
+            ui_nodes['image.aspect_ratio'].setVisible(
+                is_media
+                and ctrl.media.get_mode() == "image"
+                and ctrl.media.is_xai_image_model()
+            )
+
         if is_media:
             ui_nodes['media.raw'].setVisible(True)
             if ctrl.media.is_video_model() and ctrl.media.get_mode() == "video":
@@ -202,18 +290,37 @@ class Mode:
         else:
             ui_nodes['assistants.widget'].setVisible(False)
 
-        if is_llama_index:
-            ui_nodes['idx.options'].setVisible(True)
-        else:
-            ui_nodes['idx.options'].setVisible(False)
+        # Completion can optionally behave like a flat chat transcript. When
+        # disabled, runtime sends only system prompt + current input and ignores
+        # history/RAG. Keep the footer toggle synchronized after profile changes.
+        completion_as_chat_widget = ui_nodes.get('completion.as_chat.widget')
+        completion_as_chat_toggle = ui_nodes.get('completion.as_chat')
+        if completion_as_chat_widget is not None:
+            completion_as_chat_widget.setVisible(is_completion)
+        if is_completion and completion_as_chat_toggle is not None:
+            configured_as_chat = bool(
+                self.window.core.config.get('completion.as_chat', True)
+            )
+            if completion_as_chat_toggle.isChecked() != configured_as_chat:
+                blocked = completion_as_chat_toggle.box.blockSignals(True)
+                completion_as_chat_toggle.setChecked(configured_as_chat)
+                completion_as_chat_toggle.box.blockSignals(blocked)
+
+        # Shared RAG selector. The RAG operation mode (chat/query/retrieval)
+        # is configured globally in Settings -> RAG -> Chat.
+        show_rag = mode in (
+            MODE_CHAT, MODE_LLAMA_INDEX, MODE_AGENT_V2, MODE_RESEARCH,
+            MODE_COMPUTER, MODE_COMPLETION, MODE_AGENT, MODE_EXPERT,
+        )
+        ui_nodes['idx.options'].setVisible(show_rag)
+        ui_nodes['idx.select.widget'].setVisible(show_rag)
 
         if is_media:
-            ui_nodes['input.stream'].setVisible(False)
+            ui_nodes['input.counter'].setVisible(False)
         else:
-            ui_nodes['input.stream'].setVisible(True)
+            ui_nodes['input.counter'].setVisible(True)
 
         show = self.is_vision(mode)
-        ui_menu['menu.video'].menuAction().setVisible(show)
         ui_nodes['icon.video.capture'].setVisible(show)
         ui_nodes['attachments.capture_clear'].setVisible(show)
 
@@ -231,14 +338,22 @@ class Mode:
 
         presets_editor.toggle_extra_options()
 
+        # Skills are shown in the chat footer only in Agents v2, so refresh the
+        # combined plugin/MCP/Skill status immediately after a mode switch.
+        ctrl.plugins.update_info()
         self.toggle_chat_footer()
 
     def toggle_chat_footer(self):
-        """Toggle chat footer"""
-        if self.window.controller.ui.tabs.get_current_type() != Tab.TAB_CHAT:
-            self.hide_chat_footer()
-        else:
+        """Toggle chat-only footer controls together with the shared Chat input."""
+        tabs = self.window.controller.tabs
+        if hasattr(tabs, 'is_chat_input_visible') and tabs.is_chat_input_visible():
             self.show_chat_footer()
+        elif tabs.get_current_type() == Tab.TAB_CHAT:
+            # Startup/backward-compatible fallback before the per-column input
+            # layout has finished resolving its visible host.
+            self.show_chat_footer()
+        else:
+            self.hide_chat_footer()
 
     def is_vision(self, mode: str) -> bool:
         """
@@ -277,9 +392,56 @@ class Mode:
         return event.data['value']
 
     def show_chat_footer(self):
-        """Show chat footer"""
-        self.window.ui.nodes['chat.footer'].setVisible(True)
+        """Show chat-only footer controls while keeping global footer UI visible."""
+        nodes = self.window.ui.nodes
+        nodes['chat.footer'].setVisible(True)
+        metadata = nodes.get('chat.footer.metadata')
+        if metadata is not None:
+            metadata.setVisible(True)
+        controls = nodes.get('chat.footer.controls')
+        if controls is not None:
+            controls.setVisible(True)
+        icons = nodes.get('chat.icons.header')
+        if icons is not None:
+            icons.setVisible(True)
+
+        # Send / Stop / Cancel / Update live inside ChatInput rather than in
+        # the composer footer. Restore the edit controls, then let the central
+        # request-state synchronizer choose exactly one of Send or Stop.
+        input_node = nodes.get('input')
+        if input_node is not None and nodes.get('input.send_btn') is not None:
+            editing = self.window.controller.ctx.extra.is_editing()
+            input_node.set_icon_visible('cancel', editing)
+            input_node.set_icon_visible('update', editing)
+            self.window.controller.chat.common.sync_send_stop_buttons()
 
     def hide_chat_footer(self):
-        """Hide chat footer"""
-        self.window.ui.nodes['chat.footer'].setVisible(False)
+        """Hide chat-only controls only when the shared Chat input is hidden."""
+        tabs = self.window.controller.tabs
+        if hasattr(tabs, 'is_chat_input_visible') and tabs.is_chat_input_visible():
+            # A non-chat tab may have focus in the other split column while a
+            # single visible Chat keeps owning the shared input. Its Plugins /
+            # MCP / Skills / ctx row must stay attached to that input.
+            self.show_chat_footer()
+            return
+
+        nodes = self.window.ui.nodes
+
+        # Status/footer, audio UI and capability/tool icons are application-wide
+        # controls and must remain available regardless of the active output tab.
+        nodes['chat.footer'].setVisible(True)
+        metadata = nodes.get('chat.footer.metadata')
+        if metadata is not None:
+            metadata.setVisible(False)
+        controls = nodes.get('chat.footer.controls')
+        if controls is not None:
+            controls.setVisible(False)
+        icons = nodes.get('chat.icons.header')
+        if icons is not None:
+            icons.setVisible(True)
+
+        input_node = nodes.get('input')
+        if input_node is not None and nodes.get('input.send_btn') is not None:
+            input_node.set_icon_visible('cancel', False)
+            input_node.set_icon_visible('update', False)
+            self.window.controller.chat.common.sync_send_stop_buttons()

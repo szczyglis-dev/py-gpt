@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:25:00                  #
+# Updated Date: 2026.09.10 09:50:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -89,7 +89,7 @@ class Config(BaseConfig):
             type="combo",
             use="models",
             use_params={
-                "mode": ["vision"],
+                "input": ["image"],
             },
             value="gpt-4o",
             label="Image model",
@@ -135,11 +135,19 @@ class Config(BaseConfig):
             description="If enabled, model will be able to get additional context for a given query",
         )
         plugin.add_option(
+            "use_project_index",
+            type="bool",
+            value=True,
+            label="Use project index if in use",
+            description="When the current conversation is inside a project, use that project's isolated index instead of the configured global indexes.",
+        )
+        plugin.add_option(
             "idx",
             type="bool_list",
             use="idx",
             use_params={
                 "none": False,
+                "project": False,
             },
             value="base",
             label="Indexes to use",

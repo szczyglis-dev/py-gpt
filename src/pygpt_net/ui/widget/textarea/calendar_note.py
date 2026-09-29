@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 
 
@@ -52,7 +53,7 @@ class CalendarNote(QTextEdit):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def set_tab(self, tab: Tab):
@@ -130,32 +131,15 @@ class CalendarNote(QTextEdit):
             super(CalendarNote, self).keyPressEvent(e)
 
     def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
         if event.modifiers() & Qt.ControlModifier:
-            if event.angleDelta().y() > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-
-            self.window.core.config.data['font_size'] = self.value
-            self.window.core.config.save()
-            option = self.window.controller.settings.editor.get_option('font_size')
-            option['value'] = self.value
-            self.window.controller.config.apply(
-                parent_id='config',
-                key='font_size',
-                option=option,
-            )
-            self.window.controller.ui.update_font_size()
+            delta = event.angleDelta().y()
+            if delta:
+                value = max(self.min_font_size, min(self.max_font_size, self.value + (1 if delta > 0 else -1)))
+                if value != self.value:
+                    zoom_text(self, self.window, value, 'font_size')
             event.accept()
         else:
-            super(CalendarNote, self).wheelEvent(event)
+            super().wheelEvent(event)
 
     def focusInEvent(self, e):
         """

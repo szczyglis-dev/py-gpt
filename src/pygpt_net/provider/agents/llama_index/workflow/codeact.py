@@ -5,7 +5,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.26 14:00:00                  #
+# Updated Date: 2026.09.05 14:45:00                  #
 # ================================================== #
 
 # >>> Based on LlamaIndex CodeActAgent implementation, with custom plugin tool support <<<
@@ -53,7 +53,7 @@ You will be given a task to perform. You should output:
 - Text to be shown directly to the user, if you want to ask for more information or provide the final answer.
 
 You are in a IPython environment, so in your code, you can reference any previously used variables or functions.
-To restart the IPython kernel, type the code: `<execute>/restart</execute>`. This will clear all variables and functions.
+Kernel failures are recovered automatically once. Use `<execute>/restart</execute>` only as a manual last-resort recovery after an explicit kernel failure, and never issue repeated restart commands for the same failure. A restart clears all variables and functions.
 If any missing python modules are required, install them using the command: `<execute>!pip install module_name</execute>`.
 When generating any images or plots, use the `matplotlib` library and return only the path to the saved image file instead of showing it.
 By default, store all files in the current working directory, which is `{workdir}`.
@@ -89,6 +89,7 @@ Variables defined at the top level of previous code snippets can be also be refe
 - Structure your response like you're directly answering the user's query, not explaining how you solved it
 
 Remember: Always place your Python code between <execute>...</execute> tags when you want to run code.
+Do not repeat executable code in a separate Markdown code block outside <execute> tags; the executed code is rendered to the user automatically.
 Always place tool calls between <tool>...</tool> tags when you want to run a tool.
 You can include explanations and other content outside these tags.
 """
@@ -123,6 +124,7 @@ class CodeActAgent(BaseWorkflowAgent):
     _plugin_specs: Optional[List] = PrivateAttr(default_factory=list)
     _plugin_tool_fn: Union[Callable, Awaitable] = PrivateAttr(default=None)
     _on_stop: Optional[Callable] = PrivateAttr(default=None)
+    _runtime_system_prompt: str = PrivateAttr(default="")
 
     # Always emit this human-friendly agent name in workflow events for UI consumption.
     _display_agent_name: str = PrivateAttr(default="CodeAct")
@@ -134,6 +136,7 @@ class CodeActAgent(BaseWorkflowAgent):
         name: str = "code_act_agent",
         description: str = "A workflow agent that can execute code and call plugin tools.",
         system_prompt: Optional[str] = None,
+        runtime_system_prompt: Optional[str] = None,
         tools: Optional[List[Union[BaseTool, Callable]]] = None,
         plugin_tools: Optional[Dict[str, Callable]] = None,
         plugin_specs: Optional[List] = None,
@@ -143,19 +146,19 @@ class CodeActAgent(BaseWorkflowAgent):
         code_act_system_prompt: Union[str, BasePromptTemplate] = DEFAULT_CODE_ACT_PROMPT,
         on_stop: Optional[Callable] = None,
     ):
-        tools = tools or []
-        tools.append(FunctionTool.from_defaults(plugin_tool_fn, name=PLUGIN_TOOL_NAME))
+        tools = list(tools or [])
         tools.append(FunctionTool.from_defaults(code_execute_fn, name=EXECUTE_TOOL_NAME))
 
         object.__setattr__(self, "_plugin_tools", plugin_tools or {})
         object.__setattr__(self, "_plugin_tool_fn", plugin_tool_fn)
         object.__setattr__(self, "_plugin_specs", plugin_specs or [])
         object.__setattr__(self, "_on_stop", on_stop)
+        object.__setattr__(self, "_runtime_system_prompt", str(runtime_system_prompt or "").strip())
 
         if self._plugin_tools and self._plugin_specs:
             available_commands = "\n".join(self._plugin_specs)
 
-            async def plugin_tool_wrapper(cmd: str, **params) -> Any:
+            async def plugin_tool_wrapper(cmd: str, params: Dict[str, Any]) -> Any:
                 """
                 Executes a plugin tool.
 
@@ -164,15 +167,17 @@ class CodeActAgent(BaseWorkflowAgent):
                 {available_commands}
                 """
                 tool_fn = plugin_tool_fn
+                params = params or {}
                 if asyncio.iscoroutinefunction(tool_fn):
-                    return await tool_fn(cmd, **params)
-                else:
-                    return tool_fn(cmd, **params)
+                    return await tool_fn(cmd, params)
+                return tool_fn(cmd, params)
 
             plugin_tool_wrapper.__doc__ = plugin_tool_wrapper.__doc__.format(
                 available_commands=available_commands
             )
             tools.append(FunctionTool.from_defaults(plugin_tool_wrapper, name=PLUGIN_TOOL_NAME))
+        else:
+            tools.append(FunctionTool.from_defaults(plugin_tool_fn, name=PLUGIN_TOOL_NAME))
 
         if isinstance(code_act_system_prompt, str):
             if system_prompt:
@@ -277,6 +282,28 @@ class CodeActAgent(BaseWorkflowAgent):
                 continue
         return plugin_calls
 
+    @staticmethod
+    def _deduplicate_tool_calls(tool_calls: List[ToolSelection]) -> List[ToolSelection]:
+        """Return tool calls with duplicate name/arguments pairs removed."""
+        result = []
+        seen = set()
+        for call in tool_calls:
+            try:
+                kwargs_key = json.dumps(
+                    call.tool_kwargs or {},
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    default=str,
+                )
+            except Exception:
+                kwargs_key = repr(call.tool_kwargs)
+            key = (str(call.tool_name), kwargs_key)
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(call)
+        return result
+
     def _emit_step_event(
             self,
             ctx: Context,
@@ -359,6 +386,8 @@ class CodeActAgent(BaseWorkflowAgent):
         current_llm_input = [*llm_input, *scratchpad]
         tool_descriptions = self._get_tool_descriptions(tools)
         system_prompt = self.code_act_system_prompt.format(tool_descriptions=tool_descriptions)
+        if self._runtime_system_prompt and self._runtime_system_prompt not in system_prompt:
+            system_prompt += "\n\n" + self._runtime_system_prompt
 
         has_system = False
         for i, msg in enumerate(current_llm_input):
@@ -383,6 +412,8 @@ class CodeActAgent(BaseWorkflowAgent):
 
         last_chat_response = ChatResponse(message=ChatMessage())
         full_response_text = ""
+        from pygpt_net.core.agents.runners.llama_events import CodeActTextFilter
+        text_filter = CodeActTextFilter()
 
         async for last_chat_response in response:
 
@@ -399,13 +430,20 @@ class CodeActAgent(BaseWorkflowAgent):
             )
             ctx.write_event_to_stream(
                 AgentStream(
-                    delta=delta,
+                    delta=text_filter.feed(delta),
                     response=full_response_text,
                     tool_calls=[],
                     raw=raw,
                     current_agent_name=self._display_agent_name,  # always "CodeAct"
                 )
             )
+
+        tail = text_filter.feed("", final=True)
+        if tail:
+            ctx.write_event_to_stream(AgentStream(
+                delta=tail, response=full_response_text, tool_calls=[], raw={},
+                current_agent_name=self._display_agent_name,
+            ))
 
         code = self._extract_code_from_response(full_response_text)
         plugin_calls = self._extract_plugin_tool_calls(full_response_text)
@@ -429,8 +467,16 @@ class CodeActAgent(BaseWorkflowAgent):
             )
 
         if isinstance(self.llm, FunctionCallingLLM):
-            extra_tool_calls = self.llm.get_tool_calls_from_response(last_chat_response, error_on_no_tool_call=False)
+            extra_tool_calls = self.llm.get_tool_calls_from_response(
+                last_chat_response,
+                error_on_no_tool_call=False,
+            )
             tool_calls.extend(extra_tool_calls)
+
+        # A function-calling model can occasionally return the same call both in
+        # the textual CodeAct protocol (<execute>/<tool>) and as a native tool
+        # call.  Execute each semantic call once.
+        tool_calls = self._deduplicate_tool_calls(tool_calls)
 
         message = ChatMessage(role="assistant", content=full_response_text)
         scratchpad.append(message)
@@ -467,9 +513,14 @@ class CodeActAgent(BaseWorkflowAgent):
 
         for tool_call_result in results:
             if tool_call_result.tool_name == EXECUTE_TOOL_NAME:
-                code_result = (
-                    f"Result of executing the code given:\n\n{tool_call_result.tool_output.content}"
-                )
+                content = str(tool_call_result.tool_output.content or "").strip()
+                if content:
+                    code_result = f"Result of executing the code given:\n\n{content}"
+                else:
+                    # No stdout is a valid result (e.g. writing a file).  Tell the
+                    # next reasoning step that execution succeeded instead of
+                    # feeding it an ambiguous empty result.
+                    code_result = "Code executed successfully. No stdout/output was produced."
                 scratchpad.append(ChatMessage(role="user", content=code_result))
             elif tool_call_result.tool_name == "handoff":
                 scratchpad.append(

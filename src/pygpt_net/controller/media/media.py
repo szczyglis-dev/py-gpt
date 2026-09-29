@@ -76,6 +76,15 @@ class Media:
             value=resolution,
         )
 
+        # image: aspect ratio (xAI only in the toolbox)
+        aspect_ratio = self.window.core.config.get('img.aspect_ratio', 'auto')
+        self.window.controller.config.apply_value(
+            parent_id="global",
+            key="img.aspect_ratio",
+            option=self.window.core.image.get_xai_aspect_ratio_option(),
+            value=aspect_ratio,
+        )
+
         # video: aspect ratio
         aspect_ratio = self.window.core.config.get('video.aspect_ratio', '16:9')
         self.window.controller.config.apply_value(
@@ -106,6 +115,7 @@ class Media:
         # -- add hooks --
         if not self.initialized:
             self.window.ui.add_hook("update.global.img_resolution", self.hook_update)
+            self.window.ui.add_hook("update.global.img.aspect_ratio", self.hook_update)
             self.window.ui.add_hook("update.global.img_mode", self.hook_update)
             self.window.ui.add_hook("update.global.img_variants", self.hook_update)
             self.window.ui.add_hook("update.global.video.aspect_ratio", self.hook_update)
@@ -128,6 +138,10 @@ class Media:
             if not value:
                 return
             self.window.core.config.set('img_resolution', value)
+        elif key == "img.aspect_ratio":
+            if not value:
+                return
+            self.window.core.config.set('img.aspect_ratio', value)
         elif key == "img_variants":
             if not value:
                 return
@@ -207,6 +221,16 @@ class Media:
     def get_mode(self) -> str:
         """Get media generation mode (image/video/music)"""
         return self.window.core.config.get("img_mode", "image")
+
+    def is_xai_image_model(self) -> bool:
+        """Return True when the currently selected image model belongs to xAI."""
+        current = self.window.core.config.get("model")
+        model_data = self.window.core.models.get(current)
+        return bool(
+            model_data
+            and model_data.provider == "x_ai"
+            and model_data.is_image_output()
+        )
 
     def is_image_model(self) -> bool:
         """

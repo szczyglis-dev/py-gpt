@@ -56,7 +56,7 @@ class Chat:
 
     def init(self) -> None:
         """Init"""
-        self.render.setup()  # setup render engine
+        self.render.setup()  # select active renderer
 
     def setup(self) -> None:
         """Setup"""

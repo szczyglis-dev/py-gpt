@@ -20,6 +20,7 @@ from pygpt_net.core.types import (
     MODE_VISION,
     MULTIMODAL_IMAGE,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
 )
 
 class Vision:
@@ -49,6 +50,7 @@ class Vision:
             MODE_LLAMA_INDEX,
             MODE_AGENT,
             MODE_AGENT_OPENAI,
+            MODE_AGENT_V2,
             MODE_RESEARCH,
             MODE_EXPERT,
         ):

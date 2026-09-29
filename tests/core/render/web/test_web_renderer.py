@@ -14,9 +14,10 @@ import re
 import time
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 import pytest
 
+from pygpt_net.core.render.protocol import RenderOp
 from pygpt_net.core.render.web.pid import PidData
 from pygpt_net.core.render.web.renderer import Renderer
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -34,6 +35,8 @@ def fake_node():
 def fake_window(fake_node):
     w = SimpleNamespace()
     w.core = SimpleNamespace()
+    w.core.command = MagicMock()
+    w.core.command.visible_tool_names.side_effect = lambda names: names
     w.core.ctx = SimpleNamespace()
     w.core.ctx.output = MagicMock()
     w.core.ctx.output.get_current = MagicMock(return_value=fake_node)
@@ -71,9 +74,13 @@ def renderer(fake_window):
     r.helpers.format_user_text = MagicMock(side_effect=lambda x: x)
     r.helpers.post_format_text = MagicMock(side_effect=lambda x: x)
     r.helpers.pre_format_text = MagicMock(side_effect=lambda x: x)
+    r.helpers.extract_tool_calls = MagicMock(return_value=[])
+    r.helpers.extract_extra_tool_calls = MagicMock(return_value=[])
+    r.helpers.strip_tool_calls = MagicMock(side_effect=lambda x: x)
     r.body = MagicMock()
-    r.body.get_image_html = MagicMock(side_effect=lambda image, n, c: f"<img>{image}</img>")
-    r.body.get_file_html = MagicMock(side_effect=lambda file, n, c: f"<file>{file}</file>")
+    r.body.build_extras_dicts = MagicMock(return_value=({}, {}, {}, {}))
+    r.body.get_image_html = MagicMock(side_effect=lambda image, n, c, ctx=None: f"<img>{image}</img>")
+    r.body.get_file_html = MagicMock(side_effect=lambda file, n, c, ctx=None: f"<file>{file}</file>")
     r.body.get_url_html = MagicMock(side_effect=lambda url, n, c: f"<url>{url}</url>")
     r.body.get_collapsible_extra_rows_html = MagicMock(
         side_effect=lambda rows: f'<div class="extra-items-list">{"<br/>".join(rows)}</div>'
@@ -120,6 +127,18 @@ class DummyCtxItem:
         self.meta = DummyCtxMeta()
     def get_display_output(self, output=None):
         return self.output if output is None else output
+
+    def get_agents_v2_response_output(self):
+        return None
+
+    def get_agents_v2_final_output(self):
+        return None
+
+    def get_part_tool_calls(self, visible_only=False, part=None):
+        return []
+
+    def get_active_part(self):
+        return None
 
     def to_dict(self):
         return {"id": self.id}
@@ -192,7 +211,7 @@ class TestRenderer:
         node = fake_window.core.ctx.output.get_by_pid(1)
         node.page().runJavaScript = MagicMock()
         renderer.state_changed("render.state.busy", meta)
-        node.page().runJavaScript.assert_called_with("if (typeof window.showLoading !== 'undefined') showLoading();")
+        node.page().runJavaScript.assert_called_with("if (typeof window.showLoading !== 'undefined') showLoading(0, false);")
 
     def test_state_changed_idle(self, renderer, fake_window):
         renderer.pids = {1: MagicMock()}
@@ -225,12 +244,18 @@ class TestRenderer:
     def test_end(self, renderer):
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        pctx = PidData(1, meta)
+        pctx.item = "item"
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(item="item")}
-        renderer.append_context_item = MagicMock()
+        renderer.pids = {1: pctx}
+        renderer.auto_cleanup = MagicMock()
+
         renderer.end(meta, ctx, True)
-        renderer.append_context_item.assert_called_with(meta, "item")
-        assert renderer.pids[1].item is None
+
+        renderer.get_or_create_pid.assert_called_once_with(meta)
+        assert pctx.item is None
+        assert pctx.buffer == ""
+        renderer.auto_cleanup.assert_called_once_with(meta)
 
     def test_end_extra(self, renderer):
         ctx = DummyCtxItem()
@@ -252,16 +277,30 @@ class TestRenderer:
     def test_stream_end(self, renderer, fake_window):
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        pctx = PidData(1, meta)
+        pctx.item = "item"
+        pctx.buffer = "pending"
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(item="item")}
-        renderer.window.controller.agent.legacy.enabled = MagicMock(return_value=True)
-        renderer.append_context_item = MagicMock()
-        node = fake_window.core.ctx.output.get_current(meta)
-        node.page().runJavaScript = MagicMock()
+        renderer.pids = {1: pctx}
+        renderer._stream_flush = MagicMock()
+        renderer.flush_part_streams = MagicMock()
+        renderer._partial_stream_reset = MagicMock()
+        renderer.finalize_output = MagicMock()
+        renderer._stream_reset = MagicMock()
+        renderer.auto_cleanup = MagicMock()
+
         renderer.stream_end(meta, ctx)
-        renderer.append_context_item.assert_called_with(meta, "item")
-        assert renderer.pids[1].item is None
-        node.page().runJavaScript.assert_called()
+
+        renderer._stream_flush.assert_called_once_with(1, force=True)
+        renderer.flush_part_streams.assert_called_once_with(meta)
+        renderer.finalize_output.assert_called_once_with(
+            meta, ctx, replace_text=False, reason="stream_end"
+        )
+        assert pctx.item == "item"
+        assert pctx.buffer == ""
+        assert renderer._partial_stream_reset.call_count == 2
+        renderer._stream_reset.assert_called_once_with(1)
+        renderer.auto_cleanup.assert_called_once_with(meta)
 
     def test_append_context(self, renderer):
         meta = DummyCtxMeta()
@@ -286,23 +325,70 @@ class TestRenderer:
         renderer.get_or_create_pid = MagicMock(return_value=1)
         renderer.update_names = MagicMock()
         renderer.tool_output_end = MagicMock()
-        renderer.is_stream = MagicMock(return_value=False)
-        renderer.append_node = MagicMock()
+        renderer.prepare_input = MagicMock(return_value="prepared input")
+        block = MagicMock()
+        block.to_dict.return_value = {"id": 1, "input": {"text": "prepared input"}}
+        renderer._build_render_block = MagicMock(return_value=block)
+        renderer._emit_mutation = MagicMock()
         renderer.pids = {1: MagicMock()}
 
+        renderer.append_input(meta, ctx, flush=True, append=False)
+
+        renderer.tool_output_end.assert_called_once_with()
+        renderer.get_or_create_pid.assert_called_once_with(meta)
+        renderer.update_names.assert_called_once_with(meta, ctx)
+        renderer.prepare_input.assert_called_once_with(meta, ctx, True, False)
+        renderer._build_render_block.assert_called_once_with(
+            meta, ctx, input_text="prepared input", output_text=None, history_date_label=None
+        )
+        block.to_dict.assert_called_once_with()
+        renderer._emit_mutation.assert_called_once()
+        mutation_meta, mutation = renderer._emit_mutation.call_args.args
+        assert mutation_meta is meta
+        assert mutation.op == RenderOp.APPEND_INPUT
+        assert mutation.msg_id == ctx.id
+        assert mutation.block == block.to_dict.return_value
+
     def test_append_chunk(self, renderer, fake_window):
-        return  # todo: mock QTimer
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        ctx.id = 2
+        previous = DummyCtxItem()
+        previous.id = 1
+        pctx = PidData(1, meta)
+        pctx.item = previous
+        pctx.header = ""
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(buffer="")}
-        renderer.is_debug = MagicMock(return_value=False)
+        renderer.pids = {1: pctx}
+        renderer._hide_previous_agent_action_icons = MagicMock()
+        renderer._stream_reset = MagicMock()
+        renderer._stream_push = MagicMock()
+        renderer.update_names = MagicMock()
+        renderer.get_name_header = MagicMock(return_value="header")
         node = fake_window.core.ctx.output.get_current(meta)
+        renderer.get_output_node = MagicMock(return_value=node)
         node.page().runJavaScript = MagicMock()
-        renderer.prev_chunk_newline = False
-        renderer.prev_chunk_replace = False
-        renderer.append_chunk(meta, ctx, "chunk", True)
-        node.page().runJavaScript.assert_called()
+
+        renderer.append_chunk(meta, ctx, "chunk", begin=True)
+
+        assert pctx.item is ctx
+        assert pctx.header == "header"
+        assert renderer._loading_visible[1] is False
+        renderer._hide_previous_agent_action_icons.assert_called_once_with(meta, ctx)
+        renderer._stream_reset.assert_called_once_with(1)
+        renderer.update_names.assert_called_once_with(meta, ctx)
+        assert node.page().runJavaScript.call_args_list == [
+            call(
+                "if (typeof window.bindStreamOwner !== 'undefined') bindStreamOwner(\"2\");"
+            ),
+            call("if (typeof window.hideLoading !== 'undefined') hideLoading(false);"),
+            call(
+                "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
+                "if (typeof window.beginStream !== 'undefined') beginStream(true, \"2\");"
+                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", [],\"\", \"\");"
+            ),
+        ]
+        renderer._stream_push.assert_called_once_with(1, "header", "chunk")
 
     def test_next_chunk(self, renderer, fake_window):
         meta = DummyCtxMeta()
@@ -741,7 +827,8 @@ class TestRenderer:
         renderer.get_output_node = MagicMock(return_value=fake_window.core.ctx.output.get_current(meta))
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
-        renderer.tool_output_begin(meta)
+        fake_window.core.command.realtime_visible_tool_names.return_value = ["search"]
+        renderer.tool_output_begin(meta, ["search"])
         node.page().runJavaScript.assert_called()
 
     def test_tool_output_end(self, renderer, fake_window):
@@ -804,3 +891,38 @@ def test_auto_cleanup_uses_effective_memory_after_exclusion(renderer, fake_windo
 
     renderer.fresh.assert_called_once_with(meta, force=True)
     renderer.auto_cleanup_soft.assert_not_called()
+
+
+@pytest.mark.parametrize('mode', ['agent_llama', 'agent_v2'])
+@pytest.mark.parametrize('full_workflow', [False, True])
+@pytest.mark.parametrize('rebuild', [False, True])
+def test_completed_workflow_respects_display_setting(renderer, mode, full_workflow, rebuild):
+    ctx = CtxItem()
+    ctx.mode = mode
+    ctx.extra = {'agent_timeline': True}
+    ctx.id = 1
+    ctx.output = 'Final'
+    from pygpt_net.item.ctx_part import CtxItemPart
+    ctx.extra['response_final'] = True
+    ctx.parts = [CtxItemPart(output='Final', extra={'agents_v2_final': True})]
+    renderer.pids[1] = MagicMock()
+    renderer.helpers.pre_format_text.side_effect = lambda text, **kwargs: text
+    renderer.get_or_create_pid = MagicMock(return_value=1)
+    original_get = renderer.window.core.config.get.side_effect
+    renderer.window.core.config.get.side_effect = lambda key, default=None: (
+        full_workflow if key == "agent.v2.display_full_workflow" else original_get(key, default)
+    )
+    renderer._ctx_has_final_answer = MagicMock(return_value=True)
+    renderer._build_partial_timeline = MagicMock(return_value=[
+        {'kind': 'text', 'text': 'First', 'part_uuid': 'first'},
+        {'kind': 'text', 'text': 'Second', 'part_uuid': 'second'},
+    ])
+    renderer._agent_v2_timeline_without_final_text = MagicMock(side_effect=lambda ctx, timeline: timeline)
+    renderer._agent_v2_collapsed_workflow_step_count = MagicMock(return_value=2)
+    block = renderer._build_render_block(CtxMeta(), ctx, None, 'Final', action_state={}, rebuild=rebuild)
+    if full_workflow:
+        assert block.extra['collapsed_workflow'] is None
+        assert len(block.extra['partial_timeline']) == 2
+    else:
+        assert block.extra['collapsed_workflow']['expanded'] is False
+        assert len(block.extra['collapsed_workflow']['timeline']) == 2

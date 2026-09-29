@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 17:00:00                  #
+# Updated Date: 2026.09.10 12:48:00                  #
 # ================================================== #
 
 import datetime
+import json
 from typing import Optional, Tuple, List, Dict, Any
 
 from packaging.version import Version
@@ -19,12 +20,15 @@ from pygpt_net.provider.core.index.base import BaseProvider
 from pygpt_net.provider.core.index.json_file import JsonFileProvider
 from pygpt_net.provider.core.index.db_sqlite import DbSqliteProvider
 from pygpt_net.provider.vector_stores import Storage
+from pygpt_net.utils import trans
 
 from .indexing import Indexing
 from .llm import Llm
 from .chat import Chat
+from .completion import Completion
 from .metadata import Metadata
 from .ui import UI
+from .project import Project
 
 from .types.ctx import Ctx
 from .types.external import External
@@ -43,6 +47,7 @@ class Idx:
         self.llm = Llm(window)
         self.storage = Storage(window)
         self.chat = Chat(window, self.storage)
+        self.completion = Completion(window)
         self.metadata = Metadata(window)
         self.ui = UI(window)
 
@@ -58,6 +63,7 @@ class Idx:
         self.ctx = Ctx(window, self.get_provider())
         self.external = External(window, self.get_provider())
         self.files = Files(window, self.get_provider())
+        self.project = Project(window, self.get_provider())
 
     def install(self):
         """Install provider data"""
@@ -86,6 +92,8 @@ class Idx:
         :return: True if index is valid
         """
         if idx and idx != "_":
+            if self.project.is_virtual(idx):
+                return self.project.get_current_group_id() is not None
             return self.has(idx)
         return False
 
@@ -105,231 +113,359 @@ class Idx:
         """
         return self.providers.get(self.provider)
 
-    def store_index(self, idx: str = "base"):
-        """
-        Store (persist) index data
+    def resolve_idx(self, idx: Optional[str], group_id: Optional[int] = None) -> Optional[str]:
+        """Resolve runtime virtual index IDs to physical storage IDs."""
+        return self.project.resolve(idx, group_id)
 
-        :param idx: index name/ID
-        """
+    def get_current_project_idx(self, virtual: bool = False) -> Optional[str]:
+        """Return current project's virtual or physical index ID."""
+        group_id = self.project.get_current_group_id()
+        if group_id is None:
+            return None
+        return self.project.VIRTUAL_ID if virtual else self.project.get_idx_id(group_id)
+
+    def get_file_index_status(self, path: str) -> dict:
+        """Lazy per-file index status for the Files explorer."""
+        file_id = self.files.get_id(path)
+        rows = self.files.get_status(self.get_current_store(), file_id)
+        if not rows:
+            return {'indexed': False}
+        current_project = self.get_current_project_idx(virtual=False)
+        timestamps = {}
+        last_index_at = 0
+        for row in rows:
+            idx = row.get('idx')
+            if not idx:
+                continue
+            ts = int(row.get('updated_ts') or 0)
+            timestamps[idx] = max(timestamps.get(idx, 0), ts)
+            last_index_at = max(last_index_at, ts)
+        project_ids = [idx for idx in timestamps if self.project.is_project_idx(idx)]
+        global_ids = [idx for idx in timestamps if not self.project.is_project_idx(idx)]
+        labels = sorted(global_ids, key=lambda x: timestamps.get(x, 0), reverse=True)
+        if project_ids:
+            if len(project_ids) == 1 and project_ids[0] == current_project:
+                labels.append(trans('idx.current_project'))
+            else:
+                labels.append(trans('idx.projects.count').replace('{n}', str(len(project_ids))))
+        return {
+            'indexed': True,
+            'indexed_in': labels,
+            'last_index_at': last_index_at,
+            'project_indexes': project_ids,
+            'global_indexes': global_ids,
+        }
+
+    def store_index(self, idx: str = "base"):
+        """Store (persist) index data."""
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return
         self.storage.store(idx)
 
     def remove_index(
             self,
             idx: str = "base",
-            truncate: bool = False
+            truncate: bool = False,
+            store_id: Optional[str] = None
     ) -> bool:
-        """
-        Truncate index
-
-        :param idx: index name
-        :param truncate: truncate index (remove all data)
-        :return: True if success
-        """
-        # get current store
-        store = self.get_current_store()
-
-        # clear db data
+        """Remove/truncate an index and all local tracking rows."""
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return False
+        store = store_id or self.get_current_store()
         self.ctx.truncate(store, idx)
         self.files.truncate(store, idx)
-
-        # clear ctx data indexed status
+        self.external.truncate(store, idx)
         self.window.core.ctx.idx.truncate_indexed(store, idx)
-
-        # clear storage, remove index
+        try:
+            if store_id is None:
+                exists = self.storage.exists(idx)
+            else:
+                exists = self.storage.exists(idx, store_id=store)
+        except Exception:
+            exists = False
+        if not exists:
+            return True
+        if store_id is None:
+            return self.storage.truncate(idx) if truncate else self.storage.remove(idx)
         if truncate:
-            return self.storage.truncate(idx)
-        else:
-            return self.storage.remove(idx)
+            return self.storage.truncate(idx, store_id=store)
+        return self.storage.remove(idx, store_id=store)
+
+    def remove_context_data(
+            self,
+            meta_id: Optional[int] = None,
+            group_id: Optional[int] = None
+    ) -> int:
+        """
+        Remove conversation documents from vector stores and ``idx_ctx``.
+
+        ``idx_ctx`` stores one current doc_id per context/index, while project
+        indexing may have inserted multiple documents for the same context.
+        Therefore cleanup merges both sources of truth: ``ctx_meta.indexes_json``
+        (all known doc IDs) and ``idx_ctx`` (tracking/orphan fallback).
+        """
+        provider = self.get_provider()
+        rows = provider.get_ctx_records(meta_id=meta_id, group_id=group_id)
+        meta_rows = provider.get_ctx_meta_index_data(
+            meta_id=meta_id, group_id=group_id
+        )
+
+        docs = set()
+        for meta_row in meta_rows:
+            raw = meta_row.get('indexes_json')
+            try:
+                data = json.loads(raw) if isinstance(raw, str) else raw
+            except Exception:
+                data = {}
+            if not isinstance(data, dict):
+                continue
+            for store, indexes in data.items():
+                if not isinstance(indexes, dict):
+                    continue
+                for idx, doc_data in indexes.items():
+                    if isinstance(doc_data, dict):
+                        doc_ids = list(doc_data.keys())
+                    elif isinstance(doc_data, (list, tuple, set)):
+                        doc_ids = list(doc_data)
+                    elif doc_data:
+                        doc_ids = [doc_data]
+                    else:
+                        doc_ids = []
+                    for doc_id in doc_ids:
+                        if store and idx and doc_id:
+                            docs.add((str(store), str(idx), str(doc_id)))
+
+        # Tracking rows are also used as a fallback for legacy/stale metadata
+        # and allow cleanup of orphan idx_ctx rows whose ctx_meta is already gone.
+        for row in rows:
+            store = row.get('store')
+            idx = row.get('idx')
+            doc_id = row.get('doc_id')
+            if store and idx and doc_id:
+                docs.add((str(store), str(idx), str(doc_id)))
+
+        for store, idx, doc_id in docs:
+            try:
+                if self.storage.exists(idx, store_id=store):
+                    self.storage.remove_document(idx, doc_id, store_id=store)
+            except Exception as e:
+                # The vector store can already be gone or unavailable. DB
+                # tracking still has to be cleaned to avoid permanent garbage.
+                self.window.core.debug.log(e)
+
+        for row in rows:
+            row_id = int(row.get('id') or 0)
+            if row_id:
+                provider.remove_ctx_record(row_id)
+
+        return len(docs)
 
     def index_files(
-            self,
-            idx: str = "base",
-            path: Optional[str] = None,
-            replace: Optional[bool] = None,
-            recursive: Optional[bool] = None,
+            self, idx: str = "base", path: Optional[str] = None,
+            replace: Optional[bool] = None, recursive: Optional[bool] = None,
     ) -> Tuple[Dict, List[str]]:
-        """
-        Index file or directory of files
-
-        :param idx: index name
-        :param path: path to file or directory
-        :param replace: replace index
-        :param recursive: recursive indexing
-        :return: dict with indexed files (path -> id), list with errors
-        """
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return {}, ["Project index requested outside a project"]
         llm, embed_model = self.llm.get_service_context(stream=False)
-        index = self.storage.get(
-            id=idx,
-            llm=llm,
-            embed_model=embed_model,
-        )  # get or create index
+        index = self.storage.get(id=idx, llm=llm, embed_model=embed_model)
         files, errors = self.indexing.index_files(
-            idx=idx,
-            index=index,
-            path=path,
-            replace=replace,
-            recursive=recursive,
-        )  # index files
-        if len(files) > 0:
-            self.storage.store(
-                id=idx,
-                index=index,
-            )  # store index
-
+            idx=idx, index=index, path=path, replace=replace, recursive=recursive)
+        if files:
+            self.storage.store(id=idx, index=index)
+            group_id = self.project.get_group_id_from_idx(idx)
+            if group_id is not None:
+                state = self.project.get(group_id) or {}
+                self.project.touch(
+                    group_id, state.get('last_meta', 0), state.get('last_item', 0)
+                )
         if errors:
             self.log(f"Error: {errors}")
         return files, errors
 
     def index_db_by_meta_id(
-            self,
-            idx: str = "base",
-            id: int = 0,
-            from_ts: int = 0
+            self, idx: str = "base", id: int = 0, from_ts: int = 0
     ) -> Tuple[int, List[str]]:
-        """
-        Index records from db by meta id
-
-        :param idx: index name
-        :param id: CtxMeta id
-        :param from_ts: timestamp from
-        :return: num of indexed files, list with errors
-        """
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return 0, ["Project index requested outside a project"]
         llm, embed_model = self.llm.get_service_context(stream=False)
-        index = self.storage.get(
-            id=idx,
-            llm=llm,
-            embed_model=embed_model,
-        )  # get or create index
+        index = self.storage.get(id=idx, llm=llm, embed_model=embed_model)
         num, errors = self.indexing.index_db_by_meta_id(
-            idx=idx,
-            index=index,
-            id=id,
-            from_ts=from_ts,
-        )  # index db records
+            idx=idx, index=index, id=id, from_ts=from_ts)
         if num > 0:
-            self.storage.store(
-                id=idx,
-                index=index,
-            )  # store index
+            self.storage.store(id=idx, index=index)
 
+            # Contexts may also be indexed manually into a project-local index
+            # (e.g. from the context-list RMB menu). Keep idx_proj aware of
+            # that physical index without advancing the project's last_item
+            # cursor, because a manual selection may cover only part of the
+            # project. This keeps cleanup and last-update status correct while
+            # preserving safe incremental project indexing.
+            group_id = self.project.get_group_id_from_idx(idx)
+            if group_id is not None:
+                state = self.project.get(group_id) or {}
+                self.project.touch(
+                    group_id,
+                    max(int(state.get('last_meta', 0) or 0), int(id or 0)),
+                    int(state.get('last_item', 0) or 0),
+                )
         if errors:
             self.log(f"Error: {errors}")
         return num, errors
 
     def index_db_from_updated_ts(
-            self,
-            idx: str = "base",
-            from_ts: int = 0
+            self, idx: str = "base", from_ts: int = 0
     ) -> Tuple[int, List[str]]:
-        """
-        Index records from db by meta id
-
-        :param idx: index name
-        :param from_ts: timestamp from
-        :return: num of indexed files, list with errors
-        """
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return 0, ["Project index requested outside a project"]
         llm, embed_model = self.llm.get_service_context(stream=False)
-        index = self.storage.get(
-            id=idx,
-            llm=llm,
-            embed_model=embed_model,
-        )  # get or create index
+        index = self.storage.get(id=idx, llm=llm, embed_model=embed_model)
         num, errors = self.indexing.index_db_from_updated_ts(
-            idx=idx,
-            index=index,
-            from_ts=from_ts,
-        )  # index db records
+            idx=idx, index=index, from_ts=from_ts)
         if num > 0:
-            self.storage.store(
-                id=idx,
-                index=index,
-            )  # store index
-
+            self.storage.store(id=idx, index=index)
         if errors:
             self.log(f"Error: {errors}")
         return num, errors
 
-    def index_urls(
-            self,
-            idx: str = "base",
-            urls: Optional[List[str]] = None,
-            type: str = "webpage",
-            extra_args: Optional[Dict[str, Any]] = None
+    def index_project(
+            self, group_id: int, from_last: bool = True
     ) -> Tuple[int, List[str]]:
-        """
-        Index URLs
-
-        :param idx: index name
-        :param urls: list of urls
-        :param type: type of url
-        :param extra_args: extra args
-        :return: num of indexed, list with errors
-        """
+        """Index new conversation items for one project using idx_proj cursor."""
+        idx = self.project.get_idx_id(group_id)
+        state = self.project.get(group_id)
+        last_item = int(state.get('last_item', 0)) if state and from_last else 0
+        if last_item > 0 and not self.storage.exists(idx):
+            last_item = 0
+        if not from_last:
+            if self.storage.exists(idx):
+                self.remove_index(idx, truncate=True)
+            # A full rebuild starts a new cursor even when the project is empty.
+            self.project.remove_state(group_id)
+            state = None
+            last_item = 0
         llm, embed_model = self.llm.get_service_context(stream=False)
-        index = self.storage.get(
-            id=idx,
-            llm=llm,
-            embed_model=embed_model,
-        )  # get or create index
-        n, errors = self.indexing.index_urls(
-            idx=idx,
-            index=index,
-            urls=urls,
-            type=type,
-            extra_args=extra_args,
-        )  # index urls
+        index = self.storage.get(id=idx, llm=llm, embed_model=embed_model)
+        n, errors, last_meta, max_item = self.indexing.index_db_project(
+            idx=idx, index=index, group_id=group_id, last_item=last_item)
         if n > 0:
-            self.storage.store(
-                id=idx,
-                index=index,
-            )  # store index
+            self.storage.store(id=idx, index=index)
+            self.project.touch(group_id, last_meta, max_item)
+        elif state is None:
+            # Track an intentionally empty project index as well; this makes
+            # later truncate/delete operations deterministic.
+            self.project.ensure(group_id)
+        if errors:
+            self.log(f"Error: {errors}")
+        return n, errors
 
+    def duplicate_project_index(
+            self, source_group_id: int, target_group_id: int
+    ) -> Tuple[int, List[str]]:
+        """Rebuild a duplicated project's index and copy its tracked file inputs."""
+        source_group_id = int(source_group_id)
+        target_group_id = int(target_group_id)
+        source_idx = self.project.get_idx_id(source_group_id)
+        source_state = self.project.get(source_group_id)
+        if source_state is None and not self.storage.exists(source_idx):
+            return 0, []
+
+        store_id = self.get_current_store()
+        source_files = self.get_provider().get_files_by_index(store_id, source_idx)
+        num, errors = self.index_project(target_group_id, from_last=False)
+        target_idx = self.project.get_idx_id(target_group_id)
+        for path in source_files:
+            indexed, file_errors = self.index_files(
+                target_idx, path=path, replace=False, recursive=False
+            )
+            num += len(indexed)
+            errors.extend(file_errors)
+        return num, errors
+
+    def truncate_project(self, group_id: int) -> bool:
+        idx = self.project.get_idx_id(group_id)
+        ok = True
+        stores = set(self.get_provider().get_index_stores(idx))
+        stores.add(self.get_current_store())
+        try:
+            for store_id in [store for store in stores if store]:
+                try:
+                    ok = self.remove_index(idx, truncate=True, store_id=store_id) and ok
+                except Exception as e:
+                    ok = False
+                    self.window.core.debug.log(e)
+            return ok
+        finally:
+            # Never leave a stale incremental cursor after a truncate attempt.
+            self.project.remove_state(group_id)
+
+    def truncate_projects(self) -> bool:
+        ok = True
+        handled = set()
+        for state in list(self.project.all()):
+            group_id = int(state.get('group_id'))
+            handled.add(self.project.get_idx_id(group_id))
+            try:
+                ok = self.truncate_project(group_id) and ok
+            except Exception as e:
+                ok = False
+                self.window.core.debug.log(e)
+                self.project.remove_state(group_id)
+
+        # Also clean project indexes created by file indexing before idx_proj
+        # existed, as long as they are discoverable in index tracking tables.
+        stores = set(self.storage.get_ids())
+        stores.add(self.get_current_store())
+        for store_id in [store for store in stores if store]:
+            for idx in self.get_provider().get_index_ids(store_id):
+                if self.project.is_project_idx(idx) and idx not in handled:
+                    try:
+                        ok = self.remove_index(
+                            idx, truncate=True, store_id=store_id
+                        ) and ok
+                    except Exception as e:
+                        ok = False
+                        self.window.core.debug.log(e)
+        self.get_provider().truncate_projects()
+        return ok
+
+    def index_urls(
+            self, idx: str = "base", urls: Optional[List[str]] = None,
+            type: str = "webpage", extra_args: Optional[Dict[str, Any]] = None
+    ) -> Tuple[int, List[str]]:
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return 0, ["Project index requested outside a project"]
+        llm, embed_model = self.llm.get_service_context(stream=False)
+        index = self.storage.get(id=idx, llm=llm, embed_model=embed_model)
+        n, errors = self.indexing.index_urls(
+            idx=idx, index=index, urls=urls, type=type, extra_args=extra_args)
+        if n > 0:
+            self.storage.store(id=idx, index=index)
         if errors:
             self.log(f"Error: {errors}")
         return n, errors
 
     def index_web(
-            self,
-            idx: str = "base",
-            type: str = "webpage",
+            self, idx: str = "base", type: str = "webpage",
             params: Optional[Dict[str, Any]] = None,
-            config: Optional[Dict[str, Any]] = None,
-            replace: Optional[bool] = None,
+            config: Optional[Dict[str, Any]] = None, replace: Optional[bool] = None,
     ) -> Tuple[int, list]:
-        """
-        Index URLs
-
-        :param idx: index name
-        :param type: type of url
-        :param params: extra args
-        :param config: extra config
-        :param replace: replace index
-        :return: num of indexed, list with errors
-        """
-        # update config params
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return 0, ["Project index requested outside a project"]
         self.indexing.update_loader_args(type, config)
-
         llm, embed_model = self.llm.get_service_context(stream=False)
-        index = self.storage.get(
-            id=idx,
-            llm=llm,
-            embed_model=embed_model,
-        )  # get or create index
+        index = self.storage.get(id=idx, llm=llm, embed_model=embed_model)
         n, errors = self.indexing.index_url(
-            idx=idx,
-            index=index,
-            url="",
-            type=type,
-            extra_args=params,
-            is_tmp=False,
-            replace=replace,
-        )
+            idx=idx, index=index, url="", type=type, extra_args=params,
+            is_tmp=False, replace=replace)
         if n > 0:
-            self.storage.store(
-                id=idx,
-                index=index,
-            )  # store index
-
+            self.storage.store(id=idx, index=index)
         if errors:
             self.log(f"Error: {errors}")
         return n, errors
@@ -391,26 +527,23 @@ class Idx:
             return self.get_by_idx(0)
 
     def has(self, idx: str) -> bool:
-        """
-        Check if index exists
-
-        :param idx: index name
-        :return: True if index exists
-        """
-        store_id = self.get_current_store()
-        if store_id in self.items:
-            return idx in self.items[store_id]
-        return False
-
-    def get(self, idx: str) -> Optional[IndexItem]:
-        """
-        Return index data from current storage
-
-        :param idx: index name
-        :return: IndexItem object
-        """
+        if self.project.is_virtual(idx):
+            return self.project.get_current_group_id() is not None
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return False
         store_id = self.get_current_store()
         if store_id in self.items and idx in self.items[store_id]:
+            return True
+        try:
+            return self.storage.exists(idx)
+        except Exception:
+            return False
+
+    def get(self, idx: str) -> Optional[IndexItem]:
+        idx = self.resolve_idx(idx)
+        store_id = self.get_current_store()
+        if idx is not None and store_id in self.items and idx in self.items[store_id]:
             return self.items[store_id][idx]
 
     def get_all(self) -> Dict[str, IndexItem]:
@@ -424,111 +557,66 @@ class Idx:
             return self.items[store_id]
         return {}
 
-    def append(
-            self,
-            idx: str,
-            files: Dict[str, str]
-    ):
-        """
-        Append indexed files to index
-
-        :param idx: index name
-        :param files: dict of indexed files (path -> doc_id)
-        """
-        # create store if not exists
+    def append(self, idx: str, files: Dict[str, str]):
+        """Update indexed-file tracking without hydrating the full idx_file table."""
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return
         store_id = self.get_current_store()
         if store_id not in self.items:
             self.items[store_id] = {}
-
-        # create index if not exists
         if idx not in self.items[store_id]:
-            self.items[store_id][idx] = IndexItem()
-            self.items[store_id][idx].id = idx
-            self.items[store_id][idx].name = idx  # use index id as name
-
-        # append indexed files
-        for path in files:
-            doc_id = files[path]
+            item = IndexItem(); item.id = idx; item.name = idx; item.store = store_id
+            self.items[store_id][idx] = item
+        for path, doc_id in files.items():
             file_id = self.files.get_id(path)
             ts = int(datetime.datetime.now().timestamp())
-            if file_id not in self.items[store_id][idx].items:
-                id = self.files.append(
-                    store_id=store_id,
-                    idx=idx,
-                    file_id=file_id,
-                    path=path,
-                    doc_id=doc_id,
-                )
-                if id is not None:
-                    self.items[store_id][idx].items[file_id] = {
-                        "id": doc_id,
-                        "db_id": id,  # DB id
-                        "path": path,
-                        "indexed_ts": ts,
-                    }
+            record = self.files.get_record(store_id, idx, file_id)
+            if record is None:
+                self.files.append(store_id, idx, file_id, path, doc_id)
             else:
-                # update indexed timestamp only
-                self.files.update(
-                    id=self.items[store_id][idx].items[file_id]["db_id"],  # DB id
-                    doc_id=doc_id,
-                    ts=ts,
-                )
-                self.items[store_id][idx].items[file_id]["id"] = doc_id
-                self.items[store_id][idx].items[file_id]["indexed_ts"] = ts
+                self.files.update(record['id'], doc_id, ts)
 
-    def remove_doc(
-            self,
-            idx: str,
-            doc_id: str
-    ):
-        """
-        Remove document from index
-
-        :param idx: index name (id)
-        :param doc_id: document ID (in storage)
-        """
-        self.llm.get_service_context(stream=False)  # init environment only (ENV API keys, etc.)
-        if self.storage.remove_document(idx, doc_id):
+    def remove_doc(self, idx: str, doc_id: str, store_id: Optional[str] = None):
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return
+        store = store_id or self.get_current_store()
+        if store_id is None:
+            exists = self.storage.exists(idx)
+            removed = exists and self.storage.remove_document(idx, doc_id)
+        else:
+            exists = self.storage.exists(idx, store_id=store)
+            removed = exists and self.storage.remove_document(
+                idx, doc_id, store_id=store
+            )
+        if removed:
             self.log(f"Removed document from index: {idx} - {doc_id}")
 
-    def remove_file(
-            self,
-            idx: str,
-            file: str
-    ):
-        """
-        Remove file from index
-
-        :param idx: index name
-        :param file: file ID
-        """
-        self.llm.get_service_context(stream=False)  # init environment only (ENV API keys, etc.)
+    def remove_file(self, idx: str, file: str):
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return
         store_id = self.get_current_store()
-        if store_id in self.items and idx in self.items[store_id]:
-            for basename in list(self.items[store_id][idx].items.keys()):
-                item = self.items[store_id][idx].items[basename]
-                if file == item["path"]:
-                    doc_id = item ["id"]
-                    self.storage.remove_document(
-                        id=idx,
-                        doc_id=doc_id,
-                    )
-                    # remove from index data and db
-                    del self.items[store_id][idx].items[basename]
-                    self.files.remove(store_id, idx, doc_id)
+        file_id = self.files.get_id(file)
+        record = self.files.get_record(store_id, idx, file_id)
+        if record is None:
+            return
+        doc_id = record.get('doc_id')
+        if doc_id and self.storage.exists(idx):
+            self.storage.remove_document(id=idx, doc_id=doc_id)
+        if doc_id:
+            self.files.remove(store_id, idx, doc_id)
 
     def load(self):
-        """Load indexes and indexed items"""
-        store_ids = self.storage.get_ids()
-        for store_id in store_ids:
-            self.items[store_id] = self.get_provider().load(store_id)
-            # replace workdir placeholder with current workdir
-            for idx in self.items[store_id]:
-                for id in self.items[store_id][idx].items:
-                    file = self.items[store_id][idx].items[id]
-                    if 'path' in file and file['path'] is not None:
-                        self.items[store_id][idx].items[id]['path'] = \
-                            self.window.core.filesystem.to_workdir(file['path'])
+        """Load only index identities; individual file rows are lazy-loaded."""
+        self.items = {}
+        for store_id in self.storage.get_ids():
+            self.items[store_id] = {}
+            for idx in self.get_provider().get_index_ids(store_id):
+                item = IndexItem(); item.id = idx; item.name = idx; item.store = store_id
+                self.items[store_id][idx] = item
+        self.sync()
 
     def sync(self):
         """Sync idx items from config"""
@@ -565,11 +653,9 @@ class Idx:
         return ids
 
     def clear(self, idx: str):
-        """
-        Clear index items
-
-        :param idx: index name/id
-        """
+        idx = self.resolve_idx(idx)
+        if idx is None:
+            return
         store_id = self.get_current_store()
         if store_id in self.items and idx in self.items[store_id]:
             self.items[store_id][idx].items = {}

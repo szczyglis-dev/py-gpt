@@ -85,31 +85,35 @@ def test_save(mock_window):
                 attachment = items[mode][id]
                 ary[mode][id] = provider.serialize(attachment)
 
-    data['__meta__'] = mock_window.core.config.append_meta()
+    fixed_meta = mock_window.core.config.append_meta()
+    data['__meta__'] = fixed_meta
     data['items'] = ary
     dump = json.dumps(data, indent=4)
 
-    with patch('builtins.open', mock_open()) as mocked_file:
-        with patch('json.dumps', return_value=dump) as mock_json_dumps:
-            with patch.object(provider, 'serialize', return_value=serialized):
-                provider.save(items)
-                mock_json_dumps.assert_called_once_with(data, indent=4)
-                mocked_file.assert_called_once_with(path, 'w', encoding="utf-8")
-                mocked_file().write.assert_called_once_with(dump)
+    with patch.object(mock_window.core.config, 'append_meta', return_value=fixed_meta):
+        with patch('builtins.open', mock_open()) as mocked_file:
+            with patch('json.dumps', return_value=dump) as mock_json_dumps:
+                with patch.object(provider, 'serialize', return_value=serialized):
+                    provider.save(items)
+                    mock_json_dumps.assert_called_once_with(data, indent=4)
+                    mocked_file.assert_called_once_with(path, 'w', encoding="utf-8")
+                    mocked_file().write.assert_called_once_with(dump)
 
 
 def test_truncate(mock_window):
     provider = JsonFileProvider(mock_window)
     path = os.path.join(mock_window.core.config.path, provider.config_file)
-    data = {'__meta__': mock_window.core.config.append_meta(), 'items': {}}
+    fixed_meta = mock_window.core.config.append_meta()
+    data = {'__meta__': fixed_meta, 'items': {}}
     dump = json.dumps(data, indent=4)
 
-    with patch('builtins.open', mock_open()) as mocked_file:
-        with patch('json.dumps', return_value=dump) as mock_json_dumps:
-            provider.truncate('chat')
-            mock_json_dumps.assert_called_once_with(data, indent=4)
-            mocked_file.assert_called_once_with(path, 'w', encoding="utf-8")
-            mocked_file().write.assert_called_once_with(dump)
+    with patch.object(mock_window.core.config, 'append_meta', return_value=fixed_meta):
+        with patch('builtins.open', mock_open()) as mocked_file:
+            with patch('json.dumps', return_value=dump) as mock_json_dumps:
+                provider.truncate('chat')
+                mock_json_dumps.assert_called_once_with(data, indent=4)
+                mocked_file.assert_called_once_with(path, 'w', encoding="utf-8")
+                mocked_file().write.assert_called_once_with(dump)
 
 
 def test_serialize(mock_window):

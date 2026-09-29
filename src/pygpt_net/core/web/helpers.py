@@ -13,7 +13,6 @@ import os
 import uuid
 from typing import Optional, List, Dict, Tuple, Union
 
-import requests
 
 from urllib.parse import urljoin
 
@@ -61,6 +60,8 @@ class Helpers:
         :param user_agent: User agent
         :return: status code, response text
         """
+        import requests
+
         upload = {}
         try:
             method = method.upper()
@@ -123,6 +124,8 @@ class Helpers:
         :param url: URL to get image from
         :return: image URL
         """
+        import requests
+
         from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -173,6 +176,8 @@ class Helpers:
         :param url: URL to get links from
         :return: links list
         """
+        import requests
+
         from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -205,6 +210,8 @@ class Helpers:
         :param url: URL to get images from
         :return: images list
         """
+        import requests
+
         from bs4 import BeautifulSoup
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -220,21 +227,23 @@ class Helpers:
                 continue
         return images
 
-    def download_image(self, img: str) -> str:
+    def download_image(self, img: str, ctx=None) -> str:
         """
         Download image from URL
 
         :param img: URL to download image from
         :return: local path to image
         """
-        dir = self.window.core.config.get_user_dir("img")
+        import requests
+
+        dir = self.window.core.filesystem.get_runtime_dir("img", ctx=ctx)
         response = requests.get(img, stream=True)
         name = img.replace("http://", "").replace("https://", "").replace("/", "_")
         path = os.path.join(dir, name)
         if os.path.exists(path):
             name = name + uuid.uuid4().hex[:6].upper()
         download_path = os.path.join(dir, name)
-        self.window.core.security.ensure_write(download_path, sandbox=False)
+        self.window.core.security.ensure_write(download_path, sandbox=False, ctx=ctx)
         with open(download_path, 'wb', ) as f:
             f.write(response.content)
-        return self.window.core.filesystem.make_local(download_path)
+        return self.window.core.filesystem.make_local(download_path, ctx=ctx)

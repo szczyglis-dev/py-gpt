@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.09.27 15:05:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar
-from PySide6.QtCore import Qt, Slot, QTimer, QEvent
-from PySide6.QtGui import QAction, QIcon, QGuiApplication
+from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar, QApplication
+from PySide6.QtCore import Qt, Slot, QTimer, QEvent, QMimeData
+from PySide6.QtGui import QAction, QIcon, QGuiApplication, QDrag
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
@@ -35,6 +35,7 @@ ICON_PATH_CLOSE = ':/icons/close.svg'
 ICON_PATH_RELOAD = ':/icons/reload.svg'
 ICON_PATH_FORWARD = ':/icons/forward'
 ICON_PATH_BACK = ':/icons/back'
+TAB_DRAG_MIME = 'application/x-pygpt-output-tab'
 
 
 class OutputTabBar(QTabBar):
@@ -51,6 +52,9 @@ class OutputTabBar(QTabBar):
         self.column = column
         self.tabs = tabs
         self.corner_button = corner_button
+        self._external_drag_pid = None
+        self._external_drag_start_pos = None
+        self.setAcceptDrops(True)
 
         # inline [+] just after the last tab (only when there is real free space)
         self.add_btn_inline = AddButton(window, column, tabs)
@@ -93,6 +97,101 @@ class OutputTabBar(QTabBar):
 
         # initial placement
         QTimer.singleShot(0, self.updateAddButtonPlacement)
+
+    def mousePressEvent(self, event):
+        """Remember the pressed tab so it can be dragged to another column."""
+        if event.button() == Qt.LeftButton:
+            idx = self.tabAt(event.position().toPoint())
+            tab = self.window.core.tabs.get_tab_by_index(idx, self._column_index()) if idx >= 0 else None
+            self._external_drag_pid = tab.pid if tab is not None else None
+            self._external_drag_start_pos = event.position().toPoint()
+        else:
+            self._external_drag_pid = None
+            self._external_drag_start_pos = None
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Clear cross-column drag state after a normal click/reorder."""
+        super().mouseReleaseEvent(event)
+        self._external_drag_pid = None
+        self._external_drag_start_pos = None
+
+    def mouseMoveEvent(self, event):
+        """Start an external Qt drag after leaving the source tab bar.
+
+        Native QTabBar reordering remains active while the pointer stays inside
+        the source bar. Crossing into another split-screen column switches to a
+        MIME drag that the destination OutputTabBar can accept.
+        """
+        pid = self._external_drag_pid
+        start = self._external_drag_start_pos
+        pos = event.position().toPoint()
+        if pid is not None and start is not None and (event.buttons() & Qt.LeftButton):
+            distance = (pos - start).manhattanLength()
+            if distance >= QApplication.startDragDistance() and not self.rect().contains(pos):
+                tab = self.window.core.tabs.get_tab_by_pid(pid)
+                if tab is not None:
+                    mime = QMimeData()
+                    mime.setData(TAB_DRAG_MIME, str(tab.pid).encode('utf-8'))
+                    drag = QDrag(self)
+                    drag.setMimeData(mime)
+                    drag.exec(Qt.MoveAction)
+                    self._external_drag_pid = None
+                    self._external_drag_start_pos = None
+                    event.accept()
+                    return
+        super().mouseMoveEvent(event)
+
+    def _dragged_tab(self, event):
+        mime = event.mimeData()
+        if mime is None or not mime.hasFormat(TAB_DRAG_MIME):
+            return None
+        try:
+            pid = int(bytes(mime.data(TAB_DRAG_MIME)).decode('utf-8'))
+        except (TypeError, ValueError, UnicodeDecodeError):
+            return None
+        return self.window.core.tabs.get_tab_by_pid(pid)
+
+    def dragEnterEvent(self, event):
+        tab = self._dragged_tab(event)
+        if tab is not None and tab.column_idx != self._column_index():
+            event.setDropAction(Qt.MoveAction)
+            event.accept()
+            return
+        super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        tab = self._dragged_tab(event)
+        if tab is not None and tab.column_idx != self._column_index():
+            event.setDropAction(Qt.MoveAction)
+            event.accept()
+            return
+        super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        tab = self._dragged_tab(event)
+        target_column = self._column_index()
+        if tab is None or tab.column_idx == target_column:
+            super().dropEvent(event)
+            return
+
+        pos = event.position().toPoint()
+        target_idx = self.tabAt(pos)
+        if target_idx < 0:
+            target_idx = self.count()
+        else:
+            rect = self.tabRect(target_idx)
+            if pos.x() > rect.center().x():
+                target_idx += 1
+
+        self.window.controller.tabs.move_tab(
+            tab.idx,
+            tab.column_idx,
+            target_column,
+            new_idx=target_idx,
+        )
+        event.setDropAction(Qt.MoveAction)
+        event.accept()
 
     def sizeHint(self):
         """
@@ -306,9 +405,6 @@ class AddButton(QPushButton):
         self.tabs = tabs
         self.setFixedSize(30, 25)
         self.setFlat(True)
-        self.clicked.connect(
-            lambda: self.window.controller.ui.tabs.new_tab(self.column.get_idx())
-        )
         self.setObjectName('tab-add')
         self.setProperty('tabAdd', True)
         self.setToolTip(trans('action.tab.add.chat.tooltip'))
@@ -319,7 +415,7 @@ class AddButton(QPushButton):
 
         :param event: event
         """
-        if event.button() == Qt.RightButton:
+        if event.button() in (Qt.LeftButton, Qt.RightButton):
             idx = 0
             column_idx = self.column.get_idx()
             self.show_menu(idx, column_idx, event.globalPos())
@@ -370,8 +466,8 @@ class OutputTabs(QTabWidget):
     def __init__(self, window=None, column=None):
         super(OutputTabs, self).__init__(window)
         self.window = window
-        self.active = True
         self.column = column
+        self.active = column is None or column.get_idx() == 0
         self.setMinimumHeight(1)
         self.owner = None
         self.setMovable(True)
@@ -396,6 +492,8 @@ class OutputTabs(QTabWidget):
             parent=self,
         )
         self.setTabBar(tab_bar)
+        tab_bar.setObjectName("outputTabs")
+        tab_bar.setProperty("activeColumn", self.active)
         self.setMovable(True)
         self.tabBar().setMovable(True)
 
@@ -426,11 +524,26 @@ class OutputTabs(QTabWidget):
 
     def set_active(self, active: bool):
         """
-        Set the active state of the tab bar.
+        Set the active/focused-column state of the tab bar.
+
+        The current tab in an inactive split-screen column remains selected in
+        Qt, so expose the column focus as a dynamic QSS property.  Themes can
+        then render that selected tab with a quieter underline instead of the
+        primary active-column accent.
 
         :param active: True to activate, False to deactivate
         """
+        active = bool(active)
         self.active = active
+        bar = self.tabBar()
+        if bar is None:
+            return
+        bar.setProperty("activeColumn", active)
+        style = bar.style()
+        if style is not None:
+            style.unpolish(bar)
+            style.polish(bar)
+        bar.update()
 
     def _refresh_plus_button(self):
         """Force the tab bar to recompute [+] placement after tab changes."""
@@ -490,6 +603,8 @@ class OutputTabs(QTabWidget):
         if event.button() == Qt.RightButton:
             idx = self.tabBar().tabAt(event.pos())
             column_idx = self.column.get_idx()
+            if idx >= 0:
+                self.window.controller.tabs.on_tab_clicked(idx, column_idx)
             tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
             if tab is not None:
                 if tab.type == Tab.TAB_NOTEPAD:
@@ -507,7 +622,7 @@ class OutputTabs(QTabWidget):
         elif event.button() == Qt.MiddleButton:
             idx = self.tabBar().tabAt(event.pos())
             column_idx = self.column.get_idx()
-            self.window.controller.ui.tabs.close(idx, column_idx)
+            self.window.controller.tabs.close(idx, column_idx)
             event.accept()
             return
         super(OutputTabs, self).mousePressEvent(event)
@@ -537,11 +652,11 @@ class OutputTabs(QTabWidget):
         )
         move_right = QAction(icon(ICON_PATH_FORWARD), trans('action.tab.move.right'), menu)
         move_right.triggered.connect(
-            lambda: self.window.controller.ui.tabs.move_tab(index, column_idx, 1)
+            lambda: self.window.controller.tabs.move_tab(index, column_idx, 1)
         )
         move_left = QAction(icon(ICON_PATH_BACK), trans('action.tab.move.left'), menu)
         move_left.triggered.connect(
-            lambda: self.window.controller.ui.tabs.move_tab(index, column_idx, 0)
+            lambda: self.window.controller.tabs.move_tab(index, column_idx, 0)
         )
 
         menu.addAction(add_chat)
@@ -653,28 +768,28 @@ class OutputTabs(QTabWidget):
     @Slot(int)
     def _on_current_changed(self, _idx: int):
         """On current tab changed"""
-        self.window.controller.ui.tabs.on_tab_changed(self.currentIndex(), self.column.get_idx())
+        self.window.controller.tabs.on_tab_changed(_idx, self.column.get_idx())
 
     @Slot(int)
     def _on_tabbar_clicked(self, _idx: int):
         """On tab bar clicked"""
-        self.window.controller.ui.tabs.on_tab_clicked(self.currentIndex(), self.column.get_idx())
+        self.window.controller.tabs.on_tab_clicked(_idx, self.column.get_idx())
 
     @Slot(int)
     def _on_tabbar_dbl_clicked(self, _idx: int):
         """On tab bar double clicked"""
-        self.window.controller.ui.tabs.on_tab_dbl_clicked(self.currentIndex(), self.column.get_idx())
+        self.window.controller.tabs.on_tab_dbl_clicked(_idx, self.column.get_idx())
 
     @Slot(int)
     def _on_tab_close_requested(self, _idx: int):
         """On tab close requested"""
-        self.window.controller.ui.tabs.on_tab_closed(self.currentIndex(), self.column.get_idx())
+        self.window.controller.tabs.on_tab_closed(_idx, self.column.get_idx())
         QTimer.singleShot(0, self._refresh_plus_button)  # defer until layout is done
 
     @Slot(int, int)
     def _on_tab_moved(self, _from: int, _to: int):
         """On tab moved"""
-        self.window.controller.ui.tabs.on_tab_moved(self.currentIndex(), self.column.get_idx())
+        self.window.controller.tabs.on_tab_moved(_to, self.column.get_idx())
 
     @Slot()
     def rename_tab(self, index: int, column_idx: int):
@@ -684,7 +799,7 @@ class OutputTabs(QTabWidget):
         :param index: index
         :param column_idx: column index
         """
-        self.window.controller.ui.tabs.rename(index, column_idx)
+        self.window.controller.tabs.rename(index, column_idx)
 
     @Slot()
     def close_tab(self, index: int, column_idx: int):
@@ -694,7 +809,7 @@ class OutputTabs(QTabWidget):
         :param index: index
         :param column_idx: column index
         """
-        self.window.controller.ui.tabs.close(index, column_idx)
+        self.window.controller.tabs.close(index, column_idx)
 
     @Slot()
     def close_all(self, type, column_idx: int):
@@ -704,7 +819,7 @@ class OutputTabs(QTabWidget):
         :param type: type
         :param column_idx: column index
         """
-        self.window.controller.ui.tabs.close_all(type, column_idx)
+        self.window.controller.tabs.close_all(type, column_idx)
 
     @Slot()
     def add_tab(self, index: int, column_idx: int, type: int, tool_id: str = None):
@@ -721,7 +836,7 @@ class OutputTabs(QTabWidget):
             if index == -1:
                 index = 0
 
-        self.window.controller.ui.tabs.append(
+        self.window.controller.tabs.append(
             type=type,
             tool_id=tool_id,
             idx=index,

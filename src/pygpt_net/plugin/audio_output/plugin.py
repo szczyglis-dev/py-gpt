@@ -26,9 +26,10 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "audio_output"
+        self.is_common_plugin = True
         self.name = "Audio Output"
         self.type = ['audio.output']
-        self.description = "Enables audio/voice output (speech synthesis)"
+        self.description = "Enables speech synthesis for every received response."
         self.prefix = "Audio Output"
         self.input_text = None
         self.playback = None
@@ -167,7 +168,7 @@ class Plugin(BasePlugin):
             return
 
         name = event.name
-        text = ctx.output
+        text = self.window.core.audio.clean_text(ctx.output)
         cache_file = None
         if event.data is not None and isinstance(event.data, dict) and "cache_file" in event.data:
             cache_file = event.data["cache_file"]
@@ -204,7 +205,7 @@ class Plugin(BasePlugin):
                 worker.ctx = ctx
                 worker.event = name
                 worker.cache_file = cache_file
-                worker.text = self.window.core.audio.clean_text(text)
+                worker.text = text
                 worker.mode = "generate"
 
                 # signals

@@ -9,12 +9,13 @@
 # Updated Date: 2024.12.14 08:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import datetime
 import os.path
-from typing import List, Dict, Any
+from typing import TYPE_CHECKING, List, Dict, Any
 
-from llama_index.core.schema import Document
-
+if TYPE_CHECKING:
+    from llama_index.core.schema import Document
 
 class Metadata:
     def __init__(self, window=None):
@@ -38,7 +39,7 @@ class Metadata:
         """
         metas = self.window.core.config.get("llama.idx.custom_meta")
         ext = str(os.path.splitext(path)[1][1:]).lower()
-        data_dir = self.window.core.config.get_user_dir("data")
+        data_dir = self.window.core.filesystem.get_data_dir()
         if (len(docs) > 0
                 and metas is not None
                 and isinstance(metas, list)

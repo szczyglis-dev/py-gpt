@@ -9,8 +9,12 @@
 # Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
-from llama_index.core.readers.base import BaseReader
+from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.readers.base import BaseReader
 
 class BaseLoader:
     def __init__(self, *args, **kwargs):
@@ -98,7 +102,7 @@ class BaseLoader:
         """
         return False
 
-    def get(self) -> BaseReader:
+    def get(self) -> "BaseReader":
         """
         Get reader instance
 

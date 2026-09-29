@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import json
@@ -14,10 +14,10 @@ import os
 from time import strftime
 from typing import Dict
 
-from PySide6.QtCore import QTimer
 from PySide6.QtGui import QTextCursor, QAction, QIcon
 from PySide6.QtWidgets import QWidget
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.tools.base import BaseTool, TabWidget
 from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
@@ -32,13 +32,14 @@ from .ui.widgets import PythonInput, ToolWidget, ToolSignals
 class CodeInterpreter(BaseTool):
     def __init__(self, *args, **kwargs):
         """
-        Python code interpreter
+        Python interpreter
 
         :param window: Window instance
         """
         super(CodeInterpreter, self).__init__(*args, **kwargs)
         self.id = "interpreter"
         self.has_tab = True
+        self.single_instance = True
         self.tab_title = "menu.tools.interpreter"
         self.tab_icon = ":/icons/code.svg"
         self.opened = False
@@ -69,20 +70,15 @@ class CodeInterpreter(BaseTool):
 
         # restore
         if self.window.core.config.has("interpreter.input"):
-            self.signals.update_input.emit(self.window.core.config.get("interpreter.input"))
+            safe_emit(self.signals, "update_input", self.window.core.config.get("interpreter.input"))
         if self.window.core.config.has("interpreter.execute_all"):
-            self.signals.set_checkbox_all.emit(self.window.core.config.get("interpreter.execute_all"))
+            safe_emit(self.signals, "set_checkbox_all", self.window.core.config.get("interpreter.execute_all"))
         if self.window.core.config.has("interpreter.auto_clear"):
-            self.signals.set_checkbox_auto_clear.emit(self.window.core.config.get("interpreter.auto_clear"))
-        if self.window.core.config.has("interpreter.ipython"):
-            self.signals.set_checkbox_ipython.emit(self.window.core.config.get("interpreter.ipython"))
+            safe_emit(self.signals, "set_checkbox_auto_clear", self.window.core.config.get("interpreter.auto_clear"))
+        self.ipython = self.is_ipython()
+        safe_emit(self.signals, "set_checkbox_ipython", self.ipython)
         if self.ipython:
-            self.signals.toggle_all_visible.emit(False)
-
-        # set initial size
-        if not self.window.core.config.has("interpreter.dialog.initialized"):
-            self.set_initial_size()
-            self.window.core.config.set("interpreter.dialog.initialized", True)
+            safe_emit(self.signals, "toggle_all_visible", False)
 
     def migrate_legacy_files(self):
         """Move legacy interpreter temporary files from data to workdir/tmp."""
@@ -118,50 +114,6 @@ class CodeInterpreter(BaseTool):
         if name == RenderEvent.ON_THEME_CHANGE:
             self.reload_view()  # reload web view on theme change
 
-    def set_initial_size(self):
-        """Set default sizes"""
-        # --------------------------------------------------------
-        # INFO: object may be deleted before this method is called
-        # --------------------------------------------------------
-        def set_initial_splitter_height():
-            try:
-                total_height = self.window.ui.splitters['interpreter'].size().height()
-                if total_height > 0:
-                    size_output = int(total_height * 0.85)
-                    size_input = total_height - size_output
-                    self.window.ui.splitters['interpreter'].setSizes([size_output, size_input])
-                else:
-                    QTimer.singleShot(0, set_initial_splitter_height)
-            except Exception as e:
-                pass
-        QTimer.singleShot(0, set_initial_splitter_height)
-
-        def set_initial_splitter_dialog_height():
-            try:
-                total_height = self.window.ui.splitters['interpreter_dialog'].size().height()
-                if total_height > 0:
-                    size_output = int(total_height * 0.85)
-                    size_input = total_height - size_output
-                    self.window.ui.splitters['interpreter_dialog'].setSizes([size_output, size_input])
-                else:
-                    QTimer.singleShot(0, set_initial_splitter_dialog_height)
-            except Exception as e:
-                pass
-        QTimer.singleShot(0, set_initial_splitter_dialog_height)
-
-        def set_initial_splitter_width():
-            try:
-                total_width = self.window.ui.splitters['interpreter.columns'].size().width()
-                if total_width > 0:
-                    size_output = int(total_width * 0.85)
-                    size_history = total_width - size_output
-                    self.window.ui.splitters['interpreter.columns'].setSizes([size_output, size_history])
-                else:
-                    QTimer.singleShot(0, set_initial_splitter_width)
-            except Exception as e:
-                pass
-        QTimer.singleShot(0, set_initial_splitter_width)
-
     def handle_ipython_output(self, line: str):
         """
         Handle ipython output
@@ -170,13 +122,24 @@ class CodeInterpreter(BaseTool):
         """
         self.append_output(line)
 
+    def get_output_max_entries(self) -> int:
+        """Return the configured interpreter output block limit (0 = unlimited)."""
+        try:
+            plugin = self.window.core.plugins.get("cmd_code_interpreter")
+            if plugin is None:
+                return 30
+            value = plugin.get_option_value("output_max_entries")
+            return max(0, int(value))
+        except (TypeError, ValueError):
+            return 30
+
     def on_reload(self):
         """On app profile reload"""
         self.reload_view()
 
     def reload_view(self):
         """Reload view"""
-        self.signals.reload_view.emit()
+        safe_emit(self.signals, "reload_view")
 
     def update(self):
         """Update menu"""
@@ -201,7 +164,7 @@ class CodeInterpreter(BaseTool):
             self.output_buffer = ""
         elif type == "stdin":
             self.input_buffer = ""
-        self.signals.begin_output.emit(type)
+        safe_emit(self.signals, "begin_output", type)
 
     def output_end(self, type: str = "stdout"):
         """
@@ -223,7 +186,7 @@ class CodeInterpreter(BaseTool):
             self.output_buffer = ""  # clear buffer
         elif type == "stdin":
             self.input_buffer = ""
-        self.signals.end_output.emit(type, ctx)
+        safe_emit(self.signals, "end_output", type, ctx)
 
         if images or files:
             self.save_output_nodes()  # update nodes
@@ -240,7 +203,7 @@ class CodeInterpreter(BaseTool):
             self.output_buffer += str(data)
         elif type == "stdin":
             self.input_buffer += str(data)
-        self.signals.update.emit(data, type, True)
+        safe_emit(self.signals, "update", data, type, True)
         self.save_output()
         self.load_history()
 
@@ -303,7 +266,7 @@ class CodeInterpreter(BaseTool):
     def load_history(self):
         """Load history data from file"""
         data = self.get_history()
-        self.signals.update_history.emit(data)
+        safe_emit(self.signals, "update_history", data)
 
     def get_output(self) -> str:
         """
@@ -324,8 +287,8 @@ class CodeInterpreter(BaseTool):
     def load_output(self):
         """Load output data from file"""
         data = self.get_output()
-        # self.signals.update.emit(data, "stdout", False)
-        self.signals.focus_input.emit()
+        # safe_emit(self.signals, "update", data, "stdout", False)
+        safe_emit(self.signals, "focus_input")
 
         # from nodes
         items = []
@@ -345,7 +308,26 @@ class CodeInterpreter(BaseTool):
                 files=item.get("files", []),
             )
             nodes.append(node)
-        self.signals.restore_nodes.emit(nodes)
+
+        # Enforce the configured output limit on persisted data as well.
+        # This keeps the JSON/plain-text state bounded immediately on startup,
+        # even before any new interpreter output is appended.
+        max_entries = self.get_output_max_entries()
+        if max_entries > 0:
+            limited_nodes = [
+                node for node in nodes
+                if node.content != "" or node.images or node.files
+            ]
+            if len(limited_nodes) > max_entries:
+                limited_nodes = limited_nodes[-max_entries:]
+            if len(limited_nodes) != len(nodes):
+                nodes = limited_nodes
+                self.save_output_nodes(nodes)
+                path = self.get_path_output()
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write("".join(str(node.content) for node in nodes))
+
+        safe_emit(self.signals, "restore_nodes", nodes)
 
     def save_output(self):
         """Save output data to file"""
@@ -357,9 +339,10 @@ class CodeInterpreter(BaseTool):
         # save nodes
         self.save_output_nodes()
 
-    def save_output_nodes(self):
-        """Save output nodes to file"""
-        nodes = self.get_widget_output().get_nodes()
+    def save_output_nodes(self, nodes: list = None):
+        """Save output nodes to file."""
+        if nodes is None:
+            nodes = self.get_widget_output().get_nodes()
         items = []
         for node in nodes:
             item = {
@@ -407,7 +390,7 @@ class CodeInterpreter(BaseTool):
         path = self.get_path_input()
         if os.path.exists(path):
             os.remove(path)
-        self.signals.clear_history.emit()
+        safe_emit(self.signals, "clear_history")
 
     def clear_output(self):
         """Clear output"""
@@ -417,7 +400,7 @@ class CodeInterpreter(BaseTool):
         path_json = self.get_path_output_json()
         if os.path.exists(path_json):
             os.remove(path_json)
-        self.signals.clear_output.emit()
+        safe_emit(self.signals, "clear_output")
 
     def clear(self, force: bool = False):
         """
@@ -456,8 +439,8 @@ class CodeInterpreter(BaseTool):
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
-        self.signals.focus_input.emit()
+        self._dispatch_interpreter_event(event)
+        safe_emit(self.signals, "focus_input")
         event = KernelEvent(KernelEvent.STATUS, {
             'status': f"[OK] Kernel restarted at {strftime('%H:%M:%S')}.",
         })
@@ -469,6 +452,12 @@ class CodeInterpreter(BaseTool):
 
         :return: True if ipython is enabled, False otherwise
         """
+        try:
+            plugin = self.window.core.plugins.get("cmd_code_interpreter")
+            if plugin is not None:
+                return bool(plugin.is_ipython_enabled())
+        except Exception:
+            pass
         return self.ipython
 
     def is_opened(self) -> bool:
@@ -501,40 +490,38 @@ class CodeInterpreter(BaseTool):
             input_textarea.clear()
             input_textarea.setFocus()
             return
-        elif input.strip().startswith("/clear"):
+        if input.strip().startswith("/clear"):
             self.clear(force=True)
             input_textarea.clear()
             input_textarea.setFocus()
             return
+        if input == "":
+            return
 
-        if self.is_all():
-            cmd = "code_execute_all"
-        else:
-            if input == "":
-                return
-            cmd = "code_execute"
+        use_ipython = self.is_ipython()
+        self.ipython = use_ipython
+        safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
+        execute_all = self.is_all() and not use_ipython
+        cmd = "ipython_exec" if use_ipython else "python_exec"
+        command = {
+            "cmd": cmd,
+            "params": {
+                "code": input,
+                "path": self.file_current,
+                "auto_init": True,  # auto initialize kernel if not initialized after error
+            },
+            "silent": True,
+            "force": True,
+        }
+        if execute_all:
+            command["_execute_all"] = True
 
-        if self.ipython:
-            cmd = "ipython_execute"
-
-        commands = [
-            {
-                "cmd": cmd,
-                "params": {
-                    "code": input,
-                    "path": self.file_current,
-                    "auto_init": True,  # auto initialize kernel if not initialized after error
-                },
-                "silent": True,
-                "force": True,
-            }
-        ]
         event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
+            'commands': [command],
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
         input_textarea.clear()
         input_textarea.setFocus()
 
@@ -548,37 +535,45 @@ class CodeInterpreter(BaseTool):
         if input == "/restart":
             self.restart_kernel()
             return
-        elif input == "/clear":
+        if input == "/clear":
             self.clear(force=True)
             return
+        if input == "":
+            return
 
-        if self.is_all():
-            cmd = "code_execute_all"
-        else:
-            if input == "":
-                return
-            cmd = "code_execute"
+        use_ipython = self.is_ipython()
+        self.ipython = use_ipython
+        safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
+        execute_all = self.is_all() and not use_ipython
+        cmd = "ipython_exec" if use_ipython else "python_exec"
+        command = {
+            "cmd": cmd,
+            "params": {
+                "code": input,
+                "path": self.file_current,
+            },
+            "silent": True,
+            "force": True,
+        }
+        if execute_all:
+            command["_execute_all"] = True
 
-        if self.ipython:
-            cmd = "ipython_execute"
-
-        commands = [
-            {
-                "cmd": cmd,
-                "params": {
-                    "code": input,
-                    "path": self.file_current,
-                },
-                "silent": True,
-                "force": True,
-            }
-        ]
         event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
+            'commands': [command],
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
+
+    def _dispatch_interpreter_event(self, event: Event):
+        """Dispatch manual interpreter commands only to the interpreter plugin.
+
+        The interpreter UI is not a chat/tool round. Broadcasting its private
+        CMD_EXECUTE event through ``controller.command.dispatch_only`` touches
+        every plugin and the shared reply stack, which can leak unrelated plugin
+        activity into the chat UI.
+        """
+        self.window.core.dispatcher.apply("cmd_code_interpreter", event)
 
     def update_input(self):
         """Update input data"""
@@ -591,7 +586,7 @@ class CodeInterpreter(BaseTool):
 
         :param data: Data
         """
-        self.signals.append_input.emit(data)
+        safe_emit(self.signals, "append_input", data)
 
     def append_to_edit(self, data: str):
         """
@@ -638,20 +633,20 @@ class CodeInterpreter(BaseTool):
 
     def auto_open(self):
         """Auto open dialog or tab"""
-        if self.window.controller.ui.tabs.is_current_tool(self.id):
-            tool_col = self.window.controller.ui.tabs.get_tool_column(self.id)
-            current_col = self.window.controller.ui.tabs.column_idx
+        if self.window.controller.tabs.is_current_tool(self.id):
+            tool_col = self.window.controller.tabs.get_tool_column(self.id)
+            current_col = self.window.controller.tabs.get_current_column_idx()
             if tool_col == 1 and tool_col != current_col:
-                self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                self.window.controller.tabs.enable_split_screen(True)  # enable split screen
             return # do not open if already opened in tab
-        elif self.window.controller.ui.tabs.is_tool(self.id):
-            tab = self.window.controller.ui.tabs.get_first_tab_by_tool(self.id)
+        elif self.window.controller.tabs.is_tool(self.id):
+            tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
             if tab:
                 tool_col = tab.column_idx
-                current_col = self.window.controller.ui.tabs.column_idx
-                self.window.controller.ui.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
+                current_col = self.window.controller.tabs.get_current_column_idx()
+                self.window.controller.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
                 if tool_col == 1 and tool_col != current_col:
-                    self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                    self.window.controller.tabs.enable_split_screen(True)  # enable split screen
                 return # do not open if already opened in tab
         if not self.auto_opened:
             self.auto_opened = True
@@ -704,7 +699,7 @@ class CodeInterpreter(BaseTool):
         """
         self.auto_clear = widget.checkbox_auto_clear.isChecked()
         self.window.core.config.set("interpreter.auto_clear", self.auto_clear)
-        self.signals.set_checkbox_auto_clear.emit(self.auto_clear)
+        safe_emit(self.signals, "set_checkbox_auto_clear", self.auto_clear)
 
     def toggle_ipython(self, widget: ToolWidget):
         """
@@ -713,12 +708,18 @@ class CodeInterpreter(BaseTool):
         :param widget: ToolWidget instance
         """
         self.ipython = widget.checkbox_ipython.isChecked()
-        self.window.core.config.set("interpreter.ipython", self.ipython)
-        self.signals.set_checkbox_ipython.emit(self.ipython)
+        plugin = self.window.core.plugins.get("cmd_code_interpreter")
+        if plugin is not None:
+            plugin.set_option_value("use_ipython", self.ipython)
+            plugins_cfg = self.window.core.config.data.setdefault("plugins", {})
+            plugin_cfg = plugins_cfg.setdefault("cmd_code_interpreter", {})
+            plugin_cfg["use_ipython"] = self.ipython
+            self.window.core.config.save()
+        safe_emit(self.signals, "set_checkbox_ipython", self.ipython)
         if self.ipython:
-            self.signals.toggle_all_visible.emit(False)
+            safe_emit(self.signals, "toggle_all_visible", False)
         else:
-            self.signals.toggle_all_visible.emit(True)
+            safe_emit(self.signals, "toggle_all_visible", True)
 
     def toggle_all(self, widget: ToolWidget):
         """
@@ -728,7 +729,7 @@ class CodeInterpreter(BaseTool):
         """
         state = widget.checkbox_all.isChecked()
         self.window.core.config.set("interpreter.execute_all", state)
-        self.signals.set_checkbox_all.emit(state)
+        safe_emit(self.signals, "set_checkbox_all", state)
 
     def get_current_output(self) -> str:
         """

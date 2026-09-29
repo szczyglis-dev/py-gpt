@@ -6,26 +6,25 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 04:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 from typing import List, Tuple, Optional
 
 import time
 import wave
-import numpy as np
 
 from PySide6.QtCore import QTimer, QObject
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 
-from .realtime import RealtimeSessionPyAudio
-from .playback import _FilePlaybackThread
 from ..shared import (
     pyaudio_to_s16le,
     convert_s16_pcm,
     build_rt_input_delta_event,
     build_output_volume_event,
+    InputLevelMeter,
 )
 
 class PyaudioBackend:
@@ -64,7 +63,8 @@ class PyaudioBackend:
         self.selected_device = None
 
         # realtime members (compatible with native backend)
-        self._rt_session: Optional[RealtimeSessionPyAudio] = None
+        self._rt_session = None
+        self._rt_ctx = None
         self._rt_signals = None  # set by set_rt_signals()
 
         # input state guard (prevents races on stop)
@@ -75,8 +75,11 @@ class PyaudioBackend:
         self._in_channels: int = self.channels
 
         # file playback worker + guard timer
-        self._file_thread: Optional[_FilePlaybackThread] = None
+        self._file_thread = None
         self._file_check_timer: Optional[QTimer] = None
+
+        # Immediate speech-band input meter.
+        self._input_meter = InputLevelMeter()
 
     def init(self):
         """Initialize audio input backend."""
@@ -212,6 +215,7 @@ class PyaudioBackend:
 
     def reset_audio_level(self):
         """Reset the audio level bar."""
+        self._input_meter.reset()
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
@@ -324,16 +328,19 @@ class PyaudioBackend:
         self.frames.append(in_data)
 
         # Compute input metering
+        import numpy as np
         dtype = self.get_dtype_from_format(self.format)
         samples = np.frombuffer(in_data, dtype=dtype)
         if samples.size == 0:
             return None, pyaudio.paContinue
 
-        rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
         normalization_factor = self.get_normalization_factor(self.format)
-        level = rms / normalization_factor
-        level = min(max(level, 0.0), 1.0)
-        level_percent = int(level * 100)
+        level_percent = self._input_meter.update(
+            samples,
+            sample_rate=self._in_rate,
+            full_scale=normalization_factor,
+            channels=self._in_channels,
+        )
 
         # Update UI on the main thread only when recording is active
         if self._input_active:
@@ -391,6 +398,7 @@ class PyaudioBackend:
         :return: NumPy dtype
         """
         import pyaudio
+        import numpy as np
         if fmt == pyaudio.paInt16:
             return np.int16
         elif fmt == pyaudio.paInt8:
@@ -457,7 +465,7 @@ class PyaudioBackend:
             pass
         if signals is not None:
             try:
-                signals.volume_changed.emit(0)
+                safe_emit(signals, "volume_changed", 0)
             except Exception:
                 pass
 
@@ -504,12 +512,13 @@ class PyaudioBackend:
         # emit start event in GUI
         if signals is not None:
             try:
-                signals.playback.emit(event_name)
+                safe_emit(signals, "playback", event_name)
             except Exception:
                 pass
 
         # select device and start worker
         dev_idx = self._select_output_device()
+        from .playback import _FilePlaybackThread
         t = _FilePlaybackThread(
             device_index=dev_idx,
             audio_file=audio_file,
@@ -559,7 +568,7 @@ class PyaudioBackend:
         # ensure UI meter is reset
         try:
             if signals is not None:
-                signals.volume_changed.emit(0)
+                safe_emit(signals, "volume_changed", 0)
         except Exception:
             pass
         return False
@@ -661,8 +670,21 @@ class PyaudioBackend:
         if not self._rt_signals:
             return
         try:
-            self._rt_signals.response.emit(
+            safe_emit(self._rt_signals, "response", 
                 build_output_volume_event(int(value))
+            )
+        except Exception:
+            pass
+
+    def _emit_output_playback_start(self) -> None:
+        """Emit event when realtime audio is actually handed to the device."""
+        if not self._rt_signals:
+            return
+        try:
+            safe_emit(
+                self._rt_signals,
+                "response",
+                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START),
             )
         except Exception:
             pass
@@ -750,7 +772,7 @@ class PyaudioBackend:
         pa.terminate()
         return int(rate), int(channels), 2
 
-    def _ensure_rt_session(self, rate: int, channels: int) -> RealtimeSessionPyAudio:
+    def _ensure_rt_session(self, rate: int, channels: int):
         """
         Ensure a realtime output session exists with a supported device format.
         Reuse only if still active and not finalized; otherwise recreate.
@@ -774,26 +796,35 @@ class PyaudioBackend:
                     return s
             except Exception:
                 pass
-            try:
-                s.stop()
-            except Exception:
-                pass
-            self._rt_session = None
+            # A replacement session must not wait for the previous
+            # hardware/software queue to drain.
+            self._interrupt_realtime_session()
 
+        from .realtime import RealtimeSessionPyAudio
         session = RealtimeSessionPyAudio(
             device_index=dev_idx,
             rate=out_rate,
             channels=out_ch,
             width_bytes=out_w,
             parent=None,
-            volume_emitter=self._emit_output_volume
+            volume_emitter=self._emit_output_volume,
+            playback_start_emitter=self._emit_output_playback_start
         )
-        session.on_stopped = lambda: (
-            self._rt_signals and self._rt_signals.response.emit(
-                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"})
-            ),
-            setattr(self, "_rt_session", None)
-        )
+        def _on_stopped(current=session):
+            # A superseded session may finish after a replacement has already
+            # been installed. Never let its callback clear the new session.
+            if self._rt_session is not current:
+                return
+            if self._rt_signals:
+                safe_emit(
+                    self._rt_signals,
+                    "response",
+                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"}),
+                )
+            self._rt_session = None
+            self._rt_ctx = None
+
+        session.on_stopped = _on_stopped
         self._rt_session = session
         return session
 
@@ -826,6 +857,27 @@ class PyaudioBackend:
             out_format="s16"
         )
 
+    def _interrupt_realtime_session(self) -> None:
+        """Hard-stop the current realtime response without emitting AUDIO_END."""
+        session = self._rt_session
+        self._rt_session = None
+        if session is None:
+            return
+        try:
+            interrupt = getattr(session, "interrupt", None)
+            if callable(interrupt):
+                interrupt()
+            else:
+                session.on_stopped = None
+                session.stop()
+        except Exception:
+            pass
+
+    def interrupt_realtime(self) -> None:
+        """Immediately abort the current realtime playback generation."""
+        self._interrupt_realtime_session()
+        self._rt_ctx = None
+
     def stop_realtime(self):
         """Stop realtime audio playback session."""
         s = self._rt_session
@@ -851,6 +903,20 @@ class PyaudioBackend:
             rate = int(payload.get("rate", 24000) or 24000)
             channels = int(payload.get("channels", 1) or 1)
             final = bool(payload.get("final", False))
+            ctx = payload.get("ctx", None)
+
+            # Realtime responses are independent playback generations. If a
+            # newer response starts while the previous one still has buffered
+            # audio, drop the old generation immediately instead of appending
+            # the new PCM behind it.
+            if ctx is not None:
+                if (
+                    self._rt_session is not None
+                    and self._rt_ctx is not None
+                    and ctx is not self._rt_ctx
+                ):
+                    self._interrupt_realtime_session()
+                self._rt_ctx = ctx
 
             # only raw PCM/L16 is supported here
             if ("pcm" not in mime) and ("l16" not in mime):

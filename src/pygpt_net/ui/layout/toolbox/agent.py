@@ -6,11 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
+from PySide6.QtWidgets import (
+    QSizePolicy,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
+from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
@@ -40,7 +46,7 @@ class Agent:
         container = QWidget(window)
 
         option = window.controller.agent.legacy.options["agent.iterations"]
-        nodes['agent.iterations.label'] = QLabel(trans("toolbox.agent.iterations.label"), parent=container)
+        nodes['agent.iterations.label'] = TitleLabel(trans("toolbox.agent.iterations.label"), window=container)
         nodes['agent.iterations'] = OptionSlider(window, 'global', 'agent.iterations', option)
         cfg['agent.iterations'] = nodes['agent.iterations']
 
@@ -52,17 +58,41 @@ class Agent:
         nodes['agent.continue'].box.toggled.connect(common.toggle_continue)
         cfg['agent.continue'] = nodes['agent.continue']
 
-        cols = QHBoxLayout()
-        cols.addWidget(cfg['agent.auto_stop'])
-        cols.addWidget(cfg['agent.continue'])
+        # Flow: run-control switches.
+        flow_page = QWidget(container)
+        flow_layout = QVBoxLayout(flow_page)
+        flow_layout.addWidget(cfg['agent.auto_stop'])
+        flow_layout.addWidget(cfg['agent.continue'])
+        flow_layout.setContentsMargins(0, 4, 0, 0)
 
-        rows = QVBoxLayout()
-        rows.addWidget(nodes['agent.iterations.label'])
-        rows.addWidget(cfg['agent.iterations'])
-        rows.addLayout(cols)
+        # Steps: iteration limit controls.
+        steps_page = QWidget(container)
+        steps_layout = QVBoxLayout(steps_page)
+        steps_layout.addWidget(nodes['agent.iterations.label'])
+        steps_layout.addWidget(cfg['agent.iterations'])
+        steps_layout.setContentsMargins(0, 10, 0, 0)
 
+        # Let Qt calculate the tab block height directly from its pages.  This
+        # block lives in the fixed toolbox footer, so no manual height syncing
+        # or custom sizeHint/minimumSizeHint handling is necessary here.
+        tabs = QTabWidget(container)
+        tabs.setObjectName('agentOptionsTabs')
+        tabs.setDocumentMode(True)
+        tabs.tabBar().setObjectName('agentOptionsTabBar')
+        tabs.tabBar().setExpanding(True)
+        tabs.tabBar().setDrawBase(False)
+        tabs.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        tabs.addTab(flow_page, trans("toolbox.agent.tab.flow"))
+        tabs.addTab(steps_page, trans("toolbox.agent.tab.steps"))
+        nodes['agent.options.tabs'] = tabs
+
+        rows = QVBoxLayout(container)
+        rows.addWidget(tabs)
+        rows.setContentsMargins(0, 0, 0, 0)
+
+        container.setContentsMargins(0, 0, 0, 0)
+        container.setMinimumWidth(0)
+        container.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         nodes['agent.options'] = container
-        nodes['agent.options'].setLayout(rows)
-        nodes['agent.options'].setContentsMargins(0, 0, 0, 0)
 
-        return nodes['agent.options']
+        return container

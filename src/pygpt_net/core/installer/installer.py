@@ -41,9 +41,6 @@ class Installer:
             # install indexes
             self.window.core.idx.install()
 
-            # install history
-            self.window.core.history.install()
-
             # install context
             self.window.core.ctx.install()
 

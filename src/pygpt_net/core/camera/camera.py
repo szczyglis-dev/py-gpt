@@ -26,7 +26,7 @@ class Camera:
 
     def install(self):
         """Install provider data"""
-        img_dir = self.window.core.config.get_user_dir('capture')
+        img_dir = self.window.core.filesystem.get_runtime_dir('capture')
         if not os.path.exists(img_dir):
             os.makedirs(img_dir, exist_ok=True)
 

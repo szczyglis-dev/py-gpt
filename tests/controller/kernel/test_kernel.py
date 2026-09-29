@@ -21,9 +21,10 @@ from pygpt_net.core.events import KernelEvent, RenderEvent
 
 # Dummy event and context classes
 class DummyEvent:
-    def __init__(self, name, data=None):
+    def __init__(self, name, data=None, ctx=None):
         self.name = name
         self.data = data if data is not None else {}
+        self.ctx = ctx
 
 class DummyContext:
     def __init__(self, reply_context=None, agent_call=False):
@@ -116,6 +117,9 @@ class FakeCore:
     def __init__(self):
         self.bridge = FakeBridge()
         self.config = {"mode": "normal"}
+        self.ctx = type("FakeCtx", (), {})()
+        self.ctx.output = MagicMock()
+        self.ctx.output.get_request_meta.return_value = None
 
 # FakeWindow as a QObject subclass
 class FakeWindow(QObject):
@@ -261,20 +265,18 @@ def test_terminate(kernel, fake_window):
     fake_window.controller.chat.common.stop.assert_called_once()
     fake_window.controller.audio.stop_audio.assert_called_once()
 
-def test_stop(kernel, fake_window):
+def test_stop(kernel, fake_window, monkeypatch):
     fake_window.dispatch = MagicMock()
     fake_window.controller.chat.common.stop = MagicMock()
     fake_window.controller.audio.stop_audio = MagicMock()
     from pygpt_net import utils
-    original_trans = utils.trans
-    utils.trans = lambda msg: msg
+    monkeypatch.setattr(utils, "trans", lambda msg: msg)
     kernel.stop(exit=False)
     assert kernel.halt is True
     fake_window.controller.chat.common.stop.assert_called_with(exit=False)
     fake_window.controller.audio.stop_audio.assert_called_once()
     dispatched = [e.name for e in fake_window.events]
     #assert KernelEvent.STOP in dispatched
-    utils.trans = original_trans
 
 def test_set_state_busy(kernel, fake_window):
     event = DummyEvent(KernelEvent.STATE_BUSY, {"msg": "busy msg"})
@@ -330,13 +332,8 @@ def test_async_allowed(kernel, fake_window):
     ctx.agent_call = False
     fake_window.core.config["mode"] = "agent"
     allowed = kernel.async_allowed(ctx)
-    assert allowed is False
-    fake_window.core.config["mode"] = "normal"
-    fake_window.controller.agent.legacy.enabled = lambda: True
-    allowed = kernel.async_allowed(ctx)
-    assert allowed is False
-    fake_window.controller.agent.legacy.enabled = lambda: False
-    fake_window.controller.agent.experts.enabled = lambda: True
+    assert allowed is True
+    fake_window.core.config["mode"] = "agent_v2"
     allowed = kernel.async_allowed(ctx)
     assert allowed is False
 

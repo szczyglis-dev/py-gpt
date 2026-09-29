@@ -9,11 +9,14 @@
 # Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
-import hashlib
-from typing import Optional, Tuple, List
+from __future__ import annotations
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core.indices.vector_store.base import VectorStoreIndex
+
+import hashlib
+from typing import Optional, Tuple, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
 
 from .base import BaseStore
 from .ctx_attachment import CtxAttachmentProvider
@@ -32,13 +35,13 @@ class Storage:
         self.indexes = {}
         self.tmp_storage = TempProvider(window=window)
 
-    def get_storage(self) -> Optional[BaseStore]:
+    def get_storage(self, store_id: Optional[str] = None) -> Optional[BaseStore]:
         """
         Get current vector store provider
 
         :return: vector store provider instance
         """
-        current = self.window.core.config.get("llama.idx.storage")
+        current = store_id or self.window.core.config.get("llama.idx.storage")
         if current is None \
                 or current == "_" \
                 or current not in self.storages:
@@ -83,14 +86,14 @@ class Storage:
         """
         return list(self.storages.keys())
 
-    def exists(self, id: Optional[str] = None) -> bool:
+    def exists(self, id: Optional[str] = None, store_id: Optional[str] = None) -> bool:
         """
         Check if index exists
 
         :param id: index name
         :return: True if exists
         """
-        storage = self.get_storage()
+        storage = self.get_storage(store_id)
         if storage is None:
             raise Exception('Storage engine not found!')
         return storage.exists(id)
@@ -148,31 +151,31 @@ class Storage:
             index=index,
         )
 
-    def remove(self, id: str) -> bool:
+    def remove(self, id: str, store_id: Optional[str] = None) -> bool:
         """
         Clear index only
 
         :param id: index name
         :return: True if success
         """
-        storage = self.get_storage()
+        storage = self.get_storage(store_id)
         if storage is None:
             raise Exception('Storage engine not found!')
         return storage.remove(id)
 
-    def truncate(self, id: str) -> bool:
+    def truncate(self, id: str, store_id: Optional[str] = None) -> bool:
         """
         Truncate and clear index
 
         :param id: index name
         :return: True if success
         """
-        storage = self.get_storage()
+        storage = self.get_storage(store_id)
         if storage is None:
             raise Exception('Storage engine not found!')
         return storage.truncate(id)
 
-    def remove_document(self, id: str, doc_id: str) -> bool:
+    def remove_document(self, id: str, doc_id: str, store_id: Optional[str] = None) -> bool:
         """
         Remove document from index
 
@@ -180,7 +183,7 @@ class Storage:
         :param doc_id: document ID
         :return: True if success
         """
-        storage = self.get_storage()
+        storage = self.get_storage(store_id)
         if storage is None:
             raise Exception('Storage engine not found!')
         return storage.remove_document(
@@ -316,6 +319,8 @@ class Storage:
 
         :return: index instance
         """
+        from llama_index.core.indices.vector_store.base import VectorStoreIndex
+
         return VectorStoreIndex(
             [],
             embed_model=embed_model,

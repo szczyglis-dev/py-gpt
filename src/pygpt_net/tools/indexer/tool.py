@@ -187,11 +187,16 @@ class IndexerTool(BaseTool):
                     datetime.datetime.fromtimestamp(row["updated_ts"]).strftime('%Y-%m-%d %H:%M:%S'))
         self.window.ui.nodes['tool.indexer.ctx.last_meta_ts'].setText(last_meta_ts)
 
-        # auto-index enabled
+        # auto-index policy
+        auto_policy = self.window.core.config.get("llama.idx.auto", "off")
+        if isinstance(auto_policy, bool):
+            auto_policy = "all" if auto_policy else "off"
         auto_str = trans("tool.indexer.tab.ctx.auto.no")
-        if self.window.core.config.get("llama.idx.auto"):
-            auto_str = trans("tool.indexer.tab.ctx.auto.yes") + " ({})".format(
-                self.window.core.config.get("llama.idx.auto.index"))
+        if auto_policy in ("all", "projects"):
+            policy_label = trans(
+                "settings.llama.extra.btn.idx_auto.mode." + auto_policy
+            )
+            auto_str = trans("tool.indexer.tab.ctx.auto.yes") + f" ({policy_label})"
         self.window.ui.nodes['tool.indexer.ctx.auto_enabled'].setText(auto_str)
 
         # last auto-index TS
@@ -369,6 +374,7 @@ class IndexerTool(BaseTool):
             return
 
         table = self.window.ui.nodes['tool.indexer.browser'].get_current_table()
+        doc_id = None
         query = "SELECT doc_id FROM {} WHERE id=:id".format(table)
         stmt = text(query).bindparams(id=id)
         with self.window.core.db.get_db().connect() as conn:

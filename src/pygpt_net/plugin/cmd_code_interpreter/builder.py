@@ -6,20 +6,40 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.17 02:00:00                  #
+# Updated Date: 2026.09.20 10:15:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal, QObject
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 from pygpt_net.utils import trans
+
+from .sandbox import SandboxMode
 
 class Builder(QObject):
     def __init__(self, plugin=None):
         super(Builder, self).__init__()
         self.plugin = plugin
         self.worker = None
+        self._loader_active = False
+
+    def _start_loader(self):
+        """Show the shared heavy-operation loader for an IPython image build."""
+        dialog = self.plugin.window.ui.dialogs.show_loader(
+            message=trans('ipython.docker.build.start'),
+            show_cancel=False,
+            modal=True,
+        )
+        self._loader_active = dialog is not None
+
+    def _finish_loader(self):
+        """Close the shared Docker-build loader if this builder opened it."""
+        if not self._loader_active:
+            return
+        self._loader_active = False
+        self.plugin.window.ui.dialogs.finish_loader()
 
     def build_and_restart(self):
         """Run IPython image build and restart container"""
@@ -32,7 +52,9 @@ class Builder(QObject):
         :param restart: Restart container
         """
         try:
-            self.plugin.window.update_status("Please wait... building...")
+            self.plugin.migrate_docker_defaults()
+            self.plugin.window.update_status(trans('ipython.docker.build.start'))
+            self._start_loader()
             self.worker = Worker()
             self.worker.plugin = self.plugin
             self.worker.restart = restart
@@ -40,11 +62,13 @@ class Builder(QObject):
             self.worker.signals.error.connect(self.handle_build_failed)
             self.plugin.window.threadpool.start(self.worker)
         except Exception as e:
+            self._finish_loader()
             self.plugin.window.ui.dialogs.alert(e)
 
     @Slot()
     def handle_build_finished(self):
         """Handle build finished"""
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(trans('ipython.docker.build.finish'))
         self.plugin.window.update_status(trans('ipython.docker.build.finish'))
         self.plugin.window.controller.kernel.stop()
@@ -54,6 +78,7 @@ class Builder(QObject):
     @Slot(object)
     def handle_build_failed(self, error):
         """Handle build failed"""
+        self._finish_loader()
         self.plugin.window.ui.dialogs.alert(str(error))
         self.plugin.window.update_status(str(error))
         self.plugin.window.controller.kernel.stop()
@@ -75,9 +100,10 @@ class Worker(BaseWorker):
     @Slot()
     def run(self):
         try:
-            self.plugin.get_interpreter().build_image()
-            if self.restart:
-                self.plugin.get_interpreter().restart()
-            self.signals.build_finished.emit()
+            interpreter = self.plugin.ipython_docker
+            interpreter.build_image()
+            if self.restart and self.plugin.is_sandbox_mode(SandboxMode.DOCKER) and self.plugin.is_ipython_enabled():
+                interpreter.restart()
+            safe_emit(self.signals, "build_finished")
         except Exception as e:
-            self.signals.error.emit(e)
+            safe_emit(self.signals, "error", e)

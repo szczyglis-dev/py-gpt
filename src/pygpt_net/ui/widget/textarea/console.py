@@ -12,6 +12,8 @@
 from PySide6 import QtCore
 from PySide6.QtWidgets import QLineEdit, QApplication
 
+from pygpt_net.utils import trans
+
 
 class ConsoleInput(QLineEdit):
     def __init__(self, window=None):
@@ -22,7 +24,7 @@ class ConsoleInput(QLineEdit):
         """
         super(ConsoleInput, self).__init__(window)
         self.window = window
-        self.setPlaceholderText("Console... Type your command here")
+        self.setPlaceholderText(trans("logger.console.placeholder"))
         self.setProperty('class', 'text-editor')
         self.setFocus()
 

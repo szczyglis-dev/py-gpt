@@ -6,15 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 20:31:00
+# Updated Date: 2026.09.12 14:45:00
 # ================================================== #
 
 from PySide6.QtGui import QPixmap, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea, QLabel
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QComboBox, QScrollArea, QLabel
 from PySide6.QtCore import QSize
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
-from pygpt_net.ui.widget.draw.modes import DRAW_MODE_TRANSLATION_KEYS
+from pygpt_net.ui.widget.draw.modes import DRAW_MODE_TRANSLATION_KEYS, DRAW_MODE_ICONS
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.utils import trans
@@ -49,7 +49,18 @@ class Painter:
             cb.setMinimumContentsLength(10)
             cb.setSizeAdjustPolicy(QComboBox.AdjustToContents)
             for draw_mode in common.get_draw_modes():
-                cb.addItem(trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]), draw_mode.value)
+                icon_path = DRAW_MODE_ICONS.get(draw_mode)
+                if icon_path:
+                    cb.addItem(
+                        QIcon(icon_path),
+                        trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]),
+                        draw_mode.value,
+                    )
+                else:
+                    cb.addItem(
+                        trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]),
+                        draw_mode.value,
+                    )
             cb.currentIndexChanged.connect(lambda _idx: common.change_draw_mode(cb.currentData()))
             nodes[key] = cb
 
@@ -176,6 +187,7 @@ class Painter:
         """
         self.init()
         body = self.window.core.tabs.from_layout(self.setup_painter())
+        self.window.ui.painter.bind_clipboard_shortcuts(body, self.window.ui.painter_scroll)
         body.append(self.window.ui.painter)
         return body
 
@@ -199,24 +211,6 @@ class Painter:
         top.addWidget(nodes['painter.icon.zoom'])
         top.addWidget(nodes['painter.select.zoom'])
         top.addStretch(1)
-
-        if nodes.get('painter.btn.capture') is None:
-            btn = QPushButton(QIcon(":/icons/attachment.svg"), trans('painter.btn.capture'))
-            btn.clicked.connect(self.window.controller.painter.capture.use)
-            nodes['painter.btn.capture'] = btn
-        top.addWidget(nodes['painter.btn.capture'])
-
-        if nodes.get('painter.btn.camera.capture') is None:
-            btn = QPushButton(QIcon(":/icons/camera.svg"), trans('painter.btn.camera.capture'))
-            btn.clicked.connect(self.window.controller.painter.capture.camera)
-            nodes['painter.btn.camera.capture'] = btn
-        top.addWidget(nodes['painter.btn.camera.capture'])
-
-        if nodes.get('painter.btn.clear') is None:
-            btn = QPushButton(QIcon(":/icons/close.svg"), trans('painter.btn.clear'))
-            btn.clicked.connect(ui.painter.clear_image)
-            nodes['painter.btn.clear'] = btn
-        top.addWidget(nodes['painter.btn.clear'])
 
         if getattr(ui, 'painter_scroll', None) is None:
             ui.painter_scroll = QScrollArea()

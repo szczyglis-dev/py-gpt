@@ -9,11 +9,9 @@
 # Updated Date: 2025.08.26 01:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 from typing import Dict, Any, Tuple, Union, Optional
 
-from agents import (
-    Agent as OpenAIAgent,
-)
 
 from pygpt_net.core.agents.bridge import ConnectionContext
 from pygpt_net.core.bridge import BridgeContext
@@ -25,12 +23,9 @@ from pygpt_net.core.types import (
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
-from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
-from pygpt_net.provider.api.openai.agents.experts import get_experts
 from pygpt_net.utils import trans
 
 from ..base import BaseAgent
-from .bots.research_bot.manager import ResearchManager
 
 
 class Agent(BaseAgent):
@@ -74,6 +69,10 @@ class Agent(BaseAgent):
         :param kwargs: keyword arguments
         :return: Agent provider instance
         """
+        from agents import Agent as OpenAIAgent
+        from pygpt_net.provider.api.openai.agents.client import append_reasoning_model_settings
+        from pygpt_net.provider.api.openai.agents.remote_tools import append_tools
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         system_prompt = kwargs.get("system_prompt", "")
@@ -96,6 +95,7 @@ class Agent(BaseAgent):
             allow_remote_tools=True,
         )
         kwargs.update(tool_kwargs)  # update kwargs with tools
+        append_reasoning_model_settings(kwargs, window, model)
         return OpenAIAgent(**kwargs)
 
     async def run(
@@ -122,6 +122,9 @@ class Agent(BaseAgent):
         :param use_partial_ctx: Use partial ctx per cycle
         :return: Current ctx, final output, last response ID
         """
+        from pygpt_net.provider.api.openai.agents.experts import get_experts
+        from .bots.research_bot.manager import ResearchManager
+
         response_id = None
         model = agent_kwargs.get("model", ModelItem())
         verbose = agent_kwargs.get("verbose", False)
@@ -137,12 +140,18 @@ class Agent(BaseAgent):
         if custom_prompt and custom_prompt.strip() != "":
             prompt = custom_prompt
 
-        model_planner = window.core.models.get(
-            self.get_option(preset, "planner", "model")
+        planner_prompt = self.append_system_prompt_extra(
+            self.get_option(preset, "planner", "prompt"),
+            agent_kwargs,
         )
-        model_search = window.core.models.get(
-            self.get_option(preset, "search", "model")
+        search_prompt = self.append_system_prompt_extra(
+            self.get_option(preset, "search", "prompt"),
+            agent_kwargs,
         )
+        prompt = self.append_system_prompt_extra(prompt, agent_kwargs)
+
+        model_planner = self.resolve_model_option(window, preset, "planner", model)
+        model_search = self.resolve_model_option(window, preset, "search", model)
 
         # prepare provider config
         model_kwargs = {}
@@ -155,6 +164,7 @@ class Agent(BaseAgent):
             preset=preset,
             verbose=verbose,
             tools=tools,
+            system_prompt_extra=self.get_system_prompt_extra(agent_kwargs),
         )
 
         bot = ResearchManager(
@@ -165,7 +175,7 @@ class Agent(BaseAgent):
             bridge=bridge,
             stream=stream,
             planner_config={
-                "prompt": self.get_option(preset, "planner", "prompt"),
+                "prompt": planner_prompt,
                 "model": model_planner,
                 "allow_local_tools": self.get_option(preset, "planner", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "planner", "allow_remote_tools"),
@@ -173,7 +183,7 @@ class Agent(BaseAgent):
                 "experts": experts,
             },
             search_config={
-                "prompt": self.get_option(preset, "search", "prompt"),
+                "prompt": search_prompt,
                 "model": model_search,
                 "allow_local_tools": self.get_option(preset, "search", "allow_local_tools"),
                 "allow_remote_tools": self.get_option(preset, "search", "allow_remote_tools"),
@@ -231,7 +241,12 @@ class Agent(BaseAgent):
                         "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
-                        "default": "gpt-4o",
+                        "default": "gpt-5.6-luna",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",
@@ -260,7 +275,12 @@ class Agent(BaseAgent):
                         "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
-                        "default": "gpt-4o",
+                        "default": "gpt-5.6-luna",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",

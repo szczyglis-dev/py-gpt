@@ -128,6 +128,7 @@ def resolve_node_runtime(
     option_get: OptionGetter,
     default_model: ModelItem,
     base_prompt: Optional[str],
+    system_prompt_extra: Optional[str] = None,
     schema_allow_local: Optional[bool],
     schema_allow_remote: Optional[bool],
     default_allow_local: bool,
@@ -137,27 +138,30 @@ def resolve_node_runtime(
     Resolve per-node runtime using get_option() overrides, schema slots and defaults.
 
     Priority:
-    - model:      get_option(node.id, "model") -> window.core.models.get(name) -> default_model
+    - model:      model_overwrite=True -> selected model; otherwise -> default_model
     - prompt:     get_option(node.id, "prompt") -> node.instruction -> base_prompt -> ""
     - role:       get_option(node.id, "role") -> node.role -> None (only used if provided and non-empty)
     - allow_*:    get_option(node.id, "allow_local_tools"/"allow_remote_tools")
                   -> schema flags -> defaults
     """
-    # Model resolve
-    model_name = option_get(node.id, "model", None)
+    # Per-node model selection is opt-in; by default inherit the active model.
     model_item: ModelItem = default_model
-    try:
-        if model_name:
-            cand = window.core.models.get(model_name)
-            if cand:
-                model_item = cand
-    except Exception:
-        # fallback to default_model
-        model_item = default_model
+    if bool(option_get(node.id, "model_overwrite", False)):
+        model_name = option_get(node.id, "model", None)
+        try:
+            if model_name:
+                cand = window.core.models.get(model_name)
+                if cand:
+                    model_item = cand
+        except Exception:
+            model_item = default_model
 
     # Instructions resolve
     prompt_opt = option_get(node.id, "prompt", None)
     instructions = (prompt_opt or getattr(node, "instruction", None) or base_prompt or "").strip()
+    extra = str(system_prompt_extra or "").strip()
+    if extra and extra not in instructions:
+        instructions = f"{instructions}\n\n{extra}" if instructions else extra
 
     # Role resolve (optional)
     role_opt = option_get(node.id, "role", None)

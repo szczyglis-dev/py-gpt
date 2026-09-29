@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 17:00:00                  #
+# Updated Date: 2026.09.19 22:50:00                  #
 # ================================================== #
 
 import os
@@ -88,6 +88,15 @@ class UI:
         self.splitters['main'].addWidget(self.parts['ctx'])  # contexts
         self.splitters['main'].addWidget(self.parts['chat'])  # chat box
         self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
+
+        # Keep side panes at the width selected by the user when the main
+        # window changes size (especially Normal <-> Maximized).  Without an
+        # explicit stretch policy QSplitter redistributes the extra width
+        # proportionally, which makes the context list and toolbox grow/shrink
+        # together with the window.  The chat pane is the elastic center pane.
+        self.splitters['main'].setStretchFactor(0, 0)
+        self.splitters['main'].setStretchFactor(1, 1)
+        self.splitters['main'].setStretchFactor(2, 0)
 
         # menus
         self.menus.setup()

@@ -13,6 +13,7 @@ import copy
 import datetime
 import os
 import re
+import sys
 
 from pathlib import Path
 from packaging.version import Version
@@ -100,7 +101,7 @@ class Config:
 
         :return: True if compiled version
         """
-        return __file__.endswith('.pyc')
+        return bool(getattr(sys, 'frozen', False))
 
     def install(self):
         """Install database and provider data"""
@@ -148,11 +149,19 @@ class Config:
         """
         is_test = os.environ.get('ENV_TEST') == '1'
         path = Path(Config.get_base_workdir())
-        if not path.exists() and not is_test:
+
+        # Tests must not depend on, create, or read a real user path.cfg.
+        # On a clean CI runner the base directory usually does not exist at all,
+        # so trying to read path.cfg here would raise FileNotFoundError.
+        if is_test:
+            return str(path)
+
+        if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
+
         path_file = "path.cfg"
         p = os.path.join(str(path), path_file)
-        if not os.path.exists(p) and not is_test:
+        if not os.path.exists(p):
             with open(p, 'w', encoding='utf-8') as f:
                 f.write("")
         else:
@@ -211,15 +220,15 @@ class Config:
 
         return path
 
-    def get_workdir_prefix(self) -> str:
+    def get_workdir_prefix(self, ctx=None) -> str:
         """
         Return workdir path (sandboxed or user dir)
 
         :return: workdir path
         """
-        workdir = self.get_user_dir('data')
-        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
-            workdir = "/data"
+        workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
+        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox") == "docker":
+            workdir = "/mnt/data"
         return workdir
 
     def remove_plugin_config(self, plugin: str, key: str = None) -> bool:
@@ -272,12 +281,16 @@ class Config:
 
         :return: app root path
         """
-        if hasattr(self, '_app_path') and self._app_path is not None:
+        if hasattr(self, "_app_path") and self._app_path is not None:
             return self._app_path
-        if self.is_compiled():
-            self._app_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+        if self.is_compiled() and hasattr(sys, "_MEIPASS"):
+            path = sys._MEIPASS
         else:
-            self._app_path = os.path.abspath(os.path.dirname(__file__))
+            path = os.path.dirname(__file__)
+
+        self._app_path = os.path.abspath(path)
+
         return self._app_path
 
     def get_user_path(self) -> str:
@@ -317,26 +330,35 @@ class Config:
             self.load(all)
             self.initialized = True
 
+    def _load_app_meta(self) -> None:
+        """Read __init__.py once and cache version and build strings."""
+        try:
+            path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
+            with open(path, 'r', encoding="utf-8") as f:
+                data = f.read()
+            ver = _RE_VERSION.search(data)
+            build = _RE_BUILD.search(data)
+            self._version_cache = ver.group(1) if ver is not None else "0.0.0"
+            self._build_cache = build.group(1) if build is not None else "0.0.0"
+        except Exception as e:
+            if self.window is not None:
+                self.window.core.debug.log(e)
+            else:
+                print(f"Error loading app metadata file: {e}")
+            if not hasattr(self, '_version_cache') or self._version_cache is None:
+                self._version_cache = "0.0.0"
+            if not hasattr(self, '_build_cache') or self._build_cache is None:
+                self._build_cache = "0.0.0"
+
     def get_version(self) -> str:
         """
         Return version
 
         :return: version string
         """
-        if hasattr(self, '_version_cache') and self._version_cache is not None:
-            return self._version_cache
-        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                data = f.read()
-                result = _RE_VERSION.search(data)
-                self._version_cache = result.group(1)
-                return self._version_cache
-        except Exception as e:
-            if self.window is not None:
-                self.window.core.debug.log(e)
-            else:
-                print(f"Error loading version file: {e}")
+        if not hasattr(self, '_version_cache') or self._version_cache is None:
+            self._load_app_meta()
+        return self._version_cache
 
     def get_build(self) -> str:
         """
@@ -344,20 +366,9 @@ class Config:
 
         :return: build string
         """
-        if self._build_cache is not None:
-            return self._build_cache
-        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                data = f.read()
-                result = _RE_BUILD.search(data)
-                self._build_cache = result.group(1)
-                return self._build_cache
-        except Exception as e:
-            if self.window is not None:
-                self.window.core.debug.log(e)
-            else:
-                print(f"Error loading version file: {e}")
+        if not hasattr(self, '_build_cache') or self._build_cache is None:
+            self._load_app_meta()
+        return self._build_cache
 
     def get_options(self) -> dict:
         """
@@ -384,6 +395,78 @@ class Config:
         :return: value
         """
         return self.data.get(key, default)
+
+    def get_provider(self, provider_id: str, key: str = None, default: any = None) -> any:
+        """Return provider-scoped configuration from ``providers``.
+
+        ``api_key`` and ``api_base`` are top-level provider values. Other keys
+        are resolved from ``extra``; callers may explicitly use ``extra.foo``
+        as well.
+        """
+        providers = self.data.get("providers", {})
+        if not isinstance(providers, dict):
+            return default
+        provider = providers.get(provider_id, {})
+        if not isinstance(provider, dict):
+            return default
+        if key is None:
+            return provider
+        if key in provider:
+            return provider.get(key, default)
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = provider.get("extra", {})
+        if isinstance(extra, dict):
+            return extra.get(extra_key, default)
+        return default
+
+    def set_provider(self, provider_id: str, key: str, value: any):
+        """Set provider-scoped configuration in ``providers``."""
+        providers = self.data.setdefault("providers", {})
+        if not isinstance(providers, dict):
+            providers = {}
+            self.data["providers"] = providers
+        provider = providers.setdefault(provider_id, {})
+        if not isinstance(provider, dict):
+            provider = {}
+            providers[provider_id] = provider
+        if key in ("api_key", "api_base"):
+            provider[key] = value
+            return
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = provider.setdefault("extra", {})
+        if not isinstance(extra, dict):
+            extra = {}
+            provider["extra"] = extra
+        extra[extra_key] = value
+
+    def ensure_provider(self, provider_id: str, defaults: dict = None) -> bool:
+        """Create a provider entry and fill only missing schema defaults."""
+        changed = False
+        providers = self.data.setdefault("providers", {})
+        if not isinstance(providers, dict):
+            providers = {}
+            self.data["providers"] = providers
+            changed = True
+        provider = providers.get(provider_id)
+        if not isinstance(provider, dict):
+            provider = {}
+            providers[provider_id] = provider
+            changed = True
+        for key, value in (defaults or {}).items():
+            if key == "extra":
+                extra = provider.get("extra")
+                if not isinstance(extra, dict):
+                    extra = {}
+                    provider["extra"] = extra
+                    changed = True
+                for extra_key, extra_value in (value or {}).items():
+                    if extra_key not in extra:
+                        extra[extra_key] = copy.deepcopy(extra_value)
+                        changed = True
+            elif key not in provider:
+                provider[key] = copy.deepcopy(value)
+                changed = True
+        return changed
 
     def get_session(self, key: str, default: any = None) -> any:
         """
@@ -516,9 +599,14 @@ class Config:
 
         :param all: load all configs
         """
-        self.data = self.provider.load(all)
-        if self.data is not None:
-            self.data = dict(sorted(self.data.items(), key=itemgetter(0)))
+        data = self.provider.load(all)
+        if data is None:
+            # A clean/test environment may not have config.json yet. Keep the
+            # Config object usable so callers such as Locale/trans() can safely
+            # fall back to defaults instead of failing on self.data == None.
+            self.data = {}
+            return
+        self.data = dict(sorted(data.items(), key=itemgetter(0)))
 
     def load_base_config(self):
         """
@@ -543,7 +631,13 @@ class Config:
 
         :return: last used directory
         """
-        last_dir = self.get_user_dir("data")
+        # The default file-dialog directory follows the active conversation's
+        # data workdir. Only the semantic ``data`` directory is project-aware;
+        # all other profile directories remain rooted in the global workdir.
+        try:
+            last_dir = self.window.core.filesystem.get_data_dir()
+        except (AttributeError, RuntimeError):
+            last_dir = self.get_user_dir("data")
         if self.has("dialog.last_dir"):
             tmp_dir = self.get("dialog.last_dir")
             if os.path.isdir(tmp_dir):
@@ -603,7 +697,7 @@ class Config:
             except Exception as e:
                 print(f"Error setting env var: {e}")
         if list_loaded:
-            print(f"Setting environment vars: {', '.join(list_loaded)}")
+            print(f"Setting environment: {', '.join(list_loaded)}")
 
     def save(self, filename: str = "config.json"):
         """

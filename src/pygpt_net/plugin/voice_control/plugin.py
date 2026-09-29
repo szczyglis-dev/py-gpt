@@ -20,6 +20,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "voice_control"
+        self.is_common_plugin = True
         self.name = "Voice Control (inline)"
         self.type = [
             "cmd.inline",

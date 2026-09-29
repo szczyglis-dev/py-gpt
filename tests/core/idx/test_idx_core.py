@@ -43,13 +43,22 @@ def test_store_index(mock_window):
 
 
 def test_remove_index(mock_window):
-    """
-    Test truncate index
-    """
+    """Removing an index clears all tracking rows and physical storage."""
     idx = Idx(mock_window)
     mock_window.core.config.set("llama.idx.storage", "test_store")
-    idx.storage.remove = MagicMock()
-    idx.remove_index()
+    idx.ctx.truncate = MagicMock()
+    idx.files.truncate = MagicMock()
+    idx.external.truncate = MagicMock()
+    mock_window.core.ctx.idx.truncate_indexed = MagicMock()
+    idx.storage.exists = MagicMock(return_value=True)
+    idx.storage.remove = MagicMock(return_value=True)
+
+    assert idx.remove_index() is True
+
+    idx.ctx.truncate.assert_called_once_with("test_store", "base")
+    idx.files.truncate.assert_called_once_with("test_store", "base")
+    idx.external.truncate.assert_called_once_with("test_store", "base")
+    mock_window.core.ctx.idx.truncate_indexed.assert_called_once_with("test_store", "base")
     idx.storage.remove.assert_called_once_with("base")
 
 
@@ -328,6 +337,7 @@ def test_to_file_id(mock_window):
     provider = MagicMock()
     files = Files(mock_window, provider)
     root_dir = os.path.normpath(mock_window.core.config.get_user_dir('data'))
+    mock_window.core.filesystem.get_data_dir = MagicMock(return_value=root_dir)
 
     if platform.system() == 'Windows':
         res = files.get_id(path=root_dir + "\\dir\\file.txt")
@@ -338,29 +348,43 @@ def test_to_file_id(mock_window):
 
 
 def test_append(mock_window):
-    """
-    Test append
-    """
+    """Appending indexed files writes lazy tracking rows without hydrating item contents."""
     idx = Idx(mock_window)
-    idx.save = MagicMock()
     mock_window.core.config.set("llama.idx.storage", "test_store")
-    items = [
-        {
-            "id": "base",
-            "name": "Base"
-        },
-    ]
     item = IndexItem()
-    mock_window.core.config.set("llama.idx.list", items)
-    idx.items = {
-        "test_store": {
-            "base": item,
-        }
-    }
+    idx.items = {"test_store": {"base": item}}
+    idx.files.get_id = MagicMock(return_value="file.txt")
+    idx.files.get_record = MagicMock(return_value=None)
+    idx.files.append = MagicMock(return_value=1)
+
     idx.append(idx="base", files={
         "file.txt": "61f210f3-5635-49b8-95f4-ebc998d53c2f"
     })
-    assert idx.items["test_store"]["base"].items["file.txt"]["id"] == "61f210f3-5635-49b8-95f4-ebc998d53c2f"
+
+    idx.files.append.assert_called_once_with(
+        "test_store",
+        "base",
+        "file.txt",
+        "file.txt",
+        "61f210f3-5635-49b8-95f4-ebc998d53c2f",
+    )
+    assert idx.items["test_store"]["base"].items == {}
+
+
+def test_append_updates_existing_lazy_tracking_row(mock_window):
+    """Re-indexing a tracked file updates the existing DB row instead of duplicating it."""
+    idx = Idx(mock_window)
+    mock_window.core.config.set("llama.idx.storage", "test_store")
+    idx.files.get_id = MagicMock(return_value="file.txt")
+    idx.files.get_record = MagicMock(return_value={"id": 77, "doc_id": "old"})
+    idx.files.update = MagicMock(return_value=True)
+
+    idx.append(idx="base", files={"file.txt": "new-doc"})
+
+    args = idx.files.update.call_args.args
+    assert args[0] == 77
+    assert args[1] == "new-doc"
+    assert isinstance(args[2], int) and args[2] > 0
 
 
 def test_clear(mock_window):
@@ -388,35 +412,20 @@ def test_clear(mock_window):
 
 
 def test_load(mock_window):
-    """
-    Test load
-    """
-    ids = ["test_store"]
-
-    item = IndexItem()
-    item.id = "base"
-    item.items = {
-        "file.txt": {
-            "path": "%workdir%/data/file.txt",
-            "indexed_ts": 1705822595.323048,
-            "id": "61f210f3-5635-49b8-95f4-ebc998d53c2f"
-        }
-    }
-    items = {}
-    items["base"] = item
+    """Load hydrates only index identities; file contents stay lazy."""
     idx = Idx(mock_window)
-    idx.storage.get_ids = MagicMock(return_value=ids)
-    mock_window.core.filesystem = Filesystem(mock_window)
-    idx.get_provider().load = MagicMock(return_value=items)
-    idx.load()
-    data_dir = mock_window.core.config.get_user_dir('data')
-    assert idx.items["test_store"]["base"].id == "base"
-    assert idx.items["test_store"]["base"].items["file.txt"]["id"] == "61f210f3-5635-49b8-95f4-ebc998d53c2f"
+    mock_window.core.config.set("llama.idx.storage", "test_store")
+    mock_window.core.config.set("llama.idx.list", [{"id": "base", "name": "Base"}])
+    idx.storage.get_ids = MagicMock(return_value=["test_store"])
+    idx.get_provider().get_index_ids = MagicMock(return_value=["base"])
+    idx.get_provider().load = MagicMock()
 
-    if platform.system() == 'Windows':
-        assert idx.items["test_store"]["base"].items["file.txt"]["path"] == data_dir + "\\file.txt"
-    else:
-        assert idx.items["test_store"]["base"].items["file.txt"]["path"] == data_dir + "/file.txt"
+    idx.load()
+
+    assert idx.items["test_store"]["base"].id == "base"
+    assert idx.items["test_store"]["base"].items == {}
+    idx.get_provider().get_index_ids.assert_called_once_with("test_store")
+    idx.get_provider().load.assert_not_called()
 
 
 def test_get_version(mock_window):

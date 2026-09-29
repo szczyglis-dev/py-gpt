@@ -9,7 +9,6 @@
 # Updated Date: 2024.04.27 10:00:00                  #
 # ================================================== #
 
-import webbrowser
 from unittest.mock import MagicMock
 
 from pygpt_net.item.assistant import AssistantItem
@@ -179,8 +178,12 @@ def test_delete(mock_window):
 def test_goto_online(mock_window):
     """Test goto online assistant page"""
     assistant = Assistant(mock_window)
-    webbrowser.open = MagicMock()
+    open_url = mock_window.controller.dialogs.info.open_url
+    open_url.reset_mock()
+
     assistant.goto_online()
+
+    open_url.assert_called_once_with('https://platform.openai.com/assistants')
 
 
 def test_change_locked(mock_window):

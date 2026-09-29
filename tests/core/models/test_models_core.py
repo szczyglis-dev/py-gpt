@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.06.29 18:00:00                  #
+# Updated Date: 2026.09.05 12:30:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -15,6 +15,7 @@ from unittest.mock import MagicMock, patch
 from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window
 from pygpt_net.core.models import Models
+from pygpt_net.core.types import MODE_CHAT
 
 
 def test_install(mock_window):
@@ -130,3 +131,63 @@ def test_get_version(mock_window):
     models.provider = MagicMock()
     models.provider.get_version.return_value = "1.0.0"
     assert models.get_version() == "1.0.0"
+
+
+def test_prepare_client_args_runtime_custom_provider(mock_window):
+    models = Models(mock_window)
+    provider = MagicMock()
+    provider.is_runtime_custom = True
+    provider.name = "My API"
+    provider.api_base = "https://custom.example/v1"
+    provider.get_api_key.return_value = "CUSTOM-KEY"
+
+    mock_window.core.llm.is_custom_provider = MagicMock(return_value=True)
+    mock_window.core.llm.get = MagicMock(return_value=provider)
+
+    model = ModelItem("custom-model")
+    model.provider = "custom_my_api_12345678"
+
+    args = models.prepare_client_args(MODE_CHAT, model)
+
+    assert args["api_key"] == "CUSTOM-KEY"
+    assert args["base_url"] == "https://custom.example/v1"
+    assert "organization" not in args
+    provider.get_api_key.assert_called_once_with()
+
+
+def test_prepare_client_args_runtime_custom_provider_model_override_has_priority(mock_window):
+    models = Models(mock_window)
+    provider = MagicMock()
+    provider.is_runtime_custom = True
+    provider.name = "My API"
+    provider.api_base = "https://provider.example/v1"
+    provider.get_api_key.return_value = "PROVIDER-KEY"
+
+    mock_window.core.llm.is_custom_provider = MagicMock(return_value=True)
+    mock_window.core.llm.get = MagicMock(return_value=provider)
+
+    model = ModelItem("custom-model")
+    model.provider = "custom_my_api_12345678"
+    model.custom_api_key = "MODEL-KEY"
+    model.custom_api_endpoint = "https://model.example/v1"
+
+    args = models.prepare_client_args(MODE_CHAT, model)
+
+    assert args["api_key"] == "MODEL-KEY"
+    assert args["base_url"] == "https://model.example/v1"
+
+
+def test_prepare_client_args_missing_runtime_custom_provider_raises(mock_window):
+    models = Models(mock_window)
+    mock_window.core.llm.is_custom_provider = MagicMock(return_value=True)
+    mock_window.core.llm.get = MagicMock(return_value=None)
+
+    model = ModelItem("custom-model")
+    model.provider = "custom_missing_12345678"
+
+    try:
+        models.prepare_client_args(MODE_CHAT, model)
+    except RuntimeError as exc:
+        assert "Custom provider is not configured" in str(exc)
+    else:
+        raise AssertionError("Expected RuntimeError for missing custom provider")

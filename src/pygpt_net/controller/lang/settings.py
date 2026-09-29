@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 23:00:00                  #
+# Updated Date: 2026.09.16 10:57:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -37,7 +37,11 @@ class Settings:
         ui_config = ui.config['config']
 
         for opt_id, option in options.items():
-            t_label = tr(option['label'])
+            t_label = tr(option['label']) if option.get('_use_locale', True) else str(option['label'])
+            try:
+                t_label = t_label.format(**(option.get('_label_params') or {}))
+            except (KeyError, ValueError):
+                pass
             if option.get('type') == 'bool':
                 if opt_id in ui_config:
                     widget = ui_config[opt_id]
@@ -52,7 +56,11 @@ class Settings:
 
             if 'description' in option and option['description'] is not None and option['description'].strip() != "":
                 desc = option['description']
-                t_desc = tr(desc)
+                t_desc = tr(desc) if option.get('_use_locale', True) else str(desc)
+                try:
+                    t_desc = t_desc.format(**(option.get('_description_params') or {}))
+                except (KeyError, ValueError):
+                    pass
                 node_key1 = f'settings.{opt_id}.desc'
                 node1 = ui_nodes.get(node_key1)
                 if node1 is not None:
@@ -61,10 +69,36 @@ class Settings:
                 if node2 is not None:
                     node2.setText(t_desc)
 
+            if option.get('from_defaults'):
+                button = ui_nodes.get(f"settings.{opt_id}.from_defaults")
+                if button is not None:
+                    button.setText(tr('settings.agent.v2.prompt.from_defaults'))
+
         sections = w.core.settings.get_sections()
         tabs = ui_tabs['settings.section']
         for i, section_id in enumerate(sections.keys()):
             tabs.setTabText(i, tr(f'settings.section.{section_id}'))
+
+        # Nested tabs inside a settings section are persistent widgets too, so
+        # their captions must be explicitly refreshed when language changes.
+        section_tabs = ui_tabs.get('settings.section.tabs', {})
+        section_tab_keys = ui_tabs.get('settings.section.tab_keys', {})
+        for section_id, section_tabs_widget in section_tabs.items():
+            tab_meta = section_tab_keys.get(section_id, [])
+            for i, meta in enumerate(tab_meta):
+                if i >= section_tabs_widget.count():
+                    break
+                if isinstance(meta, dict) and meta.get('label'):
+                    tab_name = meta['label']
+                else:
+                    locale_key = meta.get('locale') if isinstance(meta, dict) else meta
+                    name_key = tr(locale_key)
+                    tab_name = name_key
+                    trans_key = name_key.replace(" ", "_").lower()
+                    translated = tr(trans_key)
+                    if translated != trans_key:
+                        tab_name = translated
+                section_tabs_widget.setTabText(i, tab_name)
 
         idx = tabs.currentIndex()
         w.settings.refresh_list()

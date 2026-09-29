@@ -9,7 +9,8 @@
 # Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+from unittest.mock import MagicMock, call
 
 from tests.mocks import mock_window
 from pygpt_net.controller.idx import Idx
@@ -90,9 +91,17 @@ def test_select_current(mock_window):
     items = []
     mock_window.core.config.set("llama.idx.list", items)
     mock_window.core.idx.get_idx_by_name = MagicMock(return_value="base")
-    mock_window.ui.models['indexes'].index = MagicMock(return_value=1)
-    mock_window.ui.nodes['indexes'].setCurrentIndex = MagicMock()
+    node = mock_window.ui.nodes['indexes.select']
+    # Idx._sync_combo() resolves the selector through ui.nodes.get(), while
+    # MagicMock's __getitem__ and get() return different child mocks by default.
+    # Make both access paths point at the same selector instance.
+    mock_window.ui.nodes.get.return_value = node
+    node.has_key = MagicMock(return_value=True)
+    node.combo.findData = MagicMock(return_value=1)
+    node.combo.blockSignals = MagicMock(return_value=False)
     idx.select_current()
+    node.combo.setCurrentIndex.assert_called_once_with(1)
+    assert node.current_id == 'base'
 
 
 def test_select_default(mock_window):
@@ -117,24 +126,123 @@ def test_update(mock_window):
 
 
 def test_update_list(mock_window):
-    """Test update list"""
+    """Global index list stays unchanged outside a project."""
     idx = Idx(mock_window)
     mock_window.core.config.set("llama.idx.list", [])
+    mock_window.core.idx.project.get_current_group_id = MagicMock(return_value=None)
     mock_window.ui.toolbox.indexes.update = MagicMock()
     idx.update_list()
     mock_window.ui.toolbox.indexes.update.assert_called_once_with([])
 
 
-def test_on_ctx_end(mock_window):
-    """Test on ctx end"""
+def test_update_list_injects_current_project_without_physical_id(mock_window):
+    """The runtime project entry is injected only while a project is active."""
     idx = Idx(mock_window)
+    mock_window.core.config.set("llama.idx.list", [{"id": "base", "name": "Base"}])
+    mock_window.core.idx.project.get_current_group_id = MagicMock(return_value=7)
+    mock_window.core.idx.project.VIRTUAL_ID = "__project__"
+    mock_window.ui.toolbox.indexes.update = MagicMock()
+
+    idx.update_list()
+
+    items = mock_window.ui.toolbox.indexes.update.call_args.args[0]
+    assert items[0]["id"] == "__project__"
+    assert "__project__" not in items[0]["name"]
+    assert items[1] == {"id": "base", "name": "Base"}
+
+
+def _prepare_auto_index(mock_window, *, policy="all", group_id=0, isolated=True, targets="base"):
+    meta = SimpleNamespace(id=10, group_id=group_id)
     mock_window.controller.kernel.stopped = MagicMock(return_value=False)
-    mock_window.core.config.set("llama.idx.auto", True)
-    mock_window.core.config.set("llama.idx.auto.index", "base")
-    mock_window.controller.chat.input.stop = False
+    mock_window.core.config.set("llama.idx.auto", policy)
+    mock_window.core.config.set("llama.idx.auto.project", isolated)
+    mock_window.core.config.set("llama.idx.auto.index", targets)
+    mock_window.core.config.set("llama.idx.auto.modes", "chat,agent")
+    mock_window.core.ctx.get_current_meta = MagicMock(return_value=meta)
+    mock_window.core.ctx.get_meta_by_id = MagicMock(return_value=meta)
+    return meta
+
+
+def test_on_ctx_end_auto_index_all_global(mock_window):
+    """Policy=all indexes a non-project conversation into all global targets."""
+    idx = Idx(mock_window)
+    meta = _prepare_auto_index(mock_window, targets="base,docs")
     idx.indexer.index_ctx_realtime = MagicMock()
-    idx.on_ctx_end()
-    idx.indexer.index_ctx_realtime.assert_called_once()
+    idx.indexer.index_project = MagicMock()
+
+    idx.on_ctx_end(mode="chat")
+
+    assert idx.indexer.index_ctx_realtime.call_args_list == [
+        call(meta, "base", sync=False),
+        call(meta, "docs", sync=False),
+    ]
+    idx.indexer.index_project.assert_not_called()
+
+
+def test_on_ctx_end_auto_index_off(mock_window):
+    """Policy=off disables conversation auto-indexing completely."""
+    idx = Idx(mock_window)
+    _prepare_auto_index(mock_window, policy="off")
+    idx.indexer.index_ctx_realtime = MagicMock()
+    idx.indexer.index_project = MagicMock()
+
+    idx.on_ctx_end(mode="chat")
+
+    idx.indexer.index_ctx_realtime.assert_not_called()
+    idx.indexer.index_project.assert_not_called()
+
+
+def test_on_ctx_end_projects_policy_skips_global_conversation(mock_window):
+    """Policy=projects ignores conversations outside projects."""
+    idx = Idx(mock_window)
+    _prepare_auto_index(mock_window, policy="projects", group_id=0)
+    idx.indexer.index_ctx_realtime = MagicMock()
+    idx.indexer.index_project = MagicMock()
+
+    idx.on_ctx_end(mode="chat")
+
+    idx.indexer.index_ctx_realtime.assert_not_called()
+    idx.indexer.index_project.assert_not_called()
+
+
+def test_on_ctx_end_uses_isolated_project_index(mock_window):
+    """An active project is routed exclusively to proj_<group> when isolation is enabled."""
+    idx = Idx(mock_window)
+    _prepare_auto_index(mock_window, policy="all", group_id=42, isolated=True, targets="base")
+    idx.indexer.index_ctx_realtime = MagicMock()
+    idx.indexer.index_project = MagicMock()
+
+    idx.on_ctx_end(mode="chat")
+
+    idx.indexer.index_project.assert_called_once_with(42, from_last=True, sync=False, silent=True)
+    idx.indexer.index_ctx_realtime.assert_not_called()
+
+
+def test_on_ctx_end_project_can_use_global_indexes_when_isolation_disabled(mock_window):
+    """Disabling project isolation keeps project conversations on configured global targets."""
+    idx = Idx(mock_window)
+    meta = _prepare_auto_index(mock_window, policy="all", group_id=42, isolated=False, targets="base,docs")
+    idx.indexer.index_ctx_realtime = MagicMock()
+    idx.indexer.index_project = MagicMock()
+
+    idx.on_ctx_end(mode="chat")
+
+    assert idx.indexer.index_ctx_realtime.call_args_list == [
+        call(meta, "base", sync=False),
+        call(meta, "docs", sync=False),
+    ]
+    idx.indexer.index_project.assert_not_called()
+
+
+def test_on_ctx_end_legacy_bool_is_normalized_at_runtime(mock_window):
+    """A legacy bool config still behaves correctly before the config patch is persisted."""
+    idx = Idx(mock_window)
+    meta = _prepare_auto_index(mock_window, policy=True, group_id=0, targets="base")
+    idx.indexer.index_ctx_realtime = MagicMock()
+
+    idx.on_ctx_end(mode="chat")
+
+    idx.indexer.index_ctx_realtime.assert_called_once_with(meta, "base", sync=False)
 
 
 def test_after_index(mock_window):
@@ -151,8 +259,13 @@ def test_refresh(mock_window):
     """Test refresh"""
     idx = Idx(mock_window)
     idx.select_default = MagicMock()
+    idx.update_list = MagicMock()
+    idx.select_current = MagicMock()
+    mock_window.controller.presets.editor.opened = False
     idx.refresh()
     idx.select_default.assert_called_once()
+    idx.update_list.assert_called_once()
+    idx.select_current.assert_called_once()
 
 
 def test_change_locked(mock_window):

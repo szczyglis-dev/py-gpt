@@ -15,12 +15,18 @@ from unittest.mock import Mock
 from pygpt_net.core.idx.response import Response
 
 
+def _response():
+    """Build Response with the minimal debug surface used by artifact collection."""
+    window = SimpleNamespace(core=SimpleNamespace(debug=SimpleNamespace(log=Mock())))
+    return Response(window=window)
+
+
 def test_from_react_does_not_call_set_output_or_modify_ctx():
     sentinel_stream = object()
     sentinel_tool_calls = object()
     ctx = SimpleNamespace(set_output=Mock(), stream=sentinel_stream, tool_calls=sentinel_tool_calls)
-    r = Response()
-    r.from_react(ctx, model=Mock(), response=SimpleNamespace(model=Mock()))
+    r = _response()
+    r.from_react(ctx, model=Mock(), llm=None, response=SimpleNamespace(model=Mock()))
     ctx.set_output.assert_called()
     assert ctx.stream is sentinel_stream
     assert ctx.tool_calls is sentinel_tool_calls
@@ -29,16 +35,16 @@ def test_from_react_does_not_call_set_output_or_modify_ctx():
 def test_from_index_calls_set_output_with_str_response():
     ctx = SimpleNamespace(set_output=Mock())
     response = SimpleNamespace(response="hello world")
-    r = Response()
-    r.from_index(ctx, model=Mock(), response=response)
+    r = _response()
+    r.from_index(ctx, model=Mock(), llm=None, response=response)
     ctx.set_output.assert_called_once_with("hello world", "")
 
 
 def test_from_index_with_none_response_calls_set_output_with_string_none():
     ctx = SimpleNamespace(set_output=Mock())
     response = SimpleNamespace(response=None)
-    r = Response()
-    r.from_index(ctx, model=Mock(), response=response)
+    r = _response()
+    r.from_index(ctx, model=Mock(), llm=None, response=response)
     ctx.set_output.assert_called_once_with("None", "")
 
 
@@ -50,8 +56,8 @@ def test_from_index_extracts_local_tagged_reasoning_to_extra():
         llama_index={},
         is_ollama=lambda: True,
     )
-    r = Response()
-    r.from_index(ctx, model=model, response=response)
+    r = _response()
+    r.from_index(ctx, model=model, llm=None, response=response)
 
     ctx.set_output.assert_called_once_with("final answer", "")
     assert ctx.extra["reasoning"] == {
@@ -72,8 +78,8 @@ def test_from_index_keeps_think_tags_for_non_local_model():
         llama_index={},
         is_ollama=lambda: False,
     )
-    r = Response()
-    r.from_index(ctx, model=model, response=response)
+    r = _response()
+    r.from_index(ctx, model=model, llm=None, response=response)
 
     ctx.set_output.assert_called_once_with("<think>ordinary text</think> final answer", "")
     assert ctx.extra == {}
@@ -87,8 +93,8 @@ def test_from_index_extracts_unclosed_local_think_block():
         llama_index={},
         is_ollama=lambda: False,
     )
-    r = Response()
-    r.from_index(ctx, model=model, response=response)
+    r = _response()
+    r.from_index(ctx, model=model, llm=None, response=response)
 
     ctx.set_output.assert_called_once_with("", "")
     assert ctx.extra["reasoning"]["text"] == "partial reasoning"
@@ -96,15 +102,21 @@ def test_from_index_extracts_unclosed_local_think_block():
 
 
 def test_from_llm_sets_output_and_unpacks_tool_calls_when_message_present():
-    ctx = SimpleNamespace(set_output=Mock(), tool_calls=None)
+    ctx = SimpleNamespace(set_output=Mock(), tool_calls=None, urls=[])
     response = SimpleNamespace(message=SimpleNamespace(content="content"))
     llm = Mock()
+    llm.pop_pygpt_urls.return_value = []
     tool_calls = [{"name": "tool1"}]
     llm.get_tool_calls_from_response.return_value = tool_calls
     unpacked = [{"unpacked": True}]
     command_mock = Mock()
     command_mock.unpack_tool_calls_from_llama.return_value = unpacked
-    window = SimpleNamespace(core=SimpleNamespace(command=command_mock))
+    window = SimpleNamespace(
+        core=SimpleNamespace(
+            command=command_mock,
+            debug=SimpleNamespace(log=Mock()),
+        )
+    )
     r = Response(window=window)
     r.from_llm(ctx, model=Mock(), llm=llm, response=response)
     ctx.set_output.assert_called_once_with("content", "")
@@ -114,15 +126,21 @@ def test_from_llm_sets_output_and_unpacks_tool_calls_when_message_present():
 
 
 def test_from_llm_with_none_content_sets_empty_output_and_unpacks_tool_calls():
-    ctx = SimpleNamespace(set_output=Mock(), tool_calls="orig")
+    ctx = SimpleNamespace(set_output=Mock(), tool_calls="orig", urls=[])
     response = SimpleNamespace(message=SimpleNamespace(content=None))
     llm = Mock()
+    llm.pop_pygpt_urls.return_value = []
     tool_calls = []
     llm.get_tool_calls_from_response.return_value = tool_calls
     unpacked = []
     command_mock = Mock()
     command_mock.unpack_tool_calls_from_llama.return_value = unpacked
-    window = SimpleNamespace(core=SimpleNamespace(command=command_mock))
+    window = SimpleNamespace(
+        core=SimpleNamespace(
+            command=command_mock,
+            debug=SimpleNamespace(log=Mock()),
+        )
+    )
     r = Response(window=window)
     r.from_llm(ctx, model=Mock(), llm=llm, response=response)
     ctx.set_output.assert_called_once_with("", "")
@@ -135,16 +153,54 @@ def test_from_index_stream_sets_stream_and_clears_output():
     gen = (i for i in range(3))
     ctx = SimpleNamespace(set_output=Mock(), stream=None)
     response = SimpleNamespace(response_gen=gen)
-    r = Response()
-    r.from_index_stream(ctx, model=Mock(), response=response)
+    r = _response()
+    r.from_index_stream(ctx, model=Mock(), llm=None, response=response)
     ctx.set_output.assert_called_once_with("", "")
-    assert ctx.stream is gen
+    assert ctx.stream is not gen
+    assert list(ctx.stream) == [0, 1, 2]
 
 
-def test_from_llm_stream_sets_stream_and_clears_output():
-    ctx = SimpleNamespace(set_output=Mock(), stream=None)
-    response = SimpleNamespace(delta="chunk")
-    r = Response()
-    r.from_llm_stream(ctx, model=Mock(), llm=Mock(), response=response)
+def test_from_llm_stream_wraps_stream_and_clears_output():
+    ctx = SimpleNamespace(set_output=Mock(), stream=None, urls=[])
+    chunk = SimpleNamespace(delta="chunk", message=None)
+    response = iter([chunk])
+    llm = Mock()
+    llm.pop_pygpt_urls.return_value = []
+    r = _response()
+    r.from_llm_stream(ctx, model=Mock(), llm=llm, response=response)
+
     ctx.set_output.assert_called_once_with("", "")
-    assert ctx.stream is response
+    assert ctx.stream is not response
+    assert list(ctx.stream) == [chunk]
+
+
+def test_from_llm_stream_preserves_native_tool_call_message():
+    tool_message = SimpleNamespace(
+        blocks=[],
+        additional_kwargs={
+            "tool_calls": [{
+                "id": "call_1",
+                "function": {
+                    "name": "read_file",
+                    "arguments": '{"path":"a.txt"}',
+                },
+            }]
+        },
+    )
+    chunk = SimpleNamespace(delta=None, message=tool_message)
+    chat = SimpleNamespace(prev_message=None)
+    debug = SimpleNamespace(info=Mock(), log=Mock())
+    window = SimpleNamespace(
+        core=SimpleNamespace(idx=SimpleNamespace(chat=chat), debug=debug)
+    )
+    ctx = SimpleNamespace(set_output=Mock(), stream=None, urls=[])
+    llm = Mock()
+    llm.pop_pygpt_urls.return_value = []
+
+    r = Response(window=window)
+    r.from_llm_stream(ctx, model=Mock(), llm=llm, response=iter([chunk]))
+
+    assert list(ctx.stream) == [chunk]
+    assert chat.prev_message is tool_message
+    debug.info.assert_called_once()
+    debug.log.assert_not_called()

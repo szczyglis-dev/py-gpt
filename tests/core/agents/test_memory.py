@@ -49,7 +49,7 @@ def create_fake_window(use_context, items):
 @pytest.fixture
 def fake_context():
     # Provide an object for context.ctx with an "input" attribute.
-    fake_ctx = SimpleNamespace(input="test input")
+    fake_ctx = SimpleNamespace(input="test input", final_input="test input")
     context = MagicMock(spec=BridgeContext)
     context.ctx = fake_ctx
     context.history = "history_data"

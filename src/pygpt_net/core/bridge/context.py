@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.09.15 14:00:00
 # ================================================== #
 
 import json
@@ -76,13 +76,13 @@ class BridgeContext:
     multimodal_ctx: MultimodalContext = field(default_factory=lambda: MultimodalContext())  # AudioContext
     parent_mode: Optional[Any] = None  # real mode (global)
     preset: Optional[Any] = None  # PresetItem
-    prompt: str = "" # user input prompt
+    prompt: str = "" # provider-facing user input prompt
+    prompt_mentions: str = "" # runtime durable mention form (never persisted)
     reply_context: Optional[Any] = None  # ReplyContext
     request: bool = False  # use normal request instead of quick call
     stream: bool = False  # stream enabled
     system_prompt: str = "" # system prompt
     system_prompt_raw: str = ""  # system prompt without plugins addons
-    temperature: float = 1.0  # temperature
     thread_id: str = "" # OpenAI Assistants thread ID for chat mode
     tools_outputs: list = field(default_factory=list)  # list of tools outputs
 
@@ -111,12 +111,12 @@ class BridgeContext:
         self.parent_mode = kwargs.get("parent_mode", None)
         self.preset = kwargs.get("preset", None)
         self.prompt = kwargs.get("prompt", "")
+        self.prompt_mentions = kwargs.get("prompt_mentions", "")
         self.reply_context = kwargs.get("reply_ctx", kwargs.get("reply_context", None))
         self.request = kwargs.get("request", False)
         self.stream = kwargs.get("stream", False)
         self.system_prompt = kwargs.get("system_prompt", "")
         self.system_prompt_raw = kwargs.get("system_prompt_raw", "")
-        self.temperature = kwargs.get("temperature", 1.0)
         self.thread_id = kwargs.get("thread_id", "")
         self.tools_outputs = list(kwargs.get("tools_outputs", []))
 
@@ -153,7 +153,6 @@ class BridgeContext:
             "stream": self.stream,
             "system_prompt": self.system_prompt,
             "system_prompt_raw": self.system_prompt_raw,
-            "temperature": self.temperature,
             "thread_id": self.thread_id,
             "tools_outputs": self.tools_outputs,
         }

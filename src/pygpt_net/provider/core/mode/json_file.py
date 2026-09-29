@@ -114,6 +114,7 @@ class JsonFileProvider(BaseProvider):
             'id': item.id,
             'name': item.name,
             'label': item.label,
+            'legacy': bool(item.legacy),
         }
 
     @staticmethod
@@ -130,6 +131,7 @@ class JsonFileProvider(BaseProvider):
             item.name = data['name']
         if 'label' in data:
             item.label = data['label']
+        item.legacy = bool(data.get('legacy', False))
 
     def dump(self, item: ModeItem) -> str:
         """

@@ -96,7 +96,7 @@ class Vision:
         """
         images = self.get_attachments()
         if len(images) > 0:
-            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()))
+            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()), ctx=ctx)
 
     def get_attachments(self) -> Dict[str, str]:
         return self.attachments

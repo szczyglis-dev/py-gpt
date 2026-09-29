@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 23:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer
@@ -121,7 +121,7 @@ class Simple:
         # enable continuous mode if notepad tab is active
         self.plugin.window.core.audio.capture.set_repeat_callback(self.on_stop)
         continuous_enabled = self.plugin.window.core.config.get('audio.input.continuous', False)
-        if continuous_enabled and self.plugin.window.controller.ui.tabs.get_current_type() == Tab.TAB_NOTEPAD:
+        if continuous_enabled and self.plugin.window.controller.tabs.get_current_type() == Tab.TAB_NOTEPAD:
             self.plugin.window.core.audio.capture.set_loop(True)  # set loop
         else:
             self.plugin.window.core.audio.capture.set_loop(False)

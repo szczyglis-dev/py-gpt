@@ -9,7 +9,6 @@
 # Updated Date: 2026.08.13 16:00:00                  #
 # ================================================== #
 
-import requests
 
 from .base import BaseProvider
 
@@ -81,6 +80,8 @@ class MSAzureTextToSpeech(BaseProvider):
         :param text: text to speech
         :return: path to generated audio file or None if audio playback is handled here
         """
+        import requests
+
         api_key = self.plugin.get_option_value("azure_api_key")
         region = self.plugin.get_option_value("azure_region")
         lang = self.plugin.window.core.config.get('lang')

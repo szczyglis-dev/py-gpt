@@ -14,20 +14,17 @@ from unittest.mock import MagicMock, patch
 
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.agents.runners.loop import Loop
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 from llama_index.core.tools import FunctionTool
 
-# Dummy CtxItem-like object for tests
-class DummyCtx:
+# Dummy context preserving the real CtxItem type required by BridgeContext.
+class DummyCtx(CtxItem):
     def __init__(self):
+        super().__init__(mode="agent_llama")
         self.meta = MagicMock()
         self.meta.id = "test_meta_id"
-        self.extra = {}
-
-    def set_input(self, text):
-        pass
-
-    def set_output(self, text):
-        pass
+        self.model = "dummy_model"
 
 
 # Fixture for a dummy window with required attributes
@@ -44,7 +41,7 @@ def dummy_window():
     }
     win.core.config.get.side_effect = lambda key, default=None: config_values.get(key, default)
 
-    win.core.models.get.return_value = "dummy_model_obj"
+    win.core.models.get.return_value = ModelItem("dummy_model")
     win.core.idx.llm.get.return_value = "dummy_llm"
 
     # Setup provider and agent for run_once
@@ -82,10 +79,10 @@ def loop_instance(dummy_window):
     loop.send_response = MagicMock()
     loop.set_busy = MagicMock()
     loop.set_status = MagicMock()
-    # add_ctx returns a dummy context item (simulating a CtxItem)
-    dummy_ctx_item = MagicMock()
-    dummy_ctx_item.set_input = MagicMock()
-    dummy_ctx_item.set_output = MagicMock()
+    # BridgeContext validates the concrete type, so keep a real CtxItem.
+    # CtxItem uses slots, therefore its methods cannot be replaced per-instance
+    # with MagicMock; assert the resulting field values instead.
+    dummy_ctx_item = CtxItem(mode="agent_llama")
     loop.add_ctx = MagicMock(return_value=dummy_ctx_item)
     return loop
 
@@ -125,7 +122,7 @@ def test_handle_evaluation_negative(loop_instance, dummy_signals):
     with patch("pygpt_net.utils.trans", lambda x: x):
         dummy_ctx = DummyCtx()
         result = loop_instance.handle_evaluation(dummy_ctx, "instruction", -1, dummy_signals)
-        loop_instance.set_status.assert_called()
+        loop_instance.set_status.assert_not_called()
         loop_instance.send_response.assert_called_with(dummy_ctx, dummy_signals, KernelEvent.APPEND_END)
         assert result is True
 
@@ -147,14 +144,13 @@ def test_handle_evaluation_else(loop_instance, dummy_signals):
     with patch("pygpt_net.utils.trans", lambda x: x):
         dummy_ctx = DummyCtx()
         dummy_ctx.meta.id = "test_id"
-        dummy_step = MagicMock()
-        dummy_step.set_input = MagicMock()
-        dummy_step.set_output = MagicMock()
+        dummy_step = CtxItem(mode="agent_llama")
         loop_instance.add_ctx.return_value = dummy_step
 
         result = loop_instance.handle_evaluation(dummy_ctx, "instruction", 50, dummy_signals)
         loop_instance.set_status.assert_called()
         loop_instance.set_busy.assert_called_with(dummy_signals)
-        dummy_step.set_input.assert_called_with("instruction")
+        assert dummy_step.input == "instruction"
+        assert dummy_step.output == ""
         loop_instance.window.core.agents.runner.call.assert_called()
         assert result == "runner call result"

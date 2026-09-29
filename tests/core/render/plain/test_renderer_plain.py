@@ -244,7 +244,10 @@ def test_append_timestamp(mock_window):
     ctx = CtxItem()
     meta = CtxMeta()
     ctx.input_timestamp = 1234567890
-    assert render.append_timestamp(ctx, text).startswith("00:31:30: test") is True
+    with patch('pygpt_net.core.render.plain.renderer.datetime') as mock_datetime:
+        mock_datetime.fromtimestamp.return_value.strftime.return_value = "00:31:30"
+        assert render.append_timestamp(ctx, text).startswith("00:31:30: test") is True
+        mock_datetime.fromtimestamp.assert_called_once_with(1234567890)
 
 
 def test_pre_format_text(mock_window):

@@ -16,6 +16,8 @@ from datetime import datetime, timedelta
 from typing import List, Tuple, Any, Dict
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
+from pygpt_net.item.ctx_part import CtxItemPart
+from pygpt_net.item.ctx_part_task import CtxItemPartTask
 from pygpt_net.utils import unpack_var
 
 
@@ -188,6 +190,43 @@ def unpack_item(
     return item
 
 
+
+def unpack_part(part: CtxItemPart, row: Dict[str, Any], prefix: str = "") -> CtxItemPart:
+    """Unpack a ctx_item_partial row. Prefix is used by JOIN queries."""
+    get = lambda key, default=None: row.get(prefix + key, default)
+    part.id = unpack_var(get('id'), 'int')
+    part.uuid = get('uuid') or part.uuid
+    part.parent_item_id = unpack_var(get('parent_item_id'), 'int')
+    part.agent_id = get('agent_id')
+    part.name = get('name')
+    part.output = get('output')
+    part.extra = unpack_item_value(get('extra_json')) or {}
+    part.created_at = unpack_var(get('created_at'), 'int') or 0
+    part.updated_at = unpack_var(get('updated_at'), 'int') or 0
+    part.tasks = []
+    return part
+
+
+def unpack_part_task(task: CtxItemPartTask, row: Dict[str, Any], prefix: str = "") -> CtxItemPartTask:
+    """Unpack a ctx_item_partial_task row. Prefix is used by JOIN queries."""
+    get = lambda key, default=None: row.get(prefix + key, default)
+    task.id = unpack_var(get('id'), 'int')
+    task.uuid = get('uuid') or task.uuid
+    task.parent_item_part_id = unpack_var(get('parent_item_part_id'), 'int')
+    task.agent_id = get('agent_id')
+    task.name = get('name')
+    task.task_name = get('task_name')
+    task.task_summary = get('task_summary')
+    task.input = get('input')
+    task.output = get('output')
+    task.tool_call_id = get('tool_call_id')
+    task.tool_input = unpack_item_value(get('tool_input_json'))
+    task.tool_output = unpack_item_value(get('tool_output_json'))
+    task.extra = unpack_item_value(get('extra_json')) or {}
+    task.created_at = unpack_var(get('created_at'), 'int') or 0
+    task.updated_at = unpack_var(get('updated_at'), 'int') or 0
+    return task
+
 def unpack_meta(
         meta: CtxMeta,
         row: Dict[str, Any]
@@ -235,6 +274,7 @@ def unpack_meta(
         group.uuid = row['group_uuid']
         group.name = row['group_name']
         group.additional_ctx = unpack_item_value(row['group_additional_ctx_json'])
+        group.extra = unpack_item_value(row.get('group_extra_json')) or {}
         if group.additional_ctx is None:
             group.additional_ctx = []
         meta.group = group
@@ -255,6 +295,9 @@ def unpack_group(
     """
     group.additional_ctx = unpack_item_value(row['additional_ctx_json'])
     group.created = unpack_var(row['created_ts'], 'int')
+    group.extra = unpack_item_value(row.get('extra_json'))
+    if group.extra is None:
+        group.extra = {}
     group.id = unpack_var(row['id'], 'int')
     group.name = row['name']
     group.updated = unpack_var(row['updated_ts'], 'int')

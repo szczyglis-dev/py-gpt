@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 12:00:00                  #
+# Updated Date: 2026.09.23 19:45:00
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -81,11 +81,18 @@ class Extra:
 
     def preview_code_text(self, value: str):
         """
-        Preview HTML
+        Preview HTML in the persistent Web Browser runtime.
 
         :param value: block text
         """
-        self.window.core.plugins.get("cmd_code_interpreter").handle_html_output(value)
+        browser = self.window.tools.get("web_browser")
+        if browser is None:
+            return
+        workdir = self.window.core.filesystem.get_data_dir()
+        browser.runtime_call(
+            "canvas_set_html",
+            {"html": value, "__workdir": workdir},
+        )
 
     def run_code_text(self, value: str):
         """
@@ -119,16 +126,18 @@ class Extra:
             self.edit_show()
 
     def edit_show(self):
-        """Show edit buttons"""
-        self.window.ui.nodes['input.send_btn'].setVisible(False)
-        self.window.ui.nodes['input.update_btn'].setVisible(True)
-        self.window.ui.nodes['input.cancel_btn'].setVisible(True)
+        """Show edit buttons inside ChatInput."""
+        input_node = self.window.ui.nodes['input']
+        input_node.set_icon_visible('cancel', True)
+        input_node.set_icon_visible('update', True)
+        self.window.controller.chat.common.sync_send_stop_buttons()
 
     def edit_hide(self):
-        """Hide edit buttons"""
-        self.window.ui.nodes['input.send_btn'].setVisible(True)
-        self.window.ui.nodes['input.update_btn'].setVisible(False)
-        self.window.ui.nodes['input.cancel_btn'].setVisible(False)
+        """Hide edit buttons inside ChatInput."""
+        input_node = self.window.ui.nodes['input']
+        input_node.set_icon_visible('cancel', False)
+        input_node.set_icon_visible('update', False)
+        self.window.controller.chat.common.sync_send_stop_buttons()
 
     def edit_submit(self):
         """Submit edit"""

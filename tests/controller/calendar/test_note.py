@@ -42,10 +42,11 @@ def test_update_content(mock_window):
 
 def test_update_label(mock_window):
     """Test update label"""
-    mock_window.ui.calendar['note.label'].setText = MagicMock()
+    label = MagicMock()
+    mock_window.ui.calendar.get.side_effect = lambda key: label if key == "note.label" else None
     note = Note(mock_window)
     note.update_label(2024, 1, 1)
-    mock_window.ui.calendar['note.label'].setText.assert_called_once()
+    label.setText.assert_called_once()
 
 
 def test_update_current(mock_window):

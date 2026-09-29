@@ -6,13 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:20:00                  #
+# Updated Date: 2026.09.10 11:36:00                  #
 # ================================================== #
 
+from pygpt_net.core.agents_v2.tool_bridge import mark_pending
+from pygpt_net.core.image.state import (
+    get_current_turn_user_reference_image_path,
+    get_current_user_image_path,
+    get_last_generated_image_path,
+    get_last_user_reference_image_path,
+    remember_user_reference_image_path,
+    resolve_local_image_path,
+)
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
     MODE_ASSISTANT,
     MODE_AUDIO,
     MODE_CHAT,
@@ -34,6 +44,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_dalle"
+        self.is_common_plugin = True
         self.name = "Image generation"
         self.description = "Integrates image generation with any chat"
         self.prefix = "Image"
@@ -85,6 +96,12 @@ class Plugin(BasePlugin):
                 return
             data['value'] = self.on_system_prompt(data['value'])
 
+        elif name == Event.POST_PROMPT:
+            mode = data.get("mode", "")
+            if mode not in self.allowed_modes or not self.has_cmd("image"):
+                return
+            data["value"] = self.on_post_prompt(data["value"], ctx, mode)
+
         elif name in [
             Event.CMD_SYNTAX_INLINE,  # inline is allowed
             Event.CMD_SYNTAX,
@@ -130,6 +147,50 @@ class Plugin(BasePlugin):
         prompt += "\n" + self.get_option_value("prompt")
         return prompt
 
+    def on_post_prompt(self, prompt: str, ctx: CtxItem, mode: str) -> str:
+        """
+        Append runtime-only image references to the system prompt.
+
+        This runs after the regular plugin prompt so it also works with native
+        function calling, where the static image prompt is represented by the
+        tool definition instead of being appended to the system prompt.
+
+        :param prompt: current system prompt
+        :param ctx: current context item
+        :param mode: current chat mode
+        :return: updated prompt
+        """
+        core = self.window.core
+        current_image = get_current_user_image_path(core, mode, ctx=ctx)
+        if current_image:
+            remember_user_reference_image_path(core, ctx, current_image)
+        referenced_image = current_image or get_last_user_reference_image_path(core, ctx)
+        previous_image = get_last_generated_image_path(core, ctx)
+
+        if not referenced_image and not previous_image:
+            return prompt
+
+        lines = ["IMAGE TOOL RUNTIME CONTEXT:"]
+        if current_image:
+            lines.append(
+                f"- Current user-attached image path: `{current_image}`. "
+                "If the user's request is an edit/remix/extension/transformation of the attached image, pass this "
+                "exact path as reference_image to the image tool."
+            )
+        elif referenced_image:
+            lines.append(
+                f"- Most recent user-referenced image path from an earlier message: `{referenced_image}`. "
+                "If the user refers to that original/attached image and asks to edit, remix, extend, or transform "
+                "it, pass this exact path as reference_image to the image tool."
+            )
+        if previous_image:
+            lines.append(
+                f"- Previously generated image path: `{previous_image}`. "
+                "If the user asks to modify, improve, refine, extend, or remix the previously generated image, pass "
+                "this exact path as reference_image to the image tool."
+            )
+        return prompt + "\n\n" + "\n".join(lines)
+
     def cmd(self, ctx: CtxItem, cmds: list):
         """
         Events: CMD_INLINE, CMD_EXECUTE
@@ -150,10 +211,44 @@ class Plugin(BasePlugin):
         for item in my_commands:
             try:
                 if item["cmd"] == "image":
-                    query = item["params"]["query"]
+                    params = item.get("params") or {}
+                    query = params["query"]
+                    resolution = str(params.get("resolution") or "").strip() or None
+                    reference_image = str(params.get("reference_image") or "").strip() or None
+
+                    mode = self.window.core.config.get("mode")
+                    current_turn_reference = get_current_turn_user_reference_image_path(
+                        self.window.core,
+                        mode,
+                        ctx=ctx,
+                    )
+                    if current_turn_reference:
+                        remember_user_reference_image_path(self.window.core, ctx, current_turn_reference)
+
+                    if not reference_image and current_turn_reference:
+                        # When the current user turn contains an attached image,
+                        # automatically pass it to the image backend as the
+                        # active edit/reference image. This keeps same-turn image
+                        # attachments available to native image-edit workflows
+                        # even if the model omitted the optional parameter.
+                        reference_image = current_turn_reference
+
+                    if reference_image:
+                        resolved_reference = resolve_local_image_path(
+                            self.window.core,
+                            reference_image,
+                            ctx=ctx,
+                        )
+                        if resolved_reference is None:
+                            raise ValueError(
+                                "Invalid reference_image. Provide an existing local image path from the runtime "
+                                "image context."
+                            )
+                        reference_image = resolved_reference
+
                     # if internal call (ctx.internal = True), then re-send OK response
                     # if not internal call, then append image to chat only
-                    model_id = self.get_option_value("model") or "gpt-image-1"
+                    model_id = self.get_option_value("model") or "gpt-image-2.5-flare"
                     model = self.window.core.models.get(model_id)
                     if model is None:
                         model = ModelItem(model_id)
@@ -168,12 +263,22 @@ class Plugin(BasePlugin):
                         "num": 1,
                         "inline": True,
                     }
+                    if resolution:
+                        extra["resolution"] = resolution
+                    if reference_image:
+                        # Existing OpenAI/Google image backends already use image_id
+                        # to enter their native edit/remix path.
+                        extra["image_id"] = reference_image
                     sync = self.window.core.config.get("mode") in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI]
+                    if (self.window.core.config.get("mode") == MODE_AGENT_V2
+                            and isinstance(ctx.extra, dict)
+                            and ctx.extra.get("agents_v2_async_tool")):
+                        mark_pending(ctx, True)
 
                     # Use the native image provider selected by the configured image model.
-                    if model.provider == "google" and self.window.core.config.get("api_native_google", False):
+                    if model.provider == "google" and self.window.core.llm.get_config("google", "native", False):
                         self.window.core.api.google.image.generate(bridge_context, extra, sync)
-                    elif model.provider == "x_ai" and self.window.core.config.get("api_native_xai", False):
+                    elif model.provider == "x_ai" and self.window.core.llm.get_config("x_ai", "native", False):
                         self.window.core.api.xai.image.generate(bridge_context, extra, sync)
                     else:
                         self.window.core.api.openai.image.generate(bridge_context, extra, sync)

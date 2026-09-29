@@ -29,6 +29,7 @@ class About:
         m = w.ui.menu
 
         icon_info = QIcon(":/icons/info.svg")
+        icon_system = QIcon(":/icons/computer.svg")
         icon_history = QIcon(":/icons/history.svg")
         icon_updater = QIcon(":/icons/updater.svg")
         icon_public = QIcon(":/icons/public_filled.svg")
@@ -47,6 +48,8 @@ class About:
         m['info.github'] = QAction(icon_public, trans("menu.info.github"), w)
         m['info.discord'] = QAction(icon_public, trans("menu.info.discord"), w)
         m['info.license'] = QAction(icon_info, trans("menu.info.license"), w)
+        m['info.system_info'] = QAction(icon_system, trans("menu.info.system_info"), w)
+        m['info.system_info'].setMenuRole(QAction.MenuRole.NoRole)
 
         m['donate.coffee'] = QAction(icon_favorite, "Buy me a coffee", w)
         m['donate.coffee'].setMenuRole(QAction.MenuRole.NoRole)
@@ -72,6 +75,7 @@ class About:
         m['info.github'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_github())
         m['info.discord'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_discord())
         m['info.license'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('license', width=500, height=480))
+        m['info.system_info'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('system_info', width=620, height=440))
 
         m['menu.about'] = w.menuBar().addMenu(trans("menu.info"))
         m['menu.about'].addActions([
@@ -87,6 +91,7 @@ class About:
             m['info.ms_store'],
             m['info.discord'],
             m['info.license'],
+            m['info.system_info'],
         ])
 
         m['menu.donate'] = m['menu.about'].addMenu(trans("menu.info.donate"))

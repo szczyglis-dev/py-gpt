@@ -24,3 +24,25 @@ def test_update_text_last_updated(mock_window):
     mock_window.ui.nodes['idx.db.last_updated'].setText.assert_called_once()
 
 
+
+
+def test_append_tabs_contains_auto_update_and_clear_truncate(mock_window):
+    settings = Settings(mock_window)
+
+    assert settings.append_tabs() == ["update", "clear_truncate"]
+
+
+def test_truncate_selected_opens_destructive_confirmation(mock_window):
+    settings = Settings(mock_window)
+    combo = MagicMock()
+    combo.count.return_value = 1
+    combo.currentData.return_value = "base"
+    mock_window.ui.nodes = {"idx.settings.truncate.combo": combo}
+    mock_window.ui.dialogs.confirm = MagicMock()
+
+    settings.truncate_selected()
+
+    kwargs = mock_window.ui.dialogs.confirm.call_args.kwargs
+    assert kwargs["type"] == "idx.settings.truncate"
+    assert kwargs["id"] == "base"
+    assert "base" in kwargs["msg"]

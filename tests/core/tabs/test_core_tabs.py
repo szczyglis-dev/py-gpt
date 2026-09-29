@@ -16,6 +16,7 @@ import pytest
 from PySide6.QtWidgets import QWidget
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.tabs import Tabs
+import pygpt_net.core.tabs.tabs as tabs_module
 
 class FakeTabs:
     def __init__(self):
@@ -30,7 +31,7 @@ class FakeTabs:
     def addTab(self, widget, icon, title):
         self._tabs.append(widget)
         return len(self._tabs) - 1
-    def insertTab(self, idx, widget, title):
+    def insertTab(self, idx, widget, *args):
         self._tabs.insert(idx, widget)
         return idx
     def removeTab(self, idx):
@@ -98,7 +99,7 @@ def fake_window():
     tabs_ctrl = MagicMock()
     tabs_ctrl.get_current_column_idx.return_value = 0
     window.controller.ui = MagicMock()
-    window.controller.ui.tabs = tabs_ctrl
+    window.controller.tabs = tabs_ctrl
     notepad = MagicMock()
     notepad.create.return_value = (MagicMock(spec=QWidget), 0, 1)
     window.controller.notepad = notepad
@@ -162,17 +163,12 @@ def test_get_first_tab_by_type(tabs_instance):
     assert ret_none is None
 
 def test_get_active_pid(tabs_instance, fake_window):
-    fake_tab = MagicMock()
-    fake_tab.pid = 123
-    fake_widget = MagicMock(spec=QWidget)
-    fake_widget.getOwner = MagicMock(return_value=fake_tab)
-    tabs = fake_window.ui.layout.get_tabs_by_idx(0)
-    tabs._tabs.append(fake_widget)
-    fake_window.controller.ui.tabs.get_current_column_idx.return_value = 0
-    original_index = tabs.count()
-    tabs._tabs.insert(0, fake_widget)
-    ret = tabs_instance.get_active_pid()
-    assert ret == 123
+    fake_window.controller.tabs.get_current_pid.return_value = 123
+
+    assert tabs_instance.get_active_pid() == 123
+
+    fake_window.controller.tabs.get_current_pid.return_value = None
+    assert tabs_instance.get_active_pid() == 0
 
 def test_add_tabs(tabs_instance, fake_window, monkeypatch):
     monkeypatch.setattr(tabs_instance, "add_chat", lambda tab: setattr(tab, "idx", 0))
@@ -424,7 +420,7 @@ def test_update_title(tabs_instance, fake_window):
     monkey_tab = fake_tab
     monkey_tab.custom_name = False
     tabs_instance.get_tab_by_index = MagicMock(return_value=monkey_tab)
-    tabs_instance.update_title(0, "New Title", "New Tooltip")
+    tabs_instance.update_title(0, "New Title", "New Tooltip", column_idx=0)
     fake_tabs.setTabText.assert_called_with(0, "New Title")
     fake_tabs.setTabToolTip.assert_called_with(0, "New Tooltip")
     assert fake_tab.custom_name is True
@@ -447,8 +443,46 @@ def test_toggle_debug(tabs_instance, fake_window):
     tabs_instance.toggle_debug(False)
     fake_window.core.config.save.assert_called()
 
-def test_from_widget(tabs_instance, fake_window):
-    pass
+def test_from_widget(tabs_instance, fake_window, monkeypatch):
+    class FakeLayout:
+        def __init__(self):
+            self.widgets = []
+            self.margins = None
+
+        def addWidget(self, widget):
+            self.widgets.append(widget)
+
+        def setContentsMargins(self, *margins):
+            self.margins = margins
+
+    class FakeTabBody:
+        def __init__(self, window):
+            self.window = window
+            self.body = []
+            self.refs = []
+            self.layout = None
+
+        def append(self, widget):
+            self.body.append(widget)
+
+        def setLayout(self, layout):
+            self.layout = layout
+
+        def add_ref(self, widget):
+            self.refs.append(widget)
+
+    monkeypatch.setattr(tabs_module, "QVBoxLayout", FakeLayout)
+    monkeypatch.setattr(tabs_module, "TabBody", FakeTabBody)
+    source_widget = object()
+
+    result = tabs_instance.from_widget(source_widget)
+
+    assert isinstance(result, FakeTabBody)
+    assert result.window is fake_window
+    assert result.body == [source_widget]
+    assert result.refs == [source_widget]
+    assert result.layout.widgets == [source_widget]
+    assert result.layout.margins == (0, 0, 0, 0)
 
 def test_save(tabs_instance, fake_window):
     fake_tab = MagicMock()

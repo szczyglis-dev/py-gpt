@@ -10,7 +10,6 @@
 # ================================================== #
 
 import os
-import requests
 
 class Ollama:
     def __init__(self, window=None):
@@ -39,6 +38,8 @@ class Ollama:
 
         :return: dict
         """
+        import requests
+
         api_base = self.get_base_url()
         self.window.core.idx.log(f"Using Ollama base URL: {api_base}")
 

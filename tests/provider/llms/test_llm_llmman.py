@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock, patch
 
 from tests.mocks import mock_window
-from pygpt_net.provider.llms.llmman import LlmmanLLM as Wrapper
+from pygpt_net.provider.llms.llmman.provider import LlmmanLLM as Wrapper
 
 
 def test_ids():

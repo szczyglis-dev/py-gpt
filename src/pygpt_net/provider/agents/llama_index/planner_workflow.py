@@ -9,21 +9,25 @@
 # Updated Date: 2026.08.12 14:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any, List
+from __future__ import annotations
+
+from typing import Dict, Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.tools.types import BaseTool
+    from llama_index.core.llms.llm import LLM
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     AGENT_TYPE_LLAMA,
     AGENT_MODE_WORKFLOW,
 )
-from llama_index.core.llms.llm import LLM
-from llama_index.core.tools.types import BaseTool
 
 from pygpt_net.utils import trans
-from .workflow.planner import (
+from .workflow.planner_prompts import (
     DEFAULT_INITIAL_PLAN_PROMPT,
     DEFAULT_PLAN_REFINE_PROMPT,
-    DEFAULT_EXECUTE_PROMPT
+    DEFAULT_EXECUTE_PROMPT,
 )
 from ..base import BaseAgent
 
@@ -33,7 +37,7 @@ class PlannerAgent(BaseAgent):
         self.id = "planner"
         self.type = AGENT_TYPE_LLAMA
         self.mode = AGENT_MODE_WORKFLOW
-        self.name = "Planner"
+        self.name = "Planner (sub-tasks)"
 
     def get_agent(self, window, kwargs: Dict[str, Any]):
         """
@@ -50,6 +54,18 @@ class PlannerAgent(BaseAgent):
         tools: List[BaseTool] = kwargs.get("tools", []) or []
         llm: LLM = kwargs.get("llm", None)
         verbose: bool = kwargs.get("verbose", False)
+        step_allow_local_tools = bool(self.get_option(preset, "step", "allow_local_tools"))
+        step_allow_remote_tools = bool(self.get_option(preset, "step", "allow_remote_tools"))
+        executor_llm: LLM = llm
+        if kwargs.get("model") is not None:
+            executor_llm = window.core.idx.llm.get_agent(
+                kwargs.get("model"),
+                stream=True,
+                allow_remote_tools=step_allow_remote_tools,
+                computer_runtime=(
+                    kwargs.get("computer_runtime") if step_allow_remote_tools else None
+                ),
+            )
         max_steps: int = int(kwargs.get("max_iterations", kwargs.get("max_steps", 12)))
 
         # get prompts from options or use defaults
@@ -59,23 +75,50 @@ class PlannerAgent(BaseAgent):
         prompt_plan_refine_each_step = self.get_option(preset, "plan_refine", "after_each_subtask")
         if not prompt_step:
             prompt_step = DEFAULT_EXECUTE_PROMPT
+        prompt_step = self.append_system_prompt_extra(prompt_step, kwargs)
+        # Planner/refiner prompts are PromptTemplate instances. Runtime prompt
+        # additions are already concrete text, so escape braces before appending
+        # them to avoid treating plugin content (e.g. JSON/tool syntax) as template
+        # variables.
+        template_extra = self.get_system_prompt_extra(kwargs)
+        if template_extra:
+            template_extra = template_extra.replace("{", "{{").replace("}", "}}")
         if not prompt_plan_initial:
             prompt_plan_initial = DEFAULT_INITIAL_PLAN_PROMPT
+        prompt_plan_initial = self.append_system_prompt_extra(
+            prompt_plan_initial,
+            {"system_prompt_extra": template_extra},
+        )
         if not prompt_plan_refine:
             prompt_plan_refine = DEFAULT_PLAN_REFINE_PROMPT
+        prompt_plan_refine = self.append_system_prompt_extra(
+            prompt_plan_refine,
+            {"system_prompt_extra": template_extra},
+        )
         if prompt_plan_refine_each_step is None:
             prompt_plan_refine_each_step = True
 
 
+        from pygpt_net.core.agents.session_memory import role_memory
+        executor_memory = role_memory(window, self, context, "executor",
+                                      history=kwargs.get("chat_history"))
+        planner_memory = role_memory(window, self, context, "planner",
+                                     history=kwargs.get("chat_history"))
         return PlannerWorkflow(
-            tools=tools,
+            executor_memory_factory=lambda: executor_memory,
+            planner_memory=planner_memory,
+            refiner_memory=role_memory(window, self, context, "refiner",
+                                       history=kwargs.get("chat_history")),
+            tools=tools if step_allow_local_tools else [],
             llm=llm,
+            executor_llm=executor_llm,
             verbose=verbose,
             max_steps=max_steps,
             system_prompt=prompt_step,
             initial_plan_prompt=prompt_plan_initial,
             plan_refine_prompt=prompt_plan_refine,
             refine_after_each_subtask=prompt_plan_refine_each_step,
+            input_builder=kwargs.get("input_builder"),
         )
 
     def get_options(self) -> Dict[str, Any]:
@@ -94,6 +137,18 @@ class PlannerAgent(BaseAgent):
                         "label": trans("agent.option.prompt"),
                         "description": trans("agent.planner.step.prompt.desc"),
                         "default": DEFAULT_EXECUTE_PROMPT,
+                    },
+                    "allow_local_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
+                        "default": True,
+                    },
+                    "allow_remote_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
+                        "default": True,
                     },
                 }
             },

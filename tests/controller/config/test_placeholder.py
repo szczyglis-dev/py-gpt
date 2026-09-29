@@ -146,3 +146,38 @@ def test_var_types(mock_window):
     placeholder.apply(option)
     placeholder.get_var_types.assert_called_once()
     assert option["keys"] == data
+
+
+def test_get_llama_index_auto_index_policy(mock_window):
+    """Conversation auto-index mode is exposed as a three-value enum."""
+    placeholder = Placeholder(mock_window)
+
+    data = placeholder.get_llama_index_auto_index_policy()
+
+    assert [next(iter(item)) for item in data] == ["off", "all", "projects"]
+
+
+def test_get_idx_injects_current_project_runtime_entry(mock_window):
+    """Index placeholders expose __project__ only while a project is active."""
+    placeholder = Placeholder(mock_window)
+    mock_window.core.idx.get_idx_ids = MagicMock(return_value=[{"base": "Base"}])
+    mock_window.core.idx.project.get_current_group_id = MagicMock(return_value=9)
+    mock_window.core.idx.project.VIRTUAL_ID = "__project__"
+
+    data = placeholder.get_idx({"none": False})
+
+    assert next(iter(data[0])) == "__project__"
+    assert "__project__" not in next(iter(data[0].values()))
+    assert data[1] == {"base": "Base"}
+
+
+def test_get_idx_can_explicitly_exclude_project_runtime_entry(mock_window):
+    """Global-only settings do not receive the virtual project index."""
+    placeholder = Placeholder(mock_window)
+    mock_window.core.idx.get_idx_ids = MagicMock(return_value=[{"base": "Base"}])
+    mock_window.core.idx.project.get_current_group_id = MagicMock(return_value=9)
+    mock_window.core.idx.project.VIRTUAL_ID = "__project__"
+
+    data = placeholder.get_idx({"none": False, "project": False})
+
+    assert data == [{"base": "Base"}]

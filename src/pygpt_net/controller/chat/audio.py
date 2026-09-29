@@ -74,7 +74,11 @@ class Audio:
         multimodal_ctx.is_audio_input = True
 
         bridge_ctx = BridgeContext()
-        bridge_ctx.prompt = self.window.ui.nodes['input'].toPlainText()  # attach text input
+        input_node = self.window.ui.nodes['input']
+        if hasattr(input_node, "serialize_mentions"):
+            bridge_ctx.prompt = input_node.serialize_mentions()
+        else:
+            bridge_ctx.prompt = input_node.toPlainText()  # attach text input
         bridge_ctx.multimodal_ctx = multimodal_ctx
         event = KernelEvent(KernelEvent.INPUT_USER, {
             'context': bridge_ctx,

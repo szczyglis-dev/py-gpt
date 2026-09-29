@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.16 18:20:00                  #
+# Updated Date: 2026.09.10 11:36:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -26,11 +26,24 @@ class Config(BaseConfig):
         prompt = (
             "IMAGE GENERATION: When the user asks to create or generate an image, use the image tool. "
             "Write the image query in English as a clear, detailed prompt that preserves the user's intent. "
+            "The image tool accepts an optional resolution and an optional reference_image path. "
+            "When the user asks to edit, transform, extend, remix, refine, or otherwise modify a referenced image, "
+            "pass that image path in reference_image. If the current user turn includes an attached image and the "
+            "tool call omits reference_image, the app will automatically reuse that attached image as the runtime "
+            "reference for the image backend. If the user explicitly requests image dimensions, pass them in "
+            "resolution; it overrides the configured image resolution for that tool call when supported by the "
+            "selected image model/provider. "
+            "Generated images are attached to the chat automatically. Return the path to the generated image to the user. "
             "After the image is generated, continue the conversation normally."
         )
         prompt_func = (
             "Generate an image requested by the user. Put a clear, detailed English image-generation prompt "
-            "in the query parameter and preserve the user's intent."
+            "in the query parameter and preserve the user's intent. Optionally pass resolution to override the "
+            "configured image size for this call. Optionally pass reference_image when editing/remixing an existing "
+            "image; use the exact path supplied in the runtime image context. If the current user turn already has "
+            "an attached image and reference_image is omitted, the app will automatically use that attachment as the "
+            "runtime reference image. The generated image is attached to the chat automatically; return the path to "
+            "the generated image to the user."
         )
         plugin.add_option(
             "model",
@@ -39,9 +52,9 @@ class Config(BaseConfig):
             use_params={
                 "mode": ["img"],
             },
-            value="gpt-image-1",
+            value="gpt-image-2.5-flare",
             label="Model",
-            description="Image generation model, default: gpt-image-1",
+            description="Image generation model, default: gpt-image-2.5-flare",
             tooltip="Model",
         )
         plugin.add_cmd(
@@ -53,6 +66,25 @@ class Config(BaseConfig):
                     "type": "str",
                     "description": "Prompt describing the image to generate",
                     "required": True,
+                },
+                {
+                    "name": "resolution",
+                    "type": "str",
+                    "description": (
+                        "Optional output resolution, e.g. 1024x1024. Overrides the configured image resolution "
+                        "for this tool call when supported by the selected image model/provider."
+                    ),
+                    "required": False,
+                },
+                {
+                    "name": "reference_image",
+                    "type": "str",
+                    "description": (
+                        "Optional local reference image path for edit/remix/extend operations. Use the exact path "
+                        "provided in the runtime image context when the user refers to an attached or previously "
+                        "generated image."
+                    ),
+                    "required": False,
                 },
             ],
             enabled=True,

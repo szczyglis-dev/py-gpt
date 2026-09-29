@@ -386,7 +386,7 @@ class Common:
 
         :return: path to capture directory
         """
-        return self.window.core.config.get_user_dir('capture')
+        return self.window.core.filesystem.get_runtime_dir('capture')
 
     # ---------- Public sync helper (used by PainterWidget undo/redo) ----------
 

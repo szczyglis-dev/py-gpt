@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.18 17:30:00                  #
+# Updated Date: 2026.09.12 17:55:00                  #
 # ================================================== #
 
 from typing import Dict, Any, List
@@ -16,6 +16,7 @@ from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
     AGENT_TYPE_OPENAI,
     AGENT_TYPE_LLAMA,
+    MODE_EMBEDDINGS,
 )
 from pygpt_net.utils import trans
 
@@ -30,7 +31,6 @@ class Placeholder:
         self.window = window
         self._apply_handlers = {
             "access_actions": lambda p: self.get_access_actions(),
-            "agent_modes": lambda p: self.get_agent_modes(),
             "agent_provider": lambda p: self.get_agent_providers(),
             "agent_provider_llama": lambda p: self.get_agent_providers_llama(),
             "agent_provider_openai": lambda p: self.get_agent_providers_openai(),
@@ -46,7 +46,9 @@ class Placeholder:
             "keys_modifiers": lambda p: self.get_modifiers(),
             "langchain_providers": lambda p: self.get_langchain_providers(),
             "languages": lambda p: self.get_languages(),
+            "llama_index_auto_index_policy": lambda p: self.get_llama_index_auto_index_policy(),
             "llama_index_chat_modes": lambda p: self.get_llama_index_chat_modes(),
+            "llama_index_rag_modes": lambda p: self.get_llama_index_rag_modes(),
             "llama_index_loaders": lambda p: self.get_llama_index_loaders(),
             "llama_index_loaders_file": lambda p: self.get_llama_index_loaders(type="file"),
             "llama_index_loaders_web": lambda p: self.get_llama_index_loaders(type="web"),
@@ -97,8 +99,6 @@ class Placeholder:
         t = option["type"]
         if t == "dict" and "keys" in option:
             self._apply_suboptions(option["keys"])
-        elif t == "cmd" and "params_keys" in option:
-            self._apply_suboptions(option["params_keys"])
         elif t in ("combo", "bool_list"):
             use = option.get("use")
             if use is not None:
@@ -206,7 +206,7 @@ class Placeholder:
 
         :return: Filled placeholder list
         """
-        choices = self.window.core.llm.get_choices("embeddings")
+        choices = self.window.core.llm.get_choices(MODE_EMBEDDINGS)
         return [{k: v} for k, v in choices.items()]
 
     def get_agent_providers(self) -> List[Dict[str, str]]:
@@ -240,6 +240,14 @@ class Placeholder:
         :return: Filled placeholder list
         """
         return self.window.core.api.openai.remote_tools.get_choices()
+
+    def get_llama_index_rag_modes(self) -> List[Dict[str, str]]:
+        """Return the user-facing RAG operation modes."""
+        return [
+            {"chat": trans('toolbox.llama_index.mode.chat')},
+            {"query": trans('toolbox.llama_index.mode.query')},
+            {"retrieval": trans('toolbox.llama_index.mode.retrieval')},
+        ]
 
     def get_llama_index_chat_modes(self) -> List[Dict[str, str]]:
         """
@@ -321,7 +329,11 @@ class Placeholder:
         if params is None:
             params = {}
         modes = self.window.core.modes.get_all()
-        return [{mid: trans("mode." + mid)} for mid in modes]
+        return [
+            {mid: trans("mode." + mid)}
+            for mid in self.window.core.modes.get_ordered_keys()
+            if mid in modes
+        ]
 
     def get_multimodal(self, params: dict = None) -> List[Dict[str, str]]:
         """
@@ -370,21 +382,34 @@ class Placeholder:
                 data.append({mid: name})
             return data
 
-        for provider, provider_label in providers.items():
+        # The provider registry can be temporarily incomplete while the UI is
+        # being built (runtime custom providers may already be synchronized
+        # before the built-in providers are registered). Never treat a
+        # non-empty registry as the authoritative list of providers for model
+        # choices, otherwise models belonging to providers not registered yet
+        # disappear from combo boxes (notably the Preset model selector).
+        provider_choices = dict(providers)
+        missing_providers = {
+            models[mid].provider
+            for mid in items
+            if models[mid].provider not in provider_choices
+        }
+        for provider in sorted(
+                (p for p in missing_providers if p),
+                key=lambda value: str(value).lower(),
+        ):
+            # get_provider_name() returns the ID unchanged when the provider is
+            # not registered yet. Once the registry is fully initialized the
+            # preset editor refreshes the choices and the proper display name
+            # is used.
+            provider_choices[provider] = self.window.core.llm.get_provider_name(provider)
+
+        for provider, provider_label in provider_choices.items():
             provider_items = [(k, v) for k, v in items.items() if models[k].provider == provider]
             if provider_items:
                 data.append({f"separator::{provider}": provider_label})
                 data.extend([{k: v} for k, v in provider_items])
         return data
-
-    def get_agent_modes(self) -> List[Dict[str, str]]:
-        """
-        Get agent/expert modes list
-
-        :return: Filled placeholder list
-        """
-        modes = self.window.core.agents.legacy.get_allowed_modes()
-        return [{mid: trans(f"mode.{mid}")} for mid in modes]
 
     def get_languages(self) -> List[Dict[str, str]]:
         """
@@ -407,10 +432,21 @@ class Placeholder:
         data = []
         if "none" not in params or params["none"] is True:
             data.append({'_': '---'})
+        if params.get("project", True) and self.window.core.idx.project.get_current_group_id() is not None:
+            data.append({self.window.core.idx.project.VIRTUAL_ID: trans('idx.current_project')})
         for item in indexes:
             for k, v in item.items():
                 data.append({k: v})
         return data
+
+
+    def get_llama_index_auto_index_policy(self) -> List[Dict[str, str]]:
+        """Return conversation auto-indexing policy choices."""
+        return [
+            {"off": trans("settings.llama.extra.btn.idx_auto.mode.off")},
+            {"all": trans("settings.llama.extra.btn.idx_auto.mode.all")},
+            {"projects": trans("settings.llama.extra.btn.idx_auto.mode.projects")},
+        ]
 
     def get_syntax_styles(self) -> List[Dict[str, str]]:
         """
@@ -424,13 +460,13 @@ class Placeholder:
 
     def get_styles(self) -> List[Dict[str, str]]:
         """
-        Get styles list (blocks, chatgpt, etc.)
+        Get chat view styles list
 
         :return: Filled placeholder list
         """
         styles = self.window.controller.theme.common.get_styles_list()
         styles.sort()
-        return [{sid: sid} for sid in styles]
+        return [{sid: sid.replace("_", " ").title()} for sid in styles]
 
     def get_keys(self) -> List[Dict[str, str]]:
         """
