@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : RheagalFire                          #
-# Updated Date: 2026.09.28 14:10:00                  #
+# Updated Date: 2026.09.29 12:45:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -139,10 +139,20 @@ class LiteLLMProvider(BaseLLM):
                     continue
 
                 seen.add(model_id)
-                items.append({
+                item = {
                     "id": model_id,
                     "name": model_id,
-                })
+                }
+                if isinstance(info, dict):
+                    # LiteLLM's local model catalog exposes the same capability
+                    # metadata used by completion() routing. Feed it into the
+                    # PyGPT importer so vision models arrive with Image input
+                    # enabled instead of requiring a manual edit. Runtime still
+                    # gates image blocks on ModelItem.is_image_input().
+                    item["input"] = ["text"]
+                    if info.get("supports_vision") is True:
+                        item["input"].append("image")
+                items.append(item)
         except Exception as e:
             window.core.debug.log(e)
 

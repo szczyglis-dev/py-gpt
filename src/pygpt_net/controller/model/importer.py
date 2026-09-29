@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2026.09.29 12:45:00
 # ================================================== #
 
 import copy
@@ -439,7 +439,13 @@ class Importer:
                 MODE_EXPERT,
             ]
             m.provider = self.provider
-            m.input = ["text"]
+            # Provider model catalogs may expose input capabilities. Keep the
+            # existing text-only default when metadata is unavailable, but
+            # preserve declared image input (notably LiteLLM supports_vision).
+            model_input = model.get("input")
+            if isinstance(model_input, str):
+                model_input = [value.strip() for value in model_input.split(",") if value.strip()]
+            m.input = list(model_input) if isinstance(model_input, (list, tuple, set)) and model_input else ["text"]
             m.output = ["text"]
             m.imported = True
             m.ctx = 128000  # default context size
