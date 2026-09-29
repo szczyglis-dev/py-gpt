@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+import time
 import os
 import re
 import html as _html
@@ -482,6 +483,7 @@ class Renderer(BaseRenderer):
                     try:
                         node.page().runJavaScript(
                             "if (typeof window.hideLoading !== 'undefined') hideLoading();"
+                            "if (typeof window.clearAgentWorking !== 'undefined') clearAgentWorking();"
                         )
                     except Exception:
                         pass
@@ -1275,6 +1277,8 @@ class Renderer(BaseRenderer):
             self.append_chunk(meta, parent_ctx, text_chunk, begin)
             return
 
+        if begin:
+            self._update_agent_working(meta, parent_ctx)
         pctx = self.pids[pid]
         pctx.item = parent_ctx
         key = (pid, str(parent_id), str(part_key or "live"))
@@ -1511,6 +1515,7 @@ class Renderer(BaseRenderer):
         except Exception:
             try:
                 self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.clearAgentWorking !== 'undefined') window.clearAgentWorking();"
                     "if (typeof window.clearAgentStatus !== 'undefined') window.clearAgentStatus();"
                     "if (typeof window.clearStream !== 'undefined') window.clearStream();"
                 )
@@ -1864,6 +1869,36 @@ class Renderer(BaseRenderer):
             if key and key[0] == pid:
                 self._workflow_statuses.pop(key, None)
 
+    def _agent_working_payload(self, ctx: CtxItem, tool_started: bool = False):
+        """Describe real multi-step work, never a one-shot agent answer."""
+        if ctx is None or not CtxItem.uses_agent_timeline(ctx):
+            return None
+        extra = ctx.extra if isinstance(ctx.extra, dict) else {}
+        parts = list(ctx.parts or [])
+        if (ctx.stopped or extra.get("response_final") or extra.get("response_interrupted")
+                or any((part.extra or {}).get("agents_v2_final") for part in parts)):
+            return None
+        if not (tool_started or len(parts) > 1 or any(part.tasks for part in parts)):
+            return None
+        return {
+            "started": float(ctx.input_timestamp or time.time()),
+            "label": trans("ctx.agent.workflow.working"),
+            "units": [trans("ctx.agent.workflow.time.hour"),
+                      trans("ctx.agent.workflow.time.minute"),
+                      trans("ctx.agent.workflow.time.second")],
+        }
+
+    def _update_agent_working(self, meta: CtxMeta, ctx: CtxItem, tool_started: bool = False):
+        payload = self._agent_working_payload(ctx, tool_started)
+        if payload is None:
+            return
+        parent = json.dumps(str(ctx.id or ""))
+        data = json.dumps(payload, ensure_ascii=False)
+        self.get_output_node(meta).page().runJavaScript(
+            "if (typeof window.setAgentWorking !== 'undefined') "
+            f"window.setAgentWorking({parent}, {data});"
+        )
+
     def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
         """Append a live agent status inside the current durable turn."""
         value_text = str(status or "").strip()
@@ -1873,6 +1908,7 @@ class Renderer(BaseRenderer):
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
         if resolved_ctx is None:
             resolved_ctx = ctx
+        self._update_agent_working(meta, resolved_ctx)
         status_id = self._workflow_status_add(
             meta, resolved_ctx, kind="agent", text=value_text,
         )
@@ -2452,6 +2488,7 @@ class Renderer(BaseRenderer):
         By default the existing text/timeline is preserved. This is the normal
         post-stream/post-tool path and replaces the historical full-chat RELOAD.
         """
+        self._update_agent_working(meta, ctx)
         block = self._build_output_block(meta, ctx)
         if block is None:
             return
@@ -2980,6 +3017,9 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem] = None,
     ):
         """Show an animated tool row inside the chronological message body."""
+        _key, _pid, working_ctx = self._workflow_status_key(meta, ctx)
+        if tool_names:
+            self._update_agent_working(meta, working_ctx, tool_started=True)
         names_list = self.window.core.command.realtime_visible_tool_names(
             list(tool_names or [])
         )

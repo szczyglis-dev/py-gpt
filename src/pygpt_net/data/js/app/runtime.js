@@ -139,6 +139,7 @@ class Runtime {
 			return;
 		}
 		if (t === 'final_reset') {
+			this.api_clearAgentWorking();
 			try { this.loading.hide(false); } catch (_) {}
 			// Keep the already materialized durable CtxItem and clear only the
 			// transient global stream/status area. Final prose will be appended via
@@ -587,9 +588,49 @@ class Runtime {
 		if (wantedParent && !host) return;
 		const root = host ? host.timeline : document;
 		for (const node of root.querySelectorAll('.agents-v2-status--active')) {
+			if (node.classList.contains('agent-working')) continue;
 			if (kind && String(node.dataset.statusKind || '') !== String(kind)) continue;
 			node.classList.remove('agents-v2-status--active');
 		}
+	};
+
+	// One transient header per live response. Reuse the same label node so the
+	// status shimmer is continuous while the elapsed text changes each second.
+	api_setAgentWorking = (parentId, data) => {
+		const id = String(parentId || '');
+		if (!id || !data || this._agentsV2FinalActive) return;
+		if (this._agentWorking && this._agentWorking.id === id) return;
+		this.api_clearAgentWorking();
+		const row = document.createElement('div');
+		row.className = 'agent-working agents-v2-status agents-v2-status--active';
+		const label = document.createElement('span');
+		label.className = 'agents-v2-status__text';
+		row.appendChild(label);
+		const elapsed = Math.max(0, Date.now() / 1000 - Number(data.started || Date.now() / 1000));
+		const started = performance.now();
+		const units = Array.isArray(data.units) ? data.units : ['h', 'm', 's'];
+		const tick = () => {
+			const host = this._statusMessageHost(id, false);
+			if (host && host.msg && row.parentNode !== host.msg) {
+				host.msg.insertBefore(row, host.msg.firstChild);
+			}
+			const seconds = Math.floor(elapsed + (performance.now() - started) / 1000);
+			const values = [];
+			if (seconds >= 3600) values.push(`${Math.floor(seconds / 3600)}${units[0]}`);
+			if (seconds >= 60) values.push(`${Math.floor(seconds / 60) % 60}${units[1]}`);
+			values.push(`${seconds % 60}${units[2]}`);
+			label.textContent = String(data.label || 'Working for {duration}').replace('{duration}', values.join(' '));
+		};
+		this._agentWorking = {id, row, timer: setInterval(tick, 1000)};
+		tick();
+	};
+
+	api_clearAgentWorking = (parentId = null) => {
+		const state = this._agentWorking;
+		if (!state || (parentId != null && String(parentId) !== state.id)) return;
+		clearInterval(state.timer);
+		state.row.remove();
+		this._agentWorking = null;
 	};
 
 	api_setAgentStatus = (text, parentId = null, statusId = null) => {
@@ -1148,6 +1189,7 @@ class Runtime {
 	};
 
 	_markTurnEnded = (msgId) => {
+		this.api_clearAgentWorking(msgId || null);
 		const id = this._turnId(msgId);
 		if (id) {
 			this._activeTurnIds.delete(id);
@@ -1173,6 +1215,7 @@ class Runtime {
 		const ctxExtra = block.extra && block.extra.ctx_extra;
 		const interrupted = !!(ctxExtra && ctxExtra.response_interrupted === true);
 		if (interrupted && id) this._activeTurnIds.delete(id);
+		if (ctxExtra && (interrupted || ctxExtra.response_final === true)) this.api_clearAgentWorking(id);
 		this._setMessageActionsPending(target, !!(id && this._activeTurnIds.has(id) && !interrupted));
 	};
 
@@ -1470,6 +1513,7 @@ class Runtime {
 	};
 
 	api_replaceNodes = (payload) => {
+		this.api_clearAgentWorking();
 		this._clearPartialStreamState();
 		this.resetStreamState('replaceNodes', {
 			clearMsg: true,
@@ -1526,6 +1570,7 @@ class Runtime {
 
 	// API: clear messages list.
 	api_clearNodes = () => {
+		this.api_clearAgentWorking();
 		this._clearPartialStreamState();
 		this.dom.clearNodes();
 		this.resetStreamState('clearNodes', {
@@ -1924,3 +1969,5 @@ setInterval(() => {
   const g = gaugeSE(runtime.stream);
   console.log('[SE gauge]', g);
 }, 2000);*/
+window.setAgentWorking = (parentId, data) => runtime.api_setAgentWorking(parentId, data);
+window.clearAgentWorking = () => runtime.api_clearAgentWorking();

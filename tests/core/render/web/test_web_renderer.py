@@ -218,14 +218,16 @@ class TestRenderer:
         node = fake_window.core.ctx.output.get_by_pid(1)
         node.page().runJavaScript = MagicMock()
         renderer.state_changed("render.state.idle", DummyCtxMeta())
-        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();")
+        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();"
+            "if (typeof window.clearAgentWorking !== 'undefined') clearAgentWorking();")
 
     def test_state_changed_error(self, renderer, fake_window):
         renderer.pids = {1: MagicMock()}
         node = fake_window.core.ctx.output.get_by_pid(1)
         node.page().runJavaScript = MagicMock()
         renderer.state_changed("render.state.error", DummyCtxMeta())
-        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();")
+        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();"
+            "if (typeof window.clearAgentWorking !== 'undefined') clearAgentWorking();")
 
     def test_begin(self, renderer):
         meta = DummyCtxMeta()
@@ -926,3 +928,36 @@ def test_completed_workflow_respects_display_setting(renderer, mode, full_workfl
     else:
         assert block.extra['collapsed_workflow']['expanded'] is False
         assert len(block.extra['collapsed_workflow']['timeline']) == 2
+
+
+@pytest.mark.parametrize("mode,extra", [("agent_v2", {}), ("agent", {"agent_timeline": True})])
+def test_working_timer_requires_real_work(renderer, monkeypatch, mode, extra):
+    monkeypatch.setattr("pygpt_net.core.render.web.renderer.trans", lambda key: key)
+    ctx = CtxItem()
+    ctx.mode = mode
+    ctx.extra = extra
+    ctx.input_timestamp = 123
+    ctx.parts = [SimpleNamespace(extra={}, tasks=[])]
+    assert renderer._agent_working_payload(ctx) is None
+    assert renderer._agent_working_payload(ctx, tool_started=True)["started"] == 123
+    ctx.parts.append(SimpleNamespace(extra={}, tasks=[]))
+    assert renderer._agent_working_payload(ctx) is not None
+    ctx.parts[-1].extra["agents_v2_final"] = True
+    assert renderer._agent_working_payload(ctx, tool_started=True) is None
+
+
+@pytest.mark.parametrize("ending", ["stopped", "response_final", "response_interrupted"])
+def test_working_timer_does_not_restart_after_end(renderer, ending):
+    ctx = CtxItem()
+    ctx.mode = "agent_v2"
+    if ending == "stopped":
+        ctx.stopped = True
+    else:
+        ctx.extra[ending] = True
+    assert renderer._agent_working_payload(ctx, tool_started=True) is None
+
+
+def test_working_timer_not_shown_for_regular_chat(renderer):
+    ctx = CtxItem()
+    ctx.mode = "chat"
+    assert renderer._agent_working_payload(ctx, tool_started=True) is None

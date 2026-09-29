@@ -999,3 +999,11 @@ body.display-timestamp .ts {{
     transition: none;
   }}
 }}
+
+/* Runtime-only elapsed work header, above the response timeline. */
+.agent-working.agents-v2-status {{
+  width: auto;
+  max-width: none;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+  padding-bottom: 12px;
+}}
