@@ -85,9 +85,14 @@ class Patch:
                         updated = True
 
             # --------------------------------------------
-            # Global filesystem text-editor settings introduced in 2.8.35
+            # Global filesystem text-editor settings and application runtime
+            # directories introduced in 2.8.35.
             if old < parse_version("2.8.35"):
-                from .patches.patch_before_2_8_35 import migrate_remote_tools
+                from .patches.patch_before_2_8_35 import (
+                    migrate_application_runtime_dirs,
+                    migrate_remote_tools,
+                )
+                migrate_application_runtime_dirs(self.window)
                 updated = migrate_remote_tools(data) or updated
                 defaults = {
                     "filesystem.text_editor.tabs.indent_spaces": True,

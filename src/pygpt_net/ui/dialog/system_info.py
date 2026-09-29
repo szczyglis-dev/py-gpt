@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 13:20:00                  #
+# Updated Date: 2026.09.29 17:30:00
 # ================================================== #
 
 import os
@@ -38,48 +38,50 @@ class WorkdirSizeSignals(QObject):
 
 
 class WorkdirSizeWorker(QRunnable):
-    def __init__(self, path: str):
+    def __init__(self, path: str, sandbox_path: str):
         super().__init__()
         self.path = path
+        self.sandbox_path = sandbox_path
         self.signals = WorkdirSizeSignals()
+
+    @staticmethod
+    def _tree_size(root: str, prune_top_level=()) -> int:
+        total = 0
+        root = os.path.abspath(root)
+        if not os.path.isdir(root):
+            return 0
+        for dirpath, dirnames, filenames in os.walk(root):
+            abs_dir = os.path.abspath(dirpath)
+            if abs_dir == root and prune_top_level:
+                blocked = set(prune_top_level)
+                dirnames[:] = [name for name in dirnames if name not in blocked]
+            for name in filenames:
+                path = os.path.join(dirpath, name)
+                try:
+                    if os.path.islink(path):
+                        continue
+                    total += os.path.getsize(path)
+                except OSError:
+                    # Runtime/cache files may disappear while being scanned.
+                    continue
+        return total
 
     @Slot()
     def run(self):
         profile_total = 0
         full_total = 0
         try:
-            root = os.path.abspath(self.path)
-            sandbox_root = os.path.join(root, "sandbox")
-            for dirpath, dirnames, filenames in os.walk(root):
-                abs_dir = os.path.abspath(dirpath)
-
-                # extra_packages belongs to the application-wide base workdir,
-                # not to a profile. If the active workdir is the base directory
-                # itself, prune this top-level directory entirely so it affects
-                # neither size value and is not needlessly traversed.
-                if abs_dir == root:
-                    dirnames[:] = [name for name in dirnames if name != "extra_packages"]
-
-                try:
-                    in_sandbox = os.path.commonpath((abs_dir, sandbox_root)) == sandbox_root
-                except ValueError:
-                    in_sandbox = False
-
-                for name in filenames:
-                    path = os.path.join(dirpath, name)
-                    try:
-                        if os.path.islink(path):
-                            continue
-                        size = os.path.getsize(path)
-                        full_total += size
-                        # The first value excludes the reproducible built-in
-                        # sandbox; the second includes it.
-                        if not in_sandbox:
-                            profile_total += size
-                    except OSError:
-                        # Files in tmp/cache/sandbox may disappear while the
-                        # directory is being scanned.
-                        continue
+            # sandbox and extra_packages are application-wide resources in the
+            # base workdir, never profile data. Prune stale legacy copies from
+            # the active workdir too. The second value adds the current global
+            # built-in sandbox explicitly, regardless of which profile/workdir
+            # is active. extra_packages intentionally remains excluded.
+            profile_total = self._tree_size(
+                self.path,
+                prune_top_level=("sandbox", "extra_packages"),
+            )
+            sandbox_total = self._tree_size(self.sandbox_path)
+            full_total = profile_total + sandbox_total
         except OSError:
             profile_total = None
             full_total = None
@@ -215,7 +217,11 @@ class SystemInfo(QObject):
         if workdir in self._workers:
             return
 
-        worker = WorkdirSizeWorker(workdir)
+        sandbox_path = os.path.join(
+            self.window.core.config.get_base_workdir(),
+            "sandbox",
+        )
+        worker = WorkdirSizeWorker(workdir, sandbox_path)
         self._workers[workdir] = worker
         worker.signals.result.connect(self._on_workdir_size)
         QThreadPool.globalInstance().start(worker)

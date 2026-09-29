@@ -27,16 +27,18 @@ class RuntimePackages:
 
     @property
     def path(self):
-        # Runtime imports are process-scoped: switching profiles needs a restart.
+        # Optional application packages are global for the PyGPT installation,
+        # not tied to the currently selected profile/workdir.  get_base_workdir()
+        # is the .config/pygpt-net root that owns path.cfg; prepare_workdir() /
+        # get_user_path() may instead point at a custom workdir selected by it.
         if self._path is None:
-            self._path = str(Path(self.window.core.config.get_user_path()) /
+            self._path = str(Path(self.window.core.config.get_base_workdir()) /
                              'extra_packages' / f'{sys.version_info.major}.{sys.version_info.minor}')
         return self._path
 
     def check_profile(self):
-        current = Path(self.window.core.config.get_user_path()).resolve()
-        if current != Path(self.path).parent.parent.resolve():
-            raise RuntimeError('Restart PyGPT after switching workdir/profile before changing runtime packages.')
+        """Kept for controller compatibility; runtime packages are profile-independent."""
+        return True
 
     def activate(self):
         Path(self.path).mkdir(parents=True, exist_ok=True)

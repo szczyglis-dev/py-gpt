@@ -1749,6 +1749,8 @@ The two execution tool sets are never exposed together.
 
 **Sandbox:** The **Sandbox** selector is available at the beginning of the plugin's **General** tab. **Disabled** runs Python/IPython directly on the host and is unsafe for untrusted code. **Built-in sandbox** uses a separate uv-managed CPython environment and does not require Docker; it isolates the Python environment from PyGPT itself, but it is not a filesystem/network security boundary. **Docker** requires Docker to be installed and running and provides the strongest isolation of the available options. In both sandbox modes, the active conversation's `data` workdir is used as the runtime working directory; Docker exposes it as `/mnt/data`, while the built-in sandbox uses the host path.
 
+The built-in Python/System environments are stored application-wide under `<application base workdir>/sandbox`. The **application base workdir** is the directory that owns `path.cfg` (by default `{HOME_DIR}/.config/pygpt-net/`, unless `PYGPT_WORKDIR` overrides it). If `path.cfg` redirects the active profile/workdir elsewhere, the `sandbox` directory remains in the application base workdir.
+
 **Built-in packages:** Add persistent packages in `Plugins -> Settings -> Python interpreter -> Built-in sandbox`, one requirement per line. Package-list changes rebuild the environment on the next use; use `Tools -> Sandbox / Docker` to rebuild it immediately. Packages installed manually with `pip` are removed by a rebuild unless they are also listed there.
 
 **Docker permissions:** The stock Docker images run as the unprivileged `pygpt` user by default, with passwordless `sudo` available when elevated privileges are required. Separate **Run as root** options are available for the IPython and standard-Python Docker runtimes.
@@ -1829,7 +1831,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#slack
 The System (OS) plugin gives the model a `sys_exec` tool for running shell commands in the active data workdir. Commands can run on the host, in the built-in uv-managed environment, or in Docker.
 
 - **Disabled** executes `sys_exec` directly on the host and is unsafe for untrusted commands.
-- **Built-in sandbox** executes commands in a separate uv-managed CPython environment and does not require Docker. It separates the command environment from PyGPT's own Python installation, but it is not a filesystem/network security boundary.
+- **Built-in sandbox** executes commands in a separate uv-managed CPython environment and does not require Docker. It separates the command environment from PyGPT's own Python installation, but it is not a filesystem/network security boundary. Its environment is stored under the shared `<application base workdir>/sandbox/os` path.
 - **Docker** executes `sys_exec` inside the Docker sandbox. Docker must be installed and running; this backend provides the strongest isolation of the available options.
 
 When Docker is selected, the active conversation's runtime `data` directory is mounted as `/mnt/data` and used as the command working directory. Project-specific data workdirs are mapped automatically. The stock Docker image runs as the unprivileged `pygpt` user by default and provides passwordless `sudo`; **Run as root** can be enabled when required.
@@ -2299,13 +2301,24 @@ These configuration files are located in the user's work directory within the fo
 
 ## Manual configuration
 
-PyGPT stores its configuration and user data in the working directory, which by default is:
+PyGPT uses an **application base workdir**, which by default is:
 
 ```ini
 {HOME_DIR}/.config/pygpt-net/
 ```
 
-Configuration files such as `config.json` and `models.json` can also be edited manually.
+This base directory owns `path.cfg`. If `path.cfg` redirects the active profile/workdir to another directory, profile files such as `config.json`, `models.json`, and `db.sqlite` are read from that redirected workdir, while application-wide runtime data stays in the base directory. In particular:
+
+```text
+<application base workdir>/
+├── path.cfg
+├── sandbox/
+└── extra_packages/
+```
+
+`extra_packages` stores Package Manager-installed runtime dependencies in a Python-version subdirectory such as `extra_packages/3.13`. Both `sandbox` and `extra_packages` are shared across profiles and are not moved when the active profile/workdir changes.
+
+Configuration files such as `config.json` and `models.json` can also be edited manually in the active profile/workdir.
 
 A project's custom workdir does **not** replace this profile/application workdir. It overrides only the logical `data` directory for conversations assigned to that project. The **Files** tab, file tools and Docker `/mnt/data` mapping follow the active project data directory at runtime, while `tmp`, configuration, database, cache, CSS, locale, fonts and logs remain in the base profile workdir.
 

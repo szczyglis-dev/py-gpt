@@ -1898,15 +1898,14 @@ Execution and isolation rules
 
 The built-in backend is a **separate execution environment**, not a filesystem or container security boundary. It is intended to keep model-executed Python and command-line tooling separate from the Python environment used to run PyGPT itself, without requiring Docker.
 
-The built-in runtime is created under the base PyGPT profile workdir. The default layout is:
+The built-in runtime is created under the **application base workdir**: the directory that owns ``path.cfg``. By default this is ``{HOME_DIR}/.config/pygpt-net/`` (unless ``PYGPT_WORKDIR`` overrides the application base path). The default layout is:
 
 .. code-block:: text
 
-   %workdir%/
-   ├── data/                         # default conversation data workdir
-   ├── tmp/                          # PyGPT application/interpreter temporary files
+   <application base workdir>/
+   ├── path.cfg
    └── sandbox/
-       ├── runtime/                  # uv-managed CPython runtimes (Python 3.12)
+       ├── runtime/                  # uv-managed CPython runtimes
        ├── cache/                    # uv package/runtime cache
        ├── python/                   # venv used by the Python interpreter plugin
        ├── os/                       # separate venv used by the System (OS) plugin
@@ -1918,9 +1917,9 @@ The built-in runtime is created under the base PyGPT profile workdir. The defaul
                ├── home/             # HOME/USERPROFILE for System built-in processes
                └── tmp/              # TMP/TEMP/TMPDIR for System built-in processes
 
-``%workdir%`` above means the base profile workdir. A project's custom ``data`` workdir may be located elsewhere; it does not move the base ``sandbox`` directory.
+This is intentionally different from the active profile/workdir. If ``path.cfg`` redirects the active profile to another directory, or a project uses a custom ``data`` workdir, the application-wide ``sandbox`` directory remains under the base directory that contains ``path.cfg``.
 
-For the Python plugin, both standard Python and IPython use ``%workdir%/sandbox/python``. The environment is provisioned by ``uv`` and has its own Python executable, ``pip`` and packages. PyGPT prepends this environment's ``bin``/``Scripts`` directory to ``PATH``, sets ``VIRTUAL_ENV`` to the built-in venv, disables the user site with ``PYTHONNOUSERSITE=1``, removes inherited ``PYTHONHOME``/``PYTHONPATH`` and uses the private ``state/python/home`` and ``state/python/tmp`` directories for HOME and temporary files. This prevents the built-in interpreter from accidentally using PyGPT's own virtual environment, but it is **environment separation only**.
+For the Python plugin, both standard Python and IPython use ``<application base workdir>/sandbox/python``. The environment is provisioned by ``uv`` and has its own Python executable, ``pip`` and packages. PyGPT prepends this environment's ``bin``/``Scripts`` directory to ``PATH``, sets ``VIRTUAL_ENV`` to the built-in venv, disables the user site with ``PYTHONNOUSERSITE=1``, removes inherited ``PYTHONHOME``/``PYTHONPATH`` and uses the private ``state/python/home`` and ``state/python/tmp`` directories for HOME and temporary files. This prevents the built-in interpreter from accidentally using PyGPT's own virtual environment, but it is **environment separation only**.
 
 Built-in packages and environment rebuild
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1981,7 +1980,7 @@ The working-directory filesystem read/write restrictions are still bypassed for 
 
 Docker provides the actual container boundary and is the strongest isolation option supplied by these plugins. The active conversation's ``data`` workdir is mounted read/write at ``/mnt/data`` by the stock configuration and ``/mnt/data`` is used as the runtime CWD. Project-specific data workdirs are mapped automatically.
 
-The container cannot see arbitrary host paths unless they are explicitly exposed through Docker volume mappings or by other Docker configuration. Adding custom entries to ``Docker volumes`` expands the host filesystem visible to the container. The default volume list exposes only the active runtime ``data`` workdir. The application-level ``%workdir%/sandbox`` and ``%workdir%/tmp`` directories are not mounted by the stock configuration.
+The container cannot see arbitrary host paths unless they are explicitly exposed through Docker volume mappings or by other Docker configuration. Adding custom entries to ``Docker volumes`` expands the host filesystem visible to the container. The default volume list exposes only the active runtime ``data`` workdir. The application-wide ``<application base workdir>/sandbox`` directory and the active profile's ``%workdir%/tmp`` directory are not mounted by the stock configuration.
 
 The stock Docker images run as the unprivileged ``pygpt`` user by default. Passwordless ``sudo`` is available inside the stock container, and the IPython and standard-Python Docker settings have separate ``Run as root`` options. Root inside the container is still subject to the container boundary, but it can fully access any host volumes that have been mounted into that container. No host ports are published by the stock configuration unless entries are added to ``Docker ports``. Normal Docker networking may still allow outbound network access according to the Docker daemon/network configuration.
 
@@ -2368,11 +2367,11 @@ System/OS execution and isolation rules
 
 ``Disabled`` executes ``sys_exec`` in the host environment. The command runs with the privileges of the PyGPT process. The configured system-command whitelist/blacklist is checked before execution, using the policy for the host operating system.
 
-``Built-in sandbox`` uses a dedicated uv-managed environment under ``%workdir%/sandbox/os``. It shares the same base built-in runtime infrastructure described in the Python interpreter section:
+``Built-in sandbox`` uses a dedicated uv-managed environment under ``<application base workdir>/sandbox/os``. It shares the same application-wide built-in runtime infrastructure described in the Python interpreter section:
 
 .. code-block:: text
 
-   %workdir%/sandbox/
+   <application base workdir>/sandbox/
    ├── runtime/              # uv-managed CPython runtimes
    ├── cache/                # uv cache
    ├── python/               # Python interpreter plugin venv

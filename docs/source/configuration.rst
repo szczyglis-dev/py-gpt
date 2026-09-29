@@ -808,7 +808,24 @@ These configuration files are located in the user's work directory within the fo
 
 Manual configuration
 ---------------------
-You can manually edit the configuration files in this directory (this is your work directory):
+
+PyGPT uses two related paths:
+
+* the **application base workdir**, which by default is ``{HOME_DIR}/.config/pygpt-net/`` and owns ``path.cfg``;
+* the active **profile/application workdir**, which is normally the same directory but may be redirected elsewhere by the contents of ``path.cfg``.
+
+The application base workdir also owns runtime data shared across profiles:
+
+.. code-block:: text
+
+   <application base workdir>/
+   ├── path.cfg
+   ├── sandbox/                    # shared built-in Python/System runtime
+   └── extra_packages/             # shared Package Manager dependencies, grouped by Python version
+
+``sandbox`` and ``extra_packages`` stay in the application base workdir even when ``path.cfg`` points the active profile/workdir to another directory. For example, Package Manager dependencies for Python 3.13 are stored under ``<application base workdir>/extra_packages/3.13``.
+
+You can manually edit the profile configuration files in the active profile/application workdir. With the default configuration this is:
 
 .. code-block:: ini
 
@@ -833,9 +850,11 @@ You can manually edit the configuration files in this directory (this is your wo
 Project data workdirs
 ~~~~~~~~~~~~~~~~~~~~~
 
-The directory above is the **profile/application workdir**. Projects do not
+The directory above is the active **profile/application workdir**. Projects do not
 replace it. A project can override only the logical ``data`` directory used by
-conversations assigned to that project.
+conversations assigned to that project. The application-wide ``sandbox`` and
+``extra_packages`` directories are not profile-level paths; they remain under
+the application base workdir that owns ``path.cfg``.
 
 When creating a project, ``Use shared workdir`` is enabled by default. Disable
 it to choose a custom project data directory. For an existing project use
