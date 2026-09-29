@@ -324,6 +324,7 @@
   "llama.idx.storage": "ChromaVectorStore",
   "llama.idx.storage.args": [],
   "lock_modes": true,
+  "log.packages": false,
   "log.api.input": false,
   "log.api.output": false,
   "log.assistants": false,

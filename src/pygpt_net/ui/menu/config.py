@@ -115,6 +115,9 @@ class Config:
         m['config.profile'].addAction(m['config.profile.edit'])
         m['config.profile'].addSeparator()
 
+        m['config.packages'] = QAction(icon_settings, tr('packages.title'), w)
+        m['config.packages'].triggered.connect(lambda: w.controller.packages.open())
+
         m['config.open_dir'] = QAction(icon_folder, tr("menu.config.open_dir"), w)
         m['config.change_dir'] = QAction(icon_settings, tr("menu.config.change_dir"), w)
         m['config.save'] = QAction(icon_save, tr("menu.config.save"), w)
@@ -150,6 +153,7 @@ class Config:
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])
         menu.addMenu(m['config.profile'])
+        menu.addAction(m['config.packages'])
         menu.addAction(m['config.open_dir'])
         menu.addAction(m['config.change_dir'])
         menu.addAction(m['config.save'])

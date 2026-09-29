@@ -33,6 +33,7 @@ class ExtensionsWorker(QRunnable):
     def run(self):
         try:
             core = self.window.core.extensions
+            self.window.core.packages.requests.handler = self.window.controller.packages.request_dependencies
             if self.action == "registry":
                 safe_emit(self.signals, "status", trans("extensions.status.loading_registry"))
                 result = core.fetch_registry(self.kwargs.get("url"))
@@ -63,6 +64,7 @@ class ExtensionsWorker(QRunnable):
         except Exception as exc:
             safe_emit(self.signals, "error", self.action, exc)
         finally:
+            self.window.core.packages.requests.handler = None
             signals = self.signals
             self.signals = None
             if signals is not None:

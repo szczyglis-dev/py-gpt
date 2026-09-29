@@ -133,6 +133,20 @@ class Plugin(BasePlugin):
             words = [x.strip() for x in words]  # remove white-spaces
         return words
 
+    def _whisper_packages_installed(self, ok):
+        if not ok:
+            return
+        try:
+            provider = self.get_provider()
+            if provider.id != "openai_whisper_local":
+                return
+            if provider.is_configured():
+                self.ensure_provider_ready()
+            else:
+                self.window.ui.dialogs.alert(provider.get_config_message())
+        except Exception as exc:
+            self.window.ui.dialogs.alert(str(exc))
+
     def ensure_provider_ready(self) -> bool:
         """
         Prepare provider resources required before recording.
@@ -148,10 +162,9 @@ class Plugin(BasePlugin):
             return True
 
         if not provider.is_configured():
-            # Missing local Whisper is an expected setup state, not an application
-            # error. Show a concise installation hint instead of routing it through
-            # the generic exception handler (which adds type/message/traceback).
-            self.window.ui.dialogs.alert(provider.get_config_message())
+            self.window.controller.packages.install(
+                ["openai-whisper"], callback=self._whisper_packages_installed,
+            )
             return False
 
         model_name = provider.get_model_name()

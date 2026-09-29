@@ -2254,6 +2254,14 @@
             }
         ]
     },
+    "log.packages": {
+        "section": "debug",
+        "type": "bool",
+        "label": "settings.log.packages",
+        "description": "settings.log.packages.desc",
+        "value": false,
+        "advanced": false
+    },
     "log.api.input": {
         "section": "debug",
         "type": "bool",

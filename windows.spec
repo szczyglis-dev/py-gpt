@@ -265,6 +265,10 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+# Optional runtime packages must resolve against versions bundled in this build.
+import runpy
+runpy.run_path(os.path.join(SPECPATH, 'bin', 'pyinstaller_runtime_metadata.py'))['add_runtime_metadata'](a)
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(

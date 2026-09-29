@@ -364,6 +364,9 @@ class Extensions:
             raise ExtensionManifestError(
                 f"Add-on requires PyGPT >= {manifest['min_app_version']} (current: {__version__})"
             )
+        dependencies = manifest.get("external_dependencies", [])
+        if dependencies:
+            self.window.core.packages.ensure_dependencies(dependencies)
         existing = next(
             (item for item in self.list_installed() if item.get("id") == manifest["id"]),
             None,
