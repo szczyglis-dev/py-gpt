@@ -71,7 +71,7 @@ class ProfileExporter:
     # never be treated as portable profile data.  In particular, the
     # built-in uv-managed interpreter lives under ``sandbox/`` and can be
     # very large.
-    RUNTIME_DIRS = {"tmp", "cache", "__pycache__", "sandbox"}
+    RUNTIME_DIRS = {"tmp", "cache", "__pycache__", "sandbox", "extra_packages"}
     EXCLUDED_ROOT_FILES = {
         "app.log",
         "path.cfg",

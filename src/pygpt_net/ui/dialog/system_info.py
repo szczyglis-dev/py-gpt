@@ -52,10 +52,18 @@ class WorkdirSizeWorker(QRunnable):
             sandbox_root = os.path.join(root, "sandbox")
             for dirpath, dirnames, filenames in os.walk(root):
                 abs_dir = os.path.abspath(dirpath)
+
+                # extra_packages belongs to the application-wide base workdir,
+                # not to a profile. If the active workdir is the base directory
+                # itself, prune this top-level directory entirely so it affects
+                # neither size value and is not needlessly traversed.
+                if abs_dir == root:
+                    dirnames[:] = [name for name in dirnames if name != "extra_packages"]
+
                 try:
-                    in_root_sandbox = os.path.commonpath((abs_dir, sandbox_root)) == sandbox_root
+                    in_sandbox = os.path.commonpath((abs_dir, sandbox_root)) == sandbox_root
                 except ValueError:
-                    in_root_sandbox = False
+                    in_sandbox = False
 
                 for name in filenames:
                     path = os.path.join(dirpath, name)
@@ -64,13 +72,9 @@ class WorkdirSizeWorker(QRunnable):
                             continue
                         size = os.path.getsize(path)
                         full_total += size
-                        # The built-in interpreter sandbox is a reproducible
-                        # runtime environment, not profile payload.  The first
-                        # value therefore keeps the profile/export footprint,
-                        # while the second value reports the complete workdir.
-                        # Only <workdir>/sandbox is excluded; data/sandbox and
-                        # similarly named nested directories still count.
-                        if not in_root_sandbox:
+                        # The first value excludes the reproducible built-in
+                        # sandbox; the second includes it.
+                        if not in_sandbox:
                             profile_total += size
                     except OSError:
                         # Files in tmp/cache/sandbox may disappear while the
