@@ -189,6 +189,8 @@ General
 
 * ``Display tips (help descriptions)``: Shows contextual help text and descriptions next to configurable options throughout the interface. Disable it for a more compact settings UI once you are familiar with the controls. Default: True.
 
+* ``Auto-open Canvas if used``: On the first model-driven Canvas/browser open in an application session, reveals the Canvas in split screen. If you later collapse split screen, PyGPT does not force it open again during that session. Default: True.
+
 * ``Store dialog window positions``: Remembers the geometry/position of supported dialog windows and restores them the next time they are opened. Disable it if you prefer dialogs to use their default placement each time. Default: True.
 
 Code syntax
@@ -270,7 +272,7 @@ Render
 
 The plain-text renderer itself is switched on or off with the ``text`` icon in the input-tab icon row. The icon tooltip changes between ``Switch to plain text`` and ``Switch to normal view`` according to the active renderer.
 
-* ``Show RAG sources``: Appends source nodes/documents returned by RAG retrieval to the rendered answer when source metadata is available. Default: True.
+* ``Show RAG sources``: Appends source nodes/documents returned by RAG retrieval to the rendered answer when source metadata is available. Default: False.
 
 * ``Show Code Interpreter output``: Displays execution results returned by provider-side Code Interpreter tools as part of the conversation. Default: True.
 
@@ -282,10 +284,19 @@ The plain-text renderer itself is switched on or off with the ``text`` icon in t
 
 * ``Use extra context output``: Renders the human-readable/plain-text part of tool or command results in addition to their structured JSON payload when both forms are available. Default: True.
 
+Annotations
+^^^^^^^^^^^
+
+These options control whether pending annotations are cleared automatically when a message is sent. They affect annotations created in the corresponding UI surface; they do not disable annotation support itself.
+
+* ``Clear annotations on message send in Canvas``: Clears pending Canvas/browser annotations after sending a message. Default: False.
+
+* ``Clear annotations on message send in Files``: Clears pending annotations from the Files preview/editor after sending a message. Default: False.
+
+* ``Clear annotations on message send in Chat``: Clears pending annotations attached to chat content after sending a message. Default: True.
+
 Options
 ^^^^^^^
-
-* ``Use context (memory)``: Includes previous messages from the current conversation when building new model requests, allowing the model to follow the ongoing dialogue. Disable it to send each new interaction without prior conversational context. Default: True.
 
 * ``Lock incompatible modes``: Prevents an existing conversation from being reused when you switch to a mode whose context format is incompatible with it. PyGPT creates a new context instead. Default: True.
 
@@ -299,9 +310,13 @@ The ``Context`` settings are organized into three tabs: ``General``, ``Tools``, 
 General
 ^^^^^^^
 
-* ``Max total tokens``: Sets an application-level ceiling for the total token budget used when preparing a request, including conversation context and output allowance where applicable. Set ``0`` to disable this extra limit and rely on the model/provider context window.
+* ``Use context (memory)``: Includes previous messages from the current conversation when building new model requests, allowing the model to follow the ongoing dialogue. Disable it to send each new interaction without prior conversational context. Default: True.
 
-* ``Context threshold``: Reserves part of the model context window for the generated answer instead of filling the entire window with prompt/history tokens. Increasing it can reduce how much old context is included but leaves more room for completion.
+* ``Max total tokens``: Sets an application-level ceiling for the total token budget used when preparing a request, including conversation context and output allowance where applicable. Set ``0`` to disable this extra limit and rely on the model/provider context window. Default: ``0``.
+
+* ``Context threshold``: Reserves part of the model context window for the generated answer instead of filling the entire window with prompt/history tokens. Increasing it can reduce how much old context is included but leaves more room for completion. Default: ``200``.
+
+* ``Max history items to append``: Limits how many of the most recent conversation items may be appended to a model request before token-budget fitting is applied. Set ``0`` for no item-count limit. Default: ``0``.
 
 Tools
 ^^^^^
@@ -795,6 +810,27 @@ Debug
 * ``Log Realtime sessions to console``: Prints lifecycle and provider diagnostics for Realtime/audio sessions to the console. This is useful for connection, streaming, and event troubleshooting. Default: False.
 
 * ``Log legacy API usage to console``: Prints diagnostics for older/legacy API and assistant execution paths that are still supported for compatibility. Enable it when debugging those paths specifically. Default: False.
+
+* ``Log package installations``: Writes output from Package Manager install/uninstall operations to ``extra_packages/packages.log`` in addition to the Package Manager window. Default: False.
+
+* ``Log auto-update flow``: Logs automatic update-check/update workflow diagnostics. Enable it when troubleshooting the updater. Default: False.
+
+Package Manager
+---------------
+
+Open ``Config -> Package Manager`` to install or remove optional Python packages used by PyGPT itself. This is separate from the Python/System execution sandboxes: packages installed here extend the application runtime and can satisfy optional dependencies required by features and external Add-ons.
+
+PyGPT installs these packages with ``uv`` into an application-wide, Python-version-specific directory:
+
+.. code-block:: text
+
+   <application base workdir>/extra_packages/<major.minor>/
+
+For example, a Python 3.13 build uses ``extra_packages/3.13``. The directory is shared by all profiles that use the same application base workdir. Keeping packages separated by Python version prevents binary or ABI-incompatible packages from an older bundled/runtime Python version from being reused after an upgrade.
+
+Package changes are prepared in a temporary working copy and replace the live package directory only after a successful operation. The Package Manager shows installer output and a progress dialog. Some newly installed packages can be activated immediately, but a restart may still be required, especially for compiled extensions or dependencies imported earlier in the process.
+
+External Add-ons can request missing declared dependencies through this same installer. Local Whisper also uses the Package Manager when the optional ``openai-whisper`` dependency is missing.
 
 JSON files
 -----------

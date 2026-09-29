@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.34** | build: **2026-09-28** | Python: **>=3.10, <3.14**
+Release: **2.8.35** | build: **2026-09-29** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -1286,7 +1286,7 @@ The following plugins are currently available:
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
-- `Canvas (inline)` - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
+- `Canvas (inline)` - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, configurable search/history, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
 
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
@@ -1364,7 +1364,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#api-calls
 
 ## Audio input
 
-The Audio input plugin captures microphone audio and converts speech to text for chat input and voice commands. It supports OpenAI Whisper, local Whisper, Google, Google Cloud, Google GenAI, Bing and xAI Grok Voice, with configurable device, language and recognition behavior.
+The Audio input plugin captures microphone audio and converts speech to text for chat input and voice commands. It supports OpenAI Whisper, local Whisper, Google, Google Cloud, Google GenAI, Bing and xAI Grok Voice, with configurable device, language and recognition behavior. Local Whisper is an optional dependency; if `openai-whisper` is missing, PyGPT can install it through `Config -> Package Manager` and then download the selected checkpoint on first use.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-input
 
@@ -1675,9 +1675,9 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
 ## MCP (Model Context Protocol)
 
-The MCP (Model Context Protocol) plugin connects PyGPT to Model Context Protocol servers over stdio, Streamable HTTP or SSE, discovers their tools and exposes allowed tools to the model.
+The MCP (Model Context Protocol) plugin connects PyGPT to Model Context Protocol servers over stdio, Streamable HTTP or SSE, discovers their tools and exposes allowed tools to the model. 
 
-To configure MCP connections, open `Config -> MCP...` or use `Plugins -> Settings -> MCP`. For easier setup and management, use [MCP Connectors](#mcp-connectors) from `Config -> MCP... -> Connectors...` to browse, import and manage connector definitions. See the [MCP Connectors](#mcp-connectors) section for more details.
+To configure persistent MCP connections, open `Config -> MCP...` or use `Plugins -> Settings -> MCP`. For easier setup and management, use [MCP Connectors](#mcp-connectors) from `Config -> MCP... -> Connectors...` to browse, import and manage connector definitions. See the [MCP Connectors](#mcp-connectors) section for more details.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
@@ -2036,7 +2036,7 @@ A simple image browser that lets you preview images directly within the app.
 ## Text Editor
 
 
-A simple text editor that enables you to edit text files directly within the app.
+The built-in text editor provides syntax highlighting, line numbers, search, zoom, configurable indentation/tabs, and optional word wrapping. The same editor core is used by the Files preview/editor and Canvas source editor. Its context menu exposes application-wide **Indent using spaces**, **Tab width** (default 4), indentation conversion, and **Word wrap** (default off) controls.
 
 
 ## Transcribe Audio/Video Files
@@ -2271,12 +2271,12 @@ Config -> Settings...
 
 ![v2_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_settings.png)
 
-The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
+The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Context**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
 
 - **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI, Jev
 - **Layout:** General, Code syntax
 - **Files and attachments:** General, RAG
-- **Chats:** List, Render, Options
+- **Chats:** List, Render, Annotations, Options
 - **Context:** General, Tools, Advanced handling
 - **Remote tools:** OpenAI, Google, Anthropic, xAI
 - **Images and video:** Image, Video
@@ -2289,6 +2289,12 @@ The current top-level Settings sections are: **General**, **API Keys**, **Layout
 For the complete configuration options reference, including descriptions and default values for all settings, see:
 
 https://pygpt.readthedocs.io/en/latest/configuration.html#settings
+
+## Package Manager
+
+Open `Config -> Package Manager` to install or remove optional Python dependencies used by PyGPT itself. This is separate from the Python/System execution sandboxes. Packages are installed with `uv` into the application-wide, Python-version-specific directory `extra_packages/<major.minor>` (for example `extra_packages/3.13`) so packages from a previous bundled/runtime Python version are not reused accidentally after an upgrade.
+
+The manager works on a temporary copy and swaps the package directory only after a successful operation. External Add-ons can request their declared dependencies through the same installer, and local Whisper can request installation of `openai-whisper`. Some packages become available immediately, while compiled extensions or already-imported modules may still require restarting PyGPT.
 
 ## JSON files
 
@@ -2502,6 +2508,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.35 (2026-09-29)**
+
+- Added an application-wide Package Manager for optional runtime dependencies, stored per Python version under `extra_packages/<major.minor>`.
+- Added shared text-editor preferences for indentation, tab width and word wrap across Text Editor, Files preview/editor and Canvas source editor.
+- Added a dedicated **Annotations** tab under Chats settings with per-surface clear-on-send controls.
+- Improved Canvas browser controls, source editing and persistent address history/search behavior.
+- Added optional model-defined runtime MCP connections, with independent permissions for HTTP/SSE and stdio and integration with MCP tool discovery/cache.
+- Improved local Whisper dependency installation through the Package Manager.
+- UI and CSS/QSS fixes and refinements.
 
 **2.8.34 (2026-09-28)**
 

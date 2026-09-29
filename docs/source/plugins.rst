@@ -131,7 +131,7 @@ The Audio input plugin captures microphone audio and converts speech to text for
 Available providers:
 
 * Whisper (via ``OpenAI API``)
-* Whisper (local model) - not available in compiled and Snap versions, only Python/PyPi version
+* Whisper (local model) - optional local dependency; when ``openai-whisper`` is missing, PyGPT can install it through ``Config -> Package Manager`` into the application-wide ``extra_packages`` runtime
 * Google (via ``SpeechRecognition`` library)
 * Google Cloud (via ``SpeechRecognition`` library)
 * Microsoft Bing (via ``SpeechRecognition`` library)
@@ -151,6 +151,8 @@ Available models: https://github.com/openai/whisper
 - **Custom model name override** *whisper_local_model_custom* - Optional custom model name or local checkpoint path. When set, it overrides the model selected above. *Default:* ``empty``
 
 - **Keep model in RAM** *whisper_local_keep_in_memory* - Keep the local Whisper model loaded between transcriptions. Disable this to reduce RAM usage at the cost of reloading it from the local cache for each transcription. *Default:* ``True``
+
+If the local Whisper package is not installed, selecting/using the local provider triggers the shared Package Manager to offer installation of ``openai-whisper``. The selected Whisper checkpoint is downloaded separately on first use when it is not already cached.
 
 **Google**
 
@@ -384,8 +386,14 @@ Options
 **Default viewport height**
    Default Canvas viewport height in pixels. *Default:* ``800``. *Range:* ``240`` to ``4320``.
 
-**Auto-open browser in split screen**
-   On the first model-driven browser open in an application session, creates/focuses the Canvas tab in the second column and reveals split screen. If the user later collapses split screen, it is not forced open again in that session. *Default:* ``True``.
+**Store history**
+   Stores visited HTTP/HTTPS addresses in ``browser_history.json`` in the current profile/application workdir. Entries include UTC timestamps, are kept newest-first and are de-duplicated so the latest visit wins. Local/file/inline Canvas content is not added to this persistent address history. *Default:* ``True``.
+
+**History limit**
+   Maximum number of the most recently visited HTTP/HTTPS addresses retained in persistent Canvas browser history. Older entries are trimmed automatically. *Default:* ``100``. *Range:* ``1`` to ``10000``.
+
+**Delete history**
+   Deletes the stored Canvas browser address history for the current profile/application workdir and refreshes the address-bar history popup.
 
 **Expose user annotations to the model**
    Appends pending Canvas/browser annotations to the runtime system prompt. *Default:* ``True``.
@@ -395,6 +403,19 @@ Options
 
 **Console log limit**
    Maximum number of browser console entries retained in memory. This is an advanced option. *Default:* ``200``. *Range:* ``10`` to ``2000``.
+
+**Start page**
+   Page loaded when the Canvas browser starts or the active profile is reloaded. Leave empty to use ``about:blank``. *Default:* ``about:blank``.
+
+**Default search engine**
+   Search engine used when text entered in the Canvas address bar is not recognized as a URL, protocol address or local path. The built-in choices are Google, Bing and DuckDuckGo. *Default:* Google.
+
+**Display canvas footer**
+   Shows the Canvas footer overlays, including the current viewport size/zoom information. *Default:* ``True``.
+
+The global ``Config -> Settings -> Layout -> Auto-open browser in split screen`` setting controls whether the first model-driven Canvas open reveals the second column. It is not a Canvas plugin option.
+
+When persistent history is enabled, clicking the address field shows the newest stored addresses and typing filters that popup. Selecting an entry opens it immediately.
 
 Canvas tools
 ~~~~~~~~~~~~
@@ -1473,6 +1494,8 @@ How it works
 - If ``allowed_commands`` is set, only tools matching its comma-separated names or wildcard patterns are exposed.
 - If ``disabled_commands`` is set, tools matching its comma-separated names or wildcard patterns are hidden.
 - Discovery results can be cached (TTL) so you don’t re-fetch the list on every prompt.
+- Optionally, the model can create a **runtime-only self-defined MCP connection** with ``mcp_connect``. This capability is disabled by default and controlled separately for HTTP/SSE and stdio.
+- Self-defined servers are scoped to the current chat and are not added to the persistent ``MCP servers`` list. Their discovered tools use the same discovery/cache path as manually configured servers.
 - When the model chooses a tool, the plugin opens a session to the appropriate server and calls it with typed arguments mapped from JSON Schema.
 
 Adding a new MCP server
@@ -1567,10 +1590,25 @@ The model will see tools like:
     }
   ]
 
+Model-defined runtime connections
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Options**
+
+- **Allow self-defined MCP connections** *allow_self_mcp* - allows the model to define and connect to MCP servers over HTTP/HTTPS, including Streamable HTTP and SSE, at runtime. When disabled, ``mcp_connect`` is not exposed for HTTP/SSE and tools from model-defined HTTP/SSE servers are not exposed. *Default:* ``False``.
+- **Allow self-defined MCP stdio** *allow_self_mcp_stdio* - independently allows the model to define stdio MCP connections that start local commands/processes. It does not enable HTTP/SSE by itself. When disabled, model-defined stdio servers and their tools are not exposed. *Default:* ``False``.
+
+When either permission is enabled, PyGPT exposes ``mcp_connect``. The model can provide a server address, optional label and transport, HTTP authorization/headers, environment-backed HTTP headers or bearer token, and stdio environment/cwd values. For stdio, an empty ``cwd`` uses an isolated temporary directory. After a successful connection, PyGPT immediately discovers the server tools and places that result into the normal MCP tools cache; the tools become available on the next tool-selection step.
+
+``mcp_connect`` does not persist the server in plugin configuration or the Connectors manager. Replacing/updating a runtime server in the same chat refreshes its discovery state. Disabling the corresponding permission hides tools from runtime servers of that transport type even if they were connected earlier in the chat.
+
+.. warning::
+
+   Enabling model-defined ``stdio`` is materially more powerful than HTTP/SSE because the MCP client may start a local process supplied by the model. Keep **Allow self-defined MCP stdio** disabled unless this behavior is explicitly required, and use the normal command/file security controls for workflows that can affect the host.
+
 Caching (Tools Cache)
 ^^^^^^^^^^^^^^^^^^^^^
 **Options**
-
 
 - **Cache tools list** *tools_cache_enabled* - cache discovered tools so they do not have to be rediscovered for every prompt. *Default:* ``True``
 - **Cache TTL (seconds)** *tools_cache_ttl* - how long the tool list remains valid per server. *Default:* ``300``
@@ -1580,6 +1618,11 @@ Caching (Tools Cache)
 **Tools**
 
 Tools are discovered dynamically from active MCP servers. Their system names use the ``label__tool`` format, for example ``quickstart__echo``.
+
+``mcp_connect``
+   Define a runtime MCP server, connect to it and discover its tools. This command is exposed only when at least one self-defined MCP permission is enabled. The connection is scoped to the current chat and is not persisted.
+
+   Parameters currently exposed to the model include ``server_address``, ``label``, ``transport``, ``authorization``, ``headers``, ``env_http_headers``, ``bearer_token_env_var``, ``env`` and ``cwd``.
 
 
 Transports
