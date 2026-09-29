@@ -14,6 +14,7 @@ import threading
 
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
+from packaging.version import InvalidVersion, Version
 
 
 class RuntimePackages:
@@ -132,6 +133,7 @@ class RuntimePackages:
         if cancel.is_set():
             raise RuntimeError('Package operation cancelled.')
         lines = queue.Queue()
+        tail = []
         with subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                               text=True, encoding='utf-8', errors='replace', env=self._environment(),
                               start_new_session=os.name != 'nt',
@@ -147,11 +149,21 @@ class RuntimePackages:
                     if cancel.is_set():
                         raise RuntimeError('Package operation cancelled.')
                     try:
-                        output(lines.get(timeout=0.1))
+                        line = lines.get(timeout=0.1)
+                        output(line)
+                        tail.append(line)
+                        if len(tail) > 30:
+                            del tail[:-30]
                     except queue.Empty:
                         pass
                 if proc.returncode:
-                    raise RuntimeError(f'Package installer failed (exit {proc.returncode}). See installation output.')
+                    details = '\n'.join(tail).strip()
+                    message = f'Package installer failed (exit {proc.returncode}).'
+                    if details:
+                        message += '\n' + details
+                    else:
+                        message += ' See installation output.'
+                    raise RuntimeError(message)
             finally:
                 if os.name != 'nt':
                     try:
@@ -163,6 +175,41 @@ class RuntimePackages:
                 BuiltinSandboxRuntime.close_process_job(job)
                 proc.wait()
                 reader.join(timeout=2)
+
+    def _concrete_managed_python(self, version):
+        """Return a patch-specific uv-managed CPython, avoiding Windows junctions."""
+        root = Path(self.path).parent / '.python'
+        if not root.is_dir():
+            return None
+        candidates = []
+        prefix = f'cpython-{version}.'
+        for directory in root.iterdir():
+            if not directory.name.startswith(prefix):
+                continue
+            try:
+                patch = directory.name.split('-', 2)[1]
+                parsed = Version(patch)
+            except (IndexError, InvalidVersion):
+                continue
+            executable = directory / ('python.exe' if os.name == 'nt' else f'bin/python{version}')
+            if executable.is_file():
+                candidates.append((parsed, executable))
+        if not candidates:
+            return None
+        return str(max(candidates, key=lambda item: item[0])[1])
+
+    @staticmethod
+    def _is_windows_minor_link_error(exc):
+        if os.name != 'nt':
+            return False
+        text = str(exc).lower()
+        return any(marker in text for marker in (
+            'failed to create python minor version link directory',
+            'missing expected target directory for python minor version link',
+            'os error 448',
+            'untrusted mount point',
+            'niezaufany punkt instalacji',
+        ))
 
     def operate(self, action, packages, cancel, output):
         self.check_profile()
@@ -211,9 +258,39 @@ class RuntimePackages:
             if action == 'install':
                 if getattr(sys, 'frozen', False):
                     version = f'{sys.version_info.major}.{sys.version_info.minor}'
-                    self._run([uv, '--no-config', 'python', 'install', '--no-bin', '--no-registry', version], cancel, report)
-                    args += ['--python', version, '--managed-python',
-                             '--python-version', version]
+                    # A patch-specific managed runtime is sufficient for building
+                    # packages for the application's Python minor version. Reuse
+                    # it directly instead of asking uv to traverse its 3.x alias
+                    # on every package operation.
+                    concrete_python = self._concrete_managed_python(version)
+                    if concrete_python is None:
+                        install_error = None
+                        try:
+                            self._run([uv, '--no-config', 'python', 'install', '--no-bin', '--no-registry', version], cancel, report)
+                        except RuntimeError as exc:
+                            install_error = exc
+
+                        # On Windows uv creates a minor-version junction after the
+                        # concrete patch runtime has already been installed. Some
+                        # Windows configurations reject traversal/creation of that
+                        # reparse point with WinError 448. The patch-specific Python
+                        # itself is valid, so use its real executable directly and
+                        # avoid uv's minor alias entirely.
+                        concrete_python = self._concrete_managed_python(version)
+                        if install_error is not None:
+                            if concrete_python and self._is_windows_minor_link_error(install_error):
+                                report('Managed Python was installed, but Windows rejected the uv minor-version link; '
+                                       f'using concrete interpreter: {concrete_python}')
+                            else:
+                                raise install_error
+
+                    if concrete_python:
+                        args += ['--python', concrete_python, '--no-python-downloads']
+                    else:
+                        # Non-Windows fallback and compatibility with older uv
+                        # layouts where the concrete runtime cannot be resolved.
+                        args += ['--python', version, '--managed-python',
+                                 '--python-version', version]
                 else:
                     args += ['--python', sys.executable]
                 constraints = Path(temp) / 'constraints.txt'
