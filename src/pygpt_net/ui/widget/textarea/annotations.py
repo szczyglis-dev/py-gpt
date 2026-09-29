@@ -9,7 +9,7 @@ from pygpt_net.utils import trans
 
 CLEAR_ANNOTATION_CANVAS = False
 CLEAR_ANNOTATION_CTX = True
-CLEAR_ANNOTATION_FILE = True
+CLEAR_ANNOTATION_FILE = False
 
 
 def track_sent_annotations(ctx, owner, items):
