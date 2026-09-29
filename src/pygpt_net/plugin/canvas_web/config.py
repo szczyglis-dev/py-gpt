@@ -43,9 +43,6 @@ class Config(BaseConfig):
             "default_height", type="int", value=800, label="Default viewport height",
             description="Default browser viewport height in pixels.", min=240, max=4320, tab="browser")
         plugin.add_option(
-            "auto_open_split", type="bool", value=True, label="Auto-open browser in split screen",
-            description="On the first agent browser open in an application session, create/focus the Canvas tab in the second column and reveal split screen. If the user hides split screen afterwards, it is not forced open again in the same app session.", tab="browser")
-        plugin.add_option(
             "annotation_prompt", type="bool", value=True, label="Expose user annotations to the model",
             description="Append pending browser/canvas annotations to the runtime system prompt.", tab="annotations")
         plugin.add_option(

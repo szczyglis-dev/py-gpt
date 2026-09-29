@@ -213,7 +213,6 @@ body {
         self.surface_owner = None
         self.hidden_host = None
         self.hidden_layout = None
-        self.split_auto_expanded = False
 
         self.backend = "qt"  # qt | playwright
         self.agent_backend_locked = False
@@ -311,6 +310,13 @@ body {
     def _sandbox_enabled(self) -> bool:
         """Return whether Playwright is explicitly enabled in plugin settings."""
         return bool(self._opt("use_sandbox", False))
+
+    def _auto_open_enabled(self) -> bool:
+        """Return whether Canvas should be surfaced automatically when used."""
+        try:
+            return bool(self.window.core.config.get("layout.canvas.auto_open", True))
+        except Exception:
+            return True
 
     def _start_page(self) -> str:
         """Return the profile start page, normalizing an empty value to about:blank."""
@@ -561,18 +567,19 @@ body {
         return tab
 
     def auto_open(self, load: bool = True):
-        self.ensure_agent_surface()
+        if self._auto_open_enabled():
+            self.ensure_visible_surface()
 
     def ensure_agent_surface(self):
-        """Ensure the single browser tab exists without stealing user focus.
+        """Ensure the Canvas tab exists/reveals only when global auto-open is enabled.
 
-        Agent/tool operations must never switch the active tab merely because the
-        canvas runtime is being used.  The only automatic UI action allowed here
-        is creating the missing singleton tab and revealing column 2 once per app
-        session.  Manual Tools -> Canvas still uses ``open()`` and may
-        explicitly focus the canvas tab.
+        This compatibility path does not switch an already existing tab. Manual
+        Tools -> Canvas always uses ``open()`` and is unaffected by the setting.
         """
         self._ensure_surface()
+        if not self._auto_open_enabled():
+            return "hidden"
+
         tabs = self.window.controller.tabs
         tab = tabs.get_first_tab_by_tool(self.id)
 
@@ -580,14 +587,10 @@ body {
             # Respect a legacy/user-moved tab in the primary column.  Do not
             # focus it: model-side browser operations must not steal the chat
             # input focus or change the globally selected context.
-            self.split_auto_expanded = True
             return "tab"
 
-        first_reveal = bool(self._opt("auto_open_split", True)) and not self.split_auto_expanded
-        if first_reveal:
-            if not tabs.is_split_screen_enabled():
-                tabs.enable_split_screen(update_switch=True)
-            self.split_auto_expanded = True
+        if not tabs.is_split_screen_enabled():
+            tabs.enable_split_screen(update_switch=True)
 
         if tab is None:
             idx = self.window.core.tabs.get_max_idx_by_column(1)
@@ -941,8 +944,8 @@ body {
         return result
 
     def _cmd_open(self, p):
-        if not p.get("__startup"):
-            self.ensure_agent_surface()
+        if not p.get("__startup") and self._auto_open_enabled():
+            self.ensure_visible_surface()
         sandbox_arg = p.get("sandbox")
         sandbox_enabled = self._sandbox_enabled()
         if not sandbox_enabled:
@@ -1005,7 +1008,8 @@ body {
         return self.current_state()
 
     def _cmd_set_html(self, p):
-        self.ensure_visible_surface()
+        if self._auto_open_enabled():
+            self.ensure_visible_surface()
         if (self._sandbox_enabled() and p.get("__agent")
                 and not self.agent_backend_locked and self.backend != "playwright"):
             self._set_backend("playwright")

@@ -230,6 +230,8 @@ class HtmlCanvas(BaseTool):
 
         :param load: Load output data
         """
+        if not self.window.core.config.get("layout.canvas.auto_open", True):
+            return
         if self.window.controller.tabs.is_current_tool(self.id):
             tool_col = self.window.controller.tabs.get_tool_column(self.id)
             current_col = self.window.controller.tabs.get_current_column_idx()

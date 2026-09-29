@@ -336,6 +336,19 @@
         "step": 1,
         "advanced": false
     },
+    "layout.canvas.auto_open": {
+        "section": "layout",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.layout.canvas.auto_open",
+        "description": "settings.layout.canvas.auto_open.desc",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "layout.dialog.geometry.store": {
         "section": "layout",
         "type": "bool",
