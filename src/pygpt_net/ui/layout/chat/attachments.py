@@ -12,11 +12,12 @@
 import os
 from functools import partial
 
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QIcon, QAction
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QWidget, QMenu, QWidgetAction
 
 from pygpt_net.item.attachment import AttachmentItem
+from pygpt_net.ui.widget.element.button import ButtonPopupMenu
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment import AttachmentList
 from pygpt_net.core.attachments.clipboard import AttachmentDropHandler
@@ -34,7 +35,6 @@ class Attachments:
         self.id = 'attachments'
         # Keep a strong reference to DnD handler(s)
         self._dnd_handlers = {}
-        self._options_menu = None
         self._options_state_holder = None
 
     def setup(self) -> QVBoxLayout:
@@ -94,18 +94,12 @@ class Attachments:
         nodes['attachments.auto_index'] = QCheckBox(trans('attachments.auto_index'), self._options_state_holder)
         nodes['attachments.auto_index'].toggled.connect(ctrl.toggle_auto_index)
 
-        nodes['attachments.btn.options'] = self._create_options_button()
-
-    def _create_options_button(self) -> QPushButton:
-        # Deliberately use the regular QPushButton style, exactly like Add file,
-        # Web and Clear. No flat/fixed-size override here.
-        btn = QPushButton(QIcon(':/icons/more_horizontal.svg'), '', self.window)
-        btn.setObjectName('attachmentsOptionsButton')
-        btn.setCursor(Qt.PointingHandCursor)
-        btn.setFocusPolicy(Qt.NoFocus)
-        btn.setToolTip(trans('attachments.options.label'))
-        btn.clicked.connect(self.action_show_options)
-        return btn
+        nodes['attachments.btn.options'] = ButtonPopupMenu(
+            self.window,
+            menu_builder=self._build_options_menu,
+            object_name='attachmentsOptionsButton',
+            menu_object_name='attachmentsOptionsMenu',
+        )
 
     @staticmethod
     def _add_check_action(menu: QMenu, text: str, checked: bool, callback) -> QWidgetAction:
@@ -125,15 +119,9 @@ class Attachments:
         menu.addAction(action)
         return action
 
-    def action_show_options(self):
-        """Open attachment options; checkbox rows stay open when toggled."""
-        btn = self.window.ui.nodes.get('attachments.btn.options')
-        if btn is None:
-            return
-
+    def _build_options_menu(self, menu: QMenu):
+        """Populate attachment options; checkbox rows stay open when toggled."""
         nodes = self.window.ui.nodes
-        menu = QMenu(btn)
-        menu.setObjectName('attachmentsOptionsMenu')
 
         header = QAction(trans('attachments.options.label'), menu)
         header.setEnabled(False)
@@ -172,19 +160,6 @@ class Attachments:
                 capture_clear.isChecked(),
                 lambda checked=False, node=capture_clear: node.setChecked(bool(checked)),
             )
-
-        self._options_menu = menu
-        menu.aboutToHide.connect(self._clear_options_menu)
-        menu.adjustSize()
-        size = menu.sizeHint()
-        global_pos = btn.mapToGlobal(QPoint(btn.width() - size.width(), -size.height()))
-        menu.popup(global_pos)
-
-    def _clear_options_menu(self):
-        menu = self._options_menu
-        self._options_menu = None
-        if menu is not None:
-            menu.deleteLater()
 
     def setup_attachments(self):
         """Setup attachments list"""

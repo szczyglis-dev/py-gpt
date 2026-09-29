@@ -529,8 +529,8 @@ class Mapping:
         tooltips['icon.remote_tool.web'] = 'icon.remote_tool.web'
         tooltips['remote_store.btn.refresh_status'] = 'dialog.remote_store.btn.refresh_status'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
-        tooltips['attachments.btn.options'] = 'attachments.options.label'
-        tooltips['attachments_ctx.btn.options'] = 'attachments.options.label'
+        tooltips['attachments.btn.options'] = 'action.options'
+        tooltips['attachments_ctx.btn.options'] = 'action.options'
         tooltips['models.importer.add'] = 'models.importer.add.tooltip'
         tooltips['models.importer.remove'] = 'models.importer.remove.tooltip'
 
