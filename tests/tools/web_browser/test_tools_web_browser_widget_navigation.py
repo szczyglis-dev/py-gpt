@@ -23,6 +23,9 @@ def _widget():
             "can_go_back": False,
             "can_go_forward": True,
         }),
+        get_browser_history_entries=MagicMock(return_value=[
+            {"url": "https://example.com", "title": "Example"},
+        ]),
         request_viewport_policy=MagicMock(),
     )
     window = SimpleNamespace(
@@ -49,6 +52,9 @@ def _widget():
         _sync_from_runtime=MagicMock(),
         _update_viewport_badge=MagicMock(),
         _column_visible=MagicMock(return_value=True),
+        _hide_address_history_popup=MagicMock(),
+        update_address_history=MagicMock(),
+        _address_history_lookup={},
     )
 
 
@@ -85,6 +91,9 @@ def test_web_browser_widget_sync_from_runtime_updates_address_and_history_contro
     ToolWidget._sync_from_runtime(obj)
 
     obj.address_bar.setText.assert_called_once_with("https://example.com")
+    obj.update_address_history.assert_called_once_with([
+        {"url": "https://example.com", "title": "Example"},
+    ])
     obj.btn_back.setEnabled.assert_called_once_with(False)
     obj.btn_next.setEnabled.assert_called_once_with(True)
     obj.btn_reload.setEnabled.assert_called_once_with(True)

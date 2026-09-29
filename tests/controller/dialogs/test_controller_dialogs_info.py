@@ -114,11 +114,11 @@ def test_info_open_url_ignores_empty_value():
 def test_info_navigation_helpers_delegate_meta_urls():
     window = _window()
     info = Info(window)
-    info.open_url = MagicMock()
+    info.open_external_url = MagicMock()
+    info.open_docs_url = MagicMock()
 
     helpers = {
         "goto_website": "website",
-        "goto_docs": "docs",
         "goto_pypi": "pypi",
         "goto_github": "github",
         "goto_snap": "snap",
@@ -129,28 +129,31 @@ def test_info_navigation_helpers_delegate_meta_urls():
         "goto_report": "report",
     }
     for method_name, meta_key in helpers.items():
-        info.open_url.reset_mock()
+        info.open_external_url.reset_mock()
         getattr(info, method_name)()
-        info.open_url.assert_called_once_with(window.meta[meta_key])
+        info.open_external_url.assert_called_once_with(window.meta[meta_key])
+
+    info.goto_docs()
+    info.open_docs_url.assert_called_once_with(window.meta["docs"])
 
 
 def test_info_donate_routes_supported_providers_and_ignores_unknown():
     window = _window()
     info = Info(window)
-    info.open_url = MagicMock()
+    info.open_external_url = MagicMock()
 
     for donate_id, meta_key in (
         ("coffee", "donate_coffee"),
         ("paypal", "donate_paypal"),
         ("github", "donate_github"),
     ):
-        info.open_url.reset_mock()
+        info.open_external_url.reset_mock()
         info.donate(donate_id)
-        info.open_url.assert_called_once_with(window.meta[meta_key])
+        info.open_external_url.assert_called_once_with(window.meta[meta_key])
 
-    info.open_url.reset_mock()
+    info.open_external_url.reset_mock()
     info.donate("unknown")
-    info.open_url.assert_not_called()
+    info.open_external_url.assert_not_called()
 
 
 def test_info_update_menu_sets_checked_state_only_for_existing_items():

@@ -80,16 +80,17 @@ def test_file_annotations_are_scoped_in_prompt_and_excluded_from_chat_overlay():
     assert 'chat note' in session.prompt_block()
 
 
-@pytest.mark.parametrize('source,flag', [
-    ('canvas_web', 'CLEAR_ANNOTATION_CANVAS'),
-    ('chat', 'CLEAR_ANNOTATION_CTX'),
-    ('files', 'CLEAR_ANNOTATION_FILE'),
+@pytest.mark.parametrize('source,key', [
+    ('canvas_web', 'ctx.annotations.clear_on_send.canvas'),
+    ('chat', 'ctx.annotations.clear_on_send.chat'),
+    ('files', 'ctx.annotations.clear_on_send.files'),
 ])
 @pytest.mark.parametrize('enabled', [True, False])
-def test_clear_only_delivered_annotations_and_refresh_popups(monkeypatch, source, flag, enabled):
+def test_clear_only_delivered_annotations_and_refresh_popups(source, key, enabled):
     from pygpt_net.ui.widget.textarea import annotations as module
-    monkeypatch.setattr(module, flag, enabled)
-    session = ChatAnnotations(MagicMock(), 1)
+    window = MagicMock()
+    window.core.config.get.side_effect = lambda config_key, default=False: enabled if config_key == key else default
+    session = ChatAnnotations(window, 1)
     session._render_annotations = MagicMock()
     session.annotations = [dict(id=1, source=source, note='sent')]
     ctx = SimpleNamespace()

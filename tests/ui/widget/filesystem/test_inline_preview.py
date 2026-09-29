@@ -335,7 +335,7 @@ def test_preview_uses_shared_finder_and_cleans_up(app, tmp_path):
 
 
 def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
-    from pygpt_net.ui.widget.filesystem.preview import text as module
+    from pygpt_net.core.text.editor import syntax as syntax_module
     window = MagicMock()
     values = {'font_size': 12}
     window.core.config.get.side_effect = values.get
@@ -346,8 +346,8 @@ def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
     panel.open_file(str(path))
     panel.show()
     wait(200)
-    lex = MagicMock(wraps=module.lex)
-    monkeypatch.setattr(module, 'lex', lex)
+    lex = MagicMock(wraps=syntax_module.lex)
+    monkeypatch.setattr(syntax_module, 'lex', lex)
     for value in range(13, 20):
         panel.viewer.on_zoom_changed(value)
         wait(10)
@@ -431,10 +431,12 @@ def test_file_annotation_popup_captures_relative_path_and_selected_lines(app, tm
 
 def test_line_number_spacing_and_font_are_configurable(app, tmp_path, monkeypatch):
     from PySide6.QtGui import QFontMetrics
-    from pygpt_net.ui.widget.filesystem.preview import text as module
-    monkeypatch.setattr(module, 'LINE_NUMBER_PADDING', 13)
-    monkeypatch.setattr(module, 'LINE_NUMBER_TEXT_GAP', 5)
-    monkeypatch.setattr(module, 'LINE_NUMBER_FONT_SCALE', 0.75)
+    from pygpt_net.core.text.editor import base as base_module
+    from pygpt_net.core.text.editor import gutter as gutter_module
+    monkeypatch.setattr(base_module, 'LINE_NUMBER_PADDING', 13)
+    monkeypatch.setattr(base_module, 'LINE_NUMBER_TEXT_GAP', 5)
+    monkeypatch.setattr(gutter_module, 'LINE_NUMBER_PADDING', 13)
+    monkeypatch.setattr(gutter_module, 'LINE_NUMBER_FONT_SCALE', 0.75)
     panel = PreviewPanel(MagicMock(), str(tmp_path))
     path = tmp_path / 'padding.txt'
     path.write_text('code')

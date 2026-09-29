@@ -15,7 +15,7 @@ def controller(tmp_path, monkeypatch):
     app = QApplication.instance() or QApplication([])
     window = QWidget()
     window.core = SimpleNamespace(config=SimpleNamespace(
-        get_user_path=lambda: str(tmp_path), get=lambda *args: False))
+        get_user_path=lambda: str(tmp_path), get_base_workdir=lambda: str(tmp_path), get=lambda *args: False))
     window.core.packages = RuntimePackages(window)
     window.ui = SimpleNamespace(dialogs=SimpleNamespace(alert=MagicMock()))
     control = Packages(window)

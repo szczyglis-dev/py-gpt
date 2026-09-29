@@ -15,15 +15,8 @@ def _attachments():
     return SimpleNamespace(window=window, id="attachments", _dnd_handlers={}), model
 
 
-def test_clear_options_menu_releases_current_popup():
-    widget, _ = _attachments()
-    menu = MagicMock()
-    widget._options_menu = menu
-
-    Attachments._clear_options_menu(widget)
-
-    assert widget._options_menu is None
-    menu.deleteLater.assert_called_once_with()
+def test_options_menu_builder_is_exposed_for_shared_popup_button():
+    assert callable(Attachments._build_options_menu)
 
 
 def test_update_populates_name_path_size_and_context(tmp_path):

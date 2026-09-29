@@ -63,8 +63,11 @@ def test_migration_preserves_false_empty_json_advanced_and_existing_values():
     assert data == before
 
 
-def test_patch_2835_runs_migration_and_saves():
+def test_patch_2835_runs_migration_and_saves(tmp_path):
     window = window_with_providers({'__meta__': {'version': '2.8.34'}, 'remote_tools.image': True})
+    window.core.config.path = str(tmp_path)
+    window.core.config.get_base_workdir = lambda: str(tmp_path)
+    window.core.packages = MagicMock()
     assert Patch(window).execute(Version('2.8.35'))
     assert window.core.llm.get('openai').is_remote_tool_enabled('image')
     assert 'remote_tools.image' not in window.core.config.data

@@ -16,7 +16,7 @@ from pygpt_net.core.sandbox.builtin import BuiltinSandboxRuntime
 
 @pytest.fixture
 def manager(tmp_path, monkeypatch):
-    config = SimpleNamespace(get_user_path=lambda: str(tmp_path), get=lambda *a: False)
+    config = SimpleNamespace(get_user_path=lambda: str(tmp_path), get_base_workdir=lambda: str(tmp_path), get=lambda *a: False)
     result = RuntimePackages(SimpleNamespace(core=SimpleNamespace(config=config)))
     monkeypatch.setattr(sys, 'path', list(sys.path))
     result.activate()
@@ -176,10 +176,12 @@ def test_addon_decline_preserves_installed_version(manager, tmp_path):
     assert core.get_installed_versions()['test_addon'] == '1.0'
 
 
-def test_profile_switch_requires_restart(manager, tmp_path):
+def test_profile_switch_keeps_global_runtime_packages(manager, tmp_path):
+    path = manager.path
     manager.window.core.config.get_user_path = lambda: str(tmp_path / 'other-profile')
-    with pytest.raises(RuntimeError, match='Restart'):
-        manager.operate('install', ['demo'], threading.Event(), lambda s: None)
+
+    assert manager.check_profile() is True
+    assert manager.path == path
 
 
 def test_cross_process_lock(manager):
