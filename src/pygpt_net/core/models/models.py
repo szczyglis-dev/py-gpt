@@ -568,6 +568,11 @@ class Models:
                 args["api_key"] = "ollama"
                 args["base_url"] = self.window.core.models.ollama.get_base_url() + "/v1"
                 self.window.core.debug.info("[api] Using client: Ollama")
+            elif model.provider == "llmman":
+                from pygpt_net.provider.llms.llmman.provider import LlmmanLLM
+                args["api_key"] = "llmman"
+                args["base_url"] = LlmmanLLM.get_base_url() + "/v1"
+                self.window.core.debug.info("[api] Using client: llmman")
             elif llm.is_custom_provider(model.provider):
                 provider = llm.get(model.provider)
                 if provider is None:
