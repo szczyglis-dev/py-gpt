@@ -23,6 +23,8 @@ from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
+    MODE_AGENT_V2,
+    MODE_COMPLETION,
     MODE_EXPERT,
 )
 from pygpt_net.utils import trans
@@ -432,8 +434,10 @@ class Importer:
             m.name = name
             m.mode = [
                 MODE_CHAT,
+                MODE_COMPLETION,
                 MODE_LLAMA_INDEX,
                 MODE_AGENT,
+                MODE_AGENT_V2,
                 MODE_AGENT_LLAMA,
                 MODE_AGENT_OPENAI,
                 MODE_EXPERT,
@@ -448,28 +452,44 @@ class Importer:
             m.input = list(model_input) if isinstance(model_input, (list, tuple, set)) and model_input else ["text"]
             m.output = ["text"]
             m.imported = True
-            m.ctx = 128000  # default context size
+            try:
+                m.ctx = int(model.get("ctx") or 128000)
+            except (TypeError, ValueError):
+                m.ctx = 128000
+            try:
+                m.tokens = int(model.get("tokens") or 0)
+            except (TypeError, ValueError):
+                m.tokens = 0
+            if "reasoning_effort" in model:
+                m.reasoning_effort = bool(model.get("reasoning_effort"))
+            if "tool_calls" in model:
+                m.tool_calls = bool(model.get("tool_calls"))
             key = m.id
 
             # LlamaIndex args/env are optional per-model overrides only.
             # With an empty configuration the provider resolves model ID, API
             # credentials and endpoint from the normal PyGPT model/provider
             # configuration at runtime. Do not duplicate those values here.
-            if (self.window.core.llm.is_custom_provider(self.provider)
-                    or self.provider in {
-                        "anthropic",
-                        "deepseek_api",
-                        "google",
-                        "openai",
-                        "azure_openai",
-                        "perplexity",
-                        "mistral_ai",
-                        "local_ai",
-                        "open_router",
-                        "x_ai",
-                        "forge",
-                        "edenai",
-                    }):
+            if (
+                    self.window.core.llm.is_custom_provider(self.provider)
+                    or (
+                        self.provider in {
+                            "anthropic",
+                            "deepseek_api",
+                            "google",
+                            "openai",
+                            "azure_openai",
+                            "perplexity",
+                            "mistral_ai",
+                            "local_ai",
+                            "open_router",
+                            "x_ai",
+                            "forge",
+                            "edenai",
+                        }
+                        and "tool_calls" not in model
+                    )
+            ):
                 m.tool_calls = True
             models[key] = m
         provider_name = self.window.core.llm.get_provider_name(self.provider)

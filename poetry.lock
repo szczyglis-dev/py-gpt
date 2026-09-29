@@ -3579,6 +3579,22 @@ llama-index-core = ">=0.13.0,<0.15"
 llama-index-utils-huggingface = ">=0.4.0,<0.5"
 
 [[package]]
+name = "llama-index-embeddings-litellm"
+version = "0.5.0"
+description = "llama-index embeddings litellm integration"
+optional = false
+python-versions = "<4.0,>=3.10"
+groups = ["main"]
+files = [
+    {file = "llama_index_embeddings_litellm-0.5.0-py3-none-any.whl", hash = "sha256:de97cc007469480d472cd36dc84e6814f322ce75c0761a275ba9f49d3fe8c593"},
+    {file = "llama_index_embeddings_litellm-0.5.0.tar.gz", hash = "sha256:c22c8909c9cb096c09db8c94b7711dad6e776db150e851251ca98b87dde64cff"},
+]
+
+[package.dependencies]
+litellm = ">=1.41.3,<2"
+llama-index-core = ">=0.13.0,<0.15"
+
+[[package]]
 name = "llama-index-embeddings-mistralai"
 version = "0.6.0"
 description = "llama-index embeddings mistralai integration"
@@ -3739,6 +3755,22 @@ files = [
 
 [package.dependencies]
 huggingface-hub = ">=0.31.0"
+llama-index-core = ">=0.13.0,<0.15"
+
+[[package]]
+name = "llama-index-llms-litellm"
+version = "0.7.1"
+description = "llama-index llms litellm integration"
+optional = false
+python-versions = "<4.0,>=3.10"
+groups = ["main"]
+files = [
+    {file = "llama_index_llms_litellm-0.7.1-py3-none-any.whl", hash = "sha256:abb577d1ad8ac8e3acef0681dfe5b775a0e692bbccf7ee78333a0f5fccae6609"},
+    {file = "llama_index_llms_litellm-0.7.1.tar.gz", hash = "sha256:1e014d9fb85b1fc4d3d5abcdc8c2639b41f68b8269b92d1d0fcbc34e662781eb"},
+]
+
+[package.dependencies]
+litellm = ">=1.18.13,<2"
 llama-index-core = ">=0.13.0,<0.15"
 
 [[package]]
@@ -11029,4 +11061,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "11367ce59035eb6cd6cce55a5d4f9c6e04722d7ac4dde25bdae9dc516ab11ca4"
+content-hash = "0f9d44786ad5ae8c3171d2ca2ec1146638b52396c881fee4e7d6f29f75243d8e"
