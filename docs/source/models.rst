@@ -227,7 +227,7 @@ https://github.com/ollama/ollama
 
 .. code-block:: sh
 
-    $ curl -fsSL https://raw.githubusercontent.com/llmmanorg/llmman/main/install.sh | sh
+    $ curl -fsSL https://llmmanorg.github.io/install.sh | sh
     $ llmman serve
     $ llmman pull gemma4
 

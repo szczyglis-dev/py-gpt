@@ -1236,7 +1236,7 @@ https://github.com/ollama/ollama
 
 [llmman](https://github.com/llmmanorg/llmman) is a local model runner that serves the Ollama API (alongside OpenAI- and Anthropic-compatible ones) on port 17434. Models are pulled as OCI artifacts or straight from Hugging Face (`hf.co/org/model`) and served by `llama.cpp`, `vllm`, or `mlx-lm`. Select the `llmman` provider for a model (or import models from a running instance with `Config -> Models -> Import...`) and run:
 
-```curl -fsSL https://raw.githubusercontent.com/llmmanorg/llmman/main/install.sh | sh```
+```curl -fsSL https://llmmanorg.github.io/install.sh | sh```
 
 ```llmman serve```
 
