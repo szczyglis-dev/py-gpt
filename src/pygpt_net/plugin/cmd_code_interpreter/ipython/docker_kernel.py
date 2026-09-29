@@ -901,9 +901,11 @@ del _pygpt_make_system_noninteractive
 
     def log(self, msg):
         """
-        Log the message.
+        Log the message to console only when plugin logging is enabled.
 
         :param msg: Message to log.
         """
-        print(msg)
-        self.plugin.window.update_status(msg)
+        if self.plugin is not None and self.plugin.is_log():
+            print(msg)
+        if self.plugin is not None:
+            self.plugin.window.update_status(msg)
