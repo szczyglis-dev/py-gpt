@@ -67,6 +67,7 @@ class UI:
         self.mode.update()
         self.update_tokens()
         self.vision.update()
+        self.window.controller.plugins.update_annotations_info()
         self.window.controller.agent.legacy.update()
         self.img_update_available_modes()
         self.img_update_available_resolutions()

@@ -37,6 +37,13 @@ def clear_sent_annotations(ctx):
 class AnnotationMixin:
     annotation_source = "canvas_web"
 
+    def _notify_annotation_count_changed(self):
+        """Queue a footer counter refresh without touching Qt widgets from tool workers."""
+        try:
+            self.window.controller.plugins.request_annotations_info_update()
+        except (AttributeError, RuntimeError):
+            pass
+
     def _annotation_palette(self):
         """Resolve colors from the application theme, independent of page content."""
         is_dark = self.window is None or self.window.controller.theme.is_dark_theme()
@@ -68,6 +75,7 @@ class AnnotationMixin:
             self.annotations = retained
             # Rebuild overlays as well: removed annotation cards must disappear.
             self._render_annotations()
+            self._notify_annotation_count_changed()
 
     def annotate_selection(self, selected: str = "", position=None, backend=None):
         """Open the lightweight in-page annotation composer for current selection.
@@ -271,6 +279,7 @@ class AnnotationMixin:
         if len(self.annotations) > max_items:
             del self.annotations[:-max_items]
         self._render_annotations()
+        self._notify_annotation_count_changed()
         self.window.update_status(
             f"{trans('ui.annotation_added', domain='plugin.canvas_web')} #{self.annotation_seq}"
         )
@@ -316,6 +325,7 @@ class AnnotationMixin:
         if len(self.annotations) == before:
             return False
         self._render_annotations()
+        self._notify_annotation_count_changed()
         try:
             self.window.update_status(
                 f"{trans('ui.annotation_removed', domain='plugin.canvas_web')} #{annotation_id}"
@@ -532,4 +542,5 @@ class ChatAnnotations(AnnotationMixin):
                     selection=selection, note=note.strip())
         self.annotations.append(item)
         del self.annotations[:-30]
+        self._notify_annotation_count_changed()
         return item

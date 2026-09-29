@@ -343,6 +343,7 @@ body {
         self.console = []
         self.annotations = []
         self.annotation_seq = 0
+        self._notify_annotation_count_changed()
         self.runtime_html = ""
         self.blank_canvas_active = False
         self.canvas_history = []
@@ -1477,12 +1478,15 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
         if p.get("clear"):
             self.annotations.clear()
             self._render_annotations()
+            self._notify_annotation_count_changed()
         return {"annotations": result, "count": len(result)}
 
     def _clear_annotations(self):
         count = len(self.annotations)
         self.annotations.clear()
         self._render_annotations()
+        if count:
+            self._notify_annotation_count_changed()
         return {"cleared": count}
 
     # ------------------------------------------------------------------
