@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 13:00:00                  #
+# Updated Date: 2026.09.29 09:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -82,6 +82,19 @@ class Patch:
                 ):
                     if key in data:
                         del data[key]
+                        updated = True
+
+            # --------------------------------------------
+            # Global filesystem text-editor settings introduced in 2.8.35
+            if old < parse_version("2.8.35"):
+                defaults = {
+                    "filesystem.text_editor.tabs.indent_spaces": True,
+                    "filesystem.text_editor.tabs.width": 4,
+                    "filesystem.text_editor.word_wrap": False,
+                }
+                for key, value in defaults.items():
+                    if key not in data:
+                        data[key] = value
                         updated = True
 
         # update file

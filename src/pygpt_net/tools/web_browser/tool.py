@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -6,7 +7,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 12:30:00
+# Updated Date: 2026.09.29 10:00:00                  #
 # ================================================== #
 
 import json
@@ -260,6 +261,7 @@ body {
         self.canvas_history = []
         self.canvas_history_index = -1
         self._history_loading = False
+        self._source_reload_pending = False
 
     def setup(self):
         self.update()
@@ -346,6 +348,7 @@ body {
         self.canvas_history = []
         self.canvas_history_index = -1
         self._history_loading = False
+        self._source_reload_pending = False
 
         width = int(self._opt("default_width", 1280) or 1280)
         height = int(self._opt("default_height", 800) or 800)
@@ -840,7 +843,16 @@ body {
         self._ensure_surface()
         current = str(self.current_url() or "")
         current_qurl = QUrl(current)
-        url = current if current_qurl.scheme() in ("http", "https", "file") else str(self.base_url or "")
+        entry = None
+        if 0 <= self.canvas_history_index < len(self.canvas_history):
+            entry = self.canvas_history[self.canvas_history_index]
+        if isinstance(entry, dict) and entry.get("kind") == "html":
+            # set_html under Playwright is served from a loopback URL. Preserve
+            # the document's original base URL instead of leaking that runtime
+            # transport URL into later Source edits/reloads.
+            url = str(entry.get("base_url") or self.base_url or "")
+        else:
+            url = current if current_qurl.scheme() in ("http", "https", "file") else str(self.base_url or "")
         if self.backend == "playwright":
             self._ensure_playwright()
             html = str(self.pw_page.evaluate(self.JS_SERIALIZE_HTML) or self.runtime_html or "")
@@ -1002,12 +1014,20 @@ body {
         runtime_base = base_url
         self.base_url = base_url
         if not p.get("__history_restore"):
-            self._history_push({
+            entry = {
                 "kind": "html",
                 "html": html,
                 "base_url": base_url,
                 "workdir": workdir,
-            })
+            }
+            # Keep the fetched page's origin across repeated source edits.
+            if p.get("__source_edit") and 0 <= self.canvas_history_index < len(self.canvas_history):
+                previous = self.canvas_history[self.canvas_history_index]
+                reload_url = (previous.get("url") if previous.get("kind") == "url"
+                              else previous.get("reload_url"))
+                if reload_url and QUrl(reload_url).scheme().lower() in ("http", "https", "file"):
+                    entry["reload_url"] = reload_url
+            self._history_push(entry)
         self._history_loading = True
         if self.backend == "playwright":
             self._ensure_playwright()
@@ -1085,20 +1105,100 @@ body {
         return self.current_state()
 
     def _cmd_reload(self, p):
+        """Reload the current Canvas document from its committed source.
+
+        URL-backed documents (http/https/file) are loaded again from their URL.
+        Synthetic documents (set_html and similar runtime HTML) are rebuilt from
+        the last committed Canvas history/runtime state. Uncommitted edits in
+        Source view are deliberately discarded in both cases; Source becomes a
+        committed state only after returning to the Canvas view.
+        """
+        entry = None
         if 0 <= self.canvas_history_index < len(self.canvas_history):
             entry = self.canvas_history[self.canvas_history_index]
-            if entry.get("kind") == "html":
-                return self._history_restore(self.canvas_history_index)
-        if self.backend == "playwright":
-            self._ensure_playwright()
-            self.pw_history_mode = "reload"
-            self.pw_page.reload(wait_until="domcontentloaded")
-            self.pw_history_mode = None
-            self._refresh_playwright_frame()
-        else:
+
+        url = ""
+        if isinstance(entry, dict) and entry.get("kind") == "url":
+            url = str(entry.get("url") or "").strip()
+        reload_url = str(entry.get("reload_url") or "") if isinstance(entry, dict) else ""
+        if reload_url:
+            url = reload_url
+        if not url:
+            url = str(self.current_url() or "").strip()
+        scheme = QUrl(url).scheme().lower() if url else ""
+        source_visible = bool(self.surface is not None and getattr(self.surface, "_source_visible", False))
+
+        # Real URL/file reload: navigate from the external source again. Never
+        # apply the editor buffer first -- F5 and the toolbar Reload button must
+        # behave like a normal browser reload and discard uncommitted Source edits.
+        is_html_entry = isinstance(entry, dict) and entry.get("kind") == "html"
+        if (not is_html_entry or reload_url) and scheme in ("http", "https", "file"):
+            if source_visible:
+                self.surface.source.document().setModified(False)
+                self._source_reload_pending = True
             self._history_loading = True
-            self.surface.web.reload()
-        return self.current_state()
+            if reload_url:
+                self.canvas_history[self.canvas_history_index] = {"kind": "url", "url": url}
+            if self.backend == "playwright":
+                self._ensure_playwright()
+                self.pw_history_mode = "reload"
+                try:
+                    if reload_url:
+                        self.pw_page.goto(url, wait_until="domcontentloaded")
+                    else:
+                        self.pw_page.reload(wait_until="domcontentloaded")
+                finally:
+                    self.pw_history_mode = None
+                    self._history_loading = False
+                self.virtual_url = self.pw_page.url or url
+                self._refresh_playwright_frame()
+                if source_visible:
+                    self._source_reload_pending = False
+                    self.show_source()
+            else:
+                if reload_url:
+                    self.surface.web.setUrl(QUrl(url))
+                else:
+                    self.surface.web.reload()
+            return self.current_state()
+
+        # Runtime/set_html documents are reloaded from the last committed HTML,
+        # never from the currently edited Source buffer. This is intentionally
+        # different from Back to canvas, which commits Source edits via
+        # apply_source_html().
+        if isinstance(entry, dict) and entry.get("kind") == "html":
+            html = str(entry.get("html") or "")
+            base_url = str(entry.get("base_url") or self.base_url or "")
+            workdir = entry.get("workdir") or os.getcwd()
+        elif self.blank_canvas_active:
+            self._render_blank_canvas()
+            return self.current_state()
+        else:
+            # data:/about:/other synthetic content has no external source. The
+            # rendered browser document is authoritative; Source edits have not
+            # touched it until Back to canvas is used.
+            html = str(self._eval(self.JS_SERIALIZE_HTML) or self.runtime_html or "")
+            base_url = str(self.base_url or "")
+            workdir = os.getcwd()
+
+        if source_visible:
+            # Reset the visible editor immediately, before the asynchronous Qt
+            # setHtml() load completes. After load we serialize once more so the
+            # editor reflects the exact browser-normalized document.
+            self.surface.show_source(html, base_url=base_url)
+            if self.backend != "playwright":
+                self._source_reload_pending = True
+
+        result = self._cmd_set_html({
+            "html": html,
+            "base_url": base_url,
+            "__workdir": workdir,
+            "__ui": True,
+            "__history_restore": True,
+        })
+        if source_visible and self.backend == "playwright":
+            self.show_source()
+        return result
 
     def _cmd_screenshot(self, p):
         path = p.get("path")
@@ -1623,6 +1723,8 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
         """Refresh the remote framebuffer while it is actually visible to the user."""
         if self.backend != "playwright" or self.pw_page is None or self.surface_owner is None:
             return
+        if self.surface is not None and self.surface._source_visible:
+            return
         scroll = getattr(self.surface_owner, "scroll", None)
         if scroll is not None and not scroll.isVisible():
             return
@@ -1728,6 +1830,12 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
         self._update_qt_virtual_cursor()
         self._render_annotations()
         self._notify_state()
+        if self._source_reload_pending:
+            self._source_reload_pending = False
+            # Source was visible when a real URL/file was reloaded. Replace the
+            # edited buffer with the freshly loaded document instead of letting
+            # those discarded edits linger in the editor.
+            QTimer.singleShot(0, self.show_source)
 
     def _update_qt_virtual_cursor(self):
         if self.backend != "qt":

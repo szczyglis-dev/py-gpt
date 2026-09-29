@@ -152,3 +152,29 @@ def test_web_browser_address_line_edit_enter_invokes_callback_and_accepts_event(
 
     callback.assert_called_once_with()
     event.accept.assert_called_once_with()
+
+
+def test_source_is_applied_only_once_on_return_to_canvas():
+    from pygpt_net.tools.web_browser.ui.widgets import BrowserViewport
+    obj = SimpleNamespace(
+        _source_visible=True, _source_loading=False, _mode="qt",
+        source=MagicMock(), tool=MagicMock(), _source_base_url="https://example.com/",
+        set_mode=MagicMock(), active_view=MagicMock(),
+    )
+    obj.source.toPlainText.return_value = "<p>edited</p>"
+    obj.source.document().isModified.return_value = True
+    obj._apply_source = lambda: BrowserViewport._apply_source(obj)
+
+    BrowserViewport.show_canvas(obj)
+    BrowserViewport.show_canvas(obj)
+
+    obj.tool.apply_source_html.assert_called_once_with("<p>edited</p>", "https://example.com/")
+
+
+def test_source_highlighting_restores_debounce_after_initial_refresh():
+    from pygpt_net.core.text.editor.syntax import SyntaxHighlighter
+    obj = SimpleNamespace(timer=MagicMock())
+
+    SyntaxHighlighter._on_contents_change(obj, 10, 0, 1)
+
+    obj.timer.start.assert_called_once_with(180)

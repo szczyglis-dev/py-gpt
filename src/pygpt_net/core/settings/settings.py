@@ -158,7 +158,10 @@ class Settings:
         try:
             with open(path, 'r', encoding="utf-8") as f:
                 txt = f.read()
-                self.window.ui.editor['config'].setPlainText(txt)
+                editor = self.window.ui.editor['config']
+                if hasattr(editor, 'set_path'):
+                    editor.set_path(path)
+                editor.setPlainText(txt)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.update_status(f"Error loading file: {e}")

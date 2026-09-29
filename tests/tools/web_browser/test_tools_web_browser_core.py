@@ -249,3 +249,64 @@ def test_web_browser_lang_mappings_use_canvas_menu_label():
     assert tool.get_lang_mappings() == {
         "menu.text": {"tools.web_browser": "menu.tools.canvas_html"}
     }
+
+
+def test_source_edits_preserve_url_origin_and_reload_external_document():
+    for backend in ("qt", "playwright"):
+        for url in ("http://example.com/page", "https://example.com/page", "file:///tmp/page.html"):
+            tool = _tool()
+            tool.backend = backend
+            tool.surface = MagicMock()
+            tool.surface._source_visible = False
+            tool.ensure_visible_surface = MagicMock()
+            tool._ensure_playwright = MagicMock()
+            tool._start_server = MagicMock()
+            tool.server_url = "http://127.0.0.1:1234/"
+            tool.pw_page = MagicMock()
+            tool._refresh_playwright_frame = MagicMock()
+            tool.current_state = MagicMock(return_value={})
+            tool.current_url = MagicMock(return_value=url)
+            tool._notify_state = MagicMock()
+            tool._history_push({"kind": "url", "url": url})
+
+            tool.apply_source_html("<p>first edit</p>", url)
+            tool.apply_source_html("<p>second edit</p>", url)
+            assert tool.canvas_history[-1]["reload_url"] == url
+            tool.surface.web.reset_mock()
+            tool.pw_page.reset_mock()
+
+            tool._cmd_reload({})
+            assert tool.canvas_history[-1] == {"kind": "url", "url": url}
+            if backend == "qt":
+                assert tool.surface.web.setUrl.call_args.args[0].toString() == url
+                tool.surface.web.setHtml.assert_not_called()
+            else:
+                tool.pw_page.goto.assert_called_once_with(url, wait_until="domcontentloaded")
+                tool.pw_page.reload.assert_not_called()
+
+
+def test_manual_html_with_http_base_reloads_committed_html():
+    tool = _tool()
+    tool.surface = MagicMock()
+    tool.surface._source_visible = False
+    tool.current_url = MagicMock(return_value="https://example.com/")
+    tool._cmd_set_html = MagicMock(return_value={"ok": True})
+    tool._history_push({"kind": "html", "html": "<p>committed</p>",
+                        "base_url": "https://example.com/"})
+
+    tool._cmd_reload({})
+
+    assert tool._cmd_set_html.call_args.args[0]["html"] == "<p>committed</p>"
+    tool.surface.web.reload.assert_not_called()
+
+
+def test_playwright_does_not_poll_frames_while_editing_source():
+    tool = _tool()
+    tool.backend = "playwright"
+    tool.pw_page = MagicMock()
+    tool.surface_owner = MagicMock()
+    tool.surface = SimpleNamespace(_source_visible=True)
+
+    tool._poll_playwright_frame()
+
+    tool.pw_page.screenshot.assert_not_called()

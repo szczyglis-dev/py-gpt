@@ -6,17 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 09:20:00                  #
+# Updated Date: 2026.09.29 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
-from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap
+from PySide6.QtGui import QIcon, QAction, QPainter, QPen, QPixmap, QDesktopServices, QShortcut, QKeySequence
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QWidget, QSizePolicy,
-    QScrollArea, QMenu, QFrame, QPlainTextEdit, QStackedLayout, QLabel,
+    QScrollArea, QMenu, QFrame, QStackedLayout, QLabel,
 )
 from PySide6.QtWebEngineCore import QWebEnginePage
 
+from pygpt_net.core.text.editor import TextEditor
 from pygpt_net.ui.widget.textarea.html import HtmlOutput
 from pygpt_net.utils import trans
 
@@ -25,7 +26,19 @@ CANVAS_LOCALE_DOMAIN = "plugin.canvas_web"
 
 
 def add_html_file_actions(menu, tool, parent):
-    """Add delayed Open/Save HTML actions safe to invoke from WebEngine RMB menus."""
+    """Add external-browser and delayed Open/Save HTML actions to Canvas RMB menus."""
+    current_url = str(tool.current_url() if tool is not None else "").strip()
+    external = QAction(
+        QIcon(":/icons/public_filled.svg"),
+        trans("web.context_menu.open_browser"),
+        parent,
+    )
+    external.setEnabled(bool(current_url) and current_url != "about:blank")
+    external.triggered.connect(
+        lambda checked=False, url=current_url: QDesktopServices.openUrl(QUrl(url, QUrl.TolerantMode))
+    )
+    menu.addAction(external)
+
     open_html = QAction(
         QIcon(":/icons/folder_open.svg"),
         trans("ui.open_html", domain="plugin.canvas_web"),
@@ -138,7 +151,10 @@ class ToolWidget:
         self.tool.add_lang_mapping(self.btn_home, "ui.home", "setToolTip", CANVAS_LOCALE_DOMAIN)
         self.tool.add_lang_mapping(self.btn_go, "ui.open_url", "setToolTip", CANVAS_LOCALE_DOMAIN)
 
-        self.address_bar = AddressLineEdit(on_return_callback=self._on_address_enter)
+        self.address_bar = AddressLineEdit(
+            on_return_callback=self._on_address_enter,
+            on_reload_callback=lambda: self.tool.runtime_call("canvas_reload", {"__ui": True}),
+        )
         self.tool.add_lang_mapping(
             self.address_bar,
             "ui.address_placeholder",
@@ -383,6 +399,13 @@ class BrowserOutput(HtmlOutput):
         super().__init__(window)
         self.window = window
         self.setPage(BrowserPage(tool=tool, parent=self))
+        # Chromium replaces its focus child; the shortcut follows the whole view.
+        self._reload_shortcut = QShortcut(QKeySequence("F5"), self)
+        self._reload_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+        self._reload_shortcut.activated.connect(
+            lambda: self.tool.runtime_call("canvas_reload", {"__ui": True})
+            if self.tool is not None else None
+        )
         if tool is not None:
             self.signals.save_as.connect(tool.handle_save_as)
         if window is not None:
@@ -428,6 +451,22 @@ class BrowserOutput(HtmlOutput):
         if self.tool is not None:
             self.tool.on_qt_load_finished(bool(success))
 
+    def eventFilter(self, source, event):
+        # QWebEngine gives keyboard focus to an internal render child, so F5
+        # must also be intercepted by the event filter inherited from HtmlOutput.
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_F5 and self.tool is not None:
+            self.tool.runtime_call("canvas_reload", {"__ui": True})
+            event.accept()
+            return True
+        return super().eventFilter(source, event)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_F5 and self.tool is not None:
+            self.tool.runtime_call("canvas_reload", {"__ui": True})
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
     def on_context_menu(self, position):
         menu = QMenu(self)
         selected = self.page().selectedText() if self.page().hasSelection() else ""
@@ -450,7 +489,7 @@ class BrowserOutput(HtmlOutput):
         menu.addSeparator()
         add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
-        show_source = QAction(trans("ui.show_source", domain="plugin.canvas_web"), self)
+        show_source = QAction(QIcon(":/icons/code.svg"), trans("ui.show_source", domain="plugin.canvas_web"), self)
         show_source.triggered.connect(self.tool.show_source)
         menu.addAction(show_source)
         menu.addSeparator()
@@ -545,6 +584,10 @@ class SandboxView(QWidget):
         event.accept()
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key_F5 and self.tool is not None:
+            self.tool.runtime_call("canvas_reload", {"__ui": True})
+            event.accept()
+            return
         if self.tool is not None:
             special_keys = {
                 Qt.Key_Return, Qt.Key_Enter, Qt.Key_Escape, Qt.Key_Tab,
@@ -582,20 +625,33 @@ class SandboxView(QWidget):
         menu.addSeparator()
         add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
-        show_source = QAction(trans("ui.show_source", domain="plugin.canvas_web"), self)
+        show_source = QAction(QIcon(":/icons/code.svg"), trans("ui.show_source", domain="plugin.canvas_web"), self)
         show_source.triggered.connect(self.tool.show_source)
         menu.addAction(show_source)
         menu.exec_(event.globalPos())
 
 
-class SourceEditor(QPlainTextEdit):
-    """Plain-text HTML source editor for the current browser document."""
+class SourceEditor(TextEditor):
+    """HTML source editor for the current browser document."""
 
     def __init__(self, tool=None, parent=None):
-        super().__init__(parent)
         self.tool = tool
-        self.setLineWrapMode(QPlainTextEdit.NoWrap)
-        self.setTabChangesFocus(False)
+        window = tool.window if tool is not None else getattr(parent, "window", None)
+        super().__init__(
+            window=window,
+            parent=parent,
+            path="canvas.html",
+            line_numbers=True,
+            syntax_highlighting=True,
+            tabs=True,
+        )
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_F5 and self.tool is not None:
+            self.tool.runtime_call("canvas_reload", {"__ui": True})
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()
@@ -606,16 +662,16 @@ class SourceEditor(QPlainTextEdit):
             menu.addSeparator()
         add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
-        back = QAction(trans("ui.back_to_canvas", domain="plugin.canvas_web"), self)
+        back = QAction(QIcon(":/icons/fullscreen.svg"), trans("ui.back_to_canvas", domain="plugin.canvas_web"), self)
         back.triggered.connect(self.tool.show_canvas)
         menu.addAction(back)
+        menu.addSeparator()
+        self.add_word_wrap_action(menu)
         menu.exec_(event.globalPos())
 
 
 class BrowserViewport(QWidget):
     """Persistent browser viewport with rendered and editable-source modes."""
-
-    SOURCE_DEBOUNCE_MS = 450
 
     def __init__(self, window=None, tool=None):
         super().__init__()
@@ -629,12 +685,6 @@ class BrowserViewport(QWidget):
         self._source_visible = False
         self._source_loading = False
         self._source_base_url = ""
-        self._source_timer = QTimer(self)
-        self._source_timer.setSingleShot(True)
-        self._source_timer.setInterval(self.SOURCE_DEBOUNCE_MS)
-        self._source_timer.timeout.connect(self._apply_source)
-        self.source.textChanged.connect(self._on_source_changed)
-
         # A real stack is more reliable than hide/show for QWebEngineView. In
         # particular it avoids Chromium keeping its compositor surface above the
         # source editor on some Linux/Wayland/X11 combinations.
@@ -648,7 +698,6 @@ class BrowserViewport(QWidget):
 
     def reset_session(self):
         """Clear all visible page/editor/frame state before a profile switch."""
-        self._source_timer.stop()
         self._source_loading = True
         try:
             self.source.clear()
@@ -673,7 +722,6 @@ class BrowserViewport(QWidget):
         self.layout.setCurrentWidget(self.sandbox if mode == "playwright" else self.web)
 
     def show_source(self, html: str, base_url: str = ""):
-        self._source_timer.stop()
         self._source_loading = True
         try:
             self.source.setPlainText(str(html or ""))
@@ -686,18 +734,13 @@ class BrowserViewport(QWidget):
             self._source_loading = False
 
     def show_canvas(self):
-        # Flush the last pending edit before revealing the rendered result.
-        if self._source_visible and self._source_timer.isActive():
-            self._source_timer.stop()
+        # Source editing is intentionally detached from the live renderer.
+        # Apply the document once, only when returning to the HTML view.
+        if self._source_visible and self.source.document().isModified():
             self._apply_source()
         self._source_visible = False
         self.set_mode(self._mode)
         self.active_view().setFocus(Qt.OtherFocusReason)
-
-    def _on_source_changed(self):
-        if self._source_loading or not self._source_visible:
-            return
-        self._source_timer.start()
 
     def _apply_source(self):
         if self._source_loading or not self._source_visible or self.tool is None:
@@ -730,7 +773,10 @@ class BrowserViewport(QWidget):
         return self.sandbox if self._mode == "playwright" else self.web
 
     def shutdown(self):
-        self._source_timer.stop()
+        try:
+            self.source.on_destroy()
+        except Exception:
+            pass
         try:
             self.web.on_delete()
         except Exception:
@@ -749,9 +795,10 @@ class ViewportEventFilter(QObject):
 
 
 class AddressLineEdit(QLineEdit):
-    def __init__(self, on_return_callback=None, *args, **kwargs):
+    def __init__(self, on_return_callback=None, on_reload_callback=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._on_return_callback = on_return_callback
+        self._on_reload_callback = on_reload_callback
         self._select_all_on_click = True
         self._context_selection = None
 
@@ -815,6 +862,11 @@ class AddressLineEdit(QLineEdit):
         event.accept()
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key_F5:
+            if callable(self._on_reload_callback):
+                self._on_reload_callback()
+            event.accept()
+            return
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
             if callable(self._on_return_callback):
                 self._on_return_callback()

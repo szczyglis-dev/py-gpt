@@ -119,7 +119,7 @@ class PreviewPanel(QWidget):
         for i, (name, path) in enumerate(paths):
             if i:
                 self.breadcrumbs.addWidget(QLabel('›'))
-            if path == self.path and isinstance(self.viewer, TextPreview) and self.viewer.document().isModified():
+            if path == self.path and isinstance(self.viewer, TextPreview) and self.viewer.is_content_modified():
                 name += ' *'
             button = QPushButton(name)
             button.setFlat(True)
@@ -145,7 +145,7 @@ class PreviewPanel(QWidget):
 
 
     def may_replace(self):
-        if not isinstance(self.viewer, TextPreview) or not self.viewer.document().isModified():
+        if not isinstance(self.viewer, TextPreview) or not self.viewer.is_content_modified():
             return True
         choice = QMessageBox.question(self, trans('action.save'), trans('files.preview.unsaved'),
                                       QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
@@ -209,7 +209,7 @@ class PreviewPanel(QWidget):
                 raise OSError(output.errorString())
             if target == self.path:
                 self._stamp = self._file_stamp(target)
-                self.viewer.document().setModified(False)
+                self.viewer.set_baseline_content()
             return True
         except (OSError, UnicodeError) as error:
             QMessageBox.warning(self, trans('action.save'), str(error))
