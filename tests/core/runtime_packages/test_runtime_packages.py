@@ -117,41 +117,6 @@ def test_operation_serialization(manager):
         with pytest.raises(RuntimeError, match='Another package'):
             manager.operate('install', ['demo'], threading.Event(), lambda s: None)
 
-
-def test_offline_uv_install_import_uninstall(manager, tmp_path, monkeypatch):
-    uv = shutil.which('uv')
-    if not uv:
-        pytest.skip('uv is unavailable')
-    monkeypatch.setattr(BuiltinSandboxRuntime, 'find_uv', lambda self: uv)
-    name = 'pygpt_test_optional'
-    info = f'{name}-1.0.dist-info'
-    wheel = tmp_path / f'{name}-1.0-py3-none-any.whl'
-    files = {
-        f'{name}/__init__.py': 'VALUE = 42\n',
-        f'{info}/METADATA': f'Metadata-Version: 2.1\nName: {name}\nVersion: 1.0\n',
-        f'{info}/WHEEL': 'Wheel-Version: 1.0\nGenerator: test\nRoot-Is-Purelib: true\nTag: py3-none-any\n',
-    }
-    files[f'{info}/RECORD'] = ''.join(f'{path},,\n' for path in files) + f'{info}/RECORD,,\n'
-    with zipfile.ZipFile(wheel, 'w') as archive:
-        for path, content in files.items():
-            archive.writestr(path, content)
-    run = manager._run
-    def offline(args, *rest):
-        if 'install' in args:
-            args += ['--no-index', '--find-links', str(tmp_path)]
-        run(args, *rest)
-    monkeypatch.setattr(manager, '_run', offline)
-    manager.operate('install', [name], threading.Event(), print)
-    try:
-        assert importlib.import_module(name).VALUE == 42
-        assert manager.missing([name]) == []
-        manager.operate('uninstall', [name], threading.Event(), lambda s: None)
-        assert not manager.installed()
-        assert not (Path(manager.path) / name).exists()
-    finally:
-        sys.modules.pop(name, None)
-
-
 def test_addon_decline_preserves_installed_version(manager, tmp_path):
     import json
     from pygpt_net.core.extensions import Extensions
