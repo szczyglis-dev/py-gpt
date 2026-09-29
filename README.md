@@ -1953,7 +1953,13 @@ PyGPT can install profile-scoped external Add-ons from `Config -> Install Add-on
 
 Add-ons can be imported from a directory, ZIP, GitHub, or the Explore registry. The default public registry is `https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json`. External code runs with the same permissions as PyGPT, so review untrusted source before installing it.
 
-For installation, manifest format, examples, publishing/registry instructions, custom launcher compatibility, plugin APIs, and complete code samples, see the full documentation:
+Add-ons can declare required Python packages in `external_dependencies`. Missing required packages are installed through the shared **Config -> Package Manager** into the application-wide, Python-version-specific `extra_packages/<major.minor>` directory; this is separate from the Python/System execution sandboxes. The same manager can be opened manually to install or remove optional runtime packages.
+
+For packaging, manifests, local testing, publishing, Package Manager integration, plugin events, and a method-by-method API reference for every Add-on type, see:
+
+https://pygpt.readthedocs.io/en/latest/addons_api.html
+
+For custom launcher registration, themes and other non-package extension topics, see:
 
 https://pygpt.readthedocs.io/en/latest/extending.html
 
@@ -2473,15 +2479,17 @@ PyGPT can be extended with custom:
 The repository's ``examples`` directory contains tutorial implementations for every add-on type:
 
 - `examples/custom_launcher.py`
-- `examples/example_plugin.py`
-- `examples/example_tool.py`
-- `examples/example_agent.py`
-- `examples/example_llm.py`
-- `examples/example_vector_store.py`
-- `examples/example_data_loader.py`
-- `examples/example_audio_input.py`
-- `examples/example_audio_output.py`
-- `examples/example_web_search.py`
+- `examples/addons/plugins/example_plugin`
+- `examples/addons/tools/example_tool`
+- `examples/addons/agents/example_agent`
+- `examples/addons/llms/example_llm`
+- `examples/addons/vector_stores/example_vector_store`
+- `examples/addons/loaders/example_loader`
+- `examples/addons/audio_input/example_audio_input`
+- `examples/addons/audio_output/example_audio_output`
+- `examples/addons/web/example_web`
+- `examples/addons/themes/example-extension-dark`
+- `examples/addons/locale/example-locale`
 
 PyGPT can be also extended with external Add-ons installed under `%workdir%/addons` (plugins, LLM wrappers, vector stores, loaders, audio/web providers, tools, agents, themes and locale packs).
 
@@ -2491,7 +2499,7 @@ The repository also contains ready-to-use examples in the `examples` directory.
 
 For complete Python examples, manifest format, publishing instructions, event handling, custom model configuration, provider interfaces, launcher code, and the Add-ons API reference, see:
 
-https://pygpt.readthedocs.io/en/latest/extending.html
+https://pygpt.readthedocs.io/en/latest/addons_api.html
 
 # DISCLAIMER
 
@@ -2511,13 +2519,15 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.8.35 (2026-09-29)**
 
-- Added an application-wide Package Manager for optional runtime dependencies, stored per Python version under `extra_packages/<major.minor>`.
-- Added shared text-editor preferences for indentation, tab width and word wrap across Text Editor, Files preview/editor and Canvas source editor.
-- Added a dedicated **Annotations** tab under Chats settings with per-surface clear-on-send controls.
-- Improved Canvas browser controls, source editing and persistent address history/search behavior.
-- Added optional model-defined runtime MCP connections, with independent permissions for HTTP/SSE and stdio and integration with MCP tool discovery/cache.
+- Refactored the LiteLLM provider and migrated it to the native LlamaIndex LiteLLM integration. Vision input and tool calling are now supported by compatible LiteLLM models.
+- Added an application-wide **Package Manager** for optional runtime dependencies, with packages stored per Python version under `<application base workdir>/extra_packages/<major.minor>`.
+- Added shared text editor preferences for indentation, tab width, and word wrap across the Text Editor, Files preview/editor, and Canvas source editor.
+- Added a search field to the Model Importer.
+- Added optional model-defined runtime MCP connections, with separate permissions for HTTP/SSE and stdio transports and integration with MCP tool discovery and caching.
+- Improved Canvas browser controls, source editing, and persistent address history/search behavior.
 - Improved local Whisper dependency installation through the Package Manager.
-- UI and CSS/QSS fixes and refinements.
+- Added comprehensive Add-ons examples and API reference documentation. See **Documentation -> Add-ons API**.
+- Added various UI and CSS/QSS fixes and refinements.
 
 **2.8.34 (2026-09-28)**
 

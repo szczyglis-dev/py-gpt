@@ -44,5 +44,6 @@ Contents
    updates
    debug
    extending
+   addons_api
    security
    credits

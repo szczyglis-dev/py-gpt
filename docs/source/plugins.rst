@@ -52,20 +52,11 @@ The following plugins are currently available:
 Creating Your Own Plugins
 -------------------------
 
-You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the ``plugin`` directory - you can use them as coding examples for your own plugins.
+The recommended distribution format for new extensions is an external **Add-on** installed below ``%workdir%/addons``. A plugin Add-on contains a ``manifest.json`` plus a Python entry point derived from ``BasePlugin``; it can be installed from a directory, ZIP, GitHub repository/subdirectory or the public Add-ons catalog. The older custom-launcher registration path remains useful during development.
 
-PyGPT can be extended with:
+PyGPT Add-ons can provide plugins, GUI tools, LLM/embedding wrappers, vector stores, data loaders, audio input/output providers, web search providers, Custom-agent providers, themes and locale packs. The repository's ``examples/addons`` directory contains runnable tutorials for every supported package type.
 
-* custom plugins
-* custom LLMs
-* custom vector store providers
-* custom data loaders
-* custom audio input providers
-* custom audio output providers
-* custom web search engine providers
-* custom agents (LlamaIndex)
-
-See the section ``Extending PyGPT / Adding a custom plugin`` for more details.
+See :doc:`addons_api` for the complete manifest/packaging/publishing workflow, Package Manager dependencies, plugin method and event reference, and APIs for every Add-on type. See :doc:`extending` for the wider extension/custom-launcher overview.
 
 API calls
 ----------

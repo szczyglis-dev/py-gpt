@@ -818,7 +818,7 @@ Debug
 Package Manager
 ---------------
 
-Open ``Config -> Package Manager`` to install or remove optional Python packages used by PyGPT itself. This is separate from the Python/System execution sandboxes: packages installed here extend the application runtime and can satisfy optional dependencies required by features and external Add-ons.
+Open ``Config -> Package Manager`` to install or remove optional Python packages used by PyGPT itself. This is the application-runtime package environment. It is deliberately separate from both built-in Python/System sandboxes and Docker: installing a package here makes it available to PyGPT features and external Add-ons, not to a sandboxed model runtime.
 
 PyGPT installs these packages with ``uv`` into an application-wide, Python-version-specific directory:
 
@@ -826,11 +826,19 @@ PyGPT installs these packages with ``uv`` into an application-wide, Python-versi
 
    <application base workdir>/extra_packages/<major.minor>/
 
-For example, a Python 3.13 build uses ``extra_packages/3.13``. The directory is shared by all profiles that use the same application base workdir. Keeping packages separated by Python version prevents binary or ABI-incompatible packages from an older bundled/runtime Python version from being reused after an upgrade.
+For example, a Python 3.13 build uses ``extra_packages/3.13``. The directory is shared by all profiles that use the same application base workdir. Keeping packages separated by Python version prevents binary or ABI-incompatible packages from an older bundled/runtime Python version from being reused after an upgrade. When PyGPT later runs with another Python minor version, a separate directory is selected automatically.
 
-Package changes are prepared in a temporary working copy and replace the live package directory only after a successful operation. The Package Manager shows installer output and a progress dialog. Some newly installed packages can be activated immediately, but a restart may still be required, especially for compiled extensions or dependencies imported earlier in the process.
+The manager accepts normal package requirements such as ``httpx``, ``httpx>=0.27,<1.0`` or ``package[extra]>=1.0``. Direct package URLs are intentionally not accepted by the Add-on dependency resolver. Environment markers are evaluated for the current runtime. Packages already supplied by the main PyGPT environment are constrained during installation so optional packages do not silently replace core runtime dependencies with incompatible versions.
 
-External Add-ons can request missing declared dependencies through this same installer. Local Whisper also uses the Package Manager when the optional ``openai-whisper`` dependency is missing.
+Install/uninstall operations are transactional. PyGPT copies the current ``extra_packages`` environment to a temporary staging directory, runs ``uv pip`` against that staging copy, and swaps it into place only after the operation succeeds. Cancellation or installation failure therefore leaves the live package directory intact. A per-installation lock also prevents two PyGPT instances from changing the package directory at the same time.
+
+The Package Manager dialog shows currently installed packages, accepts one requirement per line, displays installer output, and uses the standard progress dialog. Packages installed successfully are added to the running Python import path. Pure-Python packages that have not already been imported can often be used immediately, but a restart may still be required for compiled/native extensions or modules whose old version is already loaded in the process.
+
+External Add-ons integrate with the same manager through ``manifest.json -> external_dependencies``. During Add-on installation PyGPT checks required dependency versions; when something is missing it asks the user to install the requirements before completing the Add-on installation. Dependencies marked ``optional: true`` are not installed automatically. On startup PyGPT also checks installed Add-ons against the currently selected Python-version directory, which makes dependency repair possible after a bundled/runtime Python upgrade. See :doc:`addons_api` for the manifest syntax and publishing workflow.
+
+Local Whisper uses this same mechanism when ``openai-whisper`` is not installed. The selected model checkpoint is downloaded separately by Whisper on first use.
+
+``Log package installations`` under Debug writes Package Manager operations to ``extra_packages/packages.log`` in addition to the dialog output.
 
 JSON files
 -----------

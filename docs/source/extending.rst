@@ -19,17 +19,19 @@ PyGPT exposes integration points through ``pygpt_net.app.run()``. A custom launc
 The repository's ``examples`` directory contains tutorial implementations for every add-on type:
 
 * ``examples/custom_launcher.py``
-* ``examples/example_plugin.py``
-* ``examples/example_tool.py``
-* ``examples/example_agent.py``
-* ``examples/example_llm.py``
-* ``examples/example_vector_store.py``
-* ``examples/example_data_loader.py``
-* ``examples/example_audio_input.py``
-* ``examples/example_audio_output.py``
-* ``examples/example_web_search.py``
+* ``examples/addons/plugins/example_plugin``
+* ``examples/addons/tools/example_tool``
+* ``examples/addons/agents/example_agent``
+* ``examples/addons/llms/example_llm``
+* ``examples/addons/vector_stores/example_vector_store``
+* ``examples/addons/loaders/example_loader``
+* ``examples/addons/audio_input/example_audio_input``
+* ``examples/addons/audio_output/example_audio_output``
+* ``examples/addons/web/example_web``
 
 The examples are intentionally small and are the recommended starting point for custom integrations.
+
+For the complete external package format, lifecycle, Package Manager integration, publishing workflow and method/event reference for every Add-on type, see :doc:`addons_api`.
 
 External Add-ons
 -------------------
@@ -132,7 +134,7 @@ Add-on IDs should be globally unique. For add-ons intended for distribution, use
 
 ``contact`` may be a string, object or list. Using an object is recommended so an email address, repository and website can be declared separately.
 
-``external_dependencies`` is reserved for dependency management. Version 1 accepts either simple strings or objects with at least ``name`` and optionally fields such as ``version``. PyGPT validates and displays this metadata but **does not install external dependencies yet**. Add-on authors must currently document/install those dependencies separately.
+``external_dependencies`` declares application-runtime Python dependencies. Version 1 accepts either normal requirement strings or objects with at least ``name`` and optional ``version`` / ``optional`` fields. Required missing dependencies are resolved through the shared ``Config -> Package Manager`` flow and installed into the application-wide, Python-version-specific ``extra_packages/<major.minor>`` directory. Optional dependencies are not installed automatically. Direct package URLs are rejected; use package names and version constraints.
 
 Entrypoints
 ~~~~~~~~~~~
@@ -637,7 +639,7 @@ and handles command execution:
 ``add_cmd()`` is preferred over manually constructing the command schema. PyGPT can translate registered
 commands into the appropriate native function/tool format when native API function calls are enabled.
 
-The complete tutorial implementation is available in ``examples/example_plugin.py``.
+The complete tutorial implementation is available in ``examples/addons/plugins/example_plugin``.
 
 Handling events
 ~~~~~~~~~~~~~~~
@@ -964,7 +966,7 @@ Minimal example:
            pass
 
 A real GUI Tool can register dialogs, tabs, menus, theme hooks and update hooks. See
-``examples/example_tool.py`` for a complete dialog-based tutorial.
+``examples/addons/tools/example_tool`` for a complete dialog-based tutorial.
 
 Adding a custom LLM wrapper
 ---------------------------
@@ -1026,7 +1028,7 @@ Depending on its purpose, a wrapper can implement:
 Legacy ``chat()`` and ``completion()`` methods remain in the base interface for compatibility, but current
 custom LlamaIndex integrations should normally follow the ``llama()`` path.
 
-See ``examples/example_llm.py`` for a complete LLM + embeddings example.
+See ``examples/addons/llms/example_llm`` for a complete LLM + embeddings example.
 
 Adding a custom vector store
 ----------------------------
@@ -1084,7 +1086,7 @@ Example:
 ``BaseStore`` already provides common helpers such as ``exists()``, ``remove()``, ``truncate()``,
 ``remove_document()``, ``attach()`` and ``get_path()``.
 
-See ``examples/example_vector_store.py`` for the complete tutorial.
+See ``examples/addons/vector_stores/example_vector_store`` for the complete tutorial.
 
 Adding a custom data loader
 ---------------------------
@@ -1139,7 +1141,7 @@ The loader registers metadata/configuration and returns a LlamaIndex reader:
 
 Current LlamaIndex ``Document`` objects use the ``metadata`` field for metadata.
 
-See ``examples/example_data_loader.py`` for a configurable CSV-like example.
+See ``examples/addons/loaders/example_loader`` for a runnable ``.example`` file reader that returns real LlamaIndex ``Document`` objects.
 
 Adding audio providers
 ----------------------
@@ -1179,7 +1181,7 @@ A speech-to-text provider receives the path that PyGPT wants transcribed. Do not
                self.plugin.window.core.config.get("api_key")
            )
 
-See ``examples/example_audio_input.py`` for provider-specific settings and configuration messages.
+See ``examples/addons/audio_input/example_audio_input`` for a runnable WAV-inspector provider with provider-specific settings.
 
 Audio output
 ~~~~~~~~~~~~
@@ -1210,7 +1212,7 @@ Use ``prepare_output_path()`` rather than a fixed filename. PyGPT stores generat
            response.stream_to_file(path)
            return str(path)
 
-See ``examples/example_audio_output.py`` for settings, voices and configuration checks.
+See ``examples/addons/audio_output/example_audio_output`` for a runnable provider that generates a WAV tone through the normal audio-output path.
 
 Adding a web search provider
 ----------------------------
@@ -1246,7 +1248,7 @@ A provider normally defines its own settings and implements ``search()``:
 A production provider should define credentials/settings with ``plugin.add_option()`` and use
 ``self.plugin.get_url()`` or another PyGPT/network helper appropriate for the integration.
 
-See ``examples/example_web_search.py`` for a complete Google Custom Search tutorial.
+See ``examples/addons/web/example_web`` for a runnable Wikipedia/MediaWiki OpenSearch provider that performs a real HTTP search.
 
 Adding a custom agent
 ---------------------
@@ -1257,7 +1259,7 @@ For a completely new provider, derive from ``pygpt_net.provider.agents.base.Base
 
 For workflow experimentation that does not require a new Python provider, prefer the built-in **Custom agent builder**, which can construct and save node-based Custom agents workflows directly from the UI.
 
-See ``examples/example_agent.py`` for the current extension pattern and use the base interfaces as the source of truth for method signatures.
+See ``examples/addons/agents/example_agent`` for the current extension pattern and use the base interfaces as the source of truth for method signatures.
 
 Source code as API reference
 ----------------------------
