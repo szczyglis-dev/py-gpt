@@ -772,6 +772,48 @@
         "step": null,
         "advanced": false
     },
+    "ctx.annotations.clear_on_send.canvas": {
+        "section": "ctx",
+        "tab": "annotations",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.annotations.clear_on_send.canvas",
+        "description": "settings.ctx.annotations.clear_on_send.canvas.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.annotations.clear_on_send.files": {
+        "section": "ctx",
+        "tab": "annotations",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.annotations.clear_on_send.files",
+        "description": "settings.ctx.annotations.clear_on_send.files.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "ctx.annotations.clear_on_send.chat": {
+        "section": "ctx",
+        "tab": "annotations",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.annotations.clear_on_send.chat",
+        "description": "settings.ctx.annotations.clear_on_send.chat.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.urls.internal": {
         "section": "ctx",
         "tab": "options",

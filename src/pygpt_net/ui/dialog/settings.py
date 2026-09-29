@@ -223,7 +223,7 @@ class Settings(BaseConfigDialog):
 
                 # keep Chat tabs in their intended order
                 if section_id == "ctx":
-                    preferred = ["list", "render", "options"]
+                    preferred = ["list", "render", "annotations", "options"]
                     tab_order = ([tid for tid in preferred if tid in tab_order]
                                  + [tid for tid in tab_order if tid not in preferred])
 

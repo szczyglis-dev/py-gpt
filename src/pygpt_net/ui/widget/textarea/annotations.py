@@ -7,11 +7,6 @@ from PySide6.QtCore import QTimer
 from pygpt_net.utils import trans
 
 
-CLEAR_ANNOTATION_CANVAS = False
-CLEAR_ANNOTATION_CTX = True
-CLEAR_ANNOTATION_FILE = False
-
-
 def track_sent_annotations(ctx, owner, items):
     """Snapshot only annotations serialized into this request; do not clear yet."""
     if ctx is None or not items:
@@ -65,12 +60,26 @@ class AnnotationMixin:
             cardShadow='0 8px 28px rgba(36,33,43,.14)',
         )
 
+    def _clear_annotations_on_send(self, source: str) -> bool:
+        """Return the runtime clear policy for an annotation source."""
+        keys = {
+            'canvas_web': 'ctx.annotations.clear_on_send.canvas',
+            'chat': 'ctx.annotations.clear_on_send.chat',
+            'files': 'ctx.annotations.clear_on_send.files',
+        }
+        key = keys.get(source)
+        if key is None:
+            return False
+        # Keep the historic behavior as a fallback for profiles that have not
+        # been migrated yet: Chat clears automatically, Canvas/Files do not.
+        return bool(self.window.core.config.get(key, source == 'chat'))
+
     def clear_sent_annotations(self, ids):
-        flags = {'canvas_web': CLEAR_ANNOTATION_CANVAS,
-                 'chat': CLEAR_ANNOTATION_CTX, 'files': CLEAR_ANNOTATION_FILE}
         retained = [item for item in self.annotations
                     if (item['id'], item.get('time')) not in ids
-                    or not flags.get(item.get('source', self.annotation_source), False)]
+                    or not self._clear_annotations_on_send(
+                        item.get('source', self.annotation_source)
+                    )]
         if len(retained) != len(self.annotations):
             self.annotations = retained
             # Rebuild overlays as well: removed annotation cards must disappear.

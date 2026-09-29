@@ -99,15 +99,14 @@ class Patch:
                     "filesystem.text_editor.tabs.width": 4,
                     "filesystem.text_editor.word_wrap": False,
                     "layout.canvas.auto_open": True,
+                    "ctx.annotations.clear_on_send.canvas": False,
+                    "ctx.annotations.clear_on_send.files": False,
+                    "ctx.annotations.clear_on_send.chat": True,
                 }
                 for key, value in defaults.items():
                     if key not in data:
                         data[key] = value
                         updated = True
-
-                if "layout.canvas.auto_open" not in data:
-                    data["layout.canvas.auto_open"] = True
-                    updated = True
 
         # update file
         migrated = False
