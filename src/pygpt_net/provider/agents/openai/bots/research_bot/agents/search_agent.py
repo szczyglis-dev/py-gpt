@@ -40,7 +40,7 @@ def get_search_agent(
     kwargs.update(tool_kwargs)  # update kwargs with tools
 
     if config["allow_remote_tools"]:
-        if not window.core.config.get("remote_tools.web_search", False):
+        if not window.core.llm.get("openai").is_remote_tool_enabled("web_search"):
             if (config["model"].is_gpt()
                     and not config["model"].id in OPENAI_REMOTE_TOOL_DISABLE_WEB_SEARCH
                     and not config["model"].id.startswith("computer-use")):

@@ -28,7 +28,14 @@ class Patch:
         :return: Updated data, and True if updated, and True if old version
         """
         data = self.window.core.config.all()
-        cfg_get_base = self.window.core.config.get_base
+        raw_get_base = self.window.core.config.get_base
+        from .patch_before_2_8_35 import legacy_defaults
+        defaults = legacy_defaults()
+
+        def cfg_get_base(key):
+            value = raw_get_base(key)
+            return defaults.get(key) if value is None and key in defaults else value
+
         remove_plugin_config = self.window.core.config.remove_plugin_config
         current = "0.0.0"
         updated = False

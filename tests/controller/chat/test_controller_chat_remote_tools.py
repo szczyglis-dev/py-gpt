@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+from tests.remote_tools_helpers import bind_remote_providers
 
 from pygpt_net.controller.chat.remote_tools import RemoteTools
 
@@ -13,6 +14,7 @@ def _window():
     window.core.config.save = MagicMock()
     window.core.models.get = MagicMock()
     window.ui.nodes = {"input": MagicMock()}
+    bind_remote_providers(window)
     return window
 
 
@@ -63,10 +65,7 @@ def test_remote_tools_enabled_rejects_unknown_tool_name():
 def test_remote_tools_is_web_uses_provider_specific_option(provider, key):
     window = _window()
 
-    def cfg_get(name, default=False):
-        return name == key
-
-    window.core.config.get.side_effect = cfg_get
+    window.core.llm.get(provider).set_remote_tool_enabled("web_search", True)
     remote = RemoteTools(window)
     remote.enabled_global["web_search"] = False
 
@@ -104,14 +103,13 @@ def test_remote_tools_toggle_web_search_updates_all_compatible_options():
     remote.toggle("web_search")
 
     assert remote.enabled_global["web_search"] is True
-    expected = {
-        ("remote_tools.global.web_search", True),
-        ("remote_tools.web_search", True),
-        ("remote_tools.google.web_search", True),
-        ("remote_tools.anthropic.web_search", True),
-        ("remote_tools.xai.web_search", True),
-    }
-    assert {c.args for c in window.core.config.set.call_args_list} == expected
+    window.core.config.set.assert_called_once_with("remote_tools.global.web_search", True)
+    assert all(p.is_remote_tool_enabled("web_search") for p in window.core.llm.llms.values())
+    remote.toggle("web_search")
+    assert not any(p.is_remote_tool_enabled("web_search") for p in window.core.llm.llms.values())
+    window.core.config.save.reset_mock()
+    remote.update_icons.reset_mock()
+    remote.toggle("web_search")
     window.core.config.save.assert_called_once_with()
     remote.update_icons.assert_called_once_with()
 

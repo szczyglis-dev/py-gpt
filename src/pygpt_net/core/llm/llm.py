@@ -286,13 +286,15 @@ class LLM:
             option["extra"] = dict(field.get("extra") or {"bold": True})
         elif field.get("extra"):
             option["extra"] = dict(field.get("extra") or {})
-        for name in ("urls", "min", "max", "step", "multiplier", "choices", "from_defaults", "slider", "real_time"):
+        for name in ("urls", "min", "max", "step", "multiplier", "choices", "keys", "use", "use_params", "from_defaults", "slider", "real_time"):
             if name in field:
                 option[name] = field[name]
+        if option["type"] == "combo" and "keys" not in option and "choices" in field:
+            option["keys"] = field["choices"]
         return option_id, option
 
     def get_settings_options(self) -> Dict[str, dict]:
-        """Build Settings -> API Keys fields from all registered LLM providers."""
+        """Build API Keys and Remote Tools fields from registered providers."""
         self.sync_custom()
         options = {}
         seen = set()
@@ -300,12 +302,22 @@ class LLM:
             if not hasattr(provider, "get_settings_schema"):
                 continue
             schema = provider.get_settings_schema()
-            if not schema:
+            if not schema and not provider.get_remote_tools_schema():
                 continue
             config_id = provider.get_config_id() if hasattr(provider, "get_config_id") else getattr(provider, "id", "")
             if not config_id or config_id in seen:
                 continue
             seen.add(config_id)
+
+            for key, field in provider.get_remote_tools_schema().items():
+                if not isinstance(field, dict) or field.get("hidden"):
+                    continue
+                option_id, option = self._build_setting_option(
+                    provider, config_id, "remote_tools." + key, field, is_extra=False)
+                option["section"] = "remote_tools"
+                option["persist"] = bool(field.get("persist", False))
+                option["_remote_tool_key"] = key
+                options[option_id] = option
 
             for key in ("api_key", "api_base"):
                 field = schema.get(key)
@@ -330,5 +342,5 @@ class LLM:
         if provider is None or not hasattr(provider, "get_config_id"):
             return None
         config_id = provider.get_config_id()
-        path = key if key in ("api_key", "api_base") or key.startswith("extra.") else f"extra.{key}"
+        path = key if key in ("api_key", "api_base") or key.startswith(("extra.", "remote_tools.")) else f"extra.{key}"
         return f"provider.{config_id}.{path}"

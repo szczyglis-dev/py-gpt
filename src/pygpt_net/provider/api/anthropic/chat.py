@@ -547,16 +547,14 @@ class Chat:
         """
         Load MCP servers definition from config JSON string(s).
 
-        Supports keys:
-          - remote_tools.anthropic.mcp.mcp_servers
+        Uses the Anthropic provider’s mcp.mcp_servers setting.
 
         :return: list of MCP servers dicts
         """
-        cfg = self.window.core.config
-        enabled = cfg.get("remote_tools.anthropic.mcp", False)
+        enabled = self.window.core.llm.get("anthropic").is_remote_tool_enabled("mcp")
         if not enabled:
             return []  # do not load if MCP is disabled
-        raw = cfg.get("remote_tools.anthropic.mcp.mcp_servers")
+        raw = self.window.core.llm.get("anthropic").get_remote_tool_config("mcp.mcp_servers")
         if not raw:
             return []
         try:

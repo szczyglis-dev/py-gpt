@@ -119,6 +119,18 @@ class Settings:
         for option in persist_values:
             self.window.core.config.set(option, persist_values[option])
 
+        # The providers container also holds persistent API credentials. Reset
+        # its non-persistent tool fields individually rather than retaining
+        # their previous values when the whole container is restored above.
+        for option in settings_options.values():
+            key = option.get('_remote_tool_key')
+            if key is None or option.get('persist'):
+                continue
+            provider = self.window.core.llm.get(option['_provider'])
+            if provider is not None:
+                field = provider.get_remote_tools_schema().get(key, {})
+                provider.set_remote_tool_config(key, copy.deepcopy(field.get('default')))
+
     def load_default_editor(self):
         """Load defaults from file"""
         file = self.window.ui.dialog['config.editor'].file
@@ -232,5 +244,4 @@ class Settings:
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.update_status(f"Error reloading saved file: {path}")
-
 

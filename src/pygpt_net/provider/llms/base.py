@@ -43,8 +43,58 @@ class BaseLLM:
         Providers expose their API configuration here instead of relying on a
         central, hard-coded list in ``settings.json``.  The ``settings`` dict
         may contain ``api_key``, ``api_base`` and an ``extra`` mapping.
+        The sibling ``remote_tools`` mapping declares tool switches and all
+        their parameters, stored in ``providers[config_id][remote_tools]``.
         """
-        return {"settings": {}}
+        return {"settings": {}, "remote_tools": {}}
+
+    def get_remote_tools_schema(self) -> dict:
+        """Provider-owned fields, including tool switches and tool parameters.
+
+        Keys are local to the provider (e.g. ``mcp`` and ``mcp.args``).
+        Fields use the Settings schema; ``tool`` marks selectable tools,
+        ``hidden`` suppresses a field in Settings, and ``legacy_key`` is used
+        only by config migration. Providers may override the accessors below.
+        """
+        schema = (self.setup() or {}).get("remote_tools", {})
+        return schema if isinstance(schema, dict) else {}
+
+    def get_remote_tools(self) -> dict:
+        """Return selectable tool IDs and their definitions."""
+        return {key: field for key, field in self.get_remote_tools_schema().items()
+                if isinstance(field, dict) and field.get("tool")}
+
+    def get_remote_tool_config(self, key: str, default: Any = _MISSING) -> Any:
+        """Read a tool switch/parameter, falling back to its declared default."""
+        value = self.get_config("remote_tools." + key, default)
+        field = self.get_remote_tools_schema().get(key, {})
+        if field.get("value_type") == "optional_bool":
+            if value in (None, ""):
+                return None
+            if isinstance(value, str):
+                return value.lower() == "true"
+        return value
+
+    def set_remote_tool_config(self, key: str, value: Any):
+        """Write a tool switch/parameter without saving the config file."""
+        self.set_config("remote_tools." + key, value)
+
+    def is_remote_tool_enabled(self, tool_id: str) -> bool:
+        return tool_id in self.get_remote_tools() and bool(self.get_remote_tool_config(tool_id))
+
+    def set_remote_tool_enabled(self, tool_id: str, enabled: bool):
+        if tool_id in self.get_remote_tools():
+            self.set_remote_tool_config(tool_id, bool(enabled))
+
+    def supports_remote_tool(self, model: ModelItem, tool_id: str) -> bool:
+        """Forward-compatible capability policy, overridable by each provider."""
+        field = self.get_remote_tools().get(tool_id)
+        model_id = str(getattr(model, "id", "") or "").strip().lower()
+        if field is None or not model_id:
+            return False
+        return (model_id not in field.get("unsupported_models", ())
+                and not any(model_id.startswith(prefix)
+                            for prefix in field.get("unsupported_prefixes", ())))
 
     def bind(self, window):
         """Bind provider to the application window/config at registration time."""
@@ -67,6 +117,9 @@ class BaseLLM:
         return settings if isinstance(settings, dict) else {}
 
     def _get_schema_field(self, key: str) -> Optional[dict]:
+        if key.startswith("remote_tools."):
+            field = self.get_remote_tools_schema().get(key[len("remote_tools."):])
+            return field if isinstance(field, dict) else None
         schema = self.get_settings_schema()
         if key in ("api_key", "api_base"):
             field = schema.get(key)
@@ -130,7 +183,8 @@ class BaseLLM:
         if self.window is None or not hasattr(self.window, "core"):
             return False
         schema = self.get_settings_schema()
-        if not schema:
+        remote_schema = self.get_remote_tools_schema()
+        if not schema and not remote_schema:
             return False
         config = getattr(self.window.core, "config", None)
         if config is None:
@@ -146,6 +200,11 @@ class BaseLLM:
                 extra_defaults[key] = field.get("default")
         if extra_defaults:
             defaults["extra"] = extra_defaults
+        if remote_schema:
+            defaults["remote_tools"] = {
+                key: field.get("default") for key, field in remote_schema.items()
+                if isinstance(field, dict)
+            }
         return config.ensure_provider(self.get_config_id(), defaults)
 
     def init(

@@ -17,9 +17,9 @@ def test_mouse_control_surface_and_syntax(mock_window):
 
 def test_mouse_control_sandbox_flag_reads_config(mock_window):
     plugin = Plugin(window=mock_window)
-    mock_window.core.config.set("remote_tools.computer_use.sandbox", True)
+    mock_window.core.config.set("computer_use.sandbox", True)
     assert plugin.is_sandbox() is True
-    mock_window.core.config.set("remote_tools.computer_use.sandbox", False)
+    mock_window.core.config.set("computer_use.sandbox", False)
     assert plugin.is_sandbox() is False
 
 

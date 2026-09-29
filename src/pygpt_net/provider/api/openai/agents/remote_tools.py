@@ -85,7 +85,7 @@ def is_computer_tool(
         return (
             model.id.startswith("computer-use")
             or (
-                window.core.config.get("remote_tools.computer_use", False)
+                window.core.llm.get("openai").is_remote_tool_enabled("computer_use")
                 and (model.has_mode(MODE_COMPUTER)
                      or supports_future_computer_mode(model.provider, model.id))
             )
@@ -229,14 +229,14 @@ def get_remote_tools(
     # from global config if not expert call
     if not is_expert_call:
         enabled["web_search"] = enabled_global(model, "web_search") # <-- from global config
-        enabled["image"] = window.core.config.get("remote_tools.image", False)
-        enabled["code_interpreter"] = window.core.config.get("remote_tools.code_interpreter", False)
-        enabled["mcp"] = window.core.config.get("remote_tools.mcp", False)
-        enabled["file_search"] = window.core.config.get("remote_tools.file_search", False)
+        enabled["image"] = window.core.llm.get("openai").is_remote_tool_enabled("image")
+        enabled["code_interpreter"] = window.core.llm.get("openai").is_remote_tool_enabled("code_interpreter")
+        enabled["mcp"] = window.core.llm.get("openai").is_remote_tool_enabled("mcp")
+        enabled["file_search"] = window.core.llm.get("openai").is_remote_tool_enabled("file_search")
         enabled["computer_use"] = (
             model.id.startswith("computer-use")
             or (
-                window.core.config.get("remote_tools.computer_use", False)
+                window.core.llm.get("openai").is_remote_tool_enabled("computer_use")
                 and (model.has_mode(MODE_COMPUTER)
                      or supports_future_computer_mode(model.provider, model.id))
             )
@@ -288,7 +288,7 @@ def get_remote_tools(
             ))
 
         if model.id not in OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH and enabled["file_search"]:
-            vector_store_ids = window.core.config.get("remote_tools.file_search.args", "")
+            vector_store_ids = window.core.llm.get("openai").get_remote_tool_config("file_search.args", "")
             if vector_store_ids:
                 vector_store_ids = [store.strip() for store in vector_store_ids.split(",") if store.strip()]
             tools.append(FileSearchTool(
@@ -298,7 +298,7 @@ def get_remote_tools(
             ))
 
         if model.id not in OPENAI_REMOTE_TOOL_DISABLE_MCP and enabled["mcp"]:
-            mcp_tool = window.core.config.get("remote_tools.mcp.args", "")
+            mcp_tool = window.core.llm.get("openai").get_remote_tool_config("mcp.args", "")
             if mcp_tool:
                 mcp_tool = json.loads(mcp_tool)
                 tools.append(HostedMCPTool(

@@ -400,8 +400,8 @@ class Config:
         """Return provider-scoped configuration from ``providers``.
 
         ``api_key`` and ``api_base`` are top-level provider values. Other keys
-        are resolved from ``extra``; callers may explicitly use ``extra.foo``
-        as well.
+        are resolved from ``extra``; callers may explicitly use ``extra.foo``.
+        ``remote_tools.foo`` resolves a key in the provider's tool mapping.
         """
         providers = self.data.get("providers", {})
         if not isinstance(providers, dict):
@@ -411,6 +411,9 @@ class Config:
             return default
         if key is None:
             return provider
+        if key.startswith("remote_tools."):
+            remote = provider.get("remote_tools", {})
+            return remote.get(key[len("remote_tools."):], default) if isinstance(remote, dict) else default
         if key in provider:
             return provider.get(key, default)
         extra_key = key[6:] if key.startswith("extra.") else key
@@ -431,6 +434,13 @@ class Config:
             providers[provider_id] = provider
         if key in ("api_key", "api_base"):
             provider[key] = value
+            return
+        if key.startswith("remote_tools."):
+            remote = provider.get("remote_tools")
+            if not isinstance(remote, dict):
+                remote = {}
+                provider["remote_tools"] = remote
+            remote[key[len("remote_tools."):]] = value
             return
         extra_key = key[6:] if key.startswith("extra.") else key
         extra = provider.setdefault("extra", {})
@@ -453,11 +463,11 @@ class Config:
             providers[provider_id] = provider
             changed = True
         for key, value in (defaults or {}).items():
-            if key == "extra":
-                extra = provider.get("extra")
+            if key in ("extra", "remote_tools"):
+                extra = provider.get(key)
                 if not isinstance(extra, dict):
                     extra = {}
-                    provider["extra"] = extra
+                    provider[key] = extra
                     changed = True
                 for extra_key, extra_value in (value or {}).items():
                     if extra_key not in extra:

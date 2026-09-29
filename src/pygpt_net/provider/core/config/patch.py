@@ -87,6 +87,8 @@ class Patch:
             # --------------------------------------------
             # Global filesystem text-editor settings introduced in 2.8.35
             if old < parse_version("2.8.35"):
+                from .patches.patch_before_2_8_35 import migrate_remote_tools
+                updated = migrate_remote_tools(data) or updated
                 defaults = {
                     "filesystem.text_editor.tabs.indent_spaces": True,
                     "filesystem.text_editor.tabs.width": 4,

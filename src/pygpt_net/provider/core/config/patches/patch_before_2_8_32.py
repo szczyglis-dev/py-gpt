@@ -28,11 +28,13 @@ class Patch:
         data = self.window.core.config.all()
         raw_cfg_get_base = self.window.core.config.get_base
         from .patch_before_2_8_33 import LEGACY_DEFAULTS
+        from .patch_before_2_8_35 import legacy_defaults
+        defaults = {**LEGACY_DEFAULTS, **legacy_defaults()}
 
         def cfg_get_base(key):
             value = raw_cfg_get_base(key)
-            if value is None and key in LEGACY_DEFAULTS:
-                return copy.deepcopy(LEGACY_DEFAULTS[key])
+            if value is None and key in defaults:
+                return copy.deepcopy(defaults[key])
             return value
 
         remove_plugin_config = self.window.core.config.remove_plugin_config
