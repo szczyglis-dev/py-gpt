@@ -34,13 +34,8 @@ class LiteLLMProvider(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "require_api_key": False,
-            "settings": {
-                "api_key": {"type": "str", "default": "", "secret": True},
-                "api_base": {"type": "str", "default": ""},
-            },
-        }
+        from .config import setup
+        return setup()
 
     @staticmethod
     def _positive_int(value: Any) -> int | None:

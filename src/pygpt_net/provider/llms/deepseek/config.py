@@ -5,10 +5,9 @@
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.29 14:42:00                  #
 # ================================================== #
-
-from pygpt_net.provider.llms.base import BaseLLM
-
 
 def setup() -> dict:
     return {
@@ -17,20 +16,11 @@ def setup() -> dict:
                 "type": "str",
                 "default": "",
                 "secret": True,
-                "urls": {"API Keys": "https://dashboard.voyageai.com/organization/api-keys"},
+                "urls": {"API Keys": "https://platform.deepseek.com/api_keys"},
+            },
+            "api_base": {
+                "type": "str",
+                "default": "https://api.deepseek.com/v1",
             },
         }
     }
-
-
-class VoyageConfigLLM(BaseLLM):
-    """Configuration-only provider for Voyage embedding credentials."""
-
-    def __init__(self, *args, **kwargs):
-        super(VoyageConfigLLM, self).__init__(*args, **kwargs)
-        self.id = "voyage"
-        self.name = "Voyage"
-        self.type = []
-
-    def setup(self) -> dict:
-        return setup()

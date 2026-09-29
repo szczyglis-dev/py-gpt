@@ -37,15 +37,8 @@ class HuggingFaceRouterLLM(BaseLLM):
         self.config_name = "HuggingFace"
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str", "default": "", "secret": True,
-                    "urls": {"API Keys": "https://huggingface.co/settings/tokens"},
-                },
-                "api_base": {"type": "str", "default": "https://router.huggingface.co/v1"},
-            }
-        }
+        from .config import setup
+        return setup()
 
     def completion(
             self,

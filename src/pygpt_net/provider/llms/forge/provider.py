@@ -22,7 +22,9 @@ from pygpt_net.core.types import MODE_LLAMA_INDEX, MODE_EMBEDDINGS
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
-FORGE_DEFAULT_BASE_URL = "https://api.forge.tensorblock.co/v1"
+from .config import FORGE_DEFAULT_BASE_URL
+
+
 class ForgeLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(ForgeLLM, self).__init__(*args, **kwargs)
@@ -31,21 +33,8 @@ class ForgeLLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "env": ["FORGE_API_KEY"],
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": FORGE_DEFAULT_BASE_URL,
-                    "env": ["FORGE_API_BASE"],
-                },
-            }
-        }
+        from .config import setup
+        return setup()
 
     def _apply_auth(self, args: Dict, window) -> Dict:
         if "api_key" not in args or args["api_key"] == "":

@@ -41,21 +41,8 @@ class AzureOpenAILLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {"type": "str", "default": "", "secret": True},
-                "api_base": {"type": "str", "default": "https://<your-resource-name>.openai.azure.com/"},
-                "extra": {
-                    "api_version": {
-                        "type": "str",
-                        "default": "2023-07-01-preview",
-                        "label": "settings.api_azure_version",
-                        "desc": "settings.api_azure_version.desc",
-                        "use_locale": True,
-                    },
-                },
-            }
-        }
+        from .config import setup
+        return setup()
 
     def completion(
             self,

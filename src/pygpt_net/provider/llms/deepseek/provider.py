@@ -34,20 +34,8 @@ class DeepseekApiLLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "urls": {"API Keys": "https://platform.deepseek.com/api_keys"},
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": "https://api.deepseek.com/v1",
-                },
-            }
-        }
+        from .config import setup
+        return setup()
 
     def llama(
             self,

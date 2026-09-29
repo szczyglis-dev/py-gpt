@@ -34,20 +34,8 @@ class PerplexityLLM(BaseLLM):
         self.type = [MODE_CHAT, MODE_RESEARCH]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "urls": {"API Keys": "https://www.perplexity.ai/account/api/keys"},
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": "https://api.perplexity.ai",
-                },
-            }
-        }
+        from .config import setup
+        return setup()
 
     def completion(
             self,

@@ -33,20 +33,8 @@ class OpenRouterLLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "urls": {"API Keys": "https://openrouter.ai/settings/keys"},
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": "https://openrouter.ai/api/v1",
-                },
-            }
-        }
+        from .config import setup
+        return setup()
 
     def get_embeddings_model(
             self,

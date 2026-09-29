@@ -33,20 +33,8 @@ class EdenAILLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "urls": {"API Keys": "https://app.edenai.run/admin/api-settings/features-preferences"},
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": "https://api.edenai.run/v3",
-                },
-            }
-        }
+        from .config import setup
+        return setup()
 
     def get_embeddings_model(
             self,

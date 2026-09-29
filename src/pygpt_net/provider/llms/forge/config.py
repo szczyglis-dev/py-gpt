@@ -5,9 +5,11 @@
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.29 14:42:00                  #
 # ================================================== #
 
-from pygpt_net.provider.llms.base import BaseLLM
+FORGE_DEFAULT_BASE_URL = "https://api.forge.tensorblock.co/v1"
 
 
 def setup() -> dict:
@@ -17,20 +19,12 @@ def setup() -> dict:
                 "type": "str",
                 "default": "",
                 "secret": True,
-                "urls": {"API Keys": "https://dashboard.voyageai.com/organization/api-keys"},
+                "env": ["FORGE_API_KEY"],
+            },
+            "api_base": {
+                "type": "str",
+                "default": FORGE_DEFAULT_BASE_URL,
+                "env": ["FORGE_API_BASE"],
             },
         }
     }
-
-
-class VoyageConfigLLM(BaseLLM):
-    """Configuration-only provider for Voyage embedding credentials."""
-
-    def __init__(self, *args, **kwargs):
-        super(VoyageConfigLLM, self).__init__(*args, **kwargs)
-        self.id = "voyage"
-        self.name = "Voyage"
-        self.type = []
-
-    def setup(self) -> dict:
-        return setup()
