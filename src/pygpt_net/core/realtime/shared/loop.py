@@ -35,7 +35,27 @@ class BackgroundLoop:
 
         def _runner(loop: asyncio.AbstractEventLoop):
             asyncio.set_event_loop(loop)
-            loop.run_forever()
+            try:
+                loop.run_forever()
+            finally:
+                # Do not leave websocket/tasks attached to an unclosed loop on
+                # application shutdown. Give cancelled tasks one short drain pass.
+                try:
+                    pending = [task for task in asyncio.all_tasks(loop) if not task.done()]
+                    for task in pending:
+                        task.cancel()
+                    if pending:
+                        loop.run_until_complete(asyncio.wait(pending, timeout=0.5))
+                except Exception:
+                    pass
+                try:
+                    loop.run_until_complete(loop.shutdown_asyncgens())
+                except Exception:
+                    pass
+                try:
+                    loop.close()
+                except Exception:
+                    pass
 
         self._thread = threading.Thread(target=_runner, args=(self._loop,), name=self._name, daemon=True)
         self._thread.start()

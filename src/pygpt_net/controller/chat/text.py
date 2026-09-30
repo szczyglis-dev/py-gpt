@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 10:00:00
+# Updated Date: 2026.09.30 16:05:00
 # ================================================== #
 
 from typing import Optional
@@ -111,6 +111,15 @@ class Text:
 
         # prepare mode, model, etc.
         mode = mode_override or (getattr(continuation_parent, "mode", None) if continuation_parent else None) or config.get("mode")
+
+        # Handle realtime audio continuations or interruptions
+        controller.realtime.on_text_send(
+            mode=mode,
+            internal=internal,
+            reply=reply,
+            continuation=continuation_parent is not None,
+        )
+
         model = model_override or (getattr(continuation_parent, "model", None) if continuation_parent else None) or config.get("model")
         model_data = core.models.get(model)
         sys_prompt = config.get("prompt")
@@ -250,6 +259,18 @@ class Text:
         log("Appending input to chat window...")
 
         if continuation_parent is None:
+            # Realtime audio can start a new microphone turn while the previous
+            # response is still being cancelled/finalized. Give the new durable
+            # row its database ID *before* BEGIN/APPEND_INPUT reaches the WebView.
+            # The streaming input transport uses that ID as its ownership token;
+            # without it, a late finalization from the superseded response can
+            # clear or fold the new ``...`` input into the previous visual turn.
+            # Other modes keep the historical render-before-store ordering.
+            stored_before_render = mode == MODE_AUDIO
+            if stored_before_render:
+                core.ctx.add(ctx)
+                core.ctx.set_last_item(ctx)
+
             # One BEGIN/input pair per user-visible turn. Tool feedback never
             # creates another chat row.
             dispatch(RenderEvent(RenderEvent.BEGIN, {
@@ -261,8 +282,9 @@ class Text:
                 "meta": ctx.meta,
                 "ctx": ctx,
             }))
-            core.ctx.add(ctx)
-            core.ctx.set_last_item(ctx)
+            if not stored_before_render:
+                core.ctx.add(ctx)
+                core.ctx.set_last_item(ctx)
             controller.ctx.update(reload=True, all=False)
             if mode == MODE_AGENT_V2:
                 # STATE_BUSY is emitted before INPUT_ACCEPT creates/resolves the

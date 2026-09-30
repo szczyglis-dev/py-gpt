@@ -393,12 +393,16 @@ class Kernel:
 
     def terminate(self):
         """
-        Terminate the kernel by dispatching a terminate event, stopping the window, and destroying plugins.
+        Terminate the kernel and force-release realtime/audio resources.
         """
         self.window.dispatch(KernelEvent(KernelEvent.TERMINATE))
+        # Stop microphone/output immediately, before generic STOP can allow any
+        # final realtime input callback to race with provider shutdown.
+        self.window.controller.audio.force_stop()
         self.stop(exit=True)
-        self.window.controller.plugins.destroy()
         self.window.controller.realtime.shutdown()
+        self.window.controller.audio.shutdown()
+        self.window.controller.plugins.destroy()
 
     def stop(self, exit: bool = False):
         """

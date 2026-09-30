@@ -155,3 +155,17 @@ class Capture:
         :return devices list: [(id, name)]
         """
         return self.get_backend().get_input_devices()
+
+    def shutdown(self):
+        """Stop and release every audio input backend instantiated in this run."""
+        for backend in list(self.backends.values()):
+            try:
+                shutdown = getattr(backend, "shutdown", None)
+                if callable(shutdown):
+                    shutdown()
+                else:
+                    backend.stop()
+            except Exception:
+                pass
+        self.backends.clear()
+

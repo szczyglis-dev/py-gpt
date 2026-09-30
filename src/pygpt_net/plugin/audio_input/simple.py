@@ -43,7 +43,13 @@ class Simple:
         """
         if state is not None:
             if state and not self.is_recording:
+                if not auto:
+                    self.plugin.window.controller.realtime.prepare_new_turn()
                 self.start_recording(realtime=True)
+                if self.is_recording:
+                    self.plugin.window.dispatch(RealtimeEvent(RealtimeEvent.RT_INPUT_AUDIO_MANUAL_START, {
+                        "auto": auto,
+                    }))
             elif not state:
                 self.force_stop()
             else:
@@ -54,8 +60,10 @@ class Simple:
             if not auto:
                 self.plugin.window.dispatch(RealtimeEvent(RealtimeEvent.RT_INPUT_AUDIO_MANUAL_STOP))
         else:
-            self.start_recording(realtime=True)
             if not auto:
+                self.plugin.window.controller.realtime.prepare_new_turn()
+            self.start_recording(realtime=True)
+            if not auto and self.is_recording:
                 self.plugin.window.dispatch(RealtimeEvent(RealtimeEvent.RT_INPUT_AUDIO_MANUAL_START))
 
     def toggle_recording(self, state: bool = None):
@@ -210,13 +218,23 @@ class Simple:
             self.plugin.window.update_status("")
 
     def force_stop(self):
-        """Stop recording"""
+        """Stop recording immediately without submitting/transcribing it."""
         self.is_recording = False
+        if self.timer is not None:
+            try:
+                self.timer.stop()
+                self.timer.deleteLater()
+            except Exception:
+                pass
+            self.timer = None
         self.plugin.window.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STOPPED))  # app event
         self.switch_btn_start()  # switch button to start
+        try:
+            self.plugin.window.core.audio.capture.reset_audio_level()
+        except Exception:
+            pass
         if self.plugin.window.core.audio.capture.has_source():
             self.plugin.window.core.audio.capture.stop()  # stop recording
-            return
 
     def on_stop(self):
         """Handle auto-transcribe"""

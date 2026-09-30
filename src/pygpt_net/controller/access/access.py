@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2026.09.30 16:40:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -67,11 +67,21 @@ class Access:
             return  # ignore muted events
         self.voice.play(event)  # handle audio synthesis
 
-    def on_escape(self):
-        """Handle escape key"""
+    def on_escape(self, close_dialog: bool = True):
+        """Handle escape key / shared realtime user interrupt."""
         # stop voice recording if active
         if self.voice.is_recording:
             self.voice.stop_recording(timeout=True)
+
+        # In realtime Audio mode ESC is a turn-only interrupt. Keep the live
+        # provider session/conversation intact while stopping capture, playback,
+        # the active response and any queued Auto-VAD restart.
+        if self.window.controller.realtime.can_interrupt():
+            self.window.controller.realtime.cancel_conversation()
+            if close_dialog:
+                self.close_top_dialog_if_any()
+            return
+
         if self.window.core.plugins.get("audio_input").handler_simple.is_recording:
             self.window.core.plugins.get("audio_input").handler_simple.stop_recording(timeout=True)
 
@@ -82,7 +92,8 @@ class Access:
         self.window.controller.kernel.stop()
 
         # close top dialog if any
-        self.close_top_dialog_if_any()
+        if close_dialog:
+            self.close_top_dialog_if_any()
 
     def close_top_dialog_if_any(self) -> bool:
         """Close top dialog if any"""

@@ -37,23 +37,12 @@ class Audio:
         self.window.ui.nodes['audio.auto_turn'].box.toggled.connect(
             self.window.controller.audio.toggle_auto_turn
         )
-        self.window.ui.nodes['audio.loop'] = ToggleLabel(trans('audio.loop'), label_position="right",
-                                                              parent=self.window)
-        self.window.ui.nodes['audio.loop'].box.toggled.connect(
-            self.window.controller.audio.toggle_loop
-        )
-
         auto_turn_row = QHBoxLayout()
         auto_turn_row.addWidget(self.window.ui.nodes['audio.auto_turn'], 1)
         auto_turn_row.setContentsMargins(0, 0, 0, 0)
 
-        loop_row = QHBoxLayout()
-        loop_row.addWidget(self.window.ui.nodes['audio.loop'], 1)
-        loop_row.setContentsMargins(0, 0, 0, 0)
-
         audio_layout = QVBoxLayout()
         audio_layout.addLayout(auto_turn_row)
-        audio_layout.addLayout(loop_row)
         audio_layout.setContentsMargins(5, 0, 5, 0)
         audio_layout.setSpacing(2)
 

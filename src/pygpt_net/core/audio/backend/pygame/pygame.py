@@ -209,6 +209,28 @@ class PygameBackend:
 
         return result
 
+    def shutdown(self):
+        """Stop SDL audio capture/playback and release pygame resources."""
+        if self.initialized:
+            try:
+                self.stop()
+            except Exception:
+                pass
+            try:
+                self.stop_playback()
+            except Exception:
+                pass
+            try:
+                import pygame
+                pygame.quit()
+            except Exception:
+                pass
+        self.audio_source = None
+        self.playback_sound = None
+        self.initialized = False
+        with self._rt_lock:
+            self._rt_queue.clear()
+
     def has_source(self) -> bool:
         """
         Check if the audio source is available.

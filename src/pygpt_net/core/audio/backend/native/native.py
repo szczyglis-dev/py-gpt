@@ -578,6 +578,30 @@ class NativeBackend(QObject):
             select_output_device=self._select_output_device,
         )
 
+    def shutdown(self):
+        """Hard-stop Qt audio input/output objects owned by this backend."""
+        try:
+            self.stop()
+        except Exception:
+            pass
+        try:
+            self.interrupt_realtime()
+        except Exception:
+            pass
+        try:
+            self.stop_playback()
+        except Exception:
+            pass
+        try:
+            self.stop_timers()
+        except Exception:
+            pass
+        self._rt_session = None
+        self._rt_ctx = None
+        self.audio_source = None
+        self.audio_io_device = None
+        self.initialized = False
+
     def stop_timers(self):
         """Stop playback timers."""
         if self._player is not None:
@@ -766,7 +790,7 @@ class NativeBackend(QObject):
         safe_emit(
             self._rt_signals,
             "response",
-            RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START),
+            RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START, {"ctx": self._rt_ctx}),
         )
 
     def _ensure_rt_session(
@@ -834,7 +858,10 @@ class NativeBackend(QObject):
                 safe_emit(
                     self._rt_signals,
                     "response",
-                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"}),
+                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {
+                        "source": "device",
+                        "ctx": self._rt_ctx,
+                    }),
                 )
             self._rt_session = None
             self._rt_ctx = None

@@ -169,6 +169,25 @@ class Tray:
         self.icon.setContextMenu(menu)
         self.icon.show()
 
+    def shutdown(self):
+        """Hide and detach the system tray icon during application shutdown."""
+        icon = self.icon
+        self.icon = None
+        self.is_tray = False
+        if icon is not None:
+            try:
+                icon.hide()
+                icon.setContextMenu(None)
+                icon.deleteLater()
+            except Exception:
+                pass
+        if self.menu is not None:
+            try:
+                self.menu.close()
+            except Exception:
+                pass
+        self.menu = None
+
     @staticmethod
     def _compact_text(value: str) -> str:
         """Collapse whitespace for one-line tray labels/messages."""

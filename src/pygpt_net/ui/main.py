@@ -369,6 +369,12 @@ class MainWindow(QMainWindow, QtStyleTools):
             return
         self.is_closing = True
         print("Closing...")
+        # Remove the desktop tray surface immediately. If a native audio/provider
+        # teardown needs a moment, the app must not look as if it is still alive.
+        try:
+            self.ui.tray.shutdown()
+        except Exception as e:
+            self.core.debug.log(e)
         print("Stopping camera...")
         try:
             self.controller.camera.shutdown()

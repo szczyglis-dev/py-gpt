@@ -174,7 +174,6 @@ class Mapping:
         nodes['preset.use'] = 'preset.use'
         nodes['cmd.enabled'] = 'cmd.enabled'
         nodes['audio.auto_turn'] = 'audio.auto_turn'
-        nodes['audio.loop'] = 'audio.loop'
         nodes["indexes.label"] = "toolbox.indexes.label"
         nodes["agent.llama.loop.score.label"] = "toolbox.agent.llama.loop.score.label"
         nodes["agent.llama.loop.label"] = "toolbox.agent.llama.loop.label"

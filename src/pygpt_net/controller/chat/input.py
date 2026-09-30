@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.30 16:40:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -270,6 +270,11 @@ class Input:
             self.window.controller.kernel.stop()  # TODO: to chat main
             dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
+
+        # The realtime controller owns text barge-in semantics. ENTER stays usable
+        # while the composer shows STOP: a new typed message first finalizes the
+        # current realtime turn/playback, then proceeds as a normal new request.
+        self.window.controller.realtime.on_user_text_submit(mode=mode, text=text)
 
         # A top-level request may already own a chat while attachments are still
         # being processed (generating can still be False in that phase). Never
