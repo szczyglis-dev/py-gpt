@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 20:45:00                  #
+# Updated Date: 2026.09.30 13:58:00                  #
 # ================================================== #
 
 import html
@@ -43,6 +43,11 @@ class QuickStart:
         ("openai_dalle", "dialog.quick_start.image.desc"),
         ("mcp", "dialog.quick_start.mcp.desc"),
     )
+    DEFAULT_ENABLED_PLUGINS = {
+        "cmd_files",
+        "cmd_code_interpreter",
+        "canvas_web",
+    }
 
     def __init__(self, window=None):
         self.window = window
@@ -242,7 +247,7 @@ class QuickStart:
         row_layout.setAlignment(Qt.AlignTop)
 
         checkbox = QCheckBox(row)
-        checkbox.setChecked(True)
+        checkbox.setChecked(plugin_id in self.DEFAULT_ENABLED_PLUGINS)
         checkbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         text_widget = QWidget(row)
