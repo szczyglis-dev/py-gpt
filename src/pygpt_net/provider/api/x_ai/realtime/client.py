@@ -436,7 +436,11 @@ class xAIIRealtimeClient:
         self._ctx = ctx
         self._last_opts = opts
 
-        # Control primitives
+        # Control primitives. A receiver that died unexpectedly can leave
+        # _response_active=True from the previous socket. A new connection has no
+        # such response, so clear all per-response state before starting it.
+        self._response_active = False
+        self._rt_state = None
         self._response_done = asyncio.Event()
         self._send_lock = asyncio.Lock()
 
@@ -1111,6 +1115,12 @@ class xAIIRealtimeClient:
                 except Exception as e:
                     if self.debug:
                         print(f"[_recv_loop] recv error: {e!r}")
+                    if self._running and self._last_opts:
+                        safe_emit(
+                            self._last_opts.rt_signals,
+                            "response",
+                            RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"error": e}),
+                        )
                     break
 
                 if isinstance(raw, bytes):
@@ -1547,11 +1557,30 @@ class xAIIRealtimeClient:
                     code = (err.get("code") or "")
                     if isinstance(code, str) and code.strip().lower() == "session_expired":
                         self._rt_session_id = None
-                        if self.debug:
-                            print("[_recv_loop] session expired")
-                    if "already has an active response" in (msg or "").lower():
+                        self._response_active = False
                         if self._response_done:
                             self._response_done.set()
+                        if self.debug:
+                            print("[_recv_loop] session expired; closing stale socket")
+                        # The server-side session is no longer usable even if the
+                        # websocket object has not closed yet. Tear it down now so
+                        # is_session_active() becomes false and the next turn
+                        # reconnects instead of silently writing into a dead session.
+                        if self._last_opts:
+                            safe_emit(
+                                self._last_opts.rt_signals,
+                                "response",
+                                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {
+                                    "error": RuntimeError("Realtime session expired")
+                                }),
+                            )
+                        break
+                    if "already has an active response" in (msg or "").lower():
+                        # A duplicate response.create does not mean the active
+                        # response has completed. Keep the turn open and wait for
+                        # the real response.done; marking _response_done here lets
+                        # subsequent microphone turns overlap the still-live one.
+                        self._response_active = True
                         continue
                     if self._response_done:
                         self._response_done.set()
@@ -1563,6 +1592,12 @@ class xAIIRealtimeClient:
         except Exception as e:
             if self.debug:
                 print(f"[_recv_loop] exception: {e!r}")
+            if self._running and self._last_opts:
+                safe_emit(
+                    self._last_opts.rt_signals,
+                    "response",
+                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"error": e}),
+                )
         finally:
             if self.debug:
                 print("[_recv_loop] stopped")
@@ -1578,6 +1613,8 @@ class xAIIRealtimeClient:
                 pass
             self.ws = None
             self._running = False
+            self._response_active = False
+            self._rt_state = None
 
     # -----------------------------
     # Helpers

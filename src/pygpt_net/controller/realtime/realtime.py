@@ -129,6 +129,10 @@ class Realtime:
             QTimer.singleShot(0, lambda: self.manual_commit())
 
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_MANUAL_START:
+            # A manual commit acknowledgement may be lost when a realtime socket
+            # drops between turns. Never let that one-shot guard leak into the
+            # next microphone round.
+            self.manual_commit_sent = False
             self.set_idle()
             self.window.controller.chat.input.execute("...", force=True)
             self.window.dispatch(KernelEvent(KernelEvent.STATUS, {
@@ -161,7 +165,12 @@ class Realtime:
                             None,
                         )
                         if callable(restore_follow):
-                            restore_follow(ctx.meta)
+                            # Sending a new microphone turn already returns scroll
+                            # ownership to FOLLOW. Reassert it on the first visible
+                            # assistant token as well: loader/input DOM changes can
+                            # otherwise make Chromium classify the intermediate
+                            # geometry shift as a manual scroll.
+                            restore_follow(ctx.meta, force=True)
                     except Exception:
                         pass
 
@@ -194,6 +203,7 @@ class Realtime:
         # audio end: on stop audio playback
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_END:
             self._playback_ctx = None
+            self.manual_commit_sent = False
             self.set_idle()
             self.window.controller.chat.common.unlock_input()
             if self.is_loop():
@@ -201,6 +211,7 @@ class Realtime:
 
         # end of turn: finalize the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TURN_END:
+            self.manual_commit_sent = False
             self.set_idle()
             ctx = event.data.get('ctx', None)
             finished = self.end_turn(ctx) if ctx else True
@@ -220,6 +231,7 @@ class Realtime:
         # error: audio output error
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_ERROR:
             self._playback_ctx = None
+            self.manual_commit_sent = False
             self.set_idle()
             error = event.data.get("error")
             self.window.core.debug.log(error)
@@ -391,6 +403,7 @@ class Realtime:
         self._continuation_text_started.clear()
         self._realtime_follow_checked.clear()
         self._playback_ctx = None
+        self.manual_commit_sent = False
         try:
             self.window.core.api.openai.realtime.reset()
         except Exception as e:

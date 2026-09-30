@@ -331,7 +331,7 @@ class Plugin(BasePlugin):
             self.toggle_speech(data['value'])
 
         elif name == Event.AUDIO_INPUT_RECORD_TOGGLE:
-            state = data['state'] if 'value' in data else None
+            state = data['state'] if 'state' in data else None
             auto = data['auto'] if 'auto' in data else False
             self.toggle_recording_simple(state=state, auto=auto)
 
