@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 19:42:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -36,6 +36,9 @@ class OllamaLLM(BaseLLM):
         self.id = "ollama"
         self.name = "Ollama"
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        return {"openai_compatible": True}
 
     def completion(
             self,

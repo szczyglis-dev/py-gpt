@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 14:42:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 FORGE_DEFAULT_BASE_URL = "https://api.forge.tensorblock.co/v1"
@@ -14,6 +14,7 @@ FORGE_DEFAULT_BASE_URL = "https://api.forge.tensorblock.co/v1"
 
 def setup() -> dict:
     return {
+        "openai_compatible": True,
         "settings": {
             "api_key": {
                 "type": "str",

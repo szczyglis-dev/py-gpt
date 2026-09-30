@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 10:10:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 import os
@@ -64,7 +64,9 @@ class Model:
                     if model_data is not None and model_data.is_ollama():
                         if (mode == MODE_LLAMA_INDEX or
                                 (
-                                        mode == MODE_CHAT and not model_data.is_openai_supported() and model_data.is_ollama()
+                                        mode == MODE_CHAT
+                                        and not self.window.core.llm.is_openai_compatible(model_data.provider)
+                                        and model_data.is_ollama()
                                 )
                         ):
                             model_id = (model_data.get_ollama_model() or "").strip()

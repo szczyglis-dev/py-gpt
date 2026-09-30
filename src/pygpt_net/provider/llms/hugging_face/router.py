@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -38,7 +38,9 @@ class HuggingFaceRouterLLM(BaseLLM):
 
     def setup(self) -> dict:
         from .config import setup
-        return setup()
+        data = setup()
+        data["openai_compatible"] = True
+        return data
 
     def completion(
             self,

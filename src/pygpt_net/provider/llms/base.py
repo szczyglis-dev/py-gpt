@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 import os
@@ -40,13 +40,27 @@ class BaseLLM:
     def setup(self) -> dict:
         """Return provider-owned setup metadata.
 
-        Providers expose their API configuration here instead of relying on a
-        central, hard-coded list in ``settings.json``.  The ``settings`` dict
-        may contain ``api_key``, ``api_base`` and an ``extra`` mapping.
-        The sibling ``remote_tools`` mapping declares tool switches and all
-        their parameters, stored in ``providers[config_id][remote_tools]``.
+        Providers expose their capabilities and API configuration here instead
+        of relying on central, hard-coded provider lists. ``openai_compatible``
+        declares whether the provider can use the OpenAI-compatible direct API
+        transport. The ``settings`` dict may contain ``api_key``, ``api_base``
+        and an ``extra`` mapping. The sibling ``remote_tools`` mapping declares
+        tool switches and all their parameters, stored in
+        ``providers[config_id][remote_tools]``.
         """
-        return {"settings": {}, "remote_tools": {}}
+        return {
+            "openai_compatible": False,
+            "settings": {},
+            "remote_tools": {},
+        }
+
+    def is_openai_compatible(self) -> bool:
+        """Return whether this provider exposes an OpenAI-compatible API."""
+        try:
+            setup = self.setup() or {}
+        except Exception:
+            return False
+        return bool(setup.get("openai_compatible", False)) if isinstance(setup, dict) else False
 
     def get_remote_tools_schema(self) -> dict:
         """Provider-owned fields, including tool switches and tool parameters.

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 12:30:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -39,6 +39,9 @@ class CustomLLM(BaseLLM):
         self.api_key = api_key or ""
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
         self.is_runtime_custom = True
+
+    def setup(self) -> dict:
+        return {"openai_compatible": True}
 
     def get_api_key(self) -> str:
         """Return configured API key or a harmless SDK placeholder for no-auth endpoints."""

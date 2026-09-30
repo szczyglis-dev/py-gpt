@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 import hashlib
@@ -159,6 +159,13 @@ class LLM:
         """
         self.sync_custom()
         return self.llms[id] if id in self.llms else None
+
+    def is_openai_compatible(self, provider_id: str) -> bool:
+        """Return whether a registered provider exposes an OpenAI-compatible API."""
+        provider = self.get(provider_id)
+        if provider is None or not hasattr(provider, "is_openai_compatible"):
+            return False
+        return bool(provider.is_openai_compatible())
 
     def get_config(self, provider_id: str, key: str, default: Any = None) -> Any:
         """Read provider-scoped config through the registered provider."""
