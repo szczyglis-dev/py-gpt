@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 20:00:00                  #
+# Updated Date: 2026.09.30 19:20:00
 # ================================================== #
 
 import copy
@@ -553,21 +553,53 @@ class Config:
 
     def get_available_langs(self) -> list:
         """
-        Return list with available languages
+        Return list with available languages.
 
-        :return: list with available languages (user + app)
+        Sources include bundled locales, application-wide locale overrides,
+        application-wide Locale Add-ons, and the active profile override.
+
+        :return: list with available languages
         """
         langs_set = set()
-        path_app = os.path.join(self.get_app_path(), 'data', 'locale')
-        if os.path.exists(path_app):
-            for file in os.listdir(path_app):
-                if file.startswith('locale.') and file.endswith(".ini"):
-                    langs_set.add(file.replace('locale.', '').replace('.ini', ''))
-        path_user = os.path.join(self.get_user_path(), 'locale')
-        if os.path.exists(path_user):
-            for file in os.listdir(path_user):
-                if file.startswith('locale.') and file.endswith(".ini"):
-                    langs_set.add(file.replace('locale.', '').replace('.ini', ''))
+
+        def scan(path: str):
+            if not os.path.isdir(path):
+                return
+            try:
+                files = os.listdir(path)
+            except OSError:
+                return
+            for file in files:
+                if file.startswith('locale.') and file.endswith('.ini'):
+                    langs_set.add(file[len('locale.'):-len('.ini')])
+
+        scan(os.path.join(self.get_app_path(), 'data', 'locale'))
+        scan(os.path.join(self.get_base_workdir(), 'locale'))
+
+        # Static Locale Add-ons are read directly from the global Add-ons tree.
+        addons_root = os.path.join(self.get_base_workdir(), 'addons', 'locale')
+        if os.path.isdir(addons_root):
+            try:
+                entries = os.scandir(addons_root)
+            except OSError:
+                entries = []
+            try:
+                for entry in entries:
+                    if entry.name.startswith('.'):
+                        continue
+                    try:
+                        if not entry.is_dir() or entry.is_symlink():
+                            continue
+                    except OSError:
+                        continue
+                    nested = os.path.join(entry.path, 'locale')
+                    scan(nested if os.path.isdir(nested) else entry.path)
+            finally:
+                close = getattr(entries, 'close', None)
+                if callable(close):
+                    close()
+
+        scan(os.path.join(self.get_user_path(), 'locale'))
         langs = sorted(langs_set)
         if 'en' in langs:
             langs.remove('en')

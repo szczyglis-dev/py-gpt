@@ -12,10 +12,34 @@ The examples shipped in the main repository under ``examples/addons`` and in the
 What is an Add-on?
 ------------------
 
-An Add-on is a profile-scoped extension installed below ``%workdir%/addons``. Every package has a ``manifest.json`` and either:
+An Add-on is an application-wide extension installed below ``<application base workdir>/addons``. The application base workdir is the directory that owns ``path.cfg`` (normally ``{HOME_DIR}/.config/pygpt-net/``); it is independent of the currently active profile workdir. Every package has a ``manifest.json`` and either:
 
 * a Python entry point that returns an object derived from one of PyGPT's supported base classes, or
 * static theme/locale files handled by the existing theme/translation loaders.
+
+Storage scope and migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting with PyGPT 2.8.36, the installed Add-on tree is **shared by all profiles**:
+
+.. code-block:: text
+
+   <application base workdir>/
+   ├── path.cfg
+   ├── addons/
+   │   ├── .registry.json
+   │   ├── plugins/
+   │   ├── tools/
+   │   ├── llms/
+   │   └── ...
+   ├── sandbox/
+   └── extra_packages/
+
+``path.cfg`` may redirect the active profile to another workdir, but it does not move ``addons``. Installing, updating or removing an Add-on therefore changes the Add-on set for the whole PyGPT application, not only for the currently selected profile.
+
+When upgrading from 2.8.35 or earlier, PyGPT migrates a legacy ``<profile workdir>/addons`` directory into the application base workdir. If the global destination does not exist, the complete directory is moved. If it already contains Add-ons from another migrated profile, missing packages are merged, byte-identical packages are deduplicated, and a package with the same ``type/id`` but different contents is **not overwritten**; PyGPT keeps the global copy and leaves the conflicting legacy profile copy in place while printing a warning. This avoids silent data loss when old profiles contained different revisions of the same Add-on.
+
+The Add-on registry is global as well. Static ``theme`` and ``locale`` Add-ons are fully application-wide too: PyGPT reads their assets directly from ``<application base workdir>/addons/themes`` and ``<application base workdir>/addons/locale``. Their files are **not** copied or mirrored into the active profile. Existing profile-local ``css`` and ``locale`` directories remain supported only as explicit user overrides.
 
 Canonical Add-on types are:
 
@@ -110,7 +134,7 @@ For manual installation, PyGPT stores it as:
 
 .. code-block:: text
 
-   %workdir%/addons/plugins/my_plugin/
+   <application base workdir>/addons/plugins/my_plugin/
    ├── manifest.json
    ├── plugin.py
    ├── locale/
@@ -301,7 +325,7 @@ The recommended path is the same path users will use:
 Manual-copy test
 ~~~~~~~~~~~~~~~~
 
-For a faster low-level test you can copy a package directly to the type directory under ``%workdir%/addons``. Keep the exact layout and restart the application. This bypasses installer metadata such as source/trusted/official flags, so use the installer before release testing.
+For a faster low-level test you can copy a package directly to the type directory under ``<application base workdir>/addons``. Keep the exact layout and restart the application. This bypasses installer metadata such as source/trusted/official flags, so use the installer before release testing.
 
 Debugging
 ~~~~~~~~~
@@ -318,7 +342,7 @@ A broken Add-on is isolated during startup. Invalid manifests, incompatible mini
 Add-on-owned translations
 -------------------------
 
-Runtime Add-ons can ship their **own private translation domain**. This is different from a ``type: locale`` Add-on: a locale Add-on installs global/profile locale files, while an Add-on-owned ``locale/`` directory belongs to one executable Add-on and is automatically scoped to that package.
+Runtime Add-ons can ship their **own private translation domain**. This is different from a ``type: locale`` Add-on: a locale Add-on extends the application's main translation domain and is read directly from the application-wide ``addons/locale/<id>`` package, while an Add-on-owned ``locale/`` directory belongs to one executable Add-on and is automatically scoped to that package.
 
 Supported runtime types are ``plugin``, ``tool``, ``llm``, ``vector_store``, ``loader``, ``audio_input``, ``audio_output``, ``web`` and ``agent``. No manifest flag is required. If the installed Add-on root contains a directory named ``locale``, PyGPT detects it while loading the Add-on and binds it to every runtime object returned by that manifest.
 
@@ -385,7 +409,7 @@ A custom domain is loaded in this order:
 
 #. ``locale.en.ini`` from the Add-on directory (English baseline).
 #. ``locale.<active-lang>.ini`` from the Add-on directory, if present.
-#. ``%workdir%/locale/addon.<manifest_id>.<lang>.ini`` as the profile/user override.
+#. ``<profile workdir>/locale/addon.<manifest_id>.<lang>.ini`` as the profile/user override.
 
 A missing key in the selected Add-on domain falls back to the normal application locale domain. This makes it possible to reuse common PyGPT keys without duplicating them in every Add-on.
 
@@ -535,7 +559,7 @@ Python Add-ons are discovered and registered during application startup. The sim
 
 .. code-block:: text
 
-   discover %workdir%/addons
+   discover <application base workdir>/addons
         |
         v
    validate manifest + min_app_version
@@ -561,7 +585,7 @@ Python Add-ons are discovered and registered during application startup. The sim
         v
    shutdown hooks
 
-Python Add-ons are process-level registrations. After installation/uninstallation, or after switching to a profile with a different Python Add-on set, restart PyGPT before relying on the new runtime set. Static theme/locale packages can be synchronized through their existing loaders, but a restart is still a safe development workflow.
+Python Add-ons are process-level registrations. Because the installed package tree is application-wide, switching profiles does **not** select a different Python Add-on set. Restart PyGPT after installing, updating or uninstalling a runtime Add-on so the process-level registry is rebuilt. Static theme/locale packages are application-wide as well and are read directly from the global Add-ons tree; profile switching does not copy or synchronize their payloads.
 
 Publishing on GitHub and in the public registry
 -----------------------------------------------
@@ -663,13 +687,19 @@ Read/write application configuration:
    self.window.core.config.set("some.key", True)
    self.window.core.config.save()
 
-Resolve profile/application paths:
+Resolve application/profile paths:
 
 .. code-block:: python
 
+   import os
+
+   app_base_workdir = self.window.core.config.get_base_workdir()
+   addons_dir = os.path.join(app_base_workdir, "addons")
    profile_workdir = self.window.core.config.get_user_path()
    index_dir = self.window.core.config.get_user_dir("idx")
    data_workdir = self.window.core.config.get_workdir_prefix(ctx=event.ctx)
+
+``get_base_workdir()`` returns the application-wide root used by ``addons``, ``sandbox`` and ``extra_packages``. ``get_user_path()`` returns the active profile workdir and may point somewhere else through ``path.cfg``.
 
 Dispatch a normal application event:
 
@@ -2286,7 +2316,7 @@ What a Theme Add-on is for
 
 A ``theme`` Add-on packages PyGPT application/chat styling without executing Python code. Use it to distribute a complete visual theme or an override of one or more normal theme files. Theme packages have no Python base class and no ``entrypoint`` in the manifest.
 
-The Add-on ID becomes the installed theme ID. Files may live directly in the Add-on root or in a ``theme`` subdirectory; PyGPT deploys the files into the normal profile theme directory and the existing theme loader handles them exactly like local custom theme files.
+The Add-on ID becomes the installed theme ID. Files may live directly in the Add-on root or in a ``theme`` subdirectory. PyGPT reads those files **in place** from ``<application base workdir>/addons/themes/<id>``; nothing is copied into a profile's ``css`` directory.
 
 Package layout
 ~~~~~~~~~~~~~~
@@ -2306,7 +2336,7 @@ Theme files have the same responsibilities as normal PyGPT themes:
 * ``app.xml`` - qt-material palette when supplied;
 * ``chat.css`` - chat/WebView CSS.
 
-Only files present in the package are deployed, so an Add-on may intentionally override only a subset.
+Only files present in the package participate in the theme layers, so an Add-on may intentionally override only a subset. The effective order is bundled theme data -> application-base custom ``css`` -> Theme Add-on -> active-profile ``css`` override.
 
 Naming and compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2321,7 +2351,7 @@ Locale Add-ons
 What a Locale Add-on is for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A ``locale`` Add-on distributes translation files without executing Python code. It is useful for adding a new language or shipping maintained **global/profile** overrides and additional translation keys independently from the main PyGPT release. Locale packages have no Python base class and no ``entrypoint``.
+A ``locale`` Add-on distributes translation files without executing Python code. The package is fully application-wide and its files are read directly from ``<application base workdir>/addons/locale/<id>``. Nothing is copied into a profile's ``locale`` directory. It is useful for adding a new language or shipping maintained overrides and additional translation keys independently from the main PyGPT release. Locale packages have no Python base class and no ``entrypoint``.
 
 This is separate from the private ``locale/`` directory supported by runtime Add-ons. If a plugin/tool/provider only needs translations for its own UI and settings, keep those files inside that runtime Add-on and use its automatic ``addon.<manifest_id>`` domain instead of publishing a second ``type: locale`` package.
 
@@ -2347,7 +2377,7 @@ Use the same key/value format and language-code naming convention as files in ``
 Runtime behavior
 ~~~~~~~~~~~~~~~~
 
-PyGPT deploys locale files into the profile locale override directory through the existing locale loader. Translation keys from the installed files are then available to the normal ``trans(...)`` infrastructure and to UI components that support live language refresh.
+PyGPT loads locale files directly from every installed ``addons/locale/<id>`` package. Files may be placed in the package root or in its ``locale`` subdirectory. For the main application locale the effective order is bundled locale -> application-base ``locale`` override -> Locale Add-ons -> active-profile ``locale`` override. Translation keys are then available to the normal ``trans(...)`` infrastructure and to UI components that support live language refresh.
 
 Treat locale Add-ons as data packages: do not include Python startup logic just to register translations. If an extension also needs executable behavior, package that behavior as the appropriate runtime Add-on type instead of hiding code in a locale package.
 
@@ -2356,7 +2386,7 @@ When overriding existing keys, test both initial application startup and a runti
 Using a custom launcher instead of an installed Add-on
 ------------------------------------------------------
 
-Installed Add-ons are recommended for redistributable profile-scoped extensions. A custom launcher remains useful when you control application startup and want to create/register objects programmatically.
+Installed Add-ons are recommended for redistributable application-wide extensions. A custom launcher remains useful when you control application startup and want to create/register objects programmatically.
 
 All runtime Add-on types map to the same launcher methods used by the external loader:
 

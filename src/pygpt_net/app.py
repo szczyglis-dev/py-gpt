@@ -609,7 +609,7 @@ def run(**kwargs):
             for tool in tools:
                 launcher.add_tool(tool)
 
-        # register profile-scoped external add-ons
+        # register application-wide external add-ons
         # Broken or incompatible add-ons are isolated and reported as warnings.
         # The external loader itself is also non-fatal: third-party code must not
         # prevent PyGPT from reaching the normal application startup path.

@@ -267,7 +267,13 @@ class Locale:
         return text
 
     def get_paths(self, domain: str, lang: str) -> List[str]:
-        """Return ordered locale file paths for a domain and language."""
+        """Return ordered locale file paths for a domain and language.
+
+        Precedence is bundled/registered domain data -> application-base locale
+        overrides -> application-wide Locale Add-ons -> active-profile override.
+        Locale Add-ons extend only the main ``locale`` domain; runtime Add-on
+        domains keep using their own registered ``locale/`` directory.
+        """
         registered = self.get_domain_dirs(domain)
         if registered:
             paths = [os.path.join(path, f'locale.{lang}.ini') for path in registered]
@@ -281,11 +287,72 @@ class Locale:
         else:
             paths = [self.get_base_path(domain, lang)]
 
-        # Keep the existing profile override mechanism as the last source. This
-        # remains useful for the main locale and for users overriding a custom
-        # logical domain without modifying an add-on directory.
+        # Manual locale overrides stored in the application base workdir are
+        # shared by every profile. This path may be equal to the active profile
+        # path for the default profile, so de-duplicate below.
+        paths.append(self.get_app_workdir_locale_path(domain, lang))
+
+        # Static Locale Add-ons are application-wide from 2.8.36. Read their
+        # locale.<lang>.ini files in-place instead of mirroring them into a
+        # profile's locale directory. Package layout may be either:
+        #   addons/locale/<id>/locale.<lang>.ini
+        # or:
+        #   addons/locale/<id>/locale/locale.<lang>.ini
+        if domain == self.default_domain:
+            paths.extend(self.get_addon_locale_paths(lang))
+
+        # A profile-local locale directory remains a final explicit override for
+        # backwards compatibility and per-profile customization. Add-ons never
+        # copy files there.
         paths.append(self.get_user_path(domain, lang))
-        return paths
+
+        result = []
+        seen = set()
+        for path in paths:
+            key = os.path.normcase(os.path.realpath(path))
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(path)
+        return result
+
+    def get_app_workdir_locale_path(self, domain: str, lang: str) -> str:
+        """Return application-wide manual locale override path."""
+        return os.path.join(
+            self.config.get_base_workdir(),
+            'locale',
+            f'{domain}.{lang}.ini'
+        )
+
+    def get_addon_locale_paths(self, lang: str) -> List[str]:
+        """Return locale files supplied by application-wide Locale Add-ons."""
+        root = os.path.join(self.config.get_base_workdir(), 'addons', 'locale')
+        if not os.path.isdir(root):
+            return []
+
+        result = []
+        try:
+            entries = sorted(os.scandir(root), key=lambda item: item.name.casefold())
+        except OSError:
+            return []
+
+        filename = f'locale.{lang}.ini'
+        for entry in entries:
+            if entry.name.startswith('.'):
+                continue
+            try:
+                if not entry.is_dir() or entry.is_symlink():
+                    continue
+            except OSError:
+                continue
+
+            package = entry.path
+            nested = os.path.join(package, 'locale')
+            payload = nested if os.path.isdir(nested) else package
+            path = os.path.join(payload, filename)
+            if os.path.isfile(path):
+                result.append(path)
+        return result
 
     def get_base_path(
             self,

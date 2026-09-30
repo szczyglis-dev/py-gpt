@@ -71,14 +71,14 @@ class WorkdirSizeWorker(QRunnable):
         profile_total = 0
         full_total = 0
         try:
-            # sandbox and extra_packages are application-wide resources in the
-            # base workdir, never profile data. Prune stale legacy copies from
-            # the active workdir too. The second value adds the current global
-            # built-in sandbox explicitly, regardless of which profile/workdir
-            # is active. extra_packages intentionally remains excluded.
+            # sandbox, extra_packages and addons are application-wide resources
+            # in the base workdir, never profile data. Prune stale legacy copies
+            # from the active workdir too. The second value adds the current
+            # global built-in sandbox explicitly; extra_packages/addons remain
+            # intentionally excluded from the workdir-size figure.
             profile_total = self._tree_size(
                 self.path,
-                prune_top_level=("sandbox", "extra_packages"),
+                prune_top_level=("sandbox", "extra_packages", "addons"),
             )
             sandbox_total = self._tree_size(self.sandbox_path)
             full_total = profile_total + sandbox_total

@@ -36,7 +36,7 @@ For the complete external package format, lifecycle, Package Manager integration
 External Add-ons
 -------------------
 
-PyGPT can load profile-scoped external add-ons directly from ``%workdir%/addons``. This is the recommended way to distribute Python add-ons that must work with both source installations and compiled PyInstaller builds, because the add-on code remains outside the application bundle and is imported by the embedded Python runtime at startup.
+PyGPT can load application-wide external add-ons directly from ``<application base workdir>/addons``. This is the recommended way to distribute Python add-ons that must work with both source installations and compiled PyInstaller builds, because the add-on code remains outside the application bundle and is imported by the embedded Python runtime at startup.
 
 Supported add-on types are:
 
@@ -52,7 +52,7 @@ Supported add-on types are:
 * ``theme`` -> ``addons/themes``
 * ``locale`` -> ``addons/locale``
 
-The Python add-on types are registered into the same runtime registries as built-in components. Themes and locale packages are mirrored into the existing profile ``css`` and ``locale`` locations so the normal theme/translation loaders continue to be used.
+The Python add-on types are registered into the same runtime registries as built-in components. Theme and locale packages are static application-wide resources: the theme/translation loaders read them directly from ``addons/themes`` and ``addons/locale`` without copying files into a profile.
 
 Installing ready-made Add-ons
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,7 +76,7 @@ You can change the registry URL in the **Explore** tab. A normal GitHub reposito
 
    External Python add-ons execute with the same process permissions as PyGPT. They can import Python modules, access files available to the process, use the network, and call any APIs exposed by installed dependencies. The **trusted** and **official** flags are registry metadata, not a sandbox or a security guarantee. Review source code and repository ownership before installing an add-on.
 
-Python add-ons are loaded on application startup. After installing or uninstalling one, restart PyGPT before relying on the runtime change. If you switch to another profile with a different set of Python add-ons, restart PyGPT so the process-level runtime registry is rebuilt from that profile. Theme and locale add-ons can be synchronized during profile reload because they use the existing profile theme/locale loaders.
+Python add-ons are loaded on application startup. After installing, updating or uninstalling one, restart PyGPT before relying on the runtime change. The installed Add-on set is shared by all profiles, so switching profiles does not select another Python Add-on tree. Theme and locale packages are global too and are read in place from the same application-wide Add-ons tree.
 
 An invalid add-on never aborts the whole application startup. Missing manifests, unsupported manifest versions, incompatible minimum PyGPT versions, broken imports, invalid entry points and registration errors are skipped individually and reported as ``[Add-ons] WARNING`` messages in the console/log output.
 
@@ -87,7 +87,7 @@ A plugin installed manually can look like this:
 
 .. code-block:: text
 
-   %workdir%/addons/
+   <application base workdir>/addons/
    └── plugins/
        └── my_plugin/
            ├── manifest.json
@@ -187,7 +187,7 @@ For a minimal plugin:
            super().__init__()
            self.id = "my_external_plugin"
            self.name = "My External Plugin"
-           self.description = "Loaded from %workdir%/addons."
+           self.description = "Loaded from the application-wide addons directory."
            self.type = ["cmd"]
 
 Save it as ``plugin.py`` next to the manifest and set ``"entrypoint": "plugin.py:Plugin"``. The normal plugin API, options, commands and event hooks are identical to those used by built-in plugins.
@@ -228,7 +228,7 @@ A locale package uses ``"type": "locale"`` and does not require an entry point. 
        ├── locale.en.ini
        └── locale.pl.ini
 
-They are installed into the profile ``%workdir%/locale`` directory and are handled by the existing locale override mechanism.
+They are read directly from ``<application base workdir>/addons/locale/<id>`` and extend the normal application locale domain. No locale files are copied into ``%workdir%/locale``.
 
 GitHub repositories and monorepos
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -302,12 +302,12 @@ Registry files for Agent Skills and MCP Connectors are hosted in the same reposi
 Profile portability
 ~~~~~~~~~~~~~~~~~~~
 
-The ``addons`` directory is part of profile configuration export/import. Exporting **Config files** therefore carries installed add-on packages and their local registry metadata together with the profile. Code add-ons are rediscovered on the next application startup after the imported profile is activated.
+The ``addons`` directory is **not** part of profile export/import starting with 2.8.36. Installed packages and their registry belong to the application base workdir and remain available when profiles are exported, imported, duplicated or switched. Older profile archives that still contain ``addons`` entries do not restore them into the imported profile.
 
 Legacy custom launcher registration
 -----------------------------------
 
-The external Add-ons manager is the normal choice for redistributable profile-scoped packages. A custom launcher remains supported when you control application startup directly or need to construct add-on objects programmatically.
+The external Add-ons manager is the normal choice for redistributable application-wide packages. A custom launcher remains supported when you control application startup directly or need to construct add-on objects programmatically.
 
 Registering components programmatically
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

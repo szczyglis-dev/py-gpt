@@ -46,7 +46,7 @@ class ExtensionAlreadyInstalled(ExtensionError):
 
 
 class Extensions:
-    """Profile-scoped external extension discovery, installation and runtime loader."""
+    """Application-wide external extension discovery, installation and runtime loader."""
 
     MANIFEST_FILENAME = "manifest.json"
     MANIFEST_VERSION = 1
@@ -123,25 +123,25 @@ class Extensions:
     # PATHS / REGISTRY -------------------------------------------------
 
     def get_root_dir(self, create: bool = True, profile_dir: Optional[str] = None) -> str:
-        base = os.path.abspath(profile_dir or self.window.core.config.get_user_path())
+        # Add-ons are application-wide from 2.8.36. ``profile_dir`` is retained
+        # as a compatibility/test override for callers that need to inspect an
+        # explicit tree; normal runtime code always uses get_base_workdir().
+        base = os.path.abspath(profile_dir or self.window.core.config.get_base_workdir())
         path = os.path.join(base, self.ROOT_DIRNAME)
         legacy = os.path.join(base, self.LEGACY_ROOT_DIRNAME)
 
-        # 2.8.32 initially used %workdir%/extensions. Move that profile-scoped
-        # directory atomically when possible so existing installations keep all
-        # installed add-ons after the public folder name changes to ``addons``.
+        # 2.8.32 initially used ``extensions``. Keep the old rename fallback in
+        # the application base workdir for installations that skipped versions.
         if not os.path.exists(path) and os.path.isdir(legacy) and not os.path.islink(legacy):
             try:
                 os.replace(legacy, path)
             except OSError as exc:
-                # Keep the old location usable if migration cannot be completed
-                # (for example because of permissions), rather than hiding all
-                # previously installed add-ons from the current profile.
                 self._warn(f"Could not migrate legacy add-ons directory to '{path}': {exc}")
                 path = legacy
 
         if create:
             os.makedirs(path, exist_ok=True)
+
         return path
 
     def get_registry_path(self, profile_dir: Optional[str] = None) -> str:
@@ -391,26 +391,24 @@ class Extensions:
                 raise ExtensionAlreadyInstalled(f"Add-on '{manifest['id']}' is already installed")
             # Clean an invalid/unregistered leftover at the exact destination too.
             shutil.rmtree(destination)
-        self._check_static_conflicts(manifest, source)
-        deployed = []
+        self._validate_static_package(manifest, source)
         try:
             shutil.copytree(source, destination, symlinks=False)
             installed = self.read_manifest(destination)
-            deployed = self._deploy_static(installed)
+            self._validate_static_package(installed, destination)
             registry = self._load_registry()
-            registry.setdefault("items", {})[installed["id"]] = {
+            meta = {
                 "type": installed["type"],
                 "source": source_name,
                 "source_url": source_url,
                 "github_path": github_path,
                 "trusted": bool(trusted),
                 "official": bool(official),
-                "deployed": deployed,
                 "installed_at": datetime.now(timezone.utc).isoformat(),
             }
+            registry.setdefault("items", {})[installed["id"]] = meta
             self._save_registry(registry)
         except Exception:
-            self._remove_deployed(deployed)
             shutil.rmtree(destination, ignore_errors=True)
             raise
         installed.update({
@@ -537,7 +535,7 @@ class Extensions:
         registry = self._load_registry()
         meta = registry.get("items", {}).get(extension_id, {})
         found = False
-        self._remove_deployed(meta.get("deployed") or [])
+        self._cleanup_legacy_deployments(meta)
         for ext_type in self.TYPE_DIRS:
             path = self.get_extension_dir(ext_type, extension_id, create_parent=False)
             if os.path.isdir(path):
@@ -567,61 +565,71 @@ class Extensions:
 
     # STATIC EXTENSIONS ------------------------------------------------
 
-    def _check_static_conflicts(self, manifest: dict, source: str):
-        ext_type = manifest["type"]
-        workdir = self.window.core.config.get_user_path()
-        registry = self._load_registry().get("items", {})
-        owned = registry.get(manifest["id"], {}).get("deployed", []) if isinstance(registry, dict) else []
-        owned_abs = {os.path.realpath(os.path.join(workdir, p)) for p in owned}
-        if ext_type == "theme":
-            target = os.path.realpath(os.path.join(workdir, "css", manifest["id"]))
-            if os.path.exists(target) and target not in owned_abs:
-                raise ExtensionError(f"Theme destination already exists: {target}")
-        elif ext_type == "locale":
-            src = os.path.join(source, "locale") if os.path.isdir(os.path.join(source, "locale")) else source
-            for path in Path(src).glob("*.ini"):
-                target = os.path.realpath(os.path.join(workdir, "locale", path.name))
-                if os.path.exists(target) and target not in owned_abs:
-                    raise ExtensionError(f"Locale destination already exists: {target}")
+    @staticmethod
+    def _static_payload_dir(ext_type: str, root: str) -> str:
+        """Return the data directory inside a static Add-on package."""
+        subdir = "theme" if ext_type == "theme" else "locale"
+        nested = os.path.join(root, subdir)
+        return nested if os.path.isdir(nested) else root
 
-    def _deploy_static(self, manifest: dict) -> List[str]:
+    def _validate_static_package(self, manifest: dict, source: str):
+        """Validate theme/locale payloads without copying them into a profile."""
         ext_type = manifest["type"]
         if ext_type not in self.STATIC_TYPES:
-            return []
-        root = manifest["_path"]
-        workdir = os.path.abspath(self.window.core.config.get_user_path())
-        deployed: List[str] = []
-        try:
-            if ext_type == "theme":
-                source = os.path.join(root, "theme") if os.path.isdir(os.path.join(root, "theme")) else root
-                files = [name for name in ("app.css", "app.xml", "chat.css") if os.path.isfile(os.path.join(source, name))]
-                if not files:
-                    raise ExtensionError("Theme add-on contains no app.css, app.xml or chat.css")
-                destination = os.path.join(workdir, "css", manifest["id"])
-                rel = os.path.relpath(destination, workdir).replace(os.sep, "/")
-                deployed.append(rel)
-                os.makedirs(destination, exist_ok=True)
-                for name in files:
-                    shutil.copy2(os.path.join(source, name), os.path.join(destination, name))
-            elif ext_type == "locale":
-                source = os.path.join(root, "locale") if os.path.isdir(os.path.join(root, "locale")) else root
-                destination = os.path.join(workdir, "locale")
-                os.makedirs(destination, exist_ok=True)
-                files = list(Path(source).glob("*.ini"))
-                if not files:
-                    raise ExtensionError("Locale add-on contains no .ini files")
-                for src in files:
-                    dst = os.path.join(destination, src.name)
-                    rel = os.path.relpath(dst, workdir).replace(os.sep, "/")
-                    deployed.append(rel)
-                    shutil.copy2(str(src), dst)
-            return deployed
-        except Exception:
-            self._remove_deployed(deployed)
-            raise
+            return
+        payload = self._static_payload_dir(ext_type, source)
+        if ext_type == "theme":
+            files = [
+                name for name in ("app.css", "app.xml", "chat.css")
+                if os.path.isfile(os.path.join(payload, name))
+            ]
+            if not files:
+                raise ExtensionError("Theme add-on contains no app.css, app.xml or chat.css")
+        elif ext_type == "locale":
+            files = list(Path(payload).glob("locale.*.ini"))
+            if not files:
+                raise ExtensionError("Locale add-on contains no locale.<lang>.ini files")
 
-    def _remove_deployed(self, deployed: Iterable[str]):
-        workdir = os.path.realpath(self.window.core.config.get_user_path())
+    def _cleanup_legacy_deployments(self, meta: dict) -> bool:
+        """Remove files mirrored by <=2.8.35 / early 2.8.36 static loaders.
+
+        Static Add-ons are now read in place from the application-wide Add-ons
+        tree. Registry deployment metadata is retained only long enough to
+        safely remove files PyGPT itself previously copied into profile css/
+        and locale/ directories. User-created files not listed in that metadata
+        are never touched.
+        """
+        if not isinstance(meta, dict):
+            return False
+        changed = False
+        deployed_profiles = meta.pop("deployed_profiles", None)
+        if isinstance(deployed_profiles, dict):
+            for key, deployed in deployed_profiles.items():
+                workdir = self._profile_workdir_for_key(key)
+                if workdir:
+                    self._remove_deployed(deployed or [], workdir=workdir)
+            changed = True
+        deployed = meta.pop("deployed", None)
+        if isinstance(deployed, list):
+            self._remove_deployed(deployed)
+            changed = True
+        return changed
+
+    def _profile_workdir_for_key(self, key: str) -> Optional[str]:
+        if str(key).startswith("workdir:"):
+            return str(key)[len("workdir:"):] or None
+        if str(key).startswith("profile:"):
+            profile_id = str(key)[len("profile:"):]
+            profile = getattr(self.window.core.config, "profile", None)
+            data = profile.get(profile_id) if profile is not None else None
+            if isinstance(data, dict):
+                raw = str(data.get("workdir") or "").replace("%HOME%", str(Path.home()))
+                return raw or None
+        return None
+
+    def _remove_deployed(self, deployed: Iterable[str], workdir: Optional[str] = None):
+        """Remove only legacy static assets explicitly recorded as PyGPT-owned."""
+        workdir = os.path.realpath(workdir or self.window.core.config.get_user_path())
         allowed_roots = (
             os.path.realpath(os.path.join(workdir, "css")),
             os.path.realpath(os.path.join(workdir, "locale")),
@@ -639,54 +647,59 @@ class Extensions:
             except OSError as exc:
                 self._warn(f"Cannot remove deployed add-on asset {path}: {exc}")
 
-    # RUNTIME LOADING --------------------------------------------------
-
     def sync_static_extensions(self):
+        """Validate static packages and retire legacy profile mirrors.
+
+        Theme and locale Add-ons are consumed directly from
+        ``<application base workdir>/addons/themes`` and ``addons/locale``.
+        Nothing is copied into the active profile.
+        """
         registry = self._load_registry()
         changed = False
         installed = self.list_installed()
         installed_keys = {(manifest["id"], manifest["type"]) for manifest in installed}
-
-        # Reconcile manually removed static packages. Otherwise their mirrored
-        # css/locale files would remain active even though the extension no longer
-        # exists under %workdir%/addons.
         items = registry.setdefault("items", {})
+
         for extension_id, meta in list(items.items()):
             if not isinstance(meta, dict) or meta.get("type") not in self.STATIC_TYPES:
                 continue
-            if (extension_id, meta.get("type")) in installed_keys:
-                continue
-            self._remove_deployed(meta.get("deployed") or [])
-            items.pop(extension_id, None)
-            changed = True
+            if self._cleanup_legacy_deployments(meta):
+                changed = True
+            if (extension_id, meta.get("type")) not in installed_keys:
+                items.pop(extension_id, None)
+                changed = True
 
         for manifest in installed:
             if manifest["type"] not in self.STATIC_TYPES or not manifest.get("_compatible", False):
                 continue
             try:
-                self._check_static_conflicts(manifest, manifest["_path"])
-                old = registry.setdefault("items", {}).get(manifest["id"], {})
-                self._remove_deployed(old.get("deployed") or [])
-                deployed = self._deploy_static(manifest)
-                meta = dict(old)
-                meta.update({
+                self._validate_static_package(manifest, manifest["_path"])
+                meta = items.get(manifest["id"], {})
+                if not isinstance(meta, dict):
+                    meta = {}
+                if self._cleanup_legacy_deployments(meta):
+                    changed = True
+                normalized = dict(meta)
+                normalized.update({
                     "type": manifest["type"],
-                    "source": meta.get("source") or "manual",
-                    "trusted": bool(meta.get("trusted", False)),
-                    "official": bool(meta.get("official", False)),
-                    "deployed": deployed,
+                    "source": normalized.get("source") or "manual",
+                    "trusted": bool(normalized.get("trusted", False)),
+                    "official": bool(normalized.get("official", False)),
                 })
-                registry["items"][manifest["id"]] = meta
-                changed = True
+                if normalized != meta or manifest["id"] not in items:
+                    items[manifest["id"]] = normalized
+                    changed = True
             except Exception as exc:
-                self._warn(f"Failed to deploy static add-on '{manifest['id']}': {exc}")
+                self._warn(f"Invalid static add-on '{manifest['id']}': {exc}")
+
         if changed:
             self._save_registry(registry)
 
+    # RUNTIME LOADING --------------------------------------------------
+
     def load_into_launcher(self, launcher) -> List[dict]:
-        # Theme/locale extensions are mirrored into the existing profile CSS/locale
-        # locations so they use the normal built-in discovery paths. This also makes
-        # manually copied extension directories work without going through the UI.
+        # Theme/locale packages are application-wide static data and are read
+        # directly from addons/themes and addons/locale by the normal loaders.
         self.sync_static_extensions()
         loaded = []
         addon_log_started = False
@@ -723,7 +736,8 @@ class Extensions:
 
         Every runtime object from one add-on shares one logical domain. The
         physical directory is deliberately decoupled from that domain so add-ons
-        can live anywhere under the profile and still use ``locale.<lang>.ini``.
+        can live anywhere in the application-wide Add-ons tree and still use
+        ``locale.<lang>.ini``.
         """
         root = os.path.realpath(manifest.get("_path") or "")
         if not root:

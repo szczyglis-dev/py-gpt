@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.35** | build: **2026-09-29** | Python: **>=3.10, <3.14**
+Release: **2.8.36** | build: **2026-09-30** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -1052,7 +1052,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ### Importing and exporting profiles
 
-Use `File -> Export profile...` to save the active profile as a ZIP archive. You can include the **Database**, **Config files** (including installed external Add-ons), **Files**, and optionally the shared **Workdir data/** directory. Temporary files, caches, logs, and project data stored outside the profile workdir are not included.
+Use `File -> Export profile...` to save the active profile as a ZIP archive. You can include the **Database**, **Config files**, **Files**, and optionally the shared **Workdir data/** directory. Application-wide Add-ons are not part of a profile export. Temporary files, caches, logs, and project data stored outside the profile workdir are not included.
 
 Use `File -> Import profile...` to restore an exported archive as a new profile. Choose which available sections to import, provide a unique profile name, and select its workdir.
 
@@ -1949,7 +1949,9 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#x-twitter
 
 # Creating Your Own Plugins and Add-ons
 
-PyGPT can install profile-scoped external Add-ons from `Config -> Install Add-on...`. Supported packages include plugins, LLM/provider wrappers, vector stores, data loaders, audio input/output providers, web providers, GUI tools, agents, themes, and locale packs. Each package uses a `manifest.json` and is stored below `%workdir%/addons`; Python Add-ons are loaded into the same runtime registries as built-in components and also work with compiled builds.
+PyGPT can install application-wide external Add-ons from `Config -> Install Add-on...`. Supported packages include plugins, LLM/provider wrappers, vector stores, data loaders, audio input/output providers, web providers, GUI tools, agents, themes, and locale packs. Each package uses a `manifest.json` and is stored below `<application base workdir>/addons`; Python Add-ons are loaded into the same runtime registries as built-in components and also work with compiled builds.
+
+Starting with **2.8.36**, the same installed Add-on set is available in every profile. On upgrade, a legacy `<profile workdir>/addons` directory is migrated to the application base workdir. Missing packages are merged into an existing global tree, identical duplicates are deduplicated, and conflicting packages with the same type/ID but different contents are left untouched with a warning instead of being overwritten.
 
 Add-ons can be imported from a directory, ZIP, GitHub, or the Explore registry. The default public registry is `https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json`. External code runs with the same permissions as PyGPT, so review untrusted source before installing it.
 
@@ -2324,11 +2326,16 @@ This base directory owns `path.cfg`. If `path.cfg` redirects the active profile/
 ```text
 <application base workdir>/
 ├── path.cfg
-├── sandbox/
-└── extra_packages/
+├── addons/
+│   ├── themes/      # application-wide Theme Add-ons
+│   └── locale/      # application-wide Locale Add-ons
+├── css/             # optional application-wide custom CSS/themes
+├── locale/          # optional application-wide locale overrides
+├── sandbox/         # shared built-in Python/System runtime
+└── extra_packages/  # shared Package Manager dependencies
 ```
 
-`extra_packages` stores Package Manager-installed runtime dependencies in a Python-version subdirectory such as `extra_packages/3.13`. Both `sandbox` and `extra_packages` are shared across profiles and are not moved when the active profile/workdir changes.
+`extra_packages` stores Package Manager-installed runtime dependencies in a Python-version subdirectory such as `extra_packages/3.13`. `addons`, `sandbox`, and `extra_packages` are shared across profiles and remain under the application base workdir when the active profile/workdir changes. Application-base `css/` and `locale/` are also read as global customization layers; an active profile may still provide its own `css/` or `locale/` as the final explicit override.
 
 Configuration files such as `config.json` and `models.json` can also be edited manually in the active profile/workdir.
 
@@ -2355,9 +2362,11 @@ This command-line option changes the entire profile/application workdir. It is d
 
 ## Translations / Locale
 
-PyGPT supports custom translations and profile-specific themes. Locale files use the `.ini` format and are loaded automatically by the application.
+PyGPT supports custom translations and custom themes at both application-wide and profile-override scope. Locale files use the `.ini` format and are loaded automatically.
 
-Custom themes use a directory-per-theme layout under `%workdir%/css/<theme-id>/`, with optional `app.css`, `app.xml`, and `chat.css` files. New custom theme IDs can end in `-dark` or `-light` to define their runtime Dark/Light compatibility; the suffix is omitted from the normal menu title. Unsuffixed custom IDs default to Dark. A user theme can use the same ID as a built-in theme to override/extend it while keeping the built-in compatibility type. Custom fonts can also be placed in the PyGPT working directory.
+Application-wide custom themes can be placed under `<application base workdir>/css/<theme-id>/`, while Theme Add-ons are read directly from `<application base workdir>/addons/themes/<id>/[theme/]`. Locale overrides can be placed in `<application base workdir>/locale/`, while Locale Add-ons are read directly from `<application base workdir>/addons/locale/<id>/[locale/]`. Theme/locale Add-ons are never copied into a profile. If an active profile also contains `%workdir%/css` or `%workdir%/locale`, those files remain the final explicit override layer.
+
+Custom themes use a directory-per-theme layout with optional `app.css`, `app.xml`, and `chat.css` files. New custom theme IDs can end in `-dark` or `-light` to define their runtime Dark/Light compatibility; the suffix is omitted from the normal menu title. Unsuffixed custom IDs default to Dark. A custom theme can use the same ID as a built-in theme to override/extend it while keeping the built-in compatibility type. Custom fonts can also be placed in the active profile workdir.
 
 For the complete translation, locale, CSS override, and custom font reference, see:
 
@@ -2491,7 +2500,7 @@ The repository's ``examples`` directory contains tutorial implementations for ev
 - `examples/addons/themes/example-extension-dark`
 - `examples/addons/locale/example-locale`
 
-PyGPT can be also extended with external Add-ons installed under `%workdir%/addons` (plugins, LLM wrappers, vector stores, loaders, audio/web providers, tools, agents, themes and locale packs).
+PyGPT can be also extended with external Add-ons installed under `<application base workdir>/addons` (plugins, LLM wrappers, vector stores, loaders, audio/web providers, tools, agents, themes and locale packs).
 
 You can install external Add-ons from `Config -> Install Add-on...` using a local directory/ZIP, GitHub, or the **Explore** catalog. The official catalog and community submissions are maintained in the [PyGPT Add-ons repository](https://github.com/szczyglis-dev/py-gpt-addons).
 
@@ -2516,6 +2525,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.36 (2026-09-30)**
+
+- Moved external **Add-ons** to the application-wide `<application base workdir>/addons` directory so the same installed Add-ons are available in every profile.
+- Added automatic migration from legacy profile-local `addons/` directories, with safe merge/deduplication and non-destructive conflict handling.
+- Theme and Locale Add-ons are now read directly from the global `addons/themes` and `addons/locale` directories instead of being copied into profile workdirs.
+- Extended theme/locale loading with application-base `css` / `locale` layers while retaining profile-local files as final explicit overrides.
+- Improved Add-on localization with private `locale/` directories and dynamic translation domains.
 
 **2.8.35 (2026-09-29)**
 

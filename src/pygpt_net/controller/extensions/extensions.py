@@ -43,8 +43,10 @@ class Extensions:
 
     def reload(self):
         self._explore_auto_loaded = False
-        # Static theme/locale packages can follow a profile switch immediately.
-        # Python runtime add-ons remain process-scoped and require restart.
+        # Static theme/locale packages are application-wide and consumed
+        # directly from the global Add-ons tree. sync_static_extensions() also
+        # retires files mirrored by older versions. Python runtime Add-ons remain
+        # process-scoped and require restart after install/uninstall.
         self.window.core.extensions.sync_static_extensions()
         if "extensions.registry.url" in self.window.ui.nodes:
             self.window.ui.nodes["extensions.registry.url"].setText(
@@ -332,7 +334,7 @@ class Extensions:
                 item.setHidden(not (matches_type and matches_search))
 
     def _start_worker(self, action: str, show_error_dialog: bool = True, **kwargs):
-        # Installation mutates one profile-scoped add-ons tree and registry.
+        # Installation mutates the single application-wide add-ons tree and registry.
         # Serialize all extension workers so two imports/refreshes cannot race on
         # the same files or .registry.json.
         if self._workers:

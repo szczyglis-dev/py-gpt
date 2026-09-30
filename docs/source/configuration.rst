@@ -864,10 +864,15 @@ The application base workdir also owns runtime data shared across profiles:
 
    <application base workdir>/
    ├── path.cfg
+   ├── addons/
+   │   ├── themes/                 # application-wide Theme Add-ons
+   │   └── locale/                 # application-wide Locale Add-ons
+   ├── css/                        # optional application-wide custom CSS/themes
+   ├── locale/                     # optional application-wide locale overrides
    ├── sandbox/                    # shared built-in Python/System runtime
    └── extra_packages/             # shared Package Manager dependencies, grouped by Python version
 
-``sandbox`` and ``extra_packages`` stay in the application base workdir even when ``path.cfg`` points the active profile/workdir to another directory. For example, Package Manager dependencies for Python 3.13 are stored under ``<application base workdir>/extra_packages/3.13``.
+``addons``, ``sandbox`` and ``extra_packages`` stay in the application base workdir even when ``path.cfg`` points the active profile/workdir to another directory. The application-base ``css`` and ``locale`` directories are also loaded as shared customization layers. Profile-local ``css`` / ``locale`` directories remain supported as final explicit overrides. For example, Package Manager dependencies for Python 3.13 are stored under ``<application base workdir>/extra_packages/3.13``.
 
 You can manually edit the profile configuration files in the active profile/application workdir. With the default configuration this is:
 
@@ -896,9 +901,9 @@ Project data workdirs
 
 The directory above is the active **profile/application workdir**. Projects do not
 replace it. A project can override only the logical ``data`` directory used by
-conversations assigned to that project. The application-wide ``sandbox`` and
-``extra_packages`` directories are not profile-level paths; they remain under
-the application base workdir that owns ``path.cfg``.
+conversations assigned to that project. The application-wide ``addons``,
+``sandbox`` and ``extra_packages`` directories are not profile-level paths; they
+remain under the application base workdir that owns ``path.cfg``.
 
 When creating a project, ``Use shared workdir`` is enabled by default. Disable
 it to choose a custom project data directory. For an existing project use
@@ -961,22 +966,25 @@ This will add Spanish as a selectable language in the application's language men
 
 **Overwriting locales and adding custom CSS themes:**
 
-You can override locale files and provide profile-specific themes from the application workdir:
+There are two customization scopes in addition to bundled resources:
 
-.. code-block:: ini
+* application-wide overrides under ``<application base workdir>/locale`` and ``<application base workdir>/css``;
+* active-profile overrides under ``<profile workdir>/locale`` and ``<profile workdir>/css``.
 
-   {HOME_DIR}/.config/pygpt-net/
+Static Add-ons are also application-wide and are read directly from:
 
-* ``locale`` - locale overrides in ``.ini`` format.
-* ``css`` - custom theme directories and optional global CSS overrides.
+* ``<application base workdir>/addons/locale/<id>/[locale/]``;
+* ``<application base workdir>/addons/themes/<id>/[theme/]``.
 
-Theme CSS now uses a directory-per-theme layout. For new custom themes, use a ``-dark`` or
+Theme and Locale Add-ons are not copied into profile workdirs. For locale data, the effective load order is bundled locale -> application-base ``locale`` -> Locale Add-ons -> active-profile ``locale``. For theme assets, the effective order is bundled theme -> application-base ``css`` -> Theme Add-on -> active-profile ``css``.
+
+Theme CSS uses a directory-per-theme layout. For new custom themes, use a ``-dark`` or
 ``-light`` suffix to declare the runtime compatibility type, for example
-``%workdir%/css/my_custom-dark/`` or ``%workdir%/css/paper-light/``. The suffix stays in the stored
+``<application base workdir>/css/my_custom-dark/`` or ``<profile workdir>/css/paper-light/``. The suffix stays in the stored
 theme ID but is omitted from the normal menu title, so these are displayed as **My Custom** and
 **Paper**. If both Dark and Light variants with the same base name are installed, the menu shows
-**(Dark)** / **(Light)** to distinguish them. Unsuffixed new custom IDs default to Dark. A profile
-directory with the same ID as a built-in theme, such as ``%workdir%/css/ocean/``, overrides/extends
+**(Dark)** / **(Light)** to distinguish them. Unsuffixed new custom IDs default to Dark. A custom
+directory with the same ID as a built-in theme, such as ``<application base workdir>/css/ocean/`` or ``<profile workdir>/css/ocean/``, overrides/extends
 that bundled theme and keeps its built-in compatibility type.
 
 See ``Extending PyGPT -> Custom themes and styles`` for the complete directory layout, load order,

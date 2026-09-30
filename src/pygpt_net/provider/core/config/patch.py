@@ -108,6 +108,14 @@ class Patch:
                         data[key] = value
                         updated = True
 
+            # --------------------------------------------
+            # Application-wide Add-ons storage introduced in 2.8.36.
+            if old < parse_version("2.8.36"):
+                from .patches.patch_before_2_8_36 import (
+                    migrate_addons_to_application_base,
+                )
+                updated = migrate_addons_to_application_base(self.window) or updated
+
         # update file
         migrated = False
         if updated:

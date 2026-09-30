@@ -52,7 +52,7 @@ The following plugins are currently available:
 Creating Your Own Plugins
 -------------------------
 
-The recommended distribution format for new extensions is an external **Add-on** installed below ``%workdir%/addons``. A plugin Add-on contains a ``manifest.json`` plus a Python entry point derived from ``BasePlugin``; it can be installed from a directory, ZIP, GitHub repository/subdirectory or the public Add-ons catalog. The older custom-launcher registration path remains useful during development.
+The recommended distribution format for new extensions is an external **Add-on** installed below ``<application base workdir>/addons``. A plugin Add-on contains a ``manifest.json`` plus a Python entry point derived from ``BasePlugin``; it can be installed from a directory, ZIP, GitHub repository/subdirectory or the public Add-ons catalog. The older custom-launcher registration path remains useful during development.
 
 PyGPT Add-ons can provide plugins, GUI tools, LLM/embedding wrappers, vector stores, data loaders, audio input/output providers, web search providers, Custom-agent providers, themes and locale packs. The repository's ``examples/addons`` directory contains runnable tutorials for every supported package type.
 

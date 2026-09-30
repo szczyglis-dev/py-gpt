@@ -1,3 +1,9 @@
+2.8.36 (2026-09-30)
+- Moved external Add-ons from profile workdirs to the shared <application base workdir>/addons directory, matching other application-wide resources such as sandbox and extra_packages.
+- Added automatic migration of legacy profile-local Add-ons into the application-wide directory, including safe merging, identical-package deduplication, registry migration, and non-destructive conflict handling.
+- Theme and Locale Add-ons are now read directly from the global addons/themes and addons/locale directories instead of being copied into profile workdirs; application-base css/locale and profile-local overrides remain supported as separate layers.
+- Improved Add-on localization support with private locale directories and dynamic locale domains for plugins, tools, LLM providers, audio providers, web providers and loaders.
+
 2.8.35 (2026-09-29)
 
 - Refactored the LiteLLM provider and migrated it to the native LlamaIndex LiteLLM integration. Vision input and tool calling are now supported by compatible LiteLLM models.
