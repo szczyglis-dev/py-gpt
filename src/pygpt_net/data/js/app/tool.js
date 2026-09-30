@@ -4,8 +4,67 @@
 
 class ToolOutput {
 
-	constructor() {
+	constructor(scrollMgr = null) {
 		this._groupSeq = 0;
+		this.scrollMgr = scrollMgr;
+		this._viewportAnchorSeq = 0;
+		this._viewportAnchorTimer = 0;
+	}
+
+	// Expanding/collapsing a tool/workflow block is an explicit viewport
+	// interaction. Keep the clicked header at the same screen Y coordinate
+	// instead of letting page auto-follow or Chromium scroll anchoring pin the
+	// content below it (which makes the accordion appear to grow upward).
+	_withViewportAnchor(anchorEl, mutate) {
+		if (typeof mutate !== 'function') return;
+
+		const anchor = anchorEl && anchorEl.isConnected ? anchorEl : null;
+		const scroller = (typeof Utils !== 'undefined' && Utils.SE)
+			? Utils.SE
+			: (document.scrollingElement || document.documentElement);
+		const beforeTop = anchor ? anchor.getBoundingClientRect().top : null;
+		const scrollMgr = this.scrollMgr || ((typeof runtime !== 'undefined' && runtime) ? runtime.scrollMgr : null);
+
+		// A click on an accordion means the user owns the viewport now. This also
+		// prevents ResizeObserver FOLLOW corrections while the 0fr -> 1fr CSS
+		// transition changes document height.
+		if (scrollMgr && typeof scrollMgr.suspendAutoFollow === 'function') {
+			scrollMgr.suspendAutoFollow();
+		}
+
+		const root = document.documentElement;
+		if (root && root.classList) root.classList.add('tool-viewport-anchor-lock');
+
+		mutate();
+
+		const seq = ++this._viewportAnchorSeq;
+		const correct = () => {
+			if (seq !== this._viewportAnchorSeq || !anchor || !anchor.isConnected || beforeTop == null || !scroller) return;
+			const delta = anchor.getBoundingClientRect().top - beforeTop;
+			if (Math.abs(delta) <= 0.5) return;
+
+			const maxTop = Math.max(0, Number(scroller.scrollHeight || 0) - Number(scroller.clientHeight || 0));
+			const target = Math.max(0, Math.min(maxTop, Number(scroller.scrollTop || 0) + delta));
+			if (scrollMgr && typeof scrollMgr.markProgrammaticScroll === 'function') {
+				scrollMgr.markProgrammaticScroll(target);
+			}
+			try { scroller.scrollTop = target; } catch (_) {}
+		};
+
+		// Correct once after layout commits and once after the accordion transition
+		// settles. The root lock disables Chromium's native anchor candidate while
+		// the geometry is changing.
+		try { requestAnimationFrame(correct); } catch (_) { correct(); }
+		if (this._viewportAnchorTimer) clearTimeout(this._viewportAnchorTimer);
+		this._viewportAnchorTimer = setTimeout(() => {
+			if (seq !== this._viewportAnchorSeq) return;
+			correct();
+			if (root && root.classList) root.classList.remove('tool-viewport-anchor-lock');
+			this._viewportAnchorTimer = 0;
+			if (scrollMgr && typeof scrollMgr.scheduleScrollFabUpdate === 'function') {
+				scrollMgr.scheduleScrollFabUpdate();
+			}
+		}, 280);
 	}
 
 	// Return direct child matching selector without relying on :scope support.
@@ -274,13 +333,15 @@ class ToolOutput {
 		if (!groupEl) return;
 		const content = this._directChild(groupEl, '.tool-group-content');
 		if (!content) return;
-		const expanded = !content.classList.contains('is-expanded');
-		this._setExpanded(content, expanded);
-
 		const header = this._directChild(groupEl, '.tool-output-toggle.tool-group-toggle');
-		if (header) header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-		const arrow = header ? header.querySelector('.tool-group-arrow') : null;
-		if (arrow) arrow.classList.toggle('toggle-expanded', expanded);
+		const expanded = !content.classList.contains('is-expanded');
+
+		this._withViewportAnchor(header || groupEl, () => {
+			this._setExpanded(content, expanded);
+			if (header) header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+			const arrow = header ? header.querySelector('.tool-group-arrow') : null;
+			if (arrow) arrow.classList.toggle('toggle-expanded', expanded);
+		});
 	}
 
 	// Return the collapsible body while keeping compatibility with HTML produced
@@ -477,13 +538,15 @@ class ToolOutput {
 		const contentEl = this._content(outputEl);
 		if (!contentEl) return;
 
-		const expanded = !contentEl.classList.contains('is-expanded');
-		this._setExpanded(contentEl, expanded);
-
 		const headerEl = outputEl.querySelector('.tool-output-toggle');
-		if (headerEl) headerEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+		const expanded = !contentEl.classList.contains('is-expanded');
 
-		const arrowEl = outputEl.querySelector('.tool-output-arrow') || outputEl.querySelector('.toggle-cmd-output img');
-		if (arrowEl) arrowEl.classList.toggle('toggle-expanded', expanded);
+		this._withViewportAnchor(headerEl || outputEl, () => {
+			this._setExpanded(contentEl, expanded);
+			if (headerEl) headerEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+			const arrowEl = outputEl.querySelector('.tool-output-arrow') || outputEl.querySelector('.toggle-cmd-output img');
+			if (arrowEl) arrowEl.classList.toggle('toggle-expanded', expanded);
+		});
 	}
 }

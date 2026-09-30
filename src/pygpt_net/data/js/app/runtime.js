@@ -25,7 +25,7 @@ class Runtime {
 		this.codeScroll = new CodeScrollState(this.cfg, this.raf);
 		this.highlighter = new Highlighter(this.cfg, this.codeScroll, this.raf);
 		this.scrollMgr = new ScrollManager(this.cfg, this.dom, this.raf);
-		this.toolOutput = new ToolOutput();
+		this.toolOutput = new ToolOutput(this.scrollMgr);
 		this.loading = new Loading(this.dom);
 		this.nodes = new NodesManager(this.dom, this.renderer, this.highlighter, this.math, this.toolOutput);
 		this.bridge = new BridgeManager(this.cfg, this.logger);

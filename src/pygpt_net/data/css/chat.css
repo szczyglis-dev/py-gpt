@@ -532,6 +532,14 @@ body.display-timestamp .ts {{
   font-size: 0.75rem;
 }}
 
+/* During explicit Tool/Processed accordion interaction the JS keeps the
+   clicked header fixed in the viewport. Disable Chromium's native page anchor
+   selection for the duration so content below the accordion cannot pull the
+   viewport upward while the block animates. */
+html.tool-viewport-anchor-lock {{
+  overflow-anchor: none !important;
+}}
+
 /* Smooth Tool / Tools / Processed workflow accordions.
    A single inner row allows true auto-height animation in CSS without JS
    measurements or arbitrary max-height values. */
@@ -1002,8 +1010,10 @@ body.display-timestamp .ts {{
 
 /* Runtime-only elapsed work header, above the response timeline. */
 .agent-working.agents-v2-status {{
-  width: auto;
+  box-sizing: border-box;
+  width: 100%;
   max-width: none;
+  margin: 6px 0 12px 0;
   border-bottom: 1px solid rgba(127, 127, 127, 0.18);
   padding-bottom: 12px;
 }}
