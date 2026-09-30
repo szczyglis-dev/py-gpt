@@ -132,5 +132,10 @@ class AudioInputButton(QWidget):
 
     def toggle_recording(self):
         """Toggle recording"""
+        try:
+            if not self.window.controller.audio.is_recording():
+                self.window.controller.audio.ui.on_input_toggle_requested("input")
+        except Exception:
+            pass
         event = Event(Event.AUDIO_INPUT_RECORD_TOGGLE)
         self.window.dispatch(event)

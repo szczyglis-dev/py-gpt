@@ -19,7 +19,7 @@ from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
 from pygpt_net.ui.layout.chat.attachments_ctx import AttachmentsCtx
 from pygpt_net.ui.layout.status import Status
-from pygpt_net.ui.widget.audio.bar import OutputBar
+from pygpt_net.ui.widget.audio.bar import OutputBar, InputRecordWidget
 from pygpt_net.ui.widget.audio.input import AudioInput
 from pygpt_net.ui.widget.audio.input_button import AudioInputButton
 from pygpt_net.ui.widget.audio.output import AudioOutput
@@ -283,6 +283,9 @@ class Input:
         tabs.set_compact_tab_count(1, 0)
         tabs.set_compact_tab_count(2, 0)
         tabs.set_compact_tab_count(3, 0)
+
+        self.window.ui.plugin_addon['audio.input.bar'] = InputRecordWidget(self.window)
+        tabs.set_header_widget(self.window.ui.plugin_addon['audio.input.bar'])
 
         content = QWidget()
         content_layout = QVBoxLayout(content)

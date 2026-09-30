@@ -105,6 +105,7 @@ class Simple:
                 )
                 self.plugin.window.core.config.set("audio.input.snap", True)
                 self.plugin.window.core.config.save()
+                self.plugin.window.controller.audio.ui.on_input_abort("input")
                 return
 
         # prepare local provider before recording. In particular, do not capture
@@ -112,10 +113,12 @@ class Simple:
         if not realtime:
             try:
                 if not self.plugin.ensure_provider_ready():
+                    self.plugin.window.controller.audio.ui.on_input_abort("input")
                     return
             except Exception as e:
                 self.plugin.error(e)
                 self.switch_btn_start()
+                self.plugin.window.controller.audio.ui.on_input_abort("input")
                 return
 
         # enable continuous mode if notepad tab is active
@@ -166,6 +169,7 @@ class Simple:
                     height=200
                 )
             self.switch_btn_start()  # switch button to start
+            self.plugin.window.controller.audio.ui.on_input_abort("input")
 
     def stop_recording(self, timeout: bool = False, realtime: bool = False):
         """

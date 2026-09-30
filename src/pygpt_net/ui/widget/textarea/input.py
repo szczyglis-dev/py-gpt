@@ -1188,6 +1188,11 @@ class ChatInput(QTextEdit):
 
     def action_toggle_mic(self):
         """Toggle microphone (button click)."""
+        try:
+            if not self.window.controller.audio.is_recording():
+                self.window.controller.audio.ui.on_input_toggle_requested("input")
+        except Exception:
+            pass
         self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
 
     def action_toggle_web(self):
