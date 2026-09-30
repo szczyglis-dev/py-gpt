@@ -27,9 +27,11 @@ from ..shared import (
     InputLevelMeter,
 )
 
+from ..shared.capture import has_minimum_audio
+
+
 class PyaudioBackend:
 
-    MIN_FRAMES = 25  # minimum frames to start transcription
 
     def __init__(self, window=None):
         """
@@ -139,9 +141,9 @@ class PyaudioBackend:
             return False
         if self.stream is not None:
             return False
-        self.setup_audio_input()
         self.start_time = time.time()
-        return True
+        self.setup_audio_input()
+        return self.stream is not None and self._input_active
 
     def stop(self) -> bool:
         """
@@ -206,12 +208,13 @@ class PyaudioBackend:
         return bool(self.frames)
 
     def has_min_frames(self) -> bool:
-        """
-        Check if minimum required audio frames have been recorded.
-
-        :return: True if min frames
-        """
-        return len(self.frames) >= self.MIN_FRAMES
+        """Return whether at least 100 ms of PCM audio was captured."""
+        if not self.frames or self.pyaudio_instance is None:
+            return False
+        return has_minimum_audio(
+            self.frames, self._in_rate, self._in_channels,
+            self.pyaudio_instance.get_sample_size(self.format),
+        )
 
     def reset_audio_level(self):
         """Reset the audio level bar."""
@@ -297,17 +300,21 @@ class PyaudioBackend:
                                                      channels=self.channels,
                                                      rate=self.rate,
                                                      input=True,
+                                                     input_device_index=self.selected_device,
                                                      frames_per_buffer=1024,
+                                                     start=False,
                                                      stream_callback=self._audio_callback)
-            try:
-                self.stream.start_stream()
-            except Exception:
-                pass
             self._input_active = True
+            self.stream.start_stream()
         except Exception as e:
             print(f"Failed to open audio input stream: {e}")
-            self.stream = None
             self._input_active = False
+            if self.stream is not None:
+                try:
+                    self.stream.close()
+                except Exception:
+                    pass
+            self.stream = None
 
     def _audio_callback(self, in_data, frame_count, time_info, status):
         """

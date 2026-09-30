@@ -119,6 +119,7 @@ def test_chat_common_can_unlock_rejects_agents_waiting_stack_or_pending_commands
 
 def test_chat_common_handle_stop_prioritizes_active_audio_input_recording():
     common = _common()
+    common.window.controller.realtime.is_enabled.return_value = False
     common.window.controller.access.voice.is_recording = False
     handler = MagicMock()
     handler.is_recording = True
@@ -126,15 +127,16 @@ def test_chat_common_handle_stop_prioritizes_active_audio_input_recording():
 
     common.handle_stop()
 
-    event = common.window.dispatch.call_args.args[0]
-    assert isinstance(event, Event)
-    assert event.name == Event.AUDIO_INPUT_RECORD_TOGGLE
+    handler.stop_recording.assert_called_once_with()
+    common.window.dispatch.assert_not_called()
     common.window.controller.audio.stop_output.assert_not_called()
     common.window.controller.kernel.stop.assert_not_called()
 
 
 def test_chat_common_handle_stop_stops_voice_then_output_and_kernel_when_no_audio_input_recording():
     common = _common()
+    common.window.controller.realtime.is_enabled.return_value = False
+    common.window.controller.realtime.can_interrupt.return_value = False
     common.window.controller.access.voice.is_recording = True
     handler = MagicMock()
     handler.is_recording = False
@@ -358,3 +360,56 @@ def test_chat_common_show_response_tokens_resets_counter_and_formats_status():
     status = common.window.update_status.call_args.args[0]
     assert status.startswith("Tokens: 10 + 20 = 30")
     assert "tokens/s" in status
+
+
+@pytest.mark.parametrize("vad", [False, True])
+@pytest.mark.parametrize("action", ["stop", "send"])
+def test_ordinary_stop_and_send_submit_microphone_without_realtime_cancel(vad, action):
+    from pygpt_net.controller.chat.input import Input
+    from pygpt_net.controller.realtime.realtime import Realtime
+
+    common = _common()
+    window = common.window
+    window.core.config.get.side_effect = lambda key, default=None: {
+        "mode": "chat", "audio.input.auto_turn": vad,
+    }.get(key, default)
+    realtime = Realtime.__new__(Realtime)
+    realtime.window = window
+    window.controller.realtime = realtime
+    realtime.cancel_conversation = MagicMock()
+    handler = window.core.plugins.get.return_value.handler_simple
+    handler.is_recording = True
+
+    if action == "stop":
+        common.handle_stop()
+    else:
+        Input.send_input(SimpleNamespace(window=window))
+
+    handler.stop_recording.assert_called_once_with()
+    handler.force_stop.assert_not_called()
+    realtime.cancel_conversation.assert_not_called()
+    window.controller.kernel.stop.assert_not_called()
+    window.dispatch.assert_not_called()
+
+
+def test_realtime_vad_stop_keeps_interrupt_route():
+    from pygpt_net.controller.realtime.realtime import Realtime
+
+    common = _common()
+    window = common.window
+    window.core.config.get.side_effect = lambda key, default=None: {
+        "mode": MODE_AUDIO, "audio.input.auto_turn": True,
+    }.get(key, default)
+    realtime = Realtime.__new__(Realtime)
+    realtime.window = window
+    realtime.has_pending_response = MagicMock(return_value=False)
+    window.controller.realtime = realtime
+    window.controller.audio.is_recording.return_value = True
+    handler = window.core.plugins.get.return_value.handler_simple
+    handler.is_recording = True
+
+    common.handle_stop()
+
+    window.controller.access.on_escape.assert_called_once_with(close_dialog=False)
+    handler.stop_recording.assert_not_called()
+    window.dispatch.assert_not_called()

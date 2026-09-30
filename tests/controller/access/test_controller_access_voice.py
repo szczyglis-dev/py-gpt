@@ -118,7 +118,7 @@ def test_voice_start_recording_handles_capture_failure_without_throwing():
     }.get(key, default)
     window.core.config.has.return_value = True
     window.core.platforms.is_snap.return_value = False
-    window.core.audio.capture.check_audio_input.return_value = False
+    window.core.audio.capture.start.return_value = False
     ctrl.start_recording()
     assert ctrl.is_recording is False
     window.core.debug.log.assert_called_once()

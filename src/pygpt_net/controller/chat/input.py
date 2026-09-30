@@ -233,6 +233,23 @@ class Input:
 
         :param force: force send
         """
+        # Send during ordinary microphone capture submits the recording first.
+        # Do this before INPUT_BEGIN can change the focused tab or claim a request.
+        if not force and not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                handler.stop_recording()
+                return
+
+        # Ignore an empty user send before input events can claim a request or
+        # show the busy status. Attachments and microphone capture are valid input.
+        mode = self.window.core.config.get('mode')
+        if (not force
+                and not self.window.ui.nodes['input'].toPlainText().strip()
+                and not self.window.core.attachments.has(mode)
+                and not self.window.controller.audio.is_recording()):
+            return
+
         dispatch = self.window.dispatch
         # Snapshot the invoker before any input/plugin event can move focus.
         # get_effective_current_pid() also sees the latest deferred column-focus

@@ -18,8 +18,6 @@ from pygpt_net.utils import trans
 
 class Simple:
 
-    MIN_FRAMES = 25  # minimum frames to start transcription
-
     def __init__(self, plugin=None):
         """
         Simple audio input handler
@@ -75,8 +73,8 @@ class Simple:
         if state is not None:
             if state and not self.is_recording:
                 self.start_recording()
-            elif not state:
-                self.force_stop()
+            elif not state and self.is_recording:
+                self.stop_recording()
             return
         if self.is_recording:
             self.stop_recording()
@@ -154,20 +152,18 @@ class Simple:
                     self.timer.timeout.connect(self.stop_timeout)
                     self.timer.start(timeout * 1000)
 
-            if not force:
-                if not self.plugin.window.core.audio.capture.check_audio_input():
-                    raise Exception("Audio input not working.")
-                    # IMPORTANT!!!!
-                    # Stop here if audio input not working!
-                    # This prevents the app from freezing when audio input is not working!
-
+            # Open capture once, without opening and closing a test stream first.
+            if not self.plugin.window.core.audio.capture.start():
+                raise Exception("Audio input not working.")
             self.is_recording = True
             self.switch_btn_stop()
-            self.plugin.window.core.audio.capture.start()  # start recording if audio is OK
             self.plugin.window.update_status(trans('audio.speak.now'))
             self.plugin.window.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STARTED))  # app event
         except Exception as e:
             self.is_recording = False
+            if self.timer is not None:
+                self.timer.stop()
+                self.timer = None
             self.plugin.window.core.debug.log(e)
             self.plugin.window.ui.dialogs.alert(e)
             if self.plugin.window.core.platforms.is_snap():
@@ -198,7 +194,9 @@ class Simple:
 
         if self.plugin.window.core.audio.capture.has_source():
             self.plugin.window.core.audio.capture.stop()  # stop recording
-            if realtime and self.plugin.window.controller.realtime.is_auto_turn():
+            if (realtime
+                    and self.plugin.window.controller.realtime.is_enabled()
+                    and self.plugin.window.controller.realtime.is_auto_turn()):
                 # Only VAD capture sends PCM through the live session. Manual
                 # capture must submit the recorded file below, exactly once.
                 return
@@ -207,13 +205,11 @@ class Simple:
                 self.plugin.window.update_status("Aborted.".format(timeout))
                 return
 
-            if self.plugin.window.core.audio.capture.has_frames():
-                if not self.plugin.window.core.audio.capture.has_min_frames() and not realtime:
-                    self.plugin.window.update_status(trans("status.audio.too_short"))
-                    self.plugin.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STOPPED))  # app event
-                    return
-
-                self.plugin.handle_thread(True)  # handle transcription in simple mode
+            capture = self.plugin.window.core.audio.capture
+            if not capture.has_frames() or (not realtime and not capture.has_min_frames()):
+                self.plugin.window.update_status(trans("status.audio.too_short"))
+                return
+            self.plugin.handle_thread(True)  # handle transcription in simple mode
         else:
             self.plugin.window.update_status("")
 

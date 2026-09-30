@@ -120,3 +120,25 @@ def test_audio_ui_noop_callbacks_are_safe():
     assert ctrl.on_output_disable() is None
     assert ctrl.on_output_end() is None
     assert ctrl.on_output_cancel() is None
+
+
+def test_ordinary_microphone_capture_shows_stop():
+    from pygpt_net.controller.chat.common import Common
+
+    ctrl, window = _ui()
+    window.controller.realtime.is_enabled.return_value = False
+    window.controller.realtime.is_response_active.return_value = False
+    window.controller.chat.input.locked = False
+    window.controller.chat.input.generating = False
+    window.controller.ctx.extra.is_editing.return_value = False
+    window.controller.tabs.is_chat_input_visible.return_value = True
+    window.ui.nodes['input.send_btn'] = MagicMock()
+    window.controller.chat.common = Common(window)
+
+    ctrl.on_input_begin('input')
+
+    assert ctrl.recording is True
+    assert window.controller.chat.input.locked is True
+    window.ui.nodes['input.send_btn'].setEnabled.assert_called_with(False)
+    window.ui.nodes['input'].set_icon_visible.assert_any_call('send', False)
+    window.ui.nodes['input'].set_icon_visible.assert_any_call('stop', True)

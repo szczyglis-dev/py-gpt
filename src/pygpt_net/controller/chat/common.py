@@ -227,8 +227,25 @@ class Common:
             unlock = False
         return unlock
 
+    def handle_send(self):
+        """Submit an ordinary microphone recording or send the text composer."""
+        if not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                self.handle_stop()
+                return
+        self.window.controller.chat.input.send_input()
+
     def handle_stop(self):
         """Handle stop"""
+        # Ordinary microphone capture is submitted, even when the saved VAD
+        # setting is enabled. Only realtime STOP discards the current buffer.
+        if not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                handler.stop_recording()
+                return
+
         # Realtime STOP intentionally delegates to the exact ESC interrupt route.
         # Keeping one path avoids subtle ordering differences between playback
         # abort, provider cancellation, turn persistence and UI cleanup.

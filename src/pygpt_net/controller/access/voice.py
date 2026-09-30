@@ -233,9 +233,6 @@ class Voice(QObject):
                 self.window.core.config.save()
                 return
         try:
-            self.is_recording = True
-            self.switch_btn_stop()
-
             # stop audio output if playing
             self.window.controller.audio.stop_output()
 
@@ -250,17 +247,18 @@ class Voice(QObject):
                     self.timer.timeout.connect(self.stop_timeout)
                     self.timer.start(timeout * 1000)
 
-            if not self.window.core.audio.capture.check_audio_input():
+            # Open capture once, without opening and closing a test stream first.
+            if not self.window.core.audio.capture.start():
                 raise Exception("Audio input not working.")
-                # IMPORTANT!!!!
-                # Stop here if audio input not working!
-                # This prevents the app from freezing when audio input is not working!
-
-            self.window.core.audio.capture.start()  # start recording if audio is OK
+            self.is_recording = True
+            self.switch_btn_stop()
             self.window.update_status(trans('audio.speak.now'))
             self.window.dispatch(AppEvent(AppEvent.VOICE_CONTROL_STARTED))  # app event
         except Exception as e:
             self.is_recording = False
+            if self.timer is not None:
+                self.timer.stop()
+                self.timer = None
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(e)
             if self.window.core.platforms.is_snap():

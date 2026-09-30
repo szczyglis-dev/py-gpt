@@ -665,7 +665,7 @@ class Input:
             key="send",
             icon=QIcon(":/icons/play.svg"),
             tooltip=trans("input.btn.send"),
-            callback=controller.chat.input.send_input,
+            callback=controller.chat.common.handle_send,
             visible=True,
         )
 
