@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.30 12:10:00                  #
+# Updated Date: 2026.09.30 13:05:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -200,16 +200,12 @@ class Realtime:
                     )
                     self._realtime_text_started.add(key)
                 else:
-                    # Keep the first visible realtime text delta on the same
-                    # token-adjacent begin path as the normal chat StreamWorker.
-                    # STREAM_BEGIN calls beginStream() via runJavaScript, while the
-                    # text micro-batch is delivered through QWebChannel; ordering
-                    # between those two WebEngine transports is not guaranteed. If
-                    # the first QWebChannel delta wins that race, a late beginStream()
-                    # clears it from the live DOM even though ctx.output/database are
-                    # already complete. Repeating the stream begin on the first text
-                    # delta resets/binds synchronously on the renderer side before
-                    # that delta is queued, preventing the missing-prefix race.
+                    # Mark the first visible realtime delta as begin=True, just like
+                    # the normal chat StreamWorker. STREAM_BEGIN may already have
+                    # been announced by commit/output-ready, but WebRenderer treats
+                    # both announcements as one idempotent response lifecycle. This
+                    # lets either queued event arrive first without a second reset
+                    # that could discard the first provider delta.
                     key = id(ctx)
                     begin = key not in self._realtime_text_started
                     self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {

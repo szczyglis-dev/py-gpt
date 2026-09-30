@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 12:55:00                  #
+# Updated Date: 2026.09.30 13:05:00                  #
 # ================================================== #
 
 import json
@@ -199,6 +199,22 @@ class Renderer(BaseRenderer):
         self._stream_last_flush: dict[int, float] = {}
         self._stream_last_cleanup: float = 0.0
 
+        # ``beginStream()`` is sent with QWebEnginePage.runJavaScript(), while
+        # streamed text is transported independently through QWebChannel. The
+        # two transports are asynchronous and WebEngine does not guarantee that
+        # a bridge signal emitted later from Python is processed after that JS.
+        # Keep a per-PID begin barrier so no text batch can reach JS until the
+        # latest begin/reset script has actually executed.
+        self._stream_begin_seq: dict[int, int] = {}
+        self._stream_begin_pending: set[int] = set()
+        self._stream_end_pending: dict[int, tuple[CtxMeta, CtxItem]] = {}
+        # One logical response may announce STREAM_BEGIN and then mark its first
+        # STREAM_APPEND with begin=True. Realtime can deliver those two signals
+        # through different queued paths, so their arrival order is not a safe
+        # lifecycle boundary. Track the response object that already owns the
+        # PID and make begin/reset idempotent for that response.
+        self._stream_session_ctx: dict[int, int] = {}
+
         # Inline partial streaming keeps post-tool text inside the already
         # materialized bot message (same durable CtxItem) instead of creating a
         # second live msg-box below it. Keys are (pid, parent_item_id, part_key).
@@ -253,6 +269,10 @@ class Renderer(BaseRenderer):
         self._reasoning_activity_state = {}
         self._workflow_statuses = {}
         self._workflow_status_seq = 0
+        self._stream_begin_seq = {}
+        self._stream_begin_pending = set()
+        self._stream_end_pending = {}
+        self._stream_session_ctx = {}
 
     def on_load(self, meta: CtxMeta = None):
         """
@@ -559,17 +579,49 @@ class Renderer(BaseRenderer):
 
     def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
         """
-        Render stream begin
+        Render stream begin.
+
+        STREAM_BEGIN and the first STREAM_APPEND(begin=True) describe the same
+        logical response. They are intentionally accepted in either order. The
+        first one that reaches the renderer owns initialization; the duplicate
+        begin for the same CtxItem becomes a no-op instead of resetting buffers
+        or the browser stream a second time.
 
         :param meta: context meta
         :param ctx: context item
         """
         pid = self.get_or_create_pid(meta)
-        if pid is not None:
-            pctx = self.pids[pid]
-            pctx.clear()
-            self._stream_reset(pid)
-            self._stream_owner_id[pid] = str(getattr(ctx, "id", "") or "")
+        if pid is None or ctx is None:
+            return
+
+        session_key = id(ctx)
+        if self._stream_session_ctx.get(pid) == session_key:
+            # The first text delta may have reached the renderer before the
+            # separately queued STREAM_BEGIN (notably in Realtime + audio). A
+            # second begin here would clear the Python micro-batch and call
+            # beginStream() again, dropping exactly that first provider delta.
+            # Ownership can still become durable after the response object was
+            # created, so refresh only the owner hint without resetting anything.
+            owner_id = str(getattr(getattr(ctx, "turn_parent", None) or ctx, "id", "") or "")
+            if owner_id and self._stream_owner_id.get(pid, "") != owner_id:
+                try:
+                    owner_json = json.dumps(owner_id, ensure_ascii=False)
+                    node = self.get_output_node(meta)
+                    if node is not None:
+                        node.page().runJavaScript(
+                            "if (typeof window.bindStreamOwner !== 'undefined') "
+                            f"bindStreamOwner({owner_json});"
+                        )
+                    self._stream_owner_id[pid] = owner_id
+                except Exception:
+                    pass
+            return
+
+        self._stream_session_ctx[pid] = session_key
+        pctx = self.pids[pid]
+        pctx.clear()
+        self._stream_reset(pid)
+        self._stream_owner_id[pid] = str(getattr(ctx, "id", "") or "")
         self.prev_chunk_replace = False
 
         # A provider continuation starts after a tool result has been returned to
@@ -579,12 +631,19 @@ class Renderer(BaseRenderer):
         # visible until the first response token arrived. Rebind the durable parent
         # and replay the UI-only workflow rows in the same JS turn so the waiting
         # status remains visible for the whole provider TTFT window.
+        #
+        # beginStream() is sent through runJavaScript(), while text deltas use
+        # QWebChannel. The transport barrier below keeps all text on the Python
+        # side until that reset has executed. The response-level session guard
+        # above additionally prevents a duplicate/late begin from resetting a
+        # stream that its first delta has already initialized.
         parent_ctx = getattr(ctx, "turn_parent", None)
         try:
             stream_owner = parent_ctx if parent_ctx is not None else ctx
             stream_owner_id = json.dumps(
                 str(getattr(stream_owner, "id", "") or ""), ensure_ascii=False
             )
+            script = ""
             if parent_ctx is not None:
                 header = self.get_name_header(ctx, stream=True)
                 parent_id = json.dumps(
@@ -601,22 +660,24 @@ class Renderer(BaseRenderer):
                     ensure_ascii=False,
                     default=str,
                 )
+                script = (
+                    f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
+                )
                 if status_records:
-                    self.get_output_node(meta).page().runJavaScript(
-                        f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
+                    script += (
                         "if (typeof window.bindWorkflowStream !== 'undefined') "
                         f"bindWorkflowStream({parent_id}, {header_json}, {records_json});"
                     )
-                else:
-                    self.get_output_node(meta).page().runJavaScript(
-                        f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
-                    )
             else:
-                self.get_output_node(meta).page().runJavaScript(
+                script = (
                     f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
                 )
+
+            node = self.get_output_node(meta)
+            if node is not None:
+                self._run_stream_begin_js(pid, node, script)
         except Exception:
-            pass
+            self._stream_begin_release(pid, self._stream_begin_seq.get(pid, 0))
 
         try:
             self.pids[pid].header = self.get_name_header(ctx, stream=True)
@@ -626,15 +687,27 @@ class Renderer(BaseRenderer):
 
     def stream_end(self, meta: CtxMeta, ctx: CtxItem):
         """
-        Render stream end
+        Render stream end.
+
+        If beginStream() is still executing in WebEngine, postpone finalization
+        until its callback opens the QWebChannel barrier. This covers extremely
+        short realtime responses where TURN_END can arrive before the browser
+        has processed STREAM_BEGIN.
 
         :param meta: context meta
         :param ctx: context item
         """
-        self.prev_chunk_replace = False
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
+        if pid in self._stream_begin_pending:
+            self._stream_end_pending[pid] = (meta, ctx)
+            return
+        self._stream_end_finish(meta, ctx, pid)
+
+    def _stream_end_finish(self, meta: CtxMeta, ctx: CtxItem, pid: int) -> None:
+        """Finalize a stream after the begin/reset transport barrier is open."""
+        self.prev_chunk_replace = False
 
         self._stream_flush(pid, force=True)
         # Flush the last inline partial delta before teardown. The durable parent
@@ -653,6 +726,7 @@ class Renderer(BaseRenderer):
         self.finalize_output(meta, ctx, replace_text=False, reason="stream_end")
         self.pids[pid].clear()
         self._stream_owner_id.pop(pid, None)
+        self._stream_session_ctx.pop(pid, None)
         self._stream_reset(pid)
         self._partial_stream_reset(pid)
         self.auto_cleanup(meta)
@@ -1179,13 +1253,25 @@ class Renderer(BaseRenderer):
         )
         if is_new_item:
             self._hide_previous_agent_action_icons(meta, ctx)
+
+        # STREAM_BEGIN and STREAM_APPEND(begin=True) are two announcements of the
+        # same response lifecycle. Whichever arrives first performs the reset.
+        # The other must not clear buffers or call beginStream() again. This is
+        # critical for realtime, where Qt queued delivery can let the first text
+        # delta overtake RT_OUTPUT_READY/STREAM_BEGIN.
+        session_key = id(ctx)
+        stream_already_started = self._stream_session_ctx.get(pid) == session_key
+        begin_stream_here = bool(begin and not stream_already_started)
+        if begin_stream_here:
+            self._stream_session_ctx[pid] = session_key
+
         pctx.item = ctx
-        if begin:
+        if begin_stream_here:
             pctx.buffer = ""
         if text_chunk:
             pctx.append_buffer(str(text_chunk))
 
-        if begin:
+        if begin_stream_here:
             # Clear the previous turn's batching/reasoning state before looking
             # at the first chunk of the new stream.
             self._stream_reset(pid)
@@ -1203,7 +1289,7 @@ class Renderer(BaseRenderer):
                 reserve_space=False,
             )
 
-        if begin:
+        if begin_stream_here:
             # JS beginStream() recreates the transient stream container. Pass
             # true only when this first chunk is actually visible activity; a
             # hidden <think> stream must not dismiss the request spinner.
@@ -1236,7 +1322,7 @@ class Renderer(BaseRenderer):
                 part_key_json = json.dumps(stream_part_key, ensure_ascii=False)
                 agent_name_json = json.dumps(agent_name, ensure_ascii=False)
                 chunk_js = "true" if has_response_activity else "false"
-                self.get_output_node(meta).page().runJavaScript(
+                script = (
                     "if (typeof window.freezeWorkflowStatus !== 'undefined') "
                     f"freezeWorkflowStatus({parent_json});"
                     "if (typeof window.beginStream !== 'undefined') "
@@ -1245,8 +1331,12 @@ class Renderer(BaseRenderer):
                     f"bindWorkflowStream({parent_json}, {header_json}, {records_json},"
                     f"{part_key_json}, {agent_name_json});"
                 )
+                node = self.get_output_node(meta)
+                if node is not None:
+                    self._run_stream_begin_js(pid, node, script)
             except Exception:
-                pass
+                # Never strand queued text if the WebView is already going away.
+                self._stream_begin_release(pid, self._stream_begin_seq.get(pid, 0))
             self.update_names(meta, ctx)
 
         if not text_chunk:
@@ -2226,6 +2316,11 @@ class Renderer(BaseRenderer):
         self.reset_names_by_pid(pid)
         self.prev_chunk_replace = False
         self._stream_reset(pid)
+        self._stream_begin_pending.discard(pid)
+        self._stream_begin_seq.pop(pid, None)
+        self._stream_end_pending.pop(pid, None)
+        self._stream_session_ctx.pop(pid, None)
+        self._stream_owner_id.pop(pid, None)
         self._partial_stream_reset(pid)
 
     def clear_input(self):
@@ -2632,6 +2727,11 @@ class Renderer(BaseRenderer):
             self._pending_nodes[pid] = []
             node.unload()  # unload web page
             self._stream_reset(pid)
+            self._stream_session_ctx.pop(pid, None)
+            self._stream_owner_id.pop(pid, None)
+            self._stream_begin_pending.discard(pid)
+            self._stream_begin_seq.pop(pid, None)
+            self._stream_end_pending.pop(pid, None)
             self._partial_stream_reset(pid)
             self.pids[pid].clear(all=True)
             self.pids[pid].loaded = False
@@ -3148,6 +3248,9 @@ class Renderer(BaseRenderer):
                 pass
         self._stream_acc.pop(pid, None)
         self._stream_header.pop(pid, None)
+        self._stream_begin_pending.discard(pid)
+        self._stream_begin_seq.pop(pid, None)
+        self._stream_end_pending.pop(pid, None)
         self._stream_last_flush.pop(pid, None)
         self._loading_visible.pop(pid, None)
         self._loading_reserved.pop(pid, None)
@@ -3284,6 +3387,46 @@ class Renderer(BaseRenderer):
         self._stream_last_flush[pid] = 0.0
         self._reasoning_activity_state.pop(("main", pid), None)
 
+    def _stream_begin_arm(self, pid: int) -> int:
+        """Arm/replace the WebEngine begin barrier for one stream PID."""
+        seq = int(self._stream_begin_seq.get(pid, 0)) + 1
+        self._stream_begin_seq[pid] = seq
+        self._stream_begin_pending.add(pid)
+        return seq
+
+    def _stream_begin_release(self, pid: int, seq: int) -> None:
+        """Release buffered text after the matching beginStream JS completed."""
+        if self._stream_begin_seq.get(pid) != seq:
+            # A newer begin/reset superseded this callback. Only the newest JS
+            # reset is allowed to open the text transport.
+            return
+        self._stream_begin_pending.discard(pid)
+        if pid not in self.pids:
+            return
+        buf = self._stream_acc.get(pid)
+        if buf is not None and not buf.is_empty():
+            self._stream_flush(pid, force=True)
+
+        pending_end = self._stream_end_pending.pop(pid, None)
+        if pending_end is not None:
+            meta, ctx = pending_end
+            self._stream_end_finish(meta, ctx, pid)
+
+    def _run_stream_begin_js(self, pid: int, node, script: str) -> None:
+        """Run begin/reset JS and open QWebChannel streaming only afterwards."""
+        seq = self._stream_begin_arm(pid)
+
+        def ready(_value=None, pid=pid, seq=seq):
+            self._stream_begin_release(pid, seq)
+
+        try:
+            # PySide6 overload: script, worldId, resultCallback.
+            node.page().runJavaScript(script, 0, ready)
+        except Exception:
+            # Preserve the old best-effort behavior when the page is being
+            # destroyed, but never leave the Python stream permanently gated.
+            self._stream_begin_release(pid, seq)
+
     def _stream_push(self, pid: int, header: str, chunk: str):
         """
         Push chunk into buffer and schedule flush
@@ -3300,6 +3443,13 @@ class Renderer(BaseRenderer):
             self._stream_header[pid] = header
 
         buf.append(chunk)
+
+        # Keep every delta on the Python side while beginStream() is still
+        # pending. QWebChannel must never overtake the JS reset and put data into
+        # streamQ just before that reset clears it.
+        if pid in self._stream_begin_pending:
+            return
+
         pending_size = getattr(buf, "_size", 0)
         if pending_size >= self._stream_emergency_bytes:
             self._stream_flush(pid, force=True)
@@ -3320,6 +3470,11 @@ class Renderer(BaseRenderer):
         :param pid: context PID
         :param force: True if force flush ignoring interval
         """
+        # The matching runJavaScript callback will call us again after the
+        # latest begin/reset has actually executed in WebEngine.
+        if pid in self._stream_begin_pending:
+            return
+
         buf = self._stream_acc.get(pid)
         if buf is None or buf.is_empty():
             t = self._stream_timer.get(pid)
