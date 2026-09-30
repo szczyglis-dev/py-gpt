@@ -15,6 +15,9 @@ def _common():
     common.counter = 0.0
     common._t0 = None
     common._shortener = None
+    common.window.controller.ctx.extra.is_editing.return_value = False
+    common.window.controller.tabs.is_chat_input_visible.return_value = True
+    common.window.controller.realtime.is_response_active.return_value = False
     common.window.ui.nodes = {
         "input": MagicMock(),
         "input.stream": MagicMock(),

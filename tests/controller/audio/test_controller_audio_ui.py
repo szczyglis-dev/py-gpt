@@ -43,19 +43,25 @@ def test_audio_ui_widget_getters_cache_widgets_and_handle_missing_nodes():
 
 def test_audio_ui_volume_updates_are_mocked_and_output_does_not_move_during_recording():
     ctrl, _ = _ui()
-    bar = MagicMock()
-    ctrl.get_output_bar = MagicMock(return_value=bar)
+    input_bar = MagicMock()
+    record_bar = MagicMock()
+    output_bar = MagicMock()
+    ctrl.get_input_bar = MagicMock(return_value=input_bar)
+    ctrl.get_input_record_bar = MagicMock(return_value=record_bar)
+    ctrl.get_output_bar = MagicMock(return_value=output_bar)
 
     ctrl.on_input_volume_change(37)
-    bar.setLevel.assert_called_once_with(37)
+    input_bar.setLevel.assert_called_once_with(37)
+    record_bar.setLevel.assert_called_once_with(37)
+    output_bar.setLevel.assert_not_called()
 
     ctrl.recording = True
     ctrl.on_output_volume_change(80)
-    assert bar.setLevel.call_count == 1
+    output_bar.setLevel.assert_not_called()
 
     ctrl.recording = False
     ctrl.on_output_volume_change(80)
-    bar.setLevel.assert_called_with(80)
+    output_bar.setLevel.assert_called_once_with(80)
 
 
 def test_audio_ui_input_enable_disable_and_continuous_controls():

@@ -92,8 +92,12 @@ class FakePlugins:
         self.destroyed = True
 
 class FakeAudio:
+    def force_stop(self):
+        self.force_stopped = True
     def stop_audio(self):
         self.audio_stopped = True
+    def shutdown(self):
+        self.shutdown_called = True
 
 class FakeController:
     def __init__(self):
@@ -256,14 +260,19 @@ def test_terminate(kernel, fake_window):
     fake_window.ui.hide_loading = MagicMock()
     fake_window.controller.plugins.destroy = MagicMock()
     fake_window.controller.chat.common.stop = MagicMock()
+    fake_window.controller.audio.force_stop = MagicMock()
     fake_window.controller.audio.stop_audio = MagicMock()
+    fake_window.controller.audio.shutdown = MagicMock()
     fake_window.controller.realtime = MagicMock()
     kernel.terminate()
     fake_window.dispatch.assert_called_with(AnyEvent(KernelEvent.TERMINATE))
 #    fake_window.ui.hide_loading.assert_called_once()
+    fake_window.controller.audio.force_stop.assert_called_once_with()
     fake_window.controller.plugins.destroy.assert_called_once()
     fake_window.controller.chat.common.stop.assert_called_once()
     fake_window.controller.audio.stop_audio.assert_called_once()
+    fake_window.controller.realtime.shutdown.assert_called_once_with()
+    fake_window.controller.audio.shutdown.assert_called_once_with()
 
 def test_stop(kernel, fake_window, monkeypatch):
     fake_window.dispatch = MagicMock()

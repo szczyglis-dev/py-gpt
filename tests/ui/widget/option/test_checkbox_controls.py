@@ -10,7 +10,7 @@ from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 
 def test_checkbox_translation_falls_back_for_dictionary_key():
     widget = SimpleNamespace()
-    with patch("pygpt_net.ui.widget.option.checkbox.trans", side_effect=lambda value: value):
+    with patch("pygpt_net.ui.widget.option.checkbox.trans", side_effect=lambda value, **kwargs: value):
         assert OptionCheckbox.trans_or_not(widget, "dictionary.api_key") == "Api_key"
         assert OptionCheckbox.trans_or_not(widget, "plain.label") == "plain.label"
 

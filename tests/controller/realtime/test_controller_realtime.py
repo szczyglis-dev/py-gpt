@@ -17,15 +17,24 @@ def _realtime():
     realtime.current_active = None
     realtime.allowed_modes = [MODE_AUDIO]
     realtime.manual_commit_sent = False
-    realtime._continuation_text_started = set()
+    realtime._realtime_text_started = set()
     realtime._realtime_follow_checked = set()
     realtime._playback_ctx = None
+    realtime._auto_loop_generation = 0
+    realtime._auto_loop_paused = False
+    realtime._cancelling = False
+    realtime._creating_audio_input_block = 0
+    realtime._response_active = False
+    realtime._response_ctx = None
+    realtime._shutting_down = False
+    realtime._last_error_signature = None
+    realtime.manager.ctx = None
     realtime.window.core.config.get.side_effect = lambda key, default=None: {
         "mode": MODE_AUDIO,
-        "audio.input.loop": False,
         "audio.input.auto_turn": True,
     }.get(key, default)
     realtime.window.controller.tabs.get_current_type.return_value = Tab.TAB_CHAT
+    realtime.window.controller.kernel.stopped.return_value = False
     realtime.window.controller.audio.is_muted.return_value = False
     return realtime
 
@@ -167,7 +176,7 @@ def test_realtime_audio_end_unlocks_input_and_schedules_next_turn_only_in_loop()
         realtime.handle(RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END))
 
     realtime.window.controller.chat.common.unlock_input.assert_called_once_with()
-    realtime.next_turn.assert_called_once_with()
+    realtime.next_turn.assert_called_once_with(realtime._auto_loop_generation)
     single_shot.assert_called_once()
 
 
@@ -220,7 +229,9 @@ def test_realtime_app_events_schedule_reset_without_realtime_mode_guard():
 
 def test_realtime_next_turn_toggles_recording_and_defers_listening_status():
     realtime = _realtime()
-    realtime.window.controller.audio.is_recording.return_value = True
+    # First check: not recording yet. After dispatch the capture is considered
+    # active, and the delayed status callback sees the active microphone too.
+    realtime.window.controller.audio.is_recording.side_effect = [False, True, True]
 
     with patch("pygpt_net.controller.realtime.realtime.QTimer.singleShot", side_effect=lambda delay, fn: fn()), \
             patch("pygpt_net.controller.realtime.realtime.trans", return_value="Listening"):
@@ -229,6 +240,7 @@ def test_realtime_next_turn_toggles_recording_and_defers_listening_status():
     event = realtime.window.dispatch.call_args.args[0]
     assert isinstance(event, Event)
     assert event.name == Event.AUDIO_INPUT_RECORD_TOGGLE
+    assert event.data == {"state": True, "auto": True}
     realtime.window.update_status.assert_called_once_with("Listening")
 
 
@@ -240,11 +252,16 @@ def test_realtime_loop_auto_turn_and_support_flags_use_config_and_kernel_state()
     realtime.window.controller.kernel.stopped.return_value = False
     realtime.window.core.config.get.side_effect = lambda key, default=None: {
         "mode": MODE_AUDIO,
-        "audio.input.loop": True,
         "audio.input.auto_turn": False,
     }.get(key, default)
-    assert realtime.is_loop() is True
+    assert realtime.is_loop() is False
     assert realtime.is_auto_turn() is False
+
+    realtime.window.core.config.get.side_effect = lambda key, default=None: {
+        "mode": MODE_AUDIO,
+        "audio.input.auto_turn": True,
+    }.get(key, default)
+    assert realtime.is_loop() is True
     assert realtime.is_supported() is True
 
 

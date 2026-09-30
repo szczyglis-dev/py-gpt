@@ -89,6 +89,6 @@ def test_realtime_worker_run_emits_audio_error(monkeypatch):
 
     worker.run()
 
-    assert emitted[0].name == RealtimeEvent.RT_OUTPUT_READY
-    assert emitted[-1].name == RealtimeEvent.RT_OUTPUT_AUDIO_ERROR
-    assert isinstance(emitted[-1].data["error"], RuntimeError)
+    assert [event.name for event in emitted] == [RealtimeEvent.RT_OUTPUT_AUDIO_ERROR]
+    assert isinstance(emitted[0].data["error"], RuntimeError)
+    assert emitted[0].data["phase"] == "session_start"

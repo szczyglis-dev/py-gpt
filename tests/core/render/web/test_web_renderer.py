@@ -14,7 +14,7 @@ import re
 import time
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock, call
+from unittest.mock import ANY, MagicMock, call
 import pytest
 
 from pygpt_net.core.render.protocol import RenderOp
@@ -387,7 +387,9 @@ class TestRenderer:
             call(
                 "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
                 "if (typeof window.beginStream !== 'undefined') beginStream(true, \"2\");"
-                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", [],\"\", \"\");"
+                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", [],\"\", \"\");",
+                0,
+                ANY,
             ),
         ]
         renderer._stream_push.assert_called_once_with(1, "header", "chunk")
