@@ -402,6 +402,11 @@ class ScrollManager {
 	}
 
 	noteObservedUserScroll(deltaTop = 0) {
+		// A scroll event is not proof of user input. Removing the request loader
+		// can shrink the document and Chromium clamps scrollTop upward. Wheel and
+		// keyboard intent is handled before scrolling by noteUserScroll(); only a
+		// held scrollbar/touch pointer may transfer FOLLOW here.
+		if (this.autoFollow && !this.pointerScrollActive) return;
 		if (deltaTop < -0.5) {
 			this.suspendAutoFollow();
 			return;
@@ -434,6 +439,13 @@ class ScrollManager {
 	}
 
 	setPointerScrollActive(active) {
+		if (!active && this.pointerScrollActive) {
+			// The final scroll event may arrive after pointerup. Observe the drag
+			// before releasing it, otherwise catching up to bottom erases its intent.
+			const top = Number(Utils.SE.scrollTop || 0);
+			if (!this.isProgrammaticScroll(top)) this.noteObservedUserScroll(top - this.lastScrollTop);
+			this.lastScrollTop = top;
+		}
 		this.pointerScrollActive = !!active;
 		if (this.pointerScrollActive) return;
 		if (this.manualResumeCandidate && !this.autoFollow) {

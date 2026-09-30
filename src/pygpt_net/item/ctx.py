@@ -145,6 +145,9 @@ class CtxItem:
     runtime_artifacts: list = field(default_factory=list, repr=False)
     # Runtime-only annotation delivery receipts; never persisted by to_dict().
     _sent_annotation_batches: list = field(default_factory=list, repr=False, compare=False)
+    # Runtime realtime lifecycle; omitted from persistence and never shared with
+    # the ordinary chat StreamWorker. Each tool continuation has its own state.
+    _realtime_state: str = field(default="", repr=False, compare=False)
     # Exact fully composed system prompt used by the current Agents v2 main
     # actor. Runtime-only: intentionally omitted from to_dict()/from_dict().
     agents_v2_system_prompt: str = field(default="", repr=False)
@@ -234,6 +237,7 @@ class CtxItem:
         self.transport_images = []
         self.runtime_artifacts = []
         self._sent_annotation_batches = []
+        self._realtime_state = ""
         # Runtime-only exact prompt passed to the Agents v2 main actor.
         self.agents_v2_system_prompt = ""
         self.index_meta = {}  # llama-index metadata ctx used

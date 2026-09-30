@@ -213,6 +213,7 @@ class ApiOpenAI:
                     rt_signals=rt_signals
                 )
                 if is_realtime:
+                    context.realtime = True
                     return True
 
             if fixtures.is_enabled("stream"):  # fake stream for testing

@@ -190,6 +190,10 @@ class Simple:
 
         if self.plugin.window.core.audio.capture.has_source():
             self.plugin.window.core.audio.capture.stop()  # stop recording
+            if realtime and self.plugin.window.controller.realtime.is_auto_turn():
+                # Only VAD capture sends PCM through the live session. Manual
+                # capture must submit the recorded file below, exactly once.
+                return
             # abort if timeout
             if timeout:
                 self.plugin.window.update_status("Aborted.".format(timeout))

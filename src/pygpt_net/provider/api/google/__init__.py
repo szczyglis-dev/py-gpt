@@ -187,6 +187,7 @@ class ApiGoogle:
                     rt_signals=rt_signals
                 )
                 if is_realtime:
+                    context.realtime = True
                     return True
 
             if mode == MODE_RESEARCH:

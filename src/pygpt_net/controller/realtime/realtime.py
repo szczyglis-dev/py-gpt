@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 12:55:00                  #
+# Updated Date: 2026.09.30 12:10:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -40,7 +40,7 @@ class Realtime:
         self.current_active = None # openai | google
         self.allowed_modes = [MODE_AUDIO]
         self.manual_commit_sent = False
-        self._continuation_text_started = set()
+        self._realtime_text_started = set()
         self._realtime_follow_checked = set()
         self._playback_ctx = None
 
@@ -97,6 +97,8 @@ class Realtime:
 
         # audio input chunk: send to the active realtime client
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_DELTA:
+            if not self.is_auto_turn():
+                return  # manual capture submits the complete recording on stop
             if self.current_active == "google":
                 self.window.core.api.google.realtime.handle_audio_input(event)
             elif self.current_active == "openai":
@@ -107,16 +109,11 @@ class Realtime:
         # begin: first text chunk or audio chunk received, start rendering
         elif event.name == RealtimeEvent.RT_OUTPUT_READY:
             ctx = event.data.get('ctx', None)
-            self._playback_ctx = None
-            if ctx:
-                self.window.dispatch(RenderEvent(RenderEvent.STREAM_BEGIN, {
-                    "meta": ctx.meta,
-                    "ctx": ctx,
-                }))
-                self.set_busy()
+            self.begin_turn(ctx)
 
-        # commit: audio buffer sent, stop audio input and finalize the response
+        # commit: audio buffer sent, begin the response and stop audio input
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_COMMIT:
+            self.begin_turn(event.data.get("ctx"))
             self.set_busy()
             if self.manual_commit_sent:
                 self.manual_commit_sent = False
@@ -124,7 +121,13 @@ class Realtime:
             self.window.controller.audio.execute_input_stop()
 
         elif event.name == RealtimeEvent.RT_INPUT_AUDIO_MANUAL_STOP:
+            if not self.is_auto_turn():
+                # The capture plugin submits the recorded file. No live buffer
+                # exists in manual mode, and force_response_now is VAD-only.
+                self.manual_commit_sent = False
+                return
             self.manual_commit_sent = True
+            self.begin_turn(self.manager.ctx)
             self.set_busy()
             QTimer.singleShot(0, lambda: self.manual_commit())
 
@@ -134,7 +137,8 @@ class Realtime:
             # next microphone round.
             self.manual_commit_sent = False
             self.set_idle()
-            self.window.controller.chat.input.execute("...", force=True)
+            if self.is_auto_turn():
+                self.window.controller.chat.input.execute("...", force=True)
             self.window.dispatch(KernelEvent(KernelEvent.STATUS, {
                 'status': trans("speech.listening"),
             }))
@@ -144,6 +148,9 @@ class Realtime:
             ctx = event.data.get('ctx', None)
             chunk = event.data.get('chunk', "")
             if chunk and ctx:
+                if getattr(ctx, "_realtime_state", "") in ("finished", "tools"):
+                    return
+                self.begin_turn(ctx)
                 # First visible content from a newer response is a barge-in point:
                 # stop any still-audible previous response immediately.
                 self._interrupt_superseded_playback(ctx)
@@ -181,7 +188,7 @@ class Realtime:
                 # replacing the previous assistant content.
                 if getattr(ctx, "turn_parent", None) is not None:
                     key = id(ctx)
-                    begin = key not in self._continuation_text_started
+                    begin = key not in self._realtime_text_started
                     # Realtime owns a different worker lifecycle than Chat, so it
                     # must not call Stream.handleChunk(): that slot intentionally
                     # rejects chunks without an active chat StreamWorker/PID. Use
@@ -191,14 +198,27 @@ class Realtime:
                         chunk,
                         begin,
                     )
-                    self._continuation_text_started.add(key)
+                    self._realtime_text_started.add(key)
                 else:
+                    # Keep the first visible realtime text delta on the same
+                    # token-adjacent begin path as the normal chat StreamWorker.
+                    # STREAM_BEGIN calls beginStream() via runJavaScript, while the
+                    # text micro-batch is delivered through QWebChannel; ordering
+                    # between those two WebEngine transports is not guaranteed. If
+                    # the first QWebChannel delta wins that race, a late beginStream()
+                    # clears it from the live DOM even though ctx.output/database are
+                    # already complete. Repeating the stream begin on the first text
+                    # delta resets/binds synchronously on the renderer side before
+                    # that delta is queued, preventing the missing-prefix race.
+                    key = id(ctx)
+                    begin = key not in self._realtime_text_started
                     self.window.dispatch(RenderEvent(RenderEvent.STREAM_APPEND, {
                         "meta": ctx.meta,
                         "ctx": ctx,
                         "chunk": chunk,
-                        "begin": False,
+                        "begin": begin,
                     }))
+                    self._realtime_text_started.add(key)
 
         # audio end: on stop audio playback
         elif event.name == RealtimeEvent.RT_OUTPUT_AUDIO_END:
@@ -212,9 +232,8 @@ class Realtime:
         # end of turn: finalize the response
         elif event.name == RealtimeEvent.RT_OUTPUT_TURN_END:
             self.manual_commit_sent = False
-            self.set_idle()
             ctx = event.data.get('ctx', None)
-            finished = self.end_turn(ctx) if ctx else True
+            finished = self.end_turn(ctx)
             if finished:
                 if self.window.controller.audio.is_recording():
                     self.window.update_status(trans("speech.listening"))
@@ -235,6 +254,8 @@ class Realtime:
             self.set_idle()
             error = event.data.get("error")
             self.window.core.debug.log(error)
+            ctx = event.data.get("ctx") or self.manager.ctx
+            self.fail_turn(ctx)
             self.window.controller.chat.common.unlock_input()
 
         # -----------------------------------
@@ -309,6 +330,23 @@ class Realtime:
         elif self.current_active == "x_ai":
             self.window.core.api.xai.realtime.manual_commit()
 
+    def begin_turn(self, ctx):
+        """Start rendering once input is committed or model output arrives.
+
+        Session setup and microphone capture are not response streams. Commit,
+        response-ready and the first delta may all announce the same response.
+        """
+        if ctx is None or getattr(ctx, "_realtime_state", "") in ("streaming", "tools", "finished"):
+            return
+        self._interrupt_superseded_playback(ctx)
+        ctx._realtime_state = "streaming"
+        self.window.update_status(trans("status.sending"))
+        self.window.dispatch(RenderEvent(RenderEvent.STREAM_BEGIN, {
+            "meta": ctx.meta,
+            "ctx": ctx,
+        }))
+        self.set_busy()
+
     def end_turn(self, ctx):
         """
         End of realtime turn - finalize the response.
@@ -320,12 +358,20 @@ class Realtime:
 
         :param ctx: Context instance
         """
-        self.set_idle()
         if not ctx:
+            self.set_idle()
             return True
 
+        state = getattr(ctx, "_realtime_state", "")
+        if state in ("finished", "tools"):
+            return state == "finished"
+        self.begin_turn(ctx)  # tool-only/empty responses still have one lifecycle
+        self.set_idle()
+        ctx._realtime_state = "finished"
+        ctx.current = False
+
         source_ctx = ctx
-        self._continuation_text_started.discard(id(source_ctx))
+        self._realtime_text_started.discard(id(source_ctx))
         self._realtime_follow_checked.discard(id(source_ctx))
         is_continuation = getattr(source_ctx, "turn_parent", None) is not None
         closes_tool_series = bool(
@@ -366,6 +412,7 @@ class Realtime:
             stream=True,
         )
         if not finished:
+            source_ctx._realtime_state = "tools"
             # command.handle() has started the tool and emitted TOOL_BEGIN. Keep the
             # turn/request open; handle_end() would close the lifecycle and can
             # wipe that status before the tool result arrives.
@@ -378,6 +425,21 @@ class Realtime:
         )
         self.window.controller.chat.common.show_response_tokens(ctx)
         return True
+
+    def fail_turn(self, ctx):
+        """Release a failed realtime request without executing pending tools."""
+        if ctx is None or getattr(ctx, "_realtime_state", "") == "finished":
+            return
+        was_streaming = getattr(ctx, "_realtime_state", "") == "streaming"
+        ctx._realtime_state = "finished"
+        ctx.current = False
+        self._realtime_text_started.discard(id(ctx))
+        self._realtime_follow_checked.discard(id(ctx))
+        if getattr(ctx, "turn_parent", None) is not None:
+            ctx = self.window.core.ctx.merge_continuation(ctx)
+        if was_streaming:
+            self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {"meta": ctx.meta, "ctx": ctx}))
+        self.window.controller.chat.output.handle_end(ctx=ctx, mode=MODE_AUDIO)
 
     def shutdown(self):
         """Shutdown all realtime threads and async loops"""
@@ -400,7 +462,7 @@ class Realtime:
 
     def reset(self):
         """Reset realtime session"""
-        self._continuation_text_started.clear()
+        self._realtime_text_started.clear()
         self._realtime_follow_checked.clear()
         self._playback_ctx = None
         self.manual_commit_sent = False

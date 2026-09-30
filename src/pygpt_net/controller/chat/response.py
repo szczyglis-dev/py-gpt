@@ -77,6 +77,13 @@ class Response:
             core.debug.info("[agent] Dropping stale provider response from an older autonomous run.")
             return
 
+        # A successful realtime bridge callback only acknowledges session setup.
+        # Its receiver owns deltas, tool continuations and finalization. Routing
+        # this acknowledgement through Chat starts a second, empty StreamWorker
+        # and prematurely finalizes the very same context (even while recording).
+        if status and getattr(context, "realtime", False) is True:
+            return
+
         if not status:
             error = extra.get("error", None)
             controller.chat.log("Bridge response: ERROR")

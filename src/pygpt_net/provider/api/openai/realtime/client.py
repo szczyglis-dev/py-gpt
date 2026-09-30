@@ -1752,8 +1752,10 @@ class OpenAIRealtimeClient:
             if self._ctx:
                 if not isinstance(self._ctx.extra, dict):
                     self._ctx.extra = {}
-                self._ctx.input.extra["input_transcript"] = str(transcript)
-                if not getattr(self._last_opts, "prompt", None):
+                self._ctx.extra["input_transcript"] = str(transcript)
+                # A reused VAD session can retain options from an earlier text
+                # turn. Decide against the current input, not that stale prompt.
+                if str(self._ctx.input or "").strip() in ("", "..."):
                     self._ctx.input = str(transcript)
                 self.window.core.ctx.update_item(self._ctx)
         except Exception:

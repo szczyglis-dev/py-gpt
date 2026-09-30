@@ -393,9 +393,8 @@ class EventManager {
 			const last = runtime.scrollMgr.lastScrollTop;
 			const programmatic = runtime.scrollMgr.isProgrammaticScroll(top);
 
-			// Only actual user movement is allowed to change ownership. Browser DOM
-			// anchoring is disabled globally, while our own scrolls are filtered by the
-			// one-shot programmatic marker above.
+			// Filter our own scrolls, then let ScrollManager distinguish pointer
+			// input from layout-driven scrollTop clamping (e.g. hiding the loader).
 			if (!programmatic && Math.abs(top - last) > 0.5) {
 				runtime.scrollMgr.noteObservedUserScroll(top - last);
 			}

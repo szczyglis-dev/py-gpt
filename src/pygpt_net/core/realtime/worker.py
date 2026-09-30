@@ -73,24 +73,26 @@ class RealtimeWorker(QRunnable):
     def run(self):
         loop = None  # ensure defined for cleanup
 
-        # STREAM_BEGIN -> UI
-        try:
-            event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_READY, {
-                "ctx": self.ctx,
-            })
-            safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
-        except Exception:
-            pass
-
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
             async def _amain():
+                ready_ctx = None
+
+                def output_ready():
+                    nonlocal ready_ctx
+                    if ready_ctx is self.ctx:
+                        return
+                    ready_ctx = self.ctx
+                    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_READY, {"ctx": self.ctx})
+                    safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
+
                 # Text deltas -> UI
                 async def on_text(delta: str):
                     if not delta:
                         return
+                    output_ready()
                     event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_TEXT_DELTA, {
                         "ctx": self.ctx,
                         "chunk": delta,
@@ -105,6 +107,8 @@ class RealtimeWorker(QRunnable):
                         channels: Optional[int],
                         final: bool = False
                 ):
+                    if data:
+                        output_ready()
                     event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_DELTA, {
                         "payload":  {
                             "ctx": self.ctx,
@@ -127,6 +131,10 @@ class RealtimeWorker(QRunnable):
 
                 # run the client
                 client = self.get_client(self.opts.provider)
+                # Buffered microphone input is already submitted by the user;
+                # unlike VAD session setup it can open the response stream now.
+                if getattr(self.opts, "audio_data", None):
+                    output_ready()
                 await client.run(self.ctx, self.opts, on_text, on_audio, _should_stop)
 
             loop.run_until_complete(_amain())
@@ -134,7 +142,7 @@ class RealtimeWorker(QRunnable):
 
         except Exception as e:
             try:
-                event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"error": e})
+                event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"ctx": self.ctx, "error": e})
                 safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
             finally:
                 pass

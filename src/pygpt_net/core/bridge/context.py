@@ -81,6 +81,7 @@ class BridgeContext:
     reply_context: Optional[Any] = None  # ReplyContext
     request: bool = False  # use normal request instead of quick call
     stream: bool = False  # stream enabled
+    realtime: bool = False  # response lifecycle belongs to the realtime controller
     system_prompt: str = "" # system prompt
     system_prompt_raw: str = ""  # system prompt without plugins addons
     thread_id: str = "" # OpenAI Assistants thread ID for chat mode
@@ -115,6 +116,7 @@ class BridgeContext:
         self.reply_context = kwargs.get("reply_ctx", kwargs.get("reply_context", None))
         self.request = kwargs.get("request", False)
         self.stream = kwargs.get("stream", False)
+        self.realtime = kwargs.get("realtime", False)
         self.system_prompt = kwargs.get("system_prompt", "")
         self.system_prompt_raw = kwargs.get("system_prompt_raw", "")
         self.thread_id = kwargs.get("thread_id", "")
