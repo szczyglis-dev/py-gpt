@@ -441,6 +441,7 @@ class Mapping:
         menu_text['config.access'] = 'menu.config.access'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'
+        menu_text['config.open_base_dir'] = 'menu.config.open_base_directory'
         menu_text['config.profile.edit'] = 'menu.config.profile.edit'
         menu_text['config.profile.new'] = 'menu.config.profile.new'
         menu_text['config.save'] = 'menu.config.save'
@@ -523,6 +524,7 @@ class Mapping:
         tooltips = {}
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
+        tooltips['ctx.new'] = 'ctx.new.tooltip'
         tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'
         tooltips['indexes.new'] = 'toolbox.indexes.edit.tooltip'
         tooltips['layout.split'] = 'layout.split.tooltip'

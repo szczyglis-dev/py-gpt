@@ -2528,11 +2528,12 @@ may consume additional tokens that are not displayed in the main window.
 
 **2.8.36 (2026-09-30)**
 
-- Moved external **Add-ons** to the application-wide `<application base workdir>/addons` directory so the same installed Add-ons are available in every profile.
-- Added automatic migration from legacy profile-local `addons/` directories, with safe merge/deduplication and non-destructive conflict handling.
-- Theme and Locale Add-ons are now read directly from the global `addons/themes` and `addons/locale` directories instead of being copied into profile workdirs.
-- Extended theme/locale loading with application-base `css` / `locale` layers while retaining profile-local files as final explicit overrides.
-- Improved Add-on localization with private `locale/` directories and dynamic translation domains.
+- Moved external Add-ons to the shared application-wide `addons` directory, with automatic migration from profile workdirs.
+- Theme and Locale Add-ons are now loaded directly from the global Add-ons directory without copying files into profiles.
+- Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
+- Improved Realtime + audio flow, stability and voice interaction handling.
+- Added a separate audio input level bar for microphone input.
+- Added a right-click hint to the New context button and a new `Config -> Open global base dir` option.
 
 **2.8.35 (2026-09-29)**
 

@@ -96,6 +96,7 @@ class NewCtxButton(QPushButton):
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
+        self.setToolTip(trans('ctx.new.tooltip'))
         self.clicked.connect(lambda: self.window.controller.ctx.new(force=False))
 
     @classmethod

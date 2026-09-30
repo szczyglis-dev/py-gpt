@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.8.36 (2026-09-30)
+
+- Moved external Add-ons to the shared application-wide `addons` directory, with automatic migration from profile workdirs.
+- Theme and Locale Add-ons are now loaded directly from the global Add-ons directory without copying files into profiles.
+- Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
+- Improved Realtime + audio flow, stability and voice interaction handling.
+- Added a separate audio input level bar for microphone input.
+- Added a right-click hint to the New context button and a new `Config -> Open global base dir` option.
+
 ## 2.8.35 (2026-09-29)
 
 - Refactored the LiteLLM provider and migrated it to the native LlamaIndex LiteLLM integration. Vision input and tool calling are now supported by compatible LiteLLM models.

@@ -120,6 +120,7 @@ class Config:
 
         m['config.open_dir'] = QAction(icon_folder, tr("menu.config.open_dir"), w)
         m['config.change_dir'] = QAction(icon_settings, tr("menu.config.change_dir"), w)
+        m['config.open_base_dir'] = QAction(icon_folder, tr("menu.config.open_base_directory"), w)
         m['config.save'] = QAction(icon_save, tr("menu.config.save"), w)
 
         m['config.settings'].triggered.connect(
@@ -133,6 +134,9 @@ class Config:
         )
         m['config.change_dir'].triggered.connect(
             lambda: w.controller.settings.workdir.change()
+        )
+        m['config.open_base_dir'].triggered.connect(
+            lambda: w.controller.settings.open_base_dir()
         )
         m['config.save'].triggered.connect(
             lambda: w.controller.settings.save_all()
@@ -154,6 +158,7 @@ class Config:
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])
         menu.addMenu(m['config.profile'])
+        menu.addAction(m['config.open_base_dir'])
         menu.addAction(m['config.open_dir'])
         menu.addAction(m['config.change_dir'])
         menu.addAction(m['config.save'])
