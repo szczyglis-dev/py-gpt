@@ -25,6 +25,7 @@ from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 class WorkerSignals(BaseSignals):
     transcribed = Signal(str, str)
     on_realtime = Signal(str)
+    capture_finished = Signal(object)
     model_ready = Signal(str)
     model_prepare_failed = Signal(str)
 
@@ -39,6 +40,7 @@ class Worker(BaseWorker):
         self.path = None
         self.advanced = False
         self.transcribe = False
+        self.transcription_loader_token = None
         self.prepare_model = False
         self.prepare_provider = None
         self.prepare_model_name = None
@@ -59,6 +61,8 @@ class Worker(BaseWorker):
         except Exception as e:
             self.error(e)
         finally:
+            if self.transcription_loader_token is not None:
+                safe_emit(self.signals, "capture_finished", self.transcription_loader_token)
             self.cleanup()
 
     def handle_model_prepare(self):

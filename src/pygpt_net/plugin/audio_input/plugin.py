@@ -13,6 +13,7 @@ import os
 
 from PySide6.QtCore import Slot
 
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.provider.audio_input.base import BaseProvider
@@ -52,6 +53,7 @@ class Plugin(BasePlugin):
         self.use_locale = True
         self.input_file = "input.wav"
         self.provider_preparing = False
+        self._transcription_loaders = {}
         self.config = Config(self)
 
     def get_input_path(self) -> str:
@@ -463,12 +465,17 @@ class Plugin(BasePlugin):
         if self.thread_started and not force:
             return
 
+        loader_token = None
         try:
             from .worker import Worker
             worker = Worker()
             worker.from_defaults(self)
             worker.path = self.get_input_path()
             worker.advanced = self.is_advanced()  # advanced mode
+            if not worker.advanced:
+                loader_token = self._begin_transcription_loader()
+                worker.transcription_loader_token = loader_token
+                worker.signals.capture_finished.connect(self._finish_transcription_loader)
 
             # signals
             worker.signals.transcribed.connect(self.handle_transcribed)
@@ -481,7 +488,40 @@ class Plugin(BasePlugin):
             worker.run_async()
 
         except Exception as e:
+            self._finish_transcription_loader(loader_token)
             self.error(e)
+
+    def _begin_transcription_loader(self):
+        """Show a chat-scoped loader while recorded speech is transcribed."""
+        if (self.window.controller.realtime.is_enabled()
+                or self.window.controller.tabs.get_current_type() != Tab.TAB_CHAT
+                or self.window.core.ctx.output.has_request()):
+            return None
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None:
+            return None
+        token = object()
+        self._transcription_loaders[token] = meta
+        self.window.dispatch(RenderEvent(RenderEvent.STATE_BUSY, {
+            "meta": meta,
+            "loading_delay_ms": 0,
+            "loading_wait_for_input": False,
+        }))
+        return token
+
+    @Slot(object)
+    def _finish_transcription_loader(self, token):
+        """Clear this loader unless another transcription or reply now owns it."""
+        meta = self._transcription_loaders.pop(token, None)
+        if meta is None:
+            return
+        if any(other.id == meta.id for other in self._transcription_loaders.values()):
+            return
+        output = self.window.core.ctx.output
+        request_meta = output.get_request_meta() if output.has_request() else None
+        if request_meta is not None and request_meta.id == meta.id:
+            return  # The generated reply keeps the same loader until first output.
+        self.window.dispatch(RenderEvent(RenderEvent.STATE_IDLE, {"meta": meta}))
 
     def can_listen(self) -> bool:
         """
