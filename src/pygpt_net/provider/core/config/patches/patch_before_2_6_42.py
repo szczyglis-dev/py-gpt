@@ -2337,7 +2337,7 @@ class Patch:
             if old < parse_version("2.6.41"):
                 print("Migrating config from < 2.6.41...")
                 if "render.memory.limit" not in data:
-                    data["render.memory.limit"] = "2.5GB"
+                    data["render.memory.limit"] = "4GB"
                 # ul p
                 updated = True
 

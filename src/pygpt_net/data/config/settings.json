@@ -2864,7 +2864,7 @@
         "slider": false,
         "label": "settings.render.memory.limit",
         "description": "settings.render.memory.limit.desc",
-        "value": "2GB",
+        "value": "4GB",
         "min": null,
         "max": null,
         "multiplier": null,
