@@ -546,6 +546,12 @@ class Extensions:
         if remove_registry:
             registry.setdefault("items", {}).pop(extension_id, None)
             self._save_registry(registry)
+        try:
+            from pygpt_net.utils import unregister_locale_domain
+            unregister_locale_domain(f"addon.{extension_id}")
+        except Exception:
+            pass
+        self._loaded_objects.pop(extension_id, None)
         return found
 
     def get_extension_dir(self, ext_type: str, extension_id: str, create_parent: bool = False) -> str:
@@ -696,6 +702,7 @@ class Extensions:
             try:
                 objects = self._load_entrypoints(manifest)
                 self._validate_runtime_objects(ext_type, objects)
+                self._configure_runtime_locale(manifest, objects)
                 register = getattr(launcher, self.RUNTIME_TYPES[ext_type])
                 for obj in objects:
                     register(obj)
@@ -710,6 +717,38 @@ class Extensions:
         if addon_log_started:
             print()
         return loaded
+
+    def _configure_runtime_locale(self, manifest: dict, objects: list):
+        """Bind an add-on's optional ``locale`` directory to its runtime objects.
+
+        Every runtime object from one add-on shares one logical domain. The
+        physical directory is deliberately decoupled from that domain so add-ons
+        can live anywhere under the profile and still use ``locale.<lang>.ini``.
+        """
+        root = os.path.realpath(manifest.get("_path") or "")
+        if not root:
+            return
+        locale_dir = os.path.realpath(os.path.join(root, "locale"))
+        if not os.path.isdir(locale_dir) or not self._is_inside(locale_dir, root):
+            return
+
+        domain = f"addon.{manifest['id']}"
+        from pygpt_net.utils import register_locale_domain, unregister_locale_domain
+        unregister_locale_domain(domain)
+        register_locale_domain(domain, locale_dir)
+
+        for obj in objects:
+            setter = getattr(obj, "set_locale_domain", None)
+            if callable(setter):
+                setter(domain, locale_dir)
+            else:
+                obj.locale_domain = domain
+                obj.locale_dir = locale_dir
+
+            # Plugin UI localization is opt-in in BasePlugin. Presence of an
+            # add-on locale directory is the opt-in for external plugins.
+            if manifest.get("type") == "plugin":
+                obj.use_locale = True
 
     @staticmethod
     def _validate_runtime_objects(ext_type: str, objects: list):

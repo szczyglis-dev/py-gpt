@@ -1656,11 +1656,31 @@ class OptionCombo(QWidget):
         self.setLayout(self.layout)
         self.fit_to_content()
 
+    def _trans(self, value):
+        """Translate an option-owned label using its locale domain.
+
+        A combo item may also provide ``{key, domain, fallback}``, allowing one
+        list to mix captions owned by different add-ons/providers.
+        """
+        if isinstance(value, dict) and "key" in value:
+            key = str(value.get("key") or "")
+            domain = value.get("domain")
+            translated = trans(key, domain=domain)
+            if translated == key and value.get("fallback") is not None:
+                return str(value.get("fallback"))
+            return translated
+        if not isinstance(value, str):
+            return str(value)
+        if self.option is not None and not self.option.get('_use_locale', True):
+            return value
+        domain = self.option.get('_locale_domain') if self.option is not None else None
+        return trans(value, domain=domain)
+
     def update(self):
         """Prepare items"""
         if self.option is not None:
             if "label" in self.option and self.option["label"] is not None and self.option["label"] != "":
-                self.title = trans(self.option["label"])
+                self.title = self._trans(self.option["label"])
             if "keys" in self.option:
                 self.keys = self.option["keys"]
             if "value" in self.option:
@@ -1684,22 +1704,22 @@ class OptionCombo(QWidget):
                         if not isinstance(key, str):
                             key = str(key)
                         if key.startswith("separator::"):
-                            self.combo.addSeparator(trans(value))
+                            self.combo.addSeparator(self._trans(value))
                         else:
-                            self.combo.addItem(trans(value), key)
+                            self.combo.addItem(self._trans(value), key)
                 else:
                     if isinstance(item, str) and item.startswith("separator::"):
                         self.combo.addSeparator(item.split("separator::", 1)[1])
                     else:
-                        self.combo.addItem(item, item)
+                        self.combo.addItem(self._trans(item), item)
         elif type(self.keys) is dict:
             for key, value in self.keys.items():
                 if not isinstance(key, str):
                     key = str(key)
                 if key.startswith("separator::"):
-                    self.combo.addSeparator(trans(value))
+                    self.combo.addSeparator(self._trans(value))
                 else:
-                    self.combo.addItem(trans(value), key)
+                    self.combo.addItem(self._trans(value), key)
 
         self._apply_initial_selection()
 
@@ -1798,21 +1818,21 @@ class OptionCombo(QWidget):
                         for key, value in item.items():
                             key = str(key)
                             if key.startswith("separator::"):
-                                self.combo.addSeparator(trans(value))
+                                self.combo.addSeparator(self._trans(value))
                             else:
-                                self.combo.addItem(trans(value), key)
+                                self.combo.addItem(self._trans(value), key)
                     else:
                         if isinstance(item, str) and item.startswith("separator::"):
                             self.combo.addSeparator(item.split("separator::", 1)[1])
                         else:
-                            self.combo.addItem(trans(item) if isinstance(item, str) else str(item), item)
+                            self.combo.addItem(self._trans(item), item)
             elif isinstance(self.keys, dict):
                 for key, value in self.keys.items():
                     key = str(key)
                     if key.startswith("separator::"):
-                        self.combo.addSeparator(trans(value))
+                        self.combo.addSeparator(self._trans(value))
                     else:
-                        self.combo.addItem(trans(value), key)
+                        self.combo.addItem(self._trans(value), key)
 
             index = self.combo.findData(current_id)
             if index == -1 and self.current_id is not None:

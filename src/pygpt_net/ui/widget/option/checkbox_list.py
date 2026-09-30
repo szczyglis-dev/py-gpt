@@ -53,7 +53,7 @@ class OptionCheckboxList(QWidget):
         if self.option is not None:
             if "label" in self.option and self.option["label"] is not None \
                     and self.option["label"] != "":
-                self.title = trans(self.option["label"])
+                self.title = trans(self.option["label"], domain=self.option.get('_locale_domain')) if self.option.get('_use_locale', True) else str(self.option["label"])
             if "value" in self.option:
                 self.value = self.option["value"]
             if "real_time" in self.option:
@@ -69,7 +69,7 @@ class OptionCheckboxList(QWidget):
             # item is a dict with key:name
             if type(item) is dict:
                 for key, name in item.items():
-                    self.boxes[key] = QCheckBox(name, self.window)
+                    self.boxes[key] = QCheckBox(trans(name, domain=self.option.get('_locale_domain')) if self.option.get('_use_locale', True) else str(name), self.window)
                     self.boxes[key].setStyleSheet("margin-left: 5px; margin-right: 5px;")
                     if key in values:
                         self.boxes[key].setChecked(True)
@@ -114,6 +114,22 @@ class OptionCheckboxList(QWidget):
         )
         self.btn_select.raise_()
         self._place_select_button()
+
+    def update_locale(self):
+        """Refresh checkbox captions owned by this option's locale domain."""
+        if self.option is None:
+            return
+        domain = self.option.get('_locale_domain')
+        use_locale = self.option.get('_use_locale', True)
+        for item in self.keys:
+            if not isinstance(item, dict):
+                continue
+            for key, name in item.items():
+                if key in self.boxes:
+                    text = trans(name, domain=domain) if use_locale else str(name)
+                    self.boxes[key].setText(text)
+        if self.btn_select is not None:
+            self.btn_select.setToolTip(trans("action.select_unselect_all"))
 
     def _place_select_button(self) -> None:
         """
@@ -161,7 +177,7 @@ class OptionCheckboxList(QWidget):
             # item is a dict with key:name
             if type(item) is dict:
                 for key, name in item.items():
-                    checkbox = QCheckBox(name, self.window)
+                    checkbox = QCheckBox(trans(name, domain=self.option.get('_locale_domain')) if self.option.get('_use_locale', True) else str(name), self.window)
                     checkbox.setStyleSheet("margin-left: 5px; margin-right: 5px;")
                     checkbox.setChecked(key in values)
                     checkbox.stateChanged.connect(

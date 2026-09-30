@@ -17,7 +17,10 @@ if TYPE_CHECKING:
     from llama_index.core.indices.base import BaseIndex
     from llama_index.core import StorageContext
 
-class BaseStore:
+from pygpt_net.core.locale import LocaleDomain
+
+
+class BaseStore(LocaleDomain):
     def __init__(self, *args, **kwargs):
         """
         Base vector store provider
@@ -25,6 +28,7 @@ class BaseStore:
         :param args: args
         :param kwargs: kwargs
         """
+        self.init_locale_domain()
         self.window = kwargs.get('window', None)
         self.id = None
         self.prefix = ""  # prefix for index directory

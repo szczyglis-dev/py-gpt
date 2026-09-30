@@ -102,7 +102,17 @@ class Plugin(BasePlugin):
         options = []
         providers = self.get_providers()
         for id in providers:
-            options.append({id: providers[id].name})
+            provider = providers[id]
+            domain = provider.get_locale_domain() if hasattr(provider, "get_locale_domain") else None
+            if domain:
+                label = {
+                    "key": "provider.name",
+                    "domain": domain,
+                    "fallback": provider.name,
+                }
+            else:
+                label = provider.name
+            options.append({id: label})
         return options
 
     def init_tabs(self) -> dict:
@@ -116,7 +126,7 @@ class Plugin(BasePlugin):
         tabs["indexing"] = "Indexing"
         providers = self.get_providers()
         for id in providers:
-            tabs[id] = providers[id].name
+            tabs[id] = providers[id].get_name() if hasattr(providers[id], "get_name") else providers[id].name
         return tabs
 
     def attach(self, window):

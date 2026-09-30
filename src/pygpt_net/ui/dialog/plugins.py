@@ -175,7 +175,7 @@ class Plugins:
             desc_key = f"plugin.settings.{id}.desc"
             desc_txt = plugin.description
             if plugin.use_locale:
-                domain = f"plugin.{plugin.id}"
+                domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f"plugin.{plugin.id}"
                 translated_name = trans('plugin.name', False, domain)
                 translated_desc = trans('plugin.description', False, domain)
                 if translated_name != 'plugin.name':
@@ -202,11 +202,17 @@ class Plugins:
                     tab_name = tab_id
                     translated_tab_name = None
                     if plugin.use_locale:
-                        domain = f"plugin.{plugin.id}"
-                        plugin_tab_key = f"tab.{tab_id}"
-                        translated = trans(plugin_tab_key, False, domain)
-                        if translated != plugin_tab_key:
-                            translated_tab_name = translated
+                        domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f"plugin.{plugin.id}"
+                        provider_domain = getattr(plugin, 'tab_locale_domains', {}).get(tab_id)
+                        if provider_domain:
+                            translated = trans('provider.name', False, provider_domain)
+                            if translated != 'provider.name':
+                                translated_tab_name = translated
+                        if translated_tab_name is None:
+                            plugin_tab_key = f"tab.{tab_id}"
+                            translated = trans(plugin_tab_key, False, domain)
+                            if translated != plugin_tab_key:
+                                translated_tab_name = translated
                     if translated_tab_name is None:
                         global_tab_key = f"plugin.tab.{tab_id}"
                         translated = trans(global_tab_key)
@@ -449,7 +455,8 @@ class Plugins:
 
         # translate if localization is enabled
         if plugin.use_locale and allow_locale:
-            domain = f"plugin.{plugin.id}"
+            plugin_domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f"plugin.{plugin.id}"
+            domain = option.get('_locale_domain') or plugin_domain
             translated_label = trans(f"{key}.label", False, domain)
             translated_description = trans(f"{key}.description", False, domain)
             if translated_label != f"{key}.label":

@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
     from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 
+from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX, 
@@ -26,16 +27,26 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import parse_args
 
 
-class BaseLLM:
+class BaseLLM(LocaleDomain):
     _MISSING = object()
 
     def __init__(self, *args, **kwargs):
+        self.init_locale_domain()
         self.id = ""
         self.name = ""
         self.type = []  # langchain, llama_index, embeddings
         self.description = ""
         self.window = None
         self.config_id = ""
+
+    def get_name(self) -> str:
+        """Return localized provider name when the current domain defines it."""
+        domain = self.get_locale_domain()
+        if domain:
+            value = self.trans("provider.name")
+            if value != "provider.name":
+                return value
+        return self.name
 
     def setup(self) -> dict:
         """Return provider-owned setup metadata.

@@ -132,10 +132,10 @@ class LLM:
         if type is not None:
             for id in list(self.llms.keys()):
                 if type in self.llms[id].type:
-                    choices[id] = self.llms[id].name
+                    choices[id] = self.llms[id].get_name() if hasattr(self.llms[id], "get_name") else self.llms[id].name
         else:
             for id in list(self.llms.keys()):
-                choices[id] = self.llms[id].name
+                choices[id] = self.llms[id].get_name() if hasattr(self.llms[id], "get_name") else self.llms[id].name
 
         # sorted by name
         return dict(sorted(choices.items(), key=lambda item: item[1].lower()))
@@ -148,7 +148,7 @@ class LLM:
         :return: provider name
         """
         self.sync_custom()
-        return self.llms[id].name if id in self.llms else id
+        return (self.llms[id].get_name() if hasattr(self.llms[id], "get_name") else self.llms[id].name) if id in self.llms else id
 
     def get(self, id: str):
         """
@@ -244,10 +244,13 @@ class LLM:
 
     def _build_setting_option(self, provider, config_id: str, key: str, field: dict, *, is_extra: bool) -> tuple[str, dict]:
         """Convert a provider schema field into the regular Settings format."""
-        provider_name = getattr(provider, "config_name", "") or getattr(provider, "name", "") or config_id
+        provider_name = getattr(provider, "config_name", "") or (provider.get_name() if hasattr(provider, "get_name") else getattr(provider, "name", "")) or config_id
         path = f"extra.{key}" if is_extra else key
         option_id = f"provider.{config_id}.{path}"
         use_locale = bool(field.get("use_locale", False))
+        locale_domain = field.get("locale_domain")
+        if not locale_domain and use_locale and hasattr(provider, "get_locale_domain"):
+            locale_domain = provider.get_locale_domain()
 
         label = field.get("label")
         description = field.get("desc", field.get("description"))
@@ -283,7 +286,10 @@ class LLM:
             "_provider_key": path,
             "_provider_dynamic": True,
             "_tab_label": provider_name,
+            "_tab_locale_domain": provider.get_locale_domain()
+            if hasattr(provider, "get_locale_domain") else None,
             "_use_locale": use_locale,
+            "_locale_domain": locale_domain,
             "_label_params": label_params,
             "_description_params": description_params,
             "_ui_key": f"settings.{option_id}",

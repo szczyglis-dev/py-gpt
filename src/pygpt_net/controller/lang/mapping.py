@@ -25,15 +25,21 @@ class Mapping:
         self.window = window
         self.mapping = {}
 
+    @staticmethod
+    def _translate_mapping(value):
+        """Translate a legacy mapping value, optionally scoped to a domain."""
+        if isinstance(value, dict):
+            return trans(value.get("key", ""), domain=value.get("domain"))
+        return trans(value)
+
     def _apply_map(self, items, targets, getter_name: str, setter_name: str):
-        t = trans
         get = getattr
         for k, key in items.items():
             w = targets.get(k)
             if w is None:
                 continue
             try:
-                v = t(key)
+                v = self._translate_mapping(key)
                 getter = get(w, getter_name, None)
                 setter = get(w, setter_name, None)
                 if setter is None:
@@ -50,13 +56,12 @@ class Mapping:
 
     def _apply_tooltips(self, items, targets):
         """Apply translated tooltips, including nested toggle controls."""
-        t = trans
         for k, key in items.items():
             widget = targets.get(k)
             if widget is None:
                 continue
             try:
-                value = t(key)
+                value = self._translate_mapping(key)
                 widget.setToolTip(value)
 
                 # ToggleLabel stores the interactive checkbox in ``box``.

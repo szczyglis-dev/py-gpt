@@ -11,6 +11,7 @@
 
 from typing import Dict, Any, Tuple
 
+from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.preset import PresetItem
 
@@ -19,8 +20,9 @@ LEGACY_AGENT_SECURITY_RULE = """## Security
 - Work only inside the user's current working directory unless the user explicitly authorizes access elsewhere."""
 
 
-class BaseAgent:
+class BaseAgent(LocaleDomain):
     def __init__(self, *args, **kwargs):
+        self.init_locale_domain()
         self.id = ""
         self.type = ""
         self.mode = ""
