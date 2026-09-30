@@ -18,8 +18,13 @@ class ExampleTool(BaseTool):
     def setup_menu(self):
         # setup_menu() is called while the Tools menu is built. Returning an
         # action here is enough to add a real menu item.
-        self._action = QAction("External add-on example", self.window)
-        self._action.setToolTip("Show data read through the PyGPT window API")
+        # The locale domain is assigned by the Add-on loader before setup_menu()
+        # runs. add_lang_mapping() keeps private Qt objects synchronized when
+        # the user changes the application language at runtime.
+        self._action = QAction(self.trans("menu.title"), self.window)
+        self._action.setToolTip(self.trans("menu.tooltip"))
+        self.add_lang_mapping(self._action, "menu.title")
+        self.add_lang_mapping(self._action, "menu.tooltip", setter="setToolTip")
         self._action.triggered.connect(self._show_info)
         return {self.id: self._action}
 
@@ -30,9 +35,12 @@ class ExampleTool(BaseTool):
 
     def _show_info(self):
         profile = self.window.core.config.get_user_path()
-        message = (
-            "This dialog comes from an external GUI Tool add-on.\n\n"
-            f"Profile workdir: {profile}\n"
-            f"Selected context id: {self._selected_context_id}"
+        message = self.trans("dialog.message").format(
+            profile=profile,
+            context=self._selected_context_id,
         )
-        QMessageBox.information(self.window, "Example Tool", message)
+        QMessageBox.information(
+            self.window,
+            self.trans("dialog.title"),
+            message,
+        )

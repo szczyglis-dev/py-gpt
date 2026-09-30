@@ -1,6 +1,6 @@
 # Example audio-output provider
 
-This `audio_output` Add-on generates a real playable WAV tone. It demonstrates provider settings, `prepare_output_path()` and the `speech(text)` contract without requiring a TTS account.
+This `audio_output` Add-on generates a real playable WAV tone. It demonstrates provider settings, `prepare_output_path()` and the `speech(text)` contract without requiring a TTS account. The bundled `locale/` directory localizes `provider.name` and the tone-frequency option without manually passing a translation domain to `plugin.add_option()`.
 
 ## Try it
 

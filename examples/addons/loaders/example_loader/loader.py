@@ -43,7 +43,10 @@ class ExampleLoader(BaseLoader):
         self.type = ["file"]
         self.init_args = {"encoding": "utf-8"}
         self.init_args_types = {"encoding": "str"}
-        self.init_args_desc = {"encoding": "Text encoding used to read .example files."}
+        # Loader configuration carries this Add-on's locale domain, so labels
+        # and descriptions can be translation keys from locale/locale.<lang>.ini.
+        self.init_args_labels = {"encoding": "encoding.label"}
+        self.init_args_desc = {"encoding": "encoding.description"}
 
     def is_supported_attachment(self, source: str) -> bool:
         return str(source).lower().endswith(".example")

@@ -1,6 +1,6 @@
 # Example plugin
 
-This is a complete external `plugin` Add-on. It demonstrates persistent plugin options, two model-callable commands (`example_echo` and `example_add`), command schema publication, command execution, replies returned to the current conversation, and application event hooks.
+This is a complete external `plugin` Add-on. It demonstrates persistent plugin options, two model-callable commands (`example_echo` and `example_add`), command schema publication, command execution, replies returned to the current conversation, application event hooks, and a private `locale/` directory. The Add-on loader automatically binds that directory to `addon.example_plugin`; no locale registration code is needed.
 
 ## Try it
 

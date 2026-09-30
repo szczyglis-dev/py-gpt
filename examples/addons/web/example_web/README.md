@@ -1,6 +1,6 @@
 # Example web-search provider
 
-This `web` Add-on performs a real network request against Wikipedia's public MediaWiki OpenSearch endpoint and returns result URLs in the format expected by PyGPT's Web search plugin.
+This `web` Add-on performs a real network request against Wikipedia's public MediaWiki OpenSearch endpoint and returns result URLs in the format expected by PyGPT's Web search plugin. Its private `locale/` directory localizes the provider name and the option created in `init_options()` through the automatically assigned Add-on domain.
 
 ## Try it
 

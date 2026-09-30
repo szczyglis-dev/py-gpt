@@ -1,6 +1,6 @@
 # Example GUI tool
 
-This `tool` Add-on adds a real action to the **Tools** menu and opens a Qt dialog. It also listens for `CTX_SELECT`, showing how GUI tools can observe the same application event stream as built-in tools.
+This `tool` Add-on adds a real action to the **Tools** menu and opens a Qt dialog. It also listens for `CTX_SELECT`, showing how GUI tools can observe the same application event stream as built-in tools. Its `locale/` directory demonstrates `self.trans()` and `add_lang_mapping()`, including live updates of a private `QAction` when the application language changes.
 
 ## Try it
 

@@ -100,6 +100,9 @@ For a plugin:
    my_plugin/
    ├── manifest.json
    ├── plugin.py
+   ├── locale/                 # optional, private translations for this Add-on
+   │   ├── locale.en.ini
+   │   └── locale.pl.ini
    └── helpers/
        └── client.py
 
@@ -110,6 +113,9 @@ For manual installation, PyGPT stores it as:
    %workdir%/addons/plugins/my_plugin/
    ├── manifest.json
    ├── plugin.py
+   ├── locale/
+   │   ├── locale.en.ini
+   │   └── locale.pl.ini
    └── helpers/
        └── client.py
 
@@ -308,6 +314,219 @@ Useful developer settings include:
 * normal application log output for ``[Add-ons] WARNING`` messages.
 
 A broken Add-on is isolated during startup. Invalid manifests, incompatible minimum versions, import errors, invalid entry points and registration errors are skipped and logged instead of aborting the whole application.
+
+Add-on-owned translations
+-------------------------
+
+Runtime Add-ons can ship their **own private translation domain**. This is different from a ``type: locale`` Add-on: a locale Add-on installs global/profile locale files, while an Add-on-owned ``locale/`` directory belongs to one executable Add-on and is automatically scoped to that package.
+
+Supported runtime types are ``plugin``, ``tool``, ``llm``, ``vector_store``, ``loader``, ``audio_input``, ``audio_output``, ``web`` and ``agent``. No manifest flag is required. If the installed Add-on root contains a directory named ``locale``, PyGPT detects it while loading the Add-on and binds it to every runtime object returned by that manifest.
+
+Directory and file naming
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Put locale files directly below the Add-on's ``locale`` directory and name them ``locale.<lang>.ini``:
+
+.. code-block:: text
+
+   my_addon/
+   ├── manifest.json
+   ├── provider.py
+   └── locale/
+       ├── locale.en.ini
+       ├── locale.pl.ini
+       └── locale.de.ini
+
+Every file uses the normal PyGPT INI format:
+
+.. code-block:: ini
+
+   [LOCALE]
+   provider.name = Example provider
+   settings.timeout.label = Request timeout
+   settings.timeout.description = Timeout in seconds.
+   dialog.title = Example dialog
+
+Use UTF-8. The language suffix is the same language code used by PyGPT, for example ``en``, ``pl``, ``de`` or ``fr``. English is the fallback language, so shipping a complete ``locale.en.ini`` is recommended even if the Add-on also provides other languages.
+
+Automatic domain assignment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For an installed runtime Add-on, the manifest ID defines the logical domain automatically:
+
+.. code-block:: text
+
+   manifest id: my_company_example
+   locale dir:  <addon-root>/locale
+   domain:      addon.my_company_example
+
+The physical path is intentionally separate from the logical domain. Add-on code normally **does not register this domain itself** and should not hard-code the installation path. The loader registers ``<addon-root>/locale`` and assigns ``addon.<manifest_id>`` to each runtime object after the entry point has been instantiated and before the object is registered in the normal PyGPT subsystem.
+
+All runtime base classes that support Add-ons expose the locale-domain helpers inherited from ``LocaleDomain``:
+
+``self.trans(key)``
+   Translate ``key`` using the object's assigned domain. If the key is not present in the Add-on domain, normal PyGPT locale is used as the final fallback.
+
+``self.get_locale_domain()``
+   Return the assigned logical domain, for example ``addon.my_company_example``.
+
+``self.get_locale_dir()``
+   Return the physical Add-on ``locale`` directory when one was assigned.
+
+``self.set_locale_domain(domain, path=None, register=False)``
+   Assign a domain manually. Installed Add-ons normally do not need this; it is mainly useful for custom-launcher objects or advanced integrations.
+
+Because the domain is assigned **after the entry-point object is constructed**, avoid resolving final translated UI strings with ``self.trans()`` inside ``__init__()``. Store translation keys there and let the relevant PyGPT UI translate them later, or call ``self.trans()`` from lifecycle/UI methods that run after registration (for example a Tool's ``setup_menu()``).
+
+Fallback and overrides
+~~~~~~~~~~~~~~~~~~~~~~
+
+A custom domain is loaded in this order:
+
+#. ``locale.en.ini`` from the Add-on directory (English baseline).
+#. ``locale.<active-lang>.ini`` from the Add-on directory, if present.
+#. ``%workdir%/locale/addon.<manifest_id>.<lang>.ini`` as the profile/user override.
+
+A missing key in the selected Add-on domain falls back to the normal application locale domain. This makes it possible to reuse common PyGPT keys without duplicating them in every Add-on.
+
+Changing the application language reloads domains that are already in use. UI components integrated with the locale system therefore update without the Add-on maintaining its own language watcher.
+
+Plugin Add-ons
+~~~~~~~~~~~~~~
+
+For an external ``plugin`` Add-on, the presence of ``locale/`` automatically enables plugin localization. The following conventional keys are consumed by the Plugins UI:
+
+.. code-block:: ini
+
+   [LOCALE]
+   plugin.name = My localized plugin name
+   plugin.description = Localized plugin description
+
+   uppercase.label = Uppercase result
+   uppercase.description = Convert the result to upper case.
+
+   example_cmd.label = Example command
+   example_cmd.description = Allow the model to call the example command.
+
+   tab.advanced = Advanced
+
+Plugin settings are translated by option ID, using ``<option_id>.label``, ``<option_id>.description`` and, where supported, ``<option_id>.tooltip``. Command options created by ``add_cmd()`` use the same Add-on domain for their UI labels/descriptions. ``plugin.name`` and ``plugin.description`` replace the Python fallback strings in the Plugins UI.
+
+Calling ``self.trans("some.key")`` also uses the assigned ``addon.<manifest_id>`` domain. Built-in PyGPT plugins use the same logical-domain mechanism but their bundled files live under ``data/locale/plugin/<plugin_id>/locale.<lang>.ini`` and use the ``plugin.<plugin_id>`` domain.
+
+GUI Tool Add-ons
+~~~~~~~~~~~~~~~~
+
+A Tool can translate text directly in setup/runtime code:
+
+.. code-block:: python
+
+   def setup_menu(self):
+       action = QAction(self.trans("menu.title"), self.window)
+       action.setToolTip(self.trans("menu.tooltip"))
+       self.add_lang_mapping(action, "menu.title")
+       self.add_lang_mapping(action, "menu.tooltip", setter="setToolTip")
+       return {self.id: action}
+
+``add_lang_mapping()`` defaults to the Tool's assigned Add-on domain and reapplies the translation when the application language changes. This is the preferred API for dynamically created/private Qt objects. Existing ``get_lang_mappings()`` mappings are also scoped to the Tool's Add-on domain automatically.
+
+LLM provider Add-ons
+~~~~~~~~~~~~~~~~~~~~
+
+``BaseLLM.get_name()`` checks ``provider.name`` in the provider's assigned domain before falling back to ``self.name``. Provider-owned Settings fields can opt in to the same domain by using ``use_locale: True`` in the ``setup()`` schema:
+
+.. code-block:: python
+
+   def setup(self):
+       return {
+           "openai_compatible": False,
+           "settings": {
+               "extra": {
+                   "timeout": {
+                       "type": "int",
+                       "default": 30,
+                       "label": "settings.timeout.label",
+                       "description": "settings.timeout.description",
+                       "use_locale": True,
+                   },
+               },
+           },
+           "remote_tools": {},
+       }
+
+With ``use_locale: True``, PyGPT attaches the provider's ``addon.<manifest_id>`` domain to the field. Labels, descriptions, combo items and other supported Settings widgets are then translated from the provider's own ``locale/`` directory and refreshed on a runtime language change.
+
+Audio-input, audio-output and Web provider Add-ons
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``audio_input``, ``audio_output`` and ``web`` providers are attached to their owning built-in plugin. Their Add-on domain is propagated automatically while ``init_options()`` adds provider settings. This means the existing provider code can keep normal fallback labels while locale files provide translations by **option ID**:
+
+.. code-block:: python
+
+   def init_options(self):
+       self.plugin.add_option(
+           "request_timeout",
+           type="int",
+           value=30,
+           label="Request timeout",          # English fallback
+           description="Timeout in seconds.", # English fallback
+           tab=self.id,
+       )
+
+.. code-block:: ini
+
+   [LOCALE]
+   provider.name = My provider
+   request_timeout.label = Request timeout
+   request_timeout.description = Timeout in seconds.
+
+The provider tab/name uses ``provider.name`` when available. There is no need to pass ``domain=`` to ``plugin.add_option()`` manually.
+
+Loader Add-ons
+~~~~~~~~~~~~~~
+
+Loader configuration metadata also carries the loader's Add-on domain. Translation keys can therefore be supplied in ``init_args_labels`` and ``init_args_desc``:
+
+.. code-block:: python
+
+   self.init_args = {"encoding": "utf-8"}
+   self.init_args_types = {"encoding": "str"}
+   self.init_args_labels = {"encoding": "encoding.label"}
+   self.init_args_desc = {"encoding": "encoding.description"}
+
+and in ``locale.en.ini``:
+
+.. code-block:: ini
+
+   [LOCALE]
+   encoding.label = Text encoding
+   encoding.description = Encoding used to read input files.
+
+For web-loader instructions, PyGPT also propagates the loader domain to the instruction and its argument metadata before building the configuration UI.
+
+Other runtime Add-ons
+~~~~~~~~~~~~~~~~~~~~~
+
+``vector_store`` and ``agent`` objects receive the same domain and can use ``self.trans()`` anywhere translation is required. The same applies to custom UI/messages created by any runtime Add-on type. Automatic translation of a specific framework-owned field only happens where that subsystem exposes locale-aware metadata; otherwise call ``self.trans()`` or register a UI language mapping explicitly.
+
+Custom launcher objects
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The automatic ``locale/`` discovery described above belongs to the manifest/Add-on loader. Objects registered directly through ``pygpt_net.app.run(...)`` have no manifest root, so assign/register their domain manually if they need private locale files:
+
+.. code-block:: python
+
+   from pathlib import Path
+
+   provider = ExampleLLM()
+   locale_dir = Path(__file__).with_name("locale")
+   provider.set_locale_domain(
+       "custom.example_llm",
+       str(locale_dir),
+       register=True,
+   )
+
+Use a stable, unique domain name. The files in ``locale_dir`` still use the canonical ``locale.<lang>.ini`` naming convention.
 
 Runtime lifecycle
 -----------------
@@ -942,7 +1161,7 @@ Full ``BasePlugin`` method reference
      - Shutdown hook invoked for every registered plugin, including disabled plugins; receives active state when available.
      - Close sockets, files, threads, clients.
    * - ``trans(text=None)``
-     - Translates a key in the ``plugin.<id>`` translation domain.
+     - Translates a key in the plugin's assigned locale domain (``addon.<manifest_id>`` for an external Add-on, ``plugin.<id>`` for a built-in plugin).
      - Plugin-localized UI text.
    * - ``error(err)``
      - Logs an exception/error and opens a user alert dialog.
@@ -2102,7 +2321,9 @@ Locale Add-ons
 What a Locale Add-on is for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A ``locale`` Add-on distributes translation files without executing Python code. It is useful for adding a new language or shipping maintained overrides/additional translation keys independently from the main PyGPT release. Locale packages have no Python base class and no ``entrypoint``.
+A ``locale`` Add-on distributes translation files without executing Python code. It is useful for adding a new language or shipping maintained **global/profile** overrides and additional translation keys independently from the main PyGPT release. Locale packages have no Python base class and no ``entrypoint``.
+
+This is separate from the private ``locale/`` directory supported by runtime Add-ons. If a plugin/tool/provider only needs translations for its own UI and settings, keep those files inside that runtime Add-on and use its automatic ``addon.<manifest_id>`` domain instead of publishing a second ``type: locale`` package.
 
 Package layout
 ~~~~~~~~~~~~~~

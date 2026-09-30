@@ -1,6 +1,6 @@
 # Example data loader
 
-This `loader` Add-on handles files ending in `.example`. The bundled `sample.example` file contains simple `key = value` lines; the reader turns them into a real LlamaIndex `Document` with metadata.
+This `loader` Add-on handles files ending in `.example`. The bundled `sample.example` file contains simple `key = value` lines; the reader turns them into a real LlamaIndex `Document` with metadata. `init_args_labels` and `init_args_desc` use keys from the private `locale/` directory, demonstrating locale-aware loader configuration.
 
 ## Try it
 

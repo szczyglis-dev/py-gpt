@@ -1,6 +1,6 @@
 # Example LLM / embeddings provider
 
-This `llm` Add-on is intentionally offline: it returns LlamaIndex `MockLLM` and `MockEmbedding` objects, so a developer can test provider registration without credentials or network access.
+This `llm` Add-on is intentionally offline: it returns LlamaIndex `MockLLM` and `MockEmbedding` objects, so a developer can test provider registration without credentials or network access. It also demonstrates provider-owned localization: `provider.name` comes from the Add-on locale domain and the `mock_max_tokens` field in `setup()["settings"]` opts into the same domain with `use_locale=True`.
 
 ## Try it
 

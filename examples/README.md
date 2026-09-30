@@ -4,6 +4,8 @@ This directory contains small, runnable examples showing the extension points ex
 
 The examples are intentionally simple. They are meant to be copied, renamed, and adapted rather than used as production implementations unchanged.
 
+The `addons/` subtree contains manifest-based Add-ons. Several of them include a private `locale/locale.<lang>.ini` directory demonstrating the automatic `addon.<manifest-id>` translation domain. The top-level examples registered through `custom_launcher.py` do not have a manifest root, so private locale domains for those objects must be assigned manually with `set_locale_domain(..., register=True)`.
+
 Full documentation: https://pygpt.readthedocs.io/en/latest/
 
 ## What is included
