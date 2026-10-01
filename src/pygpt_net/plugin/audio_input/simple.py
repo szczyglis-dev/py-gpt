@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import AppEvent, RealtimeEvent
 from pygpt_net.core.tabs.tab import Tab
@@ -27,6 +28,7 @@ class Simple:
         self.plugin = plugin
         self.is_recording = False
         self.timer = None
+        self.backend_init_pending = False
 
     def toggle_realtime(
             self,
@@ -93,12 +95,18 @@ class Simple:
         """Stop timeout"""
         self.stop_recording(timeout=True)
 
-    def start_recording(self, force: bool = False, realtime: bool = False):
+    def start_recording(
+            self,
+            force: bool = False,
+            realtime: bool = False,
+            _backend_status_shown: bool = False
+    ):
         """
         Start recording
 
         :param force: True to force recording
         :param realtime: True if called from realtime callback
+        :param _backend_status_shown: internal guard for deferred Windows backend initialization
         """
         # display snap warning if not displayed yet
         if (not self.plugin.window.core.config.get("audio.input.snap", False)
@@ -114,33 +122,67 @@ class Simple:
                 self.plugin.window.controller.audio.ui.on_input_abort("input")
                 return
 
-        # prepare local provider before recording. In particular, do not capture
+        # On Windows, show the status before *any* first-use audio/provider work.
+        # Local Whisper imports and the lazy Qt Multimedia/WASAPI backend can both
+        # make the first microphone click noticeably slower. For regular audio
+        # input, return to the event loop once so Qt paints the status before that
+        # work starts. Realtime keeps its synchronous start semantics because its
+        # caller emits start events immediately after this method returns.
+        capture = self.plugin.window.core.audio.capture
+        backend_init_status = (
+            self.plugin.window.core.platforms.is_windows()
+            and not capture.is_initialized()
+        )
+        if backend_init_status and not _backend_status_shown:
+            if self.backend_init_pending:
+                return
+            self.plugin.window.update_status(trans('audio.backend.initializing'))
+            try:
+                status = self.plugin.window.ui.nodes.get('status')
+                if status is not None:
+                    status.msg.repaint()
+                    status.timer.repaint()
+                self.plugin.window.repaint()
+                QApplication.sendPostedEvents()
+                QApplication.processEvents()
+            except Exception:
+                pass
+            if not realtime:
+                self.backend_init_pending = True
+                # Give Windows/Qt one short event-loop turn so the status is
+                # actually presented before WASAPI or provider imports block.
+                QTimer.singleShot(10, lambda: self._resume_backend_start(force, realtime))
+                return
+
+        # Prepare local provider before recording. In particular, do not capture
         # the first utterance while a missing local Whisper model is downloading.
         if not realtime:
             try:
                 if not self.plugin.ensure_provider_ready():
+                    self._clear_backend_init_status()
                     self.plugin.window.controller.audio.ui.on_input_abort("input")
                     return
             except Exception as e:
+                self._clear_backend_init_status()
                 self.plugin.error(e)
                 self.switch_btn_start()
                 self.plugin.window.controller.audio.ui.on_input_abort("input")
                 return
 
-        # enable continuous mode if notepad tab is active
-        self.plugin.window.core.audio.capture.set_repeat_callback(self.on_stop)
-        continuous_enabled = self.plugin.window.core.config.get('audio.input.continuous', False)
-        if continuous_enabled and self.plugin.window.controller.tabs.get_current_type() == Tab.TAB_NOTEPAD:
-            self.plugin.window.core.audio.capture.set_loop(True)  # set loop
-        else:
-            self.plugin.window.core.audio.capture.set_loop(False)
-
         try:
+            # enable continuous mode if notepad tab is active
+            capture.set_repeat_callback(self.on_stop)
+            continuous_enabled = self.plugin.window.core.config.get('audio.input.continuous', False)
+            if continuous_enabled and self.plugin.window.controller.tabs.get_current_type() == Tab.TAB_NOTEPAD:
+                capture.set_loop(True)  # set loop
+            else:
+                capture.set_loop(False)
+
             # stop audio output if playing
             self.plugin.window.controller.audio.stop_output()
 
             # set audio input mode
-            self.plugin.window.core.audio.capture.set_mode("input")
+            capture.set_mode("input")
 
             # start timeout timer to prevent infinite recording
             # disable in continuous mode
@@ -153,14 +195,17 @@ class Simple:
                     self.timer.start(timeout * 1000)
 
             # Open capture once, without opening and closing a test stream first.
-            if not self.plugin.window.core.audio.capture.start():
+            if not capture.start():
                 raise Exception("Audio input not working.")
             self.is_recording = True
             self.switch_btn_stop()
             self.plugin.window.update_status(trans('audio.speak.now'))
             self.plugin.window.dispatch(AppEvent(AppEvent.INPUT_VOICE_LISTEN_STARTED))  # app event
         except Exception as e:
+            self.backend_init_pending = False
             self.is_recording = False
+            if backend_init_status:
+                self.plugin.window.update_status("")
             if self.timer is not None:
                 self.timer.stop()
                 self.timer = None
@@ -174,6 +219,23 @@ class Simple:
                 )
             self.switch_btn_start()  # switch button to start
             self.plugin.window.controller.audio.ui.on_input_abort("input")
+
+    def _clear_backend_init_status(self):
+        """Clear the Windows initialization message if it is still the active status."""
+        try:
+            if self.plugin.window.ui.get_status() == trans('audio.backend.initializing'):
+                self.plugin.window.update_status("")
+        except Exception:
+            pass
+
+    def _resume_backend_start(self, force: bool = False, realtime: bool = False):
+        """Resume recording after Qt had a chance to paint the Windows init status."""
+        self.backend_init_pending = False
+        self.start_recording(
+            force=force,
+            realtime=realtime,
+            _backend_status_shown=True,
+        )
 
     def stop_recording(self, timeout: bool = False, realtime: bool = False):
         """

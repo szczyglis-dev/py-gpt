@@ -12,10 +12,12 @@
 import gc
 import os
 import sys
+import shutil
 from urllib.parse import urlparse
 
 from pygpt_net.core.typing_compat import ensure_typing_self_compat
 from pygpt_net.core.types import WHISPER_LOCAL_MODELS
+from pygpt_net.utils import trans
 
 from .base import BaseProvider
 
@@ -86,6 +88,8 @@ class OpenAIWhisperLocal(BaseProvider):
         """
         if not self.is_configured():
             raise ImportError(self.get_config_message())
+        if not self.is_ffmpeg_available():
+            raise RuntimeError(self.get_ffmpeg_message())
 
         model = self.load_model()
         memory_before = self._get_rss_bytes()
@@ -256,6 +260,17 @@ class OpenAIWhisperLocal(BaseProvider):
         if before > 0 and after >= 0 and before > after:
             freed = before - after
             self._resident_memory_bytes = max(0, self._resident_memory_bytes - freed)
+
+    def is_ffmpeg_available(self) -> bool:
+        """Return True when the Windows local Whisper FFmpeg dependency is available."""
+        if not sys.platform.startswith("win"):
+            return True
+        return bool(shutil.which("ffmpeg") or shutil.which("ffmpeg.exe"))
+
+    @staticmethod
+    def get_ffmpeg_message() -> str:
+        """Return a localized message for a missing Windows FFmpeg executable."""
+        return trans("audio.whisper.ffmpeg.missing")
 
     def is_configured(self) -> bool:
         """

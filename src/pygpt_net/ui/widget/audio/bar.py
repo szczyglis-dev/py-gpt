@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.30 08:45:00                  #
+# Updated Date: 2026.09.30 23:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import (
@@ -19,8 +19,10 @@ from PySide6.QtCore import (
     QEasingCurve,
     QPauseAnimation,
     QEvent,
+    QElapsedTimer,
+    QTimer,
 )
-from PySide6.QtGui import QColor, QPainter, QPalette, QPixmap
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QPalette
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QSizePolicy
 
 try:
@@ -140,11 +142,84 @@ class OutputBar(_BaseLevelBar):
 
 
 class InputRecordLevelBar(_BaseLevelBar):
-    """Dedicated input level bar filling from right to left."""
+    """Input level bar with a continuous right-to-left activity sweep."""
 
     def __init__(self, parent=None):
         super().__init__(parent, reverse=True)
+        self._activity_phase = 0.0
         self.setFixedSize(120, 6)
+
+        self._activity_anim = QPropertyAnimation(self, b"activityPhase", self)
+        self._activity_anim.setDuration(1150)
+        self._activity_anim.setStartValue(0.0)
+        self._activity_anim.setEndValue(1.0)
+        self._activity_anim.setLoopCount(-1)
+        self._activity_anim.setEasingCurve(QEasingCurve.Linear)
+
+    def _get_activity_phase(self) -> float:
+        return self._activity_phase
+
+    def _set_activity_phase(self, value: float):
+        self._activity_phase = min(max(float(value), 0.0), 1.0)
+        self.update()
+
+    activityPhase = Property(float, _get_activity_phase, _set_activity_phase)
+
+    def start_activity(self):
+        if self._activity_anim.state() != QAbstractAnimation.Running:
+            self._activity_anim.start()
+
+    def stop_activity(self):
+        self._activity_anim.stop()
+        self._set_activity_phase(0.0)
+
+    def _activity_color(self) -> QColor:
+        background = self._bar_background()
+        if background.lightness() > 150:
+            color = background.darker(112)
+        else:
+            color = background.lighter(132)
+        color.setAlpha(190)
+        return color
+
+    def paintEvent(self, event):
+        del event
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.fillRect(self.rect(), Qt.transparent)
+
+        bg_rect = QRectF(self.rect())
+        radius = min(bg_rect.height() / 2.0, 3.0)
+        path = QPainterPath()
+        path.addRoundedRect(bg_rect, radius, radius)
+
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(self._bar_background())
+        painter.drawPath(path)
+
+        # Indeterminate activity segment. It deliberately travels in the
+        # opposite direction to the splash progress indicator: right -> left.
+        chunk_width = max(24.0, bg_rect.width() * 0.30)
+        travel = bg_rect.width() + chunk_width
+        chunk_x = bg_rect.right() - (self._activity_phase * travel)
+        chunk_rect = QRectF(chunk_x, bg_rect.top(), chunk_width, bg_rect.height())
+        painter.save()
+        painter.setClipPath(path)
+        painter.setBrush(self._activity_color())
+        painter.drawRect(chunk_rect)
+        painter.restore()
+
+        # Keep the real microphone level independent from the background
+        # animation. The current UI fills the level from right to left.
+        if self._level <= 0:
+            return
+        width = (self._level / 100.0) * bg_rect.width()
+        fill_rect = QRectF(bg_rect.right() - width, bg_rect.top(), width, bg_rect.height())
+        painter.save()
+        painter.setClipPath(path)
+        painter.setBrush(self._bar_fill())
+        painter.drawRect(fill_rect)
+        painter.restore()
 
 
 class RecordingDot(QWidget):
@@ -279,11 +354,15 @@ class InputRecordWidget(QWidget):
         self.setMinimumHeight(20)
         self.setMaximumHeight(20)
 
-        self.mic = QLabel(self)
-        mic = QPixmap(":/icons/mic.svg")
-        self.mic.setPixmap(mic.scaled(12, 12, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        self.mic.setAlignment(Qt.AlignCenter)
-        self.mic.setFixedSize(14, 14)
+        self.elapsed = QLabel("00:00", self)
+        self.elapsed.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.elapsed.setFixedWidth(62)
+        self.elapsed.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        self._elapsed_clock = QElapsedTimer()
+        self._elapsed_timer = QTimer(self)
+        self._elapsed_timer.setInterval(250)
+        self._elapsed_timer.timeout.connect(self._update_elapsed)
 
         self.bar = InputRecordLevelBar(self)
         self.dot = RecordingDot(self)
@@ -291,7 +370,7 @@ class InputRecordWidget(QWidget):
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(6, 0, 4, 0)
         self.layout.setSpacing(6)
-        self.layout.addWidget(self.mic, alignment=Qt.AlignVCenter)
+        self.layout.addWidget(self.elapsed, alignment=Qt.AlignVCenter)
         self.layout.addWidget(self.bar, alignment=Qt.AlignVCenter)
         self.layout.addWidget(self.dot, alignment=Qt.AlignVCenter)
         self.layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -377,36 +456,65 @@ class InputRecordWidget(QWidget):
         return self._state == "recording"
 
     def set_microphone_enabled(self, enabled: bool):
-        """Include/exclude the microphone icon from the widget layout."""
+        """Compatibility hook retained after replacing the mic icon with time."""
         self._microphone_enabled = bool(enabled)
-        if self._state == "recording":
-            self.mic.setVisible(self._microphone_enabled)
-        else:
-            self.mic.setVisible(False)
 
     def is_microphone_enabled(self) -> bool:
-        """Return whether the microphone icon is part of the recording state."""
+        """Return the legacy microphone-visibility preference."""
         return self._microphone_enabled
+
+    @staticmethod
+    def _format_elapsed(seconds: int) -> str:
+        seconds = max(0, int(seconds))
+        minutes, seconds = divmod(seconds, 60)
+        if minutes < 60:
+            return f"{minutes:02d}:{seconds:02d}"
+
+        hours, minutes = divmod(minutes, 60)
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+    def _reset_elapsed(self):
+        self._elapsed_timer.stop()
+        self._elapsed_clock.invalidate()
+        self.elapsed.setText("00:00")
+
+    def _start_elapsed(self):
+        self._elapsed_clock.start()
+        self.elapsed.setText("00:00")
+        self._elapsed_timer.start()
+
+    def _update_elapsed(self):
+        if self._state != "recording" or not self._elapsed_clock.isValid():
+            return
+        self.elapsed.setText(self._format_elapsed(self._elapsed_clock.elapsed() // 1000))
 
     def show_pending(self):
         self._state = "pending"
+        self._reset_elapsed()
+        self.bar.stop_activity()
         self.bar.setLevel(0)
-        self.mic.setVisible(False)
+        self.elapsed.setVisible(False)
         self.bar.setVisible(False)
         self.dot.setVisible(True)
         self.dot.set_pending()
         self.show()
 
     def show_recording(self):
+        already_recording = self._state == "recording"
         self._state = "recording"
-        self.mic.setVisible(self._microphone_enabled)
+        if not already_recording:
+            self._start_elapsed()
+        self.elapsed.setVisible(True)
         self.bar.setVisible(True)
         self.dot.setVisible(True)
+        self.bar.start_activity()
         self.dot.set_active()
         self.show()
 
     def hide_widget(self):
         self._state = "idle"
+        self._reset_elapsed()
+        self.bar.stop_activity()
         self.bar.setLevel(0)
         self.dot.reset()
         self.hide()

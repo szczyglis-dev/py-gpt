@@ -200,6 +200,12 @@ class Launcher:
             except Exception:
                 pass
             self._preloader = None
+        # Closing the separate splash process can reactivate the Windows console.
+        # Request GUI focus after it has closed, rather than only at first paint.
+        if sys.platform == "win32" and self.window is not None:
+            if self.window.isVisible() and not self.window.isMinimized():
+                self.window.raise_()
+                self.window.activateWindow()
 
     def add_plugin(self, plugin: BasePlugin):
         """

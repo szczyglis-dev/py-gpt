@@ -56,7 +56,7 @@ def test_handle_cmd_syntax(mock_window):
     event.ctx = ctx
     plugin.handle(event)
     names = [item["cmd"] for item in event.data["cmd"]]
-    assert len(names) == 26
+    assert len(names) == 25
     assert "deliver_file_to_user" in names
     assert "attach_runtime_file" in names
     assert "runtime_artifacts" in names

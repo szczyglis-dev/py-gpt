@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 10:15:00                  #
+# Updated Date: 2026.10.01 00:45:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,7 @@ import os
 from pygpt_net.plugin.base.plugin import BasePlugin
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_V2
 
 from .config import Config
 from .output import Output
@@ -191,13 +192,27 @@ class Plugin(BasePlugin):
         """Check whether the enabled Code Interpreter uses sandboxed legacy Python."""
         return self.get_code_interpreter_sandbox_modes()[1]
 
+    def is_runtime_attach_mode(self, mode: str = None) -> bool:
+        """Return True only for modes that own the runtime attachment loop."""
+        try:
+            current_mode = mode or self.window.core.config.get("mode")
+            return current_mode in (MODE_AGENT_V2, MODE_AGENT_LLAMA)
+        except Exception:
+            return False
+
     def cmd_syntax(self, data: dict):
         """
         Event: CMD_SYNTAX
 
         :param data: event data dict
         """
+        runtime_attach_allowed = self.is_runtime_attach_mode(data.get("mode"))
         for option in self.allowed_cmds:
+            # Runtime-only file attachment is an agent transport primitive, not
+            # a general Chat file tool. Normal user attachments are already
+            # included in the model request by the chat/vision pipeline.
+            if option == "attach_runtime_file" and not runtime_attach_allowed:
+                continue
             if self.has_cmd(option):
                 data['cmd'].append(self.get_cmd(option))  # append command
 

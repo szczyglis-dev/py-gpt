@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 22:05:00                  #
+# Updated Date: 2026.09.30 23:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QSize
@@ -78,10 +78,8 @@ class NotepadWidget(QWidget):
         self.mic_button.clicked.connect(self.toggle_microphone)
 
         # Reuse the same input recording widget as ChatInput so colors,
-        # level rendering and animations stay identical. The Notepad already
-        # has its own central mic button, so suppress the widget's mic icon.
+        # elapsed time, level rendering and animations stay identical.
         self.record_status = InputRecordWidget(self.window, self)
-        self.record_status.set_microphone_enabled(False)
 
         # Reserve equal fixed-width side slots at all times. The right slot
         # remains in the layout even while the status widget itself is hidden,

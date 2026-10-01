@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 17:35:00                  #
+# Updated Date: 2026.10.01 00:45:00                  #
 # ================================================== #
 
 import fnmatch
@@ -50,6 +50,25 @@ class Worker(BaseWorker):
                 try:
                     response = None
                     if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+                        # Runtime-only attachment is intentionally exposed only
+                        # in Agents v2 and Custom agents. Keep this execution
+                        # guard before filesystem security so stale/hallucinated
+                        # calls from normal Chat cannot turn an already-authorized
+                        # user attachment into an out-of-workdir permission error.
+                        if (
+                                item["cmd"] == "attach_runtime_file"
+                                and not self.plugin.is_runtime_attach_mode(
+                                    getattr(self.ctx, "mode", None)
+                                )
+                        ):
+                            responses.append(self.make_response(
+                                item,
+                                "attach_runtime_file is available only in agents. "
+                                "Images already supplied by the user through the chat attachment UI are handled "
+                                "by the system chat/vision pipeline and must not be re-attached through this tool.",
+                            ))
+                            continue
+
                         self.check_security(item)
 
                         # save file

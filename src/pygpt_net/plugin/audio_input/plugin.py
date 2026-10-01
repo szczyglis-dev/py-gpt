@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.02 19:40:00                  #
+# Updated Date: 2026.10.01 00:45:00                  #
 # ================================================== #
 
 import os
@@ -177,6 +177,13 @@ class Plugin(BasePlugin):
             self.window.controller.packages.install(
                 ["openai-whisper"], callback=self._whisper_packages_installed,
             )
+            return False
+
+        # openai-whisper invokes the external ffmpeg executable from
+        # whisper/audio.py. On Windows, fail early with a useful message instead
+        # of allowing subprocess.Popen to surface an opaque [WinError 2] later.
+        if not provider.is_ffmpeg_available():
+            self.window.ui.dialogs.alert(provider.get_ffmpeg_message())
             return False
 
         model_name = provider.get_model_name()
@@ -651,18 +658,14 @@ class Plugin(BasePlugin):
             else:
                 self.set_status('...')
                 self.window.update_status(trans('audio.speak.sending'))
-                prefix = ""
-                if self.window.controller.agent.legacy.enabled():
-                    prefix = "user: "
 
-                context = BridgeContext()
-                context.prompt = prefix + text
-                extra = {}
-                event = KernelEvent(KernelEvent.INPUT_SYSTEM, {
-                    'context': context,
-                    'extra': extra,
-                })
-                self.window.dispatch(event)  # send text, input clear in send method
+                # Voice input is user input. Route the transcript through the same
+                # composer pipeline as Send/Enter instead of the legacy
+                # INPUT_SYSTEM shortcut. The normal path owns request/chat pinning,
+                # USER_SEND hooks, preprocessing, SEND_INIT and kernel resume after
+                # a previous STOP. The transcript is already in the input widget,
+                # so send_input() can serialize and submit it exactly like typed text.
+                self.window.controller.chat.input.send_input()
                 self.set_status('')
 
     def handle_realtime_stopped(self):
