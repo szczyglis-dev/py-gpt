@@ -148,8 +148,9 @@ def test_get_app_meta_queries_expected_keys(monkeypatch):
 
     assert meta["version"] == "value:__version__"
     assert meta["github"] == "value:__github__"
+    assert meta["addons"] == "value:__addons__"
     assert meta["report"] == "value:__report__"
-    assert getter.call_count == 16
+    assert getter.call_count == 17
 
 
 def test_parse_args_invalid_values_and_native_collections():

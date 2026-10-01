@@ -110,6 +110,10 @@ class Info:
         """Open GitHub page in the system browser."""
         self.open_external_url(self.window.meta['github'])
 
+    def goto_addons(self):
+        """Open the Add-ons repository in the system browser."""
+        self.open_external_url(self.window.meta['addons'])
+
     def goto_snap(self):
         """Open Snapcraft page in the system browser."""
         self.open_external_url(self.window.meta['snap'])

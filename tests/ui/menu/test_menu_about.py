@@ -23,7 +23,7 @@ def test_setup_registers_info_and_donate_actions_and_menus():
         menuBar=MagicMock(),
     )
     window.menuBar.return_value.addMenu.return_value = about_menu
-    actions = [_action() for _ in range(16)]
+    actions = [_action() for _ in range(17)]
 
     with patch("pygpt_net.ui.menu.about.QAction", side_effect=actions) as action_cls, \
          patch("pygpt_net.ui.menu.about.QIcon", return_value=MagicMock()), \
@@ -34,13 +34,15 @@ def test_setup_registers_info_and_donate_actions_and_menus():
 
     expected = {
         "info.about", "info.changelog", "info.updates", "info.report", "info.website", "info.docs",
-        "info.pypi", "info.snap", "info.ms_store", "info.github", "info.discord", "info.license",
+        "info.pypi", "info.snap", "info.ms_store", "info.github", "info.addons", "info.discord", "info.license",
         "info.system_info", "donate.coffee", "donate.paypal", "donate.github", "menu.about", "menu.donate",
     }
     assert expected <= set(window.ui.menu)
     assert window.ui.menu["menu.about"] is about_menu
     assert window.ui.menu["menu.donate"] is donate_menu
     about_menu.addActions.assert_called_once()
+    about_actions = about_menu.addActions.call_args.args[0]
+    assert about_actions.index(window.ui.menu["info.addons"]) < about_actions.index(window.ui.menu["info.discord"])
     donate_menu.addActions.assert_called_once()
 
 
@@ -53,7 +55,7 @@ def test_setup_callbacks_dispatch_to_info_controller_and_launcher():
         menuBar=MagicMock(),
     )
     window.menuBar.return_value.addMenu.return_value = about_menu
-    actions = [_action() for _ in range(16)]
+    actions = [_action() for _ in range(17)]
     with patch("pygpt_net.ui.menu.about.QAction", side_effect=actions) as action_cls, \
          patch("pygpt_net.ui.menu.about.QIcon", return_value=MagicMock()), \
          patch("pygpt_net.ui.menu.about.trans", side_effect=lambda key: key):
@@ -69,6 +71,7 @@ def test_setup_callbacks_dispatch_to_info_controller_and_launcher():
     fire("info.system_info")
     fire("info.updates")
     fire("info.docs")
+    fire("info.addons")
     fire("donate.github")
 
     info.toggle.assert_any_call("about", width=400, height=500)
@@ -76,4 +79,5 @@ def test_setup_callbacks_dispatch_to_info_controller_and_launcher():
     info.toggle.assert_any_call("system_info", width=620, height=440)
     launcher.check_updates.assert_called_once()
     info.goto_docs.assert_called_once()
+    info.goto_addons.assert_called_once()
     info.donate.assert_called_once_with("github")

@@ -46,6 +46,7 @@ class About:
         m['info.snap'] = QAction(icon_public, trans("menu.info.snap"), w)
         m['info.ms_store'] = QAction(icon_public, trans("menu.info.ms_store"), w)
         m['info.github'] = QAction(icon_public, trans("menu.info.github"), w)
+        m['info.addons'] = QAction(icon_public, trans("menu.info.addons"), w)
         m['info.discord'] = QAction(icon_public, trans("menu.info.discord"), w)
         m['info.license'] = QAction(icon_info, trans("menu.info.license"), w)
         m['info.system_info'] = QAction(icon_system, trans("menu.info.system_info"), w)
@@ -73,6 +74,7 @@ class About:
         m['info.snap'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_snap())
         m['info.ms_store'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_ms_store())
         m['info.github'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_github())
+        m['info.addons'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_addons())
         m['info.discord'].triggered.connect(lambda checked=False, i=dlg_info: i.goto_discord())
         m['info.license'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('license', width=500, height=480))
         m['info.system_info'].triggered.connect(lambda checked=False, i=dlg_info: i.toggle('system_info', width=620, height=440))
@@ -89,6 +91,7 @@ class About:
             m['info.pypi'],
             m['info.snap'],
             m['info.ms_store'],
+            m['info.addons'],
             m['info.discord'],
             m['info.license'],
             m['info.system_info'],

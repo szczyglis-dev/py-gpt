@@ -467,6 +467,7 @@ class Mapping:
         menu_text['info.snap'] = 'menu.info.snap'
         menu_text['info.website'] = 'menu.info.website'
         menu_text['info.github'] = 'menu.info.github'
+        menu_text['info.addons'] = 'menu.info.addons'
         menu_text['info.report'] = 'menu.info.report'
         menu_text['menu.audio.section.audio'] = 'menu.audio.section.audio'
         menu_text['menu.audio.section.video'] = 'menu.audio.section.video'

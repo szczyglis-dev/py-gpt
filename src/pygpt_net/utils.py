@@ -206,6 +206,7 @@ def get_app_meta() -> dict:
     """
     return {
         'github': get_init_value("__github__"),
+        'addons': get_init_value("__addons__"),
         'website': get_init_value("__website__"),
         'docs': get_init_value("__documentation__"),
         'pypi': get_init_value("__pypi__"),
