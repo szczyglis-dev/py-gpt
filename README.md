@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.36** | build: **2026-09-30** | Python: **>=3.10, <3.14**
+Release: **2.8.37** | build: **2026-10-01** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -2532,6 +2532,13 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+**2.8.37 (2026-10-01)**
+
+- Added SHA-256 integrity verification for public trusted Add-ons, including manifest/registry hash pinning and validation during installation.
+- Added helper scripts in `bin/` for generating SHA-256 signatures for community Add-ons and updated the Add-ons documentation accordingly.
+- Fixed main window frame and shadow rendering on Windows.
+- Fixed tray menu focus handling on Windows.
+- 
 **2.8.36 (2026-09-30)**
 
 - Moved external Add-ons to the shared application-wide `addons` directory, with automatic migration from profile workdirs.
@@ -2539,7 +2546,6 @@ may consume additional tokens that are not displayed in the main window.
 - Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
 - Improved Realtime + audio flow, stability and voice interaction handling.
 - Added a separate audio input level bar for microphone input.
-- Added a right-click hint to the New context button and a new `Config -> Open global base dir` option.
 
 **2.8.35 (2026-09-29)**
 
@@ -2553,59 +2559,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added comprehensive Add-ons examples and API reference documentation. See **Documentation -> Add-ons API**.
 - Added various UI and CSS/QSS fixes and refinements.
 
-**2.8.34 (2026-09-28)**
-
-- Fixed LiteLLM issues by downgrading to version 1.81.16; fixed issue #214.
-- Added line numbers and annotations to file previews in the Files tab.
-- Added a recent chats list to the tray menu.
-- Added agent final result summaries to system notifications.
-- Added support for the `.agents` directory convention in Agents and Custom Agents.
-- Optimized file search in the Files tab.
-- Improved annotation handling.
-- Improved markers in Notepad.
-- Improved CSS/QSS styling.
-
-**2.8.33 (2026-09-27)**
-
-- Moved old legacy agent modes to Custom Agents; refactored legacy agent workflows; legacy agents now use the same runtime as Agents v2.
-- Added column sorting to the Files tool.
-- Added search engine support to the Canvas browser.
-- Added file preview and editing support to the Files tab.
-- Added filters and search input to the Skills, Connectors, and Add-ons lists.
-- Added pop-up daily notes to the Calendar tool.
-- Added annotations to the chat view via RMB → Annotate for AI.
-- Moved the Skills menu to Config.
-- Refactored LLM providers; setup options were moved to provider classes.
-- Improved toolbox responsiveness.
-- UI fixes.
-
-**2.8.32 (2026-09-26)**
-
-- Added support for external **Add-ons** (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.
-- Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
-- Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
-- Fixed equal split-screen column widths when enabling split-screen mode.
-- Agent Workflow tool connected to legacy agents.
-- Added auto-updater.
-- UI improvements.
-
-**2.8.31 (2026-09-25)**
-
-- Refactored and improved tab management.
-- Refactored and improved message rendering and event flow.
-- Improved the Canvas plugin.
-- Added the ability to send sketches and images directly from Painter to the model in real time via the Canvas plugin.
-- Improved and fixed runtime attachment and image handling.
-- Optimized memory usage and Python module initialization.
-- Added a new Jev / System One plugin - see the documentation for more information.
-- Various UI fixes and improvements.
-- Other fixes and improvements.
-
-**2.8.30 (2026-09-24)**
-
-- Added a new **Canvas (inline)** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. As an inline plugin, it works independently of the global **Tools** switch. See the new **Canvas** section in the documentation for details.
-- The chat input field is now pinned to its corresponding chat column.
-- Added support for new models: **Claude Opus 5.5**, **GPT-6 Sol**, and **GPT-6 Luna**.
 
 # Credits and links
 
