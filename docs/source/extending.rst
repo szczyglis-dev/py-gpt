@@ -137,7 +137,7 @@ Add-on IDs should be globally unique. For add-ons intended for distribution, use
 
 ``external_dependencies`` declares application-runtime Python dependencies. Version 1 accepts either normal requirement strings or objects with at least ``name`` and optional ``version`` / ``optional`` fields. Required missing dependencies are resolved through the shared ``Config -> Package Manager`` flow and installed into the application-wide, Python-version-specific ``extra_packages/<major.minor>`` directory. Optional dependencies are not installed automatically. Direct package URLs are rejected; use package names and version constraints.
 
-For public releases, generate the content pin with ``bin/addon-sha256.sh <addon-dir> --write`` on Linux/macOS or ``bin\addon-sha256.bat <addon-dir> --write`` on Windows, commit the resulting manifest, and place the same digest in the public registry entry. The digest covers the complete Add-on tree and a canonicalized ``manifest.json`` with only its own ``sha256`` field omitted. Any later file change requires a new digest and a new registry PR. PyGPT verifies a pinned package before dependency installation and refuses a mismatching trusted package.
+For public releases, generate the content pin with ``bin/addon-sha256.sh <addon-dir> --write`` on Linux/macOS or ``bin\addon-sha256.bat <addon-dir> --write`` on Windows, commit the resulting manifest, create an immutable release tag such as ``v1.0.0`` for that exact commit, and place both the same digest and that tag in the public registry entry. The digest covers the complete Add-on tree and a canonicalized ``manifest.json`` with only its own ``sha256`` field omitted. Any later file change requires a new release tag, a new digest and a new registry PR. PyGPT verifies a pinned package before dependency installation and refuses a mismatching trusted package.
 
 Entrypoints
 ~~~~~~~~~~~
@@ -244,7 +244,7 @@ A standalone add-on repository should keep ``manifest.json`` in its repository r
    tools/example_tool/manifest.json
    themes/example-theme-dark/manifest.json
 
-Users can paste a normal GitHub tree URL that includes the subdirectory, for example ``https://github.com/owner/repo/tree/main/plugins/example_plugin``. PyGPT also accepts a direct repository-subdirectory URL such as ``https://github.com/owner/repo/plugins/example_plugin`` and resolves that path against the repository default branch. Registry entries can specify the repository and path separately with ``github_url`` and ``github_path``. For add-ons stored directly in the official ``py-gpt-addons`` repository, ``github_url`` may be omitted and only ``github_path``/``path`` (for example ``./plugins/example_plugin``) is required.
+Users can paste a normal GitHub tree URL that includes the subdirectory, for example ``https://github.com/owner/repo/tree/v1.0.0/plugins/example_plugin``. PyGPT also accepts a direct repository-subdirectory URL such as ``https://github.com/owner/repo/plugins/example_plugin`` and resolves that path against the repository default branch. Registry entries can specify the repository, package path and source revision separately with ``github_url``, ``github_path`` and ``ref``. For add-ons stored directly in the official ``py-gpt-addons`` repository, ``github_url`` may be omitted and only ``github_path``/``path`` (for example ``./plugins/example_plugin``) is required.
 
 Publishing in the official registry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -264,12 +264,14 @@ A registry entry can look like this:
      "type": "plugin",
      "github_url": "https://github.com/example/pygpt-add-ons",
      "github_path": "plugins/example_plugin",
-     "ref": "main",
+     "ref": "v1.0.0",
      "trusted": false,
      "official": false
    }
 
-``github_path`` is optional when ``github_url`` points directly at a standalone add-on repository. Conversely, when an entry points to a directory inside the official ``py-gpt-addons`` repository, ``github_url`` can be omitted and ``github_path`` or ``path`` can contain a relative path such as ``./plugins/example_plugin``. ``ref`` is also optional; when omitted, PyGPT resolves the repository's default branch. ``trusted`` and ``official`` are registry-maintainer metadata and should not be self-declared as a security guarantee by third-party authors.
+``github_path`` is optional when ``github_url`` points directly at a standalone add-on repository. Conversely, when an entry points to a directory inside the official ``py-gpt-addons`` repository, ``github_url`` can be omitted and ``github_path`` or ``path`` can contain a relative path such as ``./plugins/example_plugin``. For manual/local GitHub imports ``ref`` may be omitted and PyGPT then resolves the repository's default branch, but **public registry submissions must use an immutable release ref**, preferably a version tag such as ``v1.0.0`` (an exact commit SHA is also acceptable). Do not publish a registry entry pointing to ``main``/``master`` or another moving branch. ``trusted`` and ``official`` are registry-maintainer metadata and should not be self-declared as a security guarantee by third-party authors.
+
+Create and push the release tag before opening the registry PR and never move, overwrite or delete a tag referenced by an accepted registry entry. This keeps the currently approved version downloadable while development continues on the default branch and while a later release is waiting for registry review. A versioned GitHub subdirectory URL therefore looks like ``https://github.com/user/repo/tree/v1.0.0/plugin``.
 
 The top-level registry document has this shape:
 

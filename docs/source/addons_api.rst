@@ -227,6 +227,10 @@ On Windows:
 
 Generate the digest from the exact content that will be committed/published. Since file bytes are protected, local line-ending conversions must not produce content different from the repository revision PyGPT will download.
 
+For public registry releases, the SHA-256 pin must be paired with an **immutable Git ref**. Create a release tag such as ``v1.0.0`` for the exact commit/tree that was hashed and use that tag as the registry ``ref``. Do not point a published registry entry at ``main``, ``master`` or another moving branch: if that branch changes while the registry still contains the previous SHA-256, the previously approved version can no longer be downloaded successfully. An exact commit SHA is also acceptable, but a version tag is usually easier for users and maintainers to read.
+
+Release tags used by the public registry must be treated as immutable: create/push the tag before opening the registry PR, and do not move, overwrite or delete it after review. Development may continue normally on ``main``/``master`` after the release tag is created.
+
 Runtime-only fields
 ~~~~~~~~~~~~~~~~~~~
 
@@ -658,7 +662,7 @@ The registry root must contain an ``addons`` array:
          "type": "plugin",
          "github_url": "https://github.com/example/my-pygpt-addons",
          "github_path": "plugins/githubuser_project_my_plugin",
-         "ref": "main",
+         "ref": "v1.0.0",
          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
          "trusted": false,
          "official": false
@@ -683,9 +687,11 @@ For a package stored directly in the official ``py-gpt-addons`` repository, a co
      "official": true
    }
 
-Every public registry entry must pin the exact Add-on contents with ``sha256``. Put the generated digest in the upstream ``manifest.json`` first, commit that manifest with the release, and copy the identical value into ``addons.json``. The public registry rejects/ignores entries without a valid pin, and ``trusted`` installation additionally requires the upstream manifest to carry the same pin. Integrity verification is performed before dependency installation or Add-on code loading.
+Every public registry entry must pin the exact Add-on contents with ``sha256`` **and an immutable source revision**. Put the generated digest in the upstream ``manifest.json`` first, commit the release, create an immutable version tag such as ``v1.0.0`` for that exact commit, and copy the identical digest plus the tag name into ``addons.json``. The public registry rejects/ignores entries without a valid pin, and ``trusted`` installation additionally requires the upstream manifest to carry the same pin. Integrity verification is performed before dependency installation or Add-on code loading.
 
-Third-party authors should keep their code in their own GitHub repository and submit only a registry link/metadata PR to ``py-gpt-addons``. **Every update to any file in the published Add-on tree requires a new digest and a new registry PR.** Until the updated registry entry is reviewed and merged, the old content pin prevents silently changed upstream content from installing as the reviewed revision.
+Do not use ``main``, ``master`` or another moving branch as ``ref`` for a public release. If the branch moves before the corresponding registry PR is merged, the registry still expects the old digest while GitHub serves the new tree, making the currently approved version temporarily impossible to install. A stable version tag avoids this availability gap. An exact commit SHA may be used instead when desired.
+
+Third-party authors should keep their code in their own GitHub repository and submit only a registry link/metadata PR to ``py-gpt-addons``. **Every update to any file in the published Add-on tree requires a new version/release ref, a new digest and a new registry PR.** The old release tag must remain available and unchanged. Until the updated registry entry is reviewed and merged, users continue downloading the previously approved tag and its matching content pin.
 
 When submitting a public package, document network/filesystem/shell/desktop access, credentials, external dependencies and other security-sensitive behavior. Keep the manifest version, registry version and SHA-256 pin in sync with the actual package release. See the ``CONTRIBUTING.md`` file in ``py-gpt-addons`` for the submission checklist.
 
