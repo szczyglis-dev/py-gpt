@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.27 23:30:00                  #
+# Updated Date: 2026.10.01 17:10:00                  #
 # ================================================== #
 
 import os
@@ -116,6 +116,11 @@ class WindowChrome(QObject):
         self._manual_resize_geometry = QRect()
         self._manual_grab_widget = None
 
+    def _uses_native_resize_frame(self) -> bool:
+        """Return True when Win32 owns edge/corner resize hit testing."""
+        native = getattr(self.window, "native_window_frame", None)
+        return bool(native is not None and getattr(native, "is_active", False))
+
     def setup(self):
         """Attach window controls and local move/resize handlers."""
         self.menu_bar = self.window.menuBar()
@@ -127,7 +132,7 @@ class WindowChrome(QObject):
 
             layout = QHBoxLayout(self.container)
             # Keep native-like window controls compact in the right corner.
-            layout.setContentsMargins(0, 5, 0, 0)
+            layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(0)
 
             # Profile belongs to the left side of the menu bar, immediately
@@ -167,6 +172,7 @@ class WindowChrome(QObject):
             layout.addWidget(self.btn_close)
 
             self.container.setStyleSheet(
+                "QWidget#windowControls { margin: 0; padding: 0; border: 0; }"
                 "QPushButton {"
                 "  border: 0;"
                 "  border-radius: 0px;"
@@ -196,8 +202,12 @@ class WindowChrome(QObject):
         self.menu_bar.installEventFilter(self)
         self._track_menu_actions()
         self._install_drag_filters()
-        self._setup_resize_handles()
-        self._setup_resize_grip()
+        # WindowsNativeFrame uses WM_NCHITTEST/WS_THICKFRAME for genuine native
+        # resizing. Keep the transparent Qt handles and QSizeGrip only as the
+        # cross-platform/fallback implementation.
+        if not self._uses_native_resize_frame():
+            self._setup_resize_handles()
+            self._setup_resize_grip()
         self.refresh_metadata()
         self.update_state()
         QTimer.singleShot(0, self.refresh)
@@ -225,6 +235,21 @@ class WindowChrome(QObject):
     def _schedule_profile_position(self):
         """Queue placement after Qt has recalculated menu action geometry."""
         QTimer.singleShot(0, self._position_profile_label)
+        QTimer.singleShot(0, self._position_controls)
+
+    def _position_controls(self):
+        """Cover the full menu-bar height, including style corner insets."""
+        if self.menu_bar is None or self.container is None:
+            return
+        height = self.menu_bar.height()
+        side = max(self.BUTTON_HEIGHT, height)
+        for button in (self.btn_minimize, self.btn_maximize, self.btn_close):
+            # Keep height flexible: fixing it feeds the corner widget's size
+            # hint back into QMenuBar and grows the bar on every layout pass.
+            button.setFixedWidth(side)
+        width = side * 3
+        self.container.setGeometry(max(0, self.menu_bar.width() - width), 0, width, height)
+        self.container.raise_()
 
     def _make_meta_label(
         self,
@@ -321,7 +346,9 @@ class WindowChrome(QObject):
         button.setText("")
         button.setFocusPolicy(Qt.NoFocus)
         button.setCursor(Qt.ArrowCursor)
-        button.setFixedSize(self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
+        button.setFixedWidth(self.BUTTON_WIDTH)
+        button.setMinimumHeight(self.BUTTON_HEIGHT)
+        button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         button.setIconSize(QSize(self.ICON_SIZE, self.ICON_SIZE))
         button.setIcon(self._icon(icon_name))
         button.clicked.connect(callback)

@@ -11,7 +11,7 @@
 
 import os
 
-from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory, QEventLoop
+from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt, QLoggingCategory, QEventLoop, QRect
 from PySide6.QtGui import QShortcut, QKeySequence, QKeyEvent
 from PySide6.QtWidgets import QMainWindow, QApplication
 from qt_material import QtStyleTools
@@ -23,11 +23,16 @@ from pygpt_net.tools import Tools
 from pygpt_net.ui import UI
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
 from pygpt_net.ui.widget.window_chrome import WindowChrome
+from pygpt_net.ui.widget.windows_native_frame import WindowsNativeFrame
 from pygpt_net.utils import get_app_meta, freeze_updates, set_env, has_env, get_env, trans
 
 
 # Set to False to use the native system window frame/title bar.
 WINDOW_FRAMELESS = True
+
+# Maximum fraction of the current screen work area used when restoring
+# a maximized window to its normal state.
+RESTORE_MAX_SCREEN_RATIO = 0.85
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -52,12 +57,21 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param args: launcher arguments
         """
         super().__init__()
+        self.native_window_frame = None
         # Optional borderless main window. Set WINDOW_FRAMELESS = False above
         # to fall back to the native system frame/title bar for platform testing.
         # Do not add native min/max/close hints in frameless mode - on Linux they
         # may request server-side decorations again.
         if WINDOW_FRAMELESS:
-            self.setWindowFlag(Qt.FramelessWindowHint, True)
+            if WindowsNativeFrame.is_supported():
+                # Let Qt create and maintain a normal DWM window on Windows.
+                # Our native handler removes the caption instead of asking Qt
+                # for a frameless HWND and restoring its styles afterwards.
+                self.native_window_frame = WindowsNativeFrame(self)
+                if not self.native_window_frame.setup():
+                    self.setWindowFlag(Qt.FramelessWindowHint, True)
+            else:
+                self.setWindowFlag(Qt.FramelessWindowHint, True)
         self.app = app
         self.args = args
         self.timer = None
@@ -253,6 +267,8 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def showEvent(self, e):
         super().showEvent(e)
+        if self.native_window_frame is not None:
+            self.native_window_frame.refresh()
         QTimer.singleShot(0, self.ui.on_show)
         if getattr(self, "window_chrome", None) is not None:
             QTimer.singleShot(0, self.window_chrome.refresh)
@@ -427,6 +443,60 @@ class MainWindow(QMainWindow, QtStyleTools):
         print(f"⭐☕ {trans('exit.msg')} https://pygpt.net/#donate ☕⭐")
         print("")
 
+    def _limit_restored_window_size(self):
+        """Limit a restored window to 85% of the current screen work area."""
+        if self.isMaximized() or self.isMinimized() or self.isFullScreen():
+            return
+
+        screen = None
+        handle = self.windowHandle()
+        if handle is not None:
+            screen = handle.screen()
+        if screen is None:
+            screen = QApplication.screenAt(self.frameGeometry().center())
+        if screen is None:
+            screen = QApplication.primaryScreen()
+        if screen is None:
+            return
+
+        available = screen.availableGeometry()
+        current = self.geometry()
+        if (
+                not available.isValid()
+                or available.isEmpty()
+                or not current.isValid()
+                or current.width() <= 0
+                or current.height() <= 0
+        ):
+            return
+
+        max_width = max(1, int(available.width() * RESTORE_MAX_SCREEN_RATIO))
+        max_height = max(1, int(available.height() * RESTORE_MAX_SCREEN_RATIO))
+        if current.width() <= max_width and current.height() <= max_height:
+            return
+
+        scale = min(
+            1.0,
+            max_width / float(current.width()),
+            max_height / float(current.height()),
+        )
+        width = max(self.minimumWidth(), int(round(current.width() * scale)))
+        height = max(self.minimumHeight(), int(round(current.height() * scale)))
+
+        target = QRect(0, 0, width, height)
+        target.moveCenter(current.center())
+
+        if target.left() < available.left():
+            target.moveLeft(available.left())
+        if target.top() < available.top():
+            target.moveTop(available.top())
+        if target.right() > available.right():
+            target.moveRight(available.right())
+        if target.bottom() > available.bottom():
+            target.moveBottom(available.bottom())
+
+        self.setGeometry(target)
+
     def changeEvent(self, event):
         """
         Handle window state change event
@@ -434,14 +504,28 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param event: Event
         """
         if event.type() == QEvent.WindowStateChange:
+            old_state = event.oldState()
+            if getattr(self, "native_window_frame", None) is not None:
+                QTimer.singleShot(0, self.native_window_frame.refresh)
             if getattr(self, "window_chrome", None) is not None:
                 QTimer.singleShot(0, self.window_chrome.update_state)
+
+            # Qt restores the normal geometry as part of processing the state
+            # change, therefore clamp it on the next event-loop iteration.
+            if (
+                    bool(old_state & Qt.WindowMaximized)
+                    and not self.isMaximized()
+                    and not self.isMinimized()
+                    and not self.isFullScreen()
+            ):
+                QTimer.singleShot(0, self._limit_restored_window_size)
+
             if self.isMinimized() and self.core.config.get('layout.tray.minimize'):
                 self.ui.tray_menu['restore'].setVisible(True)
                 self.hide()
                 event.ignore()
             else:
-                self.prevState = event.oldState()
+                self.prevState = old_state
 
     def tray_toggle(self):
         """Toggle tray icon"""
@@ -464,13 +548,14 @@ class MainWindow(QMainWindow, QtStyleTools):
                     self.showMinimized()
 
     def restore(self):
-        """Restore window"""
-        if self.isFullScreen():
-            self.showFullScreen()
-        elif self.prevState == Qt.WindowMaximized or self.isMaximized():
-            self.showMaximized()
-        else:
-            self.showNormal()
+        """Show and focus the window while preserving its current size/state."""
+        # prevState describes the last transition, not the desired window size.
+        # After leaving maximized mode it still contains WindowMaximized, so
+        # using it here would maximize a normal window after a screenshot.
+        if self.isMinimized():
+            self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
+        self.show()
+        self.raise_()
         self.activateWindow()
         self.ui.tray_menu['restore'].setVisible(False)
 

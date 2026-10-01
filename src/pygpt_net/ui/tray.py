@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 11:15:00                  #
+# Updated Date: 2026.10.01 16:55:00                  #
 # ================================================== #
 
 import re
@@ -20,6 +20,7 @@ from pygpt_net.utils import trans
 
 
 class Tray:
+    REGION_SELECTOR_SHOW_DELAY_MS = 50
     REGION_CAPTURE_HIDE_DELAY_MS = 75
     RECENT_CONTEXTS_LIMIT = 5
     RECENT_CONTEXT_TITLE_LIMIT = 20
@@ -165,9 +166,26 @@ class Tray:
         # menu and show an internal scroll area on the first opening.
         self.refresh_recent_contexts()
         menu.adjustSize()
-        self.icon.activated.connect(w.tray_toggle)
+        self.icon.activated.connect(self.on_tray_activated)
         self.icon.setContextMenu(menu)
         self.icon.show()
+
+    def on_tray_activated(self, reason):
+        """Handle tray clicks without activating the main window for context-menu requests."""
+        # QSystemTrayIcon.activated is emitted for more than a normal left click.
+        # In particular, Windows emits Context when the tray context menu is
+        # requested. Connecting the signal directly to MainWindow.tray_toggle()
+        # therefore restored/activated PyGPT behind the menu, which made region
+        # screenshots capture the PyGPT window instead of the previously active
+        # application. Only the explicit primary activation should toggle PyGPT.
+        try:
+            trigger = QSystemTrayIcon.ActivationReason.Trigger
+        except AttributeError:
+            # Compatibility with bindings exposing the enum value directly.
+            trigger = QSystemTrayIcon.Trigger
+
+        if reason == trigger:
+            self.window.tray_toggle()
 
     def shutdown(self):
         """Hide and detach the system tray icon during application shutdown."""
@@ -364,7 +382,13 @@ class Tray:
             self.make_region_screenshot(region, geometry, index)
         )
         selector.cancelled.connect(self.cancel_region_screenshot)
-        selector.show_selector()
+
+        # QAction.triggered fires while the native tray menu is still finishing
+        # its close/focus transition on Windows. Showing and activating the
+        # fullscreen selector immediately can make Windows foreground the PyGPT
+        # process first. Give the tray popup one event-loop turn to disappear so
+        # the selector is placed over the application that was active beforehand.
+        QTimer.singleShot(self.REGION_SELECTOR_SHOW_DELAY_MS, selector.show_selector)
 
     def make_region_screenshot(self, region, screen_geometry, screen_index: int = 0):
         """Capture the selected region after the selector overlay leaves the compositor."""
