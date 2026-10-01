@@ -81,6 +81,13 @@ provider flags an operation as requiring confirmation, PyGPT pauses the operatio
 in chat. The operation continues only after the user types ``continue``. When the option is disabled,
 provider safety acknowledgements are handled automatically as before.
 
+Add-on package integrity
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Public Add-ons are content-pinned with the deterministic ``PYGPT-ADDON-SHA256-V1`` tree digest described in :doc:`addons_api`. The public registry stores the expected ``sha256`` and the upstream Add-on manifest stores the same value. PyGPT verifies pinned content during installation: before installing dependencies and again after copying the package into the Add-ons tree. A ``trusted`` entry is rejected if either digest is missing or invalid, if registry and manifest values differ, or if the downloaded tree does not reproduce the expected digest. Already installed Add-ons are not re-hashed during startup or later loading because they may legitimately create cache, state or generated files in their own directory.
+
+This protects against silent changes to an upstream repository after a registry revision was reviewed. It is an integrity control, **not** a sandbox, malware scanner or proof that the reviewed code is safe. Python Add-ons still execute with PyGPT's process permissions. Any published Add-on update must therefore receive a new digest and a corresponding registry update/review.
+
 Reporting a Vulnerability
 -------------------------
 

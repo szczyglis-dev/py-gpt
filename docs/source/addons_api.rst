@@ -7,7 +7,7 @@ The examples shipped in the main repository under ``examples/addons`` and in the
 
 .. important::
 
-   Python Add-ons execute inside the PyGPT process and therefore have the same operating-system permissions as PyGPT. An Add-on can read files available to the process, use the network, import packages and call application APIs. ``trusted`` and ``official`` are catalog metadata, not a sandbox. Review third-party code before installation.
+   Python Add-ons execute inside the PyGPT process and therefore have the same operating-system permissions as PyGPT. An Add-on can read files available to the process, use the network, import packages and call application APIs. ``trusted`` and ``official`` are not a sandbox or a code-safety guarantee. Public-registry ``trusted`` entries are additionally content-pinned with SHA-256, so PyGPT can detect code changed after registry review, but a matching hash does not make the reviewed code harmless. Review third-party code before installation.
 
 What is an Add-on?
 ------------------
@@ -159,6 +159,7 @@ Manifest version ``1`` is currently supported.
      "name": "My Plugin",
      "description": "One sentence explaining what the Add-on does.",
      "version": "1.0.0",
+     "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
      "min_app_version": "2.8.35",
      "author": "Your Name",
      "contact": {
@@ -202,6 +203,29 @@ Required fields
 
 ``contact``
    Non-empty string, object or array. An object containing ``email``, ``repo`` and/or ``www`` is recommended.
+
+Integrity field: ``sha256``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``sha256`` is a 64-character hexadecimal SHA-256 content pin for one exact Add-on tree. It is optional for local/manual development packages, but **required for every Add-on submitted to the public ``py-gpt-addons`` registry**. A public registry entry stores the same digest. For an entry marked ``trusted: true``, installation is rejected if the registry digest or manifest digest is missing/invalid, if the two values differ, or if the downloaded files do not reproduce the digest.
+
+The digest uses the versioned ``PYGPT-ADDON-SHA256-V1`` algorithm. It hashes every regular file below the Add-on root recursively using sorted UTF-8 POSIX-style relative paths and byte-length framing. File payloads are hashed byte-for-byte. ``manifest.json`` is also protected, but before hashing it PyGPT parses the JSON, removes only the top-level ``sha256`` field and serializes the remaining object canonically (UTF-8, sorted keys, compact separators). This removes the circular self-reference while keeping fields such as ``entrypoint`` and ``external_dependencies`` inside the integrity check. ``.git`` metadata, permissions, timestamps and empty directories are not included; symlinks are rejected.
+
+The main PyGPT repository contains matching helper scripts. ``--write`` both computes the digest and writes it into ``manifest.json``; because the field itself is excluded from canonical manifest hashing, printing the digest again gives the same value.
+
+.. code-block:: bash
+
+   ./bin/addon-sha256.sh /path/to/addon --write
+   ./bin/addon-sha256.sh /path/to/addon
+
+On Windows:
+
+.. code-block:: bat
+
+   bin\addon-sha256.bat C:\path\to\addon --write
+   bin\addon-sha256.bat C:\path\to\addon
+
+Generate the digest from the exact content that will be committed/published. Since file bytes are protected, local line-ending conversions must not produce content different from the repository revision PyGPT will download.
 
 Runtime-only fields
 ~~~~~~~~~~~~~~~~~~~
@@ -306,7 +330,7 @@ Recommended:
 
 Do not package multiple unrelated Add-ons into one ZIP for the **Import from ZIP** flow. A repository may contain multiple Add-ons, but each installed package still has its own manifest root.
 
-PyGPT validates archive paths and rejects unsafe absolute/path-traversal entries. Very large archives are also limited by file-count/download safety limits.
+PyGPT validates archive paths and rejects unsafe absolute/path-traversal entries. Very large archives are also limited by file-count/download safety limits. If the package declares ``sha256``, its extracted tree must reproduce that digest before installation continues.
 
 Local testing
 -------------
@@ -635,6 +659,7 @@ The registry root must contain an ``addons`` array:
          "github_url": "https://github.com/example/my-pygpt-addons",
          "github_path": "plugins/githubuser_project_my_plugin",
          "ref": "main",
+         "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
          "trusted": false,
          "official": false
        }
@@ -653,11 +678,16 @@ For a package stored directly in the official ``py-gpt-addons`` repository, a co
      "version": "1.1.0",
      "type": "plugin",
      "path": "./plugins/example_plugin",
+     "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
      "trusted": true,
      "official": true
    }
 
-When submitting a public package, document network/filesystem/shell/desktop access, credentials, external dependencies and other security-sensitive behavior. Keep the manifest version and registry version in sync with the actual package release.
+Every public registry entry must pin the exact Add-on contents with ``sha256``. Put the generated digest in the upstream ``manifest.json`` first, commit that manifest with the release, and copy the identical value into ``addons.json``. The public registry rejects/ignores entries without a valid pin, and ``trusted`` installation additionally requires the upstream manifest to carry the same pin. Integrity verification is performed before dependency installation or Add-on code loading.
+
+Third-party authors should keep their code in their own GitHub repository and submit only a registry link/metadata PR to ``py-gpt-addons``. **Every update to any file in the published Add-on tree requires a new digest and a new registry PR.** Until the updated registry entry is reviewed and merged, the old content pin prevents silently changed upstream content from installing as the reviewed revision.
+
+When submitting a public package, document network/filesystem/shell/desktop access, credentials, external dependencies and other security-sensitive behavior. Keep the manifest version, registry version and SHA-256 pin in sync with the actual package release. See the ``CONTRIBUTING.md`` file in ``py-gpt-addons`` for the submission checklist.
 
 Application API available to Python Add-ons
 -------------------------------------------

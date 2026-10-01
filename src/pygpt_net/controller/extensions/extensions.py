@@ -13,7 +13,7 @@ import os
 
 from PySide6.QtCore import Qt, QThreadPool, QUrl, Slot
 from PySide6.QtGui import QDesktopServices, QIcon
-from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox, QTreeWidgetItem
+from PySide6.QtWidgets import QFileDialog, QInputDialog, QLabel, QMenu, QMessageBox, QTreeWidgetItem
 
 from pygpt_net.utils import trans
 from .worker import ExtensionsWorker
@@ -68,6 +68,35 @@ class Extensions:
         dialog.raise_()
         dialog.activateWindow()
 
+    def _make_trusted_badge(self, text: str) -> QLabel:
+        label = QLabel(str(text or ""))
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setContentsMargins(0, 0, 0, 0)
+        label.setMargin(0)
+        label.setStyleSheet(
+            "QLabel {"
+            "color: #ffffff;"
+            "padding: 2px 5px;"
+            "border-radius: 8px;"
+            "background-color: #2f8f46;"
+            "font-weight: 700;"
+            "}"
+        )
+        return label
+
+    def _set_trusted_badge(self, tree, item: QTreeWidgetItem, column: int, trusted: bool):
+        item.setText(column, trans("extensions.yes") if trusted else trans("extensions.no"))
+        if trusted:
+            tree.setItemWidget(item, column, self._make_trusted_badge(item.text(column)))
+        else:
+            tree.removeItemWidget(item, column)
+
+    def _set_official_text(self, item: QTreeWidgetItem, column: int, official: bool):
+        item.setText(column, trans("extensions.yes") if official else trans("extensions.no"))
+        font = item.font(column)
+        font.setBold(bool(official))
+        item.setFont(column, font)
+
     def refresh_installed(self):
         tree = self.window.ui.nodes.get("extensions.installed.list")
         if tree is None:
@@ -82,8 +111,8 @@ class Extensions:
             item.setText(2, str(ext.get("author") or ""))
             item.setText(3, str(ext.get("version") or ""))
             item.setText(4, str(ext.get("type") or ""))
-            item.setText(5, trans("extensions.yes") if ext.get("trusted") else trans("extensions.no"))
-            item.setText(6, trans("extensions.yes") if ext.get("official") else trans("extensions.no"))
+            self._set_trusted_badge(tree, item, 5, bool(ext.get("trusted")))
+            self._set_official_text(item, 6, bool(ext.get("official")))
             if not ext.get("_compatible", True):
                 item.setToolTip(0, trans("extensions.incompatible").format(version=ext.get("min_app_version")))
         self._apply_filters()
@@ -296,8 +325,8 @@ class Extensions:
                 item.setText(3, str(ext.get("author") or ""))
                 item.setText(4, str(ext.get("version") or ""))
                 item.setText(5, str(ext.get("type") or ""))
-                item.setText(6, trans("extensions.yes") if ext.get("trusted") else trans("extensions.no"))
-                item.setText(7, trans("extensions.yes") if ext.get("official") else trans("extensions.no"))
+                self._set_trusted_badge(tree, item, 6, bool(ext.get("trusted")))
+                self._set_official_text(item, 7, bool(ext.get("official")))
                 path = str(ext.get("github_path") or ext.get("path") or "")
                 source = str(ext.get("github_url") or ext.get("url") or "")
                 if not source and path:

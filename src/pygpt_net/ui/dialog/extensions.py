@@ -110,7 +110,7 @@ class Extensions:
         tree.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tree.customContextMenuRequested.connect(self.window.controller.extensions.show_installed_context_menu)
-        _configure_tree(tree, {0: 190, 1: 430, 2: 180, 3: 90, 4: 130, 5: 80, 6: 80})
+        _configure_tree(tree, {0: 190, 1: 340, 2: 150, 3: 90, 4: 130, 5: 82, 6: 80})
         nodes["extensions.installed.list"] = tree
 
         btn_zip = QPushButton(QIcon(":/icons/folder_open.svg"), trans("extensions.import.zip"))
@@ -161,7 +161,7 @@ class Extensions:
         ])
         tree.setRootIsDecorated(False); tree.setAlternatingRowColors(True)
         tree.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        _configure_tree(tree, {0: 28, 1: 190, 2: 390, 3: 160, 4: 85, 5: 120, 6: 75, 7: 75, 8: 350})
+        _configure_tree(tree, {0: 28, 1: 190, 2: 300, 3: 140, 4: 85, 5: 120, 6: 82, 7: 75, 8: 350})
         nodes["extensions.explore.list"] = tree
         install = QPushButton(QIcon(":/icons/download.svg"), trans("extensions.install_update"))
         install.setAutoDefault(False); install.setEnabled(False)

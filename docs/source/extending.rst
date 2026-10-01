@@ -74,7 +74,7 @@ You can change the registry URL in the **Explore** tab. A normal GitHub reposito
 
 .. warning::
 
-   External Python add-ons execute with the same process permissions as PyGPT. They can import Python modules, access files available to the process, use the network, and call any APIs exposed by installed dependencies. The **trusted** and **official** flags are registry metadata, not a sandbox or a security guarantee. Review source code and repository ownership before installing an add-on.
+   External Python add-ons execute with the same process permissions as PyGPT. They can import Python modules, access files available to the process, use the network, and call any APIs exposed by installed dependencies. The **trusted** and **official** flags are not a sandbox or a code-safety guarantee. Public-registry entries are content-pinned with SHA-256, and ``trusted`` entries must pass registry/manifest/content verification before installation, but this only proves that the downloaded tree is the reviewed tree. Review source code and repository ownership before installing an add-on.
 
 Python add-ons are loaded on application startup. After installing, updating or uninstalling one, restart PyGPT before relying on the runtime change. The installed Add-on set is shared by all profiles, so switching profiles does not select another Python Add-on tree. Theme and locale packages are global too and are read in place from the same application-wide Add-ons tree.
 
@@ -113,6 +113,7 @@ Manifest version ``1`` uses the following base structure:
      "name": "My Plugin",
      "description": "Example external PyGPT plugin.",
      "version": "1.2.0",
+     "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
      "min_app_version": "2.8.32",
      "author": "Example Author",
      "contact": {
@@ -126,7 +127,7 @@ Manifest version ``1`` uses the following base structure:
      ]
    }
 
-Required fields are ``manifest_version``, ``id``, ``type``, ``name``, ``description``, ``version``, ``min_app_version``, ``author`` and ``contact``. Python/runtime add-on types additionally require ``entrypoint``.
+Required fields are ``manifest_version``, ``id``, ``type``, ``name``, ``description``, ``version``, ``min_app_version``, ``author`` and ``contact``. Python/runtime add-on types additionally require ``entrypoint``. ``sha256`` is optional for local/manual packages but required when the Add-on is published through the public ``py-gpt-addons`` registry; a ``trusted`` registry entry also requires the upstream manifest to contain the same digest.
 
 ``id`` must contain only lowercase letters, digits, ``.``, ``_`` and ``-`` and must start with a letter or digit. ``version`` and ``min_app_version`` use normal PEP 440-compatible version strings.
 
@@ -135,6 +136,8 @@ Add-on IDs should be globally unique. For add-ons intended for distribution, use
 ``contact`` may be a string, object or list. Using an object is recommended so an email address, repository and website can be declared separately.
 
 ``external_dependencies`` declares application-runtime Python dependencies. Version 1 accepts either normal requirement strings or objects with at least ``name`` and optional ``version`` / ``optional`` fields. Required missing dependencies are resolved through the shared ``Config -> Package Manager`` flow and installed into the application-wide, Python-version-specific ``extra_packages/<major.minor>`` directory. Optional dependencies are not installed automatically. Direct package URLs are rejected; use package names and version constraints.
+
+For public releases, generate the content pin with ``bin/addon-sha256.sh <addon-dir> --write`` on Linux/macOS or ``bin\addon-sha256.bat <addon-dir> --write`` on Windows, commit the resulting manifest, and place the same digest in the public registry entry. The digest covers the complete Add-on tree and a canonicalized ``manifest.json`` with only its own ``sha256`` field omitted. Any later file change requires a new digest and a new registry PR. PyGPT verifies a pinned package before dependency installation and refuses a mismatching trusted package.
 
 Entrypoints
 ~~~~~~~~~~~
