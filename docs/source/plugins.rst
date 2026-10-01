@@ -2729,7 +2729,7 @@ See the ``Accessibility`` section for more details.
 Web search
 -----------
 
-The Web search plugin gives the model live web search, page retrieval and crawling tools using DuckDuckGo, Google Custom Search or Microsoft Bing. Retrieved web content can also be passed into LlamaIndex-based workflows where supported.
+The Web search plugin gives the model live web search, page retrieval and crawling tools using DuckDuckGo, Google Custom Search, Microsoft Bing or You.com. Retrieved web content can also be passed into LlamaIndex-based workflows where supported.
 
 **Options**
 
@@ -2740,6 +2740,7 @@ Available providers:
 - DuckDuckGo
 - Google
 - Microsoft Bing
+- You.com
 
 **DuckDuckGo**
 
@@ -2779,6 +2780,16 @@ These data must be configured in the appropriate fields in the ``Plugins / Setti
 - **Bing Search API KEY** *bing_api_key* - You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
 
 - **Bing Search API endpoint** *bing_endpoint* - API endpoint for Bing Search API. *Default:* ``https://api.bing.microsoft.com/v7.0/search``
+
+**You.com**
+
+- ``You.com API KEY`` *youcom_api_key*
+
+Optional. You can obtain your own API key at https://you.com/platform/api-keys - if left empty, the keyless endpoint is used.
+
+- ``You.com MCP endpoint`` *youcom_endpoint*
+
+You.com MCP endpoint, default: https://api.you.com/mcp?profile=free (keyless); use https://api.you.com/mcp with an API key.
 
 **General options**
 

@@ -8,6 +8,7 @@ Overview
 
 Beyond chat, PyGPT includes Agents with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
 
+
 *Dark theme*
 
 .. image:: images/v2_main.png
@@ -29,7 +30,7 @@ Features
 * Built-in vector-store support with automatic file, database-context, and data embedding.
 * Image generation with models such as ``gpt-image``, ``Imagen``, ``Gemini``, and ``Nano Banana``.
 * Video generation with models such as ``Veo3`` and ``Sora2``.
-* Web search via ``DuckDuckGo``, ``Google``, ``Microsoft Bing`` and remote web search.
+* Web search via ``DuckDuckGo``, ``Google``, ``Microsoft Bing``, ``You.com`` and remote web search.
 * Speech synthesis via ``OpenAI``, ``Microsoft Azure``, ``Google Cloud / GenAI``, ``Eleven Labs``, and ``xAI``.
 * Speech recognition via ``OpenAI Whisper`` (API or local), ``Google / Google Cloud / GenAI``, ``Microsoft Bing``, and ``xAI Grok Voice``.
 * Extensible plugin system with ``Files I/O``, ``Python interpreter``, ``Web search``, ``Google``, ``Facebook``, ``X/Twitter``, ``Slack``, ``Telegram``, ``GitHub``, ``MCP``, and more.

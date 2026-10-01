@@ -38,7 +38,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Built-in vector-store support with automatic file, database-context, and data embedding.
 - Image generation with models such as `gpt-image`, `Imagen`, `Gemini`, and `Nano Banana`.
 - Video generation with models such as `Veo3` and `Sora2`.
-- Web search via `DuckDuckGo`, `Google`, `Microsoft Bing` and remote web search.
+- Web search via `DuckDuckGo`, `Google`, `Microsoft Bing`, `You.com` and remote web search.
 - Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs`, and `xAI`.
 - Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing`, and `xAI Grok Voice`.
 - Extensible plugin system with `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and more.
@@ -1904,7 +1904,7 @@ See the `Accessibility` section for more details.
 
 ## Web search
 
-The Web search plugin gives the model live web search, page retrieval and crawling tools using DuckDuckGo, Google Custom Search or Microsoft Bing. Retrieved web content can also be passed into LlamaIndex-based workflows where supported.
+The Web search plugin gives the model live web search, page retrieval and crawling tools using DuckDuckGo, Google Custom Search, Microsoft Bing or You.com. Retrieved web content can also be passed into LlamaIndex-based workflows where supported.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#web-search
 
